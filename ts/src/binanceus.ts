@@ -14,7 +14,6 @@ export default class binanceus extends binance {
             'rateLimit': 50, // 1200 req per min
             'certified': false,
             'pro': true,
-            'hostname': 'binance.us',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg',
                 'api': {
@@ -83,7 +82,24 @@ export default class binanceus extends binance {
             'api': {
                 'public': {
                     'get': {
+                        'exchangeInfo': 10,
+                        'ping': 1,
+                        'time': 1,
+                        'depth': { 'cost': 1, 'byLimit': [ [ 100, 1 ], [ 500, 5 ], [ 1000, 10 ], [ 5000, 50 ] ] },
+                        'trades': 1,
+                        'aggTrades': 1,
+                        'historicalTrades': 5,
+                        'klines': 1,
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 },
+                        'avgPrice': 1,
+                        'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
+                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
+                        'ticker': { 'cost': 2, 'noSymbol': 100 },
+                    },
+                },
+                'private': {
+                    'get': {
+                        'status': 1,
                     },
                 },
             },
