@@ -1501,7 +1501,7 @@ export default class bitmex extends bitmexRest {
         //
         //     { "error": "Rate limit exceeded, retry in 29 seconds." }
         //
-        const error = this.safeValue (message, 'error');
+        const error = this.safeString (message, 'error');
         if (error !== undefined) {
             const request = this.safeValue (message, 'request', {});
             const args = this.safeValue (request, 'args', []);
@@ -1512,7 +1512,7 @@ export default class bitmex extends bitmexRest {
                 const broadKey = this.findBroadlyMatchedKey (broad, error);
                 let exception = undefined;
                 if (broadKey === undefined) {
-                    exception = new ExchangeError (error.toString ());
+                    exception = new ExchangeError ((error as string)); // c# requirement for now
                 } else {
                     exception = new broad[broadKey] (error);
                 }

@@ -177,10 +177,9 @@ export default class blockchaincom extends blockchaincomRest {
         //     }
         //
         const event = this.safeString (message, 'event');
-        if (event === 'subscribed') {
-            // return;
-        } else if (event === 'rejected') {
-            throw new ExchangeError (this.id + ' ' + this.json (message));
+        if (event === 'rejected') {
+            const jsonMessage = this.json (message);
+            throw new ExchangeError (this.id + ' ' + jsonMessage);
         } else if (event === 'updated') {
             const marketId = this.safeString (message, 'symbol');
             const symbol = this.safeSymbol (marketId, undefined, '-');
@@ -198,7 +197,7 @@ export default class blockchaincom extends blockchaincomRest {
             }
             stored.append (ohlcv);
             client.resolve (stored, messageHash);
-        } else {
+        } else if (event !== 'subscribed') {
             throw new NotSupported (this.id + ' ' + this.json (message));
         }
     }

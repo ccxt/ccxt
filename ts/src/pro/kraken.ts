@@ -1320,7 +1320,7 @@ export default class kraken extends krakenRest {
         //         "subscription": { name: "ticker" }
         //     }
         //
-        const errorMessage = this.safeValue (message, 'errorMessage');
+        const errorMessage = this.safeString (message, 'errorMessage');
         if (errorMessage !== undefined) {
             const requestId = this.safeValue (message, 'reqid');
             if (requestId !== undefined) {
@@ -1328,7 +1328,7 @@ export default class kraken extends krakenRest {
                 const broadKey = this.findBroadlyMatchedKey (broad, errorMessage);
                 let exception = undefined;
                 if (broadKey === undefined) {
-                    exception = new ExchangeError (errorMessage.toString ());
+                    exception = new ExchangeError ((errorMessage as string)); // c# requirement to convert the errorMessage to string
                 } else {
                     exception = new broad[broadKey] (errorMessage);
                 }
