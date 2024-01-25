@@ -128,6 +128,7 @@ class baseMainTestClass():
     response_tests_failed = False
     response_tests = False
     ws_tests = False
+    load_keys = False
     skipped_methods = {}
     check_public_tests = {}
     test_files = {}
