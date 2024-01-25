@@ -4128,7 +4128,7 @@ export default class okx extends Exchange {
         [ request, params ] = this.handleUntilOption ('end', request, params);
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         request['instType'] = this.convertToInstrumentType (type);
-        if ((limit !== undefined) && (since === undefined)) {  // let limit = n, okx will return the n most recent results, instead of the n results after limit
+        if ((limit !== undefined) && (since === undefined)) {  // let limit = n, okx will return the n most recent results, instead of the n results after limit, so limit should only be sent when since is undefined
             request['limit'] = limit; // default 100, max 100
         }
         const response = await this.privateGetTradeFillsHistory (this.extend (request, query));
