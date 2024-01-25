@@ -562,9 +562,9 @@ export default class hyperliquid extends Exchange {
         const vaultAddress = this.safeString (params, 'vaultAddress');
         let timeInForce = this.safeStringLower (params, 'timeInForce', 'gtc');
         timeInForce = this.capitalize (timeInForce);
-        const isSandboxMode = this.safeValue (this.options, 'sandboxMode');
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         const zeroAddress = this.safeString (this.options, 'zeroAddress');
-        params = this.omit (params, [ 'slippage', 'vaultAddress', 'timeInForce', 'triggerPrice' ]);
+        params = this.omit (params, [ 'slippage', 'vaultAddress', 'timeInForce', 'triggerPrice', 'clientOrderId', 'client_id' ]);
         // TODO: round px to 5 significant figures and 6 decimals
         // TODO: cloid
         let px = price;
@@ -610,49 +610,47 @@ export default class hyperliquid extends Exchange {
         }
         const base = Math.pow (10, 8);
         const nonce = this.milliseconds ();
-        const signing = [
-            [
+        let sig = undefined;
+        if (clientOrderId !== undefined) {
+            const signatureTypes = [ '(uint32,bool,uint64,uint64,bool,uint8,uint64,bytes16)[]', 'uint8', 'address', 'uint256' ];
+            const signatureData = [
                 [
-                    orderSpec['order']['asset'],
-                    orderSpec['order']['isBuy'],
-                    this.parseToInt (orderSpec['order']['limitPx'] * base),
-                    this.parseToInt (orderSpec['order']['sz'] * base),
-                    orderSpec['order']['reduceOnly'],
-                    signingOrderType,
-                    0,
+                    [
+                        orderSpec['order']['asset'],
+                        orderSpec['order']['isBuy'],
+                        this.parseToInt (orderSpec['order']['limitPx'] * base),
+                        this.parseToInt (orderSpec['order']['sz'] * base),
+                        orderSpec['order']['reduceOnly'],
+                        signingOrderType,
+                        0,
+                        this.base16ToBinary (this.remove0xPrefix (clientOrderId)),
+                    ],
                 ],
-            ],
-            0, // na grouping
-            (vaultAddress) ? vaultAddress : zeroAddress,
-            nonce,
-        ];
-        // withcloid
-        // ['(uint32,bool,uint64,uint64,bool,uint8,uint64,bytes16)[]', 'uint8']
-        // without cloid
-        // ['(uint32,bool,uint64,uint64,bool,uint8,uint64)[]', 'uint8']
-        const connectionId = this.ethAbiEncode ([ '(uint32,bool,uint64,uint64,bool,uint8,uint64)[]', 'uint8', 'address', 'uint256' ], signing);
-        const connectionIdHash = this.hash (connectionId, keccak, 'binary');
-        const message = {
-            'source': (isSandboxMode) ? 'b' : 'a',
-            'connectionId': connectionIdHash,
-        };
-        const domain = {
-            'chainId': 1337,
-            'name': 'Exchange',
-            'verifyingContract': zeroAddress,
-            'version': '1',
-        };
-        const messageTypes = {
-            'Agent': [
-                { 'name': 'source', 'type': 'string' },
-                { 'name': 'connectionId', 'type': 'bytes32' },
-            ],
-        };
-        // const account = this.eth_recover_account (this.privateKey);
-        // const signedMsg = account.sign_message(msg);
-        // TODO: use encode typed data?
-        const msg = this.ethEncodeStructuredData (domain, messageTypes, message);
-        const signature = this.signMessage (msg[0], msg[1], this.privateKey);
+                0, // na grouping
+                (vaultAddress) ? vaultAddress : zeroAddress,
+                nonce,
+            ];
+            sig = this.buildSig (signatureTypes, signatureData);
+        } else {
+            const signatureTypes = [ '(uint32,bool,uint64,uint64,bool,uint8,uint64)[]', 'uint8', 'address', 'uint256' ];
+            const signatureData = [
+                [
+                    [
+                        orderSpec['order']['asset'],
+                        orderSpec['order']['isBuy'],
+                        this.parseToInt (orderSpec['order']['limitPx'] * base),
+                        this.parseToInt (orderSpec['order']['sz'] * base),
+                        orderSpec['order']['reduceOnly'],
+                        signingOrderType,
+                        0,
+                    ],
+                ],
+                0, // na grouping
+                (vaultAddress) ? vaultAddress : zeroAddress,
+                nonce,
+            ];
+            sig = this.buildSig (signatureTypes, signatureData);
+        }
         const tmpRequest = {
             'action': {
                 'type': 'order',
@@ -664,23 +662,34 @@ export default class hyperliquid extends Exchange {
                     'limitPx': this.amountToPrecision (symbol, px),
                     'reduceOnly': reduceOnly,
                     'orderType': request['order_type'],
-                    'cloid': undefined,
+                    'cloid': clientOrderId,
                 } ],
             },
             'nonce': nonce,
-            'signature': {
-                'r': signature['r'],
-                's': signature['s'],
-                'v': signature['v'],
-            },
+            'signature': sig,
             'vaultAddress': vaultAddress,
         };
         const response = await this.privatePostExchange (this.extend (tmpRequest, params));
         //
+        //     {
+        //         "status": "ok",
+        //         "response": {
+        //             "type": "order",
+        //             "data": {
+        //                 "statuses": [
+        //                     {
+        //                         "resting": {
+        //                             "oid": 5063830287
+        //                         }
+        //                     }
+        //                 ]
+        //             }
+        //         }
+        //     }
         //
-        // const data = this.safeValue (response, 'attachment');
-        // return this.parseOrder (data, market);
-        return response as Order;
+        const data = this.safeValue (this.safeValue (this.safeValue (response, 'response'), 'data'), 'statuses', []);
+        const first = this.safeValue (data, 0, {});
+        return this.parseOrder (first, market);
     }
 
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -956,13 +965,22 @@ export default class hyperliquid extends Exchange {
         //         "statusTimestamp": "1704346468838"
         //     }
         //
-        const entry = this.safeValue (order, 'order');
+        // createOrder
+        //
+        //     {
+        //         "resting": {
+        //             "oid": 5063830287
+        //         }
+        //     }
+        //
+        const entry = this.safeValue2 (order, 'order', 'resting', {});
         // if (entry === undefined) {
         //     entry = { ...order };
         // }
         const coin = this.safeString (entry, 'coin');
         const marketId = coin + '/USD:USDC';
-        const symbol = this.safeSymbol (marketId, undefined);
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const timestamp = this.safeInteger2 (order, 'timestamp', 'statusTimestamp');
         const status = this.safeString (order, 'status');
         let side = this.safeString (entry, 'side');
@@ -972,7 +990,7 @@ export default class hyperliquid extends Exchange {
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (entry, 'oid'),
-            'clientOrderId': undefined,
+            'clientOrderId': this.safeString (entry, 'cloid'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
