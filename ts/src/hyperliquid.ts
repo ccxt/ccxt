@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/hyperliquid.js';
-import { ExchangeError, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, NotSupported } from './base/errors.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE, ROUND, DECIMAL_PLACES } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -193,7 +193,7 @@ export default class hyperliquid extends Exchange {
          * @method
          * @name hyperliquid#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-exchange-metadata
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -1502,21 +1502,47 @@ export default class hyperliquid extends Exchange {
         });
     }
 
-    // async withdraw (code: string, amount, address, tag = undefined, params = {}) {
-    //     /**
-    //      * @method
-    //      * @name hyperliquid#withdraw
-    //      * @description make a withdrawal
-    //      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#initiate-a-withdrawal-request
-    //      * @param {string} code unified currency code
-    //      * @param {float} amount the amount to withdraw
-    //      * @param {string} address the address to withdraw to
-    //      * @param {string} tag
-    //      * @param {object} [params] extra parameters specific to the exchange API endpoint
-    //      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-    //      */
-
-    // }
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#withdraw
+         * @description make a withdrawal (only support USDC)
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#initiate-a-withdrawal-request
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string} tag
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        await this.loadMarkets ();
+        this.checkAddress (address);
+        if (code !== undefined) {
+            code = code.toUpperCase ();
+            if (code !== 'USDC') {
+                throw new NotSupported (this.id + 'withdraw() only support USDC');
+            }
+        }
+        const isSandboxMode = this.safeValue (this.options, 'sandboxMode');
+        const nonce = this.milliseconds ();
+        const payload = {
+            'destination': address,
+            'usd': amount.toString (),
+            'time': nonce,
+        };
+        const sig = this.buildWithdrawSig (payload);
+        const request = {
+            'action': {
+                'chain': (isSandboxMode) ? 'ArbitrumTestnet' : 'Arbitrum',
+                'payload': payload,
+                'type': 'withdraw2',
+            },
+            'nonce': nonce,
+            'signature': sig,
+        };
+        const response = await this.privatePostExchange (request);
+        return response;
+    }
 
     buildSig (signatureTypes, signatureData) {
         const connectionId = this.ethAbiEncode (signatureTypes, signatureData);
@@ -1537,6 +1563,30 @@ export default class hyperliquid extends Exchange {
             'Agent': [
                 { 'name': 'source', 'type': 'string' },
                 { 'name': 'connectionId', 'type': 'bytes32' },
+            ],
+        };
+        // const account = this.eth_recover_account (this.privateKey);
+        // const signedMsg = account.sign_message(msg);
+        // TODO: use encode typed data?
+        const msg = this.ethEncodeStructuredData (domain, messageTypes, message);
+        const signature = this.signMessage (msg[0], msg[1], this.privateKey);
+        return signature;
+    }
+
+    buildWithdrawSig (message) {
+        const isSandboxMode = this.safeValue (this.options, 'sandboxMode');
+        const zeroAddress = this.safeString (this.options, 'zeroAddress');
+        const domain = {
+            'chainId': (isSandboxMode) ? 421614 : 42161,
+            'name': 'Exchange',
+            'verifyingContract': zeroAddress,
+            'version': '1',
+        };
+        const messageTypes = {
+            'WithdrawFromBridge2SignPayload': [
+                { 'name': 'destination', 'type': 'string' },
+                { 'name': 'usd', 'type': 'string' },
+                { 'name': 'time', 'type': 'uint64' },
             ],
         };
         // const account = this.eth_recover_account (this.privateKey);
