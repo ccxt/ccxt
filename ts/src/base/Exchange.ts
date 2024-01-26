@@ -1339,6 +1339,10 @@ export default class Exchange {
 
     // ping (client) {} // stub to override
 
+    ping (client) {
+        return undefined;
+    }
+
     client (url): WsClient {
         this.clients = this.clients || {};
         if (!this.clients[url]) {
