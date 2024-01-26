@@ -6,14 +6,13 @@
     <RootNamespace>ccxt</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <NoWarn>1998,CS0168, CS0108, CS8604, CS8625, CS8600, CS8601, CS8602, CS8603, CS8625, CS8618, CS8981, CA2200, CS8974</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
     <PackageId>ccxt</PackageId>
     <Authors>Carlos, Kroitor, Carlo</Authors>
-    <PackageVersion>0.0.59-beta</PackageVersion>
-    <AssemblyVersion>0.0.59</AssemblyVersion>
-    <FileVersion>0.0.59</FileVersion>
+    <PackageVersion>4.2.21</PackageVersion>
+    <AssemblyVersion>4.2.21</AssemblyVersion>
+    <FileVersion>4.2.21</FileVersion>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>Cryptocurrency trading API with support for more than 100 bitcoin/altcoin exchanges</Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
@@ -26,6 +25,7 @@
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageReleaseNotes />
+    <NoWarn>CS1998,CS0168, CS0108, CS8604, CS8600, CS8601, CS8602, CS8603, CS8625, CS8618, CS8981, CA2200, CS8974, CS043, CS0436, CA2200, CS8619</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="*" />
