@@ -152,21 +152,21 @@ public partial class Exchange
     public Func<object, object, object, object> socks_proxy_callback { get; set; } = null;
 
     // WS options
-    public object tickers = new dict();
+    public object tickers = new ccxt.pro.CustomConcurrentDictionary<string, object>();
 
     public object transactions = new dict();
     public object myTrades;
     public object orders;
     public object triggerOrders;
-    public object balance = new dict();
+    public object balance = new ccxt.pro.CustomConcurrentDictionary<string, object>();
 
     public bool newUpdates;
 
     public object positions;
-    public object trades = new dict();
-    public object orderbooks = new dict();
+    public object trades = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    public object orderbooks = new ccxt.pro.CustomConcurrentDictionary<string, object>();
 
-    public object ohlcvs = new dict();
+    public object ohlcvs = new ccxt.pro.CustomConcurrentDictionary<string, object>();
     public object wssProxy { get; set; } = null;
     public object wss_proxy { get; set; } = null;
 
