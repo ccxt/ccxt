@@ -139,7 +139,7 @@ public partial class Exchange
     public Func<object, object, object, object, object> httpsProxyCallback { get; set; } = null;
     public Func<object, object, object, object, object> http_proxy_callback { get; set; } = null;
     public Func<object, object, object, object, object> https_proxy_callback { get; set; } = null;
-    public object httpsProxy { get; set; } = null;
+    // public object httpsProxy { get; set; } = null;
     public object https_proxy { get; set; } = null;
 
     public object socksProxy { get; set; } = null;
@@ -183,6 +183,20 @@ public partial class Exchange
         set
         {
             httpProxyValue = value as string;
+            this.initHttpClient(); // recreate httpClient with new proxy, maybe find a better way to do this
+        }
+    }
+
+    private string httpsProxyValue = "";
+    public object httpsProxy
+    {
+        get
+        {
+            return this.httpsProxyValue;
+        }
+        set
+        {
+            httpsProxyValue = value as string;
             this.initHttpClient(); // recreate httpClient with new proxy, maybe find a better way to do this
         }
     }
