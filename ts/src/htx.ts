@@ -936,6 +936,7 @@ export default class htx extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'timeDifference': 0, // the difference between system clock and exchange server clock
                 'fetchMarkets': {
                     'types': {
                         'spot': true,
@@ -1236,6 +1237,10 @@ export default class htx extends Exchange {
             return true;
         }
         return false;
+    }
+
+    nonce () {
+        return this.milliseconds () - this.options['timeDifference'];
     }
 
     async fetchStatus (params = {}) {
@@ -6750,7 +6755,7 @@ export default class htx extends Exchange {
             url += '/' + this.implodeParams (path, params);
             if (api === 'private' || api === 'v2Private') {
                 this.checkRequiredCredentials ();
-                const timestamp = this.ymdhms (this.milliseconds (), 'T');
+                const timestamp = this.ymdhms (this.nonce (), 'T');
                 let request = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',
@@ -6825,7 +6830,7 @@ export default class htx extends Exchange {
                         }
                     }
                 }
-                const timestamp = this.ymdhms (this.milliseconds (), 'T');
+                const timestamp = this.ymdhms (this.nonce (), 'T');
                 let request = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',
