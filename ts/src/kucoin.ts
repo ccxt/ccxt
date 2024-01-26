@@ -4431,7 +4431,7 @@ export default class kucoin extends Exchange {
         let endpart = '';
         headers = (headers !== undefined) ? headers : {};
         let url = this.urls['api'][api];
-        if (Array.isArray (query) || Object.keys (query).length) {
+        if (!this.isEmpty (query)) {
             if ((method === 'GET') || (method === 'DELETE')) {
                 endpoint += '?' + this.rawencode (query);
             } else {
