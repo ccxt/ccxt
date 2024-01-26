@@ -11,6 +11,7 @@ export default class binanceus extends binance {
             'id': 'binanceus',
             'name': 'Binance US',
             'countries': [ 'US' ], // US
+            'hostname': 'binance.us',
             'rateLimit': 50, // 1200 req per min
             'certified': false,
             'pro': true,
