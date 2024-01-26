@@ -998,7 +998,7 @@ export default class binance extends binanceRest {
             timestamp = this.safeInteger (message, 'E');
         } else {
             // take the timestamp of the closing price for candlestick streams
-            timestamp = this.safeInteger (message, 'C');
+            timestamp = this.safeInteger2 (message, 'C', 'E');
         }
         const marketId = this.safeString (message, 's');
         const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
