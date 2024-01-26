@@ -3439,11 +3439,17 @@ class coinex extends Exchange {
         /**
          * fetch all open positions
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033_pending_position
-         * @param {string[]|null} $symbols list of unified $market $symbols
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position
+         * @param {string[]} [$symbols] list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->method] the method to use 'perpetualPrivateGetPositionPending' or 'perpetualPrivateGetPositionFinished' default is 'perpetualPrivateGetPositionPending'
+         * @param {int} [$params->side] *history endpoint only* 0 => All, 1 => Sell, 2 => Buy, default is 0
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
          */
         $this->load_markets();
+        $defaultMethod = null;
+        list($defaultMethod, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'method', 'perpetualPrivateGetPositionPending');
+        $isHistory = ($defaultMethod === 'perpetualPrivateGetPositionFinished');
         $symbols = $this->market_symbols($symbols);
         $request = array();
         $market = null;
@@ -3460,8 +3466,21 @@ class coinex extends Exchange {
             }
             $market = $this->market($symbol);
             $request['market'] = $market['id'];
+        } else {
+            if ($isHistory) {
+                throw new ArgumentsRequired($this->id . ' fetchPositions() requires a $symbol argument for closed positions');
+            }
         }
-        $response = $this->perpetualPrivateGetPositionPending (array_merge($request, $params));
+        if ($isHistory) {
+            $request['limit'] = 100;
+            $request['side'] = $this->safe_integer($params, 'side', 0); // 0 => All, 1 => Sell, 2 => Buy
+        }
+        $response = null;
+        if ($defaultMethod === 'perpetualPrivateGetPositionPending') {
+            $response = $this->perpetualPrivateGetPositionPending (array_merge($request, $params));
+        } else {
+            $response = $this->perpetualPrivateGetPositionFinished (array_merge($request, $params));
+        }
         //
         //     {
         //         "code" => 0,
@@ -5236,7 +5255,7 @@ class coinex extends Exchange {
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return array([string|null, object]) the $marginMode in lowercase
+         * @return {Array} the $marginMode in lowercase
          */
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_value($params, 'margin', false);

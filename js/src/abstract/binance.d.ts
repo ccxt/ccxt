@@ -93,6 +93,7 @@ interface Exchange {
     sapiGetConvertExchangeInfo(params?: {}): Promise<implicitReturnType>;
     sapiGetConvertAssetInfo(params?: {}): Promise<implicitReturnType>;
     sapiGetConvertOrderStatus(params?: {}): Promise<implicitReturnType>;
+    sapiGetConvertLimitQueryOpenOrders(params?: {}): Promise<implicitReturnType>;
     sapiGetAccountStatus(params?: {}): Promise<implicitReturnType>;
     sapiGetAccountApiTradingStatus(params?: {}): Promise<implicitReturnType>;
     sapiGetAccountApiRestrictionsIpRestriction(params?: {}): Promise<implicitReturnType>;
@@ -338,6 +339,8 @@ interface Exchange {
     sapiPostLoanVipRepay(params?: {}): Promise<implicitReturnType>;
     sapiPostConvertGetQuote(params?: {}): Promise<implicitReturnType>;
     sapiPostConvertAcceptQuote(params?: {}): Promise<implicitReturnType>;
+    sapiPostConvertLimitPlaceOrder(params?: {}): Promise<implicitReturnType>;
+    sapiPostConvertLimitCancelOrder(params?: {}): Promise<implicitReturnType>;
     sapiPostPortfolioAutoCollection(params?: {}): Promise<implicitReturnType>;
     sapiPostPortfolioAssetCollection(params?: {}): Promise<implicitReturnType>;
     sapiPostPortfolioBnbTransfer(params?: {}): Promise<implicitReturnType>;

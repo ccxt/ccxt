@@ -777,6 +777,17 @@
                         "subType": "inverse"
                     }
                 ]
+            },
+            {
+                "description": "fetch account positions",
+                "method": "fetchPositions",
+                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1706118171133&recvWindow=10000&signature=6c1048179b4cfc725c45991f61b13da9321ba96f5149ac359ca956a4e8dd33ea",
+                "input": [
+                  null,
+                  {
+                    "method": "account"
+                  }
+                ]
             }
         ],
         "transfer": [

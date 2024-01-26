@@ -38,7 +38,7 @@ class bybit extends bybit$1 {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createMarketBuyOrderWithCost': true,
-                'createMarketSellOrderWithCost': false,
+                'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': true,
@@ -3468,8 +3468,30 @@ class bybit extends bybit$1 {
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        params['createMarketBuyOrderRequiresPrice'] = false;
-        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+        return await this.createOrder(symbol, 'market', 'buy', cost, 1, params);
+    }
+    async createMarketSellOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name bybit#createMarkeSellOrderWithCost
+         * @see https://bybit-exchange.github.io/docs/v5/order/create-order
+         * @description create a market sell order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const types = await this.isUnifiedEnabled();
+        const enableUnifiedAccount = types[1];
+        if (!enableUnifiedAccount) {
+            throw new errors.NotSupported(this.id + ' createMarketSellOrderWithCost() supports UTA accounts only');
+        }
+        const market = this.market(symbol);
+        if (!market['spot']) {
+            throw new errors.NotSupported(this.id + ' createMarketSellOrderWithCost() supports spot orders only');
+        }
+        return await this.createOrder(symbol, 'market', 'sell', cost, 1, params);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
@@ -3513,7 +3535,7 @@ class bybit extends bybit$1 {
         }
         const trailingAmount = this.safeString2(params, 'trailingAmount', 'trailingStop');
         const isTrailingAmountOrder = trailingAmount !== undefined;
-        const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, params);
+        const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, params, enableUnifiedAccount);
         let response = undefined;
         if (isTrailingAmountOrder) {
             response = await this.privatePostV5PositionTradingStop(orderRequest);
@@ -3536,7 +3558,7 @@ class bybit extends bybit$1 {
         const order = this.safeValue(response, 'result', {});
         return this.parseOrder(order, market);
     }
-    createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+    createOrderRequest(symbol, type, side, amount, price = undefined, params = {}, isUTA = true) {
         const market = this.market(symbol);
         symbol = market['symbol'];
         const lowerCaseType = type.toLowerCase();
@@ -3580,12 +3602,36 @@ class bybit extends bybit$1 {
         else if (market['option']) {
             request['category'] = 'option';
         }
-        if (market['spot'] && (type === 'market') && (side === 'buy')) {
+        const cost = this.safeString(params, 'cost');
+        params = this.omit(params, 'cost');
+        // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
+        const isMarketBuyAndCostInferable = (lowerCaseType === 'market') && (side === 'buy') && ((price !== undefined) || (cost !== undefined));
+        if (market['spot'] && (type === 'market') && isUTA && !isMarketBuyAndCostInferable) {
+            // UTA account can specify the cost of the order on both sides
+            if ((cost !== undefined) || (price !== undefined)) {
+                request['marketUnit'] = 'quoteCoin';
+                let orderCost = undefined;
+                if (cost !== undefined) {
+                    orderCost = cost;
+                }
+                else {
+                    const amountString = this.numberToString(amount);
+                    const priceString = this.numberToString(price);
+                    const quoteAmount = Precise["default"].stringMul(amountString, priceString);
+                    orderCost = quoteAmount;
+                }
+                request['qty'] = this.costToPrecision(symbol, orderCost);
+            }
+            else {
+                request['marketUnit'] = 'baseCoin';
+                request['qty'] = this.amountToPrecision(symbol, amount);
+            }
+        }
+        else if (market['spot'] && (type === 'market') && (side === 'buy')) {
+            // classic accounts
             // for market buy it requires the amount of quote currency to spend
             let createMarketBuyOrderRequiresPrice = true;
             [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-            const cost = this.safeNumber(params, 'cost');
-            params = this.omit(params, 'cost');
             if (createMarketBuyOrderRequiresPrice) {
                 if ((price === undefined) && (cost === undefined)) {
                     throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
@@ -3712,6 +3758,8 @@ class bybit extends bybit$1 {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
+        const accounts = await this.isUnifiedEnabled();
+        const isUta = accounts[1];
         const ordersRequests = [];
         const orderSymbols = [];
         for (let i = 0; i < orders.length; i++) {
@@ -3723,7 +3771,7 @@ class bybit extends bybit$1 {
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
             const orderParams = this.safeValue(rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams, isUta);
             ordersRequests.push(orderRequest);
         }
         const symbols = this.marketSymbols(orderSymbols, undefined, false, true, true);

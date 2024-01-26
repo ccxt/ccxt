@@ -409,6 +409,24 @@
               }
             ],
             "output": "{\"instId\":\"ADA-USDT-SWAP\",\"ordId\":\"641788883193122816\",\"newSlTriggerPx\":\"0.15\",\"newSlOrdPx\":\"0.14\",\"newSlTriggerPxType\":\"last\",\"newSz\":\"50\",\"newPx\":\"0.2\",\"stopLoss\":{\"triggerPrice\":0.15,\"price\":0.14}}"
+          },
+          {
+            "description": "Swap edit an algo order",
+            "method": "editOrder",
+            "url": "https://www.okx.com/api/v5/trade/amend-algos",
+            "input": [
+              "670963589699682304",
+              "BTC/USDT:USDT",
+              "conditional",
+              "buy",
+              1,
+              null,
+              {
+                "stopLossPrice": 62000,
+                "newSlOrdPx": 33000
+              }
+            ],
+            "output": "{\"instId\":\"BTC-USDT-SWAP\",\"algoId\":\"670963589699682304\",\"newSlTriggerPx\":\"62000\",\"newSlOrdPx\":33000,\"newSlTriggerPxType\":\"last\",\"newSz\":\"1\",\"stopLossPrice\":62000}"
           }
         ],
         "fetchOrder": [
