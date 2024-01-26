@@ -880,12 +880,12 @@ export default class okx extends okxRest {
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.stop] true if fetching trigger or conditional trades
+         * @param {string} [params.type] 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
          * @param {string} [params.marginMode] 'cross' or 'isolated', for automatically setting the type to spot margin
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         // By default, receive order updates from any instrument type
         let type = undefined;
-        [ type, params ] = this.handleOptionAndParams (params, 'watchMyTrades', 'defaultType');
         [ type, params ] = this.handleOptionAndParams (params, 'watchMyTrades', 'type', 'ANY');
         const isStop = this.safeValue (params, 'stop', false);
         params = this.omit (params, [ 'stop' ]);
@@ -1059,7 +1059,6 @@ export default class okx extends okxRest {
          */
         let type = undefined;
         // By default, receive order updates from any instrument type
-        [ type, params ] = this.handleOptionAndParams (params, 'watchOrders', 'defaultType');
         [ type, params ] = this.handleOptionAndParams (params, 'watchOrders', 'type', 'ANY');
         const isStop = this.safeValue2 (params, 'stop', 'trigger', false);
         params = this.omit (params, [ 'stop', 'trigger' ]);
