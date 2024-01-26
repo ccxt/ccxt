@@ -224,6 +224,7 @@ export default class kraken extends Exchange {
             },
             'options': {
                 'marketsByAltname': {},
+                'timeDifference': 0, // the difference between system clock and exchange server clock
                 'delistedMarketsById': {},
                 // cannot withdraw/deposit these
                 'inactiveCurrencies': [ 'CAD', 'USD', 'JPY', 'GBP' ],
@@ -2887,7 +2888,7 @@ export default class kraken extends Exchange {
     }
 
     nonce () {
-        return this.milliseconds ();
+        return this.milliseconds () - this.options['timeDifference'];
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

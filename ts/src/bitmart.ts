@@ -427,6 +427,7 @@ export default class bitmart extends Exchange {
                 'TRU': 'Truebit', // conflict with TrueFi
             },
             'options': {
+                'timeDifference': 0, // the difference between system clock and exchange server clock
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
                     'USDT': 'ERC20',
@@ -4451,7 +4452,7 @@ export default class bitmart extends Exchange {
     }
 
     nonce () {
-        return this.milliseconds ();
+        return this.milliseconds () - this.options['timeDifference'];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -4468,7 +4469,7 @@ export default class bitmart extends Exchange {
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            const timestamp = this.milliseconds ().toString ();
+            const timestamp = this.nonce ().toString ();
             const brokerId = this.safeString (this.options, 'brokerId', 'CCXTxBitmart000');
             headers = {
                 'X-BM-KEY': this.apiKey,

@@ -1265,6 +1265,7 @@ export default class bitget extends Exchange {
                 'JADE': 'Jade Protocol',
             },
             'options': {
+                'timeDifference': 0, // the difference between system clock and exchange server clock
                 'timeframes': {
                     'spot': {
                         '1m': '1min',
@@ -1359,6 +1360,10 @@ export default class bitget extends Exchange {
             return true;
         }
         return false;
+    }
+
+    nonce () {
+        return this.milliseconds () - this.options['timeDifference'];
     }
 
     setSandboxMode (enabled) {
@@ -7139,7 +7144,7 @@ export default class bitget extends Exchange {
         }
         if (signed) {
             this.checkRequiredCredentials ();
-            const timestamp = this.milliseconds ().toString ();
+            const timestamp = this.nonce ().toString ();
             let auth = timestamp + method + payload;
             if (method === 'POST') {
                 body = this.json (params);
