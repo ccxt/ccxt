@@ -1502,6 +1502,48 @@ export default class hyperliquid extends Exchange {
         });
     }
 
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#l1-usdc-transfer
+         * @param {string} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {string} fromAccount account to transfer from
+         * @param {string} toAccount account to transfer to
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        await this.loadMarkets ();
+        this.checkAddress (toAccount);
+        if (code !== undefined) {
+            code = code.toUpperCase ();
+            if (code !== 'USDC') {
+                throw new NotSupported (this.id + 'withdraw() only support USDC');
+            }
+        }
+        const isSandboxMode = this.safeValue (this.options, 'sandboxMode');
+        const nonce = this.milliseconds ();
+        const payload = {
+            'destination': toAccount,
+            'amount': amount.toString (),
+            'time': nonce,
+        };
+        const sig = this.buildTransferSig (payload);
+        const request = {
+            'action': {
+                'chain': (isSandboxMode) ? 'ArbitrumTestnet' : 'Arbitrum',
+                'payload': payload,
+                'type': 'usdTransfer',
+            },
+            'nonce': nonce,
+            'signature': sig,
+        };
+        const response = await this.privatePostExchange (request);
+        return response;
+    }
+
     async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
@@ -1563,6 +1605,30 @@ export default class hyperliquid extends Exchange {
             'Agent': [
                 { 'name': 'source', 'type': 'string' },
                 { 'name': 'connectionId', 'type': 'bytes32' },
+            ],
+        };
+        // const account = this.eth_recover_account (this.privateKey);
+        // const signedMsg = account.sign_message(msg);
+        // TODO: use encode typed data?
+        const msg = this.ethEncodeStructuredData (domain, messageTypes, message);
+        const signature = this.signMessage (msg[0], msg[1], this.privateKey);
+        return signature;
+    }
+
+    buildTransferSig (message) {
+        const isSandboxMode = this.safeValue (this.options, 'sandboxMode');
+        const zeroAddress = this.safeString (this.options, 'zeroAddress');
+        const domain = {
+            'chainId': (isSandboxMode) ? 421614 : 42161,
+            'name': 'Exchange',
+            'verifyingContract': zeroAddress,
+            'version': '1',
+        };
+        const messageTypes = {
+            'UsdTransferSignPayload': [
+                { 'name': 'destination', 'type': 'string' },
+                { 'name': 'amount', 'type': 'string' },
+                { 'name': 'time', 'type': 'uint64' },
             ],
         };
         // const account = this.eth_recover_account (this.privateKey);
