@@ -262,9 +262,9 @@ var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange
 
 The library supports concurrent asynchronous mode using tools from [RecoilPHP](https://github.com/recoilphp/recoil) and [ReactPHP](https://reactphp.org/) in PHP 7.1+. Read the [Manual](https://github.com/ccxt/ccxt/wiki/) for more details.
 
-### Dotnet/C# [Beta]
+### .net/C#
 
-[ccxt in C# with **Nugget**](https://www.nuget.org/packages/ccxt) (netstandard 2.0)
+[ccxt in C# with **Nugget**](https://www.nuget.org/packages/ccxt) (netstandard 2.0 and netstandard 2.1)
 ```c#
 using ccxt;
 Console.WriteLine(ccxt.Exchanges) // check this later
@@ -486,7 +486,7 @@ var_dump ($zaif->id, $zaif->create_limit_buy_order ('BTC/JPY', 1, 285000));
 $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId' => '123'));
 ```
 
-### C# [Beta]
+### .net/C#
 
 ```C#
 using ccxt; // importing ccxt
@@ -496,6 +496,7 @@ class Project {
         var exchange = new Binance();
         exchange.apiKey = "my api key";
         exchange.secret = "my secret";
+        // always use the capitalized method (CreateOrder instead of createOrder)
         var order = await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 50);
         Console.WriteLine("Placed Order, order id: " + order.id);
     }
