@@ -44,7 +44,7 @@ export default class hyperliquid extends Exchange {
                 'createOrder': true,
                 'createOrders': false,
                 'createReduceOnlyOrder': false,
-                'editOrder': false,
+                'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
@@ -54,7 +54,7 @@ export default class hyperliquid extends Exchange {
                 'fetchClosedOrders': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDeposits': false,
@@ -107,7 +107,7 @@ export default class hyperliquid extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': false,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -186,6 +186,63 @@ export default class hyperliquid extends Exchange {
     setSandboxMode (enabled) {
         super.setSandboxMode (enabled);
         this.options['sandboxMode'] = enabled;
+    }
+
+    async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const request = {
+            'type': 'meta',
+        };
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "universe": [
+        //                 {
+        //                     "maxLeverage": 50,
+        //                     "name": "SOL",
+        //                     "onlyIsolated": false,
+        //                     "szDecimals": 2
+        //                 }
+        //             ]
+        //         }
+        //     ]
+        //
+        const meta = this.safeValue (response, 'universe', []);
+        const result = {};
+        for (let i = 0; i < meta.length; i++) {
+            const data = this.extend (
+                this.safeValue (meta, i, {}),
+                {
+                    'baseId': i,
+                }
+            );
+            const id = this.safeString (data, 'baseId');
+            const name = this.safeString (data, 'name');
+            const code = this.safeCurrencyCode (name);
+            result[code] = {
+                'id': id,
+                'name': name,
+                'code': code,
+                'precision': undefined,
+                'info': data,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'networks': undefined,
+                'fee': undefined,
+                // 'fees': fees,
+                'limits': undefined,
+            };
+        }
+        return result;
     }
 
     async fetchMarkets (params = {}) {
@@ -932,6 +989,7 @@ export default class hyperliquid extends Exchange {
          * @name hyperliquid#editOrder
          * @description edit a trade order
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
          * @param {string} id cancel order id
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -1443,6 +1501,22 @@ export default class hyperliquid extends Exchange {
             'percentage': percentage,
         });
     }
+
+    // async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    //     /**
+    //      * @method
+    //      * @name hyperliquid#withdraw
+    //      * @description make a withdrawal
+    //      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#initiate-a-withdrawal-request
+    //      * @param {string} code unified currency code
+    //      * @param {float} amount the amount to withdraw
+    //      * @param {string} address the address to withdraw to
+    //      * @param {string} tag
+    //      * @param {object} [params] extra parameters specific to the exchange API endpoint
+    //      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+    //      */
+
+    // }
 
     buildSig (signatureTypes, signatureData) {
         const connectionId = this.ethAbiEncode (signatureTypes, signatureData);
