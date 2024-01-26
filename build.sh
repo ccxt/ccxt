@@ -148,6 +148,7 @@ PYTHON_FILES=()
 for exchange in "${REST_EXCHANGES[@]}"; do
   npm run eslint "ts/src/$exchange.ts"
   node build/transpile.js $exchange --force --child
+  node --loader ts-node/esm build/csharpTranspiler.ts $exchange
   PYTHON_FILES+=("python/ccxt/$exchange.py")
   PYTHON_FILES+=("python/ccxt/async_support/$exchange.py")
 done
@@ -155,6 +156,7 @@ echo "$msgPrefix WS_EXCHANGES TO BE TRANSPILED: ${WS_EXCHANGES[*]}"
 for exchange in "${WS_EXCHANGES[@]}"; do
   npm run eslint "ts/src/pro/$exchange.ts"
   node build/transpileWS.js $exchange --force --child
+  node --loader ts-node/esm build/csharpTranspiler.ts $exchange --ws
   PYTHON_FILES+=("python/ccxt/pro/$exchange.py")
 done
 # faster version of post-transpile
@@ -175,6 +177,9 @@ if [ ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
   echo "$msgPrefix no exchanges to test, exiting"
   exit
 fi
+
+# build dotnet project
+npm run buildCsharp
 
 # run base tests (base js,py,php, brokerId )
 # npm run test-base

@@ -583,10 +583,13 @@ class NewTranspiler {
         const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
         // const exchangeName = ws ? exchange + 'Ws' : exchange;
         const namespace = ws ? 'namespace ccxt.pro;' : 'namespace ccxt;';
+        const capitizedName = exchange.charAt(0).toUpperCase() + exchange.slice(1);
+        const capitalizeStatement = ws ? `public class  ${capitizedName}: ${exchange} { public ${capitizedName}(object args = null) : base(args) { } }` : '';
         const file = [
             namespace,
             '',
             this.createGeneratedHeader().join('\n'),
+            capitalizeStatement,
             `public partial class ${exchange}`,
             '{',
             wrappersIndented,
@@ -715,9 +718,14 @@ class NewTranspiler {
 
     async transpileWS(force = false) {
         const tsFolder = './ts/src/pro/';
-        const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges:exchanges.ws }
+
+        let inputExchanges =  process.argv.slice (2).filter (x => !x.startsWith ('--'));
+        if (inputExchanges === undefined) {
+            inputExchanges = exchanges.ws;
+        }
+        const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges:inputExchanges }
         // const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges:['bitget'] }
-        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(exchanges.ws), true )
+        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(inputExchanges), true )
     }
 
     async transpileEverything (force = false, child = false, baseOnly = false) {
