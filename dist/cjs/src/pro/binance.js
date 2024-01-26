@@ -44,7 +44,7 @@ class binance extends binance$1 {
                     'ws': {
                         'spot': 'wss://testnet.binance.vision/ws',
                         'margin': 'wss://testnet.binance.vision/ws',
-                        'future': 'wss://stream.binancefuture.com/ws',
+                        'future': 'wss://fstream.binancefuture.com/ws',
                         'delivery': 'wss://dstream.binancefuture.com/ws',
                         'ws': 'wss://testnet.binance.vision/ws-api/v3',
                     },
@@ -1977,12 +1977,13 @@ class binance extends binance$1 {
         /**
          * @method
          * @name binance#watchOrders
-         * @see https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
          * @description watches information on multiple orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
+         * @see https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
+         * @param {string} symbol unified market symbol of the market the orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for spot margin
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2005,8 +2006,10 @@ class binance extends binance$1 {
         }
         params = this.extend(params, { 'type': type, 'symbol': symbol }); // needed inside authenticate for isolated margin
         await this.authenticate(params);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('watchOrders', params);
         let urlType = type;
-        if (type === 'margin') {
+        if ((type === 'margin') || ((type === 'spot') && (marginMode !== undefined))) {
             urlType = 'spot'; // spot-margin shares the same stream as regular spot
         }
         const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];

@@ -53,7 +53,7 @@ class bybit(Exchange, ImplicitAPI):
                 'closeAllPositions': False,
                 'closePosition': False,
                 'createMarketBuyOrderWithCost': True,
-                'createMarketSellOrderWithCost': False,
+                'createMarketSellOrderWithCost': True,
                 'createOrder': True,
                 'createOrders': True,
                 'createOrderWithTakeProfitAndStopLoss': True,
@@ -973,7 +973,7 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
                 'enableUnifiedMargin': None,
                 'enableUnifiedAccount': None,
-                'createMarketBuyOrderRequiresPrice': True,
+                'createMarketBuyOrderRequiresPrice': True,  # only True for classic accounts
                 'createUnifiedMarginAccount': False,
                 'defaultType': 'swap',  # 'swap', 'future', 'option', 'spot'
                 'defaultSubType': 'linear',  # 'linear', 'inverse'
@@ -3302,8 +3302,26 @@ class bybit(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
-        params['createMarketBuyOrderRequiresPrice'] = False
-        return await self.create_order(symbol, 'market', 'buy', cost, None, params)
+        return await self.create_order(symbol, 'market', 'buy', cost, 1, params)
+
+    async def create_market_sell_order_with_cost(self, symbol: str, cost, params={}):
+        """
+        :see: https://bybit-exchange.github.io/docs/v5/order/create-order
+        create a market sell order by providing the symbol and cost
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        types = await self.is_unified_enabled()
+        enableUnifiedAccount = types[1]
+        if not enableUnifiedAccount:
+            raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports UTA accounts only')
+        market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports spot orders only')
+        return await self.create_order(symbol, 'market', 'sell', cost, 1, params)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
@@ -3344,7 +3362,7 @@ class bybit(Exchange, ImplicitAPI):
             return await self.create_usdc_order(symbol, type, side, amount, price, params)
         trailingAmount = self.safe_string_2(params, 'trailingAmount', 'trailingStop')
         isTrailingAmountOrder = trailingAmount is not None
-        orderRequest = self.create_order_request(symbol, type, side, amount, price, params)
+        orderRequest = self.create_order_request(symbol, type, side, amount, price, params, enableUnifiedAccount)
         response = None
         if isTrailingAmountOrder:
             response = await self.privatePostV5PositionTradingStop(orderRequest)
@@ -3365,7 +3383,7 @@ class bybit(Exchange, ImplicitAPI):
         order = self.safe_value(response, 'result', {})
         return self.parse_order(order, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}, isUTA=True):
         market = self.market(symbol)
         symbol = market['symbol']
         lowerCaseType = type.lower()
@@ -3404,12 +3422,31 @@ class bybit(Exchange, ImplicitAPI):
             request['category'] = 'inverse'
         elif market['option']:
             request['category'] = 'option'
-        if market['spot'] and (type == 'market') and (side == 'buy'):
+        cost = self.safe_string(params, 'cost')
+        params = self.omit(params, 'cost')
+        # if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
+        isMarketBuyAndCostInferable = (lowerCaseType == 'market') and (side == 'buy') and ((price is not None) or (cost is not None))
+        if market['spot'] and (type == 'market') and isUTA and not isMarketBuyAndCostInferable:
+            # UTA account can specify the cost of the order on both sides
+            if (cost is not None) or (price is not None):
+                request['marketUnit'] = 'quoteCoin'
+                orderCost = None
+                if cost is not None:
+                    orderCost = cost
+                else:
+                    amountString = self.number_to_string(amount)
+                    priceString = self.number_to_string(price)
+                    quoteAmount = Precise.string_mul(amountString, priceString)
+                    orderCost = quoteAmount
+                request['qty'] = self.cost_to_precision(symbol, orderCost)
+            else:
+                request['marketUnit'] = 'baseCoin'
+                request['qty'] = self.amount_to_precision(symbol, amount)
+        elif market['spot'] and (type == 'market') and (side == 'buy'):
+            # classic accounts
             # for market buy it requires the amount of quote currency to spend
             createMarketBuyOrderRequiresPrice = True
             createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
-            cost = self.safe_number(params, 'cost')
-            params = self.omit(params, 'cost')
             if createMarketBuyOrderRequiresPrice:
                 if (price is None) and (cost is None):
                     raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
@@ -3505,6 +3542,8 @@ class bybit(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
+        accounts = await self.is_unified_enabled()
+        isUta = accounts[1]
         ordersRequests = []
         orderSymbols = []
         for i in range(0, len(orders)):
@@ -3516,7 +3555,7 @@ class bybit(Exchange, ImplicitAPI):
             amount = self.safe_value(rawOrder, 'amount')
             price = self.safe_value(rawOrder, 'price')
             orderParams = self.safe_value(rawOrder, 'params', {})
-            orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
+            orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams, isUta)
             ordersRequests.append(orderRequest)
         symbols = self.market_symbols(orderSymbols, None, False, True, True)
         market = self.market(symbols[0])

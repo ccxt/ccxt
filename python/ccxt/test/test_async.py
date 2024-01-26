@@ -1089,6 +1089,9 @@ class testMainClass(baseMainTestClass):
             results = methods[method]
             for j in range(0, len(results)):
                 result = results[j]
+                old_exchange_options = exchange.options  # snapshot options;
+                test_exchange_options = exchange.safe_value(result, 'options', {})
+                exchange.options = exchange.deep_extend(old_exchange_options, test_exchange_options)  # custom options to be used in the tests
                 description = exchange.safe_value(result, 'description')
                 if (test_name is not None) and (test_name != description):
                     continue
@@ -1098,6 +1101,8 @@ class testMainClass(baseMainTestClass):
                 type = exchange.safe_string(exchange_data, 'outputType')
                 skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
                 await self.test_method_statically(exchange, method, result, type, skip_keys)
+                # reset options
+                exchange.options = old_exchange_options
         await close(exchange)
         return True   # in c# methods that will be used with promiseAll need to return something
 
@@ -1113,6 +1118,9 @@ class testMainClass(baseMainTestClass):
             for j in range(0, len(results)):
                 result = results[j]
                 description = exchange.safe_value(result, 'description')
+                old_exchange_options = exchange.options  # snapshot options;
+                test_exchange_options = exchange.safe_value(result, 'options', {})
+                exchange.options = exchange.deep_extend(old_exchange_options, test_exchange_options)  # custom options to be used in the tests
                 is_disabled = exchange.safe_value(result, 'disabled', False)
                 if is_disabled:
                     continue
@@ -1126,6 +1134,8 @@ class testMainClass(baseMainTestClass):
                     continue
                 skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
                 await self.test_response_statically(exchange, method, skip_keys, result)
+                # reset options
+                exchange.options = old_exchange_options
         await close(exchange)
         return True   # in c# methods that will be used with promiseAll need to return something
 

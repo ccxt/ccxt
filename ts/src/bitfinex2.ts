@@ -54,6 +54,7 @@ export default class bitfinex2 extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -3013,5 +3014,95 @@ export default class bitfinex2 extends Exchange {
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
         };
+    }
+
+    async fetchOpenInterest (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name bitfinex2#fetchOpenInterest
+         * @description retrieves the open interest of a contract trading pair
+         * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
+         * @param {string} symbol unified CCXT market symbol
+         * @param {object} [params] exchange specific parameters
+         * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'keys': market['id'],
+        };
+        const response = await this.publicGetStatusDeriv (this.extend (request, params));
+        //
+        //     [
+        //         [
+        //             "tXRPF0:USTF0",  // market id
+        //             1706256986000,   // millisecond timestamp
+        //             null,
+        //             0.512705,        // derivative mid price
+        //             0.512395,        // underlying spot mid price
+        //             null,
+        //             37671483.04,     // insurance fund balance
+        //             null,
+        //             1706284800000,   // timestamp of next funding
+        //             0.00002353,      // accrued funding for next period
+        //             317,             // next funding step
+        //             null,
+        //             0,               // current funding
+        //             null,
+        //             null,
+        //             0.5123016,       // mark price
+        //             null,
+        //             null,
+        //             2233562.03115,   // open interest in contracts
+        //             null,
+        //             null,
+        //             null,
+        //             0.0005,          // average spread without funding payment
+        //             0.0025           // funding payment cap
+        //         ]
+        //     ]
+        //
+        return this.parseOpenInterest (response[0], market);
+    }
+
+    parseOpenInterest (interest, market: Market = undefined) {
+        //
+        //     [
+        //         "tXRPF0:USTF0",  // market id
+        //         1706256986000,   // millisecond timestamp
+        //         null,
+        //         0.512705,        // derivative mid price
+        //         0.512395,        // underlying spot mid price
+        //         null,
+        //         37671483.04,     // insurance fund balance
+        //         null,
+        //         1706284800000,   // timestamp of next funding
+        //         0.00002353,      // accrued funding for next period
+        //         317,             // next funding step
+        //         null,
+        //         0,               // current funding
+        //         null,
+        //         null,
+        //         0.5123016,       // mark price
+        //         null,
+        //         null,
+        //         2233562.03115,   // open interest in contracts
+        //         null,
+        //         null,
+        //         null,
+        //         0.0005,          // average spread without funding payment
+        //         0.0025           // funding payment cap
+        //     ]
+        //
+        const timestamp = this.safeInteger (interest, 1);
+        const marketId = this.safeString (interest, 0);
+        return this.safeOpenInterest ({
+            'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
+            'openInterestAmount': this.safeNumber (interest, 18),
+            'openInterestValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        }, market);
     }
 }

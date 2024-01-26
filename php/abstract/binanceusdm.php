@@ -283,6 +283,9 @@ abstract class binanceusdm extends \ccxt\binance {
     public function sapi_get_convert_orderstatus($params = array()) {
         return $this->request('convert/orderStatus', 'sapi', 'GET', $params, null, null, array("cost" => 0.6667));
     }
+    public function sapi_get_convert_limit_queryopenorders($params = array()) {
+        return $this->request('convert/limit/queryOpenOrders', 'sapi', 'GET', $params, null, null, array("cost" => 20.001));
+    }
     public function sapi_get_account_status($params = array()) {
         return $this->request('account/status', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -1017,6 +1020,12 @@ abstract class binanceusdm extends \ccxt\binance {
     }
     public function sapi_post_convert_acceptquote($params = array()) {
         return $this->request('convert/acceptQuote', 'sapi', 'POST', $params, null, null, array("cost" => 3.3335));
+    }
+    public function sapi_post_convert_limit_placeorder($params = array()) {
+        return $this->request('convert/limit/placeOrder', 'sapi', 'POST', $params, null, null, array("cost" => 3.3335));
+    }
+    public function sapi_post_convert_limit_cancelorder($params = array()) {
+        return $this->request('convert/limit/cancelOrder', 'sapi', 'POST', $params, null, null, array("cost" => 1.3334));
     }
     public function sapi_post_portfolio_auto_collection($params = array()) {
         return $this->request('portfolio/auto-collection', 'sapi', 'POST', $params, null, null, array("cost" => 150));
@@ -2332,6 +2341,9 @@ abstract class binanceusdm extends \ccxt\binance {
     public function sapiGetConvertOrderStatus($params = array()) {
         return $this->request('convert/orderStatus', 'sapi', 'GET', $params, null, null, array("cost" => 0.6667));
     }
+    public function sapiGetConvertLimitQueryOpenOrders($params = array()) {
+        return $this->request('convert/limit/queryOpenOrders', 'sapi', 'GET', $params, null, null, array("cost" => 20.001));
+    }
     public function sapiGetAccountStatus($params = array()) {
         return $this->request('account/status', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -3066,6 +3078,12 @@ abstract class binanceusdm extends \ccxt\binance {
     }
     public function sapiPostConvertAcceptQuote($params = array()) {
         return $this->request('convert/acceptQuote', 'sapi', 'POST', $params, null, null, array("cost" => 3.3335));
+    }
+    public function sapiPostConvertLimitPlaceOrder($params = array()) {
+        return $this->request('convert/limit/placeOrder', 'sapi', 'POST', $params, null, null, array("cost" => 3.3335));
+    }
+    public function sapiPostConvertLimitCancelOrder($params = array()) {
+        return $this->request('convert/limit/cancelOrder', 'sapi', 'POST', $params, null, null, array("cost" => 1.3334));
     }
     public function sapiPostPortfolioAutoCollection($params = array()) {
         return $this->request('portfolio/auto-collection', 'sapi', 'POST', $params, null, null, array("cost" => 150));
