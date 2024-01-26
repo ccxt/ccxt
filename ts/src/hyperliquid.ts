@@ -926,6 +926,173 @@ export default class hyperliquid extends Exchange {
         return response;
     }
 
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#editOrder
+         * @description edit a trade order
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
+         * @param {string} id cancel order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
+         * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires an id argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        type = type.toUpperCase ();
+        const isMarket = (type === 'MARKET');
+        side = side.toUpperCase ();
+        const isBuy = (side === 'BUY');
+        const defaultSlippage = this.safeValue (this.options, 'defaultSlippage');
+        const slippage = this.safeValue (params, 'slippage', defaultSlippage);
+        const vaultAddress = this.safeString (params, 'vaultAddress');
+        const defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
+        let timeInForce = this.safeStringLower (params, 'timeInForce', defaultTimeInForce);
+        timeInForce = this.capitalize (timeInForce);
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
+        const zeroAddress = this.safeString (this.options, 'zeroAddress');
+        let triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice', 0);
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const isTrigger = (stopLossPrice || takeProfitPrice);
+        params = this.omit (params, [ 'slippage', 'vaultAddress', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id' ]);
+        // TODO: round px to 5 significant figures and 6 decimals
+        // TODO: cloid
+        let px = price;
+        if (isMarket) {
+            px = (isBuy) ? price * (1 + slippage) : price * (1 - slippage);
+        }
+        const reduceOnly = this.safeValue (params, 'reduceOnly', false);
+        // TODO: trigger order type
+        const orderType = {};
+        let signingOrderType = 0;
+        if (isTrigger) {
+            let isTp = false;
+            if (takeProfitPrice !== undefined) {
+                triggerPrice = takeProfitPrice;
+                isTp = true;
+                signingOrderType = (isMarket) ? 4 : 5;
+            } else {
+                triggerPrice = stopLossPrice;
+                signingOrderType = (isMarket) ? 6 : 7;
+            }
+            orderType['trigger'] = {
+                'triggerPx': this.parseToInt (this.priceToPrecision (symbol, triggerPrice)),
+                'tpsl': (isTp) ? 'tp' : 'sl',
+                'isMarket': isMarket,
+            };
+        } else {
+            orderType['limit'] = {
+                'tif': timeInForce,
+            };
+            if (timeInForce === 'Ioc') {
+                signingOrderType = 3;
+            } else if (timeInForce === 'Alo') {
+                signingOrderType = 1;
+            } else if (timeInForce === 'Gtc') {
+                signingOrderType = 2;
+            }
+        }
+        const base = Math.pow (10, 8);
+        const nonce = this.milliseconds ();
+        let sig = undefined;
+        if (clientOrderId !== undefined) {
+            const signatureTypes = [ '(uint64,uint32,bool,uint64,uint64,bool,uint8,uint64,bytes16)[]', 'address', 'uint256', 'uint16' ];
+            const signatureData = [
+                [
+                    [
+                        this.parseToNumeric (id),
+                        this.parseToInt (market['baseId']),
+                        isBuy,
+                        this.parseToInt (px * base),
+                        this.parseToInt (amount * base),
+                        reduceOnly,
+                        signingOrderType,
+                        this.parseToInt (triggerPrice * base),
+                        this.base16ToBinary (this.remove0xPrefix (clientOrderId)), // clientOid
+                    ],
+                ],
+                (vaultAddress) ? vaultAddress : zeroAddress,
+                nonce,
+                40,
+            ];
+            sig = this.buildSig (signatureTypes, signatureData);
+        } else {
+            const signatureTypes = [ '(uint64,uint32,bool,uint64,uint64,bool,uint8,uint64,bytes16)[]', 'address', 'uint256', 'uint16' ];
+            const signatureData = [
+                [
+                    [
+                        this.parseToNumeric (id),
+                        this.parseToInt (market['baseId']),
+                        isBuy,
+                        this.parseToInt (px * base),
+                        this.parseToInt (amount * base),
+                        reduceOnly,
+                        signingOrderType,
+                        this.parseToInt (triggerPrice * base),
+                        this.base16ToBinary (this.remove0xPrefix ('0x00000000000000000000000000000000')),
+                    ],
+                ],
+                (vaultAddress) ? vaultAddress : zeroAddress,
+                nonce,
+                40,
+            ];
+            sig = this.buildSig (signatureTypes, signatureData);
+        }
+        const tmpRequest = {
+            'action': {
+                'type': 'batchModify',
+                'modifies': [ {
+                    'oid': this.parseToNumeric (id),
+                    'order': {
+                        'asset': this.parseToInt (market['baseId']),
+                        'isBuy': isBuy,
+                        'sz': this.amountToPrecision (symbol, amount),
+                        'limitPx': this.amountToPrecision (symbol, px),
+                        'reduceOnly': reduceOnly,
+                        'orderType': orderType,
+                        'cloid': clientOrderId,
+                    },
+                } ],
+            },
+            'nonce': nonce,
+            'signature': sig,
+            'vaultAddress': vaultAddress,
+        };
+        const response = await this.privatePostExchange (this.extend (tmpRequest, params));
+        //
+        //     {
+        //         "status": "ok",
+        //         "response": {
+        //             "type": "order",
+        //             "data": {
+        //                 "statuses": [
+        //                     {
+        //                         "resting": {
+        //                             "oid": 5063830287
+        //                         }
+        //                     }
+        //                 ]
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeValue (this.safeValue (this.safeValue (response, 'response'), 'data'), 'statuses', []);
+        const first = this.safeValue (data, 0, {});
+        return this.parseOrder (first, market);
+    }
+
     parseOrder (order, market: Market = undefined): Order {
         //
         //  fetchOpenOrders
