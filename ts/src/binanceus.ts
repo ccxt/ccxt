@@ -19,12 +19,11 @@ export default class binanceus extends binance {
                 'logo': 'https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg',
                 'api': {
                     'web': 'https://www.binance.us',
+                    'public': 'https://api.binance.us/api/v3',
+                    'private': 'https://api.binance.us/api/v3',
                     'sapi': 'https://api.binance.us/sapi/v1',
                     'sapiV2': 'https://api.binance.us/sapi/v2',
                     'sapiV3': 'https://api.binance.us/sapi/v3',
-                    'wapi': 'https://api.binance.us/wapi/v3',
-                    'public': 'https://api.binance.us/api/v3',
-                    'private': 'https://api.binance.us/api/v3',
                 },
                 'www': 'https://www.binance.us',
                 'referral': 'https://www.binance.us/?ref=35005074',
@@ -85,13 +84,13 @@ export default class binanceus extends binance {
             'api': {
                 'public': {
                     'get': {
-                        'exchangeInfo': 10,
                         'ping': 1,
                         'time': 1,
-                        'depth': { 'cost': 1, 'byLimit': [ [ 100, 1 ], [ 500, 5 ], [ 1000, 10 ], [ 5000, 50 ] ] },
+                        'exchangeInfo': 10,
                         'trades': 1,
-                        'aggTrades': 1,
                         'historicalTrades': 5,
+                        'aggTrades': 1,
+                        'depth': { 'cost': 1, 'byLimit': [ [ 100, 1 ], [ 500, 5 ], [ 1000, 10 ], [ 5000, 50 ] ] },
                         'klines': 1,
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 },
                         'avgPrice': 1,
@@ -102,7 +101,7 @@ export default class binanceus extends binance {
                 },
                 'private': {
                     'get': {
-                        'status': 1,
+                        'account': 10,
                         'rateLimit/order': 20,
                         'order': 2,
                         'openOrders': { 'cost': 3, 'noSymbol': 40 },
@@ -127,7 +126,7 @@ export default class binanceus extends binance {
                 },
                 'sapi': {
                     'get': {
-                        'apiTradingStatus': 1,
+                        'system/status': 1,
                         'asset/assetDistributionHistory': 1,
                         'asset/query/trading-fee': 1,
                         'asset/query/trading-volume': 1,
