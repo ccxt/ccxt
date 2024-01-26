@@ -2,9 +2,11 @@ using System.Text;
 
 namespace ccxt;
 
+using System;
 using System.Net.WebSockets;
 using System.Collections.Concurrent;
 using System.IO.Compression;
+using System.Net;
 
 
 public partial class Exchange
@@ -13,6 +15,7 @@ public partial class Exchange
     {
         public string url; // Replace with your WebSocket server URL
         public ClientWebSocket webSocket = new ClientWebSocket();
+        // public ClientWebSocket webSocket;
 
         public IDictionary<string, Future> futures = new ConcurrentDictionary<string, Future>();
         public IDictionary<string, object> subscriptions = new ConcurrentDictionary<string, object>();
@@ -51,7 +54,7 @@ public partial class Exchange
 
         public bool error = false;
 
-        public WebSocketClient(string url, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false)
+        public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false)
         {
             this.url = url;
             var tcs = new TaskCompletionSource<bool>();
@@ -61,6 +64,12 @@ public partial class Exchange
             this.verbose = isVerbose;
             this.onClose = onClose;
             this.onError = onError;
+
+            if (proxy != null)
+            {
+                var webProxy = new WebProxy(proxy);
+                webSocket.Options.Proxy = webProxy;
+            }
         }
 
         public Future future(object messageHash2)

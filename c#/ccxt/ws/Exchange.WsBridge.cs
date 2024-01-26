@@ -100,12 +100,36 @@ public partial class Exchange
         return null;
     }
 
+    public string getWsProxy(List<object> proxies)
+    {
+
+        if (proxies == null)
+        {
+            return null;
+        }
+        if (proxies[0] != null)
+        {
+            return proxies[0].ToString();
+        }
+        if (proxies[1] != null)
+        {
+            return proxies[1].ToString();
+        }
+        if (proxies[2] != null)
+        {
+            return proxies[2].ToString();
+        }
+        return null;
+    }
+
     public WebSocketClient client(object url2)
     {
         var url = url2.ToString();
+        var result = this.checkWsProxySettings() as List<object>;
+        var proxy = this.getWsProxy(result);
         if (!this.clients.ContainsKey(url))
         {
-            this.clients[url] = new WebSocketClient(url, handleMessage, ping, onClose, onError, this.verbose);
+            this.clients[url] = new WebSocketClient(url, proxy, handleMessage, ping, onClose, onError, this.verbose);
         }
         return this.clients[url];
     }

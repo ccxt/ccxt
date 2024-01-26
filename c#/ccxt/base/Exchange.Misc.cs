@@ -1,9 +1,6 @@
 namespace ccxt;
 
 using dict = Dictionary<string, object>;
-using list = List<object>;
-
-
 public partial class Exchange
 {
 
