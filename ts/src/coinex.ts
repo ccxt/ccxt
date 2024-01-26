@@ -3493,11 +3493,17 @@ export default class coinex extends Exchange {
          * @name coinex#fetchPositions
          * @description fetch all open positions
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033_pending_position
-         * @param {string[]|undefined} symbols list of unified market symbols
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position
+         * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.method] the method to use 'perpetualPrivateGetPositionPending' or 'perpetualPrivateGetPositionFinished' default is 'perpetualPrivateGetPositionPending'
+         * @param {int} [params.side] *history endpoint only* 0: All, 1: Sell, 2: Buy, default is 0
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
+        let defaultMethod = undefined;
+        [ defaultMethod, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method', 'perpetualPrivateGetPositionPending');
+        const isHistory = (defaultMethod === 'perpetualPrivateGetPositionFinished');
         symbols = this.marketSymbols (symbols);
         const request = {};
         let market = undefined;
@@ -3514,8 +3520,21 @@ export default class coinex extends Exchange {
             }
             market = this.market (symbol);
             request['market'] = market['id'];
+        } else {
+            if (isHistory) {
+                throw new ArgumentsRequired (this.id + ' fetchPositions() requires a symbol argument for closed positions');
+            }
         }
-        const response = await this.perpetualPrivateGetPositionPending (this.extend (request, params));
+        if (isHistory) {
+            request['limit'] = 100;
+            request['side'] = this.safeInteger (params, 'side', 0); // 0: All, 1: Sell, 2: Buy
+        }
+        let response = undefined;
+        if (defaultMethod === 'perpetualPrivateGetPositionPending') {
+            response = await this.perpetualPrivateGetPositionPending (this.extend (request, params));
+        } else {
+            response = await this.perpetualPrivateGetPositionFinished (this.extend (request, params));
+        }
         //
         //     {
         //         "code": 0,
