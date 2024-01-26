@@ -1445,7 +1445,9 @@ export default class binance extends Exchange {
                         '-1004': OperationFailed, // {"code":-1004,"msg":"Server is busy, please wait and try again"}
                         '-1006': OperationFailed, // {"code":-1006,"msg":"An unexpected response was received from the message bus. Execution status unknown."}
                         '-1007': RequestTimeout, // {"code":-1007,"msg":"Timeout waiting for response from backend server. Send status unknown; execution status unknown."}
-                        '-1008': OperationFailed, // Server is currently overloaded with other requests. Please try again in a few minutes.
+                        '-1008': OperationFailed, // undocumented, but mentioned: This is sent whenever the servers are overloaded with requests.
+                        '-1010': OperationFailed, // undocumented, but mentioned ERROR_MSG_RECEIVED
+                        '-1013': OperationFailed, // undocumented, but mentioned
                         '-1014': InvalidOrder, // {"code":-1014,"msg":"Unsupported order combination."}
                         '-1015': RateLimitExceeded, // {"code":-1015,"msg":"'Too many new orders; current limit is %s orders per %s.'"}
                         '-1016': BadRequest, // {"code":-1016,"msg":"'This service is no longer available.',"}
@@ -1460,6 +1462,7 @@ export default class binance extends Exchange {
                         '-1104': BadRequest, // {"code":-1104,"msg":"Not all sent parameters were read, read 8 parameters but was sent 9"}
                         '-1105': BadRequest, // {"code":-1105,"msg":"Parameter %s was empty."}
                         '-1106': BadRequest, // {"code":-1106,"msg":"Parameter %s sent when not required."}
+                        '-1108': BadRequest, // undocumented, but mentioned: This error will occur if a value to a parameter being sent was too large, potentially causing overflow
                         '-1111': BadRequest, // {"code":-1111,"msg":"Precision is over the maximum defined for this asset."}
                         '-1112': OperationFailed, // {"code":-1112,"msg":"No orders on book for symbol."}
                         '-1114': BadRequest, // {"code":-1114,"msg":"TimeInForce parameter sent when not required."}
@@ -1476,8 +1479,10 @@ export default class binance extends Exchange {
                         '-1130': BadRequest, // {"code":-1130,"msg":"Data sent for paramter %s is not valid."}
                         '-1131': BadRequest, // {"code":-1131,"msg":"recvWindow must be less than 60000"}
                         '-1134': BadRequest, // strategyType was less than 1000000.
+                        '-1135': BadRequest, // undocumented, but mentioned: This error code will occur if a parameter requiring a JSON object is invalid.
                         '-1145': BadRequest, // cancelRestrictions has to be either ONLY_NEW or ONLY_PARTIALLY_FILLED.
                         '-1151': BadSymbol, // Symbol is present multiple times in the list.
+                        '-2010': InvalidOrder, // NEW_ORDER_REJECTED
                         '-2011': OrderNotFound, // {"code":-2011,"msg":"cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'"}
                         '-2013': OrderNotFound, // {"code":-2013,"msg":"fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'"}
                         '-2014': AuthenticationError, // {"code":-2014,"msg":"API-key format invalid."}
@@ -1680,6 +1685,8 @@ export default class binance extends Exchange {
                         '-21005': InsufficientFunds, // User’s spot wallet doesn’t have enough BUSD to repay portfolio margin bankruptcy loan
                         '-21006': OperationFailed, // User had portfolio margin bankruptcy loan repayment in process
                         '-21007': OperationFailed, // User failed to repay portfolio margin bankruptcy loan since liquidation was in process
+                        '100001003': AuthenticationError, // undocumented, {"code":100001003,"msg":"Verification failed"}
+                        '200003903': AuthenticationError, // undocumented, {"code":200003903,"msg":"Your identity verification has been rejected. Please complete identity verification again."}
                     },
                 },
                 'linear': {
