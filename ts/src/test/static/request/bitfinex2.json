@@ -127,6 +127,16 @@
                 ],
                 "output": "{\"type\":\"LIMIT\",\"symbol\":\"tLTCF0:USTF0\",\"amount\":\"0.1\",\"price\":\"50\"}"
             }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "Fetch the open interest of a swap trading pair",
+                "method": "fetchOpenInterest",
+                "url": "https://api-pub.bitfinex.com/v2/status/deriv?keys=tBTCF0%3AUSTF0",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }
