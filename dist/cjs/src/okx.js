@@ -2914,12 +2914,26 @@ class okx extends okx$1 {
         const request = {
             'instId': market['id'],
         };
+        let isAlgoOrder = undefined;
+        if ((type === 'trigger') || (type === 'conditional') || (type === 'move_order_stop') || (type === 'oco') || (type === 'iceberg') || (type === 'twap')) {
+            isAlgoOrder = true;
+        }
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
         if (clientOrderId !== undefined) {
-            request['clOrdId'] = clientOrderId;
+            if (isAlgoOrder) {
+                request['algoClOrdId'] = clientOrderId;
+            }
+            else {
+                request['clOrdId'] = clientOrderId;
+            }
         }
         else {
-            request['ordId'] = id;
+            if (isAlgoOrder) {
+                request['algoId'] = id;
+            }
+            else {
+                request['ordId'] = id;
+            }
         }
         let stopLossTriggerPrice = this.safeValue2(params, 'stopLossPrice', 'newSlTriggerPx');
         let stopLossPrice = this.safeValue(params, 'newSlOrdPx');
@@ -2931,37 +2945,62 @@ class okx extends okx$1 {
         const takeProfit = this.safeValue(params, 'takeProfit');
         const stopLossDefined = (stopLoss !== undefined);
         const takeProfitDefined = (takeProfit !== undefined);
-        if (stopLossTriggerPrice !== undefined) {
-            request['newSlTriggerPx'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
-            request['newSlOrdPx'] = (type === 'market') ? '-1' : this.priceToPrecision(symbol, stopLossPrice);
-            request['newSlTriggerPxType'] = stopLossTriggerPriceType;
+        if (isAlgoOrder) {
+            if ((stopLossTriggerPrice === undefined) && (takeProfitTriggerPrice === undefined)) {
+                throw new errors.BadRequest(this.id + ' editOrder() requires a stopLossPrice or takeProfitPrice parameter for editing an algo order');
+            }
+            if (stopLossTriggerPrice !== undefined) {
+                if (stopLossPrice === undefined) {
+                    throw new errors.BadRequest(this.id + ' editOrder() requires a newSlOrdPx parameter for editing an algo order');
+                }
+                request['newSlTriggerPx'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                request['newSlOrdPx'] = (type === 'market') ? '-1' : this.priceToPrecision(symbol, stopLossPrice);
+                request['newSlTriggerPxType'] = stopLossTriggerPriceType;
+            }
+            if (takeProfitTriggerPrice !== undefined) {
+                if (takeProfitPrice === undefined) {
+                    throw new errors.BadRequest(this.id + ' editOrder() requires a newTpOrdPx parameter for editing an algo order');
+                }
+                request['newTpTriggerPx'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                request['newTpOrdPx'] = (type === 'market') ? '-1' : this.priceToPrecision(symbol, takeProfitPrice);
+                request['newTpTriggerPxType'] = takeProfitTriggerPriceType;
+            }
         }
-        if (takeProfitTriggerPrice !== undefined) {
-            request['newTpTriggerPx'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
-            request['newTpOrdPx'] = (type === 'market') ? '-1' : this.priceToPrecision(symbol, takeProfitPrice);
-            request['newTpTriggerPxType'] = takeProfitTriggerPriceType;
-        }
-        if (stopLossDefined) {
-            stopLossTriggerPrice = this.safeValue(stopLoss, 'triggerPrice');
-            stopLossPrice = this.safeValue(stopLoss, 'price');
-            const stopLossType = this.safeString(stopLoss, 'type');
-            request['newSlTriggerPx'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
-            request['newSlOrdPx'] = (stopLossType === 'market') ? '-1' : this.priceToPrecision(symbol, stopLossPrice);
-            request['newSlTriggerPxType'] = stopLossTriggerPriceType;
-        }
-        if (takeProfitDefined) {
-            takeProfitTriggerPrice = this.safeValue(takeProfit, 'triggerPrice');
-            takeProfitPrice = this.safeValue(takeProfit, 'price');
-            const takeProfitType = this.safeString(takeProfit, 'type');
-            request['newTpTriggerPx'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
-            request['newTpOrdPx'] = (takeProfitType === 'market') ? '-1' : this.priceToPrecision(symbol, takeProfitPrice);
-            request['newTpTriggerPxType'] = takeProfitTriggerPriceType;
+        else {
+            if (stopLossTriggerPrice !== undefined) {
+                request['newSlTriggerPx'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                request['newSlOrdPx'] = (type === 'market') ? '-1' : this.priceToPrecision(symbol, stopLossPrice);
+                request['newSlTriggerPxType'] = stopLossTriggerPriceType;
+            }
+            if (takeProfitTriggerPrice !== undefined) {
+                request['newTpTriggerPx'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                request['newTpOrdPx'] = (type === 'market') ? '-1' : this.priceToPrecision(symbol, takeProfitPrice);
+                request['newTpTriggerPxType'] = takeProfitTriggerPriceType;
+            }
+            if (stopLossDefined) {
+                stopLossTriggerPrice = this.safeValue(stopLoss, 'triggerPrice');
+                stopLossPrice = this.safeValue(stopLoss, 'price');
+                const stopLossType = this.safeString(stopLoss, 'type');
+                request['newSlTriggerPx'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                request['newSlOrdPx'] = (stopLossType === 'market') ? '-1' : this.priceToPrecision(symbol, stopLossPrice);
+                request['newSlTriggerPxType'] = stopLossTriggerPriceType;
+            }
+            if (takeProfitDefined) {
+                takeProfitTriggerPrice = this.safeValue(takeProfit, 'triggerPrice');
+                takeProfitPrice = this.safeValue(takeProfit, 'price');
+                const takeProfitType = this.safeString(takeProfit, 'type');
+                request['newTpTriggerPx'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                request['newTpOrdPx'] = (takeProfitType === 'market') ? '-1' : this.priceToPrecision(symbol, takeProfitPrice);
+                request['newTpTriggerPxType'] = takeProfitTriggerPriceType;
+            }
         }
         if (amount !== undefined) {
             request['newSz'] = this.amountToPrecision(symbol, amount);
         }
-        if (price !== undefined) {
-            request['newPx'] = this.priceToPrecision(symbol, price);
+        if (!isAlgoOrder) {
+            if (price !== undefined) {
+                request['newPx'] = this.priceToPrecision(symbol, price);
+            }
         }
         params = this.omit(params, ['clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit']);
         return this.extend(request, params);
@@ -2971,7 +3010,8 @@ class okx extends okx$1 {
          * @method
          * @name okx#editOrder
          * @description edit a trade order
-         * @see https://www.okx.com/docs-v5/en/#rest-api-trade-amend-order
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-amend-order
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-amend-algo-order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -2999,7 +3039,17 @@ class okx extends okx$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = this.editOrderRequest(id, symbol, type, side, amount, price, params);
-        const response = await this.privatePostTradeAmendOrder(this.extend(request, params));
+        let isAlgoOrder = undefined;
+        if ((type === 'trigger') || (type === 'conditional') || (type === 'move_order_stop') || (type === 'oco') || (type === 'iceberg') || (type === 'twap')) {
+            isAlgoOrder = true;
+        }
+        let response = undefined;
+        if (isAlgoOrder) {
+            response = await this.privatePostTradeAmendAlgos(this.extend(request, params));
+        }
+        else {
+            response = await this.privatePostTradeAmendOrder(this.extend(request, params));
+        }
         //
         //     {
         //        "code": "0",

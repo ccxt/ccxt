@@ -2917,11 +2917,23 @@ class okx extends Exchange {
         $request = array(
             'instId' => $market['id'],
         );
+        $isAlgoOrder = null;
+        if (($type === 'trigger') || ($type === 'conditional') || ($type === 'move_order_stop') || ($type === 'oco') || ($type === 'iceberg') || ($type === 'twap')) {
+            $isAlgoOrder = true;
+        }
         $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
         if ($clientOrderId !== null) {
-            $request['clOrdId'] = $clientOrderId;
+            if ($isAlgoOrder) {
+                $request['algoClOrdId'] = $clientOrderId;
+            } else {
+                $request['clOrdId'] = $clientOrderId;
+            }
         } else {
-            $request['ordId'] = $id;
+            if ($isAlgoOrder) {
+                $request['algoId'] = $id;
+            } else {
+                $request['ordId'] = $id;
+            }
         }
         $stopLossTriggerPrice = $this->safe_value_2($params, 'stopLossPrice', 'newSlTriggerPx');
         $stopLossPrice = $this->safe_value($params, 'newSlOrdPx');
@@ -2933,37 +2945,61 @@ class okx extends Exchange {
         $takeProfit = $this->safe_value($params, 'takeProfit');
         $stopLossDefined = ($stopLoss !== null);
         $takeProfitDefined = ($takeProfit !== null);
-        if ($stopLossTriggerPrice !== null) {
-            $request['newSlTriggerPx'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
-            $request['newSlOrdPx'] = ($type === 'market') ? '-1' : $this->price_to_precision($symbol, $stopLossPrice);
-            $request['newSlTriggerPxType'] = $stopLossTriggerPriceType;
-        }
-        if ($takeProfitTriggerPrice !== null) {
-            $request['newTpTriggerPx'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
-            $request['newTpOrdPx'] = ($type === 'market') ? '-1' : $this->price_to_precision($symbol, $takeProfitPrice);
-            $request['newTpTriggerPxType'] = $takeProfitTriggerPriceType;
-        }
-        if ($stopLossDefined) {
-            $stopLossTriggerPrice = $this->safe_value($stopLoss, 'triggerPrice');
-            $stopLossPrice = $this->safe_value($stopLoss, 'price');
-            $stopLossType = $this->safe_string($stopLoss, 'type');
-            $request['newSlTriggerPx'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
-            $request['newSlOrdPx'] = ($stopLossType === 'market') ? '-1' : $this->price_to_precision($symbol, $stopLossPrice);
-            $request['newSlTriggerPxType'] = $stopLossTriggerPriceType;
-        }
-        if ($takeProfitDefined) {
-            $takeProfitTriggerPrice = $this->safe_value($takeProfit, 'triggerPrice');
-            $takeProfitPrice = $this->safe_value($takeProfit, 'price');
-            $takeProfitType = $this->safe_string($takeProfit, 'type');
-            $request['newTpTriggerPx'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
-            $request['newTpOrdPx'] = ($takeProfitType === 'market') ? '-1' : $this->price_to_precision($symbol, $takeProfitPrice);
-            $request['newTpTriggerPxType'] = $takeProfitTriggerPriceType;
+        if ($isAlgoOrder) {
+            if (($stopLossTriggerPrice === null) && ($takeProfitTriggerPrice === null)) {
+                throw new BadRequest($this->id . ' editOrder() requires a $stopLossPrice or $takeProfitPrice parameter for editing an algo order');
+            }
+            if ($stopLossTriggerPrice !== null) {
+                if ($stopLossPrice === null) {
+                    throw new BadRequest($this->id . ' editOrder() requires a newSlOrdPx parameter for editing an algo order');
+                }
+                $request['newSlTriggerPx'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+                $request['newSlOrdPx'] = ($type === 'market') ? '-1' : $this->price_to_precision($symbol, $stopLossPrice);
+                $request['newSlTriggerPxType'] = $stopLossTriggerPriceType;
+            }
+            if ($takeProfitTriggerPrice !== null) {
+                if ($takeProfitPrice === null) {
+                    throw new BadRequest($this->id . ' editOrder() requires a newTpOrdPx parameter for editing an algo order');
+                }
+                $request['newTpTriggerPx'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+                $request['newTpOrdPx'] = ($type === 'market') ? '-1' : $this->price_to_precision($symbol, $takeProfitPrice);
+                $request['newTpTriggerPxType'] = $takeProfitTriggerPriceType;
+            }
+        } else {
+            if ($stopLossTriggerPrice !== null) {
+                $request['newSlTriggerPx'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+                $request['newSlOrdPx'] = ($type === 'market') ? '-1' : $this->price_to_precision($symbol, $stopLossPrice);
+                $request['newSlTriggerPxType'] = $stopLossTriggerPriceType;
+            }
+            if ($takeProfitTriggerPrice !== null) {
+                $request['newTpTriggerPx'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+                $request['newTpOrdPx'] = ($type === 'market') ? '-1' : $this->price_to_precision($symbol, $takeProfitPrice);
+                $request['newTpTriggerPxType'] = $takeProfitTriggerPriceType;
+            }
+            if ($stopLossDefined) {
+                $stopLossTriggerPrice = $this->safe_value($stopLoss, 'triggerPrice');
+                $stopLossPrice = $this->safe_value($stopLoss, 'price');
+                $stopLossType = $this->safe_string($stopLoss, 'type');
+                $request['newSlTriggerPx'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+                $request['newSlOrdPx'] = ($stopLossType === 'market') ? '-1' : $this->price_to_precision($symbol, $stopLossPrice);
+                $request['newSlTriggerPxType'] = $stopLossTriggerPriceType;
+            }
+            if ($takeProfitDefined) {
+                $takeProfitTriggerPrice = $this->safe_value($takeProfit, 'triggerPrice');
+                $takeProfitPrice = $this->safe_value($takeProfit, 'price');
+                $takeProfitType = $this->safe_string($takeProfit, 'type');
+                $request['newTpTriggerPx'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+                $request['newTpOrdPx'] = ($takeProfitType === 'market') ? '-1' : $this->price_to_precision($symbol, $takeProfitPrice);
+                $request['newTpTriggerPxType'] = $takeProfitTriggerPriceType;
+            }
         }
         if ($amount !== null) {
             $request['newSz'] = $this->amount_to_precision($symbol, $amount);
         }
-        if ($price !== null) {
-            $request['newPx'] = $this->price_to_precision($symbol, $price);
+        if (!$isAlgoOrder) {
+            if ($price !== null) {
+                $request['newPx'] = $this->price_to_precision($symbol, $price);
+            }
         }
         $params = $this->omit($params, array( 'clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit' ));
         return array_merge($request, $params);
@@ -2973,7 +3009,8 @@ class okx extends Exchange {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade $order
-             * @see https://www.okx.com/docs-v5/en/#rest-api-trade-amend-$order
+             * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-post-amend-$order
+             * @see https://www.okx.com/docs-v5/en/#$order-book-trading-algo-trading-post-amend-algo-$order
              * @param {string} $id $order $id
              * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market' or 'limit'
@@ -3001,7 +3038,16 @@ class okx extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
-            $response = Async\await($this->privatePostTradeAmendOrder (array_merge($request, $params)));
+            $isAlgoOrder = null;
+            if (($type === 'trigger') || ($type === 'conditional') || ($type === 'move_order_stop') || ($type === 'oco') || ($type === 'iceberg') || ($type === 'twap')) {
+                $isAlgoOrder = true;
+            }
+            $response = null;
+            if ($isAlgoOrder) {
+                $response = Async\await($this->privatePostTradeAmendAlgos (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privatePostTradeAmendOrder (array_merge($request, $params)));
+            }
             //
             //     {
             //        "code" => "0",

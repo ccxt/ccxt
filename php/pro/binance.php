@@ -1000,7 +1000,7 @@ class binance extends \ccxt\async\binance {
             $timestamp = $this->safe_integer($message, 'E');
         } else {
             // take the $timestamp of the closing price for candlestick streams
-            $timestamp = $this->safe_integer($message, 'C');
+            $timestamp = $this->safe_integer_2($message, 'C', 'E');
         }
         $marketId = $this->safe_string($message, 's');
         $symbol = $this->safe_symbol($marketId, null, null, $marketType);
