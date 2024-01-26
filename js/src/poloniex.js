@@ -58,6 +58,7 @@ export default class poloniex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
+                'fetchFundingRate': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
                 'fetchPositionMode': false,

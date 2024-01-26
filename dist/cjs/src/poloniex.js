@@ -55,6 +55,7 @@ class poloniex extends poloniex$1 {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
+                'fetchFundingRate': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
                 'fetchPositionMode': false,

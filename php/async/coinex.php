@@ -5354,7 +5354,7 @@ class coinex extends Exchange {
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return array([string|null, object]) the $marginMode in lowercase
+         * @return {Array} the $marginMode in lowercase
          */
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_value($params, 'margin', false);
