@@ -1482,6 +1482,7 @@ export default class binance extends Exchange {
                         '-1135': BadRequest, // undocumented, but mentioned: This error code will occur if a parameter requiring a JSON object is invalid.
                         '-1145': BadRequest, // cancelRestrictions has to be either ONLY_NEW or ONLY_PARTIALLY_FILLED.
                         '-1151': BadSymbol, // Symbol is present multiple times in the list.
+                        '-2008': AuthenticationError, // undocumented, Invalid Api-Key ID
                         '-2010': InvalidOrder, // NEW_ORDER_REJECTED
                         '-2011': OrderNotFound, // {"code":-2011,"msg":"cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'"}
                         '-2013': OrderNotFound, // {"code":-2013,"msg":"fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'"}
@@ -1686,6 +1687,8 @@ export default class binance extends Exchange {
                         '-21005': InsufficientFunds, // User’s spot wallet doesn’t have enough BUSD to repay portfolio margin bankruptcy loan
                         '-21006': OperationFailed, // User had portfolio margin bankruptcy loan repayment in process
                         '-21007': OperationFailed, // User failed to repay portfolio margin bankruptcy loan since liquidation was in process
+                        '-32603': BadRequest, // undocumented, Filter failure: LOT_SIZE & precision
+                        '400002': BadRequest, // undocumented, { “status”: “FAIL”, “code”: “400002”, “errorMessage”: “Signature for this request is not valid.” }
                         '100001003': AuthenticationError, // undocumented, {"code":100001003,"msg":"Verification failed"}
                         '200003903': AuthenticationError, // undocumented, {"code":200003903,"msg":"Your identity verification has been rejected. Please complete identity verification again."}
                     },
