@@ -1650,6 +1650,7 @@ export default class binance extends Exchange {
                         '-10045': OperationRejected, // The loan coin does not support collateral repayment. Please try again later.
                         '-10046': OperationRejected, // Collateral Adjustment exceeds the maximum limit. Please try again.
                         '-10047': PermissionDenied, // This coin is currently not supported in your location due to local regulations.
+                        '-11008': OperationRejected, // undocumented: Exceeding the account’s maximum borrowable limit
                         '-12014': RateLimitExceeded, // More than 1 request in 2 seconds
                         // BLVT
                         '-13000': OperationRejected, // Redeption of the token is forbiden now
