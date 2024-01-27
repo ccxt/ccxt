@@ -362,7 +362,7 @@ export default class bingx extends Exchange {
                     '100500': ExchangeError,
                     '100503': ExchangeError,
                     '80001': BadRequest,
-                    '80012': InsufficientFunds, // bingx {"code":80012,"msg":"{\"Code\":101253,\"Msg\":\"margin is not enough\",
+                    '80012': InsufficientFunds, // bingx {"code":80012,"msg":"{\"Code\":101253,\"Msg\":\"margin is not enough\"}
                     '80014': BadRequest,
                     '80016': OrderNotFound,
                     '80017': OrderNotFound,
