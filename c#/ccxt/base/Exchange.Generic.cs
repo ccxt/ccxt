@@ -80,12 +80,12 @@ public partial class Exchange
         return outList;
     }
 
-    public object extend(object aa, object bb = null)
+    public Dictionary<string, object> extend(object aa, object bb = null)
     {
         return Extend(aa, bb);
     }
 
-    public static object Extend(object aa, object bb = null)
+    public static Dictionary<string, object> Extend(object aa, object bb = null)
     {
 
         var a = (dict)aa;
@@ -146,10 +146,7 @@ public partial class Exchange
         }
         return outDict;
     }
-
-
-
-    public object deepExtend(params object[] objs)
+    public Dictionary<string, object> deepExtend(params object[] objs)
     {
         object outObj = null;
         foreach (object x in objs)
@@ -176,7 +173,7 @@ public partial class Exchange
                 outObj = x;
             }
         }
-        return outObj;
+        return outObj as Dictionary<string, object>;
     }
     public bool inArray(object elem, object list2)
     {

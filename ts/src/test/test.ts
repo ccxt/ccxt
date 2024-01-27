@@ -1293,7 +1293,7 @@ export default class testMainClass extends baseMainTestClass {
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
                 await this.testMethodStatically (exchange, method, result, type, skipKeys);
                 // reset options
-                exchange.options = oldExchangeOptions;
+                exchange.options = exchange.extend (oldExchangeOptions, {});
             }
         }
         await close (exchange);
@@ -1333,7 +1333,7 @@ export default class testMainClass extends baseMainTestClass {
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
                 await this.testResponseStatically (exchange, method, skipKeys, result);
                 // reset options
-                exchange.options = oldExchangeOptions;
+                exchange.options = exchange.extend (oldExchangeOptions, {});
             }
         }
         await close (exchange);

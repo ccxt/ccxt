@@ -60,8 +60,8 @@ public partial class Exchange
     public int paddingMode { get; set; } = 0;
 
     public object number { get; set; } = typeof(float);
-    public object has { get; set; } = new dict();
-    public object options { get; set; } = new dict();
+    public Dictionary<string, object> has { get; set; } = new dict();
+    public Dictionary<string, object> options { get; set; } = new dict();
     public object markets { get; set; } = null;
     public object currencies { get; set; } = null;
     public object fees { get; set; } = new dict();
