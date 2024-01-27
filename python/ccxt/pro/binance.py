@@ -909,7 +909,7 @@ class binance(ccxt.async_support.binance):
             timestamp = self.safe_integer(message, 'E')
         else:
             # take the timestamp of the closing price for candlestick streams
-            timestamp = self.safe_integer(message, 'C')
+            timestamp = self.safe_integer_2(message, 'C', 'E')
         marketId = self.safe_string(message, 's')
         symbol = self.safe_symbol(marketId, None, None, marketType)
         market = self.safe_market(marketId, None, None, marketType)

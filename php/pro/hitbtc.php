@@ -38,6 +38,12 @@ class hitbtc extends \ccxt\async\hitbtc {
                         'private' => 'wss://api.hitbtc.com/api/3/ws/trading',
                     ),
                 ),
+                'test' => array(
+                    'ws' => array(
+                        'public' => 'wss://api.demo.hitbtc.com/api/3/ws/public',
+                        'private' => 'wss://api.demo.hitbtc.com/api/3/ws/trading',
+                    ),
+                ),
             ),
             'options' => array(
                 'tradesLimit' => 1000,

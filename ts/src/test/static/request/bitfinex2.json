@@ -137,6 +137,16 @@
                   "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchOpenInterestHistory": [
+            {
+                "description": "Fetch the open interest history of a swap trading pair",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://api-pub.bitfinex.com/v2/status/deriv/tBTCF0:USTF0/hist",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }

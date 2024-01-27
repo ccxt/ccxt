@@ -850,13 +850,15 @@ class okx extends okx$1 {
         /**
          * @method
          * @name okx#watchMyTrades
-         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel
          * @description watches information on multiple trades made by the user
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel
          * @param {string} [symbol] unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.stop] true if fetching trigger or conditional trades
+         * @param {string} [params.type] 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
+         * @param {string} [params.marginMode] 'cross' or 'isolated', for automatically setting the type to spot margin
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         // By default, receive order updates from any instrument type
@@ -878,7 +880,14 @@ class okx extends okx$1 {
         if (type === 'future') {
             type = 'futures';
         }
-        const uppercaseType = type.toUpperCase();
+        let uppercaseType = type.toUpperCase();
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('watchMyTrades', params);
+        if (uppercaseType === 'SPOT') {
+            if (marginMode !== undefined) {
+                uppercaseType = 'MARGIN';
+            }
+        }
         const request = {
             'instType': uppercaseType,
         };
@@ -1024,7 +1033,6 @@ class okx extends okx$1 {
          */
         let type = undefined;
         // By default, receive order updates from any instrument type
-        [type, params] = this.handleOptionAndParams(params, 'watchOrders', 'defaultType');
         [type, params] = this.handleOptionAndParams(params, 'watchOrders', 'type', 'ANY');
         const isStop = this.safeValue2(params, 'stop', 'trigger', false);
         params = this.omit(params, ['stop', 'trigger']);
