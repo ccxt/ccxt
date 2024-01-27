@@ -47,7 +47,7 @@ class binance extends \ccxt\async\binance {
                     'ws' => array(
                         'spot' => 'wss://testnet.binance.vision/ws',
                         'margin' => 'wss://testnet.binance.vision/ws',
-                        'future' => 'wss://stream.binancefuture.com/ws',
+                        'future' => 'wss://fstream.binancefuture.com/ws',
                         'delivery' => 'wss://dstream.binancefuture.com/ws',
                         'ws' => 'wss://testnet.binance.vision/ws-api/v3',
                     ),
@@ -1000,7 +1000,7 @@ class binance extends \ccxt\async\binance {
             $timestamp = $this->safe_integer($message, 'E');
         } else {
             // take the $timestamp of the closing price for candlestick streams
-            $timestamp = $this->safe_integer($message, 'C');
+            $timestamp = $this->safe_integer_2($message, 'C', 'E');
         }
         $marketId = $this->safe_string($message, 's');
         $symbol = $this->safe_symbol($marketId, null, null, $marketType);
@@ -1997,12 +1997,13 @@ class binance extends \ccxt\async\binance {
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
              * watches information on multiple $orders made by the user
-             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+             * @see https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
+             * @param {string} $symbol unified $market $symbol of the $market the $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string|null} [$params->marginMode] 'cross' or 'isolated', for spot margin
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
@@ -2024,8 +2025,10 @@ class binance extends \ccxt\async\binance {
             }
             $params = array_merge($params, array( 'type' => $type, 'symbol' => $symbol )); // needed inside authenticate for isolated margin
             Async\await($this->authenticate($params));
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('watchOrders', $params);
             $urlType = $type;
-            if ($type === 'margin') {
+            if (($type === 'margin') || (($type === 'spot') && ($marginMode !== null))) {
                 $urlType = 'spot'; // spot-margin shares the same stream spot
             }
             $url = $this->urls['api']['ws'][$urlType] . '/' . $this->options[$type]['listenKey'];
@@ -2291,7 +2294,6 @@ class binance extends \ccxt\async\binance {
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
             Async\await($this->load_markets());
-            Async\await($this->authenticate($params));
             $market = null;
             $messageHash = '';
             $symbols = $this->market_symbols($symbols);
@@ -2299,6 +2301,12 @@ class binance extends \ccxt\async\binance {
                 $market = $this->get_market_from_symbols($symbols);
                 $messageHash = '::' . implode(',', $symbols);
             }
+            $marketTypeObject = array();
+            if ($market !== null) {
+                $marketTypeObject['type'] = $market['type'];
+                $marketTypeObject['subType'] = $market['subType'];
+            }
+            Async\await($this->authenticate(array_merge($marketTypeObject, $params)));
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchPositions', $market, $params);
             if ($type === 'spot' || $type === 'margin') {

@@ -53,8 +53,8 @@ export default class bingx extends Exchange {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingRate': true,
-                'fetchFundingRates': true,
                 'fetchFundingRateHistory': true,
+                'fetchFundingRates': true,
                 'fetchLeverage': true,
                 'fetchLiquidations': false,
                 'fetchMarkets': true,
@@ -369,7 +369,8 @@ export default class bingx extends Exchange {
                     '80017': OrderNotFound,
                     '100414': AccountSuspended,
                     '100419': PermissionDenied,
-                    '100437': BadRequest, // {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
+                    '100437': BadRequest,
+                    '101204': InsufficientFunds, // bingx {"code":101204,"msg":"","data":{}}
                 },
                 'broad': {},
             },

@@ -1265,7 +1265,7 @@ class bitget extends \ccxt\async\bitget {
             'price' => $this->safe_string($order, 'price'),
             'stopPrice' => $triggerPrice,
             'triggerPrice' => $triggerPrice,
-            'amount' => $this->safe_string_2($order, 'size', 'baseSize'),
+            'amount' => $this->safe_string($order, 'baseVolume'),
             'cost' => $this->safe_string_n($order, array( 'notional', 'notionalUsd', 'quoteSize' )),
             'average' => $this->omit_zero($this->safe_string_2($order, 'priceAvg', 'fillPrice')),
             'filled' => $this->safe_string_2($order, 'accBaseVolume', 'baseVolume'),

@@ -880,13 +880,15 @@ class okx extends \ccxt\async\okx {
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-$channel
              * watches information on multiple trades made by the user
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-$channel
              * @param {string} [$symbol] unified $market $symbol of the $market trades were made in
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->stop] true if fetching trigger or conditional trades
+             * @param {string} [$params->type] 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
+             * @param {string} [$params->marginMode] 'cross' or 'isolated', for automatically setting the $type to spot margin
              * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
              */
             // By default, receive order updates from any instrument $type
@@ -909,6 +911,13 @@ class okx extends \ccxt\async\okx {
                 $type = 'futures';
             }
             $uppercaseType = strtoupper($type);
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('watchMyTrades', $params);
+            if ($uppercaseType === 'SPOT') {
+                if ($marginMode !== null) {
+                    $uppercaseType = 'MARGIN';
+                }
+            }
             $request = array(
                 'instType' => $uppercaseType,
             );
@@ -1044,13 +1053,15 @@ class okx extends \ccxt\async\okx {
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-$channel
              * watches information on multiple $orders made by the user
-             * @param {string} [$symbol] unified $market $symbol of the $market $orders were made in
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-$channel
+             * @param {string} [$symbol] unified $market $symbol of the $market the $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->stop] true if fetching trigger or conditional $orders
+             * @param {string} [$params->type] 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
+             * @param {string} [$params->marginMode] 'cross' or 'isolated', for automatically setting the $type to spot margin
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $type = null;
@@ -1070,6 +1081,13 @@ class okx extends \ccxt\async\okx {
                 $type = 'futures';
             }
             $uppercaseType = strtoupper($type);
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('watchOrders', $params);
+            if ($uppercaseType === 'SPOT') {
+                if ($marginMode !== null) {
+                    $uppercaseType = 'MARGIN';
+                }
+            }
             $request = array(
                 'instType' => $uppercaseType,
             );

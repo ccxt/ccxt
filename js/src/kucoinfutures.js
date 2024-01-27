@@ -1834,7 +1834,7 @@ export default class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#fetchFundingRate
          * @description fetch the current funding rate
-         * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-current-funding-rate
+         * @see https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -1858,7 +1858,7 @@ export default class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue(response, 'data');
-        const fundingTimestamp = this.safeNumber(data, 'timePoint');
+        const fundingTimestamp = this.safeInteger(data, 'timePoint');
         // the website displayes the previous funding rate as "funding rate"
         return {
             'info': data,
@@ -1869,15 +1869,15 @@ export default class kucoinfutures extends kucoin {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'fundingRate': this.safeNumber(data, 'predictedValue'),
-            'fundingTimestamp': undefined,
-            'fundingDatetime': undefined,
-            'nextFundingRate': undefined,
+            'fundingRate': this.safeNumber(data, 'value'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601(fundingTimestamp),
+            'nextFundingRate': this.safeNumber(data, 'predictedValue'),
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
-            'previousFundingRate': this.safeNumber(data, 'value'),
-            'previousFundingTimestamp': fundingTimestamp,
-            'previousFundingDatetime': this.iso8601(fundingTimestamp),
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
         };
     }
     parseBalance(response) {

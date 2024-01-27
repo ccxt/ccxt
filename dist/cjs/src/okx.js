@@ -40,11 +40,16 @@ class okx extends okx$1 {
                 'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrders': true,
+                'createOrderWithTakeProfitAndStopLoss': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
+                'createStopLossOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'createTakeProfitOrder': true,
+                'createTrailingPercentOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
@@ -157,8 +162,7 @@ class okx extends okx$1 {
                 'referral': {
                     // old reflink 0% discount https://www.okx.com/join/1888677
                     // new reflink 20% discount https://www.okx.com/join/CCXT2023
-                    // okx + ccxt campaign reflink with 20% discount https://www.okx.com/activities/ccxt-trade-and-earn?channelid=CCXT2023
-                    'url': 'https://www.okx.com/activities/ccxt-trade-and-earn?channelid=CCXT2023',
+                    'url': 'https://www.okx.com/join/CCXT2023',
                     'discount': 0.2,
                 },
                 'test': {
@@ -259,6 +263,7 @@ class okx extends okx$1 {
                         'sprd/order': 1 / 3,
                         'sprd/orders-pending': 1 / 3,
                         'sprd/orders-history': 1 / 2,
+                        'sprd/orders-history-archive': 1 / 2,
                         'sprd/trades': 1 / 3,
                         // trade
                         'trade/order': 1 / 3,
@@ -1147,24 +1152,6 @@ class okx extends okx$1 {
             'info': undefined,
         };
     }
-    market(symbol) {
-        if (this.markets === undefined) {
-            throw new errors.ExchangeError(this.id + ' markets not loaded');
-        }
-        if (typeof symbol === 'string') {
-            if (symbol in this.markets) {
-                return this.markets[symbol];
-            }
-            else if (symbol in this.markets_by_id) {
-                const markets = this.markets_by_id[symbol];
-                return markets[0];
-            }
-            else if ((symbol.indexOf('-C') > -1) || (symbol.indexOf('-P') > -1)) {
-                return this.createExpiredOptionMarket(symbol);
-            }
-        }
-        throw new errors.BadSymbol(this.id + ' does not have market symbol ' + symbol);
-    }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         const isOption = (marketId !== undefined) && ((marketId.indexOf('-C') > -1) || (marketId.indexOf('-P') > -1));
         if (isOption && !(marketId in this.markets_by_id)) {
@@ -1215,9 +1202,19 @@ class okx extends okx$1 {
         for (let i = 0; i < data.length; i++) {
             const event = data[i];
             const state = this.safeString(event, 'state');
+            update['eta'] = this.safeInteger(event, 'end');
+            update['url'] = this.safeString(event, 'href');
             if (state === 'ongoing') {
-                update['eta'] = this.safeInteger(event, 'end');
                 update['status'] = 'maintenance';
+            }
+            else if (state === 'scheduled') {
+                update['status'] = 'ok';
+            }
+            else if (state === 'completed') {
+                update['status'] = 'ok';
+            }
+            else if (state === 'canceled') {
+                update['status'] = 'ok';
             }
         }
         return update;
@@ -2122,17 +2119,14 @@ class okx extends okx$1 {
         let defaultType = 'Candles';
         if (since !== undefined) {
             const now = this.milliseconds();
-            const difference = now - since;
             const durationInMilliseconds = duration * 1000;
-            // if the since timestamp is more than limit candles back in the past
-            // additional one bar for max offset to round the current day to UTC
-            const calc = (1440 - limit - 1) * durationInMilliseconds;
-            if (difference > calc) {
+            // switch to history candles if since is past the cutoff for current candles
+            const historyBorder = now - ((1440 - 1) * durationInMilliseconds);
+            if (since < historyBorder) {
                 defaultType = 'HistoryCandles';
             }
-            const startTime = Math.max(since - 1, 0);
-            request['before'] = startTime;
-            request['after'] = this.sum(startTime, durationInMilliseconds * limit);
+            request['before'] = since;
+            request['after'] = this.sum(since, durationInMilliseconds * limit);
         }
         const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
@@ -2920,12 +2914,26 @@ class okx extends okx$1 {
         const request = {
             'instId': market['id'],
         };
+        let isAlgoOrder = undefined;
+        if ((type === 'trigger') || (type === 'conditional') || (type === 'move_order_stop') || (type === 'oco') || (type === 'iceberg') || (type === 'twap')) {
+            isAlgoOrder = true;
+        }
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
         if (clientOrderId !== undefined) {
-            request['clOrdId'] = clientOrderId;
+            if (isAlgoOrder) {
+                request['algoClOrdId'] = clientOrderId;
+            }
+            else {
+                request['clOrdId'] = clientOrderId;
+            }
         }
         else {
-            request['ordId'] = id;
+            if (isAlgoOrder) {
+                request['algoId'] = id;
+            }
+            else {
+                request['ordId'] = id;
+            }
         }
         let stopLossTriggerPrice = this.safeValue2(params, 'stopLossPrice', 'newSlTriggerPx');
         let stopLossPrice = this.safeValue(params, 'newSlOrdPx');
@@ -2937,37 +2945,62 @@ class okx extends okx$1 {
         const takeProfit = this.safeValue(params, 'takeProfit');
         const stopLossDefined = (stopLoss !== undefined);
         const takeProfitDefined = (takeProfit !== undefined);
-        if (stopLossTriggerPrice !== undefined) {
-            request['newSlTriggerPx'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
-            request['newSlOrdPx'] = (type === 'market') ? '-1' : this.priceToPrecision(symbol, stopLossPrice);
-            request['newSlTriggerPxType'] = stopLossTriggerPriceType;
+        if (isAlgoOrder) {
+            if ((stopLossTriggerPrice === undefined) && (takeProfitTriggerPrice === undefined)) {
+                throw new errors.BadRequest(this.id + ' editOrder() requires a stopLossPrice or takeProfitPrice parameter for editing an algo order');
+            }
+            if (stopLossTriggerPrice !== undefined) {
+                if (stopLossPrice === undefined) {
+                    throw new errors.BadRequest(this.id + ' editOrder() requires a newSlOrdPx parameter for editing an algo order');
+                }
+                request['newSlTriggerPx'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                request['newSlOrdPx'] = (type === 'market') ? '-1' : this.priceToPrecision(symbol, stopLossPrice);
+                request['newSlTriggerPxType'] = stopLossTriggerPriceType;
+            }
+            if (takeProfitTriggerPrice !== undefined) {
+                if (takeProfitPrice === undefined) {
+                    throw new errors.BadRequest(this.id + ' editOrder() requires a newTpOrdPx parameter for editing an algo order');
+                }
+                request['newTpTriggerPx'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                request['newTpOrdPx'] = (type === 'market') ? '-1' : this.priceToPrecision(symbol, takeProfitPrice);
+                request['newTpTriggerPxType'] = takeProfitTriggerPriceType;
+            }
         }
-        if (takeProfitTriggerPrice !== undefined) {
-            request['newTpTriggerPx'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
-            request['newTpOrdPx'] = (type === 'market') ? '-1' : this.priceToPrecision(symbol, takeProfitPrice);
-            request['newTpTriggerPxType'] = takeProfitTriggerPriceType;
-        }
-        if (stopLossDefined) {
-            stopLossTriggerPrice = this.safeValue(stopLoss, 'triggerPrice');
-            stopLossPrice = this.safeValue(stopLoss, 'price');
-            const stopLossType = this.safeString(stopLoss, 'type');
-            request['newSlTriggerPx'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
-            request['newSlOrdPx'] = (stopLossType === 'market') ? '-1' : this.priceToPrecision(symbol, stopLossPrice);
-            request['newSlTriggerPxType'] = stopLossTriggerPriceType;
-        }
-        if (takeProfitDefined) {
-            takeProfitTriggerPrice = this.safeValue(takeProfit, 'triggerPrice');
-            takeProfitPrice = this.safeValue(takeProfit, 'price');
-            const takeProfitType = this.safeString(takeProfit, 'type');
-            request['newTpTriggerPx'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
-            request['newTpOrdPx'] = (takeProfitType === 'market') ? '-1' : this.priceToPrecision(symbol, takeProfitPrice);
-            request['newTpTriggerPxType'] = takeProfitTriggerPriceType;
+        else {
+            if (stopLossTriggerPrice !== undefined) {
+                request['newSlTriggerPx'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                request['newSlOrdPx'] = (type === 'market') ? '-1' : this.priceToPrecision(symbol, stopLossPrice);
+                request['newSlTriggerPxType'] = stopLossTriggerPriceType;
+            }
+            if (takeProfitTriggerPrice !== undefined) {
+                request['newTpTriggerPx'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                request['newTpOrdPx'] = (type === 'market') ? '-1' : this.priceToPrecision(symbol, takeProfitPrice);
+                request['newTpTriggerPxType'] = takeProfitTriggerPriceType;
+            }
+            if (stopLossDefined) {
+                stopLossTriggerPrice = this.safeValue(stopLoss, 'triggerPrice');
+                stopLossPrice = this.safeValue(stopLoss, 'price');
+                const stopLossType = this.safeString(stopLoss, 'type');
+                request['newSlTriggerPx'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                request['newSlOrdPx'] = (stopLossType === 'market') ? '-1' : this.priceToPrecision(symbol, stopLossPrice);
+                request['newSlTriggerPxType'] = stopLossTriggerPriceType;
+            }
+            if (takeProfitDefined) {
+                takeProfitTriggerPrice = this.safeValue(takeProfit, 'triggerPrice');
+                takeProfitPrice = this.safeValue(takeProfit, 'price');
+                const takeProfitType = this.safeString(takeProfit, 'type');
+                request['newTpTriggerPx'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                request['newTpOrdPx'] = (takeProfitType === 'market') ? '-1' : this.priceToPrecision(symbol, takeProfitPrice);
+                request['newTpTriggerPxType'] = takeProfitTriggerPriceType;
+            }
         }
         if (amount !== undefined) {
             request['newSz'] = this.amountToPrecision(symbol, amount);
         }
-        if (price !== undefined) {
-            request['newPx'] = this.priceToPrecision(symbol, price);
+        if (!isAlgoOrder) {
+            if (price !== undefined) {
+                request['newPx'] = this.priceToPrecision(symbol, price);
+            }
         }
         params = this.omit(params, ['clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit']);
         return this.extend(request, params);
@@ -2977,7 +3010,8 @@ class okx extends okx$1 {
          * @method
          * @name okx#editOrder
          * @description edit a trade order
-         * @see https://www.okx.com/docs-v5/en/#rest-api-trade-amend-order
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-amend-order
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-amend-algo-order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -3005,7 +3039,17 @@ class okx extends okx$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = this.editOrderRequest(id, symbol, type, side, amount, price, params);
-        const response = await this.privatePostTradeAmendOrder(this.extend(request, params));
+        let isAlgoOrder = undefined;
+        if ((type === 'trigger') || (type === 'conditional') || (type === 'move_order_stop') || (type === 'oco') || (type === 'iceberg') || (type === 'twap')) {
+            isAlgoOrder = true;
+        }
+        let response = undefined;
+        if (isAlgoOrder) {
+            response = await this.privatePostTradeAmendAlgos(this.extend(request, params));
+        }
+        else {
+            response = await this.privatePostTradeAmendOrder(this.extend(request, params));
+        }
         //
         //     {
         //        "code": "0",

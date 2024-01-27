@@ -49,7 +49,7 @@ class binance(ccxt.async_support.binance):
                     'ws': {
                         'spot': 'wss://testnet.binance.vision/ws',
                         'margin': 'wss://testnet.binance.vision/ws',
-                        'future': 'wss://stream.binancefuture.com/ws',
+                        'future': 'wss://fstream.binancefuture.com/ws',
                         'delivery': 'wss://dstream.binancefuture.com/ws',
                         'ws': 'wss://testnet.binance.vision/ws-api/v3',
                     },
@@ -909,7 +909,7 @@ class binance(ccxt.async_support.binance):
             timestamp = self.safe_integer(message, 'E')
         else:
             # take the timestamp of the closing price for candlestick streams
-            timestamp = self.safe_integer(message, 'C')
+            timestamp = self.safe_integer_2(message, 'C', 'E')
         marketId = self.safe_string(message, 's')
         symbol = self.safe_symbol(marketId, None, None, marketType)
         market = self.safe_market(marketId, None, None, marketType)
@@ -1811,12 +1811,13 @@ class binance(ccxt.async_support.binance):
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
         watches information on multiple orders made by the user
-        :param str symbol: unified market symbol of the market orders were made in
+        :see: https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
+        :param str symbol: unified market symbol of the market the orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str|None [params.marginMode]: 'cross' or 'isolated', for spot margin
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1836,8 +1837,10 @@ class binance(ccxt.async_support.binance):
             type = 'delivery'
         params = self.extend(params, {'type': type, 'symbol': symbol})  # needed inside authenticate for isolated margin
         await self.authenticate(params)
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('watchOrders', params)
         urlType = type
-        if type == 'margin':
+        if (type == 'margin') or ((type == 'spot') and (marginMode is not None)):
             urlType = 'spot'  # spot-margin shares the same stream spot
         url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
         client = self.client(url)
@@ -2090,13 +2093,17 @@ class binance(ccxt.async_support.binance):
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
-        await self.authenticate(params)
         market = None
         messageHash = ''
         symbols = self.market_symbols(symbols)
         if not self.is_empty(symbols):
             market = self.get_market_from_symbols(symbols)
             messageHash = '::' + ','.join(symbols)
+        marketTypeObject = {}
+        if market is not None:
+            marketTypeObject['type'] = market['type']
+            marketTypeObject['subType'] = market['subType']
+        await self.authenticate(self.extend(marketTypeObject, params))
         type = None
         type, params = self.handle_market_type_and_params('watchPositions', market, params)
         if type == 'spot' or type == 'margin':

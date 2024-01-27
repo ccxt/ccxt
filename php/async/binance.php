@@ -315,6 +315,7 @@ class binance extends Exchange {
                         'convert/exchangeInfo' => 50,
                         'convert/assetInfo' => 10,
                         'convert/orderStatus' => 0.6667,
+                        'convert/limit/queryOpenOrders' => 20.001, // Weight(UID) => 3000 => cost = 0.006667 * 3000 = 20.001
                         'account/status' => 0.1,
                         'account/apiTradingStatus' => 0.1,
                         'account/apiRestrictions/ipRestriction' => 0.1,
@@ -586,6 +587,8 @@ class binance extends Exchange {
                         'loan/vip/repay' => 40.002,
                         'convert/getQuote' => 1.3334, // Weight(UID) => 200 => cost = 0.006667 * 200 = 1.3334
                         'convert/acceptQuote' => 3.3335, // Weight(UID) => 500 => cost = 0.006667 * 500 = 3.3335
+                        'convert/limit/placeOrder' => 3.3335, // Weight(UID) => 500 => cost = 0.006667 * 500 = 3.3335
+                        'convert/limit/cancelOrder' => 1.3334, // Weight(UID) => 200 => cost = 0.006667 * 200 = 1.3334
                         'portfolio/auto-collection' => 150, // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/asset-collection' => 6, // Weight(IP) => 60 => cost = 0.1 * 60 = 6
                         'portfolio/bnb-transfer' => 150, // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
@@ -959,6 +962,7 @@ class binance extends Exchange {
                 ),
                 'papi' => array(
                     'get' => array(
+                        'ping' => 1,
                         'um/order' => 1, // 1
                         'um/openOrder' => 1, // 1
                         'um/openOrders' => 1, // 1
@@ -7883,12 +7887,20 @@ class binance extends Exchange {
     public function fetch_positions(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
+             * @see https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#position-information-user_data
+             * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
+             * @see https://binance-docs.github.io/apidocs/voptions/en/#option-position-information-user_data
              * fetch all open positions
-             * @param {string[]|null} $symbols list of unified market $symbols
+             * @param {string[]} [$symbols] list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
-            $defaultMethod = $this->safe_string($this->options, 'fetchPositions', 'positionRisk');
+            $defaultValue = $this->safe_string($this->options, 'fetchPositions', 'positionRisk');
+            $defaultMethod = null;
+            list($defaultMethod, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'method', $defaultValue);
             if ($defaultMethod === 'positionRisk') {
                 return Async\await($this->fetch_positions_risk($symbols, $params));
             } elseif ($defaultMethod === 'account') {
@@ -7896,7 +7908,7 @@ class binance extends Exchange {
             } elseif ($defaultMethod === 'option') {
                 return Async\await($this->fetch_option_positions($symbols, $params));
             } else {
-                throw new NotSupported($this->id . '.options["fetchPositions"] = "' . $defaultMethod . '" is invalid, please choose between "account", "positionRisk" and "option"');
+                throw new NotSupported($this->id . '.options["fetchPositions"]/params["method"] = "' . $defaultMethod . '" is invalid, please choose between "account", "positionRisk" and "option"');
             }
         }) ();
     }
@@ -8606,7 +8618,7 @@ class binance extends Exchange {
             } else {
                 throw new AuthenticationError($this->id . ' $userDataStream endpoint requires `apiKey` credential');
             }
-        } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2') || ($api === 'papi')) {
+        } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2') || ($api === 'papi' && $path !== 'ping')) {
             $this->check_required_credentials();
             if ($method === 'POST' && (($path === 'order') || ($path === 'sor/order'))) {
                 // inject in implicit API calls

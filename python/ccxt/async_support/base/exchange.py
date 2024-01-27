@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.18'
+__version__ = '4.2.23'
 
 # -----------------------------------------------------------------------------
 
@@ -677,6 +677,12 @@ class Exchange(BaseExchange):
             message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file'
         raise NotSupported(self.id + ' fetchOHLCV() is not supported yet' + message)
 
+    async def fetch_ohlcv_ws(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+        message = ''
+        if self.has['fetchTradesWs']:
+            message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file'
+        raise NotSupported(self.id + ' fetchOHLCVWs() is not supported yet. Try using fetchOHLCV instead.' + message)
+
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOHLCV() is not supported yet')
 
@@ -1183,6 +1189,9 @@ class Exchange(BaseExchange):
             return self.filter_by(orders, 'status', 'closed')
         raise NotSupported(self.id + ' fetchClosedOrders() is not supported yet')
 
+    async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchCanceledAndClosedOrders() is not supported yet')
+
     async def fetch_closed_orders_ws(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         if self.has['fetchOrdersWs']:
             orders = await self.fetchOrdersWs(symbol, since, limit, params)
@@ -1204,9 +1213,6 @@ class Exchange(BaseExchange):
     async def watch_my_trades(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchMyTrades() is not supported yet')
 
-    async def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
-        raise NotSupported(self.id + ' fetchOHLCVWs() is not supported yet')
-
     async def fetch_greeks(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchGreeks() is not supported yet')
 
@@ -1224,8 +1230,14 @@ class Exchange(BaseExchange):
     async def fetch_deposits(self, code: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchDeposits() is not supported yet')
 
+    async def fetch_deposits_ws(self, code: str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchDepositsWs() is not supported yet')
+
     async def fetch_withdrawals(self, code: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchWithdrawals() is not supported yet')
+
+    async def fetch_withdrawals_ws(self, code: str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchWithdrawalsWs() is not supported yet')
 
     async def fetch_open_interest(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
@@ -1327,6 +1339,9 @@ class Exchange(BaseExchange):
 
     async def fetch_trading_fees(self, params={}):
         raise NotSupported(self.id + ' fetchTradingFees() is not supported yet')
+
+    async def fetch_trading_fees_ws(self, params={}):
+        raise NotSupported(self.id + ' fetchTradingFeesWs() is not supported yet')
 
     async def fetch_trading_fee(self, symbol: str, params={}):
         if not self.has['fetchTradingFees']:

@@ -1530,8 +1530,9 @@ class coinex(Exchange, ImplicitAPI):
         """
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
-        isMargin = self.safe_value(params, 'margin', False)
-        marketType = 'margin' if isMargin else marketType
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
+        marketType = 'margin' if (marginMode is not None) else marketType
         params = self.omit(params, 'margin')
         if marketType == 'margin':
             return self.fetch_margin_balance(params)
@@ -2005,8 +2006,9 @@ class coinex(Exchange, ImplicitAPI):
                         if timeInForceRaw is not None:
                             request['option'] = timeInForceRaw  # exchange takes 'IOC' and 'FOK'
         accountId = self.safe_integer(params, 'account_id')
-        defaultType = self.safe_string(self.options, 'defaultType')
-        if defaultType == 'margin':
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
+        if marginMode is not None:
             if accountId is None:
                 raise BadRequest(self.id + ' createOrder() requires an account_id parameter for margin orders')
             request['account_id'] = accountId
@@ -2473,9 +2475,10 @@ class coinex(Exchange, ImplicitAPI):
             'market': market['id'],
         }
         accountId = self.safe_integer(params, 'account_id')
-        defaultType = self.safe_string(self.options, 'defaultType')
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
         clientOrderId = self.safe_string_2(params, 'client_id', 'clientOrderId')
-        if defaultType == 'margin':
+        if marginMode is not None:
             if accountId is None:
                 raise BadRequest(self.id + ' cancelOrder() requires an account_id parameter for margin orders')
             request['account_id'] = accountId
@@ -2814,8 +2817,9 @@ class coinex(Exchange, ImplicitAPI):
             request['market'] = market['id']
         marketType, query = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)
         accountId = self.safe_integer(params, 'account_id')
-        defaultType = self.safe_string(self.options, 'defaultType')
-        if defaultType == 'margin':
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchOrdersByStatus', params)
+        if marginMode is not None:
             if accountId is None:
                 raise BadRequest(self.id + ' fetchOpenOrders() and fetchClosedOrders() require an account_id parameter for margin orders')
             request['account_id'] = accountId
@@ -3179,8 +3183,9 @@ class coinex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument for non-spot markets')
         swap = (type == 'swap')
         accountId = self.safe_integer(params, 'account_id')
-        defaultType = self.safe_string(self.options, 'defaultType')
-        if defaultType == 'margin':
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchMyTrades', params)
+        if marginMode is not None:
             if accountId is None:
                 raise BadRequest(self.id + ' fetchMyTrades() requires an account_id parameter for margin trades')
             request['account_id'] = accountId
@@ -3275,11 +3280,17 @@ class coinex(Exchange, ImplicitAPI):
         """
         fetch all open positions
         :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033_pending_position
-        :param str[]|None symbols: list of unified market symbols
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position
+        :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: the method to use 'perpetualPrivateGetPositionPending' or 'perpetualPrivateGetPositionFinished' default is 'perpetualPrivateGetPositionPending'
+        :param int [params.side]: *history endpoint only* 0: All, 1: Sell, 2: Buy, default is 0
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
+        defaultMethod = None
+        defaultMethod, params = self.handle_option_and_params(params, 'fetchPositions', 'method', 'perpetualPrivateGetPositionPending')
+        isHistory = (defaultMethod == 'perpetualPrivateGetPositionFinished')
         symbols = self.market_symbols(symbols)
         request = {}
         market = None
@@ -3294,7 +3305,17 @@ class coinex(Exchange, ImplicitAPI):
                 symbol = symbols
             market = self.market(symbol)
             request['market'] = market['id']
-        response = self.perpetualPrivateGetPositionPending(self.extend(request, params))
+        else:
+            if isHistory:
+                raise ArgumentsRequired(self.id + ' fetchPositions() requires a symbol argument for closed positions')
+        if isHistory:
+            request['limit'] = 100
+            request['side'] = self.safe_integer(params, 'side', 0)  # 0: All, 1: Sell, 2: Buy
+        response = None
+        if defaultMethod == 'perpetualPrivateGetPositionPending':
+            response = self.perpetualPrivateGetPositionPending(self.extend(request, params))
+        else:
+            response = self.perpetualPrivateGetPositionFinished(self.extend(request, params))
         #
         #     {
         #         "code": 0,
@@ -4418,9 +4439,10 @@ class coinex(Exchange, ImplicitAPI):
         else:
             request['limit'] = 100
         params = self.omit(params, 'page')
-        defaultType = self.safe_string(self.options, 'defaultType')
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchTransfers', params)
         response = None
-        if defaultType == 'margin':
+        if marginMode is not None:
             response = self.privateGetMarginTransferHistory(self.extend(request, params))
         else:
             response = self.privateGetContractTransferHistory(self.extend(request, params))
@@ -4966,6 +4988,22 @@ class coinex(Exchange, ImplicitAPI):
             currency = self.currency(code)
             depositWithdrawFees[code] = self.assign_default_deposit_withdraw_fees(depositWithdrawFees[code], currency)
         return depositWithdrawFees
+
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
+        """
+         * @ignore
+        marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns Array: the marginMode in lowercase
+        """
+        defaultType = self.safe_string(self.options, 'defaultType')
+        isMargin = self.safe_value(params, 'margin', False)
+        marginMode = None
+        marginMode, params = super(coinex, self).handle_margin_mode_and_params(methodName, params, defaultValue)
+        if marginMode is None:
+            if (defaultType == 'margin') or (isMargin is True):
+                marginMode = 'isolated'
+        return [marginMode, params]
 
     def nonce(self):
         return self.milliseconds()

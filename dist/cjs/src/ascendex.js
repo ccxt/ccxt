@@ -64,6 +64,8 @@ class ascendex extends ascendex$1 {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -808,12 +810,14 @@ class ascendex extends ascendex$1 {
          */
         await this.loadMarkets();
         await this.loadAccounts();
-        let query = undefined;
         let marketType = undefined;
-        [marketType, query] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
+        let marginMode = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
+        [marginMode, params] = this.handleMarginModeAndParams('fetchBalance', params);
         const isMargin = this.safeValue(params, 'margin', false);
-        marketType = isMargin ? 'margin' : marketType;
-        query = this.omit(query, 'margin');
+        const isCross = marginMode === 'cross';
+        marketType = (isMargin || isCross) ? 'margin' : marketType;
+        params = this.omit(params, 'margin');
         const accountsByType = this.safeValue(this.options, 'accountsByType', {});
         const accountCategory = this.safeString(accountsByType, marketType, 'cash');
         const account = this.safeValue(this.accounts, 0, {});
@@ -821,15 +825,18 @@ class ascendex extends ascendex$1 {
         const request = {
             'account-group': accountGroup,
         };
+        if ((marginMode === 'isolated') && (marketType !== 'swap')) {
+            throw new errors.BadRequest(this.id + ' does not supported isolated margin trading');
+        }
         if ((accountCategory === 'cash') || (accountCategory === 'margin')) {
             request['account-category'] = accountCategory;
         }
         let response = undefined;
         if ((marketType === 'spot') || (marketType === 'margin')) {
-            response = await this.v1PrivateAccountCategoryGetBalance(this.extend(request, query));
+            response = await this.v1PrivateAccountCategoryGetBalance(this.extend(request, params));
         }
         else if (marketType === 'swap') {
-            response = await this.v2PrivateAccountGroupGetFuturesPosition(this.extend(request, query));
+            response = await this.v2PrivateAccountGroupGetFuturesPosition(this.extend(request, params));
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchBalance() is not currently supported for ' + marketType + ' markets');

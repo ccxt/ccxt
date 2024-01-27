@@ -38,6 +38,3 @@ __pycache__
 *.un~
 *.pyc
 
-# docs
-wiki/spec.md
-wiki/examples/**/*.md
