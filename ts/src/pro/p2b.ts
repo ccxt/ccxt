@@ -444,28 +444,13 @@ export default class p2b extends p2bRest {
             'deals.update': this.handleTrade,
         };
         const endpoint = this.safeValue (methods, method);
-        return endpoint.call (this, client, message);
+        if (endpoint !== undefined) {
+            return endpoint.call (this, client, message);
+        }
     }
 
     handleErrorMessage (client: Client, message) {
         // TODO
-        //
-        //    {
-        //        message: 'Invalid channel value ["ordersss"]',
-        //        event: 'error'
-        //    }
-        //
-        //    {
-        //        "orderId": 0,
-        //        "clientOrderId": null,
-        //        "message": "Currency trade disabled",
-        //        "code": 21352
-        //    }
-        //
-        //    {
-        //       "event": "error",
-        //       "message": "Platform in maintenance mode"
-        //    }
         //
         const event = this.safeString (message, 'event');
         const orderId = this.safeString (message, 'orderId');
