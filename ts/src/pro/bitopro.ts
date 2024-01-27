@@ -5,7 +5,7 @@ import bitoproRest from '../bitopro.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, OrderBook, Trade, Ticker, Balances, Market } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, Balances, Market, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -16,7 +16,7 @@ export default class bitopro extends bitoproRest {
             'has': {
                 'ws': true,
                 'watchBalance': true,
-                'watchMyTrades': false,
+                'watchMyTrades': true,
                 'watchOHLCV': false,
                 'watchOrderBook': true,
                 'watchOrders': false,
@@ -182,7 +182,7 @@ export default class bitopro extends bitoproRest {
         client.resolve (tradesCache, messageHash);
     }
 
-    async watchMyTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitopro#watchMyTrades
