@@ -3476,8 +3476,10 @@ class phemex extends Exchange {
          * fetch all open $positions
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-trading-account-and-$positions
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-$positions
-         * @param {string[]|null} $symbols list of unified $market $symbols
+         * @see https://phemex-docs.github.io/#query-account-$positions-with-unrealized-pnl
+         * @param {string[]} [$symbols] list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [param.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
          */
         $this->load_markets();
@@ -3509,7 +3511,13 @@ class phemex extends Exchange {
         );
         $response = null;
         if ($isUSDTSettled) {
-            $response = $this->privateGetGAccountsAccountPositions (array_merge($request, $params));
+            $method = null;
+            list($method, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'method', 'privateGetGAccountsAccountPositions');
+            if ($method === 'privateGetGAccountsAccountPositions') {
+                $response = $this->privateGetGAccountsAccountPositions (array_merge($request, $params));
+            } else {
+                $response = $this->privateGetAccountsPositions (array_merge($request, $params));
+            }
         } else {
             $response = $this->privateGetAccountsAccountPositions (array_merge($request, $params));
         }
@@ -3685,7 +3693,7 @@ class phemex extends Exchange {
         $contracts = $this->safe_string($position, 'size');
         $contractSize = $this->safe_value($market, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
-        $leverage = $this->safe_number_2($position, 'leverage', 'leverageRr');
+        $leverage = $this->parse_number(Precise::string_abs(($this->safe_string($position, 'leverage', 'leverageRr'))));
         $entryPriceString = $this->safe_string_2($position, 'avgEntryPrice', 'avgEntryPriceRp');
         $rawSide = $this->safe_string($position, 'side');
         $side = null;

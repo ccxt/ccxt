@@ -3527,8 +3527,10 @@ export default class phemex extends Exchange {
          * @description fetch all open positions
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-trading-account-and-positions
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
-         * @param {string[]|undefined} symbols list of unified market symbols
+         * @see https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
+         * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [param.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
@@ -3560,7 +3562,13 @@ export default class phemex extends Exchange {
         };
         let response = undefined;
         if (isUSDTSettled) {
-            response = await this.privateGetGAccountsAccountPositions (this.extend (request, params));
+            let method = undefined;
+            [ method, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method', 'privateGetGAccountsAccountPositions');
+            if (method === 'privateGetGAccountsAccountPositions') {
+                response = await this.privateGetGAccountsAccountPositions (this.extend (request, params));
+            } else {
+                response = await this.privateGetAccountsPositions (this.extend (request, params));
+            }
         } else {
             response = await this.privateGetAccountsAccountPositions (this.extend (request, params));
         }
@@ -3736,7 +3744,7 @@ export default class phemex extends Exchange {
         const contracts = this.safeString (position, 'size');
         const contractSize = this.safeValue (market, 'contractSize');
         const contractSizeString = this.numberToString (contractSize);
-        const leverage = this.safeNumber2 (position, 'leverage', 'leverageRr');
+        const leverage = this.parseNumber (Precise.stringAbs ((this.safeString (position, 'leverage', 'leverageRr'))));
         const entryPriceString = this.safeString2 (position, 'avgEntryPrice', 'avgEntryPriceRp');
         const rawSide = this.safeString (position, 'side');
         let side = undefined;

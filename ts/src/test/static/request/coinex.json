@@ -198,6 +198,19 @@
                         "LTC/USDT:USDT"
                     ]
                 ]
+            },
+            {
+                "description": "Fetch positions using history endpoiunt",
+                "method": "fetchPositions",
+                "url": "https://api.coinex.com/perpetual/v1/position/finished?access_id=85D9FDDCA1914FB78E2F2448A0EF812A&limit=100&market=LTCUSDT&side=0&timestamp=1706265378027",
+                "input": [
+                  [
+                    "LTC/USDT:USDT"
+                  ],
+                  {
+                    "method": "perpetualPrivateGetPositionFinished"
+                  }
+                ]
             }
         ],
         "setLeverage": [

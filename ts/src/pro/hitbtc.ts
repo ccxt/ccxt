@@ -36,6 +36,12 @@ export default class hitbtc extends hitbtcRest {
                         'private': 'wss://api.hitbtc.com/api/3/ws/trading',
                     },
                 },
+                'test': {
+                    'ws': {
+                        'public': 'wss://api.demo.hitbtc.com/api/3/ws/public',
+                        'private': 'wss://api.demo.hitbtc.com/api/3/ws/trading',
+                    },
+                },
             },
             'options': {
                 'tradesLimit': 1000,
