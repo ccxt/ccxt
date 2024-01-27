@@ -52,6 +52,7 @@ class bitfinex2 extends Exchange {
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
+                'fetchOpenInterestHistory' => true,
                 'fetchOpenOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -3002,7 +3003,72 @@ class bitfinex2 extends Exchange {
         return $this->parse_open_interest($response[0], $market);
     }
 
+    public function fetch_open_interest_history(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * retrieves the open interest history of a currency
+         * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status-history
+         * @param {string} $symbol unified CCXT $market $symbol
+         * @param {string} $timeframe the time period of each row of data, not used by bitfinex2
+         * @param {int} [$since] the time in ms of the earliest record to retrieve unix timestamp
+         * @param {int} [$limit] the number of records in the $response
+         * @param {array} [$params] exchange specific parameters
+         * @param {int} [$params->until] the time in ms of the latest record to retrieve unix timestamp
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return An array of ~@link https://docs.ccxt.com/#/?id=open-interest-structure open interest structures~
+         */
+        $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenInterestHistory', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_deterministic('fetchOpenInterestHistory', $symbol, $since, $limit, '8h', $params, 5000);
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        if ($since !== null) {
+            $request['start'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        list($request, $params) = $this->handle_until_option('end', $request, $params);
+        $response = $this->publicGetStatusDerivSymbolHist (array_merge($request, $params));
+        //
+        //     array(
+        //         array(
+        //             1706295191000,       // timestamp
+        //             null,
+        //             42152.425382,        // derivative mid price
+        //             42133,               // spot mid price
+        //             null,
+        //             37671589.7853521,    // insurance fund balance
+        //             null,
+        //             1706313600000,       // timestamp of next funding
+        //             0.00018734,          // accrued funding for next period
+        //             3343,                // next funding step
+        //             null,
+        //             0.00007587,          // current funding
+        //             null,
+        //             null,
+        //             42134.1,             // mark price
+        //             null,
+        //             null,
+        //             5775.20348804,       // open interest number of contracts
+        //             null,
+        //             null,
+        //             null,
+        //             0.0005,              // average spread without funding payment
+        //             0.0025               // funding payment cap
+        //         ),
+        //     )
+        //
+        return $this->parse_open_interests($response, $market, $since, $limit);
+    }
+
     public function parse_open_interest($interest, ?array $market = null) {
+        //
+        // fetchOpenInterest:
         //
         //     array(
         //         "tXRPF0:USTF0",  // $market id
@@ -3031,11 +3097,41 @@ class bitfinex2 extends Exchange {
         //         0.0025           // funding payment cap
         //     )
         //
+        // fetchOpenInterestHistory:
+        //
+        //     array(
+        //         1706295191000,       // $timestamp
+        //         null,
+        //         42152.425382,        // derivative mid price
+        //         42133,               // spot mid price
+        //         null,
+        //         37671589.7853521,    // insurance fund balance
+        //         null,
+        //         1706313600000,       // $timestamp of next funding
+        //         0.00018734,          // accrued funding for next period
+        //         3343,                // next funding step
+        //         null,
+        //         0.00007587,          // current funding
+        //         null,
+        //         null,
+        //         42134.1,             // mark price
+        //         null,
+        //         null,
+        //         5775.20348804,       // open $interest number of contracts
+        //         null,
+        //         null,
+        //         null,
+        //         0.0005,              // average spread without funding payment
+        //         0.0025               // funding payment cap
+        //     )
+        //
+        $interestLength = count($interest);
+        $openInterestIndex = ($interestLength === 23) ? 17 : 18;
         $timestamp = $this->safe_integer($interest, 1);
         $marketId = $this->safe_string($interest, 0);
         return $this->safe_open_interest(array(
             'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
-            'openInterestAmount' => $this->safe_number($interest, 18),
+            'openInterestAmount' => $this->safe_number($interest, $openInterestIndex),
             'openInterestValue' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

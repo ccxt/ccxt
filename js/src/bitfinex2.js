@@ -58,6 +58,7 @@ export default class bitfinex2 extends Exchange {
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
+                'fetchOpenInterestHistory': true,
                 'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -3037,7 +3038,73 @@ export default class bitfinex2 extends Exchange {
         //
         return this.parseOpenInterest(response[0], market);
     }
+    async fetchOpenInterestHistory(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitfinex2#fetchOpenInterestHistory
+         * @description retrieves the open interest history of a currency
+         * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status-history
+         * @param {string} symbol unified CCXT market symbol
+         * @param {string} timeframe the time period of each row of data, not used by bitfinex2
+         * @param {int} [since] the time in ms of the earliest record to retrieve as a unix timestamp
+         * @param {int} [limit] the number of records in the response
+         * @param {object} [params] exchange specific parameters
+         * @param {int} [params.until] the time in ms of the latest record to retrieve as a unix timestamp
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns An array of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+         */
+        await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOpenInterestHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOpenInterestHistory', symbol, since, limit, '8h', params, 5000);
+        }
+        const market = this.market(symbol);
+        let request = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        [request, params] = this.handleUntilOption('end', request, params);
+        const response = await this.publicGetStatusDerivSymbolHist(this.extend(request, params));
+        //
+        //     [
+        //         [
+        //             1706295191000,       // timestamp
+        //             null,
+        //             42152.425382,        // derivative mid price
+        //             42133,               // spot mid price
+        //             null,
+        //             37671589.7853521,    // insurance fund balance
+        //             null,
+        //             1706313600000,       // timestamp of next funding
+        //             0.00018734,          // accrued funding for next period
+        //             3343,                // next funding step
+        //             null,
+        //             0.00007587,          // current funding
+        //             null,
+        //             null,
+        //             42134.1,             // mark price
+        //             null,
+        //             null,
+        //             5775.20348804,       // open interest number of contracts
+        //             null,
+        //             null,
+        //             null,
+        //             0.0005,              // average spread without funding payment
+        //             0.0025               // funding payment cap
+        //         ],
+        //     ]
+        //
+        return this.parseOpenInterests(response, market, since, limit);
+    }
     parseOpenInterest(interest, market = undefined) {
+        //
+        // fetchOpenInterest:
         //
         //     [
         //         "tXRPF0:USTF0",  // market id
@@ -3066,11 +3133,41 @@ export default class bitfinex2 extends Exchange {
         //         0.0025           // funding payment cap
         //     ]
         //
+        // fetchOpenInterestHistory:
+        //
+        //     [
+        //         1706295191000,       // timestamp
+        //         null,
+        //         42152.425382,        // derivative mid price
+        //         42133,               // spot mid price
+        //         null,
+        //         37671589.7853521,    // insurance fund balance
+        //         null,
+        //         1706313600000,       // timestamp of next funding
+        //         0.00018734,          // accrued funding for next period
+        //         3343,                // next funding step
+        //         null,
+        //         0.00007587,          // current funding
+        //         null,
+        //         null,
+        //         42134.1,             // mark price
+        //         null,
+        //         null,
+        //         5775.20348804,       // open interest number of contracts
+        //         null,
+        //         null,
+        //         null,
+        //         0.0005,              // average spread without funding payment
+        //         0.0025               // funding payment cap
+        //     ]
+        //
+        const interestLength = interest.length;
+        const openInterestIndex = (interestLength === 23) ? 17 : 18;
         const timestamp = this.safeInteger(interest, 1);
         const marketId = this.safeString(interest, 0);
         return this.safeOpenInterest({
             'symbol': this.safeSymbol(marketId, market, undefined, 'swap'),
-            'openInterestAmount': this.safeNumber(interest, 18),
+            'openInterestAmount': this.safeNumber(interest, openInterestIndex),
             'openInterestValue': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
