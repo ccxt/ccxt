@@ -21,6 +21,7 @@ interface Exchange {
     publicGetMdTrade (params?: {}): Promise<implicitReturnType>;
     publicGetMdSpotTicker24hr (params?: {}): Promise<implicitReturnType>;
     publicGetExchangePublicCfgChainSettings (params?: {}): Promise<implicitReturnType>;
+    v1GetMdFullbook (params?: {}): Promise<implicitReturnType>;
     v1GetMdOrderbook (params?: {}): Promise<implicitReturnType>;
     v1GetMdTrade (params?: {}): Promise<implicitReturnType>;
     v1GetMdTicker24hr (params?: {}): Promise<implicitReturnType>;
@@ -29,6 +30,7 @@ interface Exchange {
     v1GetMdSpotTicker24hrAll (params?: {}): Promise<implicitReturnType>;
     v1GetExchangePublicProducts (params?: {}): Promise<implicitReturnType>;
     v1GetApiDataPublicDataFundingRateHistory (params?: {}): Promise<implicitReturnType>;
+    v2GetPublicProducts (params?: {}): Promise<implicitReturnType>;
     v2GetMdV2Orderbook (params?: {}): Promise<implicitReturnType>;
     v2GetMdV2Trade (params?: {}): Promise<implicitReturnType>;
     v2GetMdV2Ticker24hr (params?: {}): Promise<implicitReturnType>;
@@ -54,6 +56,7 @@ interface Exchange {
     privateGetApiDataGFuturesTrades (params?: {}): Promise<implicitReturnType>;
     privateGetApiDataFuturesTradingFees (params?: {}): Promise<implicitReturnType>;
     privateGetApiDataGFuturesTradingFees (params?: {}): Promise<implicitReturnType>;
+    privateGetApiDataFuturesV2TradeAccountDetail (params?: {}): Promise<implicitReturnType>;
     privateGetGOrdersActiveList (params?: {}): Promise<implicitReturnType>;
     privateGetOrdersActiveList (params?: {}): Promise<implicitReturnType>;
     privateGetExchangeOrderList (params?: {}): Promise<implicitReturnType>;
@@ -62,6 +65,11 @@ interface Exchange {
     privateGetPhemexUserUsersChildren (params?: {}): Promise<implicitReturnType>;
     privateGetPhemexUserWalletsV2DepositAddress (params?: {}): Promise<implicitReturnType>;
     privateGetPhemexUserWalletsTradeAccountDetail (params?: {}): Promise<implicitReturnType>;
+    privateGetPhemexDepositWalletsApiDepositAddress (params?: {}): Promise<implicitReturnType>;
+    privateGetPhemexDepositWalletsApiDepositHist (params?: {}): Promise<implicitReturnType>;
+    privateGetPhemexDepositWalletsApiChainCfg (params?: {}): Promise<implicitReturnType>;
+    privateGetPhemexWithdrawWalletsApiWithdrawHist (params?: {}): Promise<implicitReturnType>;
+    privateGetPhemexWithdrawWalletsApiAssetInfo (params?: {}): Promise<implicitReturnType>;
     privateGetPhemexUserOrderClosedPositionList (params?: {}): Promise<implicitReturnType>;
     privateGetExchangeMarginsTransfer (params?: {}): Promise<implicitReturnType>;
     privateGetExchangeWalletsConfirmWithdraw (params?: {}): Promise<implicitReturnType>;
@@ -94,6 +102,8 @@ interface Exchange {
     privatePostAssetsFuturesSubAccountsTransfer (params?: {}): Promise<implicitReturnType>;
     privatePostAssetsUniversalTransfer (params?: {}): Promise<implicitReturnType>;
     privatePostAssetsConvert (params?: {}): Promise<implicitReturnType>;
+    privatePostPhemexWithdrawWalletsApiCreateWithdraw (params?: {}): Promise<implicitReturnType>;
+    privatePostPhemexWithdrawWalletsApiCancelWithdraw (params?: {}): Promise<implicitReturnType>;
     privatePutSpotOrdersCreate (params?: {}): Promise<implicitReturnType>;
     privatePutSpotOrders (params?: {}): Promise<implicitReturnType>;
     privatePutOrdersReplace (params?: {}): Promise<implicitReturnType>;

@@ -1,8 +1,8 @@
 import Exchange from './abstract/yobit.js';
-import { Balances, Dictionary, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Dictionary, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 /**
  * @class yobit
- * @extends Exchange
+ * @augments Exchange
  */
 export default class yobit extends Exchange {
     describe(): any;

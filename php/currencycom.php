@@ -1557,7 +1557,16 @@ class currencycom extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($method === 'privateGetV2Deposits') {
+            $response = $this->privateGetV2Deposits (array_merge($request, $params));
+        } elseif ($method === 'privateGetV2Withdrawals') {
+            $response = $this->privateGetV2Withdrawals (array_merge($request, $params));
+        } elseif ($method === 'privateGetV2Transactions') {
+            $response = $this->privateGetV2Transactions (array_merge($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' fetchTransactionsByMethod() not support this method');
+        }
         //
         //    array(
         //        array(

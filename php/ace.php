@@ -28,6 +28,8 @@ class ace extends Exchange {
                 'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createOrder' => true,
                 'editOrder' => false,
                 'fetchBalance' => true,
@@ -688,7 +690,7 @@ class ace extends Exchange {
          * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-list
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
-         * @param {int} [$limit] the maximum number of  orde structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */

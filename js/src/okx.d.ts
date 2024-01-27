@@ -1,8 +1,8 @@
 import Exchange from './abstract/okx.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency } from './base/types.js';
 /**
  * @class okx
- * @extends Exchange
+ * @augments Exchange
  */
 export default class okx extends Exchange {
     describe(): any;
@@ -10,7 +10,6 @@ export default class okx extends Exchange {
     convertToInstrumentType(type: any): string;
     convertExpireDate(date: any): string;
     createExpiredOptionMarket(symbol: any): MarketInterface;
-    market(symbol: any): any;
     safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): MarketInterface;
     fetchStatus(params?: {}): Promise<{
         updated: any;
@@ -52,6 +51,8 @@ export default class okx extends Exchange {
         taker: number;
     }>;
     fetchBalance(params?: {}): Promise<Balances>;
+    createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
+    createMarketSellOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
@@ -323,5 +324,6 @@ export default class okx extends Exchange {
         underlyingPrice: any;
         info: any;
     };
+    closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
     handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

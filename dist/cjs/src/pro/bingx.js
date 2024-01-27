@@ -3,6 +3,7 @@
 var bingx$1 = require('../bingx.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
+var Precise = require('../base/Precise.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -29,6 +30,7 @@ class bingx extends bingx$1 {
                 },
             },
             'options': {
+                'listenKeyRefreshRate': 3540000,
                 'ws': {
                     'gunzip': true,
                 },
@@ -60,6 +62,10 @@ class bingx extends bingx$1 {
                         '1d': '1day',
                     },
                 },
+                'watchBalance': {
+                    'fetchBalanceSnapshot': true,
+                    'awaitBalanceSnapshot': false, // whether to wait for the balance snapshot before providing updates
+                },
             },
             'streaming': {
                 'keepAlive': 1800000, // 30 minutes
@@ -75,7 +81,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
@@ -164,7 +170,8 @@ class bingx extends bingx$1 {
         const data = this.safeValue(message, 'data', []);
         const messageHash = this.safeString(message, 'dataType');
         const marketId = messageHash.split('@')[0];
-        const marketType = client.url.indexOf('swap') >= 0 ? 'swap' : 'spot';
+        const isSwap = client.url.indexOf('swap') >= 0;
+        const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         let trades = undefined;
@@ -279,7 +286,8 @@ class bingx extends bingx$1 {
         const data = this.safeValue(message, 'data', []);
         const messageHash = this.safeString(message, 'dataType');
         const marketId = messageHash.split('@')[0];
-        const marketType = client.url.indexOf('swap') >= 0 ? 'swap' : 'spot';
+        const isSwap = client.url.indexOf('swap') >= 0;
+        const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         let orderbook = this.safeValue(this.orderbooks, symbol);
@@ -303,8 +311,11 @@ class bingx extends bingx$1 {
         //        "t": 1696687440000
         //    }
         //
+        // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
+        // for swap, (T) is the opening time
+        const timestamp = (market['spot']) ? 't' : 'T';
         return [
-            this.safeInteger(ohlcv, 't'),
+            this.safeInteger(ohlcv, timestamp),
             this.safeNumber(ohlcv, 'o'),
             this.safeNumber(ohlcv, 'h'),
             this.safeNumber(ohlcv, 'l'),
@@ -368,7 +379,8 @@ class bingx extends bingx$1 {
         const messageHash = this.safeString(message, 'dataType');
         const timeframeId = messageHash.split('_')[1];
         const marketId = messageHash.split('@')[0];
-        const marketType = client.url.indexOf('swap') >= 0 ? 'swap' : 'spot';
+        const isSwap = client.url.indexOf('swap') >= 0;
+        const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
@@ -432,7 +444,7 @@ class bingx extends bingx$1 {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -525,7 +537,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         await this.authenticate();
@@ -547,7 +559,40 @@ class bingx extends bingx$1 {
                 'dataType': 'ACCOUNT_UPDATE',
             };
         }
+        const client = this.client(url);
+        this.setBalanceCache(client, type, subscriptionHash, params);
+        let fetchBalanceSnapshot = undefined;
+        let awaitBalanceSnapshot = undefined;
+        [fetchBalanceSnapshot, params] = this.handleOptionAndParams(params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        [awaitBalanceSnapshot, params] = this.handleOptionAndParams(params, 'watchBalance', 'awaitBalanceSnapshot', false);
+        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
+            await client.future(type + ':fetchBalanceSnapshot');
+        }
         return await this.watch(url, messageHash, request, subscriptionHash);
+    }
+    setBalanceCache(client, type, subscriptionHash, params) {
+        if (subscriptionHash in client.subscriptions) {
+            return undefined;
+        }
+        const fetchBalanceSnapshot = this.handleOptionAndParams(params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        if (fetchBalanceSnapshot) {
+            const messageHash = type + ':fetchBalanceSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future(messageHash);
+                this.spawn(this.loadBalanceSnapshot, client, messageHash, type);
+            }
+        }
+        else {
+            this.balance[type] = {};
+        }
+    }
+    async loadBalanceSnapshot(client, messageHash, type) {
+        const response = await this.fetchBalance({ 'type': type });
+        this.balance[type] = this.extend(response, this.safeValue(this.balance, type, {}));
+        // don't remove the future from the .futures cache
+        const future = client.futures[messageHash];
+        future.resolve();
+        client.resolve(this.balance[type], type + ':balance');
     }
     handleErrorMessage(client, message) {
         //
@@ -583,7 +628,7 @@ class bingx extends bingx$1 {
         const lastAuthenticatedTime = this.safeInteger(this.options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger(this.options, 'listenKeyRefreshRate', 3600000); // 1 hour
         if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
-            const response = await this.userAuthPrivatePostUserDataStream({ 'listenKey': listenKey }); // extend the expiry
+            const response = await this.userAuthPrivatePutUserDataStream({ 'listenKey': listenKey }); // extend the expiry
             this.options['listenKey'] = this.safeString(response, 'listenKey');
             this.options['lastAuthenticatedTime'] = time;
         }
@@ -831,9 +876,6 @@ class bingx extends bingx$1 {
         const data = this.safeValue(a, 'B', []);
         const timestamp = this.safeInteger2(message, 'T', 'E');
         const type = ('P' in a) ? 'swap' : 'spot';
-        if (!(type in this.balance)) {
-            this.balance[type] = {};
-        }
         this.balance[type]['info'] = data;
         this.balance[type]['timestamp'] = timestamp;
         this.balance[type]['datetime'] = this.iso8601(timestamp);
@@ -841,8 +883,12 @@ class bingx extends bingx$1 {
             const balance = data[i];
             const currencyId = this.safeString(balance, 'a');
             const code = this.safeCurrencyCode(currencyId);
-            const account = (code in this.balance) ? this.balance[code] : this.account();
-            account['total'] = this.safeString(balance, 'wb');
+            const account = (code in this.balance[type]) ? this.balance[type][code] : this.account();
+            account['free'] = this.safeString(balance, 'wb');
+            const balanceChange = this.safeString(balance, 'bc');
+            if (account['used'] !== undefined) {
+                account['used'] = Precise["default"].stringSub(this.safeString(account, 'used'), balanceChange);
+            }
             this.balance[type][code] = account;
         }
         this.balance[type] = this.safeBalance(this.balance[type]);

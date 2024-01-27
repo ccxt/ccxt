@@ -26,6 +26,8 @@ class mercado extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createMarketOrder' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,

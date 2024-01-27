@@ -28,6 +28,8 @@ class bl3p extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => false,
@@ -143,7 +145,7 @@ class bl3p extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {
+    public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $price = $this->safe_string($bidask, $priceKey);
         $size = $this->safe_string($bidask, $amountKey);
         return array(

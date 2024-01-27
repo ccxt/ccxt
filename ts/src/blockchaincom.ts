@@ -3,13 +3,13 @@ import Exchange from './abstract/blockchaincom.js';
 import { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
 /**
  * @class blockchaincom
- * @extends Exchange
+ * @augments Exchange
  */
 export default class blockchaincom extends Exchange {
     describe () {
@@ -700,7 +700,7 @@ export default class blockchaincom extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -831,8 +831,10 @@ export default class blockchaincom extends Exchange {
         let tag = undefined;
         let address = undefined;
         if (rawAddress !== undefined) {
+            const addressParts = rawAddress.split (';');
             // if a tag or memo is used it is separated by a colon in the 'address' value
-            [ address, tag ] = rawAddress.split (':');
+            tag = this.safeString (addressParts, 0);
+            address = this.safeString (addressParts, 1);
         }
         const result = { 'info': response };
         result['currency'] = currency['code'];
@@ -923,49 +925,6 @@ export default class blockchaincom extends Exchange {
             'internal': undefined,
             'fee': fee,
         };
-    }
-
-    async fetchWithdrawalWhitelist (params = {}) {
-        /**
-         * @method
-         * @name blockchaincom#fetchWithdrawalWhitelist
-         * @description fetch the list of withdrawal addresses on the whitelist
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} dictionary with keys beneficiaryId, name, currency
-         */
-        await this.loadMarkets ();
-        const response = await this.privateGetWhitelist ();
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            result.push ({
-                'beneficiaryId': this.safeString (entry, 'whitelistId'),
-                'name': this.safeString (entry, 'name'),
-                'currency': this.safeString (entry, 'currency'),
-                'info': entry,
-            });
-        }
-        return result;
-    }
-
-    async fetchWithdrawalWhitelistByCurrency (code: string, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const response = await this.privateGetWhitelistCurrency (this.extend (request, params));
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            result.push ({
-                'beneficiaryId': this.safeString (entry, 'whitelistId'),
-                'name': this.safeString (entry, 'name'),
-                'currency': this.safeString (entry, 'currency'),
-                'info': entry,
-            });
-        }
-        return result;
     }
 
     async withdraw (code: string, amount, address, tag = undefined, params = {}) {

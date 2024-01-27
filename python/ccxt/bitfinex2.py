@@ -73,6 +73,7 @@ class bitfinex2(Exchange, ImplicitAPI):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
                 'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -1046,15 +1047,14 @@ class bitfinex2(Exchange, ImplicitAPI):
         #         FRR_AMOUNT_AVAILABLE
         #     ]
         #
-        timestamp = self.milliseconds()
         symbol = self.safe_symbol(None, market)
         length = len(ticker)
         last = self.safe_string(ticker, length - 4)
         percentage = self.safe_string(ticker, length - 5)
         return self.safe_ticker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'high': self.safe_string(ticker, length - 2),
             'low': self.safe_string(ticker, length - 1),
             'bid': self.safe_string(ticker, length - 10),
@@ -1736,7 +1736,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         :see: https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-symbol
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -2821,3 +2821,89 @@ class bitfinex2(Exchange, ImplicitAPI):
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
         }
+
+    def fetch_open_interest(self, symbol: str, params={}):
+        """
+        retrieves the open interest of a contract trading pair
+        :see: https://docs.bitfinex.com/reference/rest-public-derivatives-status
+        :param str symbol: unified CCXT market symbol
+        :param dict [params]: exchange specific parameters
+        :returns dict: an `open interest structure <https://docs.ccxt.com/#/?id=open-interest-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'keys': market['id'],
+        }
+        response = self.publicGetStatusDeriv(self.extend(request, params))
+        #
+        #     [
+        #         [
+        #             "tXRPF0:USTF0",  # market id
+        #             1706256986000,   # millisecond timestamp
+        #             null,
+        #             0.512705,        # derivative mid price
+        #             0.512395,        # underlying spot mid price
+        #             null,
+        #             37671483.04,     # insurance fund balance
+        #             null,
+        #             1706284800000,   # timestamp of next funding
+        #             0.00002353,      # accrued funding for next period
+        #             317,             # next funding step
+        #             null,
+        #             0,               # current funding
+        #             null,
+        #             null,
+        #             0.5123016,       # mark price
+        #             null,
+        #             null,
+        #             2233562.03115,   # open interest in contracts
+        #             null,
+        #             null,
+        #             null,
+        #             0.0005,          # average spread without funding payment
+        #             0.0025           # funding payment cap
+        #         ]
+        #     ]
+        #
+        return self.parse_open_interest(response[0], market)
+
+    def parse_open_interest(self, interest, market: Market = None):
+        #
+        #     [
+        #         "tXRPF0:USTF0",  # market id
+        #         1706256986000,   # millisecond timestamp
+        #         null,
+        #         0.512705,        # derivative mid price
+        #         0.512395,        # underlying spot mid price
+        #         null,
+        #         37671483.04,     # insurance fund balance
+        #         null,
+        #         1706284800000,   # timestamp of next funding
+        #         0.00002353,      # accrued funding for next period
+        #         317,             # next funding step
+        #         null,
+        #         0,               # current funding
+        #         null,
+        #         null,
+        #         0.5123016,       # mark price
+        #         null,
+        #         null,
+        #         2233562.03115,   # open interest in contracts
+        #         null,
+        #         null,
+        #         null,
+        #         0.0005,          # average spread without funding payment
+        #         0.0025           # funding payment cap
+        #     ]
+        #
+        timestamp = self.safe_integer(interest, 1)
+        marketId = self.safe_string(interest, 0)
+        return self.safe_open_interest({
+            'symbol': self.safe_symbol(marketId, market, None, 'swap'),
+            'openInterestAmount': self.safe_number(interest, 18),
+            'openInterestValue': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': interest,
+        }, market)

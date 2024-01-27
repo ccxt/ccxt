@@ -6,8 +6,9 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Int, Str
+from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 
@@ -73,7 +74,7 @@ class mexc(ccxt.async_support.mexc):
             },
         })
 
-    async def watch_ticker(self, symbol: str, params={}):
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -200,7 +201,7 @@ class mexc(ccxt.async_support.mexc):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, channel)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#kline-streams
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -340,7 +341,7 @@ class mexc(ccxt.async_support.mexc):
             self.safe_number_2(ohlcv, 'v', 'q'),
         ]
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -491,7 +492,7 @@ class mexc(ccxt.async_support.mexc):
         self.handle_bookside_delta(asksOrderSide, asks)
         self.handle_bookside_delta(bidsOrderSide, bids)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#trade-streams
         get the list of most recent trades for a particular symbol
@@ -571,7 +572,7 @@ class mexc(ccxt.async_support.mexc):
             stored.append(parsedTrade)
         client.resolve(stored, messageHash)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals
         watches information on multiple trades made by the user
@@ -688,16 +689,16 @@ class mexc(ccxt.async_support.mexc):
             'fee': None,
         }, market)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders
         :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :params string|None params.type: the type of orders to retrieve, can be 'spot' or 'margin'
+        :param str|None params['type']: the type of orders to retrieve, can be 'spot' or 'margin'
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -930,7 +931,7 @@ class mexc(ccxt.async_support.mexc):
         }
         return self.safe_string(timeInForceIds, timeInForce)
 
-    async def watch_balance(self, params={}):
+    async def watch_balance(self, params={}) -> Balances:
         """
         :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-upadte
         watch balance and get the amount of funds available for trading or funds locked in orders

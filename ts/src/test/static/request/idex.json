@@ -1,6 +1,29 @@
 {
     "exchange": "idex",
-    "skipKeys": [],
+    "skipKeys": [
+        "nonce"
+    ],
     "outputType": "json",
-    "methods": {}
+    "methods": {
+        "fetchDeposits": [
+            {
+                "description": "Fetch Deposits",
+                "method": "fetchDeposits",
+                "url": "https://api-matic.idex.io/v1/deposits?nonce=7d8435b0901a11ee9696ffffffffffff&asset=USDT&wallet=wallet",
+                "input": [
+                    "USDT"
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch Withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api-matic.idex.io/v1/withdrawals?nonce=7d8435b0901a11ee9696ffffffffffff&asset=USDT&wallet=wallet",
+                "input": [
+                    "USDT"
+                ]
+            }
+        ]
+    }
 }

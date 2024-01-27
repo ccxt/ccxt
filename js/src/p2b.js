@@ -12,7 +12,7 @@ import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 // ---------------------------------------------------------------------------
 /**
  * @class p2b
- * @extends Exchange
+ * @augments Exchange
  */
 export default class p2b extends Exchange {
     describe() {
@@ -33,6 +33,8 @@ export default class p2b extends Exchange {
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': false,
                 'createMarketOrder': false,
                 'createOrder': true,
@@ -531,7 +533,6 @@ export default class p2b extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] 1-100, default=50
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         *
          * @param {int} params.lastId order id
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
@@ -650,7 +651,6 @@ export default class p2b extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] 1-500, default=50
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         *
          * @param {int} [params.offset] default=0, with this value the last candles are returned
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */

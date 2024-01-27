@@ -10,7 +10,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class zonda
- * @extends Exchange
+ * @augments Exchange
  */
 class zonda extends zonda$1 {
     describe() {
@@ -30,6 +30,8 @@ class zonda extends zonda$1 {
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,

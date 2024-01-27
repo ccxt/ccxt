@@ -1,11 +1,16 @@
 import Exchange from './abstract/deribit.js';
-import { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarketInterface } from './base/types.js';
 /**
  * @class deribit
- * @extends Exchange
+ * @augments Exchange
  */
 export default class deribit extends Exchange {
     describe(): any;
+    convertExpireDate(date: any): string;
+    convertMarketIdExpireDate(date: any): string;
+    convertExpireDateToMarketIdDate(date: any): any;
+    createExpiredOptionMarket(symbol: any): MarketInterface;
+    safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): MarketInterface;
     fetchTime(params?: {}): Promise<number>;
     fetchCurrencies(params?: {}): Promise<{}>;
     codeFromOptions(methodName: any, params?: {}): any;

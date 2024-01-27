@@ -10,7 +10,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class gemini
- * @extends Exchange
+ * @augments Exchange
  */
 class gemini extends gemini$1 {
     describe() {
@@ -32,6 +32,8 @@ class gemini extends gemini$1 {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': true,
                 'createMarketOrder': false,
                 'createOrder': true,
@@ -299,6 +301,7 @@ class gemini extends gemini$1 {
         /**
          * @method
          * @name gemini#fetchCurrenciesFromWeb
+         * @ignore
          * @description fetches all available currencies on an exchange
          * @param {object} [params] extra parameters specific to the endpoint
          * @returns {object} an associative dictionary of currencies
@@ -341,26 +344,28 @@ class gemini extends gemini$1 {
             const networks = {};
             const networkId = this.safeString(currency, 9);
             const networkCode = this.networkIdToCode(networkId);
-            networks[networkCode] = {
-                'info': currency,
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': precision,
-                'limits': {
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': currency,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': precision,
+                    'limits': {
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
             result[code] = {
                 'info': currency,
                 'id': id,
@@ -946,7 +951,7 @@ class gemini extends gemini$1 {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit_trades'] = limit;
+            request['limit_trades'] = Math.min(limit, 500);
         }
         if (since !== undefined) {
             request['timestamp'] = since;

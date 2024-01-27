@@ -337,9 +337,11 @@ class htx extends htx$1 {
         // which means whenever there is an order book change at that level, it pushes an update;
         // 150-levels/400-level incremental MBP feed is based on the gap
         // between two snapshots at 100ms interval.
-        limit = (limit === undefined) ? 20 : limit;
+        if (limit === undefined) {
+            limit = market['spot'] ? 150 : 20;
+        }
         if (!this.inArray(limit, allowedLimits)) {
-            throw new errors.ExchangeError(this.id + ' watchOrderBook swap market accepts limits of 20 and 150 only');
+            throw new errors.ExchangeError(this.id + ' watchOrderBook market accepts limits of 20 and 150 only');
         }
         let messageHash = undefined;
         if (market['spot']) {
@@ -765,7 +767,7 @@ class htx extends htx$1 {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -928,11 +930,16 @@ class htx extends htx$1 {
                 // inject trade in existing order by faking an order object
                 const orderId = this.safeString(parsedTrade, 'order');
                 const trades = [parsedTrade];
+                const status = this.parseOrderStatus(this.safeString2(data, 'orderStatus', 'status', 'closed'));
+                const filled = this.safeString(data, 'execAmt');
+                const remaining = this.safeString(data, 'remainAmt');
                 const order = {
                     'id': orderId,
                     'trades': trades,
-                    'status': 'closed',
+                    'status': status,
                     'symbol': market['symbol'],
+                    'filled': this.parseNumber(filled),
+                    'remaining': this.parseNumber(remaining),
                 };
                 parsedOrder = order;
             }

@@ -39,6 +39,9 @@ class bitrue extends Exchange {
                 'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
@@ -56,6 +59,7 @@ class bitrue extends Exchange {
                 'fetchDepositsWithdrawals' => false,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
+                'fetchFundingRate' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
                 'fetchMarginMode' => false,
@@ -1540,16 +1544,8 @@ class bitrue extends Exchange {
                 $first = $this->safe_string($symbols, 0);
                 $market = $this->market($first);
                 if ($market['swap']) {
-                    $request['contractName'] = $market['id'];
-                    if ($market['linear']) {
-                        $response = Async\await($this->fapiV1PublicGetTicker (array_merge($request, $params)));
-                    } elseif ($market['inverse']) {
-                        $response = Async\await($this->dapiV1PublicGetTicker (array_merge($request, $params)));
-                    }
-                    $response['symbol'] = $market['id'];
-                    $data = array( $response );
+                    throw new NotSupported($this->id . ' fetchTickers does not support swap markets, please use fetchTicker instead');
                 } elseif ($market['spot']) {
-                    $request['symbol'] = $market['id'];
                     $response = Async\await($this->spotV1PublicGetTicker24hr (array_merge($request, $params)));
                     $data = $response;
                 } else {
@@ -1558,7 +1554,7 @@ class bitrue extends Exchange {
             } else {
                 list($type, $params) = $this->handle_market_type_and_params('fetchTickers', null, $params);
                 if ($type !== 'spot') {
-                    throw new NotSupported($this->id . ' fetchTickers only support spot when $symbols is not set');
+                    throw new NotSupported($this->id . ' fetchTickers only support spot when $symbols are not proved');
                 }
                 $response = Async\await($this->spotV1PublicGetTicker24hr (array_merge($request, $params)));
                 $data = $response;
@@ -1886,6 +1882,27 @@ class bitrue extends Exchange {
         ), $market);
     }
 
+    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a $market buy order by providing the $symbol and $cost
+             * @see https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
+             * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['swap']) {
+                throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports swap orders only');
+            }
+            $params['createMarketBuyOrderRequiresPrice'] = false;
+            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
+        }) ();
+    }
+
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
@@ -1908,6 +1925,7 @@ class bitrue extends Exchange {
              * EXCHANGE SPECIFIC PARAMETERS
              * @param {decimal} [$params->icebergQty]
              * @param {long} [$params->recvWindow]
+             * @param {float} [$params->cost] *swap $market buy only* the quote quantity that can be used alternative for the $amount
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -1942,7 +1960,9 @@ class bitrue extends Exchange {
                     $request['type'] = 'IOC';
                 }
                 $request['contractName'] = $market['id'];
-                if ($isMarket && ($side === 'buy') && ($this->options['createMarketBuyOrderRequiresPrice'])) {
+                $createMarketBuyOrderRequiresPrice = true;
+                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                if ($isMarket && ($side === 'buy') && $createMarketBuyOrderRequiresPrice) {
                     $cost = $this->safe_string($params, 'cost');
                     $params = $this->omit($params, 'cost');
                     if ($price === null && $cost === null) {

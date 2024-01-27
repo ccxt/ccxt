@@ -8,7 +8,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 /**
  * @class wazirx
- * @extends Exchange
+ * @augments Exchange
  */
 class wazirx extends wazirx$1 {
     describe() {
@@ -27,9 +27,10 @@ class wazirx extends wazirx$1 {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
@@ -86,7 +87,8 @@ class wazirx extends wazirx$1 {
                 'fetchTransfers': false,
                 'fetchWithdrawals': false,
                 'reduceMargin': false,
-                'repayMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,

@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class deribit extends \ccxt\async\deribit {
 
@@ -62,7 +63,7 @@ class deribit extends \ccxt\async\deribit {
         return $requestId;
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://docs.deribit.com/#user-portfolio-currency
@@ -147,7 +148,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve ($this->balance, $messageHash);
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://docs.deribit.com/#ticker-instrument_name-$interval
@@ -220,7 +221,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve ($ticker, $messageHash);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -302,7 +303,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve ($this->trades[$symbol], $channel);
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of $trades associated with the user
@@ -389,7 +390,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve ($cachedTrades, $channel);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * @see https://docs.deribit.com/#public-get_book_summary_by_instrument
@@ -523,14 +524,14 @@ class deribit extends \ccxt\async\deribit {
         }
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://docs.deribit.com/#user-$orders-instrument_name-raw
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
@@ -618,7 +619,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve ($this->orders, $channel);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * @see https://docs.deribit.com/#chart-trades-instrument_name-resolution

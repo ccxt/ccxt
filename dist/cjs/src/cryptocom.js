@@ -9,7 +9,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class cryptocom
- * @extends Exchange
+ * @augments Exchange
  */
 class cryptocom extends cryptocom$1 {
     describe() {
@@ -29,10 +29,14 @@ class cryptocom extends cryptocom$1 {
                 'future': true,
                 'option': true,
                 'addMargin': false,
-                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': true,
+                'createMarketBuyOrderWithCost': false,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
                 'fetchAccounts': true,
@@ -87,16 +91,17 @@ class cryptocom extends cryptocom$1 {
                 'fetchTradingFees': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
-                'fetchTransfers': true,
+                'fetchTransfers': false,
                 'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
-                'repayMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'transfer': true,
+                'transfer': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -126,7 +131,10 @@ class cryptocom extends cryptocom$1 {
                     'derivatives': 'https://deriv-api.crypto.com/v1',
                 },
                 'www': 'https://crypto.com/',
-                'referral': 'https://crypto.com/exch/5835vstech',
+                'referral': {
+                    'url': 'https://crypto.com/exch/kdacthrnxt',
+                    'discount': 0.15,
+                },
                 'doc': [
                     'https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html',
                     'https://exchange-docs.crypto.com/spot/index.html',
@@ -203,6 +211,9 @@ class cryptocom extends cryptocom$1 {
                             'private/get-currency-networks': 10 / 3,
                             'private/get-deposit-history': 10 / 3,
                             'private/get-deposit-address': 10 / 3,
+                            'private/export/create-export-request': 10 / 3,
+                            'private/export/get-export-requests': 10 / 3,
+                            'private/export/download-export-output': 10 / 3,
                             'private/get-account-summary': 10 / 3,
                             'private/create-order': 2 / 3,
                             'private/cancel-order': 2 / 3,
@@ -221,6 +232,7 @@ class cryptocom extends cryptocom$1 {
                             'private/otc/accept-quote': 100,
                             'private/otc/get-quote-history': 10 / 3,
                             'private/otc/get-trade-history': 10 / 3,
+                            'private/otc/create-order': 10 / 3,
                         },
                     },
                 },
@@ -758,6 +770,7 @@ class cryptocom extends cryptocom$1 {
         //                     "p": "26386.00",
         //                     "q": "0.00453",
         //                     "t": 1686944282062,
+        //                     "tn" : 1704476468851524373,
         //                     "d": "4611686018455979970",
         //                     "i": "BTC_USD"
         //                 },
@@ -1160,7 +1173,7 @@ class cryptocom extends cryptocom$1 {
          * @description create a list of trade orders
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-list
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-oco
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1333,23 +1346,29 @@ class cryptocom extends cryptocom$1 {
         }
         if ((side === 'buy') && ((uppercaseType === 'MARKET') || (uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT'))) {
             // use createmarketBuy logic here
-            if (this.options['createMarketBuyOrderRequiresPrice']) {
-                const cost = this.safeNumber2(params, 'cost', 'notional');
-                params = this.omit(params, 'cost');
-                if (price === undefined && cost === undefined) {
-                    throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the cost in the amount argument (the exchange-specific behaviour)');
+            let quoteAmount = undefined;
+            let createMarketBuyOrderRequiresPrice = true;
+            [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeNumber2(params, 'cost', 'notional');
+            params = this.omit(params, 'cost');
+            if (cost !== undefined) {
+                quoteAmount = this.costToPrecision(symbol, cost);
+            }
+            else if (createMarketBuyOrderRequiresPrice) {
+                if (price === undefined) {
+                    throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
                 }
                 else {
                     const amountString = this.numberToString(amount);
                     const priceString = this.numberToString(price);
-                    const quoteAmount = Precise["default"].stringMul(amountString, priceString);
-                    amount = (cost !== undefined) ? cost : this.parseNumber(quoteAmount);
-                    request['notional'] = this.costToPrecision(symbol, amount);
+                    const costRequest = Precise["default"].stringMul(amountString, priceString);
+                    quoteAmount = this.costToPrecision(symbol, costRequest);
                 }
             }
             else {
-                request['notional'] = this.costToPrecision(symbol, amount);
+                quoteAmount = this.costToPrecision(symbol, amount);
             }
+            request['notional'] = quoteAmount;
         }
         else {
             request['quantity'] = this.amountToPrecision(symbol, amount);
@@ -1853,189 +1872,6 @@ class cryptocom extends cryptocom$1 {
         const withdrawalList = this.safeValue(data, 'withdrawal_list', []);
         return this.parseTransactions(withdrawalList, currency, since, limit);
     }
-    async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        /**
-         * @method
-         * @name cryptocom#transfer
-         * @description transfer currency internally between wallets on the same account
-         * @param {string} code unified currency code
-         * @param {float} amount amount to transfer
-         * @param {string} fromAccount account to transfer from
-         * @param {string} toAccount account to transfer to
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-         */
-        await this.loadMarkets();
-        const currency = this.currency(code);
-        fromAccount = fromAccount.toLowerCase();
-        toAccount = toAccount.toLowerCase();
-        const accountsById = this.safeValue(this.options, 'accountsById', {});
-        const fromId = this.safeString(accountsById, fromAccount, fromAccount);
-        const toId = this.safeString(accountsById, toAccount, toAccount);
-        const request = {
-            'currency': currency['id'],
-            'amount': parseFloat(amount),
-            'from': fromId,
-            'to': toId,
-        };
-        let method = 'v2PrivatePostPrivateDerivTransfer';
-        if ((fromAccount === 'margin') || (toAccount === 'margin')) {
-            method = 'v2PrivatePostPrivateMarginTransfer';
-        }
-        const response = await this[method](this.extend(request, params));
-        //
-        //     {
-        //         "id": 11,
-        //         "method": "private/deriv/transfer",
-        //         "code": 0
-        //     }
-        //
-        return this.parseTransfer(response, currency);
-    }
-    async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name cryptocom#fetchTransfers
-         * @description fetch a history of internal transfers made on an account
-         * @param {string} code unified currency code of the currency transferred
-         * @param {int} [since] the earliest time in ms to fetch transfers for
-         * @param {int} [limit] the maximum number of  transfers structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-         */
-        if (!('direction' in params)) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchTransfers() requires a direction param to be either "IN" or "OUT"');
-        }
-        await this.loadMarkets();
-        let currency = undefined;
-        const request = {
-            'direction': 'OUT',
-        };
-        if (code !== undefined) {
-            currency = this.currency(code);
-            request['currency'] = currency['id'];
-        }
-        if (since !== undefined) {
-            request['start_ts'] = since;
-        }
-        if (limit !== undefined) {
-            request['page_size'] = limit;
-        }
-        let method = 'v2PrivatePostPrivateDerivGetTransferHistory';
-        const [marginMode, query] = this.customHandleMarginModeAndParams('fetchTransfers', params);
-        if (marginMode !== undefined) {
-            method = 'v2PrivatePostPrivateMarginGetTransferHistory';
-        }
-        const response = await this[method](this.extend(request, query));
-        //
-        //     {
-        //       "id": "1641032709328",
-        //       "method": "private/deriv/get-transfer-history",
-        //       "code": "0",
-        //       "result": {
-        //         "transfer_list": [
-        //           {
-        //             "direction": "IN",
-        //             "time": "1641025185223",
-        //             "amount": "109.56",
-        //             "status": "COMPLETED",
-        //             "information": "From Spot Wallet",
-        //             "currency": "USDC"
-        //           }
-        //         ]
-        //       }
-        //     }
-        //
-        const transfer = [];
-        transfer.push({
-            'response': response,
-        });
-        return this.parseTransfers(transfer, currency, since, limit, params);
-    }
-    parseTransferStatus(status) {
-        const statuses = {
-            'COMPLETED': 'ok',
-            'PROCESSING': 'pending',
-        };
-        return this.safeString(statuses, status, status);
-    }
-    parseTransfer(transfer, currency = undefined) {
-        //
-        //   {
-        //     "response": {
-        //       "id": "1641032709328",
-        //       "method": "private/deriv/get-transfer-history",
-        //       "code": "0",
-        //       "result": {
-        //         "transfer_list": [
-        //           {
-        //             "direction": "IN",
-        //             "time": "1641025185223",
-        //             "amount": "109.56",
-        //             "status": "COMPLETED",
-        //             "information": "From Spot Wallet",
-        //             "currency": "USDC"
-        //           }
-        //         ]
-        //       }
-        //     }
-        //   }
-        //
-        const response = this.safeValue(transfer, 'response', {});
-        const result = this.safeValue(response, 'result', {});
-        const transferList = this.safeValue(result, 'transfer_list', []);
-        let timestamp = undefined;
-        let amount = undefined;
-        let code = undefined;
-        let information = undefined;
-        let status = undefined;
-        for (let i = 0; i < transferList.length; i++) {
-            const entry = transferList[i];
-            timestamp = this.safeInteger(entry, 'time');
-            amount = this.safeNumber(entry, 'amount');
-            const currencyId = this.safeString(entry, 'currency');
-            code = this.safeCurrencyCode(currencyId);
-            information = this.safeString(entry, 'information');
-            const rawStatus = this.safeString(entry, 'status');
-            status = this.parseTransferStatus(rawStatus);
-        }
-        let fromAccount = undefined;
-        let toAccount = undefined;
-        if (information !== undefined) {
-            const parts = information.split(' ');
-            const direction = this.safeStringLower(parts, 0);
-            const method = this.safeString(response, 'method');
-            if (direction === 'from') {
-                fromAccount = this.safeStringLower(parts, 1);
-                if (method === 'private/margin/get-transfer-history') {
-                    toAccount = 'margin';
-                }
-                else {
-                    toAccount = 'derivative';
-                }
-            }
-            else if (direction === 'to') {
-                toAccount = this.safeStringLower(parts, 1);
-                if (method === 'private/margin/get-transfer-history') {
-                    fromAccount = 'margin';
-                }
-                else {
-                    fromAccount = 'derivative';
-                }
-            }
-        }
-        return {
-            'info': transferList,
-            'id': this.safeString(response, 'id'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'currency': code,
-            'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'status': status,
-        };
-    }
     parseTicker(ticker, market = undefined) {
         //
         // fetchTicker
@@ -2072,6 +1908,7 @@ class cryptocom extends cryptocom$1 {
         const timestamp = this.safeInteger(ticker, 't');
         const marketId = this.safeString(ticker, 'i');
         market = this.safeMarket(marketId, market, '_');
+        const quote = this.safeString(market, 'quote');
         const last = this.safeString(ticker, 'a');
         return this.safeTicker({
             'symbol': market['symbol'],
@@ -2092,7 +1929,7 @@ class cryptocom extends cryptocom$1 {
             'percentage': this.safeString(ticker, 'c'),
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'v'),
-            'quoteVolume': this.safeString(ticker, 'vv'),
+            'quoteVolume': (quote === 'USD') ? this.safeString(ticker, 'vv') : undefined,
             'info': ticker,
         }, market);
     }
@@ -2104,7 +1941,8 @@ class cryptocom extends cryptocom$1 {
         //         "s": "sell",
         //         "p": "26386.00",
         //         "q": "0.00453",
-        //         "t": 1686944282062,
+        //         "tn": 1686944282062,
+        //         "tn": 1704476468851524373,
         //         "d": "4611686018455979970",
         //         "i": "BTC_USD"
         //     }
@@ -2405,7 +2243,7 @@ class cryptocom extends cryptocom$1 {
          * @method
          * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {array} the marginMode in lowercase
+         * @returns {Array} the marginMode in lowercase
          */
         const defaultType = this.safeString(this.options, 'defaultType');
         const isMargin = this.safeValue(params, 'margin', false);
@@ -3066,6 +2904,51 @@ class cryptocom extends cryptocom$1 {
             }
         }
         return returnString;
+    }
+    async closePosition(symbol, side = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#closePositions
+         * @description closes open positions for a market
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {string} [marginMode] not used by cryptocom.closePositions
+         * @param {string} [side] not used by cryptocom.closePositions
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.type] LIMIT or MARKET
+         * @param {number} [params.price] for limit orders only
+         * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'instrument_name': market['id'],
+            'type': 'MARKET',
+        };
+        const type = this.safeStringUpper(params, 'type');
+        const price = this.safeString(params, 'price');
+        if (type !== undefined) {
+            request['type'] = type;
+        }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision(market['symbol'], price);
+        }
+        const response = await this.v1PrivatePostPrivateClosePosition(this.extend(request, params));
+        //
+        //    {
+        //        "id" : 1700830813298,
+        //        "method" : "private/close-position",
+        //        "code" : 0,
+        //        "result" : {
+        //            "client_oid" : "179a909d-5614-655b-0d0e-9e85c9a25c85",
+        //            "order_id" : "6142909897021751347"
+        //        }
+        //    }
+        //
+        const result = this.safeValue(response, 'result');
+        return this.parseOrder(result, market);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const type = this.safeString(api, 0);

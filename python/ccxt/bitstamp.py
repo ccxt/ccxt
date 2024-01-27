@@ -46,6 +46,8 @@ class bitstamp(Exchange, ImplicitAPI):
                 'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': False,
@@ -351,6 +353,14 @@ class bitstamp(Exchange, ImplicitAPI):
                         'earn/subscribe/': 1,
                         'earn/subscriptions/setting/': 1,
                         'earn/unsubscribe': 1,
+                        'wecan_withdrawal/': 1,
+                        'wecan_address/': 1,
+                        'trac_withdrawal/': 1,
+                        'trac_address/': 1,
+                        'eurcv_withdrawal/': 1,
+                        'eurcv_address/': 1,
+                        'pyusd_withdrawal/': 1,
+                        'pyusd_address/': 1,
                     },
                 },
             },
@@ -1005,6 +1015,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :see: https://www.bitstamp.net/api/#tag/Market-info/operation/GetOHLCData
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -1026,13 +1037,13 @@ class bitstamp(Exchange, ImplicitAPI):
                 limit = 1000
                 start = self.parse_to_int(since / 1000)
                 request['start'] = start
-                request['end'] = self.sum(start, limit * duration)
+                request['end'] = self.sum(start, duration * (limit - 1))
                 request['limit'] = limit
         else:
             if since is not None:
                 start = self.parse_to_int(since / 1000)
                 request['start'] = start
-                request['end'] = self.sum(start, limit * duration)
+                request['end'] = self.sum(start, duration * (limit - 1))
             request['limit'] = min(limit, 1000)  # min 1, max 1000
         response = self.publicGetOhlcPair(self.extend(request, params))
         #
@@ -1267,6 +1278,12 @@ class bitstamp(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        :see: https://www.bitstamp.net/api/#tag/Orders/operation/OpenInstantBuyOrder
+        :see: https://www.bitstamp.net/api/#tag/Orders/operation/OpenMarketBuyOrder
+        :see: https://www.bitstamp.net/api/#tag/Orders/operation/OpenLimitBuyOrder
+        :see: https://www.bitstamp.net/api/#tag/Orders/operation/OpenInstantSellOrder
+        :see: https://www.bitstamp.net/api/#tag/Orders/operation/OpenMarketSellOrder
+        :see: https://www.bitstamp.net/api/#tag/Orders/operation/OpenLimitSellOrder
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1277,23 +1294,32 @@ class bitstamp(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        method = 'privatePost' + self.capitalize(side)
         request = {
             'pair': market['id'],
             'amount': self.amount_to_precision(symbol, amount),
         }
-        if type == 'market':
-            method += 'Market'
-        elif type == 'instant':
-            method += 'Instant'
-        else:
-            request['price'] = self.price_to_precision(symbol, price)
-        method += 'Pair'
         clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
-            params = self.omit(params, ['client_order_id', 'clientOrderId'])
-        response = getattr(self, method)(self.extend(request, params))
+            params = self.omit(params, ['clientOrderId'])
+        response = None
+        capitalizedSide = self.capitalize(side)
+        if type == 'market':
+            if capitalizedSide == 'Buy':
+                response = self.privatePostBuyMarketPair(self.extend(request, params))
+            else:
+                response = self.privatePostSellMarketPair(self.extend(request, params))
+        elif type == 'instant':
+            if capitalizedSide == 'Buy':
+                response = self.privatePostBuyInstantPair(self.extend(request, params))
+            else:
+                response = self.privatePostSellInstantPair(self.extend(request, params))
+        else:
+            request['price'] = self.price_to_precision(symbol, price)
+            if capitalizedSide == 'Buy':
+                response = self.privatePostBuyPair(self.extend(request, params))
+            else:
+                response = self.privatePostSellPair(self.extend(request, params))
         order = self.parse_order(response, market)
         order['type'] = type
         return order
@@ -1322,12 +1348,14 @@ class bitstamp(Exchange, ImplicitAPI):
         self.load_markets()
         market = None
         request = {}
-        method = 'privatePostCancelAllOrders'
+        response = None
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
-            method = 'privatePostCancelAllOrdersPair'
-        return getattr(self, method)(self.extend(request, params))
+            response = self.privatePostCancelAllOrdersPair(self.extend(request, params))
+        else:
+            response = self.privatePostCancelAllOrders(self.extend(request, params))
+        return response
 
     def parse_order_status(self, status):
         statuses = {

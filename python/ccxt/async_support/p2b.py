@@ -36,6 +36,8 @@ class p2b(Exchange, ImplicitAPI):
                 'cancelAllOrders': False,
                 'cancelOrder': True,
                 'cancelOrders': False,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': False,
                 'createMarketOrder': False,
                 'createOrder': True,
@@ -527,7 +529,6 @@ class p2b(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: 1-100, default=50
         :param dict [params]: extra parameters specific to the exchange API endpoint
-         *
         :param int params['lastId']: order id
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
@@ -640,7 +641,6 @@ class p2b(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: 1-500, default=50
         :param dict [params]: extra parameters specific to the exchange API endpoint
-         *
         :param int [params.offset]: default=0, with self value the last candles are returned
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """

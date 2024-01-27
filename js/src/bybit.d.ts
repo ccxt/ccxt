@@ -1,8 +1,8 @@
 import Exchange from './abstract/bybit.js';
-import { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface } from './base/types.js';
 /**
  * @class bybit
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bybit extends Exchange {
     describe(): any;
@@ -14,7 +14,6 @@ export default class bybit extends Exchange {
     convertExpireDateToMarketIdDate(date: any): any;
     convertMarketIdExpireDate(date: any): string;
     createExpiredOptionMarket(symbol: any): MarketInterface;
-    market(symbol: any): any;
     safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): MarketInterface;
     getBybitType(method: any, market: any, params?: {}): any[];
     fetchTime(params?: {}): Promise<number>;
@@ -58,8 +57,10 @@ export default class bybit extends Exchange {
     parseTimeInForce(timeInForce: any): string;
     parseOrder(order: any, market?: Market): Order;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
+    createMarketSellOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}, isUTA?: boolean): any;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     createUsdcOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<Order>;
     editUsdcOrder(id: any, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;

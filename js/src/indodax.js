@@ -12,7 +12,7 @@ import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class indodax
- * @extends Exchange
+ * @augments Exchange
  */
 export default class indodax extends Exchange {
     describe() {
@@ -34,6 +34,8 @@ export default class indodax extends Exchange {
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,

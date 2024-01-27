@@ -36,6 +36,8 @@ class bitstamp extends Exchange {
                 'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => false,
@@ -341,6 +343,14 @@ class bitstamp extends Exchange {
                         'earn/subscribe/' => 1,
                         'earn/subscriptions/setting/' => 1,
                         'earn/unsubscribe' => 1,
+                        'wecan_withdrawal/' => 1,
+                        'wecan_address/' => 1,
+                        'trac_withdrawal/' => 1,
+                        'trac_address/' => 1,
+                        'eurcv_withdrawal/' => 1,
+                        'eurcv_address/' => 1,
+                        'pyusd_withdrawal/' => 1,
+                        'pyusd_address/' => 1,
                     ),
                 ),
             ),
@@ -1050,6 +1060,7 @@ class bitstamp extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+             * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetOHLCData
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -1071,14 +1082,14 @@ class bitstamp extends Exchange {
                     $limit = 1000;
                     $start = $this->parse_to_int($since / 1000);
                     $request['start'] = $start;
-                    $request['end'] = $this->sum($start, $limit * $duration);
+                    $request['end'] = $this->sum($start, $duration * ($limit - 1));
                     $request['limit'] = $limit;
                 }
             } else {
                 if ($since !== null) {
                     $start = $this->parse_to_int($since / 1000);
                     $request['start'] = $start;
-                    $request['end'] = $this->sum($start, $limit * $duration);
+                    $request['end'] = $this->sum($start, $duration * ($limit - 1));
                 }
                 $request['limit'] = min ($limit, 1000); // min 1, max 1000
             }
@@ -1351,6 +1362,12 @@ class bitstamp extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
+             * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenInstantBuyOrder
+             * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenMarketBuyOrder
+             * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenLimitBuyOrder
+             * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenInstantSellOrder
+             * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenMarketSellOrder
+             * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenLimitSellOrder
              * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -1361,25 +1378,37 @@ class bitstamp extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $method = 'privatePost' . $this->capitalize($side);
             $request = array(
                 'pair' => $market['id'],
                 'amount' => $this->amount_to_precision($symbol, $amount),
             );
-            if ($type === 'market') {
-                $method .= 'Market';
-            } elseif ($type === 'instant') {
-                $method .= 'Instant';
-            } else {
-                $request['price'] = $this->price_to_precision($symbol, $price);
-            }
-            $method .= 'Pair';
             $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
             if ($clientOrderId !== null) {
                 $request['client_order_id'] = $clientOrderId;
-                $params = $this->omit($params, array( 'client_order_id', 'clientOrderId' ));
+                $params = $this->omit($params, array( 'clientOrderId' ));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            $capitalizedSide = $this->capitalize($side);
+            if ($type === 'market') {
+                if ($capitalizedSide === 'Buy') {
+                    $response = Async\await($this->privatePostBuyMarketPair (array_merge($request, $params)));
+                } else {
+                    $response = Async\await($this->privatePostSellMarketPair (array_merge($request, $params)));
+                }
+            } elseif ($type === 'instant') {
+                if ($capitalizedSide === 'Buy') {
+                    $response = Async\await($this->privatePostBuyInstantPair (array_merge($request, $params)));
+                } else {
+                    $response = Async\await($this->privatePostSellInstantPair (array_merge($request, $params)));
+                }
+            } else {
+                $request['price'] = $this->price_to_precision($symbol, $price);
+                if ($capitalizedSide === 'Buy') {
+                    $response = Async\await($this->privatePostBuyPair (array_merge($request, $params)));
+                } else {
+                    $response = Async\await($this->privatePostSellPair (array_merge($request, $params)));
+                }
+            }
             $order = $this->parse_order($response, $market);
             $order['type'] = $type;
             return $order;
@@ -1414,13 +1443,15 @@ class bitstamp extends Exchange {
             Async\await($this->load_markets());
             $market = null;
             $request = array();
-            $method = 'privatePostCancelAllOrders';
+            $response = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['pair'] = $market['id'];
-                $method = 'privatePostCancelAllOrdersPair';
+                $response = Async\await($this->privatePostCancelAllOrdersPair (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privatePostCancelAllOrders (array_merge($request, $params)));
             }
-            return Async\await($this->$method (array_merge($request, $params)));
+            return $response;
         }) ();
     }
 

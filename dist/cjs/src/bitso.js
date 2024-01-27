@@ -10,7 +10,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class bitso
- * @extends Exchange
+ * @augments Exchange
  */
 class bitso extends bitso$1 {
     describe() {
@@ -31,6 +31,8 @@ class bitso extends bitso$1 {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,

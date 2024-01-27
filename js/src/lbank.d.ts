@@ -1,8 +1,8 @@
 import Exchange from './abstract/lbank.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class lbank2
- * @extends Exchange
+ * @augments Exchange
  */
 export default class lbank extends Exchange {
     describe(): any;
@@ -28,6 +28,7 @@ export default class lbank extends Exchange {
     };
     fetchTradingFee(symbol: string, params?: {}): Promise<{}>;
     fetchTradingFees(params?: {}): Promise<{}>;
+    createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: Market): Order;

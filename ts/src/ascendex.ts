@@ -6,13 +6,13 @@ import { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market } from './base/types.js';
+import type { FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class ascendex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class ascendex extends Exchange {
     describe () {
@@ -66,6 +66,8 @@ export default class ascendex extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -262,7 +264,7 @@ export default class ascendex extends Exchange {
                 'account-category': 'cash', // 'cash', 'margin', 'futures' // obsolete
                 'account-group': undefined,
                 'fetchClosedOrders': {
-                    'method': 'v2PrivateDataGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
+                    'method': 'v2PrivateDataGetOrderHist', // 'v1PrivateAccountCategoryGetOrderHistCurrent'
                 },
                 'defaultType': 'spot', // 'spot', 'margin', 'swap'
                 'accountsByType': {
@@ -811,18 +813,22 @@ export default class ascendex extends Exchange {
          * @method
          * @name ascendex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://ascendex.github.io/ascendex-pro-api/#cash-account-balance
+         * @see https://ascendex.github.io/ascendex-pro-api/#margin-account-balance
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
-        let query = undefined;
         let marketType = undefined;
-        [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        let marginMode = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
         const isMargin = this.safeValue (params, 'margin', false);
-        marketType = isMargin ? 'margin' : marketType;
+        const isCross = marginMode === 'cross';
+        marketType = (isMargin || isCross) ? 'margin' : marketType;
         params = this.omit (params, 'margin');
-        const options = this.safeValue (this.options, 'fetchBalance', {});
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const accountCategory = this.safeString (accountsByType, marketType, 'cash');
         const account = this.safeValue (this.accounts, 0, {});
@@ -830,16 +836,20 @@ export default class ascendex extends Exchange {
         const request = {
             'account-group': accountGroup,
         };
-        const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountCategoryGetBalance');
-        const method = this.getSupportedMapping (marketType, {
-            'spot': defaultMethod,
-            'margin': defaultMethod,
-            'swap': 'v2PrivateAccountGroupGetFuturesPosition',
-        });
+        if ((marginMode === 'isolated') && (marketType !== 'swap')) {
+            throw new BadRequest (this.id + ' does not supported isolated margin trading');
+        }
         if ((accountCategory === 'cash') || (accountCategory === 'margin')) {
             request['account-category'] = accountCategory;
         }
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if ((marketType === 'spot') || (marketType === 'margin')) {
+            response = await this.v1PrivateAccountCategoryGetBalance (this.extend (request, params));
+        } else if (marketType === 'swap') {
+            response = await this.v2PrivateAccountGroupGetFuturesPosition (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchBalance() is not currently supported for ' + marketType + ' markets');
+        }
         //
         // cash
         //
@@ -1673,7 +1683,7 @@ export default class ascendex extends Exchange {
          * @description create a list of trade orders
          * @see https://ascendex.github.io/ascendex-pro-api/#place-batch-orders
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#place-batch-orders
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {bool} [params.postOnly] true or false
@@ -1768,6 +1778,8 @@ export default class ascendex extends Exchange {
          * @method
          * @name ascendex#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://ascendex.github.io/ascendex-pro-api/#query-order
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#query-order-by-id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1779,7 +1791,6 @@ export default class ascendex extends Exchange {
             market = this.market (symbol);
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
-        const options = this.safeValue (this.options, 'fetchOrder', {});
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const accountCategory = this.safeString (accountsByType, type, 'cash');
         const account = this.safeValue (this.accounts, 0, {});
@@ -1789,20 +1800,15 @@ export default class ascendex extends Exchange {
             'account-category': accountCategory,
             'orderId': id,
         };
-        const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountCategoryGetOrderStatus');
-        const method = this.getSupportedMapping (type, {
-            'spot': defaultMethod,
-            'margin': defaultMethod,
-            'swap': 'v2PrivateAccountGroupGetFuturesOrderStatus',
-        });
-        if (method === 'v1PrivateAccountCategoryGetOrderStatus') {
-            if (accountCategory !== undefined) {
-                request['category'] = accountCategory;
-            }
-        } else {
+        let response = undefined;
+        if ((type === 'spot') || (type === 'margin')) {
+            response = await this.v1PrivateAccountCategoryGetOrderStatus (this.extend (request, query));
+        } else if (type === 'swap') {
             request['account-category'] = accountCategory;
+            response = await this.v2PrivateAccountGroupGetFuturesOrderStatus (this.extend (request, query));
+        } else {
+            throw new NotSupported (this.id + ' fetchOrder() is not currently supported for ' + type + ' markets');
         }
-        const response = await this[method] (this.extend (request, query));
         //
         // AccountCategoryGetOrderStatus
         //
@@ -1879,6 +1885,8 @@ export default class ascendex extends Exchange {
          * @method
          * @name ascendex#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://ascendex.github.io/ascendex-pro-api/#list-open-orders
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-open-orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1901,21 +1909,15 @@ export default class ascendex extends Exchange {
             'account-group': accountGroup,
             'account-category': accountCategory,
         };
-        const options = this.safeValue (this.options, 'fetchOpenOrders', {});
-        const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountCategoryGetOrderOpen');
-        const method = this.getSupportedMapping (type, {
-            'spot': defaultMethod,
-            'margin': defaultMethod,
-            'swap': 'v2PrivateAccountGroupGetFuturesOrderOpen',
-        });
-        if (method === 'v1PrivateAccountCategoryGetOrderOpen') {
-            if (accountCategory !== undefined) {
-                request['category'] = accountCategory;
-            }
-        } else {
+        let response = undefined;
+        if ((type === 'spot') || (type === 'margin')) {
+            response = await this.v1PrivateAccountCategoryGetOrderOpen (this.extend (request, query));
+        } else if (type === 'swap') {
             request['account-category'] = accountCategory;
+            response = await this.v2PrivateAccountGroupGetFuturesOrderOpen (this.extend (request, query));
+        } else {
+            throw new NotSupported (this.id + ' fetchOpenOrders() is not currently supported for ' + type + ' markets');
         }
-        const response = await this[method] (this.extend (request, query));
         //
         // AccountCategoryGetOrderOpen
         //
@@ -2002,9 +2004,10 @@ export default class ascendex extends Exchange {
          * @name ascendex#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
          * @see https://ascendex.github.io/ascendex-pro-api/#list-history-orders-v2
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-current-history-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch orders for
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2014,7 +2017,6 @@ export default class ascendex extends Exchange {
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
         const request = {
-            'account-group': accountGroup,
             // 'category': accountCategory,
             // 'symbol': market['id'],
             // 'orderType': 'market', // optional, string
@@ -2038,19 +2040,6 @@ export default class ascendex extends Exchange {
             'margin': defaultMethod,
             'swap': 'v2PrivateAccountGroupGetFuturesOrderHistCurrent',
         });
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const accountCategory = this.safeString (accountsByType, type, 'cash'); // margin, futures
-        if (method === 'v2PrivateDataGetOrderHist') {
-            request['account'] = accountCategory;
-            if (limit !== undefined) {
-                request['limit'] = limit;
-            }
-        } else {
-            request['account-category'] = accountCategory;
-            if (limit !== undefined) {
-                request['pageSize'] = limit;
-            }
-        }
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -2058,7 +2047,32 @@ export default class ascendex extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this[method] (this.extend (request, query));
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountCategory = this.safeString (accountsByType, type, 'cash'); // margin, futures
+        let response = undefined;
+        if (method === 'v1PrivateAccountCategoryGetOrderHistCurrent') {
+            request['account-group'] = accountGroup;
+            request['account-category'] = accountCategory;
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            response = await this.v1PrivateAccountCategoryGetOrderHistCurrent (this.extend (request, query));
+        } else if (method === 'v2PrivateDataGetOrderHist') {
+            request['account'] = accountCategory;
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            response = await this.v2PrivateDataGetOrderHist (this.extend (request, query));
+        } else if (method === 'v2PrivateAccountGroupGetFuturesOrderHistCurrent') {
+            request['account-group'] = accountGroup;
+            request['account-category'] = accountCategory;
+            if (limit !== undefined) {
+                request['pageSize'] = limit;
+            }
+            response = await this.v2PrivateAccountGroupGetFuturesOrderHistCurrent (this.extend (request, query));
+        } else {
+            throw new NotSupported (this.id + ' fetchClosedOrders() is not currently supported for ' + type + ' markets');
+        }
         //
         // accountCategoryGetOrderHistCurrent
         //
@@ -2163,6 +2177,8 @@ export default class ascendex extends Exchange {
          * @method
          * @name ascendex#cancelOrder
          * @description cancels an open order
+         * @see https://ascendex.github.io/ascendex-pro-api/#cancel-order
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2175,7 +2191,6 @@ export default class ascendex extends Exchange {
         await this.loadAccounts ();
         const market = this.market (symbol);
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        const options = this.safeValue (this.options, 'cancelOrder', {});
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const accountCategory = this.safeString (accountsByType, type, 'cash');
         const account = this.safeValue (this.accounts, 0, {});
@@ -2187,19 +2202,6 @@ export default class ascendex extends Exchange {
             'time': this.milliseconds (),
             'id': 'foobar',
         };
-        const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountCategoryDeleteOrder');
-        const method = this.getSupportedMapping (type, {
-            'spot': defaultMethod,
-            'margin': defaultMethod,
-            'swap': 'v2PrivateAccountGroupDeleteFuturesOrder',
-        });
-        if (method === 'v1PrivateAccountCategoryDeleteOrder') {
-            if (accountCategory !== undefined) {
-                request['category'] = accountCategory;
-            }
-        } else {
-            request['account-category'] = accountCategory;
-        }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'id');
         if (clientOrderId === undefined) {
             request['orderId'] = id;
@@ -2207,7 +2209,15 @@ export default class ascendex extends Exchange {
             request['id'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId', 'id' ]);
         }
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if ((type === 'spot') || (type === 'margin')) {
+            response = await this.v1PrivateAccountCategoryDeleteOrder (this.extend (request, query));
+        } else if (type === 'swap') {
+            request['account-category'] = accountCategory;
+            response = await this.v2PrivateAccountGroupDeleteFuturesOrder (this.extend (request, query));
+        } else {
+            throw new NotSupported (this.id + ' cancelOrder() is not currently supported for ' + type + ' markets');
+        }
         //
         // AccountCategoryDeleteOrder
         //
@@ -2281,6 +2291,8 @@ export default class ascendex extends Exchange {
          * @method
          * @name ascendex#cancelAllOrders
          * @description cancel all open orders
+         * @see https://ascendex.github.io/ascendex-pro-api/#cancel-all-orders
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-all-open-orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2292,7 +2304,6 @@ export default class ascendex extends Exchange {
             market = this.market (symbol);
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        const options = this.safeValue (this.options, 'cancelAllOrders', {});
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const accountCategory = this.safeString (accountsByType, type, 'cash');
         const account = this.safeValue (this.accounts, 0, {});
@@ -2305,20 +2316,15 @@ export default class ascendex extends Exchange {
         if (symbol !== undefined) {
             request['symbol'] = market['id'];
         }
-        const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountCategoryDeleteOrderAll');
-        const method = this.getSupportedMapping (type, {
-            'spot': defaultMethod,
-            'margin': defaultMethod,
-            'swap': 'v2PrivateAccountGroupDeleteFuturesOrderAll',
-        });
-        if (method === 'v1PrivateAccountCategoryDeleteOrderAll') {
-            if (accountCategory !== undefined) {
-                request['category'] = accountCategory;
-            }
-        } else {
+        let response = undefined;
+        if ((type === 'spot') || (type === 'margin')) {
+            response = await this.v1PrivateAccountCategoryDeleteOrderAll (this.extend (request, query));
+        } else if (type === 'swap') {
             request['account-category'] = accountCategory;
+            response = await this.v2PrivateAccountGroupDeleteFuturesOrderAll (this.extend (request, query));
+        } else {
+            throw new NotSupported (this.id + ' cancelAllOrders() is not currently supported for ' + type + ' markets');
         }
-        const response = await this[method] (this.extend (request, query));
         //
         // AccountCategoryDeleteOrderAll
         //

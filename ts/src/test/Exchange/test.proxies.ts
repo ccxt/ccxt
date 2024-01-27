@@ -2,7 +2,7 @@
 import assert from 'assert';
 import testSharedMethods from './base/test.sharedMethods.js';
 
-async function testAllProxies (exchange, skippedProperties) {
+async function testProxies (exchange, skippedProperties) {
     await testProxyUrl (exchange, skippedProperties);
     await testHttpProxy (exchange, skippedProperties);
     // 'httpsProxy', 'socksProxy'
@@ -14,7 +14,7 @@ async function testProxyUrl (exchange, skippedProperties) {
     const method = 'proxyUrl';
     const proxyServerIp = '5.75.153.75';
     const [ proxyUrl, httpProxy, httpsProxy, socksProxy ] = testSharedMethods.removeProxyOptions (exchange, skippedProperties);
-    exchange.proxyUrl = 'http://' + proxyServerIp + ':8090/proxy.php?url=';
+    exchange.proxyUrl = 'http://' + proxyServerIp + ':8090/proxy_url.php?caller=https://ccxt.com&url=';
     const encodedColon = '%3A';
     const encodedSlash = '%2F';
     const ipCheckUrl = 'https' + encodedColon + encodedSlash + encodedSlash + 'api.ipify.org';
@@ -84,4 +84,4 @@ async function testProxyForExceptions (exchange, skippedProperties) {
     testSharedMethods.setProxyOptions (exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
 }
 
-export default testAllProxies;
+export default testProxies;

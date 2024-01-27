@@ -13,7 +13,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bitso
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitso extends Exchange {
     describe() {
@@ -34,6 +34,8 @@ export default class bitso extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,

@@ -25,6 +25,8 @@ class coincheck extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
@@ -61,6 +63,7 @@ class coincheck extends Exchange {
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'ws' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87182088-1d6d6380-c2ec-11ea-9c64-8ab9f9b289f5.jpg',

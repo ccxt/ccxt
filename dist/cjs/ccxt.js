@@ -40,7 +40,7 @@ var bitpanda = require('./src/bitpanda.js');
 var bitrue = require('./src/bitrue.js');
 var bitso = require('./src/bitso.js');
 var bitstamp = require('./src/bitstamp.js');
-var bittrex = require('./src/bittrex.js');
+var bitteam = require('./src/bitteam.js');
 var bitvavo = require('./src/bitvavo.js');
 var bl3p = require('./src/bl3p.js');
 var blockchaincom = require('./src/blockchaincom.js');
@@ -51,7 +51,6 @@ var btcturk = require('./src/btcturk.js');
 var bybit = require('./src/bybit.js');
 var cex = require('./src/cex.js');
 var coinbase = require('./src/coinbase.js');
-var coinbaseprime = require('./src/coinbaseprime.js');
 var coinbasepro = require('./src/coinbasepro.js');
 var coincheck = require('./src/coincheck.js');
 var coinex = require('./src/coinex.js');
@@ -95,13 +94,13 @@ var novadax = require('./src/novadax.js');
 var oceanex = require('./src/oceanex.js');
 var okcoin = require('./src/okcoin.js');
 var okx = require('./src/okx.js');
+var onetrading = require('./src/onetrading.js');
 var p2b = require('./src/p2b.js');
 var paymium = require('./src/paymium.js');
 var phemex = require('./src/phemex.js');
 var poloniex = require('./src/poloniex.js');
 var poloniexfutures = require('./src/poloniexfutures.js');
 var probit = require('./src/probit.js');
-var tidex = require('./src/tidex.js');
 var timex = require('./src/timex.js');
 var tokocrypto = require('./src/tokocrypto.js');
 var upbit = require('./src/upbit.js');
@@ -130,15 +129,15 @@ var bitopro$1 = require('./src/pro/bitopro.js');
 var bitpanda$1 = require('./src/pro/bitpanda.js');
 var bitrue$1 = require('./src/pro/bitrue.js');
 var bitstamp$1 = require('./src/pro/bitstamp.js');
-var bittrex$1 = require('./src/pro/bittrex.js');
 var bitvavo$1 = require('./src/pro/bitvavo.js');
 var blockchaincom$1 = require('./src/pro/blockchaincom.js');
 var bybit$1 = require('./src/pro/bybit.js');
 var cex$1 = require('./src/pro/cex.js');
 var coinbase$1 = require('./src/pro/coinbase.js');
-var coinbaseprime$1 = require('./src/pro/coinbaseprime.js');
 var coinbasepro$1 = require('./src/pro/coinbasepro.js');
+var coincheck$1 = require('./src/pro/coincheck.js');
 var coinex$1 = require('./src/pro/coinex.js');
+var coinone$1 = require('./src/pro/coinone.js');
 var cryptocom$1 = require('./src/pro/cryptocom.js');
 var currencycom$1 = require('./src/pro/currencycom.js');
 var deribit$1 = require('./src/pro/deribit.js');
@@ -157,11 +156,13 @@ var kraken$1 = require('./src/pro/kraken.js');
 var krakenfutures$1 = require('./src/pro/krakenfutures.js');
 var kucoin$1 = require('./src/pro/kucoin.js');
 var kucoinfutures$1 = require('./src/pro/kucoinfutures.js');
+var lbank$1 = require('./src/pro/lbank.js');
 var luno$1 = require('./src/pro/luno.js');
 var mexc$1 = require('./src/pro/mexc.js');
 var ndax$1 = require('./src/pro/ndax.js');
 var okcoin$1 = require('./src/pro/okcoin.js');
 var okx$1 = require('./src/pro/okx.js');
+var onetrading$1 = require('./src/pro/onetrading.js');
 var phemex$1 = require('./src/pro/phemex.js');
 var poloniex$1 = require('./src/pro/poloniex.js');
 var poloniexfutures$1 = require('./src/pro/poloniexfutures.js');
@@ -173,7 +174,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.1.66';
+const version = '4.2.23';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -204,7 +205,7 @@ const exchanges = {
     'bitrue': bitrue,
     'bitso': bitso,
     'bitstamp': bitstamp,
-    'bittrex': bittrex,
+    'bitteam': bitteam,
     'bitvavo': bitvavo,
     'bl3p': bl3p,
     'blockchaincom': blockchaincom,
@@ -215,7 +216,6 @@ const exchanges = {
     'bybit': bybit,
     'cex': cex,
     'coinbase': coinbase,
-    'coinbaseprime': coinbaseprime,
     'coinbasepro': coinbasepro,
     'coincheck': coincheck,
     'coinex': coinex,
@@ -259,13 +259,13 @@ const exchanges = {
     'oceanex': oceanex,
     'okcoin': okcoin,
     'okx': okx,
+    'onetrading': onetrading,
     'p2b': p2b,
     'paymium': paymium,
     'phemex': phemex,
     'poloniex': poloniex,
     'poloniexfutures': poloniexfutures,
     'probit': probit,
-    'tidex': tidex,
     'timex': timex,
     'tokocrypto': tokocrypto,
     'upbit': upbit,
@@ -296,15 +296,15 @@ const pro = {
     'bitpanda': bitpanda$1,
     'bitrue': bitrue$1,
     'bitstamp': bitstamp$1,
-    'bittrex': bittrex$1,
     'bitvavo': bitvavo$1,
     'blockchaincom': blockchaincom$1,
     'bybit': bybit$1,
     'cex': cex$1,
     'coinbase': coinbase$1,
-    'coinbaseprime': coinbaseprime$1,
     'coinbasepro': coinbasepro$1,
+    'coincheck': coincheck$1,
     'coinex': coinex$1,
+    'coinone': coinone$1,
     'cryptocom': cryptocom$1,
     'currencycom': currencycom$1,
     'deribit': deribit$1,
@@ -323,11 +323,13 @@ const pro = {
     'krakenfutures': krakenfutures$1,
     'kucoin': kucoin$1,
     'kucoinfutures': kucoinfutures$1,
+    'lbank': lbank$1,
     'luno': luno$1,
     'mexc': mexc$1,
     'ndax': ndax$1,
     'okcoin': okcoin$1,
     'okx': okx$1,
+    'onetrading': onetrading$1,
     'phemex': phemex$1,
     'poloniex': poloniex$1,
     'poloniexfutures': poloniexfutures$1,
@@ -406,7 +408,7 @@ exports.bitpanda = bitpanda;
 exports.bitrue = bitrue;
 exports.bitso = bitso;
 exports.bitstamp = bitstamp;
-exports.bittrex = bittrex;
+exports.bitteam = bitteam;
 exports.bitvavo = bitvavo;
 exports.bl3p = bl3p;
 exports.blockchaincom = blockchaincom;
@@ -417,7 +419,6 @@ exports.btcturk = btcturk;
 exports.bybit = bybit;
 exports.cex = cex;
 exports.coinbase = coinbase;
-exports.coinbaseprime = coinbaseprime;
 exports.coinbasepro = coinbasepro;
 exports.coincheck = coincheck;
 exports.coinex = coinex;
@@ -461,13 +462,13 @@ exports.novadax = novadax;
 exports.oceanex = oceanex;
 exports.okcoin = okcoin;
 exports.okx = okx;
+exports.onetrading = onetrading;
 exports.p2b = p2b;
 exports.paymium = paymium;
 exports.phemex = phemex;
 exports.poloniex = poloniex;
 exports.poloniexfutures = poloniexfutures;
 exports.probit = probit;
-exports.tidex = tidex;
 exports.timex = timex;
 exports.tokocrypto = tokocrypto;
 exports.upbit = upbit;

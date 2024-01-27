@@ -53,6 +53,7 @@ class deribit(Exchange, ImplicitAPI):
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
+                'createTrailingAmountOrder': True,
                 'editOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
@@ -413,6 +414,151 @@ class deribit(Exchange, ImplicitAPI):
                 },
             },
         })
+
+    def convert_expire_date(self, date):
+        # parse YYMMDD to timestamp
+        year = date[0:2]
+        month = date[2:4]
+        day = date[4:6]
+        reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z'
+        return reconstructedDate
+
+    def convert_market_id_expire_date(self, date):
+        # parse 19JAN24 to 240119
+        monthMappping = {
+            'JAN': '01',
+            'FEB': '02',
+            'MAR': '03',
+            'APR': '04',
+            'MAY': '05',
+            'JUN': '06',
+            'JUL': '07',
+            'AUG': '08',
+            'SEP': '09',
+            'OCT': '10',
+            'NOV': '11',
+            'DEC': '12',
+        }
+        year = date[0:2]
+        monthName = date[2:5]
+        month = self.safe_string(monthMappping, monthName)
+        day = date[5:7]
+        reconstructedDate = day + month + year
+        return reconstructedDate
+
+    def convert_expire_date_to_market_id_date(self, date):
+        # parse 240119 to 19JAN24
+        year = date[0:2]
+        monthRaw = date[2:4]
+        month = None
+        day = date[4:6]
+        if monthRaw == '01':
+            month = 'JAN'
+        elif monthRaw == '02':
+            month = 'FEB'
+        elif monthRaw == '03':
+            month = 'MAR'
+        elif monthRaw == '04':
+            month = 'APR'
+        elif monthRaw == '05':
+            month = 'MAY'
+        elif monthRaw == '06':
+            month = 'JUN'
+        elif monthRaw == '07':
+            month = 'JUL'
+        elif monthRaw == '08':
+            month = 'AUG'
+        elif monthRaw == '09':
+            month = 'SEP'
+        elif monthRaw == '10':
+            month = 'OCT'
+        elif monthRaw == '11':
+            month = 'NOV'
+        elif monthRaw == '12':
+            month = 'DEC'
+        reconstructedDate = day + month + year
+        return reconstructedDate
+
+    def create_expired_option_market(self, symbol):
+        # support expired option contracts
+        quote = 'USD'
+        settle = None
+        optionParts = symbol.split('-')
+        symbolBase = symbol.split('/')
+        base = None
+        expiry = None
+        if symbol.find('/') > -1:
+            base = self.safe_string(symbolBase, 0)
+            expiry = self.safe_string(optionParts, 1)
+            if symbol.find('USDC') > -1:
+                base = base + '_USDC'
+        else:
+            base = self.safe_string(optionParts, 0)
+            expiry = self.convert_market_id_expire_date(self.safe_string(optionParts, 1))
+        if symbol.find('USDC') > -1:
+            quote = 'USDC'
+            settle = 'USDC'
+        else:
+            settle = base
+        splitBase = base
+        if base.find('_') > -1:
+            splitSymbol = base.split('_')
+            splitBase = self.safe_string(splitSymbol, 0)
+        strike = self.safe_string(optionParts, 2)
+        optionType = self.safe_string(optionParts, 3)
+        datetime = self.convert_expire_date(expiry)
+        timestamp = self.parse8601(datetime)
+        return {
+            'id': base + '-' + self.convert_expire_date_to_market_id_date(expiry) + '-' + strike + '-' + optionType,
+            'symbol': splitBase + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': base,
+            'quoteId': quote,
+            'settleId': settle,
+            'active': False,
+            'type': 'option',
+            'linear': None,
+            'inverse': None,
+            'spot': False,
+            'swap': False,
+            'future': False,
+            'option': True,
+            'margin': False,
+            'contract': True,
+            'contractSize': None,
+            'expiry': timestamp,
+            'expiryDatetime': datetime,
+            'optionType': 'call' if (optionType == 'C') else 'put',
+            'strike': self.parse_number(strike),
+            'precision': {
+                'amount': None,
+                'price': None,
+            },
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'info': None,
+        }
+
+    def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
+        isOption = (marketId is not None) and ((marketId.endswith('-C')) or (marketId.endswith('-P')))
+        if isOption and not (marketId in self.markets_by_id):
+            # handle expired option contracts
+            return self.create_expired_option_market(marketId)
+        return super(deribit, self).safe_market(marketId, market, delimiter, marketType)
 
     def fetch_time(self, params={}):
         """
@@ -1286,12 +1432,15 @@ class deribit(Exchange, ImplicitAPI):
             'instrument_name': market['id'],
             'include_old': True,
         }
-        method = 'publicGetGetLastTradesByInstrument' if (since is None) else 'publicGetGetLastTradesByInstrumentAndTime'
         if since is not None:
             request['start_timestamp'] = since
         if limit is not None:
             request['count'] = min(limit, 1000)  # default 10
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if since is None:
+            response = self.publicGetGetLastTradesByInstrument(self.extend(request, params))
+        else:
+            response = self.publicGetGetLastTradesByInstrumentAndTime(self.extend(request, params))
         #
         #      {
         #          "jsonrpc":"2.0",
@@ -1623,6 +1772,9 @@ class deribit(Exchange, ImplicitAPI):
         request = {
             'order_id': id,
         }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         response = self.privateGetGetOrderState(self.extend(request, params))
         #
         #     {
@@ -1653,7 +1805,7 @@ class deribit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_value(response, 'result')
-        return self.parse_order(result)
+        return self.parse_order(result, market)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
@@ -1662,24 +1814,18 @@ class deribit(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade. For perpetual and futures the amount is in USD. For options it is in corresponding cryptocurrency contracts currency.
+        :param float amount: how much you want to trade in units of the base currency. For inverse perpetual and futures the amount is in the quote currency USD. For options it is in the underlying assets base currency.
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.trigger]: the trigger type 'index_price', 'mark_price', or 'last_price', default is 'last_price'
+        :param float [params.trailingAmount]: the quote amount to trail away from the current market price
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        if market['inverse']:
-            amount = self.amount_to_precision(symbol, amount)
-        elif market['settle'] == 'USDC':
-            amount = self.amount_to_precision(symbol, amount)
-        else:
-            amount = self.currency_to_precision(symbol, amount)
         request = {
             'instrument_name': market['id'],
-            # for perpetual and futures the amount is in USD
-            # for options it is in corresponding cryptocurrency contracts, e.g., BTC or ETH
-            'amount': amount,
+            'amount': self.amount_to_precision(symbol, amount),
             'type': type,  # limit, stop_limit, market, stop_market, default is limit
             # 'label': 'string',  # user-defined label for the order(maximum 64 characters)
             # 'price': self.price_to_precision(symbol, 123.45),  # only for limit and stop_limit orders
@@ -1692,12 +1838,15 @@ class deribit(Exchange, ImplicitAPI):
             # 'trigger': 'index_price',  # mark_price, last_price, required for stop_limit orders
             # 'advanced': 'usd',  # 'implv', advanced option order type, options only
         }
+        trigger = self.safe_string(params, 'trigger', 'last_price')
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only')
         # only stop loss sell orders are allowed when price crossed from above
         stopLossPrice = self.safe_value(params, 'stopLossPrice')
         # only take profit buy orders are allowed when price crossed from below
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
+        trailingAmount = self.safe_string_2(params, 'trailingAmount', 'trigger_offset')
+        isTrailingAmountOrder = trailingAmount is not None
         isStopLimit = type == 'stop_limit'
         isStopMarket = type == 'stop_market'
         isTakeLimit = type == 'take_limit'
@@ -1716,10 +1865,14 @@ class deribit(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         else:
             request['type'] = 'market'
-        if isStopOrder:
+        if isTrailingAmountOrder:
+            request['trigger'] = trigger
+            request['type'] = 'trailing_stop'
+            request['trigger_offset'] = self.parse_to_numeric(trailingAmount)
+        elif isStopOrder:
             triggerPrice = stopLossPrice if (stopLossPrice is not None) else takeProfitPrice
             request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
-            request['trigger'] = 'last_price'  # required
+            request['trigger'] = trigger
             if isStopLossOrder:
                 if isMarketOrder:
                     # stop_market(sell only)
@@ -1746,9 +1899,12 @@ class deribit(Exchange, ImplicitAPI):
                 request['time_in_force'] = 'immediate_or_cancel'
             if timeInForce == 'FOK':
                 request['time_in_force'] = 'fill_or_kill'
-        method = 'privateGet' + self.capitalize(side)
-        params = self.omit(params, ['timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly'])
-        response = getattr(self, method)(self.extend(request, params))
+        params = self.omit(params, ['timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'trailingAmount'])
+        response = None
+        if self.capitalize(side) == 'Buy':
+            response = self.privateGetBuy(self.extend(request, params))
+        else:
+            response = self.privateGetSell(self.extend(request, params))
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -1808,23 +1964,38 @@ class deribit(Exchange, ImplicitAPI):
         return self.parse_order(order, market)
 
     def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+        """
+        edit a trade order
+        :see: https://docs.deribit.com/#private-edit
+        :param str id: edit order id
+        :param str [symbol]: unified symbol of the market to edit an order in
+        :param str [type]: 'market' or 'limit'
+        :param str [side]: 'buy' or 'sell'
+        :param float amount: how much you want to trade in units of the base currency, inverse swap and future use the quote currency
+        :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.trailingAmount]: the quote amount to trail away from the current market price
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         if amount is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument')
-        if price is None:
-            raise ArgumentsRequired(self.id + ' editOrder() requires a price argument')
         self.load_markets()
         request = {
             'order_id': id,
-            # for perpetual and futures the amount is in USD
-            # for options it is in corresponding cryptocurrency contracts, e.g., BTC or ETH
             'amount': self.amount_to_precision(symbol, amount),
-            'price': self.price_to_precision(symbol, price),  # required
             # 'post_only': False,  # if the new price would cause the order to be filled immediately(as taker), the price will be changed to be just below the spread.
             # 'reject_post_only': False,  # if True the order is put to order book unmodified or request is rejected
             # 'reduce_only': False,  # if True, the order is intended to only reduce a current position
             # 'stop_price': False,  # stop price, required for stop_limit orders
             # 'advanced': 'usd',  # 'implv', advanced option order type, options only
         }
+        if price is not None:
+            request['price'] = self.price_to_precision(symbol, price)
+        trailingAmount = self.safe_string_2(params, 'trailingAmount', 'trigger_offset')
+        isTrailingAmountOrder = trailingAmount is not None
+        if isTrailingAmountOrder:
+            request['trigger_offset'] = self.parse_to_numeric(trailingAmount)
+            params = self.omit(params, 'trigger_offset')
         response = self.privateGetEdit(self.extend(request, params))
         result = self.safe_value(response, 'result', {})
         order = self.safe_value(result, 'order')
@@ -1857,14 +2028,13 @@ class deribit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request = {}
-        method = None
+        response = None
         if symbol is None:
-            method = 'privateGetCancelAll'
+            response = self.privateGetCancelAll(self.extend(request, params))
         else:
-            method = 'privateGetCancelAllByInstrument'
             market = self.market(symbol)
             request['instrument_name'] = market['id']
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.privateGetCancelAllByInstrument(self.extend(request, params))
         return response
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1879,17 +2049,16 @@ class deribit(Exchange, ImplicitAPI):
         self.load_markets()
         request = {}
         market = None
-        method = None
+        response = None
         if symbol is None:
             code = self.code_from_options('fetchOpenOrders', params)
             currency = self.currency(code)
             request['currency'] = currency['id']
-            method = 'privateGetGetOpenOrdersByCurrency'
+            response = self.privateGetGetOpenOrdersByCurrency(self.extend(request, params))
         else:
             market = self.market(symbol)
             request['instrument_name'] = market['id']
-            method = 'privateGetGetOpenOrdersByInstrument'
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.privateGetGetOpenOrdersByInstrument(self.extend(request, params))
         result = self.safe_value(response, 'result', [])
         return self.parse_orders(result, market, since, limit)
 
@@ -1898,24 +2067,23 @@ class deribit(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {}
         market = None
-        method = None
+        response = None
         if symbol is None:
             code = self.code_from_options('fetchClosedOrders', params)
             currency = self.currency(code)
             request['currency'] = currency['id']
-            method = 'privateGetGetOrderHistoryByCurrency'
+            response = self.privateGetGetOrderHistoryByCurrency(self.extend(request, params))
         else:
             market = self.market(symbol)
             request['instrument_name'] = market['id']
-            method = 'privateGetGetOrderHistoryByInstrument'
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.privateGetGetOrderHistoryByInstrument(self.extend(request, params))
         result = self.safe_value(response, 'result', [])
         return self.parse_orders(result, market, since, limit)
 
@@ -1984,27 +2152,26 @@ class deribit(Exchange, ImplicitAPI):
             'include_old': True,
         }
         market = None
-        method = None
+        if limit is not None:
+            request['count'] = limit  # default 10
+        response = None
         if symbol is None:
             code = self.code_from_options('fetchMyTrades', params)
             currency = self.currency(code)
             request['currency'] = currency['id']
             if since is None:
-                method = 'privateGetGetUserTradesByCurrency'
+                response = self.privateGetGetUserTradesByCurrency(self.extend(request, params))
             else:
-                method = 'privateGetGetUserTradesByCurrencyAndTime'
                 request['start_timestamp'] = since
+                response = self.privateGetGetUserTradesByCurrencyAndTime(self.extend(request, params))
         else:
             market = self.market(symbol)
             request['instrument_name'] = market['id']
             if since is None:
-                method = 'privateGetGetUserTradesByInstrument'
+                response = self.privateGetGetUserTradesByInstrument(self.extend(request, params))
             else:
-                method = 'privateGetGetUserTradesByInstrumentAndTime'
                 request['start_timestamp'] = since
-        if limit is not None:
-            request['count'] = limit  # default 10
-        response = getattr(self, method)(self.extend(request, params))
+                response = self.privateGetGetUserTradesByInstrumentAndTime(self.extend(request, params))
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -2276,6 +2443,7 @@ class deribit(Exchange, ImplicitAPI):
     def fetch_position(self, symbol: str, params={}):
         """
         fetch data on a single open contract trade position
+        :see: https://docs.deribit.com/#private-get_position
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -2318,11 +2486,14 @@ class deribit(Exchange, ImplicitAPI):
     def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
+        :see: https://docs.deribit.com/#private-get_positions
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.kind]: market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
+        kind = self.safe_string(params, 'kind')
         code = None
         if symbols is None:
             code = self.code_from_options('fetchPositions', params)
@@ -2335,12 +2506,15 @@ class deribit(Exchange, ImplicitAPI):
                 if length != 1:
                     raise BadRequest(self.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol')
                 market = self.market(symbols[0])
-                code = market['base']
+                settle = market['settle']
+                code = settle if (settle is not None) else market['base']
+                kind = market['info']['kind']
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
-            # "kind" : "future", "option"
         }
+        if kind is not None:
+            request['kind'] = kind
         response = self.privateGetGetPositions(self.extend(request, params))
         #
         #     {
@@ -2510,7 +2684,11 @@ class deribit(Exchange, ImplicitAPI):
         if method is None:
             transferOptions = self.safe_value(self.options, 'transfer', {})
             method = self.safe_string(transferOptions, 'method', 'privateGetSubmitTransferToSubaccount')
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'privateGetSubmitTransferToUser':
+            response = self.privateGetSubmitTransferToUser(self.extend(request, params))
+        else:
+            response = self.privateGetSubmitTransferToSubaccount(self.extend(request, params))
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -2711,7 +2889,7 @@ class deribit(Exchange, ImplicitAPI):
             since = time - month
         request = {
             'instrument_name': market['id'],
-            'start_timestamp': since,
+            'start_timestamp': since - 1,
             'end_timestamp': time,
         }
         response = self.publicGetGetFundingRateHistory(self.extend(request, params))

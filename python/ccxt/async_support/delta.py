@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.delta import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -41,6 +41,8 @@ class delta(Exchange, ImplicitAPI):
                 'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'closeAllPositions': True,
+                'closePosition': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
                 'editOrder': True,
@@ -322,21 +324,8 @@ class delta(Exchange, ImplicitAPI):
             'info': None,
         }
 
-    def market(self, symbol):
-        if self.markets is None:
-            raise ExchangeError(self.id + ' markets not loaded')
-        if isinstance(symbol, str):
-            if symbol in self.markets:
-                return self.markets[symbol]
-            elif symbol in self.markets_by_id:
-                markets = self.markets_by_id[symbol]
-                return markets[0]
-            elif (symbol.find('-C') > -1) or (symbol.find('-P') > -1) or (symbol.find('C')) or (symbol.find('P')):
-                return self.create_expired_option_market(symbol)
-        raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
-
     def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
-        isOption = (marketId is not None) and ((marketId.find('-C') > -1) or (marketId.find('-P') > -1) or (marketId.find('C')) or (marketId.find('P')))
+        isOption = (marketId is not None) and ((marketId.endswith('-C')) or (marketId.endswith('-P')) or (marketId.startswith('C-')) or (marketId.startswith('P-')))
         if isOption and not (marketId in self.markets_by_id):
             # handle expired option contracts
             return self.create_expired_option_market(marketId)
@@ -1994,7 +1983,11 @@ class delta(Exchange, ImplicitAPI):
             request['start_time'] = str(since) + '000'
         if limit is not None:
             request['page_size'] = limit
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'privateGetOrders':
+            response = await self.privateGetOrders(self.extend(request, params))
+        elif method == 'privateGetOrdersHistory':
+            response = await self.privateGetOrdersHistory(self.extend(request, params))
         #
         #     {
         #         "success": True,
@@ -3060,6 +3053,27 @@ class delta(Exchange, ImplicitAPI):
             'underlyingPrice': self.safe_number(greeks, 'spot_price'),
             'info': greeks,
         }
+
+    async def close_all_positions(self, params={}) -> List[Position]:
+        """
+        closes all open positions for a market type
+        :see: https://docs.delta.exchange/#close-all-positions
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.user_id]: the users id
+        :returns dict[]: A list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        await self.load_markets()
+        request = {
+            'close_all_portfolio': True,
+            'close_all_isolated': True,
+            # 'user_id': 12345,
+        }
+        response = await self.privatePostPositionsCloseAll(self.extend(request, params))
+        #
+        # {"result":{},"success":true}
+        #
+        position = self.parse_position(self.safe_value(response, 'result', {}))
+        return [position]
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         requestPath = '/' + self.version + '/' + self.implode_params(path, params)

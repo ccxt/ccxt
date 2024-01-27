@@ -325,11 +325,10 @@ export default class kraken extends krakenRest {
             quoteVolume = Precise.stringMul(baseVolume, vwap);
         }
         const last = this.safeString(ticker['c'], 0);
-        const timestamp = this.milliseconds();
         const result = this.safeTicker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': this.safeString(ticker['h'], 0),
             'low': this.safeString(ticker['l'], 0),
             'bid': this.safeString(ticker['b'], 0),
@@ -546,7 +545,7 @@ export default class kraken extends krakenRest {
             ],
             'subscription': {
                 'name': name,
-                'interval': this.safeString(this.timeframes, timeframe, timeframe),
+                'interval': this.safeValue(this.timeframes, timeframe, timeframe),
             },
         };
         const request = this.deepExtend(subscribe, params);
@@ -994,7 +993,7 @@ export default class kraken extends krakenRest {
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {object} [params] maximum number of orderic to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.watchPrivate('openOrders', symbol, since, limit, params);

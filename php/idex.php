@@ -31,6 +31,8 @@ class idex extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createDepositAddress' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
@@ -907,7 +909,7 @@ class idex extends Exchange {
          * fetches information on multiple closed orders made by the user
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of  orde structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
@@ -1558,7 +1560,14 @@ class idex extends Exchange {
         // )
         $method = $params['method'];
         $params = $this->omit($params, 'method');
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($method === 'privateGetDeposits') {
+            $response = $this->privateGetDeposits (array_merge($request, $params));
+        } elseif ($method === 'privateGetWithdrawals') {
+            $response = $this->privateGetWithdrawals (array_merge($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' fetchTransactionsHelper() not support this method');
+        }
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 

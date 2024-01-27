@@ -10,6 +10,7 @@ use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use ccxt\AuthenticationError;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class hitbtc extends \ccxt\async\hitbtc {
 
@@ -35,6 +36,12 @@ class hitbtc extends \ccxt\async\hitbtc {
                     'ws' => array(
                         'public' => 'wss://api.hitbtc.com/api/3/ws/public',
                         'private' => 'wss://api.hitbtc.com/api/3/ws/trading',
+                    ),
+                ),
+                'test' => array(
+                    'ws' => array(
+                        'public' => 'wss://api.demo.hitbtc.com/api/3/ws/public',
+                        'private' => 'wss://api.demo.hitbtc.com/api/3/ws/trading',
                     ),
                 ),
             ),
@@ -185,7 +192,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         }) ();
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -293,7 +300,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         }
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -319,11 +326,12 @@ class hitbtc extends \ccxt\async\hitbtc {
                     'symbols' => [ $market['id'] ],
                 ),
             );
-            return Async\await($this->subscribe_public($name, array( $symbol ), $this->deep_extend($request, $params)));
+            $result = Async\await($this->subscribe_public($name, array( $symbol ), $this->deep_extend($request, $params)));
+            return $this->safe_value($result, $symbol);
         }) ();
     }
 
-    public function watch_tickers($symbols = null, $params = array ()) {
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -411,9 +419,9 @@ class hitbtc extends \ccxt\async\hitbtc {
             $symbol = $market['symbol'];
             $ticker = $this->parse_ws_ticker($data[$marketId], $market);
             $this->tickers[$symbol] = $ticker;
-            $newTickers[] = $ticker;
+            $newTickers[$symbol] = $ticker;
             $messageHash = $channel . '::' . $symbol;
-            $client->resolve ($this->tickers[$symbol], $messageHash);
+            $client->resolve ($newTickers, $messageHash);
         }
         $messageHashes = $this->find_message_hashes($client, $channel . '::');
         for ($i = 0; $i < count($messageHashes); $i++) {
@@ -488,7 +496,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         ), $market);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -619,7 +627,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         ), $market);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -733,7 +741,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         );
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -977,7 +985,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         ), $market);
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watches balance updates, cannot subscribe to margin account balances
@@ -1007,7 +1015,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         }) ();
     }
 
-    public function create_order_ws(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order_ws(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1034,7 +1042,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
-            list($request, $params) = $this->createOrderRequest ($market, $marketType, $type, $side, $amount, $price, $marginMode, $params);
+            list($request, $params) = $this->create_order_request($market, $marketType, $type, $side, $amount, $price, $marginMode, $params);
             $request = array_merge($request, $params);
             if ($marketType === 'swap') {
                 return Async\await($this->trade_request('futures_new_order', $request));
@@ -1046,7 +1054,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         }) ();
     }
 
-    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * @see https://api.hitbtc.com/#cancel-spot-order-2
@@ -1113,7 +1121,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         }) ();
     }
 
-    public function fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://api.hitbtc.com/#get-active-futures-orders-2

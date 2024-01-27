@@ -1,6 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
 
 // ----------------------------------------------------------------------------
 
@@ -8,10 +7,15 @@ use \ccxt\Precise;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-
+use \ccxt\Precise;
 
 function log_template($exchange, $method, $entry) {
     return ' <<< ' . $exchange->id . ' ' . $method . ' ::: ' . $exchange->json($entry) . ' >>> ';
+}
+
+
+function is_temporary_failure($e) {
+    return ($e instanceof OperationFailed) && (!($e instanceof OnMaintenance));
 }
 
 
@@ -192,11 +196,16 @@ function assert_symbol($exchange, $skipped_properties, $method, $entry, $key, $e
     $actual_symbol = $exchange->safe_string($entry, $key);
     if ($actual_symbol !== null) {
         assert(is_string($actual_symbol), 'symbol should be either undefined or a string' . $log_text);
-        assert((is_array($exchange->markets) && array_key_exists($actual_symbol, $exchange->markets)), 'symbol should be present in exchange.symbols' . $log_text);
     }
     if ($expected_symbol !== null) {
         assert($actual_symbol === $expected_symbol, 'symbol in response (\"' . string_value($actual_symbol) . '\") should be equal to expected symbol (\"' . string_value($expected_symbol) . '\")' . $log_text);
     }
+}
+
+
+function assert_symbol_in_markets($exchange, $skipped_properties, $method, $symbol) {
+    $log_text = log_template($exchange, $method, array());
+    assert((is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets)), 'symbol should be present in exchange.symbols' . $log_text);
 }
 
 
@@ -307,16 +316,15 @@ function assert_fee_structure($exchange, $skipped_properties, $method, $entry, $
 }
 
 
-function assert_timestamp_order($exchange, $method, $code_or_symbol, $items, $ascending = false) {
+function assert_timestamp_order($exchange, $method, $code_or_symbol, $items, $ascending = true) {
     for ($i = 0; $i < count($items); $i++) {
         if ($i > 0) {
             $ascending_or_descending = $ascending ? 'ascending' : 'descending';
-            $first_index = $ascending ? $i - 1 : $i;
-            $second_index = $ascending ? $i : $i - 1;
-            $first_ts = $items[$first_index]['timestamp'];
-            $second_ts = $items[$second_index]['timestamp'];
-            if ($first_ts !== null && $second_ts !== null) {
-                assert($items[$first_index]['timestamp'] >= $items[$second_index]['timestamp'], $exchange->id . ' ' . $method . ' ' . string_value($code_or_symbol) . ' must return a ' . $ascending_or_descending . ' sorted array of items by timestamp. ' . $exchange->json($items));
+            $current_ts = $items[$i - 1]['timestamp'];
+            $next_ts = $items[$i]['timestamp'];
+            if ($current_ts !== null && $next_ts !== null) {
+                $comparison = $ascending ? ($current_ts <= $next_ts) : ($current_ts >= $next_ts);
+                assert($comparison, $exchange->id . ' ' . $method . ' ' . string_value($code_or_symbol) . ' must return a ' . $ascending_or_descending . ' sorted array of items by timestamp, but ' . ((string) $current_ts) . ' is opposite with its next ' . ((string) $next_ts) . ' ' . $exchange->json($items));
             }
         }
     }
@@ -342,8 +350,7 @@ function check_precision_accuracy($exchange, $skipped_properties, $method, $entr
     if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
         return;
     }
-    $is_tick_size_precisionMode = $exchange->precisionMode === \ccxt\TICK_SIZE;
-    if ($is_tick_size_precisionMode) {
+    if ($exchange->is_tick_precision()) {
         // \ccxt\TICK_SIZE should be above zero
         assert_greater($exchange, $skipped_properties, $method, $entry, $key, '0');
         // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so their existence in our case indicates to incorrectly implemented tick-sizes, which might mistakenly be implemented with DECIMAL_PLACES, so we throw error

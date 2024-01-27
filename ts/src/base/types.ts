@@ -8,7 +8,7 @@ export type IndexType = number | string;
 export type OrderSide = 'buy' | 'sell' | string;
 export type OrderType = 'limit' | 'market' | string;
 export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option';
-
+export type SubType = 'linear' | 'inverse' | undefined;
 export interface Dictionary<T> {
     [key: string]: T;
 }
@@ -30,6 +30,7 @@ export type Fee = FeeInterface | undefined
 
 export interface MarketInterface {
     id: string;
+    numericId?: Num;
     uppercaseId?: string;
     lowercaseId?: string;
     symbol: string;
@@ -39,6 +40,7 @@ export interface MarketInterface {
     quoteId: string;
     active: Bool;
     type: MarketType;
+    subType?: SubType;
     spot: boolean;
     margin: boolean;
     swap: boolean;
@@ -63,6 +65,7 @@ export interface MarketInterface {
     precision: {
         amount: Num
         price: Num
+        cost?: Num
     };
     limits: {
         amount?: MinMax,

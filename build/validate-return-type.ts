@@ -5,6 +5,7 @@ import log from 'ololog'
 
 const skipMethods = [
     'fetchMarkets',
+    'fetchMarketsWs',
     'createDepositAddress', // will be updated later
 ]
 
@@ -38,7 +39,9 @@ const skipMethodsPerExchange = {
     ]
 }
 
-const exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8")).ids;
+const allExchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
+const exchanges = allExchanges.ids;
+const wsExchanges = allExchanges.ws;
 
 // Function to extract method names and return types from a .d.ts file
 function extractMethodsAndReturnTypes(filePath: string): Record<string, string> {
@@ -71,7 +74,8 @@ function isUserFacingMethod(method: string) {
         || method.startsWith('edit')
         || method.startsWith('transfer')
         || method.startsWith('withdraw')
-        || method.startsWith('deposit');
+        || method.startsWith('deposit')
+        || method.startsWith('watch');
 }
 
 function isUknownReturnType(type: string) {
@@ -105,8 +109,14 @@ function main() {
         if (skipExchanges.includes(exchange)) {
             continue;
         }
-        const path = basePath + exchange + '.d.ts';
-        const methodsInfo = extractMethodsAndReturnTypes(path);
+        const restPath = basePath + exchange + '.d.ts';
+        const wsPath = basePath + 'pro/' + exchange + '.d.ts';
+        const restMethodsInfo = extractMethodsAndReturnTypes(restPath); // rest API
+        let wsMethodsInfo: any = {};
+        if (wsExchanges.includes(exchange)) {
+            wsMethodsInfo = extractMethodsAndReturnTypes(wsPath); // ws API
+        }
+        const methodsInfo = {...restMethodsInfo, ...wsMethodsInfo};
         for (const method in methodsInfo) {
             if (skipMethods.includes(method)) {
                 continue;

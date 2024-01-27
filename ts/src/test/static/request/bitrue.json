@@ -92,6 +92,56 @@
                   }
                 ],
                 "output": "{\"recvWindow\":5000,\"side\":\"BUY\",\"type\":\"MARKET\",\"contractName\":\"E-LTC-USDT\",\"amount\":\"15\",\"volume\":\"15\",\"positionType\":1,\"open\":\"OPEN\",\"leverage\":1}"
+            },
+            {
+                "description": "Swap market buy with createMarketBuyOrderRequiresPrice set to false",
+                "method": "createOrder",
+                "url": "https://fapi.bitrue.com/fapi/v2/order",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "buy",
+                  50,
+                  null,
+                  {
+                    "createMarketBuyOrderRequiresPrice": false,
+                    "leverage": 10
+                  }
+                ],
+                "output": "{\"recvWindow\":5000,\"side\":\"BUY\",\"type\":\"MARKET\",\"contractName\":\"E-BTC-USDT\",\"amount\":50,\"volume\":50,\"positionType\":1,\"open\":\"OPEN\",\"leverage\":10}"
+            },
+            {
+                "description": "Swap market sell",
+                "method": "createOrder",
+                "url": "https://fapi.bitrue.com/fapi/v2/order",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.0011,
+                  null,
+                  {
+                    "reduceOnly": true,
+                    "leverage": 10
+                  }
+                ],
+                "output": "{\"recvWindow\":5000,\"side\":\"SELL\",\"type\":\"MARKET\",\"contractName\":\"E-BTC-USDT\",\"amount\":0.0011,\"volume\":0.0011,\"positionType\":1,\"open\":\"CLOSE\",\"leverage\":10}"
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "Swap market buy order with cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://fapi.bitrue.com/fapi/v2/order",
+                "input": [
+                  "BTC/USDT:USDT",
+                  50,
+                  {
+                    "leverage": 10,
+                    "createMarketBuyOrderRequiresPrice": false
+                  }
+                ],
+                "output": "{\"recvWindow\":5000,\"side\":\"BUY\",\"type\":\"MARKET\",\"contractName\":\"E-BTC-USDT\",\"amount\":50,\"volume\":50,\"positionType\":1,\"open\":\"OPEN\",\"leverage\":10}"
             }
         ],
         "fetchMyTrades": [

@@ -13,7 +13,7 @@ import { Precise } from './base/Precise.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class coinspot
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coinspot extends Exchange {
     describe() {
@@ -32,6 +32,8 @@ export default class coinspot extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createMarketOrder': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,

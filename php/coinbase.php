@@ -32,11 +32,16 @@ class coinbase extends Exchange {
                 'addMargin' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createDepositAddress' => true,
                 'createLimitBuyOrder' => true,
                 'createLimitSellOrder' => true,
                 'createMarketBuyOrder' => true,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
                 'createMarketSellOrder' => true,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => false,
@@ -94,7 +99,7 @@ class coinbase extends Exchange {
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
-                'withdraw' => null,
+                'withdraw' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
@@ -189,15 +194,29 @@ class coinbase extends Exchange {
                             'brokerage/products/{product_id}',
                             'brokerage/products/{product_id}/candles',
                             'brokerage/products/{product_id}/ticker',
+                            'brokerage/portfolios',
+                            'brokerage/portfolios/{portfolio_uuid}',
                             'brokerage/transaction_summary',
                             'brokerage/product_book',
                             'brokerage/best_bid_ask',
+                            'brokerage/convert/trade/{trade_id}',
+                            'brokerage/time',
                         ),
                         'post' => array(
                             'brokerage/orders',
                             'brokerage/orders/batch_cancel',
                             'brokerage/orders/edit',
                             'brokerage/orders/edit_preview',
+                            'brokerage/portfolios',
+                            'brokerage/portfolios/move_funds',
+                            'brokerage/convert/quote',
+                            'brokerage/convert/trade/{trade_id}',
+                        ),
+                        'put' => array(
+                            'brokerage/portfolios/{portfolio_uuid}',
+                        ),
+                        'delete' => array(
+                            'brokerage/portfolios/{portfolio_uuid}',
                         ),
                     ),
                 ),
@@ -255,6 +274,8 @@ class coinbase extends Exchange {
                     'not_found' => '\\ccxt\\ExchangeError', // 404 Resource not found
                     'rate_limit_exceeded' => '\\ccxt\\RateLimitExceeded', // 429 Rate limit exceeded
                     'internal_server_error' => '\\ccxt\\ExchangeError', // 500 Internal server error
+                    'UNSUPPORTED_ORDER_CONFIGURATION' => '\\ccxt\\BadRequest',
+                    'INSUFFICIENT_FUND' => '\\ccxt\\BadRequest',
                 ),
                 'broad' => array(
                     'request timestamp expired' => '\\ccxt\\InvalidNonce', // array("errors":[array("id":"authentication_error","message":"request timestamp expired")])
@@ -603,6 +624,7 @@ class coinbase extends Exchange {
 
     public function fetch_my_sells(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @ignore
          * fetch $sells
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-$sells#list-$sells
          * @param {string} $symbol not used by coinbase fetchMySells ()
@@ -621,6 +643,7 @@ class coinbase extends Exchange {
 
     public function fetch_my_buys(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @ignore
          * fetch $buys
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-$buys#list-$buys
          * @param {string} $symbol not used by coinbase fetchMyBuys ()
@@ -746,46 +769,101 @@ class coinbase extends Exchange {
         //         "next_step" => null
         //     }
         //
-        $subtotalObject = $this->safe_value($transaction, 'subtotal', array());
-        $feeObject = $this->safe_value($transaction, 'fee', array());
-        $id = $this->safe_string($transaction, 'id');
-        $timestamp = $this->parse8601($this->safe_value($transaction, 'created_at'));
-        $updated = $this->parse8601($this->safe_value($transaction, 'updated_at'));
-        $type = $this->safe_string($transaction, 'resource');
-        $amount = $this->safe_number($subtotalObject, 'amount');
-        $currencyId = $this->safe_string($subtotalObject, 'currency');
-        $code = $this->safe_currency_code($currencyId, $currency);
-        $feeCost = $this->safe_number($feeObject, 'amount');
-        $feeCurrencyId = $this->safe_string($feeObject, 'currency');
-        $feeCurrency = $this->safe_currency_code($feeCurrencyId);
-        $fee = array(
-            'cost' => $feeCost,
-            'currency' => $feeCurrency,
-        );
+        // withdraw
+        //
+        //     {
+        //         "id" => "a1794ecf-5693-55fa-70cf-ef731748ed82",
+        //         "type" => "send",
+        //         "status" => "pending",
+        //         "amount" => array(
+        //             "amount" => "-14.008308",
+        //             "currency" => "USDC"
+        //         ),
+        //         "native_amount" => array(
+        //             "amount" => "-18.74",
+        //             "currency" => "CAD"
+        //         ),
+        //         "description" => null,
+        //         "created_at" => "2024-01-12T01:27:31Z",
+        //         "updated_at" => "2024-01-12T01:27:31Z",
+        //         "resource" => "transaction",
+        //         "resource_path" => "/v2/accounts/a34bgfad-ed67-538b-bffc-730c98c10da0/transactions/a1794ecf-5693-55fa-70cf-ef731748ed82",
+        //         "instant_exchange" => false,
+        //         "network" => array(
+        //             "status" => "pending",
+        //             "status_description" => "Pending (est. less than 10 minutes)",
+        //             "transaction_fee" => array(
+        //                 "amount" => "4.008308",
+        //                 "currency" => "USDC"
+        //             ),
+        //             "transaction_amount" => array(
+        //                 "amount" => "10.000000",
+        //                 "currency" => "USDC"
+        //             ),
+        //             "confirmations" => 0
+        //         ),
+        //         "to" => {
+        //             "resource" => "ethereum_address",
+        //             "address" => "0x9...",
+        //             "currency" => "USDC",
+        //             "address_info" => array(
+        //                 "address" => "0x9..."
+        //             }
+        //         ),
+        //         "idem" => "748d8591-dg9a-7831-a45b-crd61dg78762",
+        //         "details" => array(
+        //             "title" => "Sent USDC",
+        //             "subtitle" => "To USDC address on Ethereum $network",
+        //             "header" => "Sent 14.008308 USDC ($18.74)",
+        //             "health" => "warning"
+        //         ),
+        //         "hide_native_amount" => false
+        //     }
+        //
+        $transactionType = $this->safe_string($transaction, 'type');
+        $amountAndCurrencyObject = null;
+        $feeObject = null;
+        if ($transactionType === 'send') {
+            $network = $this->safe_value($transaction, 'network', array());
+            $amountAndCurrencyObject = $this->safe_value($network, 'transaction_amount', array());
+            $feeObject = $this->safe_value($network, 'transaction_fee', array());
+        } else {
+            $amountAndCurrencyObject = $this->safe_value($transaction, 'subtotal', array());
+            $feeObject = $this->safe_value($transaction, 'fee', array());
+        }
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         if ($status === null) {
             $committed = $this->safe_value($transaction, 'committed');
             $status = $committed ? 'ok' : 'pending';
         }
+        $id = $this->safe_string($transaction, 'id');
+        $currencyId = $this->safe_string($amountAndCurrencyObject, 'currency');
+        $feeCurrencyId = $this->safe_string($feeObject, 'currency');
+        $datetime = $this->safe_value($transaction, 'created_at');
+        $toObject = $this->safe_value($transaction, 'to', array());
+        $toAddress = $this->safe_string($toObject, 'address');
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $id,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
             'network' => null,
-            'address' => null,
-            'addressTo' => null,
+            'address' => $toAddress,
+            'addressTo' => $toAddress,
             'addressFrom' => null,
             'tag' => null,
             'tagTo' => null,
             'tagFrom' => null,
-            'type' => $type,
-            'amount' => $amount,
-            'currency' => $code,
+            'type' => $this->safe_string($transaction, 'resource'),
+            'amount' => $this->safe_number($amountAndCurrencyObject, 'amount'),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
             'status' => $status,
-            'updated' => $updated,
-            'fee' => $fee,
+            'updated' => $this->parse8601($this->safe_value($transaction, 'updated_at')),
+            'fee' => array(
+                'cost' => $this->safe_number($feeObject, 'amount'),
+                'currency' => $this->safe_currency_code($feeCurrencyId),
+            ),
         );
     }
 
@@ -894,6 +972,10 @@ class coinbase extends Exchange {
             $cost = $costString;
         }
         $feeCurrencyId = $this->safe_string($feeObject, 'currency');
+        $feeCost = $this->safe_number($feeObject, 'amount', $this->parse_number($v3FeeCost));
+        if (($feeCurrencyId === null) && ($market !== null) && ($feeCost !== null)) {
+            $feeCurrencyId = $market['quote'];
+        }
         $datetime = $this->safe_string_n($trade, array( 'created_at', 'trade_time', 'time' ));
         $side = $this->safe_string_lower_2($trade, 'resource', 'side');
         $takerOrMaker = $this->safe_string_lower($trade, 'liquidity_indicator');
@@ -911,7 +993,7 @@ class coinbase extends Exchange {
             'amount' => $amountString,
             'cost' => $cost,
             'fee' => array(
-                'cost' => $this->safe_number($feeObject, 'amount', $this->parse_number($v3FeeCost)),
+                'cost' => $feeCost,
                 'currency' => $this->safe_currency_code($feeCurrencyId),
             ),
         ));
@@ -2074,6 +2156,24 @@ class coinbase extends Exchange {
         return $request;
     }
 
+    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+        /**
+         * create a $market buy order by providing the $symbol and $cost
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {float} $cost how much you want to trade in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        $params['createMarketBuyOrderRequiresPrice'] = false;
+        return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
+    }
+
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
@@ -2092,6 +2192,7 @@ class coinbase extends Exchange {
          * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'GTD' or 'PO'
          * @param {string} [$params->stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the $stopPrice is triggered from
          * @param {string} [$params->end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -2188,19 +2289,24 @@ class coinbase extends Exchange {
                 throw new NotSupported($this->id . ' createOrder() only stop limit orders are supported');
             }
             if ($side === 'buy') {
-                $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
                 $total = null;
-                if ($createMarketBuyOrderRequiresPrice) {
+                $createMarketBuyOrderRequiresPrice = true;
+                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                $cost = $this->safe_number($params, 'cost');
+                $params = $this->omit($params, 'cost');
+                if ($cost !== null) {
+                    $total = $this->cost_to_precision($symbol, $cost);
+                } elseif ($createMarketBuyOrderRequiresPrice) {
                     if ($price === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for $market buy orders on spot markets to calculate the $total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
+                        throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for $market buy orders on spot markets to calculate the $total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
-                        $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
-                        $total = $this->price_to_precision($symbol, $cost);
+                        $costRequest = Precise::string_mul($amountString, $priceString);
+                        $total = $this->cost_to_precision($symbol, $costRequest);
                     }
                 } else {
-                    $total = $this->price_to_precision($symbol, $amount);
+                    $total = $this->cost_to_precision($symbol, $amount);
                 }
                 $request['order_configuration'] = array(
                     'market_market_ioc' => array(
@@ -2218,6 +2324,8 @@ class coinbase extends Exchange {
         $params = $this->omit($params, array( 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time' ));
         $response = $this->v3PrivatePostBrokerageOrders (array_merge($request, $params));
         //
+        // successful order
+        //
         //     {
         //         "success" => true,
         //         "failure_reason" => "UNKNOWN_FAILURE_REASON",
@@ -2231,9 +2339,37 @@ class coinbase extends Exchange {
         //         "order_configuration" => null
         //     }
         //
+        // failed order
+        //
+        //     {
+        //         "success" => false,
+        //         "failure_reason" => "UNKNOWN_FAILURE_REASON",
+        //         "order_id" => "",
+        //         "error_response" => array(
+        //             "error" => "UNSUPPORTED_ORDER_CONFIGURATION",
+        //             "message" => "source is not enabled for trading",
+        //             "error_details" => "",
+        //             "new_order_failure_reason" => "UNSUPPORTED_ORDER_CONFIGURATION"
+        //         ),
+        //         "order_configuration" => {
+        //             "limit_limit_gtc" => {
+        //                 "base_size" => "100",
+        //                 "limit_price" => "40000",
+        //                 "post_only" => false
+        //             }
+        //         }
+        //     }
+        //
         $success = $this->safe_value($response, 'success');
         if ($success !== true) {
-            throw new BadRequest($this->id . ' createOrder() has failed, check your arguments and parameters');
+            $errorResponse = $this->safe_value($response, 'error_response');
+            $errorTitle = $this->safe_string($errorResponse, 'error');
+            $errorMessage = $this->safe_string($errorResponse, 'message');
+            if ($errorResponse !== null) {
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorTitle, $errorMessage);
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorTitle, $errorMessage);
+                throw new ExchangeError($errorMessage);
+            }
         }
         $data = $this->safe_value($response, 'success_response', array());
         return $this->parse_order($data, $market);
@@ -2269,6 +2405,12 @@ class coinbase extends Exchange {
         //                 "base_size" => "0.2",
         //                 "limit_price" => "0.006",
         //                 "post_only" => false
+        //             ),
+        //             "stop_limit_stop_limit_gtc" => array(
+        //                 "base_size" => "48.54",
+        //                 "limit_price" => "6.998",
+        //                 "stop_price" => "7.0687",
+        //                 "stop_direction" => "STOP_DIRECTION_STOP_DOWN"
         //             }
         //         ),
         //         "side" => "SELL",
@@ -2302,11 +2444,11 @@ class coinbase extends Exchange {
             $market = $this->market($symbol);
         }
         $orderConfiguration = $this->safe_value($order, 'order_configuration', array());
-        $limitGTC = $this->safe_value($orderConfiguration, 'limit_limit_gtc', array());
-        $limitGTD = $this->safe_value($orderConfiguration, 'limit_limit_gtd', array());
-        $stopLimitGTC = $this->safe_value($orderConfiguration, 'stop_limit_stop_limit_gtc', array());
-        $stopLimitGTD = $this->safe_value($orderConfiguration, 'stop_limit_stop_limit_gtd', array());
-        $marketIOC = $this->safe_value($orderConfiguration, 'market_market_ioc', array());
+        $limitGTC = $this->safe_value($orderConfiguration, 'limit_limit_gtc');
+        $limitGTD = $this->safe_value($orderConfiguration, 'limit_limit_gtd');
+        $stopLimitGTC = $this->safe_value($orderConfiguration, 'stop_limit_stop_limit_gtc');
+        $stopLimitGTD = $this->safe_value($orderConfiguration, 'stop_limit_stop_limit_gtd');
+        $marketIOC = $this->safe_value($orderConfiguration, 'market_market_ioc');
         $isLimit = (($limitGTC !== null) || ($limitGTD !== null));
         $isStop = (($stopLimitGTC !== null) || ($stopLimitGTD !== null));
         $price = null;
@@ -2328,6 +2470,11 @@ class coinbase extends Exchange {
             $amount = $this->safe_string($marketIOC, 'base_size');
         }
         $datetime = $this->safe_string($order, 'created_time');
+        $totalFees = $this->safe_string($order, 'total_fees');
+        $currencyFee = null;
+        if (($totalFees !== null) && ($market !== null)) {
+            $currencyFee = $market['quote'];
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($order, 'order_id'),
@@ -2351,7 +2498,7 @@ class coinbase extends Exchange {
             'status' => $this->parse_order_status($this->safe_string($order, 'status')),
             'fee' => array(
                 'cost' => $this->safe_string($order, 'total_fees'),
-                'currency' => null,
+                'currency' => $currencyFee,
             ),
             'trades' => null,
         ), $market);
@@ -3048,6 +3195,99 @@ class coinbase extends Exchange {
         //
         $tickers = $this->safe_value($response, 'pricebooks', array());
         return $this->parse_tickers($tickers, $symbols);
+    }
+
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#send-money
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string} [$tag] an optional $tag for the withdrawal
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         */
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        $this->check_address($address);
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
+        $params = $this->omit($params, array( 'account_id', 'accountId' ));
+        if ($accountId === null) {
+            if ($code === null) {
+                throw new ArgumentsRequired($this->id . ' withdraw() requires an account_id (or $accountId) parameter OR a $currency $code argument');
+            }
+            $accountId = $this->find_account_id($code);
+            if ($accountId === null) {
+                throw new ExchangeError($this->id . ' withdraw() could not find account id for ' . $code);
+            }
+        }
+        $request = array(
+            'account_id' => $accountId,
+            'type' => 'send',
+            'to' => $address,
+            'amount' => $amount,
+            'currency' => $currency['id'],
+        );
+        if ($tag !== null) {
+            $request['destination_tag'] = $tag;
+        }
+        $response = $this->v2PrivatePostAccountsAccountIdTransactions (array_merge($request, $params));
+        //
+        //     {
+        //         "data" => {
+        //             "id" => "a1794ecf-5693-55fa-70cf-ef731748ed82",
+        //             "type" => "send",
+        //             "status" => "pending",
+        //             "amount" => array(
+        //                 "amount" => "-14.008308",
+        //                 "currency" => "USDC"
+        //             ),
+        //             "native_amount" => array(
+        //                 "amount" => "-18.74",
+        //                 "currency" => "CAD"
+        //             ),
+        //             "description" => null,
+        //             "created_at" => "2024-01-12T01:27:31Z",
+        //             "updated_at" => "2024-01-12T01:27:31Z",
+        //             "resource" => "transaction",
+        //             "resource_path" => "/v2/accounts/a34bgfad-ed67-538b-bffc-730c98c10da0/transactions/a1794ecf-5693-55fa-70cf-ef731748ed82",
+        //             "instant_exchange" => false,
+        //             "network" => array(
+        //                 "status" => "pending",
+        //                 "status_description" => "Pending (est. less than 10 minutes)",
+        //                 "transaction_fee" => array(
+        //                     "amount" => "4.008308",
+        //                     "currency" => "USDC"
+        //                 ),
+        //                 "transaction_amount" => array(
+        //                     "amount" => "10.000000",
+        //                     "currency" => "USDC"
+        //                 ),
+        //                 "confirmations" => 0
+        //             ),
+        //             "to" => {
+        //                 "resource" => "ethereum_address",
+        //                 "address" => "0x9...",
+        //                 "currency" => "USDC",
+        //                 "address_info" => array(
+        //                     "address" => "0x9..."
+        //                 }
+        //             ),
+        //             "idem" => "748d8591-dg9a-7831-a45b-crd61dg78762",
+        //             "details" => array(
+        //                 "title" => "Sent USDC",
+        //                 "subtitle" => "To USDC $address on Ethereum network",
+        //                 "header" => "Sent 14.008308 USDC ($18.74)",
+        //                 "health" => "warning"
+        //             ),
+        //             "hide_native_amount" => false
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_transaction($data, $currency);
     }
 
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {

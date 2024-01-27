@@ -13,6 +13,7 @@ use ccxt\NetworkError;
 use ccxt\InvalidNonce;
 use ccxt\AuthenticationError;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class htx extends \ccxt\async\htx {
 
@@ -135,7 +136,7 @@ class htx extends \ccxt\async\htx {
         return (string) $requestId;
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -205,7 +206,7 @@ class htx extends \ccxt\async\htx {
         return $message;
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -270,7 +271,7 @@ class htx extends \ccxt\async\htx {
         return $message;
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -332,7 +333,7 @@ class htx extends \ccxt\async\htx {
         $client->resolve ($stored, $ch);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * @see https://huobiapi.github.io/docs/dm/v1/en/#subscribe-$market-depth-data
@@ -352,9 +353,11 @@ class htx extends \ccxt\async\htx {
             // which means whenever there is an order book change at that level, it pushes an update;
             // 150-levels/400-level incremental MBP feed is based on the gap
             // between two snapshots at 100ms interval.
-            $limit = ($limit === null) ? 20 : $limit;
+            if ($limit === null) {
+                $limit = $market['spot'] ? 150 : 20;
+            }
             if (!$this->in_array($limit, $allowedLimits)) {
-                throw new ExchangeError($this->id . ' watchOrderBook swap $market accepts limits of 20 and 150 only');
+                throw new ExchangeError($this->id . ' watchOrderBook $market accepts limits of 20 and 150 only');
             }
             $messageHash = null;
             if ($market['spot']) {
@@ -675,7 +678,7 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
@@ -773,13 +776,13 @@ class htx extends \ccxt\async\htx {
         return array( $channel, $messageHash );
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -936,17 +939,22 @@ class htx extends \ccxt\async\htx {
             // spot updates
             $eventType = $this->safe_string($data, 'eventType');
             if ($eventType === 'trade') {
-                // when a spot $order is filled we get an update $message
+                // when a spot $order is $filled we get an update $message
                 // with the trade info
                 $parsedTrade = $this->parse_order_trade($data, $market);
                 // inject trade in existing $order by faking an $order object
                 $orderId = $this->safe_string($parsedTrade, 'order');
                 $trades = array( $parsedTrade );
+                $status = $this->parse_order_status($this->safe_string_2($data, 'orderStatus', 'status', 'closed'));
+                $filled = $this->safe_string($data, 'execAmt');
+                $remaining = $this->safe_string($data, 'remainAmt');
                 $order = array(
                     'id' => $orderId,
                     'trades' => $trades,
-                    'status' => 'closed',
+                    'status' => $status,
                     'symbol' => $market['symbol'],
+                    'filled' => $this->parse_number($filled),
+                    'remaining' => $this->parse_number($remaining),
                 );
                 $parsedOrder = $order;
             } else {
@@ -1221,7 +1229,7 @@ class htx extends \ccxt\async\htx {
         ), $market);
     }
 
-    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7de1c-77b5-11ed-9966-0242ac110003
@@ -1343,7 +1351,7 @@ class htx extends \ccxt\async\htx {
         $client->resolve ($newPositions, $marginMode . ':positions');
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
