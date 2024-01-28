@@ -360,7 +360,7 @@ class bingx extends bingx$1 {
                     '100500': errors.ExchangeError,
                     '100503': errors.ExchangeError,
                     '80001': errors.BadRequest,
-                    '80012': errors.ExchangeNotAvailable,
+                    '80012': errors.InsufficientFunds,
                     '80014': errors.BadRequest,
                     '80016': errors.OrderNotFound,
                     '80017': errors.OrderNotFound,

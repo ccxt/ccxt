@@ -3440,7 +3440,7 @@ export default class gate extends Exchange {
         //         "price": "333"
         //     }
         //
-        const id = this.safeString(trade, 'id');
+        const id = this.safeString2(trade, 'id', 'trade_id');
         let timestamp = this.safeTimestamp2(trade, 'time', 'create_time');
         timestamp = this.safeInteger(trade, 'create_time_ms', timestamp);
         const marketId = this.safeString2(trade, 'currency_pair', 'contract');
