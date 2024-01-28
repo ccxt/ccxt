@@ -483,7 +483,7 @@ public partial class Exchange
 
     public void initRestLimiter()
     {
-        if (this.rateLimit == -1)
+        if (this.id != null && this.rateLimit == -1)
         {
             throw new Exception(this.id + ".rateLimit property is not configured'");
         }
@@ -725,6 +725,17 @@ public partial class Exchange
         modified = modified.Replace("\"{", "{");
         modified = modified.Replace("}\"", "}");
         return modified;
+    }
+
+    public Market Market(string market)
+    {
+        var genericMarket = this.market(market);
+        return new Market(genericMarket);
+    }
+
+    public async Task LoadMarkets()
+    {
+        await this.loadMarkets();
     }
 
     public class DynamicInvoker

@@ -165,7 +165,22 @@ public partial class Exchange
                 {
                     var arg1 = ((dict)outObj).ContainsKey(k) ? ((dict)outObj)[k] : null;
                     var arg2 = dictX.ContainsKey(k) ? dictX[k] : null;
-                    ((dict)outObj)[(string)k] = deepExtend(arg1, arg2);
+                    // ((dict)outObj)[(string)k] = deepExtend(arg1, arg2); // this screws the  return type
+                    if (arg1 is dict && arg2 is dict)
+                    {
+                        ((dict)outObj)[k] = deepExtend(arg1, arg2);
+                    }
+                    else
+                    {
+                        if (arg2 != null)
+                        {
+                            ((dict)outObj)[k] = arg2;
+                        }
+                        else
+                        {
+                            ((dict)outObj)[k] = arg1;
+                        }
+                    }
                 }
             }
             else
