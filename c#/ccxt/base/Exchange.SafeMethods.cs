@@ -205,8 +205,17 @@ public partial class Exchange
         {
             if (result is string)
             {
-                // parsedValue = Convert.ToInt64(float.Parse(result.ToString(), CultureInfo.InvariantCulture));
-                parsedValue = Convert.ToInt64(result); // check this out
+
+                if (((string)result).IndexOf(".") > -1)
+                {
+                    parsedValue = Convert.ToInt64(Convert.ToDouble(result, CultureInfo.InvariantCulture));
+                }
+                else
+                {
+
+                    // parsedValue = Convert.ToInt64(float.Parse(result.ToString(), CultureInfo.InvariantCulture));
+                    parsedValue = Convert.ToInt64(result); // check this out
+                }
 
             }
             else
