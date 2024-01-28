@@ -1,5 +1,6 @@
 import Transpiler from "ast-transpiler";
 import ts from "typescript";
+import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile } from './fsLocal.js'
@@ -12,7 +13,9 @@ import { promisify } from 'util';
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
 import { isMainEntry } from "./transpile.js";
+import { unCamelCase } from "../js/src/base/functions.js";
 
+ansi.nice
 const promisedWriteFile = promisify (fs.writeFile);
 
 let exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
@@ -42,7 +45,8 @@ const BASE_TESTS_FOLDER = './c#/tests/Generated/Base';
 const BASE_TESTS_FILE =  './c#/tests/Generated/TestMethods.cs';
 const EXCHANGE_BASE_FOLDER = './c#/tests/Generated/Exchange/Base/';
 const EXCHANGE_GENERATED_FOLDER = './c#/tests/Generated/Exchange/';
-
+const EXAMPLES_INPUT_FOLDER = './examples/ts/';
+const EXAMPLES_OUTPUT_FOLDER = './examples/c#/examples/';
 const csharpComments ={};
 
 class NewTranspiler {
@@ -349,7 +353,8 @@ class NewTranspiler {
             return addTaskIfNeeded('string');
         }
         if (this.isNumberType(wrappedType)) {
-            return addTaskIfNeeded('float');
+            // return addTaskIfNeeded('float');
+            return addTaskIfNeeded('double');
         }
         if (this.isBooleanType(wrappedType)) {
             return addTaskIfNeeded('bool');
@@ -716,6 +721,68 @@ class NewTranspiler {
         }
     }
 
+    camelize(str) {
+        var res =  str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, index) {
+          if (+match === 0) return ""; // or if (/\s+/.test(match)) for white spaces
+          return index === 0 ? match.toLowerCase() : match.toUpperCase();
+        });
+        return res.replaceAll('-', '');
+      }
+
+
+    getCsharpExamplesWarning() {
+        return [
+            '',
+            '    // !!Warning!! This example was automatically transpiled',
+            '    // from the TS version, meaning that the code is overly',
+            '    // complex and illegible compared to the code you would need to write',
+            '    // normally. Use it only to get an idea of how things are done.',
+            '    // Additionally always choose the typed version of the method instead of the generic one',
+            '    // (e.g. CreateOrder (typed) instead of createOrder (generic)',
+            ''
+        ].join('\n')
+    }
+
+    transpileExamples () {
+        return;
+        // currently disabled!, the generated code is too complex and illegible
+        const transpileFlagPhrase = '// AUTO-TRANSPILE //'
+
+        const allTsExamplesFiles = fs.readdirSync (EXAMPLES_INPUT_FOLDER).filter((f) => f.endsWith('.ts'));
+        for (const filenameWithExtenstion of allTsExamplesFiles) {
+            const tsFile = path.join (EXAMPLES_INPUT_FOLDER, filenameWithExtenstion)
+            let tsContent = fs.readFileSync (tsFile).toString ()
+            if (tsContent.indexOf (transpileFlagPhrase) > -1) {
+                const fileName = filenameWithExtenstion.replace ('.ts', '')
+                log.magenta ('[C#] Transpiling example from', (tsFile as any).yellow)
+                const csharp = this.transpiler.transpileCSharp(tsContent);
+
+                const transpiledFixed = this.regexAll(
+                    csharp.content,
+                    [
+                        [/object exchange/, 'Exchange exchange'],
+                        [/async public Task example/gm, 'async public Task ' + this.camelize(fileName)],
+                        [/(^\s+)object\s(\w+)\s=/gm, '$1var $2 ='],
+                        [/^await.+$/gm, '']
+                    ]
+                )
+
+                const finalFile = [
+                    'using ccxt;',
+                    'using ccxt.pro;',
+                    'namespace examples;',
+                    // this.getCsharpExamplesWarning(),
+                    'partial class Examples',
+                    '{',
+                    transpiledFixed,
+                    '}'
+                ].join('\n');
+
+                overwriteFile (EXAMPLES_OUTPUT_FOLDER + fileName + '.cs', finalFile);
+            }
+        }
+    }
+
     async transpileWS(force = false) {
         const tsFolder = './ts/src/pro/';
 
@@ -728,7 +795,7 @@ class NewTranspiler {
         await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(inputExchanges), true )
     }
 
-    async transpileEverything (force = false, child = false, baseOnly = false) {
+    async transpileEverything (force = false, child = false, baseOnly = false, examplesOnly = false) {
 
         const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
             , csharpFolder = EXCHANGES_FOLDER
@@ -744,8 +811,14 @@ class NewTranspiler {
         }
         const options = { csharpFolder, exchanges }
 
-        if (!baseOnly) {
+        if (!baseOnly && !examplesOnly) {
             await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+        }
+
+        this.transpileExamples(); // disabled for now
+
+        if (examplesOnly) {
+            return;
         }
 
         if (transpilingSingleExchange) {
@@ -1313,6 +1386,7 @@ if (isMainEntry(import.meta.url)) {
     const ws = process.argv.includes ('--ws')
     const baseOnly = process.argv.includes ('--base')
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
+    const examples = process.argv.includes ('--examples');
     const force = process.argv.includes ('--force')
     const child = process.argv.includes ('--child')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
@@ -1327,6 +1401,6 @@ if (isMainEntry(import.meta.url)) {
     } else if (multiprocess) {
         parallelizeTranspiling (exchangeIds)
     } else {
-        await transpiler.transpileEverything (force, child, baseOnly)
+        await transpiler.transpileEverything (force, child, baseOnly, examples)
     }
 }
