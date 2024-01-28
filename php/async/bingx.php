@@ -370,7 +370,7 @@ class bingx extends Exchange {
                     '100500' => '\\ccxt\\ExchangeError',
                     '100503' => '\\ccxt\\ExchangeError',
                     '80001' => '\\ccxt\\BadRequest',
-                    '80012' => '\\ccxt\\ExchangeNotAvailable',
+                    '80012' => '\\ccxt\\InsufficientFunds', // bingx array("code":80012,"msg":"array(\"Code\":101253,\"Msg\":\"margin is not enough\"))
                     '80014' => '\\ccxt\\BadRequest',
                     '80016' => '\\ccxt\\OrderNotFound',
                     '80017' => '\\ccxt\\OrderNotFound',

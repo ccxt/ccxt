@@ -3388,7 +3388,7 @@ class gate extends Exchange {
         //         "price" => "333"
         //     }
         //
-        $id = $this->safe_string($trade, 'id');
+        $id = $this->safe_string_2($trade, 'id', 'trade_id');
         $timestamp = $this->safe_timestamp_2($trade, 'time', 'create_time');
         $timestamp = $this->safe_integer($trade, 'create_time_ms', $timestamp);
         $marketId = $this->safe_string_2($trade, 'currency_pair', 'contract');

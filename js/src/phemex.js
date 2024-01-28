@@ -3769,7 +3769,7 @@ export default class phemex extends Exchange {
         const contracts = this.safeString(position, 'size');
         const contractSize = this.safeValue(market, 'contractSize');
         const contractSizeString = this.numberToString(contractSize);
-        const leverage = this.parseNumber(Precise.stringAbs((this.safeString(position, 'leverage', 'leverageRr'))));
+        const leverage = this.parseNumber(Precise.stringAbs((this.safeString2(position, 'leverage', 'leverageRr'))));
         const entryPriceString = this.safeString2(position, 'avgEntryPrice', 'avgEntryPriceRp');
         const rawSide = this.safeString(position, 'side');
         let side = undefined;

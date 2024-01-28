@@ -3518,7 +3518,7 @@ class phemex(Exchange, ImplicitAPI):
         contracts = self.safe_string(position, 'size')
         contractSize = self.safe_value(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
-        leverage = self.parse_number(Precise.string_abs((self.safe_string(position, 'leverage', 'leverageRr'))))
+        leverage = self.parse_number(Precise.string_abs((self.safe_string_2(position, 'leverage', 'leverageRr'))))
         entryPriceString = self.safe_string_2(position, 'avgEntryPrice', 'avgEntryPriceRp')
         rawSide = self.safe_string(position, 'side')
         side = None
