@@ -2111,18 +2111,18 @@ class bingx(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_n(order, ['clientOrderID', 'origClientOrderId', 'c'])
         stopLoss = self.safe_value(order, 'stopLoss')
         stopLossPrice = None
-        if stopLoss is not None:
+        if (stopLoss is not None) and (stopLoss != ''):
             stopLossPrice = self.safe_number(stopLoss, 'stopLoss')
-        if (stopLoss is not None) and ((not isinstance(stopLoss, numbers.Real))):
+        if (stopLoss is not None) and ((not isinstance(stopLoss, numbers.Real))) and (stopLoss != ''):
             #  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
             if isinstance(stopLoss, str):
                 stopLoss = self.parse_json(stopLoss)
             stopLossPrice = self.safe_number(stopLoss, 'stopPrice')
         takeProfit = self.safe_value(order, 'takeProfit')
         takeProfitPrice = None
-        if takeProfit is not None:
+        if takeProfit is not None and (takeProfit != ''):
             takeProfitPrice = self.safe_number(takeProfit, 'takeProfit')
-        if (takeProfit is not None) and ((not isinstance(takeProfit, numbers.Real))):
+        if (takeProfit is not None) and ((not isinstance(takeProfit, numbers.Real))) and (takeProfit != ''):
             #  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
             if isinstance(takeProfit, str):
                 takeProfit = self.parse_json(takeProfit)
