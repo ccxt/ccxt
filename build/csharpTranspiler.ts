@@ -308,8 +308,12 @@ class NewTranspiler {
     convertJavascriptTypeToCsharpType(name: string, type: string, isReturn = false): string | undefined {
 
         // handle watchOrderBook exception here (watchOrderBook and watchOrderBookForSymbols)
-        if (name.startsWith('watchOrderBook')) { 
+        if (name.startsWith('watchOrderBook')) {
             return `Task<ccxt.pro.IOrderBook>`;
+        }
+
+        if (name === 'fetchTime' || name === 'fetchLeverage'){
+            return `Task<Int64>`; // custom handling for now
         }
 
         const isPromise = type.startsWith('Promise<') && type.endsWith('>');
@@ -352,15 +356,15 @@ class NewTranspiler {
         if (this.isStringType(wrappedType)) {
             return addTaskIfNeeded('string');
         }
+        if (this.isIntegerType(wrappedType)) {
+            return addTaskIfNeeded('Int64');
+        }
         if (this.isNumberType(wrappedType)) {
             // return addTaskIfNeeded('float');
             return addTaskIfNeeded('double');
         }
         if (this.isBooleanType(wrappedType)) {
             return addTaskIfNeeded('bool');
-        }
-        if (this.isIntegerType(wrappedType)) {
-            return addTaskIfNeeded('Int64');
         }
         if (wrappedType === 'Strings') {
             return addTaskIfNeeded('List<String>')
@@ -408,7 +412,7 @@ class NewTranspiler {
                     if (paramType  === 'bool') {
                         return `${paramType}? ${safeName} = false`
                     }
-                    if (paramType  === 'float') {
+                    if (paramType === 'double' || paramType  === 'float') {
                         return `${paramType}? ${safeName}2 = 0`
                     }
                     if (paramType  === 'Int64') {
@@ -494,6 +498,10 @@ class NewTranspiler {
             return `return ((ccxt.pro.IOrderBook) res).Copy();`; // return copy to avoid concurrency issues
         }
 
+        // custom handling for now
+        if (methodName === 'fetchTime' || methodName === 'fetchLeverage'){
+            return `return (Int64)res;`;
+        }
 
         const needsToInstantiate = !unwrappedType.startsWith('List<') && !unwrappedType.startsWith('Dictionary<') && unwrappedType !== 'object' && unwrappedType !== 'string' && unwrappedType !== 'float' && unwrappedType !== 'bool' && unwrappedType !== 'Int64';
         let returnStatement = "";
