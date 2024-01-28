@@ -147,6 +147,16 @@
                   "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchLiquidations": [
+            {
+                "description": "Swap fetch public liquidations",
+                "method": "fetchLiquidations",
+                "url": "https://api-pub.bitfinex.com/v2/liquidations/hist",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }
