@@ -69,6 +69,7 @@ class bitfinex2(Exchange, ImplicitAPI):
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
                 'fetchLedger': True,
+                'fetchLiquidations': True,
                 'fetchMarginMode': False,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -2999,3 +3000,88 @@ class bitfinex2(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'info': interest,
         }, market)
+
+    def fetch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+        """
+        retrieves the public liquidations of a trading pair
+        :see: https://docs.bitfinex.com/reference/rest-public-liquidations
+        :param str symbol: unified CCXT market symbol
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: exchange specific parameters
+        :param int [params.until]: timestamp in ms of the latest liquidation
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns dict: an array of `liquidation structures <https://docs.ccxt.com/#/?id=liquidation-structure>`
+        """
+        self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchLiquidations', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchLiquidations', symbol, since, limit, '8h', params, 500)
+        market = self.market(symbol)
+        request = {}
+        if since is not None:
+            request['start'] = since
+        if limit is not None:
+            request['limit'] = limit
+        request, params = self.handle_until_option('end', request, params)
+        response = self.publicGetLiquidationsHist(self.extend(request, params))
+        #
+        #     [
+        #         [
+        #             [
+        #                 "pos",
+        #                 171085137,
+        #                 1706395919788,
+        #                 null,
+        #                 "tAVAXF0:USTF0",
+        #                 -8,
+        #                 32.868,
+        #                 null,
+        #                 1,
+        #                 1,
+        #                 null,
+        #                 33.255
+        #             ]
+        #         ],
+        #     ]
+        #
+        return self.parse_liquidations(response, market, since, limit)
+
+    def parse_liquidation(self, liquidation, market: Market = None):
+        #
+        #     [
+        #         [
+        #             "pos",
+        #             171085137,       # position id
+        #             1706395919788,   # timestamp
+        #             null,
+        #             "tAVAXF0:USTF0",  # market id
+        #             -8,              # amount in contracts
+        #             32.868,          # base price
+        #             null,
+        #             1,
+        #             1,
+        #             null,
+        #             33.255           # acquired price
+        #         ]
+        #     ]
+        #
+        entry = liquidation[0]
+        timestamp = self.safe_integer(entry, 2)
+        marketId = self.safe_string(entry, 4)
+        contracts = Precise.string_abs(self.safe_string(entry, 5))
+        contractSize = self.safe_string(market, 'contractSize')
+        baseValue = Precise.string_mul(contracts, contractSize)
+        price = self.safe_string(entry, 11)
+        return self.safe_liquidation({
+            'info': entry,
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
+            'contracts': self.parse_number(contracts),
+            'contractSize': self.parse_number(contractSize),
+            'price': self.parse_number(price),
+            'baseValue': self.parse_number(baseValue),
+            'quoteValue': self.parse_number(Precise.string_mul(baseValue, price)),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        })

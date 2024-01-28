@@ -56,6 +56,7 @@ class bitfinex2 extends Exchange {
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
+                'fetchLiquidations' => true,
                 'fetchMarginMode' => false,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -3206,5 +3207,97 @@ class bitfinex2 extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
         ), $market);
+    }
+
+    public function fetch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * retrieves the public liquidations of a trading pair
+             * @see https://docs.bitfinex.com/reference/rest-public-liquidations
+             * @param {string} $symbol unified CCXT $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch liquidations for
+             * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+             * @param {array} [$params] exchange specific parameters
+             * @param {int} [$params->until] timestamp in ms of the latest liquidation
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=liquidation-structure liquidation structures~
+             */
+            Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLiquidations', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchLiquidations', $symbol, $since, $limit, '8h', $params, 500));
+            }
+            $market = $this->market($symbol);
+            $request = array();
+            if ($since !== null) {
+                $request['start'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            list($request, $params) = $this->handle_until_option('end', $request, $params);
+            $response = Async\await($this->publicGetLiquidationsHist (array_merge($request, $params)));
+            //
+            //     array(
+            //         array(
+            //             array(
+            //                 "pos",
+            //                 171085137,
+            //                 1706395919788,
+            //                 null,
+            //                 "tAVAXF0:USTF0",
+            //                 -8,
+            //                 32.868,
+            //                 null,
+            //                 1,
+            //                 1,
+            //                 null,
+            //                 33.255
+            //             )
+            //         ),
+            //     )
+            //
+            return $this->parse_liquidations($response, $market, $since, $limit);
+        }) ();
+    }
+
+    public function parse_liquidation($liquidation, ?array $market = null) {
+        //
+        //     array(
+        //         array(
+        //             "pos",
+        //             171085137,       // position id
+        //             1706395919788,   // $timestamp
+        //             null,
+        //             "tAVAXF0:USTF0", // $market id
+        //             -8,              // amount in $contracts
+        //             32.868,          // base $price
+        //             null,
+        //             1,
+        //             1,
+        //             null,
+        //             33.255           // acquired $price
+        //         )
+        //     )
+        //
+        $entry = $liquidation[0];
+        $timestamp = $this->safe_integer($entry, 2);
+        $marketId = $this->safe_string($entry, 4);
+        $contracts = Precise::string_abs($this->safe_string($entry, 5));
+        $contractSize = $this->safe_string($market, 'contractSize');
+        $baseValue = Precise::string_mul($contracts, $contractSize);
+        $price = $this->safe_string($entry, 11);
+        return $this->safe_liquidation(array(
+            'info' => $entry,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
+            'contracts' => $this->parse_number($contracts),
+            'contractSize' => $this->parse_number($contractSize),
+            'price' => $this->parse_number($price),
+            'baseValue' => $this->parse_number($baseValue),
+            'quoteValue' => $this->parse_number(Precise::string_mul($baseValue, $price)),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        ));
     }
 }
