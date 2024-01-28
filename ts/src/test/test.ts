@@ -832,7 +832,7 @@ export default class testMainClass extends baseMainTestClass {
             return;
         }
         const code = this.getExchangeCode (exchange);
-        // if (exchange.extendedTest) {
+        // if (exchange.deepExtendedTest) {
         //     await test ('InvalidNonce', exchange, symbol);
         //     await test ('OrderNotFound', exchange, symbol);
         //     await test ('InvalidOrder', exchange, symbol);
@@ -1293,7 +1293,7 @@ export default class testMainClass extends baseMainTestClass {
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
                 await this.testMethodStatically (exchange, method, result, type, skipKeys);
                 // reset options
-                exchange.options = exchange.extend (oldExchangeOptions, {});
+                exchange.options = exchange.deepExtend (oldExchangeOptions, {});
             }
         }
         await close (exchange);
@@ -1333,7 +1333,7 @@ export default class testMainClass extends baseMainTestClass {
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
                 await this.testResponseStatically (exchange, method, skipKeys, result);
                 // reset options
-                exchange.options = exchange.extend (oldExchangeOptions, {});
+                exchange.options = exchange.deepExtend (oldExchangeOptions, {});
             }
         }
         await close (exchange);
