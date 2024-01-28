@@ -2252,10 +2252,10 @@ class bingx extends Exchange {
         $clientOrderId = $this->safe_string_n($order, array( 'clientOrderID', 'origClientOrderId', 'c' ));
         $stopLoss = $this->safe_value($order, 'stopLoss');
         $stopLossPrice = null;
-        if ($stopLoss !== null) {
+        if (($stopLoss !== null) && ($stopLoss !== '')) {
             $stopLossPrice = $this->safe_number($stopLoss, 'stopLoss');
         }
-        if (($stopLoss !== null) && (!(is_float($stopLoss) || is_int($stopLoss)))) {
+        if (($stopLoss !== null) && (!(is_float($stopLoss) || is_int($stopLoss))) && ($stopLoss !== '')) {
             //  $stopLoss => 'array("stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1)',
             if (gettype($stopLoss) === 'string') {
                 $stopLoss = $this->parse_json($stopLoss);
@@ -2264,10 +2264,10 @@ class bingx extends Exchange {
         }
         $takeProfit = $this->safe_value($order, 'takeProfit');
         $takeProfitPrice = null;
-        if ($takeProfit !== null) {
+        if ($takeProfit !== null && ($takeProfit !== '')) {
             $takeProfitPrice = $this->safe_number($takeProfit, 'takeProfit');
         }
-        if (($takeProfit !== null) && (!(is_float($takeProfit) || is_int($takeProfit)))) {
+        if (($takeProfit !== null) && (!(is_float($takeProfit) || is_int($takeProfit))) && ($takeProfit !== '')) {
             //  $takeProfit => 'array("stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1)',
             if (gettype($takeProfit) === 'string') {
                 $takeProfit = $this->parse_json($takeProfit);
