@@ -218,13 +218,8 @@ export default class hyperliquid extends Exchange {
         const meta = this.safeValue (response, 'universe', []);
         const result = {};
         for (let i = 0; i < meta.length; i++) {
-            const data = this.extend (
-                this.safeValue (meta, i, {}),
-                {
-                    'baseId': i,
-                }
-            );
-            const id = this.safeString (data, 'baseId');
+            const data = this.safeValue (meta, i, {});
+            const id = i;
             const name = this.safeString (data, 'name');
             const code = this.safeCurrencyCode (name);
             result[code] = {
@@ -296,10 +291,8 @@ export default class hyperliquid extends Exchange {
             const data = this.extend (
                 this.safeValue (meta, i, {}),
                 this.safeValue (assetCtxs, i, {}),
-                {
-                    'baseId': i,
-                }
             );
+            data['baseId'] = i;
             result.push (data);
         }
         return this.parseMarkets (result);
@@ -576,9 +569,8 @@ export default class hyperliquid extends Exchange {
         return this.decimalToPrecision (amount, ROUND, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
-    hashMessage (domain, message) {
-        const prefix = this.encode ('\x19\x01');
-        return '0x' + this.hash (this.binaryConcat (prefix, domain, message), keccak, 'hex');
+    hashMessage (message) {
+        return '0x' + this.hash (message, keccak, 'hex');
     }
 
     signHash (hash, privateKey) {
@@ -586,12 +578,12 @@ export default class hyperliquid extends Exchange {
         return {
             'r': '0x' + signature['r'],
             's': '0x' + signature['s'],
-            'v': 27 + signature['v'],
+            'v': this.sum (27, signature['v']),
         };
     }
 
-    signMessage (domain, message, privateKey) {
-        return this.signHash (this.hashMessage (domain, message), privateKey.slice (-64));
+    signMessage (message, privateKey) {
+        return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
@@ -710,11 +702,11 @@ export default class hyperliquid extends Exchange {
             ];
             sig = this.buildSig (signatureTypes, signatureData);
         }
-        const tmpRequest = {
+        const request = {
             'action': {
                 'type': 'order',
                 'grouping': 'na',
-                'orders': [ {
+                'orders': [{
                     'asset': this.parseToInt (market['baseId']),
                     'isBuy': isBuy,
                     'sz': this.amountToPrecision (symbol, amount),
@@ -722,13 +714,13 @@ export default class hyperliquid extends Exchange {
                     'reduceOnly': reduceOnly,
                     'orderType': orderType,
                     'cloid': clientOrderId,
-                } ],
+                }],
             },
             'nonce': nonce,
             'signature': sig,
             'vaultAddress': vaultAddress,
         };
-        const response = await this.privatePostExchange (this.extend (tmpRequest, params));
+        const response = await this.privatePostExchange (this.extend (request, params));
         //
         //     {
         //         "status": "ok",
@@ -938,10 +930,10 @@ export default class hyperliquid extends Exchange {
             const sig = this.buildSig (signatureTypes, signatureData);
             request['action'] = {
                 'type': 'cancelByCloid',
-                'cancels': [ {
+                'cancels': [{
                     'asset': this.parseToNumeric (market['baseId']),
                     'cloid': clientOrderId,
-                } ],
+                }],
             };
             request['signature'] = sig;
         } else {
@@ -959,10 +951,10 @@ export default class hyperliquid extends Exchange {
             const sig = this.buildSig (signatureTypes, signatureData);
             request['action'] = {
                 'type': 'cancel',
-                'cancels': [ {
+                'cancels': [{
                     'asset': this.parseToNumeric (market['baseId']),
                     'oid': this.parseToNumeric (id),
-                } ],
+                }],
             };
             request['signature'] = sig;
         }
@@ -1111,7 +1103,7 @@ export default class hyperliquid extends Exchange {
         const tmpRequest = {
             'action': {
                 'type': 'batchModify',
-                'modifies': [ {
+                'modifies': [{
                     'oid': this.parseToNumeric (id),
                     'order': {
                         'asset': this.parseToInt (market['baseId']),
@@ -1122,7 +1114,7 @@ export default class hyperliquid extends Exchange {
                         'orderType': orderType,
                         'cloid': clientOrderId,
                     },
-                } ],
+                }],
             },
             'nonce': nonce,
             'signature': sig,
@@ -1611,7 +1603,7 @@ export default class hyperliquid extends Exchange {
         // const signedMsg = account.sign_message(msg);
         // TODO: use encode typed data?
         const msg = this.ethEncodeStructuredData (domain, messageTypes, message);
-        const signature = this.signMessage (msg[0], msg[1], this.privateKey);
+        const signature = this.signMessage (msg, this.privateKey);
         return signature;
     }
 
@@ -1635,7 +1627,7 @@ export default class hyperliquid extends Exchange {
         // const signedMsg = account.sign_message(msg);
         // TODO: use encode typed data?
         const msg = this.ethEncodeStructuredData (domain, messageTypes, message);
-        const signature = this.signMessage (msg[0], msg[1], this.privateKey);
+        const signature = this.signMessage (msg, this.privateKey);
         return signature;
     }
 
@@ -1659,7 +1651,7 @@ export default class hyperliquid extends Exchange {
         // const signedMsg = account.sign_message(msg);
         // TODO: use encode typed data?
         const msg = this.ethEncodeStructuredData (domain, messageTypes, message);
-        const signature = this.signMessage (msg[0], msg[1], this.privateKey);
+        const signature = this.signMessage (msg, this.privateKey);
         return signature;
     }
 
@@ -1668,20 +1660,23 @@ export default class hyperliquid extends Exchange {
             return undefined; // fallback to default error handler
         }
         //
+        //     {
+        //         status: 'ok',
+        //         response: { type: 'order', data: { statuses: [ { error: 'Insufficient margin to place order. asset=4' } ] } }
+        //     }
         //
-        const message = this.safeString (response, 'err_msg');
-        const errorCode = this.safeString2 (response, 'code', 'err_code');
+        const responsePayload = this.safeValue (response, 'response', {});
+        const data = this.safeValue (responsePayload, 'data', {});
+        const statuses = this.safeValue (data, 'statuses', []);
+        const firstStatus = this.safeValue (statuses, 0);
+        const message = this.safeString (firstStatus, 'error');
         const feedback = this.id + ' ' + body;
         const nonEmptyMessage = ((message !== undefined) && (message !== ''));
         if (nonEmptyMessage) {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
         }
-        const nonZeroErrorCode = (errorCode !== undefined) && (errorCode !== '00000');
-        if (nonZeroErrorCode) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-        }
-        if (nonZeroErrorCode || nonEmptyMessage) {
+        if (nonEmptyMessage) {
             throw new ExchangeError (feedback); // unknown message
         }
         return undefined;

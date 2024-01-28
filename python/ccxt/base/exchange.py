@@ -1341,7 +1341,7 @@ class Exchange(object):
     @staticmethod
     def eth_encode_structured_data(domain, messageTypes, message):
         encodedData = account.messages.encode_typed_data(domain, messageTypes, message)
-        return [encodedData.header, encodedData.body]
+        return Exchange.binary_concat(b"\x19\x01", encodedData.header, encodedData.body)
 
     @staticmethod
     def ecdsa(request, secret, algorithm='p256', hash=None, fixed_length=False):

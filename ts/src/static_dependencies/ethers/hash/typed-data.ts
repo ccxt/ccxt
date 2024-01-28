@@ -450,7 +450,6 @@ export class TypedDataEncoder {
      *  Return the hashed struct for %%value%% using %%types%% and %%name%%.
      */
     static hashStruct(name: string, types: Record<string, Array<TypedDataField>>, value: Record<string, any>): string {
-        console.log(name, types, value)
         return TypedDataEncoder.from(types).hashStruct(name, value);
     }
 
