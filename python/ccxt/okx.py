@@ -4556,8 +4556,9 @@ class okx(Exchange):
             'mgnMode': margin_type,
             'instId': market['id']
         }
-        if margin_type == "cross":
-            request['ccy'] = market['settleId']
+        # Only applicable to cross MARGIN of Multi-currency margin and Portfolio margin - currently not in use
+        # if margin_type == "cross":
+        #     request['ccy'] = market['settleId']
         default_type = self.safe_value(self.options, "defaultType")
         if default_type == "future" and margin_type == 'isolated':
             pos_side = self.safe_string(params, 'posSide')
