@@ -30,7 +30,7 @@ public partial class BaseTest
 
         }
     }
-    async public Task ReadOrderBook(OrderBook ob)
+    async public Task ReadOrderBook(ccxt.pro.OrderBook ob)
     {
         await Task.Run(async () =>
         {
@@ -56,7 +56,7 @@ public partial class BaseTest
 
     }
 
-    async public Task UpdateOrderBook(OrderBook ob)
+    async public Task UpdateOrderBook(ccxt.pro.OrderBook ob)
     {
         await Task.Run(async () =>
         {
@@ -139,7 +139,7 @@ public partial class BaseTest
         // --------------------------------------------------------------------------------------------------------------------
 
         var asks = new Asks(new List<object>() { new List<object>() { 10, 10 }, new List<object>() { 9.1, 11 }, new List<object>() { 8.2, 12 }, new List<object>() { 7.3, 13 }, new List<object>() { 6.4, 14 }, new List<object>() { 4.5, 13 }, new List<object>() { 4.5, 0 } });
-        var orderBook = new OrderBook(orderBookInput);
+        var orderBook = new ccxt.pro.OrderBook(orderBookInput);
         var arrayCache = new ArrayCache(3);
 
         // var task1 = Task.Run(() => Task.WhenAll(ReadAsks(asks), UpdateAsks(asks)));
