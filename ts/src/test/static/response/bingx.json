@@ -356,6 +356,97 @@
           ],
           "reduceOnly": null
         }
+      },
+      {
+        "description": "assert #20991 fix",
+        "method": "createOrder",
+        "input": [
+          "LTC/USDT:USDT",
+          "market",
+          "buy",
+          0.1,
+          null,
+          {
+            "positionSide": "LONG",
+            "reduceOnly": true
+          }
+        ],
+        "httpResponse": {
+          "code": "0",
+          "msg": "",
+          "data": {
+            "order": {
+              "orderId": "1751667285204103168",
+              "symbol": "LTC-USDT",
+              "positionSide": "LONG",
+              "side": "BUY",
+              "type": "MARKET",
+              "price": "0",
+              "quantity": "0.1",
+              "stopPrice": "0",
+              "workingType": "MARK_PRICE",
+              "clientOrderID": "",
+              "timeInForce": "GTC",
+              "priceRate": "0",
+              "stopLoss": "",
+              "takeProfit": "",
+              "reduceOnly": false
+            }
+          }
+        },
+        "parsedResponse": {
+          "info": {
+            "orderId": "1751667285204103168",
+            "symbol": "LTC-USDT",
+            "positionSide": "LONG",
+            "side": "BUY",
+            "type": "MARKET",
+            "price": "0",
+            "quantity": "0.1",
+            "stopPrice": "0",
+            "workingType": "MARK_PRICE",
+            "clientOrderID": "",
+            "timeInForce": "GTC",
+            "priceRate": "0",
+            "stopLoss": "",
+            "takeProfit": "",
+            "reduceOnly": false
+          },
+          "id": "1751667285204103168",
+          "clientOrderId": null,
+          "timestamp": null,
+          "datetime": null,
+          "lastTradeTimestamp": null,
+          "lastUpdateTimestamp": null,
+          "symbol": "LTC/USDT:USDT",
+          "type": "market",
+          "timeInForce": "IOC",
+          "postOnly": null,
+          "side": "buy",
+          "price": null,
+          "stopPrice": 0,
+          "triggerPrice": 0,
+          "stopLossPrice": null,
+          "takeProfitPrice": null,
+          "average": null,
+          "cost": null,
+          "amount": null,
+          "filled": null,
+          "remaining": null,
+          "status": null,
+          "fee": {
+            "currency": "USDT",
+            "cost": null
+          },
+          "trades": [],
+          "fees": [
+            {
+              "currency": "USDT",
+              "cost": null
+            }
+          ],
+          "reduceOnly": null
+        }
       }
     ],
     "fetchClosedOrders": [
