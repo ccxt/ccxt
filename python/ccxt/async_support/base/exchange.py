@@ -430,9 +430,9 @@ class Exchange(BaseExchange):
                     try:
                         await client.send(message)
                     except ConnectionError as e:
-                        client.on_error (e)
+                        client.on_error(e)
                     except Exception as e:
-                        client.on_error (e)
+                        client.on_error(e)
                 asyncio.ensure_future(send_message())
 
         if missing_subscriptions:
@@ -468,9 +468,9 @@ class Exchange(BaseExchange):
                     try:
                         await client.send(message)
                     except ConnectionError as e:
-                        client.on_error (e)
+                        client.on_error(e)
                     except Exception as e:
-                        client.on_error (e)
+                        client.on_error(e)
                 asyncio.ensure_future(send_message())
 
         if not subscribed:
