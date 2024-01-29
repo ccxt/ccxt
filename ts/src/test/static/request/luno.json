@@ -1,8 +1,21 @@
 {
     "exchange": "luno",
     "skipKeys": [],
-    "outputType": "json",
+    "outputType": "both",
     "methods": {
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.luno.com/api/exchange/1/candles?duration=300&pair=XBTUSDT&since=1704127103000",
+                "input": [
+                  "BTC/USDT",
+                  "5m",
+                  1704127103000,
+                  100
+                ]
+            }
+        ],
         "fetchOrderBook": [
             {
                 "description": "fetchOrderBook",

@@ -145,7 +145,10 @@ class Client {
             }
             else {
                 if (this.ping) {
-                    this.send(this.ping(this));
+                    this.send(this.ping(this))
+                        .catch((error) => {
+                        this.onError(error);
+                    });
                 }
                 else if (platform.isNode) {
                     // can't do this inside browser
@@ -209,6 +212,9 @@ class Client {
             // todo: exception types for server-side disconnects
             this.reset(new errors.NetworkError('connection closed by remote server, closing code ' + String(event.code)));
         }
+        if (this.error instanceof errors.ExchangeClosedByUser) {
+            this.reset(this.error);
+        }
         if (this.disconnected !== undefined) {
             this.disconnected.resolve(true);
         }
@@ -229,6 +235,7 @@ class Client {
         const future = Future.Future();
         if (platform.isNode) {
             /* eslint-disable no-inner-declarations */
+            /* eslint-disable jsdoc/require-jsdoc */
             function onSendComplete(error) {
                 if (error) {
                     future.reject(error);

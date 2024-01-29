@@ -62,6 +62,7 @@ parser.add_argument('--verbose', action='store_true', help='enable verbose outpu
 parser.add_argument('--ws', action='store_true', help='websockets version')
 parser.add_argument('--info', action='store_true', help='enable info output')
 parser.add_argument('--static', action='store_true', help='run static tests')
+parser.add_argument('--useProxy', action='store_true', help='run static tests')
 parser.add_argument('--idTests', action='store_true', help='run brokerId tests')
 parser.add_argument('--responseTests', action='store_true', help='run response tests')
 parser.add_argument('--requestTests', action='store_true', help='run response tests')
@@ -272,6 +273,10 @@ class testMainClass(baseMainTestClass):
 
     def init(self, exchange_id, symbol_argv):
         self.parse_cli_args()
+        if self.request_tests and self.response_tests:
+            self.run_static_request_tests(exchange_id, symbol_argv)
+            self.run_static_response_tests(exchange_id, symbol_argv)
+            return
         if self.response_tests:
             self.run_static_response_tests(exchange_id, symbol_argv)
             return
@@ -368,10 +373,11 @@ class testMainClass(baseMainTestClass):
         timeout = exchange.safe_value(skipped_settings_for_exchange, 'timeout')
         if timeout is not None:
             exchange.timeout = timeout
-        exchange.http_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpProxy')
-        exchange.https_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpsProxy')
-        exchange.ws_proxy = exchange.safe_string(skipped_settings_for_exchange, 'wsProxy')
-        exchange.wss_proxy = exchange.safe_string(skipped_settings_for_exchange, 'wssProxy')
+        if get_cli_arg_value('--useProxy'):
+            exchange.http_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpProxy')
+            exchange.https_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpsProxy')
+            exchange.ws_proxy = exchange.safe_string(skipped_settings_for_exchange, 'wsProxy')
+            exchange.wss_proxy = exchange.safe_string(skipped_settings_for_exchange, 'wssProxy')
         self.skipped_methods = exchange.safe_value(skipped_settings_for_exchange, 'skipMethods', {})
         self.checked_public_tests = {}
 
@@ -504,6 +510,7 @@ class testMainClass(baseMainTestClass):
             'fetchCurrencies': [],
             'fetchTicker': [symbol],
             'fetchTickers': [symbol],
+            'fetchLastPrices': [symbol],
             'fetchOHLCV': [symbol],
             'fetchTrades': [symbol],
             'fetchOrderBook': [symbol],
@@ -517,6 +524,7 @@ class testMainClass(baseMainTestClass):
             tests = {
                 'watchOHLCV': [symbol],
                 'watchTicker': [symbol],
+                'watchTickers': [symbol],
                 'watchOrderBook': [symbol],
                 'watchTrades': [symbol],
             }
@@ -792,13 +800,15 @@ class testMainClass(baseMainTestClass):
             close(exchange)
             raise e
 
-    def assert_static_error(self, cond, message, calculated_output, stored_output):
+    def assert_static_error(self, cond, message, calculated_output, stored_output, key=None):
         #  -----------------------------------------------------------------------------
         #  --- Init of static tests functions------------------------------------------
         #  -----------------------------------------------------------------------------
         calculated_string = json_stringify(calculated_output)
         output_string = json_stringify(stored_output)
         error_message = message + ' expected ' + output_string + ' received: ' + calculated_string
+        if key is not None:
+            error_message = ' | ' + key + ' | ' + 'computed value: ' + output_string + ' stored value: ' + calculated_string
         assert cond, error_message
 
     def load_markets_from_file(self, id):
@@ -819,7 +829,11 @@ class testMainClass(baseMainTestClass):
         result = {}
         if target_exchange:
             # read a single exchange
-            result[target_exchange] = io_file_read(folder + target_exchange + '.json')
+            path = folder + target_exchange + '.json'
+            if not io_file_exists(path):
+                dump('[WARN] tests not found: ' + path)
+                return None
+            result[target_exchange] = io_file_read(path)
             return result
         files = io_dir_read(folder)
         for i in range(0, len(files)):
@@ -864,7 +878,7 @@ class testMainClass(baseMainTestClass):
             result[key] = value
         return result
 
-    def assert_new_and_stored_output(self, exchange, skip_keys, new_output, stored_output, strict_type_check=True):
+    def assert_new_and_stored_output(self, exchange, skip_keys, new_output, stored_output, strict_type_check=True, asserting_key=None):
         if is_null_value(new_output) and is_null_value(stored_output):
             return
         if not new_output and not stored_output:
@@ -884,7 +898,7 @@ class testMainClass(baseMainTestClass):
                     self.assert_static_error(False, 'output key missing: ' + key, stored_output, new_output)
                 stored_value = stored_output[key]
                 new_value = new_output[key]
-                self.assert_new_and_stored_output(exchange, skip_keys, new_value, stored_value, strict_type_check)
+                self.assert_new_and_stored_output(exchange, skip_keys, new_value, stored_value, strict_type_check, key)
         elif isinstance(stored_output, list) and (isinstance(new_output, list)):
             stored_array_length = len(stored_output)
             new_array_length = len(new_output)
@@ -903,17 +917,17 @@ class testMainClass(baseMainTestClass):
             if strict_type_check:
                 # upon building the request we want strict type check to make sure all the types are correct
                 # when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
-                self.assert_static_error(sanitized_new_output == sanitized_stored_output, message_error, stored_output, new_output)
+                self.assert_static_error(sanitized_new_output == sanitized_stored_output, message_error, stored_output, new_output, asserting_key)
             else:
                 is_boolean = (isinstance(sanitized_new_output, bool)) or (isinstance(sanitized_stored_output, bool))
                 is_string = (isinstance(sanitized_new_output, str)) or (isinstance(sanitized_stored_output, str))
                 is_undefined = (sanitized_new_output is None) or (sanitized_stored_output is None)  # undefined is a perfetly valid value
                 if is_boolean or is_string or is_undefined:
-                    self.assert_static_error(new_output_string == stored_output_string, message_error, stored_output, new_output)
+                    self.assert_static_error(new_output_string == stored_output_string, message_error, stored_output, new_output, asserting_key)
                 else:
                     numeric_new_output = exchange.parse_to_numeric(new_output_string)
                     numeric_stored_output = exchange.parse_to_numeric(stored_output_string)
-                    self.assert_static_error(numeric_new_output == numeric_stored_output, message_error, stored_output, new_output)
+                    self.assert_static_error(numeric_new_output == numeric_stored_output, message_error, stored_output, new_output, asserting_key)
 
     def assert_static_request_output(self, exchange, type, skip_keys, stored_url, request_url, stored_output, new_output):
         if stored_url != request_url:
@@ -1016,6 +1030,10 @@ class testMainClass(baseMainTestClass):
             'uid': 'uid',
             'accounts': [{
     'id': 'myAccount',
+    'code': 'USDT',
+}, {
+    'id': 'myAccount',
+    'code': 'USDC',
 }],
             'options': {
                 'enableUnifiedAccount': True,
@@ -1038,12 +1056,20 @@ class testMainClass(baseMainTestClass):
             results = methods[method]
             for j in range(0, len(results)):
                 result = results[j]
+                old_exchange_options = exchange.options  # snapshot options;
+                test_exchange_options = exchange.safe_value(result, 'options', {})
+                exchange.options = exchange.deep_extend(old_exchange_options, test_exchange_options)  # custom options to be used in the tests
                 description = exchange.safe_value(result, 'description')
                 if (test_name is not None) and (test_name != description):
+                    continue
+                is_disabled = exchange.safe_value(result, 'disabled', False)
+                if is_disabled:
                     continue
                 type = exchange.safe_string(exchange_data, 'outputType')
                 skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
                 self.test_method_statically(exchange, method, result, type, skip_keys)
+                # reset options
+                exchange.options = old_exchange_options
         close(exchange)
 
     def test_exchange_response_statically(self, exchange_name, exchange_data, test_name=None):
@@ -1058,10 +1084,21 @@ class testMainClass(baseMainTestClass):
             for j in range(0, len(results)):
                 result = results[j]
                 description = exchange.safe_value(result, 'description')
+                old_exchange_options = exchange.options  # snapshot options;
+                test_exchange_options = exchange.safe_value(result, 'options', {})
+                exchange.options = exchange.deep_extend(old_exchange_options, test_exchange_options)  # custom options to be used in the tests
+                is_disabled = exchange.safe_value(result, 'disabled', False)
+                if is_disabled:
+                    continue
+                is_disabled_php = exchange.safe_value(result, 'disabledPHP', False)
+                if is_disabled_php and (self.ext == 'php'):
+                    continue
                 if (test_name is not None) and (test_name != description):
                     continue
                 skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
                 self.test_response_statically(exchange, method, skip_keys, result)
+                # reset options
+                exchange.options = old_exchange_options
         close(exchange)
 
     def get_number_of_tests_from_exchange(self, exchange, exchange_data):
@@ -1081,6 +1118,8 @@ class testMainClass(baseMainTestClass):
     def run_static_tests(self, type, target_exchange=None, test_name=None):
         folder = self.root_dir + './ts/src/test/static/' + type + '/'
         static_data = self.load_static_data(folder, target_exchange)
+        if static_data is None:
+            return
         exchanges = list(static_data.keys())
         exchange = init_exchange('Exchange', {})  # tmp to do the calculations until we have the ast-transpiler transpiling this code
         promises = []
@@ -1104,7 +1143,6 @@ class testMainClass(baseMainTestClass):
         else:
             success_message = '[' + self.lang + '][TEST_SUCCESS] ' + str(sum) + ' static ' + type + ' tests passed.'
             dump('[INFO]' + success_message)
-            exit_script(0)
 
     def run_static_response_tests(self, exchange_name=None, test=None):
         #  -----------------------------------------------------------------------------
@@ -1116,7 +1154,7 @@ class testMainClass(baseMainTestClass):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_huobi(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1247,8 +1285,8 @@ class testMainClass(baseMainTestClass):
         assert req_headers['source'] == id, 'id not in headers'
         close(exchange)
 
-    def test_huobi(self):
-        exchange = self.init_offline_exchange('huobi')
+    def test_htx(self):
+        exchange = self.init_offline_exchange('htx')
         # spot test
         id = 'AA03022abc'
         spot_order_request = None
@@ -1335,6 +1373,18 @@ class testMainClass(baseMainTestClass):
             # we expect an error here, we're only interested in the headers
             req_headers = exchange.last_request_headers
         assert req_headers['X-SOURCE-KEY'] == id, 'id not in headers'
+        close(exchange)
+
+    def test_phemex(self):
+        exchange = self.init_offline_exchange('phemex')
+        id = 'CCXT123456'
+        request = None
+        try:
+            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        client_order_id = request['clOrdID']
+        assert client_order_id.startswith(id), 'clOrdID does not start with id'
         close(exchange)
 
 # ***** AUTO-TRANSPILER-END *****

@@ -772,6 +772,7 @@ export default class cryptocom extends Exchange {
         //                     "p": "26386.00",
         //                     "q": "0.00453",
         //                     "t": 1686944282062,
+        //                     "tn" : 1704476468851524373,
         //                     "d": "4611686018455979970",
         //                     "i": "BTC_USD"
         //                 },
@@ -1928,7 +1929,8 @@ export default class cryptocom extends Exchange {
         //         "s": "sell",
         //         "p": "26386.00",
         //         "q": "0.00453",
-        //         "t": 1686944282062,
+        //         "tn": 1686944282062,
+        //         "tn": 1704476468851524373,
         //         "d": "4611686018455979970",
         //         "i": "BTC_USD"
         //     }
@@ -2316,7 +2318,7 @@ export default class cryptocom extends Exchange {
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).v2PrivatePostPrivateGetCurrencyNetworks (params);
+        const response = await this.v2PrivatePostPrivateGetCurrencyNetworks (params);
         const data = this.safeValue (response, 'result');
         const currencyMap = this.safeValue (data, 'currency_map');
         return this.parseDepositWithdrawFees (currencyMap, codes, 'full_name');

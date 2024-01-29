@@ -770,8 +770,10 @@ class blockchaincom(Exchange, ImplicitAPI):
         tag = None
         address = None
         if rawAddress is not None:
+            addressParts = rawAddress.split(';')
             # if a tag or memo is used it is separated by a colon in the 'address' value
-            address, tag = rawAddress.split(':')
+            tag = self.safe_string(addressParts, 0)
+            address = self.safe_string(addressParts, 1)
         result = {'info': response}
         result['currency'] = currency['code']
         result['address'] = address

@@ -777,12 +777,11 @@ class bitfinex(Exchange, ImplicitAPI):
         #         "message": "0.0001 Bitcoin transfered from Margin to Exchange"
         #     }
         #
-        timestamp = self.milliseconds()
         return {
             'info': transfer,
             'id': None,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'currency': self.safe_currency_code(None, currency),
             'amount': None,
             'fromAccount': None,

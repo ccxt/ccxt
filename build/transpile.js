@@ -1394,7 +1394,7 @@ class Transpiler {
         // altogether in PHP, async PHP, Python sync and async
         const sync = false
         const async = true
-        return {
+        const result = {
             python2:      this.createPythonClass (className, baseClass, python2,  methodNames, sync),
             python3:      this.createPythonClass (className, baseClass, python3,  methodNames, async),
             php:          this.createPHPClass    (className, baseClass, php,      methodNames, sync),
@@ -1402,8 +1402,13 @@ class Transpiler {
             className,
             baseClass,
         }
+        return this.afterTranspileClass (result, contents);
     }
 
+    // for override
+    afterTranspileClass (result, contents) {
+        return result
+    }
     // ========================================================================
 
     transpileDerivedExchangeFile (tsFolder, filename, options, force = false) {
@@ -2448,6 +2453,7 @@ class Transpiler {
             const usesNumber = pythonAsync.indexOf ('numbers.') >= 0;
             const usesTickSize = pythonAsync.indexOf ('TICK_SIZE') >= 0;
             const requiredSubTests  = imports.filter(x => x.name.includes('test')).map(x => x.name);
+            const usesAsyncio = pythonAsync.indexOf ('asyncio.') >= 0;
 
             let importedExceptionTypes = imports.filter(x => Object.keys(errors).includes(x.name)).map(x => x.name); // returns 'OnMaintenance,ExchangeNotAvailable', etc...
 
@@ -2490,6 +2496,9 @@ class Transpiler {
                 pythonHeaderSync.push ('from ccxt.base.precise import Precise  # noqa E402')
                 phpHeaderAsync.push ('use \\ccxt\\Precise;')
                 phpHeaderSync.push ('use \\ccxt\\Precise;')
+            }
+            if (usesAsyncio) {
+                pythonHeaderAsync.push ('import asyncio')
             }
             if (test.pyHeaders) {
                 pythonHeaderAsync = pythonHeaderAsync.concat (test.pyHeaders);
@@ -2862,7 +2871,7 @@ class Transpiler {
 }
 
 function parallelizeTranspiling (exchanges, processes = undefined) {
-    const processesNum = processes || os.cpus ().length
+    const processesNum = Math.min(processes || os.cpus ().length, exchanges.length)
     log.bright.green ('starting ' + processesNum + ' new processes...')
     let isFirst = true
     for (let i = 0; i < processesNum; i ++) {

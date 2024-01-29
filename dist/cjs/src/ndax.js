@@ -518,7 +518,7 @@ class ndax extends ndax$1 {
             'info': market,
         };
     }
-    parseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 6, amountKey = 8) {
+    parseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 6, amountKey = 8, countOrIdKey = 2) {
         let nonce = undefined;
         const result = {
             'symbol': symbol,

@@ -139,8 +139,7 @@ export default class mexc extends Exchange {
                 },
                 'www': 'https://www.mexc.com/',
                 'doc': [
-                    'https://mexcdevelop.github.io/apidocs/spot_v3_en/',
-                    'https://mexcdevelop.github.io/APIDoc/', // v1 & v2 : soon to be deprecated
+                    'https://mexcdevelop.github.io/apidocs/',
                 ],
                 'fees': [
                     'https://www.mexc.com/fee',
@@ -1328,7 +1327,8 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            orderbook = this.parseOrderBook(response, symbol);
+            const spotTimestamp = this.safeInteger(response, 'timestamp');
+            orderbook = this.parseOrderBook(response, symbol, spotTimestamp);
             orderbook['nonce'] = this.safeInteger(response, 'lastUpdateId');
         }
         else if (market['swap']) {

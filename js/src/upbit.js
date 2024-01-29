@@ -264,11 +264,11 @@ export default class upbit extends Exchange {
         else if ((locked !== undefined) && locked) {
             active = false;
         }
-        const maxOnetimeWithdrawal = this.safeNumber(withdrawLimits, 'onetime');
-        const maxDailyWithdrawal = this.safeNumber(withdrawLimits, 'daily', maxOnetimeWithdrawal);
-        const remainingDailyWithdrawal = this.safeNumber(withdrawLimits, 'remaining_daily', maxDailyWithdrawal);
+        const maxOnetimeWithdrawal = this.safeString(withdrawLimits, 'onetime');
+        const maxDailyWithdrawal = this.safeString(withdrawLimits, 'daily', maxOnetimeWithdrawal);
+        const remainingDailyWithdrawal = this.safeString(withdrawLimits, 'remaining_daily', maxDailyWithdrawal);
         let maxWithdrawLimit = undefined;
-        if (remainingDailyWithdrawal > 0) {
+        if (Precise.stringGt(remainingDailyWithdrawal, '0')) {
             maxWithdrawLimit = remainingDailyWithdrawal;
         }
         else {
@@ -287,7 +287,7 @@ export default class upbit extends Exchange {
             'limits': {
                 'withdraw': {
                     'min': this.safeNumber(withdrawLimits, 'minimum'),
-                    'max': maxWithdrawLimit,
+                    'max': this.parseNumber(maxWithdrawLimit),
                 },
             },
         };
@@ -347,10 +347,10 @@ export default class upbit extends Exchange {
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         const state = this.safeString(marketInfo, 'state');
-        const bidFee = this.safeNumber(response, 'bid_fee');
-        const askFee = this.safeNumber(response, 'ask_fee');
-        const fee = Math.max(bidFee, askFee);
-        return {
+        const bidFee = this.safeString(response, 'bid_fee');
+        const askFee = this.safeString(response, 'ask_fee');
+        const fee = this.parseNumber(Precise.stringMax(bidFee, askFee));
+        return this.safeMarketStructure({
             'id': marketId,
             'symbol': base + '/' + quote,
             'base': base,
@@ -399,7 +399,7 @@ export default class upbit extends Exchange {
                 },
                 'info': response,
             },
-        };
+        });
     }
     async fetchMarkets(params = {}) {
         /**
@@ -428,7 +428,7 @@ export default class upbit extends Exchange {
         const [quoteId, baseId] = id.split('-');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -478,7 +478,7 @@ export default class upbit extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
     parseBalance(response) {
         const result = {

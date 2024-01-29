@@ -254,6 +254,126 @@
             "takeProfitPrice": null
           }
         ]
+      },
+      {
+        "description": "Fetch linear positions using the account endpoint",
+        "method": "fetchPositions",
+        "input": [
+          [
+            "LTC/USDT:USDT"
+          ],
+          {
+            "method": "account"
+          }
+        ],
+        "httpResponse": {
+          "feeTier": "0",
+          "canTrade": true,
+          "canDeposit": true,
+          "canWithdraw": true,
+          "tradeGroupId": "-1",
+          "updateTime": "0",
+          "multiAssetsMargin": true,
+          "totalInitialMargin": "306.99664919",
+          "totalMaintMargin": "4.19111392",
+          "totalWalletBalance": "4344.52862033",
+          "totalUnrealizedProfit": "-20.17214402",
+          "totalMarginBalance": "4324.35647631",
+          "totalPositionInitialMargin": "300.52733455",
+          "totalOpenOrderInitialMargin": "6.46931464",
+          "totalCrossWalletBalance": "4344.52862033",
+          "totalCrossUnPnl": "-20.17214402",
+          "availableBalance": "4016.91165531",
+          "maxWithdrawAmount": "4016.91165531",
+          "assets": [
+            {
+              "asset": "USDT",
+              "walletBalance": "4346.91050995",
+              "unrealizedProfit": "-20.18320341",
+              "marginBalance": "4326.72730654",
+              "maintMargin": "4.19257311",
+              "initialMargin": "307.10353351",
+              "positionInitialMargin": "300.63196650",
+              "openOrderInitialMargin": "6.47156701",
+              "maxWithdrawAmount": "4018.31018798",
+              "crossWalletBalance": "4346.91050995",
+              "crossUnPnl": "-20.18320341",
+              "availableBalance": "4018.31018798",
+              "marginAvailable": true,
+              "updateTime": "1704897291072"
+            }
+          ],
+          "positions": [
+            {
+              "symbol": "LTCUSDT",
+              "initialMargin": "7.66078350",
+              "maintMargin": "0.03864953",
+              "unrealizedProfit": "-0.09593248",
+              "positionInitialMargin": "1.18921649",
+              "openOrderInitialMargin": "6.47156701",
+              "leverage": "5",
+              "isolated": false,
+              "entryPrice": "65.00166666667",
+              "breakEvenPrice": "37.57404222223",
+              "maxNotional": "2000000",
+              "positionSide": "BOTH",
+              "positionAmt": "-0.090",
+              "notional": "-5.94608247",
+              "isolatedWallet": "0",
+              "updateTime": "1704897291072",
+              "bidNotional": "44.25000000",
+              "askNotional": "0"
+            }
+          ]
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "symbol": "LTCUSDT",
+              "initialMargin": "7.66078350",
+              "maintMargin": "0.03864953",
+              "unrealizedProfit": "-0.09593248",
+              "positionInitialMargin": "1.18921649",
+              "openOrderInitialMargin": "6.47156701",
+              "leverage": "5",
+              "isolated": false,
+              "entryPrice": "65.00166666667",
+              "breakEvenPrice": "37.57404222223",
+              "maxNotional": "2000000",
+              "positionSide": "BOTH",
+              "positionAmt": "-0.090",
+              "notional": "-5.94608247",
+              "isolatedWallet": "0",
+              "updateTime": "1704897291072",
+              "bidNotional": "44.25000000",
+              "askNotional": "0",
+              "crossMargin": "4326.72730654",
+              "crossWalletBalance": "4346.91050995"
+            },
+            "id": null,
+            "symbol": "LTC/USDT:USDT",
+            "timestamp": 1704897291072,
+            "datetime": "2024-01-10T14:34:51.072Z",
+            "initialMargin": 7.6607835,
+            "initialMarginPercentage": 0.2,
+            "maintenanceMargin": 0.03864953,
+            "maintenanceMarginPercentage": 0.0065,
+            "entryPrice": 65.00166666667,
+            "notional": 5.94608247,
+            "leverage": 5,
+            "unrealizedPnl": -0.09593248,
+            "contracts": 0.09,
+            "contractSize": 1,
+            "marginRatio": 0,
+            "liquidationPrice": 48051.67,
+            "markPrice": null,
+            "collateral": 4326.72730654,
+            "marginMode": "cross",
+            "side": "short",
+            "hedged": false,
+            "percentage": -1.25
+          }
+        ]
       }
     ],
     "fetchMyTrades": [

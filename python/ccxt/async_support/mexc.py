@@ -150,8 +150,7 @@ class mexc(Exchange, ImplicitAPI):
                 },
                 'www': 'https://www.mexc.com/',
                 'doc': [
-                    'https://mexcdevelop.github.io/apidocs/spot_v3_en/',
-                    'https://mexcdevelop.github.io/APIDoc/',  # v1 & v2 : soon to be deprecated
+                    'https://mexcdevelop.github.io/apidocs/',
                 ],
                 'fees': [
                     'https://www.mexc.com/fee',
@@ -1311,7 +1310,8 @@ class mexc(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            orderbook = self.parse_order_book(response, symbol)
+            spotTimestamp = self.safe_integer(response, 'timestamp')
+            orderbook = self.parse_order_book(response, symbol, spotTimestamp)
             orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
         elif market['swap']:
             response = await self.contractPublicGetDepthSymbol(self.extend(request, params))

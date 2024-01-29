@@ -34,18 +34,30 @@ class bitget extends Exchange {
                 'cancelOrders' => true,
                 'closeAllPositions' => true,
                 'closePosition' => true,
+                'createDepositAddress' => false,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrderWithCost' => false,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createOrders' => true,
+                'createOrderWithTakeProfitAndStopLoss' => true,
+                'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => true,
+                'createStopLossOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
+                'createTakeProfitOrder' => true,
+                'createTrailingAmountOrder' => false,
+                'createTrailingPercentOrder' => true,
+                'createTriggerOrder' => true,
                 'editOrder' => true,
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchCanceledAndClosedOrders' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => true,
@@ -54,6 +66,7 @@ class bitget extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => false,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => true,
@@ -67,7 +80,7 @@ class bitget extends Exchange {
                 'fetchLeverage' => true,
                 'fetchLeverageTiers' => false,
                 'fetchLiquidations' => false,
-                'fetchMarginMode' => null,
+                'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
@@ -92,8 +105,10 @@ class bitget extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
+                'fetchTransactions' => false,
                 'fetchTransfer' => false,
                 'fetchTransfers' => true,
+                'fetchWithdrawAddresses' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
@@ -102,6 +117,7 @@ class bitget extends Exchange {
                 'setLeverage' => true,
                 'setMarginMode' => true,
                 'setPositionMode' => true,
+                'signIn' => false,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -2923,7 +2939,11 @@ class bitget extends Exchange {
             'symbol' => $market['id'],
         );
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            if ($market['contract']) {
+                $request['limit'] = min ($limit, 1000);
+            } else {
+                $request['limit'] = $limit;
+            }
         }
         $options = $this->safe_value($this->options, 'fetchTrades', array());
         $response = null;
@@ -3229,26 +3249,38 @@ class bitget extends Exchange {
             'symbol' => $market['id'],
             'granularity' => $selectedTimeframe,
         );
-        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-        if ($since !== null) {
-            $request['startTime'] = $limit;
-        }
+        $until = $this->safe_integer_2($params, 'until', 'till');
+        $params = $this->omit($params, array( 'until', 'till' ));
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
         $options = $this->safe_value($this->options, 'fetchOHLCV', array());
+        $spotOptions = $this->safe_value($options, 'spot', array());
+        $defaultSpotMethod = $this->safe_string($spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles');
+        $method = $this->safe_string($params, 'method', $defaultSpotMethod);
+        $params = $this->omit($params, 'method');
+        if ($method !== 'publicSpotGetV2SpotMarketHistoryCandles') {
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
+            if ($until !== null) {
+                $request['endTime'] = $until;
+            }
+        }
         $response = null;
         if ($market['spot']) {
-            $spotOptions = $this->safe_value($options, 'spot', array());
-            $defaultSpotMethod = $this->safe_string($spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles');
-            $method = $this->safe_string($params, 'method', $defaultSpotMethod);
-            $params = $this->omit($params, 'method');
             if ($method === 'publicSpotGetV2SpotMarketCandles') {
                 $response = $this->publicSpotGetV2SpotMarketCandles (array_merge($request, $params));
             } elseif ($method === 'publicSpotGetV2SpotMarketHistoryCandles') {
-                $until = $this->safe_integer_2($params, 'until', 'till');
-                $params = $this->omit($params, array( 'until', 'till' ));
-                if ($until === null) {
+                if ($since !== null) {
+                    if ($limit === null) {
+                        $limit = 100; // exchange default
+                    }
+                    $duration = $this->parse_timeframe($timeframe) * 1000;
+                    $request['endTime'] = $this->sum($since, $duration * $limit);
+                } elseif ($until !== null) {
+                    $request['endTime'] = $until;
+                } else {
                     $request['endTime'] = $this->milliseconds();
                 }
                 $response = $this->publicSpotGetV2SpotMarketHistoryCandles (array_merge($request, $params));
@@ -3952,6 +3984,7 @@ class bitget extends Exchange {
          * @param {string} [$params->trailingPercent] *swap and future only* the percent to trail away from the current $market $price, rate can not be greater than 10
          * @param {string} [$params->trailingTriggerPrice] *swap and future only* the $price to trigger a trailing stop order, default uses the $price argument
          * @param {string} [$params->triggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
+         * @param {boolean} [$params->oneWayMode] *swap and future only* required to set this to true in one_way_mode and you can leave this in hedge_mode, can adjust the mode using the setPositionMode() method
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -4132,14 +4165,21 @@ class bitget extends Exchange {
                 }
                 $marginModeRequest = ($marginMode === 'cross') ? 'crossed' : 'isolated';
                 $request['marginMode'] = $marginModeRequest;
+                $oneWayMode = $this->safe_value($params, 'oneWayMode', false);
+                $params = $this->omit($params, 'oneWayMode');
                 $requestSide = $side;
                 if ($reduceOnly) {
-                    $request['reduceOnly'] = 'YES';
-                    $request['tradeSide'] = 'Close';
-                    // on bitget if the position is long the $side is always buy, and if the position is short the $side is always sell
-                    $requestSide = ($side === 'buy') ? 'sell' : 'buy';
+                    if ($oneWayMode) {
+                        $request['reduceOnly'] = 'YES';
+                    } else {
+                        // on bitget hedge mode if the position is long the $side is always buy, and if the position is short the $side is always sell
+                        $requestSide = ($side === 'buy') ? 'sell' : 'buy';
+                        $request['tradeSide'] = 'Close';
+                    }
                 } else {
-                    $request['tradeSide'] = 'Open';
+                    if (!$oneWayMode) {
+                        $request['tradeSide'] = 'Open';
+                    }
                 }
                 $request['side'] = $requestSide;
             }
@@ -5209,79 +5249,69 @@ class bitget extends Exchange {
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * fetches information on multiple closed orders made by the user
+         * fetches information on multiple closed $orders made by the user
          * @see https://www.bitget.com/api-doc/spot/trade/Get-History-Orders
          * @see https://www.bitget.com/api-doc/spot/plan/Get-History-Plan-Order
          * @see https://www.bitget.com/api-doc/contract/trade/Get-Orders-History
          * @see https://www.bitget.com/api-doc/contract/plan/orders-plan-history
          * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
          * @see https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
-         * @param {string} $symbol unified $market $symbol of the closed orders
+         * @param {string} $symbol unified market $symbol of the closed $orders
          * @param {int} [$since] timestamp in ms of the earliest order
-         * @param {int} [$limit] the max number of closed orders to return
+         * @param {int} [$limit] the max number of closed $orders to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @param {string} [$params->isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+         * @param {string} [$params->isPlan] *swap only* 'plan' for stop $orders and 'profit_loss' for tp/sl $orders, default is 'plan'
          * @param {string} [$params->productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
-         * @param {boolean} [$params->trailing] set to true if you want to fetch trailing orders
+         * @param {boolean} [$params->trailing] set to true if you want to fetch trailing $orders
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-        }
-        $response = $this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params);
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
-            $status = $this->parse_order_status($this->safe_string_n($entry, array( 'state', 'status', 'planStatus' )));
-            if ($status === 'closed') {
-                $result[] = $entry;
-            }
-        }
-        return $this->parse_orders($result, $market, $since, $limit);
+        $orders = $this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params);
+        return $this->filter_by($orders, 'status', 'closed');
     }
 
     public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * fetches information on multiple canceled orders made by the user
+         * fetches information on multiple canceled $orders made by the user
          * @see https://www.bitget.com/api-doc/spot/trade/Get-History-Orders
          * @see https://www.bitget.com/api-doc/spot/plan/Get-History-Plan-Order
          * @see https://www.bitget.com/api-doc/contract/trade/Get-Orders-History
          * @see https://www.bitget.com/api-doc/contract/plan/orders-plan-history
          * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
          * @see https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
-         * @param {string} $symbol unified $market $symbol of the canceled orders
+         * @param {string} $symbol unified market $symbol of the canceled $orders
          * @param {int} [$since] timestamp in ms of the earliest order
-         * @param {int} [$limit] the max number of canceled orders to return
+         * @param {int} [$limit] the max number of canceled $orders to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @param {string} [$params->isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+         * @param {string} [$params->isPlan] *swap only* 'plan' for stop $orders and 'profit_loss' for tp/sl $orders, default is 'plan'
          * @param {string} [$params->productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
-         * @param {boolean} [$params->trailing] set to true if you want to fetch trailing orders
+         * @param {boolean} [$params->trailing] set to true if you want to fetch trailing $orders
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-        }
-        $response = $this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params);
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
-            $status = $this->parse_order_status($this->safe_string_n($entry, array( 'state', 'status', 'planStatus' )));
-            if ($status === 'canceled') {
-                $result[] = $entry;
-            }
-        }
-        return $this->parse_orders($result, $market, $since, $limit);
+        $orders = $this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params);
+        return $this->filter_by($orders, 'status', 'canceled');
     }
 
     public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * @see https://www.bitget.com/api-doc/spot/trade/Get-History-Orders
+         * @see https://www.bitget.com/api-doc/spot/plan/Get-History-Plan-Order
+         * @see https://www.bitget.com/api-doc/contract/trade/Get-Orders-History
+         * @see https://www.bitget.com/api-doc/contract/plan/orders-plan-history
+         * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
+         * @see https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
+         * fetches information on multiple canceled and closed $orders made by the user
+         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
         $this->load_markets();
         $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
         $market = null;
@@ -5559,15 +5589,16 @@ class bitget extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         if ($marketType === 'spot') {
             if (($marginMode !== null) || $stop) {
-                return $this->safe_value($data, 'orderList', array());
+                return $this->parse_orders($this->safe_value($data, 'orderList', array()), $market, $since, $limit);
             }
         } else {
-            return $this->safe_value($data, 'entrustedList', array());
+            return $this->parse_orders($this->safe_value($data, 'entrustedList', array()), $market, $since, $limit);
         }
         if (gettype($response) === 'string') {
             $response = json_decode($response, $as_associative_array = true);
         }
-        return $this->safe_value($response, 'data', array());
+        $orders = $this->safe_value($response, 'data', array());
+        return $this->parse_orders($orders, $market, $since, $limit);
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -6039,6 +6070,7 @@ class bitget extends Exchange {
          * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
          * @param {string[]|null} $symbols list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->marginCoin] the settle currency of the positions, needs to match the $productType
          * @param {string} [$params->productType] 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
@@ -6070,10 +6102,23 @@ class bitget extends Exchange {
         $response = null;
         $isHistory = false;
         if ($method === 'privateMixGetV2MixPositionAllPosition') {
-            if ($symbols === null) {
-                throw new ArgumentsRequired($this->id . ' fetchPositions() requires a $symbols argument');
+            $marginCoin = $this->safe_string($params, 'marginCoin', 'USDT');
+            if ($symbols !== null) {
+                $marginCoin = $market['settleId'];
+            } elseif ($productType === 'USDT-FUTURES') {
+                $marginCoin = 'USDT';
+            } elseif ($productType === 'USDC-FUTURES') {
+                $marginCoin = 'USDC';
+            } elseif ($productType === 'SUSDT-FUTURES') {
+                $marginCoin = 'SUSDT';
+            } elseif ($productType === 'SUSDC-FUTURES') {
+                $marginCoin = 'SUSDC';
+            } elseif (($productType === 'SCOIN-FUTURES') || ($productType === 'COIN-FUTURES')) {
+                if ($marginCoin === null) {
+                    throw new ArgumentsRequired($this->id . ' fetchPositions() requires a $marginCoin parameter that matches the productType');
+                }
             }
-            $request['marginCoin'] = $market['settleId'];
+            $request['marginCoin'] = $marginCoin;
             $response = $this->privateMixGetV2MixPositionAllPosition (array_merge($request, $params));
         } else {
             $isHistory = true;

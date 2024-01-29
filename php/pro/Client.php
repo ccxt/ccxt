@@ -254,6 +254,9 @@ class Client {
             // todo: exception types for server-side disconnects
             $this->reset(new NetworkError($message));
         }
+        if ($this->error) {
+            $this->reset($this->error);
+        }
     }
 
     public function on_message(Message $message) {
@@ -316,9 +319,17 @@ class Client {
                 $this->on_error(new RequestTimeout('Connection to ' . $this->url . ' timed out due to a ping-pong keepalive missing on time'));
             } else {
                 if ($this->ping) {
-                    $this->send(call_user_func($this->ping, $this));
+                    try {
+                        $this->send(call_user_func($this->ping, $this));
+                    } catch (Exception $e) {
+                        $this->on_error($e);
+                    }
                 } else {
-                    $this->connection->send(new Frame('', true, Frame::OP_PING));
+                    try {
+                        $this->connection->send(new Frame('', true, Frame::OP_PING));
+                    } catch (Exception $e) {
+                        $this->on_error($e);
+                    }
                 }
             }
         }
