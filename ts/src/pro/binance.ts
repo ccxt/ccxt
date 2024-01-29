@@ -959,9 +959,12 @@ export default class binance extends binanceRest {
         };
         const tickers = await this.watchMultiple (url, messageHashes, this.extend (request, params), subscriptionHashes, subscription);
         if (this.newUpdates) {
-            tickers.getLimit ();
+            const first = this.safeValue (tickers, 0);
+            const tickerSymbol = this.safeString (first, 'symbol');
+            const limit = tickers.getLimit (tickerSymbol, undefined);
+            return this.filterByArray (this.filterByLimit (tickers, limit), 'symbol', symbols);
         }
-        return this.filterByArray (tickers, 'symbol', symbols);
+        return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
 
     parseWsTicker (message, marketType) {

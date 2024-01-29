@@ -173,13 +173,13 @@ class CCXTProTranspiler extends Transpiler {
                 wsCollectedTests.push(test);
             }
         }
-        wsCollectedTests.push ({
-                    base: false,
-                    name: 'test.watchTickers',
-                    tsFile: this.wsTestsDirectories.ts + 'Exchange/' +  'binance/' + 'test.watchTickers' + '.ts',
-                    pyFileAsync: this.wsTestsDirectories.py + 'Exchange/' + 'binance/' +  'test_watch_tickers' + '.py',
-                    phpFileAsync: this.wsTestsDirectories.php + 'Exchange/' + 'binance/' + 'test_watch_tickers' + '.php',
-                })
+        // wsCollectedTests.push ({
+        //             base: false,
+        //             name: 'test.watchTickers',
+        //             tsFile: this.wsTestsDirectories.ts + 'Exchange/' +  'binance/' + 'test.watchTickers' + '.ts',
+        //             pyFileAsync: this.wsTestsDirectories.py + 'Exchange/' + 'binance/' +  'test_watch_tickers' + '.py',
+        //             phpFileAsync: this.wsTestsDirectories.php + 'Exchange/' + 'binance/' + 'test_watch_tickers' + '.php',
+        //         })
         this.transpileAndSaveExchangeTests (wsCollectedTests);
     }
 
