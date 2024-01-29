@@ -161,6 +161,7 @@ export default class bingx extends Exchange {
                         'private': {
                             'get': {
                                 'positionSide/dual': 1,
+                                'market/markPriceKlines': 1,
                             },
                             'post': {
                                 'positionSide/dual': 1,
