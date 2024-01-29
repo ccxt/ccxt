@@ -45,6 +45,7 @@
             {
                 "description": "spot market sell with clientOrderId",
                 "method": "createOrder",
+                "disabled": true,
                 "url": "https://api.coinmetro.com/exchange/orders/create",
                 "input": [
                   "XRP/USDT",
