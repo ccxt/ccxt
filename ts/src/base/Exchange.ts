@@ -2160,7 +2160,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createDepositAddress() is not supported yet');
     }
 
-    async setLeverage (leverage, symbol: string = undefined, params = {}): Promise<{}> {
+    async setLeverage (leverage: Int, symbol: string = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' setLeverage() is not supported yet');
     }
 
