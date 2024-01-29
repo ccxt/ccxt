@@ -29,7 +29,7 @@ export default class p2b extends p2bRest {
                 'watchOrders': false,
                 // 'watchStatus': true,
                 'watchTicker': true,
-                'watchTickers': true,
+                'watchTickers': false,  // in the docs but does not return anything when subscribed to
                 'watchTrades': true,
             },
             'urls': {
@@ -135,39 +135,6 @@ export default class p2b extends p2bRest {
         ];
         const messageHash = name + '::' + market['symbol'];
         return await this.subscribe (name + '.subscribe', messageHash, request, params);
-    }
-
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        /**
-         * @method
-         * @name p2b#watchTicker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#last-price
-         * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#market-status
-         * @param {string} symbols unified symbols of the markets to fetch the tickers for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {object} [params.method] 'state' (default) or 'price'
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
-        await this.loadMarkets ();
-        if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchTickers requires a symbols argument');
-        }
-        const watchTickersOptions = this.safeValue (this.options, 'watchTickers');
-        let name = this.safeString (watchTickersOptions, 'name', 'state');  // or price
-        [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
-        let messageHash = name + '::';
-        const request = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = this.symbol (symbols[i]);
-            messageHash += messageHash + ',' + symbol;
-            request.push (symbol);
-        }
-        const newTickers = this.subscribe (name + '.subscribe', messageHash, request, params);
-        if (this.newUpdates) {
-            return newTickers;
-        }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
