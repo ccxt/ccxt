@@ -1894,7 +1894,7 @@ export default class Exchange {
                     }
                 }
                 if (fromStart) {
-                    array = ascending ? this.arraySlice (array, 0, limit) : this.arraySlice (array, -limit)
+                    array = ascending ? this.arraySlice (array, 0, limit) : this.arraySlice (array, -limit);
                 } else {
                     array = ascending ? this.arraySlice (array, -limit) : this.arraySlice (array, 0, limit);
                 }
