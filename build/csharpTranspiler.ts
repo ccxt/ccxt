@@ -338,6 +338,10 @@ class NewTranspiler {
             return addTaskIfNeeded('object'); // default if type is unknown;
         }
 
+        if (wrappedType === 'string[][]') {
+            return addTaskIfNeeded('List<List<string>>');
+        }
+
         // check if returns a list
         if (wrappedType.endsWith('[]')) {
             isList = true;
