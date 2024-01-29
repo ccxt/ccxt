@@ -454,12 +454,8 @@ export default class p2b extends p2bRest {
     }
 
     handleErrorMessage (client: Client, message) {
-        // TODO
-        //
-        const event = this.safeString (message, 'event');
-        const orderId = this.safeString (message, 'orderId');
-        if ((event === 'error') || (orderId === '0')) {
-            const error = this.safeString (message, 'message');
+        const error = this.safeString (message, 'error');
+        if (error !== undefined) {
             throw new ExchangeError (this.id + ' error: ' + this.json (error));
         }
         return false;
