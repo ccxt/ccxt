@@ -690,7 +690,19 @@ export default class coinmetro extends Exchange {
         //         "price": 2282,
         //         "side": "buy"
         //     }
-        const marketId = this.safeString (trade, 'symbol');
+        //
+        //    {
+        //        "pair":"ETHUSDC",
+        //        "seqNumber":"10873722343",
+        //        "timestamp":"1702570610747",
+        //        "qty":"0.002",
+        //        "price":"2282",
+        //        "side":"buy",
+        //        "orderID":"65671262d93d9525ac009e36170257061073952c6423a8c5b4d6c",
+        //        "userID":"65671262d93d9525ac009e36"
+        //     }
+        //
+        const marketId = this.safeString2 (trade, 'symbol', 'pair');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const id = this.safeStringN (trade, [ '_id', 'seqNum', 'seqNumber' ]);
