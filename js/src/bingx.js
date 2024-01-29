@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/bingx.js';
-import { AuthenticationError, ExchangeNotAvailable, PermissionDenied, AccountSuspended, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired, NotSupported } from './base/errors.js';
+import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
@@ -53,8 +53,8 @@ export default class bingx extends Exchange {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingRate': true,
-                'fetchFundingRates': true,
                 'fetchFundingRateHistory': true,
+                'fetchFundingRates': true,
                 'fetchLeverage': true,
                 'fetchLiquidations': false,
                 'fetchMarkets': true,
@@ -363,13 +363,14 @@ export default class bingx extends Exchange {
                     '100500': ExchangeError,
                     '100503': ExchangeError,
                     '80001': BadRequest,
-                    '80012': ExchangeNotAvailable,
+                    '80012': InsufficientFunds,
                     '80014': BadRequest,
                     '80016': OrderNotFound,
                     '80017': OrderNotFound,
                     '100414': AccountSuspended,
                     '100419': PermissionDenied,
-                    '100437': BadRequest, // {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
+                    '100437': BadRequest,
+                    '101204': InsufficientFunds, // bingx {"code":101204,"msg":"","data":{}}
                 },
                 'broad': {},
             },
@@ -2237,10 +2238,10 @@ export default class bingx extends Exchange {
         const clientOrderId = this.safeStringN(order, ['clientOrderID', 'origClientOrderId', 'c']);
         let stopLoss = this.safeValue(order, 'stopLoss');
         let stopLossPrice = undefined;
-        if (stopLoss !== undefined) {
+        if ((stopLoss !== undefined) && (stopLoss !== '')) {
             stopLossPrice = this.safeNumber(stopLoss, 'stopLoss');
         }
-        if ((stopLoss !== undefined) && (typeof stopLoss !== 'number')) {
+        if ((stopLoss !== undefined) && (typeof stopLoss !== 'number') && (stopLoss !== '')) {
             //  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
             if (typeof stopLoss === 'string') {
                 stopLoss = this.parseJson(stopLoss);
@@ -2249,10 +2250,10 @@ export default class bingx extends Exchange {
         }
         let takeProfit = this.safeValue(order, 'takeProfit');
         let takeProfitPrice = undefined;
-        if (takeProfit !== undefined) {
+        if (takeProfit !== undefined && (takeProfit !== '')) {
             takeProfitPrice = this.safeNumber(takeProfit, 'takeProfit');
         }
-        if ((takeProfit !== undefined) && (typeof takeProfit !== 'number')) {
+        if ((takeProfit !== undefined) && (typeof takeProfit !== 'number') && (takeProfit !== '')) {
             //  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
             if (typeof takeProfit === 'string') {
                 takeProfit = this.parseJson(takeProfit);

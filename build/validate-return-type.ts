@@ -5,6 +5,7 @@ import log from 'ololog'
 
 const skipMethods = [
     'fetchMarkets',
+    'fetchMarketsWs',
     'createDepositAddress', // will be updated later
 ]
 

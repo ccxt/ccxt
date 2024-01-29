@@ -74,6 +74,8 @@ class ascendex(Exchange, ImplicitAPI):
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': False,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,

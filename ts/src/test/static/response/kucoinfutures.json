@@ -335,6 +335,50 @@
           "stopLossPrice": null
         }
       }
+    ],
+    "fetchFundingRate": [
+      {
+        "description": "funding rate",
+        "method": "fetchFundingRate",
+        "input": [
+          "BTC/USDT:USDT"
+        ],
+        "httpResponse": {
+          "code": "200000",
+          "data": {
+            "symbol": ".XBTUSDTMFPI8H",
+            "granularity": 28800000,
+            "timePoint": 1705896000000,
+            "value": 0.000136,
+            "predictedValue": 0.00008
+          }
+        },
+        "parsedResponse": {
+          "info": {
+            "symbol": ".XBTUSDTMFPI8H",
+            "granularity": 28800000,
+            "timePoint": 1705896000000,
+            "value": 0.000136,
+            "predictedValue": 0.00008
+          },
+          "symbol": "BTC/USDT:USDT",
+          "markPrice": null,
+          "indexPrice": null,
+          "interestRate": null,
+          "estimatedSettlePrice": null,
+          "timestamp": null,
+          "datetime": null,
+          "fundingRate": 0.000136,
+          "fundingTimestamp": 1705896000000,
+          "fundingDatetime": "2024-01-22T04:00:00.000Z",
+          "nextFundingRate": 0.00008,
+          "nextFundingTimestamp": null,
+          "nextFundingDatetime": null,
+          "previousFundingRate": null,
+          "previousFundingTimestamp": null,
+          "previousFundingDatetime": null
+        }
+      }
     ]
   }
 }

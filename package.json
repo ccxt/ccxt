@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "4.2.18",
+  "version": "4.2.25",
   "description": "A JavaScript / TypeScript / Python / C# / PHP cryptocurrency trading library with support for 100+ exchanges",
   "unpkg": "dist/ccxt.browser.js",
   "type": "module",
@@ -22,6 +22,9 @@
   },
   "readme": "README.md",
   "scripts": {
+    "instrument": "nyc instrument js/ jsInstrumented/",
+    "nyc-coverage": "nyc --reporter=html --reporter=lcov --exclude='js/src/pro/**' --exclude='js/src/base/**' --exclude='js/src/test/**' --exclude='js/src/abstract/**' --exclude='js/src/static_dependencies' node jsInstrumented/src/test/test.js --requestTests --responseTests",
+    "coverage-js": "npm run instrument && npm run nyc-coverage && rm -rf jsInstrumented",
     "docker": "docker-compose run --rm ccxt",
     "fixTSBug": "node build/fixTSBug",
     "build-docs": "node jsdoc2md.js && node examples2md.js",
@@ -127,7 +130,7 @@
     "as-table": "1.0.37",
     "asciichart": "^1.5.25",
     "assert": "^2.0.0",
-    "ast-transpiler": ">=0.0.36",
+    "ast-transpiler": "^0.0.41",
     "docsify": "^4.11.4",
     "eslint": "8.22.0",
     "eslint-config-airbnb-base": "15.0.0",

@@ -186,6 +186,11 @@ export default class testMainClass extends baseMainTestClass {
     }
     async init(exchangeId, symbolArgv) {
         this.parseCliArgs();
+        if (this.requestTests && this.responseTests) {
+            await this.runStaticRequestTests(exchangeId, symbolArgv);
+            await this.runStaticResponseTests(exchangeId, symbolArgv);
+            return;
+        }
         if (this.responseTests) {
             await this.runStaticResponseTests(exchangeId, symbolArgv);
             return;
@@ -1200,6 +1205,9 @@ export default class testMainClass extends baseMainTestClass {
             const results = methods[method];
             for (let j = 0; j < results.length; j++) {
                 const result = results[j];
+                const oldExchangeOptions = exchange.options; // snapshot options;
+                const testExchangeOptions = exchange.safeValue(result, 'options', {});
+                exchange.options = exchange.deepExtend(oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
                 const description = exchange.safeValue(result, 'description');
                 if ((testName !== undefined) && (testName !== description)) {
                     continue;
@@ -1211,6 +1219,8 @@ export default class testMainClass extends baseMainTestClass {
                 const type = exchange.safeString(exchangeData, 'outputType');
                 const skipKeys = exchange.safeValue(exchangeData, 'skipKeys', []);
                 await this.testMethodStatically(exchange, method, result, type, skipKeys);
+                // reset options
+                exchange.options = oldExchangeOptions;
             }
         }
         await close(exchange);
@@ -1227,6 +1237,9 @@ export default class testMainClass extends baseMainTestClass {
             for (let j = 0; j < results.length; j++) {
                 const result = results[j];
                 const description = exchange.safeValue(result, 'description');
+                const oldExchangeOptions = exchange.options; // snapshot options;
+                const testExchangeOptions = exchange.safeValue(result, 'options', {});
+                exchange.options = exchange.deepExtend(oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
                 const isDisabled = exchange.safeValue(result, 'disabled', false);
                 if (isDisabled) {
                     continue;
@@ -1240,6 +1253,8 @@ export default class testMainClass extends baseMainTestClass {
                 }
                 const skipKeys = exchange.safeValue(exchangeData, 'skipKeys', []);
                 await this.testResponseStatically(exchange, method, skipKeys, result);
+                // reset options
+                exchange.options = oldExchangeOptions;
             }
         }
         await close(exchange);
@@ -1294,7 +1309,6 @@ export default class testMainClass extends baseMainTestClass {
         else {
             const successMessage = '[' + this.lang + '][TEST_SUCCESS] ' + sum.toString() + ' static ' + type + ' tests passed.';
             dump('[INFO]' + successMessage);
-            exitScript(0);
         }
     }
     async runStaticResponseTests(exchangeName = undefined, test = undefined) {

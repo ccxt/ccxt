@@ -338,6 +338,7 @@
         }
     },
     "bitopro": {
+        "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
                 "precision": "not provided",
@@ -352,7 +353,7 @@
             }
         }
     },
-    "bitpanda": {
+    "onetrading": {
         "skipWs": true,
         "skipMethods": {
             "fetchOrderBook": "some bid might be lower than next bid",
@@ -373,7 +374,8 @@
             "fetchCurrencies": {
                 "precision": "not provided",
                 "withdraw": "not provided",
-                "deposit": "not provided"
+                "deposit": "not provided",
+                "currencyIdAndCode": "broken currencies"
             },
             "fetchTrades": {
                 "side": "not set"
@@ -1216,6 +1218,7 @@
         }
     },
     "lbank": {
+        "skipWs": true,
         "skipMethods": {
             "loadMarkets": "settle must be defined when contract is true",
             "fetchTickers": {
@@ -1438,6 +1441,10 @@
             },
             "watchOrderBook": {
                 "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6909"
+            },
+            "watchTickers": {
+                "quoteVolume": "same",
+                "baseVolume": "same"
             }
         }
     },

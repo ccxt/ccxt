@@ -298,6 +298,36 @@
                 "output": "timestamp=1702677379657&symbol=BTCUSDT&side=SELL&newClientOrderId=x-R4BD3S82e9114f80b9124f96817cc1&newOrderRespType=FULL&type=MARKET&quoteOrderQty=15&recvWindow=10000&signature=c71dc764642f5e6b7a96d04b7d820058ec204557ec43ce64ff102d25df4423b8"
             }
         ],
+        "editOrder": [
+            {
+                "description": "edit spot order",
+                "method": "editOrder",
+                "url": "https://testnet.binance.vision/api/v3/order/cancelReplace",
+                "input": [
+                  2163811,
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.25,
+                  51
+                ],
+                "output": "timestamp=1706094359481&symbol=LTCUSDT&side=BUY&type=LIMIT&newClientOrderId=x-R4BD3S82230eac64ed3d47c284a92b&newOrderRespType=FULL&quantity=0.25&price=51&timeInForce=GTC&cancelReplaceMode=STOP_ON_FAILURE&cancelOrderId=2163811&recvWindow=10000&signature=787c8bd2fa00acfcabaf5edd9e341a652db4a1549791c6114555838511217b94"
+            },
+            {
+                "description": "edit swap order",
+                "method": "editOrder",
+                "url": "https://testnet.binancefuture.com/fapi/v1/order",
+                "input": [
+                  661753725,
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.25,
+                  51
+                ],
+                "output": "timestamp=1706094442270&symbol=LTCUSDT&side=BUY&orderId=661753725&quantity=0.25&price=51&recvWindow=10000&signature=8a0439270bdbfc88a86853ea64972b5e54e90d506645a5b5efef8121b101f302"
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "Swap cancelOrder",
@@ -719,6 +749,17 @@
                 ]
             }
         ],
+        "fetchOrderTrades": [
+            {
+                "description": "spot order trades",
+                "method": "fetchOrderTrades",
+                "url": "https://api.binance.com/api/v3/myTrades?timestamp=1706095069482&symbol=LTCUSDT&orderId=3010478906&recvWindow=10000&signature=69dfdb9c6162ba56efe69b3ae4b95800994ee7fd58d37b1a240440d35c4ebde0",
+                "input": [
+                  3010478906,
+                  "LTC/USDT"
+                ]
+            }
+        ],
         "fetchPositions": [
             {
                 "description": "fetch default positions",
@@ -735,6 +776,17 @@
                     {
                         "subType": "inverse"
                     }
+                ]
+            },
+            {
+                "description": "fetch account positions",
+                "method": "fetchPositions",
+                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1706118171133&recvWindow=10000&signature=6c1048179b4cfc725c45991f61b13da9321ba96f5149ac359ca956a4e8dd33ea",
+                "input": [
+                  null,
+                  {
+                    "method": "account"
+                  }
                 ]
             }
         ],
@@ -860,6 +912,14 @@
                 "method": "fetchDeposits",
                 "url": "https://api.binance.com/sapi/v1/capital/deposit/hisrec?timestamp=1699440724626&recvWindow=10000&signature=d36b11a06e7af3f8bc85c28e97ab788a58e20f39b201b6fc31132688d71f4968",
                 "input": []
+            },
+            {
+                "description": "fetch EUR deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.binance.com/sapi/v1/fiat/orders?timestamp=1706094902897&transactionType=0&recvWindow=10000&signature=b8a61acd8cd767e332c80ee2e14f5d827d96720023df8e8d7bbe231ab25f794f",
+                "input": [
+                  "EUR"
+                ]
             }
         ],
         "fetchLedger": [
@@ -1555,6 +1615,83 @@
                     {
                         "type": "margin"
                     }
+                ]
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetch transfers",
+                "method": "fetchTransfers",
+                "url": "https://api.binance.com/sapi/v1/asset/transfer?timestamp=1706094571953&type=MAIN_UMFUTURE&recvWindow=10000&signature=a8edc2192088ef3aff0fd3687e8c222eb2f45ba83cd9a4c589f561202466be8f",
+                "input": []
+            }
+        ],
+        "fetchMyLiquidations": [
+            {
+                "description": "fetch swap liquidations",
+                "method": "fetchMyLiquidations",
+                "url": "https://fapi.binance.com/fapi/v1/forceOrders?timestamp=1706094647910&autoCloseType=LIQUIDATION&symbol=LTCUSDT&recvWindow=10000&signature=d31c57ea2e96d101a4370284c30007a0095490c6aa367406912843abf2ffb315",
+                "input": [
+                  "LTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.binance.com/api/v3/depth?symbol=BTCUSDT&limit=5",
+                "input": [
+                  "BTC/USDT",
+                  5
+                ]
+            },
+            {
+                "description": "swap linear orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://fapi.binance.com/fapi/v1/depth?symbol=BTCUSDT&limit=5",
+                "input": [
+                  "BTC/USDT:USDT",
+                  5
+                ]
+            },
+            {
+                "description": "inverse swap",
+                "method": "fetchOrderBook",
+                "url": "https://dapi.binance.com/dapi/v1/depth?symbol=BTCUSD_PERP&limit=5",
+                "input": [
+                  "BTC/USD:BTC",
+                  5
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetch USDT withrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.binance.com/sapi/v1/capital/withdraw/history?timestamp=1706095147177&coin=USDT&startTime=1661357136827&endTime=1669133136827&limit=1&recvWindow=10000&signature=6bd39d7a3add1e878df038eec054d6f662328cc4d402a9a67b8207c57392acf6",
+                "input": [
+                    "USDT",
+                    1661357136827,
+                    1
+                ]
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "spot trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://api.binance.com/sapi/v1/asset/tradeFee?timestamp=1706095306815&symbol=BTCUSDT&recvWindow=10000&signature=8ec3dcaea78dbbaac7afcf27309eb9c29161363afd7e17ee911d0b8ee6a957b2",
+                "input": [
+                  "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://api.binance.com/sapi/v1/asset/tradeFee?timestamp=1706095328067&symbol=BTCUSDT&recvWindow=10000&signature=b24637ac06270ce8d90d3d0835e9bc6a6c56ff389364fec2bce09ee74ef8aef8",
+                "input": [
+                  "BTC/USDT:USDT"
                 ]
             }
         ]

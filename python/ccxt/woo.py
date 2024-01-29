@@ -66,7 +66,7 @@ class woo(Exchange, ImplicitAPI):
                 'fetchClosedOrder': False,
                 'fetchClosedOrders': False,
                 'fetchCurrencies': True,
-                'fetchDepositAddress': False,
+                'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': True,

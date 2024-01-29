@@ -323,6 +323,11 @@ class testMainClass extends baseMainTestClass {
 
     public function init($exchange_id, $symbol_argv) {
         $this->parse_cli_args();
+        if ($this->request_tests && $this->response_tests) {
+            $this->run_static_request_tests($exchange_id, $symbol_argv);
+            $this->run_static_response_tests($exchange_id, $symbol_argv);
+            return;
+        }
         if ($this->response_tests) {
             $this->run_static_response_tests($exchange_id, $symbol_argv);
             return;
@@ -1267,6 +1272,9 @@ class testMainClass extends baseMainTestClass {
             $results = $methods[$method];
             for ($j = 0; $j < count($results); $j++) {
                 $result = $results[$j];
+                $old_exchange_options = $exchange->options; // snapshot options;
+                $test_exchange_options = $exchange->safe_value($result, 'options', array());
+                $exchange->options = $exchange->deep_extend($old_exchange_options, $test_exchange_options); // custom options to be used in the tests
                 $description = $exchange->safe_value($result, 'description');
                 if (($test_name !== null) && ($test_name !== $description)) {
                     continue;
@@ -1278,6 +1286,8 @@ class testMainClass extends baseMainTestClass {
                 $type = $exchange->safe_string($exchange_data, 'outputType');
                 $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
                 $this->test_method_statically($exchange, $method, $result, $type, $skip_keys);
+                // reset options
+                $exchange->options = $old_exchange_options;
             }
         }
         close($exchange);
@@ -1295,6 +1305,9 @@ class testMainClass extends baseMainTestClass {
             for ($j = 0; $j < count($results); $j++) {
                 $result = $results[$j];
                 $description = $exchange->safe_value($result, 'description');
+                $old_exchange_options = $exchange->options; // snapshot options;
+                $test_exchange_options = $exchange->safe_value($result, 'options', array());
+                $exchange->options = $exchange->deep_extend($old_exchange_options, $test_exchange_options); // custom options to be used in the tests
                 $is_disabled = $exchange->safe_value($result, 'disabled', false);
                 if ($is_disabled) {
                     continue;
@@ -1308,6 +1321,8 @@ class testMainClass extends baseMainTestClass {
                 }
                 $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
                 $this->test_response_statically($exchange, $method, $skip_keys, $result);
+                // reset options
+                $exchange->options = $old_exchange_options;
             }
         }
         close($exchange);
@@ -1363,7 +1378,6 @@ class testMainClass extends baseMainTestClass {
         } else {
             $success_message = '[' . $this->lang . '][TEST_SUCCESS] ' . ((string) $sum) . ' static ' . $type . ' tests passed.';
             dump('[INFO]' . $success_message);
-            exit_script(0);
         }
     }
 

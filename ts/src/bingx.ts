@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/bingx.js';
-import { AuthenticationError, ExchangeNotAvailable, PermissionDenied, AccountSuspended, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired, NotSupported } from './base/errors.js';
+import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
@@ -57,6 +57,7 @@ export default class bingx extends Exchange {
                 'fetchLeverage': true,
                 'fetchLiquidations': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': true,
                 'fetchMyLiquidations': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
@@ -161,6 +162,7 @@ export default class bingx extends Exchange {
                         'private': {
                             'get': {
                                 'positionSide/dual': 1,
+                                'market/markPriceKlines': 1,
                             },
                             'post': {
                                 'positionSide/dual': 1,
@@ -362,13 +364,14 @@ export default class bingx extends Exchange {
                     '100500': ExchangeError,
                     '100503': ExchangeError,
                     '80001': BadRequest,
-                    '80012': ExchangeNotAvailable,
+                    '80012': InsufficientFunds, // bingx {"code":80012,"msg":"{\"Code\":101253,\"Msg\":\"margin is not enough\"}}
                     '80014': BadRequest,
                     '80016': OrderNotFound,
                     '80017': OrderNotFound,
                     '100414': AccountSuspended, // {"code":100414,"msg":"Code: 100414, Msg: risk control check fail,code(1)","debugMsg":""}
                     '100419': PermissionDenied, // {"code":100419,"msg":"IP does not match IP whitelist","success":false,"timestamp":1705274099347}
                     '100437': BadRequest, // {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
+                    '101204': InsufficientFunds, // bingx {"code":101204,"msg":"","data":{}}
                 },
                 'broad': {},
             },
@@ -693,6 +696,7 @@ export default class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data
          * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#K-Line%20Data%20-%20Mark%20Price
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -728,7 +732,13 @@ export default class bingx extends Exchange {
         if (market['spot']) {
             response = await this.spotV1PublicGetMarketKline (this.extend (request, params));
         } else {
-            response = await this.swapV3PublicGetQuoteKlines (this.extend (request, params));
+            const price = this.safeString (params, 'price');
+            params = this.omit (params, 'price');
+            if (price === 'mark') {
+                response = await this.swapV1PrivateGetMarketMarkPriceKlines (this.extend (request, params));
+            } else {
+                response = await this.swapV3PublicGetQuoteKlines (this.extend (request, params));
+            }
         }
         //
         //    {
@@ -744,6 +754,24 @@ export default class bingx extends Exchange {
         //            "time": 1666583700000
         //          },
         //          ...
+        //        ]
+        //    }
+        //
+        // fetchMarkOHLCV
+        //
+        //    {
+        //        "code": 0,
+        //        "msg": "",
+        //        "data": [
+        //            {
+        //                "open": "42191.7",
+        //                "close": "42189.5",
+        //                "high": "42196.5",
+        //                "low": "42189.5",
+        //                "volume": "0.00",
+        //                "openTime": 1706508840000,
+        //                "closeTime": 1706508840000
+        //            }
         //        ]
         //    }
         //
@@ -763,6 +791,18 @@ export default class bingx extends Exchange {
         //        "low": "19368.3",
         //        "volume": "167.44",
         //        "time": 1666584000000
+        //    }
+        //
+        // fetchMarkOHLCV
+        //
+        //    {
+        //        "open": "42191.7",
+        //        "close": "42189.5",
+        //        "high": "42196.5",
+        //        "low": "42189.5",
+        //        "volume": "0.00",
+        //        "openTime": 1706508840000,
+        //        "closeTime": 1706508840000
         //    }
         // spot
         //    [
@@ -787,7 +827,7 @@ export default class bingx extends Exchange {
             ];
         }
         return [
-            this.safeInteger (ohlcv, 'time'),
+            this.safeInteger2 (ohlcv, 'time', 'closeTime'),
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
@@ -2242,10 +2282,10 @@ export default class bingx extends Exchange {
         const clientOrderId = this.safeStringN (order, [ 'clientOrderID', 'origClientOrderId', 'c' ]);
         let stopLoss = this.safeValue (order, 'stopLoss');
         let stopLossPrice = undefined;
-        if (stopLoss !== undefined) {
+        if ((stopLoss !== undefined) && (stopLoss !== '')) {
             stopLossPrice = this.safeNumber (stopLoss, 'stopLoss');
         }
-        if ((stopLoss !== undefined) && (typeof stopLoss !== 'number')) {
+        if ((stopLoss !== undefined) && (typeof stopLoss !== 'number') && (stopLoss !== '')) {
             //  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
             if (typeof stopLoss === 'string') {
                 stopLoss = this.parseJson (stopLoss);
@@ -2254,10 +2294,10 @@ export default class bingx extends Exchange {
         }
         let takeProfit = this.safeValue (order, 'takeProfit');
         let takeProfitPrice = undefined;
-        if (takeProfit !== undefined) {
+        if (takeProfit !== undefined && (takeProfit !== '')) {
             takeProfitPrice = this.safeNumber (takeProfit, 'takeProfit');
         }
-        if ((takeProfit !== undefined) && (typeof takeProfit !== 'number')) {
+        if ((takeProfit !== undefined) && (typeof takeProfit !== 'number') && (takeProfit !== '')) {
             //  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
             if (typeof takeProfit === 'string') {
                 takeProfit = this.parseJson (takeProfit);

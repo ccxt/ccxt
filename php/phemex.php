@@ -187,6 +187,7 @@ class phemex extends Exchange {
                         'api-data/g-futures/trades' => 5, // ?symbol=<symbol>
                         'api-data/futures/trading-fees' => 5, // ?symbol=<symbol>
                         'api-data/g-futures/trading-fees' => 5, // ?symbol=<symbol>
+                        'api-data/futures/v2/tradeAccountDetail' => 5, // ?currency=<currecny>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
                         'g-orders/activeList' => 1, // ?symbol=<symbol>
                         'orders/activeList' => 1, // ?symbol=<symbol>
                         'exchange/order/list' => 5, // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
@@ -1896,16 +1897,19 @@ class phemex extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://phemex-docs.github.io/#query-wallets
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
+         * @see https://phemex-docs.github.io/#query-trading-account-and-positions
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] spot or swap
+         * @param {string} [$params->code] *swap only* $currency $code of the balance to query (USD, USDT, etc), default is USDT
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $code = $this->safe_string($params, 'code');
-        $params = $this->omit($params, array( 'type', 'code' ));
+        $params = $this->omit($params, array( 'code' ));
         $response = null;
         $request = array();
         if (($type !== 'spot') && ($type !== 'swap')) {
@@ -1913,7 +1917,7 @@ class phemex extends Exchange {
         }
         if ($type === 'swap') {
             $settle = null;
-            list($settle, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'settle');
+            list($settle, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'settle', 'USDT');
             if ($code !== null || $settle !== null) {
                 $coin = null;
                 if ($code !== null) {
@@ -2732,7 +2736,7 @@ class phemex extends Exchange {
             $request['baseQtyEV'] = $finalQty;
         } elseif ($amount !== null) {
             if ($isUSDTSettled) {
-                $request['baseQtyEV'] = $this->amount_to_precision($market['symbol'], $amount);
+                $request['orderQtyRq'] = $this->amount_to_precision($market['symbol'], $amount);
             } else {
                 $request['baseQtyEV'] = $this->to_ev($amount, $market);
             }
@@ -3472,8 +3476,10 @@ class phemex extends Exchange {
          * fetch all open $positions
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-trading-account-and-$positions
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-$positions
-         * @param {string[]|null} $symbols list of unified $market $symbols
+         * @see https://phemex-docs.github.io/#query-account-$positions-with-unrealized-pnl
+         * @param {string[]} [$symbols] list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [param.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
          */
         $this->load_markets();
@@ -3505,7 +3511,13 @@ class phemex extends Exchange {
         );
         $response = null;
         if ($isUSDTSettled) {
-            $response = $this->privateGetGAccountsAccountPositions (array_merge($request, $params));
+            $method = null;
+            list($method, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'method', 'privateGetGAccountsAccountPositions');
+            if ($method === 'privateGetGAccountsAccountPositions') {
+                $response = $this->privateGetGAccountsAccountPositions (array_merge($request, $params));
+            } else {
+                $response = $this->privateGetAccountsPositions (array_merge($request, $params));
+            }
         } else {
             $response = $this->privateGetAccountsAccountPositions (array_merge($request, $params));
         }
@@ -3681,7 +3693,7 @@ class phemex extends Exchange {
         $contracts = $this->safe_string($position, 'size');
         $contractSize = $this->safe_value($market, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
-        $leverage = $this->safe_number_2($position, 'leverage', 'leverageRr');
+        $leverage = $this->parse_number(Precise::string_abs(($this->safe_string_2($position, 'leverage', 'leverageRr'))));
         $entryPriceString = $this->safe_string_2($position, 'avgEntryPrice', 'avgEntryPriceRp');
         $rawSide = $this->safe_string($position, 'side');
         $side = null;

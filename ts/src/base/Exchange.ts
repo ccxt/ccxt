@@ -507,16 +507,19 @@ export default class Exchange {
                 'fetchBorrowInterest': undefined,
                 'fetchBorrowRateHistory': undefined,
                 'fetchCanceledOrders': undefined,
+                'fetchCanceledAndClosedOrders': undefined,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
                 'fetchCrossBorrowRate': undefined,
                 'fetchCrossBorrowRates': undefined,
                 'fetchCurrencies': 'emulated',
+                'fetchCurrenciesWs': 'emulated',
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': undefined,
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': undefined,
                 'fetchDeposits': undefined,
+                'fetchDepositsWs': undefined,
                 'fetchDepositsWithdrawals': undefined,
                 'fetchTransactionFee': undefined,
                 'fetchTransactionFees': undefined,
@@ -534,9 +537,11 @@ export default class Exchange {
                 'fetchLeverageTiers': undefined,
                 'fetchMarketLeverageTiers': undefined,
                 'fetchMarkets': true,
+                'fetchMarketsWs': undefined,
                 'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': undefined,
+                'fetchOHLCVWs': undefined,
                 'fetchOpenInterest': undefined,
                 'fetchOpenInterestHistory': undefined,
                 'fetchOpenOrder': undefined,
@@ -559,12 +564,14 @@ export default class Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': undefined,
                 'fetchTradingFees': undefined,
+                'fetchTradingFeesWs': undefined,
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
                 'fetchWithdrawAddresses': undefined,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
+                'fetchWithdrawalsWs': undefined,
                 'reduceMargin': undefined,
                 'setLeverage': undefined,
                 'setMargin': undefined,
@@ -1224,7 +1231,23 @@ export default class Exchange {
         return new Promise ((resolve, reject) => resolve (this.currencies));
     }
 
+    fetchCurrenciesWs (params = {}) {
+        // markets are returned as a list
+        // currencies are returned as a dict
+        // this is for historical reasons
+        // and may be changed for consistency later
+        return new Promise ((resolve, reject) => resolve (this.currencies));
+    }
+
     fetchMarkets (params = {}): Promise<Market[]> {
+        // markets are returned as a list
+        // currencies are returned as a dict
+        // this is for historical reasons
+        // and may be changed for consistency later
+        return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
+    }
+
+    fetchMarketsWs (params = {}): Promise<Market[]> {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
@@ -1496,14 +1519,12 @@ export default class Exchange {
                         client.throttle (cost).then (() => {
                             client.send (message);
                         }).catch ((e) => {
-                            delete client.subscriptions[subscribeHash];
-                            future.reject (e);
+                            client.onError (e);
                         });
                     } else {
                         client.send (message)
                         .catch ((e) => {
-                            delete client.subscriptions[subscribeHash];
-                            future.reject (e);
+                            client.onError (e);
                         });
                     }
                 }
@@ -3092,6 +3113,14 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet' + message);
     }
 
+    async fetchOHLCVWs (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        let message = '';
+        if (this.has['fetchTradesWs']) {
+            message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file';
+        }
+        throw new NotSupported (this.id + ' fetchOHLCVWs() is not supported yet. Try using fetchOHLCV instead.' + message);
+    }
+
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         throw new NotSupported (this.id + ' watchOHLCV() is not supported yet');
     }
@@ -3461,7 +3490,7 @@ export default class Exchange {
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
             const id = this.safeString (item, marketIdKey);
-            const market = this.safeMarket (id, undefined, undefined, this.safeString (this.options, 'defaultType'));
+            const market = this.safeMarket (id, undefined, undefined, 'swap');
             const symbol = market['symbol'];
             const contract = this.safeValue (market, 'contract', false);
             if (contract && ((symbols === undefined) || this.inArray (symbol, symbols))) {
@@ -4514,6 +4543,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchClosedOrders() is not supported yet');
     }
 
+    async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        throw new NotSupported (this.id + ' fetchCanceledAndClosedOrders() is not supported yet');
+    }
+
     async fetchClosedOrdersWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.has['fetchOrdersWs']) {
             const orders = await this.fetchOrdersWs (symbol, since, limit, params);
@@ -4542,10 +4575,6 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchMyTrades() is not supported yet');
     }
 
-    async fetchOHLCVWs (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        throw new NotSupported (this.id + ' fetchOHLCVWs() is not supported yet');
-    }
-
     async fetchGreeks (symbol: string, params = {}): Promise<Greeks> {
         throw new NotSupported (this.id + ' fetchGreeks() is not supported yet');
     }
@@ -4568,8 +4597,16 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchDeposits() is not supported yet');
     }
 
+    async fetchDepositsWs (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchDepositsWs() is not supported yet');
+    }
+
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchWithdrawals() is not supported yet');
+    }
+
+    async fetchWithdrawalsWs (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchWithdrawalsWs() is not supported yet');
     }
 
     async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
@@ -4659,8 +4696,14 @@ export default class Exchange {
                 }
             }
             return markets[0];
+        } else if ((symbol.endsWith ('-C')) || (symbol.endsWith ('-P')) || (symbol.startsWith ('C-')) || (symbol.startsWith ('P-'))) {
+            return this.createExpiredOptionMarket (symbol);
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
+    }
+
+    createExpiredOptionMarket (symbol: string): MarketInterface {
+        throw new NotSupported (this.id + ' createExpiredOptionMarket () is not supported yet');
     }
 
     handleWithdrawTagAndParams (tag, params): any {
@@ -5086,6 +5129,10 @@ export default class Exchange {
 
     async fetchTradingFees (params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchTradingFees() is not supported yet');
+    }
+
+    async fetchTradingFeesWs (params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchTradingFeesWs() is not supported yet');
     }
 
     async fetchTradingFee (symbol: string, params = {}) {

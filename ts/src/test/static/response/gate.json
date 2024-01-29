@@ -171,6 +171,212 @@
                   }
                 ]
             }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Spot trade",
+                "method": "fetchMyTrades",
+                "input": [
+                  "LTC/USDT"
+                ],
+                "httpResponse": [
+                  {
+                    "id": "7342180137",
+                    "create_time": "1706382263",
+                    "create_time_ms": "1706382263841.325000",
+                    "currency_pair": "LTC_USDT",
+                    "side": "buy",
+                    "role": "taker",
+                    "amount": "0.025",
+                    "price": "68.02",
+                    "order_id": "497245022561",
+                    "fee": "0.000050",
+                    "fee_currency": "LTC",
+                    "point_fee": "0.0",
+                    "gt_fee": "0.0",
+                    "amend_text": "-",
+                    "sequence_id": "1388786",
+                    "text": "apiv4"
+                  },
+                  {
+                    "id": "7342180136",
+                    "create_time": "1706382263",
+                    "create_time_ms": "1706382263841.313000",
+                    "currency_pair": "LTC_USDT",
+                    "side": "buy",
+                    "role": "taker",
+                    "amount": "0.0485",
+                    "price": "68.01",
+                    "order_id": "497245022561",
+                    "fee": "0.000097",
+                    "fee_currency": "LTC",
+                    "point_fee": "0.0",
+                    "gt_fee": "0.0",
+                    "amend_text": "-",
+                    "sequence_id": "1388785",
+                    "text": "apiv4"
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "id": "7342180136",
+                      "create_time": "1706382263",
+                      "create_time_ms": "1706382263841.313000",
+                      "currency_pair": "LTC_USDT",
+                      "side": "buy",
+                      "role": "taker",
+                      "amount": "0.0485",
+                      "price": "68.01",
+                      "order_id": "497245022561",
+                      "fee": "0.000097",
+                      "fee_currency": "LTC",
+                      "point_fee": "0.0",
+                      "gt_fee": "0.0",
+                      "amend_text": "-",
+                      "sequence_id": "1388785",
+                      "text": "apiv4"
+                    },
+                    "id": "7342180136",
+                    "timestamp": 1706382263841,
+                    "datetime": "2024-01-27T19:04:23.841Z",
+                    "symbol": "LTC/USDT",
+                    "order": "497245022561",
+                    "type": null,
+                    "side": "buy",
+                    "takerOrMaker": "taker",
+                    "price": 68.01,
+                    "amount": 0.0485,
+                    "cost": 3.298485,
+                    "fee": null,
+                    "fees": [
+                      {
+                        "cost": "0.000097",
+                        "currency": "LTC"
+                      },
+                      {
+                        "cost": "0.0",
+                        "currency": "GT"
+                      },
+                      {
+                        "cost": "0.0",
+                        "currency": "GatePoint"
+                      }
+                    ]
+                  },
+                  {
+                    "info": {
+                      "id": "7342180137",
+                      "create_time": "1706382263",
+                      "create_time_ms": "1706382263841.325000",
+                      "currency_pair": "LTC_USDT",
+                      "side": "buy",
+                      "role": "taker",
+                      "amount": "0.025",
+                      "price": "68.02",
+                      "order_id": "497245022561",
+                      "fee": "0.000050",
+                      "fee_currency": "LTC",
+                      "point_fee": "0.0",
+                      "gt_fee": "0.0",
+                      "amend_text": "-",
+                      "sequence_id": "1388786",
+                      "text": "apiv4"
+                    },
+                    "id": "7342180137",
+                    "timestamp": 1706382263841,
+                    "datetime": "2024-01-27T19:04:23.841Z",
+                    "symbol": "LTC/USDT",
+                    "order": "497245022561",
+                    "type": null,
+                    "side": "buy",
+                    "takerOrMaker": "taker",
+                    "price": 68.02,
+                    "amount": 0.025,
+                    "cost": 1.7005,
+                    "fee": null,
+                    "fees": [
+                      {
+                        "cost": "0.000050",
+                        "currency": "LTC"
+                      },
+                      {
+                        "cost": "0.0",
+                        "currency": "GT"
+                      },
+                      {
+                        "cost": "0.0",
+                        "currency": "GatePoint"
+                      }
+                    ]
+                  }
+                ]
+            },
+            {
+                "description": "Swap trade",
+                "method": "fetchMyTrades",
+                "input": [
+                  "LTC/USDT:USDT",
+                  null,
+                  1
+                ],
+                "httpResponse": [
+                  {
+                    "price": "68.42",
+                    "text": "api",
+                    "fee": "0.003421",
+                    "create_time": "1705950365.664",
+                    "point_fee": "0",
+                    "trade_id": "29768497",
+                    "contract": "LTC_USDT",
+                    "role": "taker",
+                    "order_id": "402052804778",
+                    "size": "-1",
+                    "biz_info": "ch:ccxt",
+                    "amend_text": "ch:ccxt"
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "price": "68.42",
+                      "text": "api",
+                      "fee": "0.003421",
+                      "create_time": "1705950365.664",
+                      "point_fee": "0",
+                      "trade_id": "29768497",
+                      "contract": "LTC_USDT",
+                      "role": "taker",
+                      "order_id": "402052804778",
+                      "size": "-1",
+                      "biz_info": "ch:ccxt",
+                      "amend_text": "ch:ccxt"
+                    },
+                    "id": "29768497",
+                    "timestamp": 1705950365664,
+                    "datetime": "2024-01-22T19:06:05.664Z",
+                    "symbol": "LTC/USDT:USDT",
+                    "order": "402052804778",
+                    "type": null,
+                    "side": "sell",
+                    "takerOrMaker": "taker",
+                    "price": 68.42,
+                    "amount": 1,
+                    "cost": 6.842,
+                    "fee": null,
+                    "fees": [
+                      {
+                        "cost": "0.003421",
+                        "currency": "USDT"
+                      },
+                      {
+                        "cost": "0",
+                        "currency": "GatePoint"
+                      }
+                    ]
+                  }
+                ]
+              }
         ]
     }
 }

@@ -138,7 +138,7 @@ class gate(Exchange, ImplicitAPI):
                 'fetchLeverageTiers': True,
                 'fetchLiquidations': True,
                 'fetchMarginMode': False,
-                'fetchMarketLeverageTiers': 'emulated',
+                'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
                 'fetchMyLiquidations': True,
@@ -435,6 +435,7 @@ class gate(Exchange, ImplicitAPI):
                             '{settle}/liquidates': 1,
                             '{settle}/auto_deleverages': 1,
                             '{settle}/fee': 1,
+                            '{settle}/risk_limit_tiers': 1,
                             '{settle}/price_orders': 1,
                             '{settle}/price_orders/{order_id}': 1,
                         },
@@ -547,6 +548,7 @@ class gate(Exchange, ImplicitAPI):
                             'multi_collateral/currency_quota': 20 / 15,
                             'multi_collateral/currencies': 20 / 15,
                             'multi_collateral/ltv': 20 / 15,
+                            'multi_collateral/fixed_rate': 20 / 15,
                         },
                         'post': {
                             'collateral/orders': 20 / 15,
@@ -948,24 +950,6 @@ class gate(Exchange, ImplicitAPI):
             },
             'info': None,
         }
-
-    def market(self, symbol):
-        if self.markets is None:
-            raise ExchangeError(self.id + ' markets not loaded')
-        if isinstance(symbol, str):
-            if symbol in self.markets:
-                return self.markets[symbol]
-            elif symbol in self.markets_by_id:
-                markets = self.markets_by_id[symbol]
-                defaultType = self.safe_string_2(self.options, 'defaultType', 'defaultSubType', 'spot')
-                for i in range(0, len(markets)):
-                    market = markets[i]
-                    if market[defaultType]:
-                        return market
-                return markets[0]
-            elif (symbol.find('-C') > -1) or (symbol.find('-P') > -1):
-                return self.create_expired_option_market(symbol)
-        raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
 
     def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
         isOption = (marketId is not None) and ((marketId.find('-C') > -1) or (marketId.find('-P') > -1))
@@ -3282,7 +3266,7 @@ class gate(Exchange, ImplicitAPI):
         #         "price": "333"
         #     }
         #
-        id = self.safe_string(trade, 'id')
+        id = self.safe_string_2(trade, 'id', 'trade_id')
         timestamp = self.safe_timestamp_2(trade, 'time', 'create_time')
         timestamp = self.safe_integer(trade, 'create_time_ms', timestamp)
         marketId = self.safe_string_2(trade, 'currency_pair', 'contract')
@@ -5186,7 +5170,7 @@ class gate(Exchange, ImplicitAPI):
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         :see: https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts
         :see: https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts-2
-        :param str[]|None symbols: list of unified market symbols
+        :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
         """
@@ -5296,101 +5280,35 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_leverage_tiers(response, symbols, 'name')
 
-    def parse_market_leverage_tiers(self, info, market: Market = None):
+    async def fetch_market_leverage_tiers(self, symbol: str, params={}):
         """
-         * @ignore
-        https://www.gate.io/help/futures/perpetual/22162/instrctions-of-risk-limit
-        :param dict info: Exchange market response for 1 market
-        :param dict market: CCXT market
+        retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+        :see: https://www.gate.io/docs/developers/apiv4/en/#list-risk-limit-tiers
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`
         """
+        await self.load_markets()
+        market = self.market(symbol)
+        type, query = self.handle_market_type_and_params('fetchMarketLeverageTiers', market, params)
+        request, requestParams = self.prepare_request(market, type, query)
+        if type != 'future' and type != 'swap':
+            raise BadRequest(self.id + ' fetchMarketLeverageTiers only supports swap and future')
+        response = await self.privateFuturesGetSettleRiskLimitTiers(self.extend(request, requestParams))
         #
-        # Perpetual swap
+        #     [
+        #         {
+        #             "maintenance_rate": "0.004",
+        #             "tier": 1,
+        #             "initial_rate": "0.008",
+        #             "leverage_max": "125",
+        #             "risk_limit": "1000000"
+        #         }
+        #     ]
         #
-        #    {
-        #        "name": "BTC_USDT",
-        #        "type": "direct",
-        #        "quanto_multiplier": "0.0001",
-        #        "ref_discount_rate": "0",
-        #        "order_price_deviate": "0.5",
-        #        "maintenance_rate": "0.005",
-        #        "mark_type": "index",
-        #        "last_price": "38026",
-        #        "mark_price": "37985.6",
-        #        "index_price": "37954.92",
-        #        "funding_rate_indicative": "0.000219",
-        #        "mark_price_round": "0.01",
-        #        "funding_offset": 0,
-        #        "in_delisting": False,
-        #        "risk_limit_base": "1000000",
-        #        "interest_rate": "0.0003",
-        #        "order_price_round": "0.1",
-        #        "order_size_min": 1,
-        #        "ref_rebate_rate": "0.2",
-        #        "funding_interval": 28800,
-        #        "risk_limit_step": "1000000",
-        #        "leverage_min": "1",
-        #        "leverage_max": "100",
-        #        "risk_limit_max": "8000000",
-        #        "maker_fee_rate": "-0.00025",
-        #        "taker_fee_rate": "0.00075",
-        #        "funding_rate": "0.002053",
-        #        "order_size_max": 1000000,
-        #        "funding_next_apply": 1610035200,
-        #        "short_users": 977,
-        #        "config_change_time": 1609899548,
-        #        "trade_size": 28530850594,
-        #        "position_size": 5223816,
-        #        "long_users": 455,
-        #        "funding_impact_value": "60000",
-        #        "orders_limit": 50,
-        #        "trade_id": 10851092,
-        #        "orderbook_id": 2129638396
-        #    }
-        #
-        # Delivery Futures
-        #
-        #    {
-        #        "name": "BTC_USDT_20200814",
-        #        "underlying": "BTC_USDT",
-        #        "cycle": "WEEKLY",
-        #        "type": "direct",
-        #        "quanto_multiplier": "0.0001",
-        #        "mark_type": "index",
-        #        "last_price": "9017",
-        #        "mark_price": "9019",
-        #        "index_price": "9005.3",
-        #        "basis_rate": "0.185095",
-        #        "basis_value": "13.7",
-        #        "basis_impact_value": "100000",
-        #        "settle_price": "0",
-        #        "settle_price_interval": 60,
-        #        "settle_price_duration": 1800,
-        #        "settle_fee_rate": "0.0015",
-        #        "expire_time": 1593763200,
-        #        "order_price_round": "0.1",
-        #        "mark_price_round": "0.1",
-        #        "leverage_min": "1",
-        #        "leverage_max": "100",
-        #        "maintenance_rate": "1000000",
-        #        "risk_limit_base": "140.726652109199",
-        #        "risk_limit_step": "1000000",
-        #        "risk_limit_max": "8000000",
-        #        "maker_fee_rate": "-0.00025",
-        #        "taker_fee_rate": "0.00075",
-        #        "ref_discount_rate": "0",
-        #        "ref_rebate_rate": "0.2",
-        #        "order_price_deviate": "0.5",
-        #        "order_size_min": 1,
-        #        "order_size_max": 1000000,
-        #        "orders_limit": 50,
-        #        "orderbook_id": 63,
-        #        "trade_id": 26,
-        #        "trade_size": 435,
-        #        "position_size": 130,
-        #        "config_change_time": 1593158867,
-        #        "in_delisting": False
-        #    }
-        #
+        return self.parse_market_leverage_tiers(response, market)
+
+    def parse_emulated_leverage_tiers(self, info, market=None):
         maintenanceMarginUnit = self.safe_string(info, 'maintenance_rate')  # '0.005',
         leverageMax = self.safe_string(info, 'leverage_max')  # '100',
         riskLimitStep = self.safe_string(info, 'risk_limit_step')  # '1000000',
@@ -5414,6 +5332,37 @@ class gate(Exchange, ImplicitAPI):
             maintenanceMarginRate = Precise.string_add(maintenanceMarginRate, maintenanceMarginUnit)
             initialMarginRatio = Precise.string_add(initialMarginRatio, initialMarginUnit)
             floor = cap
+        return tiers
+
+    def parse_market_leverage_tiers(self, info, market: Market = None):
+        #
+        #     [
+        #         {
+        #             "maintenance_rate": "0.004",
+        #             "tier": 1,
+        #             "initial_rate": "0.008",
+        #             "leverage_max": "125",
+        #             "risk_limit": "1000000"
+        #         }
+        #     ]
+        #
+        if not isinstance(info, list):
+            return self.parse_emulated_leverage_tiers(info, market)
+        minNotional = 0
+        tiers = []
+        for i in range(0, len(info)):
+            item = info[i]
+            maxNotional = self.safe_number(item, 'risk_limit')
+            tiers.append({
+                'tier': self.sum(i, 1),
+                'currency': market['base'],
+                'minNotional': minNotional,
+                'maxNotional': maxNotional,
+                'maintenanceMarginRate': self.safe_number(item, 'maintenance_rate'),
+                'maxLeverage': self.safe_number(item, 'leverage_max'),
+                'info': item,
+            })
+            minNotional = maxNotional
         return tiers
 
     async def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):

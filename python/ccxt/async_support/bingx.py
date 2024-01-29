@@ -20,7 +20,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
-from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.precise import Precise
@@ -379,13 +378,14 @@ class bingx(Exchange, ImplicitAPI):
                     '100500': ExchangeError,
                     '100503': ExchangeError,
                     '80001': BadRequest,
-                    '80012': ExchangeNotAvailable,
+                    '80012': InsufficientFunds,  # bingx {"code":80012,"msg":"{\"Code\":101253,\"Msg\":\"margin is not enough\"}}
                     '80014': BadRequest,
                     '80016': OrderNotFound,
                     '80017': OrderNotFound,
                     '100414': AccountSuspended,  # {"code":100414,"msg":"Code: 100414, Msg: risk control check fail,code(1)","debugMsg":""}
                     '100419': PermissionDenied,  # {"code":100419,"msg":"IP does not match IP whitelist","success":false,"timestamp":1705274099347}
                     '100437': BadRequest,  # {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
+                    '101204': InsufficientFunds,  # bingx {"code":101204,"msg":"","data":{}}
                 },
                 'broad': {},
             },
@@ -2111,18 +2111,18 @@ class bingx(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_n(order, ['clientOrderID', 'origClientOrderId', 'c'])
         stopLoss = self.safe_value(order, 'stopLoss')
         stopLossPrice = None
-        if stopLoss is not None:
+        if (stopLoss is not None) and (stopLoss != ''):
             stopLossPrice = self.safe_number(stopLoss, 'stopLoss')
-        if (stopLoss is not None) and ((not isinstance(stopLoss, numbers.Real))):
+        if (stopLoss is not None) and ((not isinstance(stopLoss, numbers.Real))) and (stopLoss != ''):
             #  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
             if isinstance(stopLoss, str):
                 stopLoss = self.parse_json(stopLoss)
             stopLossPrice = self.safe_number(stopLoss, 'stopPrice')
         takeProfit = self.safe_value(order, 'takeProfit')
         takeProfitPrice = None
-        if takeProfit is not None:
+        if takeProfit is not None and (takeProfit != ''):
             takeProfitPrice = self.safe_number(takeProfit, 'takeProfit')
-        if (takeProfit is not None) and ((not isinstance(takeProfit, numbers.Real))):
+        if (takeProfit is not None) and ((not isinstance(takeProfit, numbers.Real))) and (takeProfit != ''):
             #  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
             if isinstance(takeProfit, str):
                 takeProfit = self.parse_json(takeProfit)

@@ -47,7 +47,7 @@ export default class binance extends binanceRest {
                     'ws': {
                         'spot': 'wss://testnet.binance.vision/ws',
                         'margin': 'wss://testnet.binance.vision/ws',
-                        'future': 'wss://stream.binancefuture.com/ws',
+                        'future': 'wss://fstream.binancefuture.com/ws',
                         'delivery': 'wss://dstream.binancefuture.com/ws',
                         'ws': 'wss://testnet.binance.vision/ws-api/v3',
                     },
@@ -989,7 +989,7 @@ export default class binance extends binanceRest {
         }
         else {
             // take the timestamp of the closing price for candlestick streams
-            timestamp = this.safeInteger(message, 'C');
+            timestamp = this.safeInteger2(message, 'C', 'E');
         }
         const marketId = this.safeString(message, 's');
         const symbol = this.safeSymbol(marketId, undefined, undefined, marketType);
@@ -1980,12 +1980,13 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#watchOrders
-         * @see https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
          * @description watches information on multiple orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
+         * @see https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
+         * @param {string} symbol unified market symbol of the market the orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for spot margin
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2008,8 +2009,10 @@ export default class binance extends binanceRest {
         }
         params = this.extend(params, { 'type': type, 'symbol': symbol }); // needed inside authenticate for isolated margin
         await this.authenticate(params);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('watchOrders', params);
         let urlType = type;
-        if (type === 'margin') {
+        if ((type === 'margin') || ((type === 'spot') && (marginMode !== undefined))) {
             urlType = 'spot'; // spot-margin shares the same stream as regular spot
         }
         const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
@@ -2273,7 +2276,6 @@ export default class binance extends binanceRest {
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets();
-        await this.authenticate(params);
         let market = undefined;
         let messageHash = '';
         symbols = this.marketSymbols(symbols);
@@ -2281,6 +2283,12 @@ export default class binance extends binanceRest {
             market = this.getMarketFromSymbols(symbols);
             messageHash = '::' + symbols.join(',');
         }
+        const marketTypeObject = {};
+        if (market !== undefined) {
+            marketTypeObject['type'] = market['type'];
+            marketTypeObject['subType'] = market['subType'];
+        }
+        await this.authenticate(this.extend(marketTypeObject, params));
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchPositions', market, params);
         if (type === 'spot' || type === 'margin') {

@@ -207,6 +207,7 @@ class phemex(Exchange, ImplicitAPI):
                         'api-data/g-futures/trades': 5,  # ?symbol=<symbol>
                         'api-data/futures/trading-fees': 5,  # ?symbol=<symbol>
                         'api-data/g-futures/trading-fees': 5,  # ?symbol=<symbol>
+                        'api-data/futures/v2/tradeAccountDetail': 5,  # ?currency=<currecny>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
                         'g-orders/activeList': 1,  # ?symbol=<symbol>
                         'orders/activeList': 1,  # ?symbol=<symbol>
                         'exchange/order/list': 5,  # ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
@@ -1849,23 +1850,26 @@ class phemex(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
+        :see: https://phemex-docs.github.io/#query-wallets
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
+        :see: https://phemex-docs.github.io/#query-trading-account-and-positions
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: spot or swap
+        :param str [params.code]: *swap only* currency code of the balance to query(USD, USDT, etc), default is USDT
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
         type = None
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
         code = self.safe_string(params, 'code')
-        params = self.omit(params, ['type', 'code'])
+        params = self.omit(params, ['code'])
         response = None
         request = {}
         if (type != 'spot') and (type != 'swap'):
             raise BadRequest(self.id + ' does not support ' + type + ' markets, only spot and swap')
         if type == 'swap':
             settle = None
-            settle, params = self.handle_option_and_params(params, 'fetchBalance', 'settle')
+            settle, params = self.handle_option_and_params(params, 'fetchBalance', 'settle', 'USDT')
             if code is not None or settle is not None:
                 coin = None
                 if code is not None:
@@ -2623,7 +2627,7 @@ class phemex(Exchange, ImplicitAPI):
             request['baseQtyEV'] = finalQty
         elif amount is not None:
             if isUSDTSettled:
-                request['baseQtyEV'] = self.amount_to_precision(market['symbol'], amount)
+                request['orderQtyRq'] = self.amount_to_precision(market['symbol'], amount)
             else:
                 request['baseQtyEV'] = self.to_ev(amount, market)
         stopPrice = self.safe_string_2(params, 'stopPx', 'stopPrice')
@@ -3303,8 +3307,10 @@ class phemex(Exchange, ImplicitAPI):
         fetch all open positions
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-trading-account-and-positions
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
-        :param str[]|None symbols: list of unified market symbols
+        :see: https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
+        :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [param.method]: *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
@@ -3334,7 +3340,12 @@ class phemex(Exchange, ImplicitAPI):
         }
         response = None
         if isUSDTSettled:
-            response = self.privateGetGAccountsAccountPositions(self.extend(request, params))
+            method = None
+            method, params = self.handle_option_and_params(params, 'fetchPositions', 'method', 'privateGetGAccountsAccountPositions')
+            if method == 'privateGetGAccountsAccountPositions':
+                response = self.privateGetGAccountsAccountPositions(self.extend(request, params))
+            else:
+                response = self.privateGetAccountsPositions(self.extend(request, params))
         else:
             response = self.privateGetAccountsAccountPositions(self.extend(request, params))
         #
@@ -3507,7 +3518,7 @@ class phemex(Exchange, ImplicitAPI):
         contracts = self.safe_string(position, 'size')
         contractSize = self.safe_value(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
-        leverage = self.safe_number_2(position, 'leverage', 'leverageRr')
+        leverage = self.parse_number(Precise.string_abs((self.safe_string_2(position, 'leverage', 'leverageRr'))))
         entryPriceString = self.safe_string_2(position, 'avgEntryPrice', 'avgEntryPriceRp')
         rawSide = self.safe_string(position, 'side')
         side = None

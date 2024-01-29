@@ -415,6 +415,151 @@ class deribit(Exchange, ImplicitAPI):
             },
         })
 
+    def convert_expire_date(self, date):
+        # parse YYMMDD to timestamp
+        year = date[0:2]
+        month = date[2:4]
+        day = date[4:6]
+        reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z'
+        return reconstructedDate
+
+    def convert_market_id_expire_date(self, date):
+        # parse 19JAN24 to 240119
+        monthMappping = {
+            'JAN': '01',
+            'FEB': '02',
+            'MAR': '03',
+            'APR': '04',
+            'MAY': '05',
+            'JUN': '06',
+            'JUL': '07',
+            'AUG': '08',
+            'SEP': '09',
+            'OCT': '10',
+            'NOV': '11',
+            'DEC': '12',
+        }
+        year = date[0:2]
+        monthName = date[2:5]
+        month = self.safe_string(monthMappping, monthName)
+        day = date[5:7]
+        reconstructedDate = day + month + year
+        return reconstructedDate
+
+    def convert_expire_date_to_market_id_date(self, date):
+        # parse 240119 to 19JAN24
+        year = date[0:2]
+        monthRaw = date[2:4]
+        month = None
+        day = date[4:6]
+        if monthRaw == '01':
+            month = 'JAN'
+        elif monthRaw == '02':
+            month = 'FEB'
+        elif monthRaw == '03':
+            month = 'MAR'
+        elif monthRaw == '04':
+            month = 'APR'
+        elif monthRaw == '05':
+            month = 'MAY'
+        elif monthRaw == '06':
+            month = 'JUN'
+        elif monthRaw == '07':
+            month = 'JUL'
+        elif monthRaw == '08':
+            month = 'AUG'
+        elif monthRaw == '09':
+            month = 'SEP'
+        elif monthRaw == '10':
+            month = 'OCT'
+        elif monthRaw == '11':
+            month = 'NOV'
+        elif monthRaw == '12':
+            month = 'DEC'
+        reconstructedDate = day + month + year
+        return reconstructedDate
+
+    def create_expired_option_market(self, symbol):
+        # support expired option contracts
+        quote = 'USD'
+        settle = None
+        optionParts = symbol.split('-')
+        symbolBase = symbol.split('/')
+        base = None
+        expiry = None
+        if symbol.find('/') > -1:
+            base = self.safe_string(symbolBase, 0)
+            expiry = self.safe_string(optionParts, 1)
+            if symbol.find('USDC') > -1:
+                base = base + '_USDC'
+        else:
+            base = self.safe_string(optionParts, 0)
+            expiry = self.convert_market_id_expire_date(self.safe_string(optionParts, 1))
+        if symbol.find('USDC') > -1:
+            quote = 'USDC'
+            settle = 'USDC'
+        else:
+            settle = base
+        splitBase = base
+        if base.find('_') > -1:
+            splitSymbol = base.split('_')
+            splitBase = self.safe_string(splitSymbol, 0)
+        strike = self.safe_string(optionParts, 2)
+        optionType = self.safe_string(optionParts, 3)
+        datetime = self.convert_expire_date(expiry)
+        timestamp = self.parse8601(datetime)
+        return {
+            'id': base + '-' + self.convert_expire_date_to_market_id_date(expiry) + '-' + strike + '-' + optionType,
+            'symbol': splitBase + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': base,
+            'quoteId': quote,
+            'settleId': settle,
+            'active': False,
+            'type': 'option',
+            'linear': None,
+            'inverse': None,
+            'spot': False,
+            'swap': False,
+            'future': False,
+            'option': True,
+            'margin': False,
+            'contract': True,
+            'contractSize': None,
+            'expiry': timestamp,
+            'expiryDatetime': datetime,
+            'optionType': 'call' if (optionType == 'C') else 'put',
+            'strike': self.parse_number(strike),
+            'precision': {
+                'amount': None,
+                'price': None,
+            },
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'info': None,
+        }
+
+    def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
+        isOption = (marketId is not None) and ((marketId.endswith('-C')) or (marketId.endswith('-P')))
+        if isOption and not (marketId in self.markets_by_id):
+            # handle expired option contracts
+            return self.create_expired_option_market(marketId)
+        return super(deribit, self).safe_market(marketId, market, delimiter, marketType)
+
     async def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
@@ -2298,6 +2443,7 @@ class deribit(Exchange, ImplicitAPI):
     async def fetch_position(self, symbol: str, params={}):
         """
         fetch data on a single open contract trade position
+        :see: https://docs.deribit.com/#private-get_position
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -2340,11 +2486,14 @@ class deribit(Exchange, ImplicitAPI):
     async def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
+        :see: https://docs.deribit.com/#private-get_positions
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.kind]: market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
+        kind = self.safe_string(params, 'kind')
         code = None
         if symbols is None:
             code = self.code_from_options('fetchPositions', params)
@@ -2357,12 +2506,15 @@ class deribit(Exchange, ImplicitAPI):
                 if length != 1:
                     raise BadRequest(self.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol')
                 market = self.market(symbols[0])
-                code = market['base']
+                settle = market['settle']
+                code = settle if (settle is not None) else market['base']
+                kind = market['info']['kind']
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
-            # "kind" : "future", "option"
         }
+        if kind is not None:
+            request['kind'] = kind
         response = await self.privateGetGetPositions(self.extend(request, params))
         #
         #     {
@@ -2737,7 +2889,7 @@ class deribit(Exchange, ImplicitAPI):
             since = time - month
         request = {
             'instrument_name': market['id'],
-            'start_timestamp': since,
+            'start_timestamp': since - 1,
             'end_timestamp': time,
         }
         response = await self.publicGetGetFundingRateHistory(self.extend(request, params))
