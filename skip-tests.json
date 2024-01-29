@@ -679,6 +679,13 @@
             }
         }
     },
+    "coinmetro": {
+        "skipMethods": {
+            "fetchTrades": {
+                "side":"side is undefined"
+            }
+        }
+    },
     "coinone": {
         "skipWs": true,
         "skipMethods": {

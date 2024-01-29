@@ -3402,11 +3402,16 @@ class coinbase extends Exchange {
                     'Authorization' => $authorization,
                     'Content-Type' => 'application/json',
                 );
-            } elseif ($this->token) {
+            } elseif ($this->token && !$this->check_required_credentials(false)) {
                 $headers = array(
                     'Authorization' => 'Bearer ' . $this->token,
                     'Content-Type' => 'application/json',
                 );
+                if ($method !== 'GET') {
+                    if ($query) {
+                        $body = $this->json($query);
+                    }
+                }
             } else {
                 $this->check_required_credentials();
                 $nonce = (string) $this->nonce();

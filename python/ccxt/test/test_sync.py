@@ -1028,6 +1028,7 @@ class testMainClass(baseMainTestClass):
             'password': 'password',
             'walletAddress': 'wallet',
             'uid': 'uid',
+            'token': 'token',
             'accounts': [{
     'id': 'myAccount',
     'code': 'USDT',

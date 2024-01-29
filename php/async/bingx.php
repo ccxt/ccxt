@@ -65,6 +65,7 @@ class bingx extends Exchange {
                 'fetchLeverage' => true,
                 'fetchLiquidations' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => true,
                 'fetchMyLiquidations' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
@@ -169,6 +170,7 @@ class bingx extends Exchange {
                         'private' => array(
                             'get' => array(
                                 'positionSide/dual' => 1,
+                                'market/markPriceKlines' => 1,
                             ),
                             'post' => array(
                                 'positionSide/dual' => 1,
@@ -701,10 +703,11 @@ class bingx extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
-             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
              * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data
              * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
              * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data
+             * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#K-Line%20Data%20-%20Mark%20Price
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -740,7 +743,13 @@ class bingx extends Exchange {
             if ($market['spot']) {
                 $response = Async\await($this->spotV1PublicGetMarketKline (array_merge($request, $params)));
             } else {
-                $response = Async\await($this->swapV3PublicGetQuoteKlines (array_merge($request, $params)));
+                $price = $this->safe_string($params, 'price');
+                $params = $this->omit($params, 'price');
+                if ($price === 'mark') {
+                    $response = Async\await($this->swapV1PrivateGetMarketMarkPriceKlines (array_merge($request, $params)));
+                } else {
+                    $response = Async\await($this->swapV3PublicGetQuoteKlines (array_merge($request, $params)));
+                }
             }
             //
             //    {
@@ -756,6 +765,24 @@ class bingx extends Exchange {
             //            "time" => 1666583700000
             //          ),
             //          ...
+            //        )
+            //    }
+            //
+            // fetchMarkOHLCV
+            //
+            //    {
+            //        "code" => 0,
+            //        "msg" => "",
+            //        "data" => array(
+            //            {
+            //                "open" => "42191.7",
+            //                "close" => "42189.5",
+            //                "high" => "42196.5",
+            //                "low" => "42189.5",
+            //                "volume" => "0.00",
+            //                "openTime" => 1706508840000,
+            //                "closeTime" => 1706508840000
+            //            }
             //        )
             //    }
             //
@@ -776,6 +803,18 @@ class bingx extends Exchange {
         //        "low" => "19368.3",
         //        "volume" => "167.44",
         //        "time" => 1666584000000
+        //    }
+        //
+        // fetchMarkOHLCV
+        //
+        //    {
+        //        "open" => "42191.7",
+        //        "close" => "42189.5",
+        //        "high" => "42196.5",
+        //        "low" => "42189.5",
+        //        "volume" => "0.00",
+        //        "openTime" => 1706508840000,
+        //        "closeTime" => 1706508840000
         //    }
         // spot
         //    array(
@@ -800,7 +839,7 @@ class bingx extends Exchange {
             );
         }
         return array(
-            $this->safe_integer($ohlcv, 'time'),
+            $this->safe_integer_2($ohlcv, 'time', 'closeTime'),
             $this->safe_number($ohlcv, 'open'),
             $this->safe_number($ohlcv, 'high'),
             $this->safe_number($ohlcv, 'low'),

@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.2.25';
+const version = '4.2.27';
 
 (Exchange as any).ccxtVersion = version
 
@@ -90,6 +90,7 @@ import coincheck from  './src/coincheck.js'
 import coinex from  './src/coinex.js'
 import coinlist from  './src/coinlist.js'
 import coinmate from  './src/coinmate.js'
+import coinmetro from  './src/coinmetro.js'
 import coinone from  './src/coinone.js'
 import coinsph from  './src/coinsph.js'
 import coinspot from  './src/coinspot.js'
@@ -254,6 +255,7 @@ const exchanges = {
     'coinex':                 coinex,
     'coinlist':               coinlist,
     'coinmate':               coinmate,
+    'coinmetro':              coinmetro,
     'coinone':                coinone,
     'coinsph':                coinsph,
     'coinspot':               coinspot,
@@ -496,6 +498,7 @@ export {
     coinex,
     coinlist,
     coinmate,
+    coinmetro,
     coinone,
     coinsph,
     coinspot,
