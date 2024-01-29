@@ -121,6 +121,14 @@
                 ],
                 "output": ""
             }
+        ],
+        "fetchCanceledAndClosedOrders": [
+            {
+              "description": "closed and canceled orders",
+              "method": "fetchCanceledAndClosedOrders",
+              "url": "https://api.coinmetro.com/exchange/orders/history/{since}",
+              "input": []
+            }
         ]
     }
 }
