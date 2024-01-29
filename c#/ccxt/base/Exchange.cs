@@ -553,13 +553,14 @@ public partial class Exchange
         // stub to implement later
     }
 
-    public void Close()
+    public async Task Close()
     {
         // stub
     }
 
-    public void close() {
-        this.Close();
+    public async Task close()
+    {
+        await this.Close();
     }
 
     public virtual object parseNumber(object value, object defaultValue = null)
