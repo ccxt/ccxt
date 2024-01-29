@@ -9,7 +9,7 @@ import { TICK_SIZE, ROUND, DECIMAL_PLACES } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Market, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position } from './base/types.js';
+import type { Market, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -34,15 +34,15 @@ export default class hyperliquid extends Exchange {
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
                 'cancelAllOrders': false,
-                'cancelOrder': false,
-                'cancelOrders': false,
+                'cancelOrder': true,
+                'cancelOrders': true,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createMarketBuyOrderWithCost': false,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
-                'createOrders': false,
+                'createOrders': true,
                 'createReduceOnlyOrder': false,
                 'editOrder': true,
                 'fetchAccounts': false,
@@ -106,7 +106,7 @@ export default class hyperliquid extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'transfer': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -591,6 +591,7 @@ export default class hyperliquid extends Exchange {
          * @method
          * @name hyperliquid#createOrder
          * @description create a trade order
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -605,78 +606,133 @@ export default class hyperliquid extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        type = type.toUpperCase ();
-        const isMarket = (type === 'MARKET');
-        side = side.toUpperCase ();
-        const isBuy = (side === 'BUY');
-        const defaultSlippage = this.safeValue (this.options, 'defaultSlippage');
-        const slippage = this.safeValue (params, 'slippage', defaultSlippage);
-        const vaultAddress = this.safeString (params, 'vaultAddress');
-        const defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
-        let timeInForce = this.safeStringLower (params, 'timeInForce', defaultTimeInForce);
-        timeInForce = this.capitalize (timeInForce);
+        const order = {
+            symbol,
+            type,
+            side,
+            amount,
+            price,
+            params,
+        } as OrderRequest;
+        const response = await this.createOrders ([ order ], params);
+        const first = this.safeValue (response, 0);
+        return this.parseOrder (first, market);
+    }
+
+    async createOrders (orders: OrderRequest[], params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#createOrders
+         * @description create a list of trade orders
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {string} [params.clientOrderId] client order id (default undefined), all orders must have cloids if at least one has a cloid
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        let defaultSlippage = this.safeValue (this.options, 'defaultSlippage');
+        defaultSlippage = this.safeValue (params, 'slippage', defaultSlippage);
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
+        const vaultAddress = this.safeString (params, 'vaultAddress');
         const zeroAddress = this.safeString (this.options, 'zeroAddress');
-        let triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice', 0);
-        const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
-        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
-        const isTrigger = (stopLossPrice || takeProfitPrice);
-        params = this.omit (params, [ 'slippage', 'vaultAddress', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id' ]);
-        // TODO: round px to 5 significant figures and 6 decimals
-        // TODO: cloid
-        let px = price;
-        if (isMarket) {
-            px = (isBuy) ? price * (1 + slippage) : price * (1 - slippage);
-        }
-        const reduceOnly = this.safeValue (params, 'reduceOnly', false);
-        // TODO: trigger order type
-        const orderType = {};
-        let signingOrderType = 0;
-        if (isTrigger) {
-            let isTp = false;
-            if (takeProfitPrice !== undefined) {
-                triggerPrice = takeProfitPrice;
-                isTp = true;
-                signingOrderType = (isMarket) ? 4 : 5;
-            } else {
-                triggerPrice = stopLossPrice;
-                signingOrderType = (isMarket) ? 6 : 7;
-            }
-            orderType['trigger'] = {
-                'triggerPx': this.parseToInt (this.priceToPrecision (symbol, triggerPrice)),
-                'tpsl': (isTp) ? 'tp' : 'sl',
-                'isMarket': isMarket,
-            };
-        } else {
-            orderType['limit'] = {
-                'tif': timeInForce,
-            };
-            if (timeInForce === 'Ioc') {
-                signingOrderType = 3;
-            } else if (timeInForce === 'Alo') {
-                signingOrderType = 1;
-            } else if (timeInForce === 'Gtc') {
-                signingOrderType = 2;
-            }
-        }
         const base = Math.pow (10, 8);
         const nonce = this.milliseconds ();
+        const orderSig = [];
+        const orderReq = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString (rawOrder, 'symbol');
+            const market = this.market (marketId);
+            const symbol = market['symbol'];
+            const type = this.safeStringUpper (rawOrder, 'type');
+            const isMarket = (type === 'MARKET');
+            const side = this.safeStringUpper (rawOrder, 'side');
+            const isBuy = (side === 'BUY');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
+            let orderParams = this.safeValue (rawOrder, 'params', {});
+            orderParams = this.extend (params, orderParams);
+            const slippage = this.safeValue (orderParams, 'slippage', defaultSlippage);
+            const defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
+            let timeInForce = this.safeStringLower (orderParams, 'timeInForce', defaultTimeInForce);
+            timeInForce = this.capitalize (timeInForce);
+            let triggerPrice = this.safeValue2 (orderParams, 'triggerPrice', 'stopPrice', 0);
+            const stopLossPrice = this.safeValue (orderParams, 'stopLossPrice', triggerPrice);
+            const takeProfitPrice = this.safeValue (orderParams, 'takeProfitPrice');
+            const isTrigger = (stopLossPrice || takeProfitPrice);
+            // TODO: round px to 5 significant figures and 6 decimals
+            let px = price;
+            if (isMarket) {
+                px = (isBuy) ? price * (1 + slippage) : price * (1 - slippage);
+            }
+            const reduceOnly = this.safeValue (params, 'reduceOnly', false);
+            // TODO: trigger order type
+            const orderType = {};
+            let signingOrderType = 0;
+            if (isTrigger) {
+                let isTp = false;
+                if (takeProfitPrice !== undefined) {
+                    triggerPrice = takeProfitPrice;
+                    isTp = true;
+                    signingOrderType = (isMarket) ? 4 : 5;
+                } else {
+                    triggerPrice = stopLossPrice;
+                    signingOrderType = (isMarket) ? 6 : 7;
+                }
+                orderType['trigger'] = {
+                    'triggerPx': this.parseToInt (this.priceToPrecision (symbol, triggerPrice)),
+                    'tpsl': (isTp) ? 'tp' : 'sl',
+                    'isMarket': isMarket,
+                };
+            } else {
+                orderType['limit'] = {
+                    'tif': timeInForce,
+                };
+                if (timeInForce === 'Ioc') {
+                    signingOrderType = 3;
+                } else if (timeInForce === 'Alo') {
+                    signingOrderType = 1;
+                } else if (timeInForce === 'Gtc') {
+                    signingOrderType = 2;
+                }
+            }
+            if (clientOrderId !== undefined) {
+                orderSig.push ([
+                    this.parseToInt (market['baseId']), // asset
+                    isBuy, // isBuy
+                    this.parseToInt (px * base), // px
+                    this.parseToInt (amount * base), // sz
+                    reduceOnly, // reduceOnly
+                    signingOrderType, // signingOrderType
+                    this.parseToInt (triggerPrice * base), // trigger_px
+                    this.base16ToBinary (this.remove0xPrefix (clientOrderId)), // clientOid
+                ]);
+            } else {
+                orderSig.push ([
+                    this.parseToInt (market['baseId']), // asset
+                    isBuy, // isBuy
+                    this.parseToInt (px * base), // px
+                    this.parseToInt (amount * base), // sz
+                    reduceOnly, // reduceOnly
+                    signingOrderType, // signingOrderType
+                    this.parseToInt (triggerPrice * base), // trigger_px
+                ]);
+            }
+            orderReq.push ({
+                'asset': this.parseToInt (market['baseId']),
+                'isBuy': isBuy,
+                'sz': this.amountToPrecision (symbol, amount),
+                'limitPx': this.amountToPrecision (symbol, px),
+                'reduceOnly': reduceOnly,
+                'orderType': orderType,
+                'cloid': clientOrderId,
+            });
+        }
         let sig = undefined;
         if (clientOrderId !== undefined) {
             const signatureTypes = [ '(uint32,bool,uint64,uint64,bool,uint8,uint64,bytes16)[]', 'uint8', 'address', 'uint256' ];
             const signatureData = [
-                [
-                    [
-                        this.parseToInt (market['baseId']), // asset
-                        isBuy, // isBuy
-                        this.parseToInt (px * base), // px
-                        this.parseToInt (amount * base), // sz
-                        reduceOnly, // reduceOnly
-                        signingOrderType, // signingOrderType
-                        this.parseToInt (triggerPrice * base), // trigger_px
-                        this.base16ToBinary (this.remove0xPrefix (clientOrderId)), // clientOid
-                    ],
-                ],
+                orderSig,
                 0, // na grouping
                 (vaultAddress) ? vaultAddress : zeroAddress,
                 nonce,
@@ -685,17 +741,7 @@ export default class hyperliquid extends Exchange {
         } else {
             const signatureTypes = [ '(uint32,bool,uint64,uint64,bool,uint8,uint64)[]', 'uint8', 'address', 'uint256' ];
             const signatureData = [
-                [
-                    [
-                        this.parseToInt (market['baseId']), // asset
-                        isBuy, // isBuy
-                        this.parseToInt (px * base), // px
-                        this.parseToInt (amount * base), // sz
-                        reduceOnly, // reduceOnly
-                        signingOrderType, // signingOrderType
-                        this.parseToInt (triggerPrice * base), // trigger_px
-                    ],
-                ],
+                orderSig,
                 0, // na grouping
                 (vaultAddress) ? vaultAddress : zeroAddress,
                 nonce,
@@ -706,23 +752,13 @@ export default class hyperliquid extends Exchange {
             'action': {
                 'type': 'order',
                 'grouping': 'na',
-                'orders': [
-                    {
-                        'asset': this.parseToInt (market['baseId']),
-                        'isBuy': isBuy,
-                        'sz': this.amountToPrecision (symbol, amount),
-                        'limitPx': this.amountToPrecision (symbol, px),
-                        'reduceOnly': reduceOnly,
-                        'orderType': orderType,
-                        'cloid': clientOrderId,
-                    },
-                ],
+                'orders': orderReq,
             },
             'nonce': nonce,
             'signature': sig,
             'vaultAddress': vaultAddress,
         };
-        const response = await this.privatePostExchange (this.extend (request, params));
+        const response = await this.privatePostExchange (request);
         //
         //     {
         //         "status": "ok",
@@ -741,8 +777,7 @@ export default class hyperliquid extends Exchange {
         //     }
         //
         const data = this.safeValue (this.safeValue (this.safeValue (response, 'response'), 'data'), 'statuses', []);
-        const first = this.safeValue (data, 0, {});
-        return this.parseOrder (first, market);
+        return this.parseOrders (data, undefined);
     }
 
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -987,7 +1022,7 @@ export default class hyperliquid extends Exchange {
             };
             request['signature'] = sig;
         }
-        const response = await this.privatePostExchange (this.extend (request, params));
+        const response = await this.privatePostExchange (request);
         //
         //     {
         //         "status":"ok",
@@ -1226,7 +1261,10 @@ export default class hyperliquid extends Exchange {
         //     entry = { ...order };
         // }
         const coin = this.safeString (entry, 'coin');
-        const marketId = coin + '/USD:USDC';
+        let marketId = undefined;
+        if (coin !== undefined) {
+            marketId = coin + '/USD:USDC';
+        }
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger2 (order, 'timestamp', 'statusTimestamp');
