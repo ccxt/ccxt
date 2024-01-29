@@ -54,8 +54,8 @@ export default class p2b extends p2bRest {
                 },
             },
             'streaming': {
-                // 'keepAlive': 15000,
-                // 'ping': this.ping,
+                'keepAlive': 15000,
+                'ping': this.ping,
             },
         });
     }
@@ -81,11 +81,11 @@ export default class p2b extends p2bRest {
         return await this.watch (url, messageHash, query, messageHash);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe = '15m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name p2b#watchOHLCV
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market. Can only subscribe to one timeframe at a time for each symbol
          * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#kline-candlestick
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe 15m, 30m, 1h or 1d
@@ -96,7 +96,7 @@ export default class p2b extends p2bRest {
          */
         await this.loadMarkets ();
         const timeframes = this.safeValue (this.options, 'timeframes', {});
-        const channel = this.safeString (timeframes, timeframe, timeframe);
+        const channel = this.safeInteger (timeframes, timeframe);
         if (channel === undefined) {
             throw new BadRequest (this.id + ' watchOHLCV cannot take a timeframe of ' + timeframe);
         }
@@ -105,7 +105,7 @@ export default class p2b extends p2bRest {
             market['id'],
             channel,
         ];
-        const messageHash = 'kline::' + market['symbol'] + '::' + timeframe;
+        const messageHash = 'kline::' + market['symbol'];
         const ohlcv = await this.subscribe ('kline.subscribe', messageHash, request, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
@@ -250,7 +250,6 @@ export default class p2b extends p2bRest {
         const channel = this.safeString (splitMethod, 0);
         const marketId = this.safeString (data, 7);
         const market = this.safeMarket (marketId);
-        // TODO: The timeframe isn't returned? What do you do here?
         const timeframes = this.safeValue (this.options, 'timeframes', {});
         const timeframe = this.findTimeframe (channel, timeframes);
         const symbol = this.safeString (market, 'symbol');
@@ -347,6 +346,8 @@ export default class p2b extends p2bRest {
         const marketId = this.safeString (data, 0);
         const market = this.safeMarket (marketId);
         const method = this.safeString (message, 'method');
+        const splitMethod = method.split ('.');
+        const messageHashStart = this.safeString (splitMethod, 0);
         const newTickers = {};
         const tickerData = this.safeValue (data, 1);
         let ticker = undefined;
@@ -363,18 +364,19 @@ export default class p2b extends p2bRest {
         const symbol = ticker['symbol'];
         this.tickers[symbol] = ticker;
         newTickers[symbol] = ticker;
-        const messageHashes = this.findMessageHashes (client, 'ticker::');
+        const messageHashes = this.findMessageHashes (client, messageHashStart + '::');
         for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const parts = messageHash.split ('::');
+            const loopMessageHash = messageHashes[i];
+            const parts = loopMessageHash.split ('::');
             const symbolsString = parts[1];
             const symbols = symbolsString.split (',');
             const tickers = this.filterByArray (newTickers, 'symbol', symbols);
             if (!this.isEmpty (tickers)) {
-                client.resolve (tickers, messageHash);
+                client.resolve (tickers, loopMessageHash);
             }
         }
-        client.resolve (newTickers, 'ticker::' + symbol);
+        const messageHash = messageHashStart + '::' + symbol;
+        client.resolve (newTickers, messageHash);
         return message;
     }
 
@@ -462,6 +464,10 @@ export default class p2b extends p2bRest {
     }
 
     ping (client) {
+        /**
+         * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#ping
+         * @param client
+         */
         return {
             'method': 'server.ping',
             'params': [],
