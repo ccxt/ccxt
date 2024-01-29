@@ -4078,6 +4078,9 @@ class Exchange {
         return this.cancelOrder(this.safeValue(order, 'id'), this.safeValue(order, 'symbol'), params);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.has['fetchOpenOrders'] && this.has['fetchClosedOrders']) {
+            throw new errors.NotSupported(this.id + ' fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead');
+        }
         throw new errors.NotSupported(this.id + ' fetchOrders() is not supported yet');
     }
     async fetchOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {

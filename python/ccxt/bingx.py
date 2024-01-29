@@ -72,6 +72,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchLeverage': True,
                 'fetchLiquidations': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': True,
                 'fetchMyLiquidations': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
@@ -176,6 +177,7 @@ class bingx(Exchange, ImplicitAPI):
                         'private': {
                             'get': {
                                 'positionSide/dual': 1,
+                                'market/markPriceKlines': 1,
                             },
                             'post': {
                                 'positionSide/dual': 1,
@@ -685,6 +687,7 @@ class bingx(Exchange, ImplicitAPI):
         :see: https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data
         :see: https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
         :see: https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data
+        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#K-Line%20Data%20-%20Mark%20Price
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -716,7 +719,12 @@ class bingx(Exchange, ImplicitAPI):
         if market['spot']:
             response = self.spotV1PublicGetMarketKline(self.extend(request, params))
         else:
-            response = self.swapV3PublicGetQuoteKlines(self.extend(request, params))
+            price = self.safe_string(params, 'price')
+            params = self.omit(params, 'price')
+            if price == 'mark':
+                response = self.swapV1PrivateGetMarketMarkPriceKlines(self.extend(request, params))
+            else:
+                response = self.swapV3PublicGetQuoteKlines(self.extend(request, params))
         #
         #    {
         #        "code": 0,
@@ -734,6 +742,24 @@ class bingx(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
+        # fetchMarkOHLCV
+        #
+        #    {
+        #        "code": 0,
+        #        "msg": "",
+        #        "data": [
+        #            {
+        #                "open": "42191.7",
+        #                "close": "42189.5",
+        #                "high": "42196.5",
+        #                "low": "42189.5",
+        #                "volume": "0.00",
+        #                "openTime": 1706508840000,
+        #                "closeTime": 1706508840000
+        #            }
+        #        ]
+        #    }
+        #
         ohlcvs = self.safe_value(response, 'data', [])
         if not isinstance(ohlcvs, list):
             ohlcvs = [ohlcvs]
@@ -748,6 +774,18 @@ class bingx(Exchange, ImplicitAPI):
         #        "low": "19368.3",
         #        "volume": "167.44",
         #        "time": 1666584000000
+        #    }
+        #
+        # fetchMarkOHLCV
+        #
+        #    {
+        #        "open": "42191.7",
+        #        "close": "42189.5",
+        #        "high": "42196.5",
+        #        "low": "42189.5",
+        #        "volume": "0.00",
+        #        "openTime": 1706508840000,
+        #        "closeTime": 1706508840000
         #    }
         # spot
         #    [
@@ -771,7 +809,7 @@ class bingx(Exchange, ImplicitAPI):
                 self.safe_number(ohlcv, 5),
             ]
         return [
-            self.safe_integer(ohlcv, 'time'),
+            self.safe_integer_2(ohlcv, 'time', 'closeTime'),
             self.safe_number(ohlcv, 'open'),
             self.safe_number(ohlcv, 'high'),
             self.safe_number(ohlcv, 'low'),
