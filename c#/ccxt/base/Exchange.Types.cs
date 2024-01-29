@@ -280,6 +280,25 @@ public struct Tickers
         }
     }
 
+    // Indexer
+    public Ticker this[string key]
+    {
+        get
+        {
+            if (tickers.ContainsKey(key))
+            {
+                return tickers[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the tickers.");
+            }
+        }
+        set
+        {
+            tickers[key] = value;
+        }
+    }
 }
 
 public struct Transaction
@@ -411,6 +430,25 @@ public struct Balances
             }
         }
         info = (Dictionary<string, object>)balances["info"];
+    }
+
+    public Balance this[string key]
+    {
+        get
+        {
+            if (balances.ContainsKey(key))
+            {
+                return balances[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the balances.");
+            }
+        }
+        set
+        {
+            balances[key] = value;
+        }
     }
 }
 
