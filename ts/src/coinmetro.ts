@@ -1340,8 +1340,8 @@ export default class coinmetro extends Exchange {
         const request = {
             'orderID': id,
         };
-        let marginMode = undefined;
-        [ params, marginMode ] = this.handleMarginModeAndParams ('cancelOrder', params);
+        const marginMode = undefined;
+        [ params, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
         const isMargin = this.safeValue (params, 'margin', false);
         params = this.omit (params, 'margin');
         let response = undefined;
