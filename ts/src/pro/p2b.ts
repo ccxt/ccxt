@@ -290,6 +290,7 @@ export default class p2b extends p2bRest {
         //    }
         //
         const data = this.safeValue (message, 'params', []);
+        const trades = this.safeValue (data, 1);
         const marketId = this.safeString (data, '0');
         const market = this.safeMarket (marketId);
         const symbol = this.safeString (market, 'symbol');
@@ -299,8 +300,8 @@ export default class p2b extends p2bRest {
             tradesArray = new ArrayCache (tradesLimit);
             this.trades[symbol] = tradesArray;
         }
-        for (let i = 0; i < data.length; i++) {
-            const item = data[i];
+        for (let i = 0; i < trades.length; i++) {
+            const item = trades[i];
             const trade = this.parseTrade (item, market);
             tradesArray.append (trade);
         }
