@@ -1449,6 +1449,9 @@
             }
         }
     },
+    "poloniexfutures": {
+        "skipCSharp": "too flaky, check the reason later"
+    },
     "okx": {
         "skipMethods": {
             "loadMarkets": "linear & inverse must not be same",

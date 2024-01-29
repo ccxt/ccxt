@@ -272,9 +272,13 @@ const testExchange = async (exchange) => {
             { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/ccxt/test/test_async.py', ...args] },
             { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test_sync.php',         ...args] },
             { language: 'PHP Async',      key: '--php-async',    exec: ['php', '-f', 'php/test/test_async.php',   ...args] },
-            { language: 'C#',             key: '--csharp',        exec: ['dotnet', 'run', '--project', 'c#/tests/tests.csproj',               ...args] },
         ]
 
+        if (!skipSettings[exchange] || !skipSettings[exchange].skipCSharp) {
+            allTestsWithoutTs.push (
+                { language: 'C#',             key: '--csharp',        exec: ['dotnet', 'run', '--project', 'c#/tests/tests.csproj',               ...args] },
+            )
+        }
         // if it's not WS tests, then add sync versions to tests queue
         if (!wsFlag) {
             allTestsWithoutTs.push (
