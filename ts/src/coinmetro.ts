@@ -1329,16 +1329,27 @@ export default class coinmetro extends Exchange {
          * @name coinmetro#cancelOrder
          * @description cancels an open order
          * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#eaea86da-16ca-4c56-9f00-5b1cb2ad89f8
+         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#47f913fb-8cab-49f4-bc78-d980e6ced316
          * @param {string} id order id
          * @param {string} symbol not used by coinmetro cancelOrder ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.margin] true for cancelling a margin order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'orderID': id,
         };
-        const response = await this.privatePutExchangeOrdersCancelOrderID (this.extend (request, params));
+        let marginMode = undefined;
+        [ params, marginMode ] = this.handleMarginModeAndParams ('cancelOrder', params);
+        const isMargin = this.safeValue (params, 'margin', false);
+        params = this.omit (params, 'margin');
+        let response = undefined;
+        if (isMargin || (marginMode !== undefined)) {
+            response = await this.privatePostExchangeOrdersCloseOrderID (this.extend (request, params));
+        } else {
+            response = await this.privatePutExchangeOrdersCancelOrderID (this.extend (request, params));
+        }
         //
         //     {
         //         "userID": "65671262d93d9525ac009e36",
