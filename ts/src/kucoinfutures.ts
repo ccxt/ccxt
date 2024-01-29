@@ -9,6 +9,10 @@ import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, Ord
 
 //  ---------------------------------------------------------------------------
 
+/**
+ * @class kucoinfutures
+ * @augments Exchange
+ */
 export default class kucoinfutures extends kucoin {
     describe () {
         return this.deepExtend (super.describe (), {

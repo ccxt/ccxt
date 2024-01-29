@@ -10,6 +10,10 @@ import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, O
 
 //  ---------------------------------------------------------------------------
 
+/**
+ * @class bingx
+ * @augments Exchange
+ */
 export default class bingx extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
