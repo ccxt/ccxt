@@ -3373,7 +3373,7 @@ export default class coinbase extends Exchange {
                     'Authorization': authorization,
                     'Content-Type': 'application/json',
                 };
-            } else if (this.token) {
+            } else if (this.token && !this.checkRequiredCredentials (false)) {
                 headers = {
                     'Authorization': 'Bearer ' + this.token,
                     'Content-Type': 'application/json',
