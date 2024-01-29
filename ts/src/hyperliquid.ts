@@ -290,7 +290,7 @@ export default class hyperliquid extends Exchange {
         for (let i = 0; i < meta.length; i++) {
             const data = this.extend (
                 this.safeValue (meta, i, {}),
-                this.safeValue (assetCtxs, i, {}),
+                this.safeValue (assetCtxs, i, {})
             );
             data['baseId'] = i;
             result.push (data);
@@ -706,15 +706,17 @@ export default class hyperliquid extends Exchange {
             'action': {
                 'type': 'order',
                 'grouping': 'na',
-                'orders': [{
-                    'asset': this.parseToInt (market['baseId']),
-                    'isBuy': isBuy,
-                    'sz': this.amountToPrecision (symbol, amount),
-                    'limitPx': this.amountToPrecision (symbol, px),
-                    'reduceOnly': reduceOnly,
-                    'orderType': orderType,
-                    'cloid': clientOrderId,
-                }],
+                'orders': [
+                    {
+                        'asset': this.parseToInt (market['baseId']),
+                        'isBuy': isBuy,
+                        'sz': this.amountToPrecision (symbol, amount),
+                        'limitPx': this.amountToPrecision (symbol, px),
+                        'reduceOnly': reduceOnly,
+                        'orderType': orderType,
+                        'cloid': clientOrderId,
+                    },
+                ],
             },
             'nonce': nonce,
             'signature': sig,
@@ -904,57 +906,84 @@ export default class hyperliquid extends Exchange {
          * @param {string} [params.clientOrderId] client order id (default undefined)
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        return await this.cancelOrders ([ id ], symbol, params);
+    }
+
+    async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#cancelOrders
+         * @description cancel multiple orders
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+         * @param {string[]} ids order ids
+         * @param {string} [symbol] unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string|string[]} [params.clientOrderId] client order ids (default undefined)
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const vaultAddress = this.safeString (params, 'vaultAddress');
         const zeroAddress = this.safeString (this.options, 'zeroAddress');
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
+        let clientOrderId = this.safeValue2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'vaultAddress', 'clientOrderId', 'client_id' ]);
         const nonce = this.milliseconds ();
         const request = {
             'nonce': nonce,
         };
         if (clientOrderId !== undefined) {
-            const encodeClientOrderId = this.base16ToBinary (this.remove0xPrefix (clientOrderId));
+            if (!Array.isArray (clientOrderId)) {
+                clientOrderId = [ clientOrderId ];
+            }
             const signatureTypes = [ '(uint32,bytes16)[]', 'address', 'uint256' ];
+            const ordersSign = [];
+            const ordersReq = [];
+            for (let i = 0; i < clientOrderId.length; i++) {
+                const encodeClientOrderId = this.base16ToBinary (this.remove0xPrefix (clientOrderId[i]));
+                ordersSign.push ([
+                    this.parseToNumeric (market['baseId']),
+                    encodeClientOrderId,
+                ]);
+                ordersReq.push ({
+                    'asset': this.parseToNumeric (market['baseId']),
+                    'cloid': clientOrderId[i],
+                });
+            }
             const signatureData = [
-                [
-                    [
-                        this.parseToNumeric (market['baseId']),
-                        encodeClientOrderId,
-                    ],
-                ],
+                ordersSign,
                 (vaultAddress) ? vaultAddress : zeroAddress,
                 nonce,
             ];
             const sig = this.buildSig (signatureTypes, signatureData);
             request['action'] = {
                 'type': 'cancelByCloid',
-                'cancels': [{
-                    'asset': this.parseToNumeric (market['baseId']),
-                    'cloid': clientOrderId,
-                }],
+                'cancels': ordersReq,
             };
             request['signature'] = sig;
         } else {
             const signatureTypes = [ '(uint32,uint64)[]', 'address', 'uint256' ];
+            const ordersSign = [];
+            const ordersReq = [];
+            for (let i = 0; i < ids.length; i++) {
+                ordersSign.push ([
+                    this.parseToNumeric (market['baseId']),
+                    this.parseToNumeric (ids[i]),
+                ]);
+                ordersReq.push ({
+                    'asset': this.parseToNumeric (market['baseId']),
+                    'oid': this.parseToNumeric (ids[i]),
+                });
+            }
             const signatureData = [
-                [
-                    [
-                        this.parseToNumeric (market['baseId']),
-                        this.parseToNumeric (id),
-                    ],
-                ],
+                ordersSign,
                 (vaultAddress) ? vaultAddress : zeroAddress,
                 nonce,
             ];
             const sig = this.buildSig (signatureTypes, signatureData);
             request['action'] = {
                 'type': 'cancel',
-                'cancels': [{
-                    'asset': this.parseToNumeric (market['baseId']),
-                    'oid': this.parseToNumeric (id),
-                }],
+                'cancels': ordersReq,
             };
             request['signature'] = sig;
         }
@@ -1103,18 +1132,20 @@ export default class hyperliquid extends Exchange {
         const tmpRequest = {
             'action': {
                 'type': 'batchModify',
-                'modifies': [{
-                    'oid': this.parseToNumeric (id),
-                    'order': {
-                        'asset': this.parseToInt (market['baseId']),
-                        'isBuy': isBuy,
-                        'sz': this.amountToPrecision (symbol, amount),
-                        'limitPx': this.amountToPrecision (symbol, px),
-                        'reduceOnly': reduceOnly,
-                        'orderType': orderType,
-                        'cloid': clientOrderId,
+                'modifies': [
+                    {
+                        'oid': this.parseToNumeric (id),
+                        'order': {
+                            'asset': this.parseToInt (market['baseId']),
+                            'isBuy': isBuy,
+                            'sz': this.amountToPrecision (symbol, amount),
+                            'limitPx': this.amountToPrecision (symbol, px),
+                            'reduceOnly': reduceOnly,
+                            'orderType': orderType,
+                            'cloid': clientOrderId,
+                        },
                     },
-                }],
+                ],
             },
             'nonce': nonce,
             'signature': sig,
