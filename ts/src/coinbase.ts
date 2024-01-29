@@ -3378,6 +3378,11 @@ export default class coinbase extends Exchange {
                     'Authorization': 'Bearer ' + this.token,
                     'Content-Type': 'application/json',
                 };
+                if (method !== 'GET') {
+                    if (Object.keys (query).length) {
+                        body = this.json (query);
+                    }
+                }
             } else {
                 this.checkRequiredCredentials ();
                 const nonce = this.nonce ().toString ();
