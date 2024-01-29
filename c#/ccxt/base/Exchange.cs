@@ -553,6 +553,15 @@ public partial class Exchange
         // stub to implement later
     }
 
+    public void Close()
+    {
+        // stub
+    }
+
+    public void close() {
+        this.Close();
+    }
+
     public virtual object parseNumber(object value, object defaultValue = null)
     {
         if (value == null || (value.GetType() == typeof(string) && value.ToString().Trim() == ""))
