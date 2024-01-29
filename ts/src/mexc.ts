@@ -393,6 +393,7 @@ export default class mexc extends Exchange {
                 },
             },
             'options': {
+                'timeDifference': 0, // the difference between system clock and exchange server clock
                 'createMarketBuyOrderRequiresPrice': true,
                 'unavailableContracts': {
                     'BTC/USDT:USDT': true,
@@ -883,6 +884,10 @@ export default class mexc extends Exchange {
             return this.safeInteger (response, 'data');
         }
         return undefined;
+    }
+
+    nonce () {
+        return this.milliseconds () - this.options['timeDifference'];
     }
 
     async fetchCurrencies (params = {}) {
@@ -5339,7 +5344,7 @@ export default class mexc extends Exchange {
             }
             let paramsEncoded = '';
             if (access === 'private') {
-                params['timestamp'] = this.milliseconds ();
+                params['timestamp'] = this.nonce ();
                 params['recvWindow'] = this.safeInteger (this.options, 'recvWindow', 5000);
             }
             if (Object.keys (params).length) {
@@ -5367,7 +5372,7 @@ export default class mexc extends Exchange {
                 }
             } else {
                 this.checkRequiredCredentials ();
-                const timestamp = this.milliseconds ().toString ();
+                const timestamp = this.nonce ().toString ();
                 let auth = '';
                 headers = {
                     'ApiKey': this.apiKey,

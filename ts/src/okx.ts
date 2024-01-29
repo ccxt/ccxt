@@ -861,6 +861,7 @@ export default class okx extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'sandboxMode': false,
+                'timeDifference': 0, // the difference between system clock and exchange server clock
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
                     'ETH': 'ERC20',
@@ -1077,6 +1078,10 @@ export default class okx extends Exchange {
             return true;
         }
         return false;
+    }
+
+    nonce () {
+        return this.milliseconds () - this.options['timeDifference'];
     }
 
     handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
@@ -1532,6 +1537,7 @@ export default class okx extends Exchange {
     safeNetwork (networkId) {
         const networksById = {
             'Bitcoin': 'BTC',
+            'Optimism (V2)': 'Optimism',
             'Omni': 'OMNI',
             'TRON': 'TRC20',
         };
@@ -5646,7 +5652,7 @@ export default class okx extends Exchange {
                         }
                     }
                 }
-                const timestamp = this.iso8601 (this.milliseconds ());
+                const timestamp = this.iso8601 (this.nonce ());
                 headers = {
                     'OK-ACCESS-KEY': this.apiKey,
                     'OK-ACCESS-PASSPHRASE': this.password,

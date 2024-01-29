@@ -139,7 +139,7 @@ export default class gate extends Exchange {
                 'fetchSettlementHistory': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchTime': false,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
@@ -605,6 +605,7 @@ export default class gate extends Exchange {
             },
             'options': {
                 'sandboxMode': false,
+                'timeDifference': 0, // the difference between system clock and exchange server clock
                 'createOrder': {
                     'expiration': 86400, // for conditional orders
                 },
@@ -949,6 +950,17 @@ export default class gate extends Exchange {
             return true;
         }
         return false;
+    }
+
+    nonce () {
+        const timeDifferenceMs = this.safeString (this.options, 'timeDifference');
+        const timeDifferenceS = this.parseNumber (Precise.stringDiv (timeDifferenceMs, '1000'));
+        return this.seconds () - timeDifferenceS;
+    }
+
+    async fetchTime (params?: {}): Promise<number> {
+        const response = await this.publicSpotGetTime (params);
+        return this.safeInteger (response, 'server_time');
     }
 
     async fetchMarkets (params = {}) {
@@ -5965,8 +5977,7 @@ export default class gate extends Exchange {
             }
             const bodyPayload = (body === undefined) ? '' : body;
             const bodySignature = this.hash (this.encode (bodyPayload), sha512);
-            const timestamp = this.seconds ();
-            const timestampString = timestamp.toString ();
+            const timestampString = this.nonce ().toString ();
             const signaturePath = '/api/' + this.version + entirePath;
             const payloadArray = [ method.toUpperCase (), signaturePath, queryString, bodySignature, timestampString ];
             // eslint-disable-next-line quotes

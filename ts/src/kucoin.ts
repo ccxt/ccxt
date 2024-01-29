@@ -516,6 +516,7 @@ export default class kucoin extends Exchange {
             },
             'options': {
                 'version': 'v1',
+                'timeDifference': 0, // the difference between system clock and exchange server clock
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
                 'fetchCurrencies': {
@@ -648,7 +649,7 @@ export default class kucoin extends Exchange {
     }
 
     nonce () {
-        return this.milliseconds ();
+        return this.milliseconds () - this.options['timeDifference'];
     }
 
     async fetchTime (params = {}) {
