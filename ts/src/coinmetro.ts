@@ -1376,6 +1376,9 @@ export default class coinmetro extends Exchange {
          */
         await this.loadMarkets ();
         const orderId = this.safeString (params, 'orderId');
+        if (orderId === undefined) {
+            throw new ArgumentsRequired (this.id + ' closePosition() requires a orderId parameter');
+        }
         const request = {
             'orderID': orderId,
         };
