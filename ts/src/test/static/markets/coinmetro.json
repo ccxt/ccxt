@@ -19,6 +19,7 @@
         "maker": 0,
         "precision": {
             "amount": 6,
+            "price": 2,
             "base": 6,
             "quote": 2
         },
@@ -61,6 +62,7 @@
         "maker": 0,
         "precision": {
             "amount": 2,
+            "price": 2,
             "base": 2,
             "quote": 2
         },
@@ -103,13 +105,14 @@
         "maker": 0,
         "precision": {
             "amount": 1,
+            "price": 2,
             "base": 1,
             "quote": 2
         },
         "limits": {
             "leverage": {},
             "amount": {
-                "min": 9
+                "min": 10
             },
             "price": {},
             "cost": {
@@ -145,6 +148,7 @@
         "maker": 0,
         "precision": {
             "amount": 4,
+            "price": 2,
             "base": 4,
             "quote": 2
         },
@@ -187,6 +191,7 @@
         "maker": 0,
         "precision": {
             "amount": 1,
+            "price": 2,
             "base": 1,
             "quote": 2
         },
