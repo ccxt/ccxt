@@ -9,6 +9,7 @@ import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
+    publicGetDemoTemp (params?: {}): Promise<implicitReturnType>;
     publicGetExchangeCandlesPairTimeframeFromTo (params?: {}): Promise<implicitReturnType>;
     publicGetExchangePrices (params?: {}): Promise<implicitReturnType>;
     publicGetExchangeTicksPairFrom (params?: {}): Promise<implicitReturnType>;

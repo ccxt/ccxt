@@ -1269,6 +1269,7 @@ class testMainClass extends baseMainTestClass {
             'password' => 'password',
             'walletAddress' => 'wallet',
             'uid' => 'uid',
+            'token' => 'token',
             'accounts' => [array(
     'id' => 'myAccount',
     'code' => 'USDT',
