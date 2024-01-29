@@ -410,10 +410,11 @@ export default class p2b extends p2bRest {
         const messageHash = 'orderbook::' + market['symbol'];
         const subscription = this.safeValue (client.subscriptions, messageHash, {});
         const limit = this.safeInteger (subscription, 'limit');
-        if (this.orderbooks[symbol] === undefined) {
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
             this.orderbooks[symbol] = this.orderBook ({}, limit);
+            orderbook = this.orderbooks[symbol];
         }
-        const orderbook = this.orderbooks[symbol];
         if (bids !== undefined) {
             for (let i = 0; i < bids.length; i++) {
                 const bid = this.safeValue (bids, i);
