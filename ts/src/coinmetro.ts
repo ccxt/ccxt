@@ -412,7 +412,7 @@ export default class coinmetro extends Exchange {
             'optionType': undefined,
             'precision': {
                 'amount': basePrecisionAndLimits['precision'],
-                'price': undefined,
+                'price': quotePrecisionAndLimits['precision'],
                 'base': basePrecisionAndLimits['precision'],
                 'quote': quotePrecisionAndLimits['precision'],
             },
