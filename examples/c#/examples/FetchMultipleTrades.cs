@@ -10,7 +10,7 @@ partial class Examples
         var exchange = new Binance();
         var symbols = new string[] { "BTC/USDT", "ETH/USDT", "LTC/USDT", "XRP/USDT" };
 
-        var tasks = new List<Task<List<Exchange.Trade>>>();
+        var tasks = new List<Task<List<ccxt.Trade>>>();
         foreach (var value in symbols)
         {
             tasks.Add(exchange.FetchTrades(value, null, 1));
