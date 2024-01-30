@@ -17,72 +17,73 @@ function test_watch_tickers($exchange, $symbol) {
     return Async\async(function () use ($exchange, $symbol) {
         $method = 'watchTickers';
         $tests = [array(
-    'name' => 'spot default - with symbols undefined',
-    'symbols' => [],
-    'params' => array(),
-), array(
-    'name' => 'default - with empty symbols array',
-    'symbols' => [],
-    'params' => array(),
-), array(
-    'name' => 'swap - all symbols',
-    'symbols' => [],
-    'params' => array(
-        'type' => 'swap',
-    ),
-), array(
-    'name' => 'spot ticker with one symbol',
-    'symbols' => [$symbol],
-    'params' => array(
-        'name' => 'ticker',
-    ),
-), array(
-    'name' => 'spot bookTicker with one symbol',
-    'symbols' => [$symbol],
-    'params' => array(
-        'name' => 'bookTicker',
-    ),
-), array(
-    'name' => 'swap bookTicker with one symbol',
-    'symbols' => ['BTC/USDT:USDT'],
-    'params' => array(
-        'name' => 'bookTicker',
-    ),
-), array(
-    'name' => 'spot ticker 1h window with one symbol',
-    'symbols' => [$symbol],
-    'params' => array(
-        'name' => 'ticker_1h',
-    ),
-), array(
-    'name' => 'spot ticker 4h window with one symbol',
-    'symbols' => [$symbol],
-    'params' => array(
-        'name' => 'ticker_4h',
-    ),
-), array(
-    'name' => 'spot ticker 1d window with one symbol',
-    'symbols' => [$symbol],
-    'params' => array(
-        'name' => 'ticker_1d',
-    ),
-), array(
-    'name' => 'spot miniticker window with one symbol',
-    'symbols' => [$symbol],
-    'params' => array(
-        'name' => 'miniTicker',
-    ),
-), array(
-    'name' => 'swap - miniticker with one symbol',
-    'symbols' => ['BTC/USDT:USDT'],
-    'params' => array(
-        'name' => 'miniTicker',
-    ),
-), array(
-    'name' => 'delivery - all tickers',
-    'symbols' => null,
-    'params' => array(),
-)];
+            'name' => 'spot default - with symbols undefined',
+            'symbols' => [],
+            'params' => array(),
+            ), array(
+                'name' => 'default - with empty symbols array',
+                'symbols' => [],
+                'params' => array(),
+            ), array(
+                'name' => 'swap - all symbols',
+                'symbols' => [],
+                'params' => array(
+                    'type' => 'swap',
+                ),
+            ), array(
+                'name' => 'spot ticker with one symbol',
+                'symbols' => [$symbol],
+                'params' => array(
+                    'name' => 'ticker',
+                ),
+            ), array(
+                'name' => 'spot bookTicker with one symbol',
+                'symbols' => [$symbol],
+                'params' => array(
+                    'name' => 'bookTicker',
+                ),
+            ), array(
+                'name' => 'swap bookTicker with one symbol',
+                'symbols' => ['BTC/USDT:USDT'],
+                'params' => array(
+                    'name' => 'bookTicker',
+                ),
+            ), array(
+                'name' => 'spot ticker 1h window with one symbol',
+                'symbols' => [$symbol],
+                'params' => array(
+                    'name' => 'ticker_1h',
+                ),
+            ), array(
+                'name' => 'spot ticker 4h window with one symbol',
+                'symbols' => [$symbol],
+                'params' => array(
+                    'name' => 'ticker_4h',
+                ),
+            ), array(
+                'name' => 'spot ticker 1d window with one symbol',
+                'symbols' => [$symbol],
+                'params' => array(
+                    'name' => 'ticker_1d',
+                ),
+            ), array(
+                'name' => 'spot miniticker window with one symbol',
+                'symbols' => [$symbol],
+                'params' => array(
+                    'name' => 'miniTicker',
+                ),
+            ), array(
+                'name' => 'swap - miniticker with one symbol',
+                'symbols' => ['BTC/USDT:USDT'],
+                'params' => array(
+                    'name' => 'miniTicker',
+                ),
+            ), array(
+                'name' => 'delivery - all tickers',
+                'symbols' => null,
+                'params' => array(),
+            )
+        ];
         for ($i = 0; $i < count($tests); $i++) {
             $params = $tests[$i];
             $response = null;
@@ -98,11 +99,8 @@ function test_watch_tickers($exchange, $symbol) {
                         test_ticker($exchange, array(), $method, $ticker, $ticker['symbol']);
                     }
                 } catch(\Throwable $e) {
-                    if (!($e instanceof undefined)) {
-                        $exchange->log('[FAILED] - TEST - ' . $exchange->id . ' ' . $method . ' ' . $params['name']);
-                        throw $e;
-                    }
-                    break;
+                    $exchange->log('[FAILED] - TEST - ' . $exchange->id . ' ' . $method . ' ' . $params['name']);
+                    throw $e;
                 }
                 $now = $exchange->milliseconds();
             }
@@ -115,6 +113,7 @@ function test_watch_tickers($exchange, $symbol) {
 
 test_watch_tickers (new pro\binance(array(
     'enableRateLimit' => true,
+    'verbose' => false,
     'options' => array(
         'defaultType' => 'spot',
     ),

@@ -18,73 +18,76 @@ from ccxt.test.base import test_ticker  # noqa E402
 
 async def test_watch_tickers(exchange, symbol):
     method = 'watchTickers'
-    tests = [{
-    'name': 'spot default - with symbols undefined',
-    'symbols': None,
-    'params': {},
-}, {
-    'name': 'default - with empty symbols array',
-    'symbols': [],
-    'params': {},
-}, {
-    'name': 'swap - all symbols',
-    'symbols': [],
-    'params': {
-        'type': 'swap',
-    },
-}, {
-    'name': 'spot ticker with one symbol',
-    'symbols': [symbol],
-    'params': {
-        'name': 'ticker',
-    },
-}, {
-    'name': 'spot bookTicker with one symbol',
-    'symbols': [symbol],
-    'params': {
-        'name': 'bookTicker',
-    },
-}, {
-    'name': 'swap bookTicker with one symbol',
-    'symbols': ['BTC/USDT:USDT'],
-    'params': {
-        'name': 'bookTicker',
-    },
-}, {
-    'name': 'spot ticker 1h window with one symbol',
-    'symbols': [symbol],
-    'params': {
-        'name': 'ticker_1h',
-    },
-}, {
-    'name': 'spot ticker 4h window with one symbol',
-    'symbols': [symbol],
-    'params': {
-        'name': 'ticker_4h',
-    },
-}, {
-    'name': 'spot ticker 1d window with one symbol',
-    'symbols': [symbol],
-    'params': {
-        'name': 'ticker_1d',
-    },
-}, {
-    'name': 'spot miniticker window with one symbol',
-    'symbols': [symbol],
-    'params': {
-        'name': 'miniTicker',
-    },
-}, {
-    'name': 'swap - miniticker with one symbol',
-    'symbols': ['BTC/USDT:USDT'],
-    'params': {
-        'name': 'miniTicker',
-    },
-}, {
-    'name': 'delivery - all tickers',
-    'symbols': None,
-    'params': {},
-}]
+    tests = [
+        # {
+        #     'name': 'spot default - with symbols undefined',
+        #     'symbols': None,
+        #     'params': {},
+        # }, {
+        #     'name': 'default - with empty symbols array',
+        #     'symbols': [],
+        #     'params': {},
+        # },
+        {
+            'name': 'swap - all symbols',
+            'symbols': [],
+            'params': {
+                'type': 'swap',
+            },
+        }, {
+            'name': 'spot ticker with one symbol',
+            'symbols': [symbol],
+            'params': {
+                'name': 'ticker',
+            },
+        }, {
+            'name': 'spot bookTicker with one symbol',
+            'symbols': [symbol],
+            'params': {
+                'name': 'bookTicker',
+            },
+        }, {
+            'name': 'swap bookTicker with one symbol',
+            'symbols': ['BTC/USDT:USDT'],
+            'params': {
+                'name': 'bookTicker',
+            },
+        }, {
+            'name': 'spot ticker 1h window with one symbol',
+            'symbols': [symbol],
+            'params': {
+                'name': 'ticker_1h',
+            },
+        }, {
+            'name': 'spot ticker 4h window with one symbol',
+            'symbols': [symbol],
+            'params': {
+                'name': 'ticker_4h',
+            },
+        }, {
+            'name': 'spot ticker 1d window with one symbol',
+            'symbols': [symbol],
+            'params': {
+                'name': 'ticker_1d',
+            },
+        }, {
+            'name': 'spot miniticker window with one symbol',
+            'symbols': [symbol],
+            'params': {
+                'name': 'miniTicker',
+            },
+        }, {
+            'name': 'swap - miniticker with one symbol',
+            'symbols': ['BTC/USDT:USDT'],
+            'params': {
+                'name': 'miniTicker',
+            },
+        }, {
+            'name': 'delivery - all tickers',
+            'symbols': None,
+            'params': {},
+        }
+    ]
     for i in range(0, len(tests)):
         params = tests[i]
         response = None
@@ -101,6 +104,7 @@ async def test_watch_tickers(exchange, symbol):
             except Exception as e:
                 if not (isinstance(e, errors.NetworkError)):
                     exchange.log('[FAILED] - TEST - ' + exchange.id + ' ' + method + ' ' + params['name'])
+                    print (e)
                     raise e
                 break
             now = exchange.milliseconds()

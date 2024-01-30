@@ -1,6 +1,7 @@
 import assert from 'assert';
 import testTicker from '../../../../test/Exchange/base/test.ticker.js';
 import errors from '../../../../base/errors.js';
+import ccxt from '../../../../../ccxt.js';
 
 
 async function testWatchTickers (exchange, symbol) {
@@ -114,5 +115,9 @@ async function testWatchTickers (exchange, symbol) {
     return true;
 }
 
+const binance = new ccxt.pro.binance ({});
+(async () => {
+    await testWatchTickers (binance, 'BTC/USDT');
+}) ();
 
 export default testWatchTickers;
