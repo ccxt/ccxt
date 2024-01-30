@@ -9,7 +9,6 @@ import hashlib
 from ccxt.base.types import Int, Order, OrderBook, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import ArgumentsRequired
 
 
 class coinbase(ccxt.async_support.coinbase):
@@ -109,7 +108,7 @@ class coinbase(ccxt.async_support.coinbase):
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         if symbols is None:
-            raise ArgumentsRequired(self.id + ' watchTickers requires a symbols argument')
+            symbols = self.symbols
         name = 'ticker_batch'
         tickers = await self.subscribe(name, symbols, params)
         if self.newUpdates:
