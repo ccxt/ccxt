@@ -7,6 +7,10 @@ var kucoinfutures$1 = require('./abstract/kucoinfutures.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+/**
+ * @class kucoinfutures
+ * @augments Exchange
+ */
 class kucoinfutures extends kucoinfutures$1 {
     describe() {
         return this.deepExtend(super.describe(), {

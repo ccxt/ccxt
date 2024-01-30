@@ -3197,14 +3197,23 @@ class bybit(Exchange, ImplicitAPI):
         fee = None
         feeCostString = self.safe_string(order, 'cumExecFee')
         if feeCostString is not None:
-            feeCurrency = None
+            feeCurrencyCode = None
             if market['spot']:
-                feeCurrency = market['quote'] if (side == 'buy') else market['base']
+                if Precise.string_gt(feeCostString, '0'):
+                    if side == 'buy':
+                        feeCurrencyCode = market['base']
+                    else:
+                        feeCurrencyCode = market['quote']
+                else:
+                    if side == 'buy':
+                        feeCurrencyCode = market['quote']
+                    else:
+                        feeCurrencyCode = market['base']
             else:
-                feeCurrency = market['settle']
+                feeCurrencyCode = market['base'] if market['inverse'] else market['settle']
             fee = {
                 'cost': feeCostString,
-                'currency': feeCurrency,
+                'currency': feeCurrencyCode,
             }
         clientOrderId = self.safe_string(order, 'orderLinkId')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):

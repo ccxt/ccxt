@@ -3156,11 +3156,14 @@ class coinbase(Exchange, ImplicitAPI):
                     'Authorization': authorization,
                     'Content-Type': 'application/json',
                 }
-            elif self.token:
+            elif self.token and not self.check_required_credentials(False):
                 headers = {
                     'Authorization': 'Bearer ' + self.token,
                     'Content-Type': 'application/json',
                 }
+                if method != 'GET':
+                    if query:
+                        body = self.json(query)
             else:
                 self.check_required_credentials()
                 nonce = str(self.nonce())

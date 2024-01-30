@@ -77,21 +77,21 @@ export default class upbit extends Exchange {
         currency: string;
         address: string;
         tag: string;
-        network: any;
+        network: string;
         info: any;
     };
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;
         tag: string;
-        network: any;
+        network: string;
         info: any;
     }>;
     createDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;
         tag: string;
-        network: any;
+        network: string;
         info: any;
     }>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;

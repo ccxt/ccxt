@@ -27,6 +27,7 @@ class bitforex extends bitforex$1 {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
@@ -679,6 +680,34 @@ class bitforex extends bitforex$1 {
             'fee': fee,
             'trades': undefined,
         }, market);
+    }
+    async cancelAllOrders(symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitforex#cancelAllOrders
+         * @see https://github.com/githubdev2020/API_Doc_en/wiki/Cancle-all-orders
+         * @description cancel all open orders in a market
+         * @param {string} symbol unified market symbol of the market to cancel orders in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders () requires a symbol argument');
+        }
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.privatePostApiV1TradeCancelAllOrder(this.extend(request, params));
+        //
+        //    {
+        //        'data': True,
+        //        'success': True,
+        //        'time': '1706542995252'
+        //    }
+        //
+        return response;
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**

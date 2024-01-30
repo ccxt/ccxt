@@ -75,6 +75,7 @@ class bitfinex2 extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchTransactionFees' => null,
                 'fetchTransactions' => 'emulated',
+                'setMargin' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -833,6 +834,11 @@ class bitfinex2 extends Exchange {
             $result = array( 'info' => $response );
             for ($i = 0; $i < count($response); $i++) {
                 $balance = $response[$i];
+                $account = $this->account();
+                $interest = $this->safe_string($balance, 3);
+                if ($interest !== '0') {
+                    $account['debt'] = $interest;
+                }
                 $type = $this->safe_string($balance, 0);
                 $currencyId = $this->safe_string_lower($balance, 1, '');
                 $start = strlen($currencyId) - 2;
@@ -841,7 +847,6 @@ class bitfinex2 extends Exchange {
                 $derivativeCondition = (!$isDerivative || $isDerivativeCode);
                 if (($accountType === $type) && $derivativeCondition) {
                     $code = $this->safe_currency_code($currencyId);
-                    $account = $this->account();
                     $account['total'] = $this->safe_string($balance, 2);
                     $account['free'] = $this->safe_string($balance, 4);
                     $result[$code] = $account;
@@ -3299,5 +3304,50 @@ class bitfinex2 extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ));
+    }
+
+    public function set_margin(string $symbol, $amount, $params = array ()) {
+        return Async\async(function () use ($symbol, $amount, $params) {
+            /**
+             * either adds or reduces margin in a swap position in order to set the margin to a specific value
+             * @see https://docs.bitfinex.com/reference/rest-auth-deriv-pos-collateral-set
+             * @param {string} $symbol unified $market $symbol of the $market to set margin in
+             * @param {float} $amount the $amount to set the margin to
+             * @param {array} [$params] parameters specific to the exchange API endpoint
+             * @return {array} A {@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure margin structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['swap']) {
+                throw new NotSupported($this->id . ' setMargin() only support swap markets');
+            }
+            $request = array(
+                'symbol' => $market['id'],
+                'collateral' => $this->parse_to_numeric($amount),
+            );
+            $response = Async\await($this->privatePostAuthWDerivCollateralSet (array_merge($request, $params)));
+            //
+            //     array(
+            //         array(
+            //             1
+            //         )
+            //     )
+            //
+            $data = $this->safe_value($response, 0);
+            return $this->parse_margin_modification($data, $market);
+        }) ();
+    }
+
+    public function parse_margin_modification($data, $market = null) {
+        $marginStatusRaw = $data[0];
+        $marginStatus = ($marginStatusRaw === 1) ? 'ok' : 'failed';
+        return array(
+            'info' => $data,
+            'type' => null,
+            'amount' => null,
+            'code' => null,
+            'symbol' => $market['symbol'],
+            'status' => $marginStatus,
+        );
     }
 }

@@ -3346,15 +3346,27 @@ class bybit extends Exchange {
         $fee = null;
         $feeCostString = $this->safe_string($order, 'cumExecFee');
         if ($feeCostString !== null) {
-            $feeCurrency = null;
+            $feeCurrencyCode = null;
             if ($market['spot']) {
-                $feeCurrency = ($side === 'buy') ? $market['quote'] : $market['base'];
+                if (Precise::string_gt($feeCostString, '0')) {
+                    if ($side === 'buy') {
+                        $feeCurrencyCode = $market['base'];
+                    } else {
+                        $feeCurrencyCode = $market['quote'];
+                    }
+                } else {
+                    if ($side === 'buy') {
+                        $feeCurrencyCode = $market['quote'];
+                    } else {
+                        $feeCurrencyCode = $market['base'];
+                    }
+                }
             } else {
-                $feeCurrency = $market['settle'];
+                $feeCurrencyCode = $market['inverse'] ? $market['base'] : $market['settle'];
             }
             $fee = array(
                 'cost' => $feeCostString,
-                'currency' => $feeCurrency,
+                'currency' => $feeCurrencyCode,
             );
         }
         $clientOrderId = $this->safe_string($order, 'orderLinkId');
