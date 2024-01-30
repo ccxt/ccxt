@@ -854,6 +854,7 @@ class bybit extends bybit$1 {
                     '181003': errors.InvalidOrder,
                     '181004': errors.InvalidOrder,
                     '182000': errors.InvalidOrder,
+                    '181017': errors.BadRequest,
                     '20001': errors.OrderNotFound,
                     '20003': errors.InvalidOrder,
                     '20004': errors.InvalidOrder,

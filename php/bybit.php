@@ -850,6 +850,7 @@ class bybit extends Exchange {
                     '181003' => '\\ccxt\\InvalidOrder', // side is null.
                     '181004' => '\\ccxt\\InvalidOrder', // side only support Buy or Sell.
                     '182000' => '\\ccxt\\InvalidOrder', // symbol related quote price is null
+                    '181017' => '\\ccxt\\BadRequest', // OrderStatus must be final status
                     '20001' => '\\ccxt\\OrderNotFound', // Order not exists
                     '20003' => '\\ccxt\\InvalidOrder', // missing parameter side
                     '20004' => '\\ccxt\\InvalidOrder', // invalid parameter side
