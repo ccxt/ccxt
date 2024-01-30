@@ -1474,7 +1474,7 @@ export default class bigone extends Exchange {
         const requestSide = isBuy ? 'BID' : 'ASK';
         let uppercaseType = type.toUpperCase ();
         const isLimit = uppercaseType === 'LIMIT';
-        const exchangeSpecificParam = this.safeValue (params, 'post_only', false);
+        const exchangeSpecificParam = this.safeBool (params, 'post_only', false);
         let postOnly = undefined;
         [ postOnly, params ] = this.handlePostOnly ((uppercaseType === 'MARKET'), exchangeSpecificParam, params);
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
@@ -2115,7 +2115,7 @@ export default class bigone extends Exchange {
         //
         const transfer = this.parseTransfer (response, currency);
         const transferOptions = this.safeValue (this.options, 'transfer', {});
-        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;

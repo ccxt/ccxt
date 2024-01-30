@@ -2744,7 +2744,7 @@ export default class Exchange {
             }
         }
         // ensure that the average field is calculated correctly
-        const inverse = this.safeValue (market, 'inverse', false);
+        const inverse = this.safeBool (market, 'inverse', false);
         const contractSize = this.numberToString (this.safeValue (market, 'contractSize', 1));
         // inverse
         // price = filled * contract size / cost
@@ -2974,7 +2974,7 @@ export default class Exchange {
             const contractSize = this.safeString (market, 'contractSize');
             let multiplyPrice = price;
             if (contractSize !== undefined) {
-                const inverse = this.safeValue (market, 'inverse', false);
+                const inverse = this.safeBool (market, 'inverse', false);
                 if (inverse) {
                     multiplyPrice = Precise.stringDiv ('1', price);
                 }
@@ -3271,7 +3271,7 @@ export default class Exchange {
     async fetchWebEndpoint (method, endpointMethod, returnAsJson, startRegex = undefined, endRegex = undefined) {
         let errorMessage = '';
         const options = this.safeValue (this.options, method, {});
-        const muteOnFailure = this.safeValue (options, 'webApiMuteFailure', true);
+        const muteOnFailure = this.safeBool (options, 'webApiMuteFailure', true);
         try {
             // if it was not explicitly disabled, then don't fetch
             if (this.safeValue (options, 'webApiEnable', true) !== true) {
@@ -3594,7 +3594,7 @@ export default class Exchange {
             const id = this.safeString (item, marketIdKey);
             const market = this.safeMarket (id, undefined, undefined, 'swap');
             const symbol = market['symbol'];
-            const contract = this.safeValue (market, 'contract', false);
+            const contract = this.safeBool (market, 'contract', false);
             if (contract && ((symbols === undefined) || this.inArray (symbol, symbols))) {
                 tiers[symbol] = this.parseMarketLeverageTiers (item, market);
             }
@@ -5207,7 +5207,7 @@ export default class Exchange {
          * @returns {Array}
          */
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
-        let postOnly = this.safeValue (params, 'postOnly', false);
+        let postOnly = this.safeBool (params, 'postOnly', false);
         const ioc = timeInForce === 'IOC';
         const fok = timeInForce === 'FOK';
         const po = timeInForce === 'PO';

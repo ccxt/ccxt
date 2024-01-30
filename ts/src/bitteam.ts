@@ -545,7 +545,7 @@ export default class bitteam extends Exchange {
             const id = this.safeString (currency, 'symbol');
             const numericId = this.safeInteger (currency, 'id');
             const code = this.safeCurrencyCode (id);
-            const active = this.safeValue (currency, 'active', false);
+            const active = this.safeBool (currency, 'active', false);
             const precision = this.safeInteger (currency, 'precision');
             const txLimits = this.safeValue (currency, 'txLimits', {});
             const minWithdraw = this.safeString (txLimits, 'minWithdraw');
