@@ -8,6 +8,10 @@ var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+/**
+ * @class bingx
+ * @augments Exchange
+ */
 class bingx extends bingx$1 {
     describe() {
         return this.deepExtend(super.describe(), {
