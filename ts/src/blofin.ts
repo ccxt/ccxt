@@ -205,7 +205,7 @@ export default class blofin extends Exchange {
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,
-                'password': false,
+                'password': true,
             },
             'exceptions': {
                 'exact': {
@@ -261,6 +261,7 @@ export default class blofin extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'brokerId': 'ec6dd3a7dd982d0b',
                 'sandboxMode': false,
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
@@ -896,6 +897,7 @@ export default class blofin extends Exchange {
             'side': side,
             'orderType': type,
             'size': this.amountToPrecision (symbol, amount),
+            'brokerId': this.safeString (this.options, 'brokerId', 'ec6dd3a7dd982d0b'),
         };
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params, 'cross');
