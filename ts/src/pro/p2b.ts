@@ -1,9 +1,9 @@
 //  ---------------------------------------------------------------------------
 
 import p2bRest from '../p2b.js';
-import { ArgumentsRequired, BadRequest, ExchangeError } from '../base/errors.js';
+import { BadRequest, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Tickers, Int, OHLCV, Strings, OrderBook, Trade, Ticker } from '../base/types.js';
+import type { Int, OHLCV, OrderBook, Trade, Ticker } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -316,7 +316,6 @@ export default class p2b extends p2bRest {
         const method = this.safeString (message, 'method');
         const splitMethod = method.split ('.');
         const messageHashStart = this.safeString (splitMethod, 0);
-        const newTickers = {};
         const tickerData = this.safeValue (data, 1);
         let ticker = undefined;
         if (method === 'price.update') {
@@ -330,21 +329,8 @@ export default class p2b extends p2bRest {
             ticker = this.parseTicker (tickerData, market);
         }
         const symbol = ticker['symbol'];
-        this.tickers[symbol] = ticker;
-        newTickers[symbol] = ticker;
-        const messageHashes = this.findMessageHashes (client, messageHashStart + '::');
-        for (let i = 0; i < messageHashes.length; i++) {
-            const loopMessageHash = messageHashes[i];
-            const parts = loopMessageHash.split ('::');
-            const symbolsString = parts[1];
-            const symbols = symbolsString.split (',');
-            const tickers = this.filterByArray (newTickers, 'symbol', symbols);
-            if (!this.isEmpty (tickers)) {
-                client.resolve (tickers, loopMessageHash);
-            }
-        }
         const messageHash = messageHashStart + '::' + symbol;
-        client.resolve (newTickers, messageHash);
+        client.resolve (ticker, messageHash);
         return message;
     }
 
