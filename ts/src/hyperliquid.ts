@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/hyperliquid.js';
-import { ExchangeError, ArgumentsRequired, NotSupported } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, NotSupported, ExchangeNotAvailable } from './base/errors.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE, ROUND, DECIMAL_PLACES } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -607,12 +607,12 @@ export default class hyperliquid extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const order = {
-            symbol,
-            type,
-            side,
-            amount,
-            price,
-            params,
+            'symbol': symbol as string,
+            'type': type as OrderType,
+            'side': side as OrderSide,
+            'amount': amount,
+            'price': price,
+            'params': params,
         } as OrderRequest;
         const response = await this.createOrders ([ order ], params);
         const first = this.safeValue (response, 0);
@@ -626,15 +626,33 @@ export default class hyperliquid extends Exchange {
          * @description create a list of trade orders
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
          * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-         * @param {string} [params.clientOrderId] client order id (default undefined), all orders must have cloids if at least one has a cloid
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let defaultSlippage = this.safeValue (this.options, 'defaultSlippage');
         defaultSlippage = this.safeValue (params, 'slippage', defaultSlippage);
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         const vaultAddress = this.safeString (params, 'vaultAddress');
         const zeroAddress = this.safeString (this.options, 'zeroAddress');
+        let hasClientOrderId = false;
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
+            if (clientOrderId !== undefined) {
+                hasClientOrderId = true;
+            }
+        }
+        if (hasClientOrderId) {
+            for (let i = 0; i < orders.length; i++) {
+                const rawOrder = orders[i];
+                const orderParams = this.safeValue (rawOrder, 'params', {});
+                const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
+                if (clientOrderId === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrders() all orders must have clientOrderId if at least one has a clientOrderId');
+                }
+            }
+        }
+        params = this.omit (params, [ 'slippage', 'clientOrderId', 'client_id', 'vaultAddress' ]);
         const base = Math.pow (10, 8);
         const nonce = this.milliseconds ();
         const orderSig = [];
@@ -652,6 +670,7 @@ export default class hyperliquid extends Exchange {
             const price = this.safeNumber (rawOrder, 'price');
             let orderParams = this.safeValue (rawOrder, 'params', {});
             orderParams = this.extend (params, orderParams);
+            const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
             const slippage = this.safeValue (orderParams, 'slippage', defaultSlippage);
             const defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
             let timeInForce = this.safeStringLower (orderParams, 'timeInForce', defaultTimeInForce);
@@ -729,7 +748,7 @@ export default class hyperliquid extends Exchange {
             });
         }
         let sig = undefined;
-        if (clientOrderId !== undefined) {
+        if (hasClientOrderId) {
             const signatureTypes = [ '(uint32,bool,uint64,uint64,bool,uint8,uint64,bytes16)[]', 'uint8', 'address', 'uint256' ];
             const signatureData = [
                 orderSig,
