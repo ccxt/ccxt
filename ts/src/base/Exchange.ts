@@ -1690,7 +1690,7 @@ export default class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    safeBoolN (dictionaryOrList, keys: string[], defaultValue: boolean = undefined): boolean | undefined {
+    safeBoolN (dictionaryOrList, keys: IndexType[], defaultValue: boolean = undefined): boolean | undefined {
         /**
          * @ignore
          * @method
@@ -1704,7 +1704,7 @@ export default class Exchange {
         return defaultValue;
     }
 
-    safeBool2 (dictionary, key1: string, key2: string, defaultValue: boolean = undefined): boolean | undefined {
+    safeBool2 (dictionary, key1: IndexType, key2: IndexType, defaultValue: boolean = undefined): boolean | undefined {
         /**
          * @ignore
          * @method
@@ -1714,7 +1714,7 @@ export default class Exchange {
         return this.safeBoolN (dictionary, [ key1, key2 ], defaultValue);
     }
 
-    safeBool (dictionary, key: string, defaultValue: boolean = undefined): boolean | undefined {
+    safeBool (dictionary, key: IndexType, defaultValue: boolean = undefined): boolean | undefined {
         /**
          * @ignore
          * @method
