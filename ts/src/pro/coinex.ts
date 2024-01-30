@@ -387,7 +387,7 @@ export default class coinex extends coinexRest {
         //         "id": null
         //     }
         //
-        const candles = this.safeValue2 (message, 'params', 'result', []);
+        const candles = this.safeList2 (message, 'params', 'result', []);
         const messageHash = 'ohlcv';
         const id = this.safeString (message, 'id');
         const ohlcvs = this.parseOHLCVs (candles);
