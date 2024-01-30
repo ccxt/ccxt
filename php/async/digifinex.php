@@ -39,6 +39,9 @@ class digifinex extends Exchange {
                 'addMargin' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createOrders' => true,
                 'createPostOnlyOrder' => true,
@@ -357,7 +360,7 @@ class digifinex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
             $response = Async\await($this->publicSpotGetCurrencies ($params));
@@ -522,7 +525,7 @@ class digifinex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for digifinex
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
             $options = $this->safe_value($this->options, 'fetchMarkets', array());
@@ -538,9 +541,14 @@ class digifinex extends Exchange {
         return Async\async(function () use ($params) {
             $defaultType = $this->safe_string($this->options, 'defaultType');
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchMarketsV2', $params);
-            $method = ($marginMode !== null) ? 'publicSpotGetMarginSymbols' : 'publicSpotGetTradesSymbols';
-            $promises = [ $this->$method ($query), $this->publicSwapGetPublicInstruments ($params) ];
-            $promises = Async\await(Promise\all($promises));
+            $promisesRaw = array();
+            if ($marginMode !== null) {
+                $promisesRaw[] = $this->publicSpotGetMarginSymbols ($query);
+            } else {
+                $promisesRaw[] = $this->publicSpotGetTradesSymbols ($query);
+            }
+            $promisesRaw[] = $this->publicSwapGetPublicInstruments ($params);
+            $promises = Async\await(Promise\all($promisesRaw));
             $spotMarkets = $promises[0];
             $swapMarkets = $promises[1];
             //
@@ -817,23 +825,24 @@ class digifinex extends Exchange {
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-account-assets
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#accountbalance
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-            $method = $this->get_supported_mapping($marketType, array(
-                'spot' => 'privateSpotGetSpotAssets',
-                'margin' => 'privateSpotGetMarginAssets',
-                'swap' => 'privateSwapGetAccountBalance',
-            ));
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchBalance', $params);
-            if ($marginMode !== null) {
-                $method = 'privateSpotGetMarginAssets';
+            $response = null;
+            if ($marginMode !== null || $marketType === 'margin') {
                 $marketType = 'margin';
+                $response = Async\await($this->privateSpotGetMarginAssets ($query));
+            } elseif ($marketType === 'spot') {
+                $response = Async\await($this->privateSpotGetSpotAssets ($query));
+            } elseif ($marketType === 'swap') {
+                $response = Async\await($this->privateSwapGetAccountBalance ($query));
+            } else {
+                throw new NotSupported($this->id . ' fetchBalance() not support this market type');
             }
-            $response = Async\await($this->$method ($query));
             //
             // spot and margin
             //
@@ -884,25 +893,24 @@ class digifinex extends Exchange {
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#orderbook
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             list($marketType, $query) = $this->handle_market_type_and_params('fetchOrderBook', $market, $params);
             $request = array();
-            $method = null;
-            if ($marketType === 'swap') {
-                $method = 'publicSwapGetPublicDepth';
-                $request['instrument_id'] = $market['id'];
-            } else {
-                $method = 'publicSpotGetOrderBook';
-                $request['symbol'] = $market['id'];
-            }
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->$method (array_merge($request, $query)));
+            $response = null;
+            if ($marketType === 'swap') {
+                $request['instrument_id'] = $market['id'];
+                $response = Async\await($this->publicSwapGetPublicDepth (array_merge($request, $query)));
+            } else {
+                $request['symbol'] = $market['id'];
+                $response = Async\await($this->publicSpotGetOrderBook (array_merge($request, $query)));
+            }
             //
             // spot
             //
@@ -961,7 +969,7 @@ class digifinex extends Exchange {
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#$ticker-price
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#$tickers
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
              */
             Async\await($this->load_markets());
@@ -973,12 +981,13 @@ class digifinex extends Exchange {
             }
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-            $method = 'publicSpotGetTicker';
             $request = array();
+            $response = null;
             if ($type === 'swap') {
-                $method = 'publicSwapGetPublicTickers';
+                $response = Async\await($this->publicSwapGetPublicTickers (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->publicSpotGetTicker (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             // spot
             //
@@ -1049,20 +1058,20 @@ class digifinex extends Exchange {
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#ticker-price
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#ticker
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $method = 'publicSpotGetTicker';
             $request = array();
+            $response = null;
             if ($market['swap']) {
-                $method = 'publicSwapGetPublicTicker';
                 $request['instrument_id'] = $market['id'];
+                $response = Async\await($this->publicSwapGetPublicTicker (array_merge($request, $params)));
             } else {
                 $request['symbol'] = $market['id'];
+                $response = Async\await($this->publicSpotGetTicker (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             // spot
             //
@@ -1335,7 +1344,7 @@ class digifinex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
             $response = Async\await($this->publicSpotGetTime ($params));
@@ -1353,7 +1362,7 @@ class digifinex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
              */
             $response = Async\await($this->publicSpotGetPing ($params));
@@ -1384,23 +1393,23 @@ class digifinex extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $method = 'publicSpotGetTrades';
             $request = array();
-            if ($market['swap']) {
-                $method = 'publicSwapGetPublicTrades';
-                $request['instrument_id'] = $market['id'];
-            } else {
-                $request['symbol'] = $market['id'];
-            }
             if ($limit !== null) {
                 $request['limit'] = $market['swap'] ? min ($limit, 100) : $limit;
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($market['swap']) {
+                $request['instrument_id'] = $market['id'];
+                $response = Async\await($this->publicSwapGetPublicTrades (array_merge($request, $params)));
+            } else {
+                $request['symbol'] = $market['id'];
+                $response = Async\await($this->publicSpotGetTrades (array_merge($request, $params)));
+            }
             //
             // spot
             //
@@ -1489,20 +1498,20 @@ class digifinex extends Exchange {
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of $candles to fetch
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $method = 'publicSpotGetKline';
             $request = array();
+            $response = null;
             if ($market['swap']) {
-                $method = 'publicSwapGetPublicCandles';
                 $request['instrument_id'] = $market['id'];
                 $request['granularity'] = $timeframe;
                 if ($limit !== null) {
                     $request['limit'] = $limit;
                 }
+                $response = Async\await($this->publicSwapGetPublicCandles (array_merge($request, $params)));
             } else {
                 $request['symbol'] = $market['id'];
                 $request['period'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -1518,8 +1527,8 @@ class digifinex extends Exchange {
                     $duration = $this->parse_timeframe($timeframe);
                     $request['start_time'] = $this->sum($endTime, -$limit * $duration);
                 }
+                $response = Async\await($this->publicSpotGetKline (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             // spot
             //
@@ -1569,11 +1578,12 @@ class digifinex extends Exchange {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much you want to trade in units of the base currency, spot $market orders use the quote currency, swap requires the number of contracts
              * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", or "PO"
              * @param {bool} [$params->postOnly] true or false
              * @param {bool} [$params->reduceOnly] true or false
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
+             * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
@@ -1622,8 +1632,8 @@ class digifinex extends Exchange {
              * create a list of trade $orders (all $orders should be of the same $symbol)
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-multiple-order
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchorder
-             * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -1720,7 +1730,7 @@ class digifinex extends Exchange {
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much you want to trade in units of the base currency, spot $market orders use the quote currency, $swap requires the number of contracts
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} $request to be sent to the exchange
          */
         $market = $this->market($symbol);
@@ -1780,15 +1790,24 @@ class digifinex extends Exchange {
             $request['type'] = $side . $suffix;
             // limit orders require the $amount in the base currency, $market orders require the $amount in the quote currency
             $quantity = null;
-            $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
-            if ($createMarketBuyOrderRequiresPrice && $isMarketOrder && ($side === 'buy')) {
-                if ($price === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
+            $createMarketBuyOrderRequiresPrice = true;
+            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrderRequest', 'createMarketBuyOrderRequiresPrice', true);
+            if ($isMarketOrder && ($side === 'buy')) {
+                $cost = $this->safe_number($params, 'cost');
+                $params = $this->omit($params, 'cost');
+                if ($cost !== null) {
+                    $quantity = $this->cost_to_precision($symbol, $cost);
+                } elseif ($createMarketBuyOrderRequiresPrice) {
+                    if ($price === null) {
+                        throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
+                    } else {
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $costRequest = $this->parse_number(Precise::string_mul($amountString, $priceString));
+                        $quantity = $this->cost_to_precision($symbol, $costRequest);
+                    }
                 } else {
-                    $amountString = $this->number_to_string($amount);
-                    $priceString = $this->number_to_string($price);
-                    $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
-                    $quantity = $this->price_to_precision($symbol, $cost);
+                    $quantity = $this->cost_to_precision($symbol, $amount);
                 }
             } else {
                 $quantity = $this->amount_to_precision($symbol, $amount);
@@ -1806,6 +1825,26 @@ class digifinex extends Exchange {
         return array_merge($request, $params);
     }
 
+    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a $market buy order by providing the $symbol and $cost
+             * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-new-order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['spot']) {
+                throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
+            }
+            $params['createMarketBuyOrderRequiresPrice'] = false;
+            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
+        }) ();
+    }
+
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
@@ -1814,7 +1853,7 @@ class digifinex extends Exchange {
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#cancelorder
              * @param {string} $id order $id
              * @param {string} $symbol not used by digifinex cancelOrder ()
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -1822,19 +1861,9 @@ class digifinex extends Exchange {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
+            $id = (string) $id;
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
-            $method = $this->get_supported_mapping($marketType, array(
-                'spot' => 'privateSpotPostSpotOrderCancel',
-                'margin' => 'privateSpotPostMarginOrderCancel',
-                'swap' => 'privateSwapPostTradeCancelOrder',
-            ));
-            list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelOrder', $params);
-            if ($marginMode !== null) {
-                $method = 'privateSpotPostMarginOrderCancel';
-                $marketType = 'margin';
-            }
-            $id = (string) $id;
             $request = array(
                 'order_id' => $id,
             );
@@ -1846,7 +1875,18 @@ class digifinex extends Exchange {
             } else {
                 $request['market'] = $marketType;
             }
-            $response = Async\await($this->$method (array_merge($request, $query)));
+            list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelOrder', $params);
+            $response = null;
+            if ($marginMode !== null || $marketType === 'margin') {
+                $marketType = 'margin';
+                $response = Async\await($this->privateSpotPostMarginOrderCancel (array_merge($request, $query)));
+            } elseif ($marketType === 'spot') {
+                $response = Async\await($this->privateSpotPostSpotOrderCancel (array_merge($request, $query)));
+            } elseif ($marketType === 'swap') {
+                $response = Async\await($this->privateSwapPostTradeCancelOrder (array_merge($request, $query)));
+            } else {
+                throw new NotSupported($this->id . ' cancelOrder() not support this $market type');
+            }
             //
             // spot and margin
             //
@@ -1885,7 +1925,7 @@ class digifinex extends Exchange {
              * cancel multiple orders
              * @param {string[]} $ids order $ids
              * @param {string} $symbol not used by digifinex cancelOrders ()
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
@@ -2079,7 +2119,7 @@ class digifinex extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
@@ -2089,16 +2129,7 @@ class digifinex extends Exchange {
             }
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
-            $method = $this->get_supported_mapping($marketType, array(
-                'spot' => 'privateSpotGetSpotOrderCurrent',
-                'margin' => 'privateSpotGetMarginOrderCurrent',
-                'swap' => 'privateSwapGetTradeOpenOrders',
-            ));
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
-            if ($marginMode !== null) {
-                $method = 'privateSpotGetMarginOrderCurrent';
-                $marketType = 'margin';
-            }
             $request = array();
             $swap = ($marketType === 'swap');
             if ($swap) {
@@ -2115,7 +2146,17 @@ class digifinex extends Exchange {
                 $marketIdRequest = $swap ? 'instrument_id' : 'symbol';
                 $request[$marketIdRequest] = $market['id'];
             }
-            $response = Async\await($this->$method (array_merge($request, $query)));
+            $response = null;
+            if ($marginMode !== null || $marketType === 'margin') {
+                $marketType = 'margin';
+                $response = Async\await($this->privateSpotGetMarginOrderCurrent (array_merge($request, $query)));
+            } elseif ($marketType === 'spot') {
+                $response = Async\await($this->privateSpotGetSpotOrderCurrent (array_merge($request, $query)));
+            } elseif ($marketType === 'swap') {
+                $response = Async\await($this->privateSwapGetTradeOpenOrders (array_merge($request, $query)));
+            } else {
+                throw new NotSupported($this->id . ' fetchOpenOrders() not support this $market type');
+            }
             //
             // spot and margin
             //
@@ -2180,8 +2221,8 @@ class digifinex extends Exchange {
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#historyorder
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
@@ -2191,16 +2232,7 @@ class digifinex extends Exchange {
             }
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
-            $method = $this->get_supported_mapping($marketType, array(
-                'spot' => 'privateSpotGetSpotOrderHistory',
-                'margin' => 'privateSpotGetMarginOrderHistory',
-                'swap' => 'privateSwapGetTradeHistoryOrders',
-            ));
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrders', $params);
-            if ($marginMode !== null) {
-                $method = 'privateSpotGetMarginOrderHistory';
-                $marketType = 'margin';
-            }
             $request = array();
             if ($marketType === 'swap') {
                 if ($since !== null) {
@@ -2219,7 +2251,17 @@ class digifinex extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->$method (array_merge($request, $query)));
+            $response = null;
+            if ($marginMode !== null || $marketType === 'margin') {
+                $marketType = 'margin';
+                $response = Async\await($this->privateSpotGetMarginOrderHistory (array_merge($request, $query)));
+            } elseif ($marketType === 'spot') {
+                $response = Async\await($this->privateSpotGetSpotOrderHistory (array_merge($request, $query)));
+            } elseif ($marketType === 'swap') {
+                $response = Async\await($this->privateSwapGetTradeHistoryOrders (array_merge($request, $query)));
+            } else {
+                throw new NotSupported($this->id . ' fetchOrders() not support this $market type');
+            }
             //
             // spot and margin
             //
@@ -2284,7 +2326,7 @@ class digifinex extends Exchange {
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#orderinfo
              * @param {string} $id $order $id
              * @param {string} $symbol unified $symbol of the $market the $order was made in
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
@@ -2294,16 +2336,7 @@ class digifinex extends Exchange {
             }
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
-            $method = $this->get_supported_mapping($marketType, array(
-                'spot' => 'privateSpotGetSpotOrder',
-                'margin' => 'privateSpotGetMarginOrder',
-                'swap' => 'privateSwapGetTradeOrderInfo',
-            ));
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrder', $params);
-            if ($marginMode !== null) {
-                $method = 'privateSpotGetMarginOrder';
-                $marketType = 'margin';
-            }
             $request = array(
                 'order_id' => $id,
             );
@@ -2314,7 +2347,17 @@ class digifinex extends Exchange {
             } else {
                 $request['market'] = $marketType;
             }
-            $response = Async\await($this->$method (array_merge($request, $query)));
+            $response = null;
+            if (($marginMode !== null) || ($marketType === 'margin')) {
+                $marketType = 'margin';
+                $response = Async\await($this->privateSpotGetMarginOrder (array_merge($request, $query)));
+            } elseif ($marketType === 'spot') {
+                $response = Async\await($this->privateSpotGetSpotOrder (array_merge($request, $query)));
+            } elseif ($marketType === 'swap') {
+                $response = Async\await($this->privateSwapGetTradeOrderInfo (array_merge($request, $query)));
+            } else {
+                throw new NotSupported($this->id . ' fetchOrder() not support this $market type');
+            }
             //
             // spot and margin
             //
@@ -2381,7 +2424,7 @@ class digifinex extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
@@ -2392,16 +2435,7 @@ class digifinex extends Exchange {
             }
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
-            $method = $this->get_supported_mapping($marketType, array(
-                'spot' => 'privateSpotGetSpotMytrades',
-                'margin' => 'privateSpotGetMarginMytrades',
-                'swap' => 'privateSwapGetTradeHistoryTrades',
-            ));
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchMyTrades', $params);
-            if ($marginMode !== null) {
-                $method = 'privateSpotGetMarginMytrades';
-                $marketType = 'margin';
-            }
             if ($marketType === 'swap') {
                 if ($since !== null) {
                     $request['start_timestamp'] = $since;
@@ -2419,7 +2453,17 @@ class digifinex extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->$method (array_merge($request, $query)));
+            $response = null;
+            if ($marginMode !== null || $marketType === 'margin') {
+                $marketType = 'margin';
+                $response = Async\await($this->privateSpotGetMarginMytrades (array_merge($request, $query)));
+            } elseif ($marketType === 'spot') {
+                $response = Async\await($this->privateSpotGetSpotMytrades (array_merge($request, $query)));
+            } elseif ($marketType === 'swap') {
+                $response = Async\await($this->privateSwapGetTradeHistoryTrades (array_merge($request, $query)));
+            } else {
+                throw new NotSupported($this->id . ' fetchMyTrades() not support this $market type');
+            }
             //
             // spot and margin
             //
@@ -2533,23 +2577,14 @@ class digifinex extends Exchange {
              * @param {string} $code unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest $ledger entry, default is null
              * @param {int} [$limit] max number of $ledger entrys to return, default is null
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger-structure $ledger structure~
              */
             Async\await($this->load_markets());
             $request = array();
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('fetchLedger', null, $params);
-            $method = $this->get_supported_mapping($marketType, array(
-                'spot' => 'privateSpotGetSpotFinancelog',
-                'margin' => 'privateSpotGetMarginFinancelog',
-                'swap' => 'privateSwapGetAccountFinanceRecord',
-            ));
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchLedger', $params);
-            if ($marginMode !== null) {
-                $method = 'privateSpotGetMarginFinancelog';
-                $marketType = 'margin';
-            }
             if ($marketType === 'swap') {
                 if ($since !== null) {
                     $request['start_timestamp'] = $since;
@@ -2569,7 +2604,17 @@ class digifinex extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->$method (array_merge($request, $query)));
+            $response = null;
+            if ($marginMode !== null || $marketType === 'margin') {
+                $marketType = 'margin';
+                $response = Async\await($this->privateSpotGetMarginFinancelog (array_merge($request, $query)));
+            } elseif ($marketType === 'spot') {
+                $response = Async\await($this->privateSpotGetSpotFinancelog (array_merge($request, $query)));
+            } elseif ($marketType === 'swap') {
+                $response = Async\await($this->privateSwapGetAccountFinanceRecord (array_merge($request, $query)));
+            } else {
+                throw new NotSupported($this->id . ' fetchLedger() not support this market type');
+            }
             //
             // spot and margin
             //
@@ -2641,7 +2686,7 @@ class digifinex extends Exchange {
             /**
              * fetch the deposit $address for a $currency associated with this account
              * @param {string} $code unified $currency $code
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
              */
             Async\await($this->load_markets());
@@ -2690,8 +2735,12 @@ class digifinex extends Exchange {
             if ($limit !== null) {
                 $request['size'] = min (500, $limit);
             }
-            $method = ($type === 'deposit') ? 'privateSpotGetDepositHistory' : 'privateSpotGetWithdrawHistory';
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($type === 'deposit') {
+                $response = Async\await($this->privateSpotGetDepositHistory (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privateSpotGetWithdrawHistory (array_merge($request, $params)));
+            }
             //
             //     {
             //         "code" => 200,
@@ -2724,7 +2773,7 @@ class digifinex extends Exchange {
              * @param {string} $code unified currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             return Async\await($this->fetch_transactions_by_type('deposit', $code, $since, $limit, $params));
@@ -2738,7 +2787,7 @@ class digifinex extends Exchange {
              * @param {string} $code unified currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             return Async\await($this->fetch_transactions_by_type('withdrawal', $code, $since, $limit, $params));
@@ -2879,7 +2928,7 @@ class digifinex extends Exchange {
              * @param {float} $amount amount to transfer
              * @param {string} $fromAccount account to transfer from
              * @param {string} $toAccount account to transfer to
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
              */
             Async\await($this->load_markets());
@@ -2911,7 +2960,7 @@ class digifinex extends Exchange {
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
@@ -3015,7 +3064,7 @@ class digifinex extends Exchange {
              * fetch the rate of interest to borrow a $currency for margin trading
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
              * @param {string} $code unified $currency $code
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure borrow rate structure}
              */
             Async\await($this->load_markets());
@@ -3056,7 +3105,7 @@ class digifinex extends Exchange {
             /**
              * fetch the borrow interest rates of all currencies
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structures~
              */
             Async\await($this->load_markets());
@@ -3130,7 +3179,7 @@ class digifinex extends Exchange {
              * fetch the current funding rate
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#currentfundingrate
              * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
              */
             Async\await($this->load_markets());
@@ -3200,7 +3249,7 @@ class digifinex extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
              * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
              * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
              */
             if ($symbol === null) {
@@ -3263,7 +3312,7 @@ class digifinex extends Exchange {
              * fetch the trading fees for a $market
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#tradingfee
              * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
              */
             Async\await($this->load_markets());
@@ -3315,7 +3364,7 @@ class digifinex extends Exchange {
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-$positions
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#$positions
              * @param {string[]|null} $symbols list of unified $market $symbols
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
              */
             Async\await($this->load_markets());
@@ -3345,12 +3394,14 @@ class digifinex extends Exchange {
                 $marketIdRequest = ($marketType === 'swap') ? 'instrument_id' : 'symbol';
                 $request[$marketIdRequest] = $market['id'];
             }
-            $method = $this->get_supported_mapping($marketType, array(
-                'spot' => 'privateSpotGetMarginPositions',
-                'margin' => 'privateSpotGetMarginPositions',
-                'swap' => 'privateSwapGetAccountPositions',
-            ));
-            $response = Async\await($this->$method (array_merge($request, $query)));
+            $response = null;
+            if ($marketType === 'spot' || $marketType === 'margin') {
+                $response = Async\await($this->privateSpotGetMarginPositions (array_merge($request, $query)));
+            } elseif ($marketType === 'swap') {
+                $response = Async\await($this->privateSwapGetAccountPositions (array_merge($request, $query)));
+            } else {
+                throw new NotSupported($this->id . ' fetchPositions() not support this $market type');
+            }
             //
             // swap
             //
@@ -3421,7 +3472,7 @@ class digifinex extends Exchange {
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positions
              * fetch $data on a single open contract trade $position
              * @param {string} $symbol unified $market $symbol of the $market the $position is held in
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
              */
             Async\await($this->load_markets());
@@ -3433,14 +3484,16 @@ class digifinex extends Exchange {
             if ($marginMode !== null) {
                 $marketType = 'margin';
             }
-            $method = $this->get_supported_mapping($marketType, array(
-                'spot' => 'privateSpotGetMarginPositions',
-                'margin' => 'privateSpotGetMarginPositions',
-                'swap' => 'privateSwapGetAccountPositions',
-            ));
             $marketIdRequest = ($marketType === 'swap') ? 'instrument_id' : 'symbol';
             $request[$marketIdRequest] = $market['id'];
-            $response = Async\await($this->$method (array_merge($request, $query)));
+            $response = null;
+            if ($marketType === 'spot' || $marketType === 'margin') {
+                $response = Async\await($this->privateSpotGetMarginPositions (array_merge($request, $query)));
+            } elseif ($marketType === 'swap') {
+                $response = Async\await($this->privateSwapGetAccountPositions (array_merge($request, $query)));
+            } else {
+                throw new NotSupported($this->id . ' fetchPosition() not support this $market type');
+            }
             //
             // swap
             //
@@ -3596,7 +3649,7 @@ class digifinex extends Exchange {
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#setleverage
              * @param {float} $leverage the rate of $leverage
              * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] either 'cross' or 'isolated', default is cross
              * @param {string} [$params->side] either 'long' or 'short', required for isolated markets only
              * @return {array} response from the exchange
@@ -3655,7 +3708,7 @@ class digifinex extends Exchange {
              * @param {string} $code unified $currency $code of the $currency transferred
              * @param {int} [$since] the earliest time in ms to fetch $transfers for
              * @param {int} [$limit] the maximum number of  $transfers to retrieve
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
              */
             Async\await($this->load_markets());
@@ -3698,7 +3751,7 @@ class digifinex extends Exchange {
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instruments
              * retrieve information on the maximum leverage, for different trade sizes
              * @param {string[]|null} $symbols a list of unified market $symbols
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
              */
             Async\await($this->load_markets());
@@ -3793,7 +3846,7 @@ class digifinex extends Exchange {
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instrument
              * retrieve information on the maximum leverage, for different trade sizes for a single $market
              * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structure~
              */
             Async\await($this->load_markets());
@@ -3885,8 +3938,8 @@ class digifinex extends Exchange {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
-         * @param {array} [$params] extra parameters specific to the exchange api endpoint
-         * @return {array} the $marginMode in lowercase
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Array} the $marginMode in lowercase
          */
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_value($params, 'margin', false);
@@ -3910,7 +3963,7 @@ class digifinex extends Exchange {
              * fetch deposit and withdraw fees
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-currency-deposit-and-withdrawal-information
              * @param {string[]|null} $codes not used by fetchDepositWithdrawFees ()
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
              */
             Async\await($this->load_markets());
@@ -4027,7 +4080,7 @@ class digifinex extends Exchange {
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount amount of margin to add
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} $params->side the position $side => 'long' or 'short'
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-structure margin structure~
              */
@@ -4044,7 +4097,7 @@ class digifinex extends Exchange {
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount the $amount of margin to remove
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} $params->side the position $side => 'long' or 'short'
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-structure margin structure~
              */
@@ -4116,7 +4169,7 @@ class digifinex extends Exchange {
              * @param {string} [$symbol] unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch funding history for
              * @param {int} [$limit] the maximum number of funding history structures to retrieve
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest funding payment
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
              */
@@ -4183,7 +4236,7 @@ class digifinex extends Exchange {
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmode
              * @param {string} $marginMode 'cross' or 'isolated'
              * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} response from the exchange
              */
             if ($symbol === null) {

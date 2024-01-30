@@ -1739,6 +1739,214 @@
           }
         }
       }
+    ],
+    "fetchPositions": [
+      {
+        "description": "Fetch positions",
+        "method": "fetchPositions",
+        "input": [
+          [
+            "LTC/USD:USD"
+          ]
+        ],
+        "httpResponse": {
+          "id": 1700841372136,
+          "method": "private/get-positions",
+          "code": 0,
+          "result": {
+            "data": [
+              {
+                "account_id": "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
+                "quantity": "4.7",
+                "cost": "330.598",
+                "open_pos_cost": "310.16670833333336076",
+                "open_position_pnl": "14.721750955418",
+                "session_pnl": "0",
+                "update_timestamp_ms": 1700838000031,
+                "instrument_name": "LTCUSD-PERP",
+                "type": "PERPETUAL_SWAP"
+              }
+            ]
+          }
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "account_id": "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
+              "quantity": "4.7",
+              "cost": "330.598",
+              "open_pos_cost": "310.16670833333336076",
+              "open_position_pnl": "14.721750955418",
+              "session_pnl": "0",
+              "update_timestamp_ms": 1700838000031,
+              "instrument_name": "LTCUSD-PERP",
+              "type": "PERPETUAL_SWAP"
+            },
+            "id": null,
+            "symbol": "LTC/USD:USD",
+            "timestamp": 1700838000031,
+            "datetime": "2023-11-24T15:00:00.031Z",
+            "hedged": null,
+            "side": "buy",
+            "contracts": "4.7",
+            "contractSize": 1,
+            "entryPrice": null,
+            "markPrice": null,
+            "notional": null,
+            "leverage": null,
+            "collateral": 310.16670833333336,
+            "initialMargin": 330.598,
+            "maintenanceMargin": null,
+            "initialMarginPercentage": null,
+            "maintenanceMarginPercentage": null,
+            "unrealizedPnl": 14.721750955418,
+            "liquidationPrice": null,
+            "marginMode": null,
+            "percentage": null,
+            "marginRatio": null,
+            "stopLossPrice": null,
+            "takeProfitPrice": null
+          }
+        ]
+      }
+    ],
+    "fetchOrderBook": [
+      {
+        "description": "fetch orderbook",
+        "method": "fetchOrderBook",
+        "input": [
+          "BTC/USDT",
+          5
+        ],
+        "httpResponse": {
+          "id": -1,
+          "method": "public/get-book",
+          "code": 0,
+          "result": {
+            "depth": 5,
+            "data": [
+              {
+                "bids": [
+                  [
+                    "44238.31",
+                    "0.22932",
+                    "2"
+                  ],
+                  [
+                    "44236.33",
+                    "0.11424",
+                    "1"
+                  ],
+                  [
+                    "44236.30",
+                    "0.00001",
+                    "1"
+                  ],
+                  [
+                    "44233.92",
+                    "0.00681",
+                    "1"
+                  ],
+                  [
+                    "44233.24",
+                    "0.10000",
+                    "1"
+                  ]
+                ],
+                "asks": [
+                  [
+                    "44238.32",
+                    "0.29028",
+                    "7"
+                  ],
+                  [
+                    "44239.51",
+                    "0.01358",
+                    "1"
+                  ],
+                  [
+                    "44239.52",
+                    "0.25870",
+                    "1"
+                  ],
+                  [
+                    "44240.31",
+                    "0.25870",
+                    "1"
+                  ],
+                  [
+                    "44240.38",
+                    "0.08000",
+                    "1"
+                  ]
+                ],
+                "t": 1704713531481
+              }
+            ],
+            "instrument_name": "BTC_USDT"
+          }
+        },
+        "parsedResponse": {
+          "symbol": "BTC/USDT",
+          "bids": [
+            [
+              44238.31,
+              0.22932,
+              2
+            ],
+            [
+              44236.33,
+              0.11424,
+              1
+            ],
+            [
+              44236.3,
+              0.00001,
+              1
+            ],
+            [
+              44233.92,
+              0.00681,
+              1
+            ],
+            [
+              44233.24,
+              0.1,
+              1
+            ]
+          ],
+          "asks": [
+            [
+              44238.32,
+              0.29028,
+              7
+            ],
+            [
+              44239.51,
+              0.01358,
+              1
+            ],
+            [
+              44239.52,
+              0.2587,
+              1
+            ],
+            [
+              44240.31,
+              0.2587,
+              1
+            ],
+            [
+              44240.38,
+              0.08,
+              1
+            ]
+          ],
+          "timestamp": 1704713531481,
+          "datetime": "2024-01-08T11:32:11.481Z",
+          "nonce": null
+        }
+      }
     ]
   }
 }

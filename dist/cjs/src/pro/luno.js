@@ -39,10 +39,10 @@ class luno extends luno$1 {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of    trades to fetch
-         * @param {object} [params] extra parameters specific to the luno api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.checkRequiredCredentials();
+        this.checkRequiredCredentials();
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -135,11 +135,11 @@ class luno extends luno$1 {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {objectConstructor} [params] extra parameters specific to the luno api endpoint
+         * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        await this.checkRequiredCredentials();
+        this.checkRequiredCredentials();
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -210,9 +210,9 @@ class luno extends luno$1 {
         storedOrderBook['nonce'] = nonce;
         client.resolve(storedOrderBook, messageHash);
     }
-    customParseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 'price', amountKey = 'volume', thirdKey = undefined) {
-        const bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, thirdKey);
-        const asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, thirdKey);
+    customParseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 'price', amountKey = 'volume', countOrIdKey = 2) {
+        const bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
+        const asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy(bids, 0, true),
@@ -222,7 +222,7 @@ class luno extends luno$1 {
             'nonce': undefined,
         };
     }
-    parseBidsAsks(bidasks, priceKey = 'price', amountKey = 'volume', thirdKey = undefined) {
+    parseBidsAsks(bidasks, priceKey = 'price', amountKey = 'volume', thirdKey = 2) {
         bidasks = this.toArray(bidasks);
         const result = [];
         for (let i = 0; i < bidasks.length; i++) {
@@ -230,7 +230,7 @@ class luno extends luno$1 {
         }
         return result;
     }
-    customParseBidAsk(bidask, priceKey = 'price', amountKey = 'volume', thirdKey = undefined) {
+    customParseBidAsk(bidask, priceKey = 'price', amountKey = 'volume', thirdKey = 2) {
         const price = this.safeNumber(bidask, priceKey);
         const amount = this.safeNumber(bidask, amountKey);
         const result = [price, amount];

@@ -57,7 +57,7 @@ class bitrue extends bitrue$1 {
          * @name bitrue#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
-         * @param {object} [params] extra parameters specific to the bitrue api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         const url = await this.authenticate();
@@ -172,7 +172,7 @@ class bitrue extends bitrue$1 {
          * @param {string[]} symbols unified symbols of the market to watch the orders for
          * @param {int} [since] timestamp in ms of the earliest order
          * @param {int} [limit] the maximum amount of orders to return
-         * @param {object} [params] extra parameters specific to the bitrue api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -346,7 +346,12 @@ class bitrue extends bitrue$1 {
         const symbol = market['symbol'];
         const timestamp = this.safeInteger(message, 'ts');
         const tick = this.safeValue(message, 'tick', {});
-        const orderbook = this.parseOrderBook(tick, symbol, timestamp, 'buys', 'asks');
+        let orderbook = this.safeValue(this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook();
+        }
+        const snapshot = this.parseOrderBook(tick, symbol, timestamp, 'buys', 'asks');
+        orderbook.reset(snapshot);
         this.orderbooks[symbol] = orderbook;
         const messageHash = 'orderbook:' + symbol;
         client.resolve(orderbook, messageHash);

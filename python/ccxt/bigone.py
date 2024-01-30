@@ -14,6 +14,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -32,12 +33,15 @@ class bigone(Exchange, ImplicitAPI):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,  # has but unimplemented
+                'margin': False,
                 'swap': None,  # has but unimplemented
                 'future': None,  # has but unimplemented
-                'option': None,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': False,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createPostOnlyOrder': True,
                 'createStopLimitOrder': True,
@@ -48,6 +52,7 @@ class bigone(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingRate': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -86,6 +91,8 @@ class bigone(Exchange, ImplicitAPI):
                 'api': {
                     'public': 'https://{hostname}/api/v3',
                     'private': 'https://{hostname}/api/v3/viewer',
+                    'contractPublic': 'https://{hostname}/api/contract/v2',
+                    'contractPrivate': 'https://{hostname}/api/contract/v2',
                     'webExchange': 'https://{hostname}/api/',
                 },
                 'www': 'https://big.one',
@@ -123,6 +130,39 @@ class bigone(Exchange, ImplicitAPI):
                         'orders/cancel',
                         'withdrawals',
                         'transfer',
+                    ],
+                },
+                'contractPublic': {
+                    'get': [
+                        'symbols',
+                        'instruments',
+                        'depth@{symbol}/snapshot',
+                        'instruments/difference',
+                        'instruments/prices',
+                    ],
+                },
+                'contractPrivate': {
+                    'get': [
+                        'accounts',
+                        'orders/{id}',
+                        'orders',
+                        'orders/opening',
+                        'orders/count',
+                        'orders/opening/count',
+                        'trades',
+                        'trades/count',
+                    ],
+                    'post': [
+                        'orders',
+                        'orders/batch',
+                    ],
+                    'put': [
+                        'positions/{symbol}/margin',
+                        'positions/{symbol}/risk-limit',
+                    ],
+                    'delete': [
+                        'orders/{id}',
+                        'orders/batch',
                     ],
                 },
                 'webExchange': {
@@ -302,7 +342,7 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
-        :param dict [params]: extra parameters specific to the aax api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
         # we use undocumented link(possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
@@ -481,10 +521,13 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for bigone
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        response = self.publicGetAssetPairs(params)
+        promises = [self.publicGetAssetPairs(params), self.contractPublicGetSymbols(params)]
+        promisesResult = promises
+        response = promisesResult[0]
+        contractResponse = promisesResult[1]
         #
         #     {
         #         "code":0,
@@ -510,93 +553,212 @@ class bigone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
+        #
+        #    [
+        #        {
+        #            "baseCurrency": "BTC",
+        #            "multiplier": 1,
+        #            "enable": True,
+        #            "priceStep": 0.5,
+        #            "maxRiskLimit": 1000,
+        #            "pricePrecision": 1,
+        #            "maintenanceMargin": 0.00500,
+        #            "symbol": "BTCUSD",
+        #            "valuePrecision": 4,
+        #            "minRiskLimit": 100,
+        #            "riskLimit": 100,
+        #            "isInverse": True,
+        #            "riskStep": 1,
+        #            "settleCurrency": "BTC",
+        #            "baseName": "Bitcoin",
+        #            "feePrecision": 8,
+        #            "priceMin": 0.5,
+        #            "priceMax": 1E+6,
+        #            "initialMargin": 0.01000,
+        #            "quoteCurrency": "USD"
+        #        },
+        #        ...
+        #    ]
+        #
         markets = self.safe_value(response, 'data', [])
-        return self.parse_markets(markets)
-
-    def parse_market(self, market) -> Market:
-        id = self.safe_string(market, 'name')
-        baseAsset = self.safe_value(market, 'base_asset', {})
-        quoteAsset = self.safe_value(market, 'quote_asset', {})
-        baseId = self.safe_string(baseAsset, 'symbol')
-        quoteId = self.safe_string(quoteAsset, 'symbol')
-        base = self.safe_currency_code(baseId)
-        quote = self.safe_currency_code(quoteId)
-        return {
-            'id': id,
-            'symbol': base + '/' + quote,
-            'base': base,
-            'quote': quote,
-            'settle': None,
-            'baseId': baseId,
-            'quoteId': quoteId,
-            'settleId': None,
-            'type': 'spot',
-            'spot': True,
-            'margin': False,
-            'swap': False,
-            'future': False,
-            'option': False,
-            'active': True,
-            'contract': False,
-            'linear': None,
-            'inverse': None,
-            'contractSize': None,
-            'expiry': None,
-            'expiryDatetime': None,
-            'strike': None,
-            'optionType': None,
-            'precision': {
-                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'base_scale'))),
-                'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quote_scale'))),
-            },
-            'limits': {
-                'leverage': {
-                    'min': None,
-                    'max': None,
+        result = []
+        for i in range(0, len(markets)):
+            market = markets[i]
+            baseAsset = self.safe_value(market, 'base_asset', {})
+            quoteAsset = self.safe_value(market, 'quote_asset', {})
+            baseId = self.safe_string(baseAsset, 'symbol')
+            quoteId = self.safe_string(quoteAsset, 'symbol')
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            result.append(self.safe_market_structure({
+                'id': self.safe_string(market, 'name'),
+                'uuid': self.safe_string(market, 'id'),
+                'symbol': base + '/' + quote,
+                'base': base,
+                'quote': quote,
+                'settle': None,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': None,
+                'type': 'spot',
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': True,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'base_scale'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quote_scale'))),
                 },
-                'amount': {
-                    'min': None,
-                    'max': None,
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': self.safe_number(market, 'min_quote_value'),
+                        'max': self.safe_number(market, 'max_quote_value'),
+                    },
                 },
-                'price': {
-                    'min': None,
-                    'max': None,
+                'created': None,
+                'info': market,
+            }))
+        for i in range(0, len(contractResponse)):
+            market = contractResponse[i]
+            baseId = self.safe_string(market, 'baseCurrency')
+            quoteId = self.safe_string(market, 'quoteCurrency')
+            settleId = self.safe_string(market, 'settleCurrency')
+            marketId = self.safe_string(market, 'symbol')
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            settle = self.safe_currency_code(settleId)
+            inverse = self.safe_value(market, 'isInverse')
+            result.append(self.safe_market_structure({
+                'id': marketId,
+                'symbol': base + '/' + quote + ':' + settle,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': 'swap',
+                'spot': False,
+                'margin': False,
+                'swap': True,
+                'future': False,
+                'option': False,
+                'active': self.safe_value(market, 'enable'),
+                'contract': True,
+                'linear': not inverse,
+                'inverse': inverse,
+                'contractSize': self.safe_number(market, 'multiplier'),
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'valuePrecision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),
                 },
-                'cost': {
-                    'min': self.safe_number(market, 'min_quote_value'),
-                    'max': self.safe_number(market, 'max_quote_value'),
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': self.safe_number(market, 'priceMin'),
+                        'max': self.safe_number(market, 'priceMax'),
+                    },
+                    'cost': {
+                        'min': self.safe_number(market, 'initialMargin'),
+                        'max': None,
+                    },
                 },
-            },
-            'created': None,
-            'info': market,
-        }
+                'info': market,
+            }))
+        return result
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
-        #     {
-        #         "asset_pair_name":"ETH-BTC",
-        #         "bid":{"price":"0.021593","order_count":1,"quantity":"0.20936"},
-        #         "ask":{"price":"0.021613","order_count":1,"quantity":"2.87064"},
-        #         "open":"0.021795",
-        #         "high":"0.021795",
-        #         "low":"0.021471",
-        #         "close":"0.021613",
-        #         "volume":"117078.90431",
-        #         "daily_change":"-0.000182"
-        #     }
+        # spot
         #
-        marketId = self.safe_string(ticker, 'asset_pair_name')
-        symbol = self.safe_symbol(marketId, market, '-')
-        timestamp = None
-        close = self.safe_string(ticker, 'close')
+        #    {
+        #        "asset_pair_name": "ETH-BTC",
+        #        "bid": {
+        #            "price": "0.021593",
+        #            "order_count": 1,
+        #            "quantity": "0.20936"
+        #        },
+        #        "ask": {
+        #            "price": "0.021613",
+        #            "order_count": 1,
+        #            "quantity": "2.87064"
+        #        },
+        #        "open": "0.021795",
+        #        "high": "0.021795",
+        #        "low": "0.021471",
+        #        "close": "0.021613",
+        #        "volume": "117078.90431",
+        #        "daily_change": "-0.000182"
+        #    }
+        #
+        # contract
+        #
+        #    {
+        #        "usdtPrice": 1.00031998,
+        #        "symbol": "BTCUSD",
+        #        "btcPrice": 34700.4,
+        #        "ethPrice": 1787.83,
+        #        "nextFundingRate": 0.00010,
+        #        "fundingRate": 0.00010,
+        #        "latestPrice": 34708.5,
+        #        "last24hPriceChange": 0.0321,
+        #        "indexPrice": 34700.4,
+        #        "volume24h": 261319063,
+        #        "turnover24h": 8204.129380685496,
+        #        "nextFundingTime": 1698285600000,
+        #        "markPrice": 34702.4646738,
+        #        "last24hMaxPrice": 35127.5,
+        #        "volume24hInUsd": 0.0,
+        #        "openValue": 32.88054722085945,
+        #        "last24hMinPrice": 33552.0,
+        #        "openInterest": 1141372.0
+        #    }
+        #
+        marketType = 'spot' if ('asset_pair_name' in ticker) else 'swap'
+        marketId = self.safe_string_2(ticker, 'asset_pair_name', 'symbol')
+        symbol = self.safe_symbol(marketId, market, '-', marketType)
+        close = self.safe_string_2(ticker, 'close', 'latestPrice')
         bid = self.safe_value(ticker, 'bid', {})
         ask = self.safe_value(ticker, 'ask', {})
         return self.safe_ticker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'high': self.safe_string(ticker, 'high'),
-            'low': self.safe_string(ticker, 'low'),
+            'timestamp': None,
+            'datetime': None,
+            'high': self.safe_string_2(ticker, 'high', 'last24hMaxPrice'),
+            'low': self.safe_string_2(ticker, 'low', 'last24hMinPrice'),
             'bid': self.safe_string(bid, 'price'),
             'bidVolume': self.safe_string(bid, 'quantity'),
             'ask': self.safe_string(ask, 'price'),
@@ -606,11 +768,11 @@ class bigone(Exchange, ImplicitAPI):
             'close': close,
             'last': close,
             'previousClose': None,
-            'change': self.safe_string(ticker, 'daily_change'),
+            'change': self.safe_string_2(ticker, 'daily_change', 'last24hPriceChange'),
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_string(ticker, 'volume'),
-            'quoteVolume': None,
+            'baseVolume': self.safe_string_2(ticker, 'volume', 'volume24h'),
+            'quoteVolume': self.safe_string(ticker, 'volume24hInUsd'),
             'info': ticker,
         }, market)
 
@@ -618,89 +780,125 @@ class bigone(Exchange, ImplicitAPI):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the bigone api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
-            'asset_pair_name': market['id'],
-        }
-        response = self.publicGetAssetPairsAssetPairNameTicker(self.extend(request, params))
-        #
-        #     {
-        #         "code":0,
-        #         "data":{
-        #             "asset_pair_name":"ETH-BTC",
-        #             "bid":{"price":"0.021593","order_count":1,"quantity":"0.20936"},
-        #             "ask":{"price":"0.021613","order_count":1,"quantity":"2.87064"},
-        #             "open":"0.021795",
-        #             "high":"0.021795",
-        #             "low":"0.021471",
-        #             "close":"0.021613",
-        #             "volume":"117078.90431",
-        #             "daily_change":"-0.000182"
-        #         }
-        #     }
-        #
-        ticker = self.safe_value(response, 'data', {})
-        return self.parse_ticker(ticker, market)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTicker', market, params)
+        if type == 'spot':
+            request = {
+                'asset_pair_name': market['id'],
+            }
+            response = self.publicGetAssetPairsAssetPairNameTicker(self.extend(request, params))
+            #
+            #     {
+            #         "code":0,
+            #         "data":{
+            #             "asset_pair_name":"ETH-BTC",
+            #             "bid":{"price":"0.021593","order_count":1,"quantity":"0.20936"},
+            #             "ask":{"price":"0.021613","order_count":1,"quantity":"2.87064"},
+            #             "open":"0.021795",
+            #             "high":"0.021795",
+            #             "low":"0.021471",
+            #             "close":"0.021613",
+            #             "volume":"117078.90431",
+            #             "daily_change":"-0.000182"
+            #         }
+            #     }
+            #
+            ticker = self.safe_value(response, 'data', {})
+            return self.parse_ticker(ticker, market)
+        else:
+            tickers = self.fetch_tickers([symbol], params)
+            return self.safe_value(tickers, symbol)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict [params]: extra parameters specific to the bigone api endpoint
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
+        market = None
+        symbol = self.safe_string(symbols, 0)
+        if symbol is not None:
+            market = self.market(symbol)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        isSpot = type == 'spot'
         request = {}
         symbols = self.market_symbols(symbols)
-        if symbols is not None:
-            ids = self.market_ids(symbols)
-            request['pair_names'] = ','.join(ids)
-        response = self.publicGetAssetPairsTickers(self.extend(request, params))
-        #
-        #     {
-        #         "code":0,
-        #         "data":[
-        #             {
-        #                 "asset_pair_name":"PCX-BTC",
-        #                 "bid":{"price":"0.000234","order_count":1,"quantity":"0.518"},
-        #                 "ask":{"price":"0.0002348","order_count":1,"quantity":"2.348"},
-        #                 "open":"0.0002343",
-        #                 "high":"0.0002348",
-        #                 "low":"0.0002162",
-        #                 "close":"0.0002348",
-        #                 "volume":"12887.016",
-        #                 "daily_change":"0.0000005"
-        #             },
-        #             {
-        #                 "asset_pair_name":"GXC-USDT",
-        #                 "bid":{"price":"0.5054","order_count":1,"quantity":"40.53"},
-        #                 "ask":{"price":"0.5055","order_count":1,"quantity":"38.53"},
-        #                 "open":"0.5262",
-        #                 "high":"0.5323",
-        #                 "low":"0.5055",
-        #                 "close":"0.5055",
-        #                 "volume":"603963.05",
-        #                 "daily_change":"-0.0207"
-        #             }
-        #         ]
-        #     }
-        #
-        tickers = self.safe_value(response, 'data', [])
-        result = {}
-        for i in range(0, len(tickers)):
-            ticker = self.parse_ticker(tickers[i])
-            symbol = ticker['symbol']
-            result[symbol] = ticker
-        return self.filter_by_array_tickers(result, 'symbol', symbols)
+        data = None
+        if isSpot:
+            if symbols is not None:
+                ids = self.market_ids(symbols)
+                request['pair_names'] = ','.join(ids)
+            response = self.publicGetAssetPairsTickers(self.extend(request, params))
+            #
+            #    {
+            #        "code": 0,
+            #        "data": [
+            #            {
+            #                "asset_pair_name": "PCX-BTC",
+            #                "bid": {
+            #                    "price": "0.000234",
+            #                    "order_count": 1,
+            #                    "quantity": "0.518"
+            #                },
+            #                "ask": {
+            #                    "price": "0.0002348",
+            #                    "order_count": 1,
+            #                    "quantity": "2.348"
+            #                },
+            #                "open": "0.0002343",
+            #                "high": "0.0002348",
+            #                "low": "0.0002162",
+            #                "close": "0.0002348",
+            #                "volume": "12887.016",
+            #                "daily_change": "0.0000005"
+            #            },
+            #            ...
+            #        ]
+            #    }
+            #
+            data = self.safe_value(response, 'data', [])
+        else:
+            data = self.contractPublicGetInstruments(params)
+            #
+            #    [
+            #        {
+            #            "usdtPrice": 1.00031998,
+            #            "symbol": "BTCUSD",
+            #            "btcPrice": 34700.4,
+            #            "ethPrice": 1787.83,
+            #            "nextFundingRate": 0.00010,
+            #            "fundingRate": 0.00010,
+            #            "latestPrice": 34708.5,
+            #            "last24hPriceChange": 0.0321,
+            #            "indexPrice": 34700.4,
+            #            "volume24h": 261319063,
+            #            "turnover24h": 8204.129380685496,
+            #            "nextFundingTime": 1698285600000,
+            #            "markPrice": 34702.4646738,
+            #            "last24hMaxPrice": 35127.5,
+            #            "volume24hInUsd": 0.0,
+            #            "openValue": 32.88054722085945,
+            #            "last24hMinPrice": 33552.0,
+            #            "openInterest": 1141372.0
+            #        }
+            #        ...
+            #    ]
+            #
+        tickers = self.parse_tickers(data, symbols)
+        return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :param dict [params]: extra parameters specific to the bigone api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
         response = self.publicGetPing(params)
@@ -720,33 +918,91 @@ class bigone(Exchange, ImplicitAPI):
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the bigone api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
-            'asset_pair_name': market['id'],
+        response = None
+        if market['contract']:
+            request = {
+                'symbol': market['id'],
+            }
+            response = self.contractPublicGetDepthSymbolSnapshot(self.extend(request, params))
+            #
+            #    {
+            #        bids: {
+            #            '20000': '20',
+            #            ...
+            #            '34552': '64851',
+            #            '34526.5': '59594',
+            #            ...
+            #            '34551.5': '29711'
+            #        },
+            #        asks: {
+            #            '34557': '34395',
+            #            ...
+            #            '40000': '20',
+            #            '34611.5': '56024',
+            #            ...
+            #            '34578.5': '66367'
+            #        },
+            #        to: '59737174',
+            #        lastPrice: '34554.5',
+            #        bestPrices: {
+            #            ask: '34557.0',
+            #            bid: '34552.0'
+            #        },
+            #        from: '0'
+            #    }
+            #
+            return self.parse_contract_order_book(response, market['symbol'], limit)
+        else:
+            request = {
+                'asset_pair_name': market['id'],
+            }
+            if limit is not None:
+                request['limit'] = limit  # default 50, max 200
+            response = self.publicGetAssetPairsAssetPairNameDepth(self.extend(request, params))
+            #
+            #     {
+            #         "code":0,
+            #         "data": {
+            #             "asset_pair_name": "EOS-BTC",
+            #             "bids": [
+            #                 {"price": "42", "order_count": 4, "quantity": "23.33363711"}
+            #             ],
+            #             "asks": [
+            #                 {"price": "45", "order_count": 2, "quantity": "4193.3283464"}
+            #             ]
+            #         }
+            #     }
+            #
+            orderbook = self.safe_value(response, 'data', {})
+            return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price', 'quantity')
+
+    def parse_contract_bids_asks(self, bidsAsks):
+        bidsAsksKeys = list(bidsAsks.keys())
+        result = []
+        for i in range(0, len(bidsAsksKeys)):
+            price = bidsAsksKeys[i]
+            amount = bidsAsks[price]
+            result.append([self.parse_number(price), self.parse_number(amount)])
+        return result
+
+    def parse_contract_order_book(self, orderbook: object, symbol: str, limit: Int = None) -> OrderBook:
+        responseBids = self.safe_value(orderbook, 'bids')
+        responseAsks = self.safe_value(orderbook, 'asks')
+        bids = self.parse_contract_bids_asks(responseBids)
+        asks = self.parse_contract_bids_asks(responseAsks)
+        return {
+            'symbol': symbol,
+            'bids': self.filter_by_limit(self.sort_by(bids, 0, True), limit),
+            'asks': self.filter_by_limit(self.sort_by(asks, 0), limit),
+            'timestamp': None,
+            'datetime': None,
+            'nonce': None,
         }
-        if limit is not None:
-            request['limit'] = limit  # default 50, max 200
-        response = self.publicGetAssetPairsAssetPairNameDepth(self.extend(request, params))
-        #
-        #     {
-        #         "code":0,
-        #         "data": {
-        #             "asset_pair_name": "EOS-BTC",
-        #             "bids": [
-        #                 {"price": "42", "order_count": 4, "quantity": "23.33363711"}
-        #             ],
-        #             "asks": [
-        #                 {"price": "45", "order_count": 2, "quantity": "4193.3283464"}
-        #             ]
-        #         }
-        #     }
-        #
-        orderbook = self.safe_value(response, 'data', {})
-        return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price', 'quantity')
 
     def parse_trade(self, trade, market: Market = None) -> Trade:
         #
@@ -877,11 +1133,13 @@ class bigone(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the bigone api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
+        if market['contract']:
+            raise BadRequest(self.id + ' fetchTrades() can only fetch trades for spot markets')
         request = {
             'asset_pair_name': market['id'],
         }
@@ -937,11 +1195,13 @@ class bigone(Exchange, ImplicitAPI):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the bigone api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
+        if market['contract']:
+            raise BadRequest(self.id + ' fetchOHLCV() can only fetch ohlcvs for spot markets')
         if limit is None:
             limit = 100  # default 100, max 500
         request = {
@@ -1001,7 +1261,7 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict [params]: extra parameters specific to the bigone api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
@@ -1104,6 +1364,22 @@ class bigone(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
+    def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+        """
+        create a market buy order by providing the symbol and cost
+        :see: https://open.big.one/docs/spot_orders.html#create-order
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
+        params['createMarketBuyOrderRequiresPrice'] = False
+        return self.create_order(symbol, 'market', 'buy', cost, None, params)
+
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
@@ -1113,10 +1389,11 @@ class bigone(Exchange, ImplicitAPI):
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the bigone api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: the price at which a trigger order is triggered at
         :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately
         :param str [params.timeInForce]: "GTC", "IOC", or "PO"
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
          *
          * EXCHANGE SPECIFIC PARAMETERS
         :param str operator: *stop order only* GTE or LTE(default)
@@ -1129,7 +1406,7 @@ class bigone(Exchange, ImplicitAPI):
         requestSide = 'BID' if isBuy else 'ASK'
         uppercaseType = type.upper()
         isLimit = uppercaseType == 'LIMIT'
-        exchangeSpecificParam = self.safe_value(params, 'post_only')
+        exchangeSpecificParam = self.safe_value(params, 'post_only', False)
         postOnly = None
         postOnly, params = self.handle_post_only((uppercaseType == 'MARKET'), exchangeSpecificParam, params)
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
@@ -1150,16 +1427,26 @@ class bigone(Exchange, ImplicitAPI):
                     request['immediate_or_cancel'] = True
                 if postOnly:
                     request['post_only'] = True
+            request['amount'] = self.amount_to_precision(symbol, amount)
         else:
-            createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice')
-            if createMarketBuyOrderRequiresPrice and (side == 'buy'):
-                if price is None:
-                    raise InvalidOrder(self.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
+            if isBuy:
+                createMarketBuyOrderRequiresPrice = True
+                createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+                cost = self.safe_number(params, 'cost')
+                params = self.omit(params, 'cost')
+                if createMarketBuyOrderRequiresPrice:
+                    if (price is None) and (cost is None):
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                    else:
+                        amountString = self.number_to_string(amount)
+                        priceString = self.number_to_string(price)
+                        quoteAmount = self.parse_to_numeric(Precise.string_mul(amountString, priceString))
+                        costRequest = cost if (cost is not None) else quoteAmount
+                        request['amount'] = self.cost_to_precision(symbol, costRequest)
                 else:
-                    amountString = self.number_to_string(amount)
-                    priceString = self.number_to_string(price)
-                    amount = self.parse_number(Precise.string_mul(amountString, priceString))
-        request['amount'] = self.amount_to_precision(symbol, amount)
+                    request['amount'] = self.cost_to_precision(symbol, amount)
+            else:
+                request['amount'] = self.amount_to_precision(symbol, amount)
         if triggerPrice is not None:
             request['stop_price'] = self.price_to_precision(symbol, triggerPrice)
             request['operator'] = 'GTE' if isBuy else 'LTE'
@@ -1192,7 +1479,7 @@ class bigone(Exchange, ImplicitAPI):
         cancels an open order
         :param str id: order id
         :param str symbol: Not used by bigone cancelOrder()
-        :param dict [params]: extra parameters specific to the bigone api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1217,7 +1504,7 @@ class bigone(Exchange, ImplicitAPI):
         """
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
-        :param dict [params]: extra parameters specific to the bigone api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1244,7 +1531,7 @@ class bigone(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :param str symbol: not used by bigone fetchOrder
-        :param dict [params]: extra parameters specific to the bigone api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1258,8 +1545,8 @@ class bigone(Exchange, ImplicitAPI):
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the bigone api endpoint
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -1305,7 +1592,7 @@ class bigone(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
-        :param dict [params]: extra parameters specific to the bigone api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
@@ -1370,7 +1657,7 @@ class bigone(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
-        :param dict [params]: extra parameters specific to the bigone api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         request = {
@@ -1383,8 +1670,8 @@ class bigone(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the bigone api endpoint
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         request = {
@@ -1401,7 +1688,7 @@ class bigone(Exchange, ImplicitAPI):
         baseUrl = self.implode_hostname(self.urls['api'][api])
         url = baseUrl + '/' + self.implode_params(path, params)
         headers = {}
-        if api == 'public' or api == 'webExchange':
+        if api == 'public' or api == 'webExchange' or api == 'contractPublic':
             if query:
                 url += '?' + self.urlencode(query)
         else:
@@ -1420,7 +1707,7 @@ class bigone(Exchange, ImplicitAPI):
                     url += '?' + self.urlencode(query)
             elif method == 'POST':
                 headers['Content-Type'] = 'application/json'
-                body = self.json(query)
+                body = query
         headers['User-Agent'] = 'ccxt/' + self.id + '-' + self.version
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
@@ -1428,7 +1715,7 @@ class bigone(Exchange, ImplicitAPI):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
-        :param dict [params]: extra parameters specific to the bigone api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
@@ -1577,7 +1864,7 @@ class bigone(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
-        :param dict [params]: extra parameters specific to the bigone api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
@@ -1624,7 +1911,7 @@ class bigone(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
-        :param dict [params]: extra parameters specific to the bigone api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
@@ -1673,7 +1960,7 @@ class bigone(Exchange, ImplicitAPI):
         :param float amount: amount to transfer
         :param str fromAccount: 'SPOT', 'FUND', or 'CONTRACT'
         :param str toAccount: 'SPOT', 'FUND', or 'CONTRACT'
-        :param dict [params]: extra parameters specific to the bigone api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         self.load_markets()
@@ -1741,7 +2028,7 @@ class bigone(Exchange, ImplicitAPI):
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str tag:
-        :param dict [params]: extra parameters specific to the bigone api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
@@ -1793,7 +2080,7 @@ class bigone(Exchange, ImplicitAPI):
         #
         code = self.safe_string(response, 'code')
         message = self.safe_string(response, 'message')
-        if code != '0':
+        if (code != '0') and (code is not None):
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)

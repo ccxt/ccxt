@@ -32,6 +32,7 @@ class poloniexfutures extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => false,
                 'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => false,
                 'fetchL3OrderBook' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -202,7 +203,7 @@ class poloniexfutures extends Exchange {
         /**
          * retrieves $data on all markets for poloniexfutures
          * @see https://futures-docs.poloniex.com/#symbol-2
-         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
          */
         $response = $this->publicGetContractsActive ($params);
@@ -399,7 +400,7 @@ class poloniexfutures extends Exchange {
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://futures-docs.poloniex.com/#get-real-time-ticker-2-0
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
@@ -434,7 +435,7 @@ class poloniexfutures extends Exchange {
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-$symbols
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
@@ -449,7 +450,7 @@ class poloniexfutures extends Exchange {
          * @see https://futures-docs.poloniex.com/#get-full-order-book-$level-3
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
-         * @param {array} [$params] extra parameters specific to the poloniexfuturesfutures api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
@@ -532,7 +533,7 @@ class poloniexfutures extends Exchange {
          * @see https://futures-docs.poloniex.com/#get-full-order-book-level-3
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$limit] max number of orders to return, default is null
-         * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structure~
          */
         $this->load_markets();
@@ -639,7 +640,7 @@ class poloniexfutures extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
-         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
          */
         $this->load_markets();
@@ -672,7 +673,7 @@ class poloniexfutures extends Exchange {
         /**
          * fetches the current integer timestamp in milliseconds from the poloniexfutures server
          * @see https://futures-docs.poloniex.com/#time
-         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the poloniexfutures server
          */
         $response = $this->publicGetTimestamp ($params);
@@ -694,7 +695,7 @@ class poloniexfutures extends Exchange {
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
-         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -757,7 +758,7 @@ class poloniexfutures extends Exchange {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://futures-docs.poloniex.com/#get-account-overview
-         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
@@ -797,7 +798,7 @@ class poloniexfutures extends Exchange {
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount the $amount of currency to trade
          * @param {float} [$price] *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
-         * @param {array} [$params]  Extra parameters specific to the exchange API endpoint
+         * @param {array} [$params]  extra parameters specific to the exchange API endpoint
          * @param {float} [$params->leverage] Leverage size of the order
          * @param {float} [$params->stopPrice] The $price at which a trigger order is triggered at
          * @param {bool} [$params->reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
@@ -900,7 +901,7 @@ class poloniexfutures extends Exchange {
          * @see https://futures-docs.poloniex.com/#cancel-an-order
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
-         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
@@ -938,7 +939,7 @@ class poloniexfutures extends Exchange {
          * fetch all open positions
          * @see https://futures-docs.poloniex.com/#get-position-list
          * @param {string[]|null} $symbols list of unified market $symbols
-         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
          */
         $this->load_markets();
@@ -1092,7 +1093,7 @@ class poloniexfutures extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch funding history for
          * @param {int} [$limit] the maximum number of funding history structures to retrieve
-         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
          */
         if ($symbol === null) {
@@ -1161,7 +1162,7 @@ class poloniexfutures extends Exchange {
         /**
          * cancel all open orders
          * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
-         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {array} [$params->stop] When true, all the trigger orders will be cancelled
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
@@ -1170,9 +1171,14 @@ class poloniexfutures extends Exchange {
         if ($symbol !== null) {
             $request['symbol'] = $this->market_id($symbol);
         }
-        $stop = $this->safe_value($params, 'stop');
-        $method = $stop ? 'privateDeleteStopOrders' : 'privateDeleteOrders';
-        $response = $this->$method (array_merge($request, $params));
+        $stop = $this->safe_value_2($params, 'stop', 'trigger');
+        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $response = null;
+        if ($stop) {
+            $response = $this->privateDeleteStopOrders (array_merge($request, $params));
+        } else {
+            $response = $this->privateDeleteOrders (array_merge($request, $params));
+        }
         //
         //   {
         //       "code" => "200000",
@@ -1233,9 +1239,9 @@ class poloniexfutures extends Exchange {
          * @return An ~@link https://docs.ccxt.com/#/?id=$order-structure array of $order structures~
          */
         $this->load_markets();
-        $stop = $this->safe_value($params, 'stop');
+        $stop = $this->safe_value_2($params, 'stop', 'trigger');
         $until = $this->safe_integer_2($params, 'until', 'till');
-        $params = $this->omit($params, array( 'stop', 'until', 'till' ));
+        $params = $this->omit($params, array( 'triger', 'stop', 'until', 'till' ));
         if ($status === 'closed') {
             $status = 'done';
         }
@@ -1256,8 +1262,12 @@ class poloniexfutures extends Exchange {
         if ($until !== null) {
             $request['endAt'] = $until;
         }
-        $method = $stop ? 'privateGetStopOrders' : 'privateGetOrders';
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($stop) {
+            $response = $this->privateGetStopOrders (array_merge($request, $params));
+        } else {
+            $response = $this->privateGetOrders (array_merge($request, $params));
+        }
         //
         //    {
         //        "code" => "200000",
@@ -1327,7 +1337,7 @@ class poloniexfutures extends Exchange {
          * @param {string} $symbol unified market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of  open orders structures to retrieve
-         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->till] end time in ms
          * @param {string} [$params->side] buy or sell
          * @param {string} [$params->type] $limit, or market
@@ -1343,8 +1353,8 @@ class poloniexfutures extends Exchange {
          * @see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of  orde structures to retrieve
-         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->till] end time in ms
          * @param {string} [$params->side] buy or sell
          * @param {string} [$params->type] $limit, or market
@@ -1359,24 +1369,24 @@ class poloniexfutures extends Exchange {
          * @see https://futures-docs.poloniex.com/#get-details-of-a-single-order
          * @see https://futures-docs.poloniex.com/#get-single-order-by-clientoid
          * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         $request = array();
-        $method = 'privateGetOrdersOrderId';
+        $response = null;
         if ($id === null) {
             $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
             if ($clientOrderId === null) {
                 throw new InvalidOrder($this->id . ' fetchOrder() requires parameter $id or $params->clientOid');
             }
             $request['clientOid'] = $clientOrderId;
-            $method = 'privateGetOrdersByClientOid';
             $params = $this->omit($params, array( 'clientOid', 'clientOrderId' ));
+            $response = $this->privateGetClientOrderIdClientOid (array_merge($request, $params));
         } else {
             $request['order-id'] = $id;
+            $response = $this->privateGetOrdersOrderId (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         //    {
         //        "code" => "200000",
@@ -1556,7 +1566,7 @@ class poloniexfutures extends Exchange {
          * fetch the current funding rate
          * @see https://futures-docs.poloniex.com/#get-premium-index
          * @param {string} $symbol unified $market $symbol
-         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
          */
         $this->load_markets();
@@ -1605,7 +1615,7 @@ class poloniexfutures extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades structures to retrieve
-         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} orderIdFills filles for a specific order (other parameters can be ignored if specified)
          * @param {string} side buy or sell
          * @param {string} type  $limit, $market, limit_stop or market_stop
@@ -1668,7 +1678,7 @@ class poloniexfutures extends Exchange {
          * @see https://futures-docs.poloniex.com/#change-margin-mode
          * @param {int} $marginMode 0 (isolated) or 1 (cross)
          * @param {string} $symbol unified $market $symbol
-         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} response from the exchange
          */
         if ($symbol === null) {
@@ -1695,7 +1705,7 @@ class poloniexfutures extends Exchange {
         $version = $this->safe_string($params, 'version', $defaultVersion);
         $tail = '/api/' . $version . '/' . $this->implode_params($path, $params);
         $url .= $tail;
-        $query = $this->omit($params, $path);
+        $query = $this->omit($params, $this->extract_params($path));
         $queryLength = $query;
         if ($api === 'public') {
             if ($queryLength) {

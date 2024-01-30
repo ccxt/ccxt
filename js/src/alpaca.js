@@ -11,7 +11,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------xs
 /**
  * @class alpaca
- * @extends Exchange
+ * @augments Exchange
  */
 export default class alpaca extends Exchange {
     describe() {
@@ -39,7 +39,7 @@ export default class alpaca extends Exchange {
                     'market': 'https://data.sandbox.{hostname}',
                 },
                 'doc': 'https://alpaca.markets/docs/',
-                'fees': 'https://alpaca.markets/support/what-are-the-fees-associated-with-crypto-trading/',
+                'fees': 'https://docs.alpaca.markets/docs/crypto-fees',
             },
             'has': {
                 'CORS': false,
@@ -50,8 +50,10 @@ export default class alpaca extends Exchange {
                 'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
-                'fetchBalance': true,
+                'fetchBalance': false,
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': false,
@@ -208,28 +210,28 @@ export default class alpaca extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'maker': this.parseNumber('0.003'),
-                    'taker': this.parseNumber('0.003'),
+                    'maker': this.parseNumber('0.0015'),
+                    'taker': this.parseNumber('0.0025'),
                     'tiers': {
                         'taker': [
-                            [this.parseNumber('0'), this.parseNumber('0.003')],
-                            [this.parseNumber('500000'), this.parseNumber('0.0028')],
-                            [this.parseNumber('1000000'), this.parseNumber('0.0025')],
-                            [this.parseNumber('5000000'), this.parseNumber('0.002')],
-                            [this.parseNumber('10000000'), this.parseNumber('0.0018')],
-                            [this.parseNumber('25000000'), this.parseNumber('0.0015')],
-                            [this.parseNumber('50000000'), this.parseNumber('0.00125')],
+                            [this.parseNumber('0'), this.parseNumber('0.0025')],
+                            [this.parseNumber('100000'), this.parseNumber('0.0022')],
+                            [this.parseNumber('500000'), this.parseNumber('0.0020')],
+                            [this.parseNumber('1000000'), this.parseNumber('0.0018')],
+                            [this.parseNumber('10000000'), this.parseNumber('0.0015')],
+                            [this.parseNumber('25000000'), this.parseNumber('0.0013')],
+                            [this.parseNumber('50000000'), this.parseNumber('0.0012')],
                             [this.parseNumber('100000000'), this.parseNumber('0.001')],
                         ],
                         'maker': [
-                            [this.parseNumber('0'), this.parseNumber('0.003')],
-                            [this.parseNumber('500000'), this.parseNumber('0.0028')],
-                            [this.parseNumber('1000000'), this.parseNumber('0.0025')],
-                            [this.parseNumber('5000000'), this.parseNumber('0.002')],
-                            [this.parseNumber('10000000'), this.parseNumber('0.0018')],
-                            [this.parseNumber('25000000'), this.parseNumber('0.0015')],
-                            [this.parseNumber('50000000'), this.parseNumber('0.00125')],
-                            [this.parseNumber('100000000'), this.parseNumber('0.001')],
+                            [this.parseNumber('0'), this.parseNumber('0.0015')],
+                            [this.parseNumber('100000'), this.parseNumber('0.0012')],
+                            [this.parseNumber('500000'), this.parseNumber('0.001')],
+                            [this.parseNumber('1000000'), this.parseNumber('0.0008')],
+                            [this.parseNumber('10000000'), this.parseNumber('0.0005')],
+                            [this.parseNumber('25000000'), this.parseNumber('0.0002')],
+                            [this.parseNumber('50000000'), this.parseNumber('0.0002')],
+                            [this.parseNumber('100000000'), this.parseNumber('0.00')],
                         ],
                     },
                 },
@@ -269,7 +271,7 @@ export default class alpaca extends Exchange {
          * @method
          * @name alpaca#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const response = await this.traderPrivateGetV2Clock(params);
@@ -350,10 +352,16 @@ export default class alpaca extends Exchange {
         //
         const marketId = this.safeString(asset, 'symbol');
         const parts = marketId.split('/');
+        const assetClass = this.safeString(asset, 'class');
         const baseId = this.safeString(parts, 0);
         const quoteId = this.safeString(parts, 1);
         const base = this.safeCurrencyCode(baseId);
-        const quote = this.safeCurrencyCode(quoteId);
+        let quote = this.safeCurrencyCode(quoteId);
+        // Us equity markets do not include quote in symbol.
+        // We can safely coerce us_equity quote to USD
+        if (quote === undefined && assetClass === 'us_equity') {
+            quote = 'USD';
+        }
         const symbol = base + '/' + quote;
         const status = this.safeString(asset, 'status');
         const active = (status === 'active');
@@ -420,7 +428,7 @@ export default class alpaca extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.loc] crypto location, default: us
          * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocTrades
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
@@ -494,10 +502,10 @@ export default class alpaca extends Exchange {
          * @see https://docs.alpaca.markets/reference/cryptolatestorderbooks
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.loc] crypto location, default: us
          * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
-        */
+         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const id = market['id'];
@@ -678,7 +686,7 @@ export default class alpaca extends Exchange {
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -764,7 +772,7 @@ export default class alpaca extends Exchange {
          * @see https://docs.alpaca.markets/reference/deleteorderbyorderid
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
@@ -786,7 +794,7 @@ export default class alpaca extends Exchange {
          * @description cancel all open orders in a market
          * @see https://docs.alpaca.markets/reference/deleteallorders
          * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
-         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -805,7 +813,7 @@ export default class alpaca extends Exchange {
          * @description fetches information on an order made by the user
          * @see https://docs.alpaca.markets/reference/getorderbyorderid
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -826,7 +834,7 @@ export default class alpaca extends Exchange {
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch orders for
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -902,7 +910,7 @@ export default class alpaca extends Exchange {
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch orders for
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -920,7 +928,7 @@ export default class alpaca extends Exchange {
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch orders for
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

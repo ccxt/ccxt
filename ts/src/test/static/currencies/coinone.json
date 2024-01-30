@@ -1,0 +1,58 @@
+{
+    "BTC": {
+        "id": "BTC",
+        "code": "BTC",
+        "info": {
+            "name": "Bitcoin",
+            "symbol": "BTC",
+            "deposit_status": "normal",
+            "withdraw_status": "normal",
+            "deposit_confirm_count": "2",
+            "max_precision": "8",
+            "deposit_fee": "0.0",
+            "withdrawal_min_amount": "0.0001",
+            "withdrawal_fee": "0.0015"
+        },
+        "name": "Bitcoin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0015,
+        "precision": 8,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 0.0001
+            }
+        },
+        "networks": {}
+    },
+    "KRW": {
+        "id": "KRW",
+        "code": "KRW",
+        "info": {
+            "name": "Won",
+            "symbol": "KRW",
+            "deposit_status": "normal",
+            "withdraw_status": "normal",
+            "deposit_confirm_count": "0",
+            "max_precision": "0",
+            "deposit_fee": "0.0",
+            "withdrawal_min_amount": "5000.0",
+            "withdrawal_fee": "1000.0"
+        },
+        "name": "Won",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 1000,
+        "precision": 0,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 5000
+            }
+        },
+        "networks": {}
+    }
+}

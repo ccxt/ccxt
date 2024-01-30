@@ -27,10 +27,11 @@ class coinlist extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
-                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createDepositAddress' => false,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,
@@ -104,7 +105,8 @@ class coinlist extends Exchange {
                 'fetchWithdrawals' => false,
                 'fetchWithdrawalWhitelist' => false,
                 'reduceMargin' => false,
-                'repayMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => false,
                 'setMargin' => false,
                 'setMarginMode' => false,
@@ -145,6 +147,9 @@ class coinlist extends Exchange {
                         'v1/symbols/{symbol}/auctions/{auction_code}' => 1, // not unified
                         'v1/time' => 1,
                         'v1/assets' => 1,
+                        'v1/leaderboard' => 1,
+                        'v1/affiliate/{competition_code}' => 1,
+                        'v1/competition/{competition_id}' => 1,
                     ),
                 ),
                 'private' => array(
@@ -152,6 +157,7 @@ class coinlist extends Exchange {
                         'v1/fees' => 1,
                         'v1/accounts' => 1,
                         'v1/accounts/{trader_id}' => 1, // not unified
+                        'v1/accounts/{trader_id}/alias' => 1,
                         'v1/accounts/{trader_id}/ledger' => 1,
                         'v1/accounts/{trader_id}/wallets' => 1, // not unified
                         'v1/accounts/{trader_id}/wallet-ledger' => 1,
@@ -165,6 +171,8 @@ class coinlist extends Exchange {
                         'v1/transfers' => 1,
                         'v1/user' => 1, // not unified
                         'v1/credits' => 1, // not unified
+                        'v1/positions' => 1,
+                        'v1/accounts/{trader_id}/competitions' => 1,
                     ),
                     'post' => array(
                         'v1/keys' => 1, // not unified
@@ -176,6 +184,8 @@ class coinlist extends Exchange {
                         'v1/transfers/internal-transfer' => 1,
                         'v1/transfers/withdrawal-request' => 1,
                         'v1/orders/bulk' => 1, // not unified
+                        'v1/accounts/{trader_id}/competitions' => 1,
+                        'v1/accounts/{trader_id}/create-competition' => 1,
                     ),
                     'patch' => array(
                         'v1/orders/{order_id}' => 1,
@@ -299,7 +309,7 @@ class coinlist extends Exchange {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-system-time
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
         $response = $this->publicGetV1Time ($params);
@@ -317,7 +327,7 @@ class coinlist extends Exchange {
         /**
          * fetches all available $currencies on an exchange
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-supported-assets
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of $currencies
          */
         $response = $this->publicGetV1Assets ($params);
@@ -380,7 +390,7 @@ class coinlist extends Exchange {
         /**
          * retrieves data on all $markets for coinlist
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-symbols
-         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
         $response = $this->publicGetV1Symbols ($params);
@@ -478,7 +488,7 @@ class coinlist extends Exchange {
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-symbol-summaries
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
@@ -514,7 +524,7 @@ class coinlist extends Exchange {
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-$market-summary
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
          */
         $this->load_markets();
@@ -606,7 +616,7 @@ class coinlist extends Exchange {
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-order-book-level-2
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return (default 100, max 200)
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
@@ -646,7 +656,7 @@ class coinlist extends Exchange {
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of $candles to fetch
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
          */
@@ -729,7 +739,7 @@ class coinlist extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch (default 200, max 500)
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
          */
@@ -742,7 +752,7 @@ class coinlist extends Exchange {
             $request['start_time'] = $this->iso8601($since);
         }
         if ($limit !== null) {
-            $request['count'] = $limit;
+            $request['count'] = min ($limit, 500);
         }
         $until = $this->safe_integer_2($params, 'till', 'until');
         if ($until !== null) {
@@ -858,7 +868,7 @@ class coinlist extends Exchange {
         /**
          * fetch the trading $fees for multiple markets
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$fees
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?$id=fee-structure fee structures~ indexed by $market symbols
          */
         $this->load_markets();
@@ -1039,7 +1049,7 @@ class coinlist extends Exchange {
         /**
          * fetch all the $accounts associated with a profile
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$accounts
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
          */
         $this->load_markets();
@@ -1077,7 +1087,7 @@ class coinlist extends Exchange {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-balances
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
@@ -1099,11 +1109,10 @@ class coinlist extends Exchange {
         //         "net_liquidation_value_usd" => "string"
         //     }
         //
-        $timestamp = $this->milliseconds();
         $result = array(
             'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
         );
         $totalBalances = $this->safe_value($response, 'asset_balances', array());
         $usedBalances = $this->safe_value($response, 'asset_holds', array());
@@ -1126,7 +1135,7 @@ class coinlist extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve (default 200, max 500)
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
@@ -1189,7 +1198,7 @@ class coinlist extends Exchange {
          * @param {string} $symbol unified market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades to retrieve
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
          */
         $request = array(
@@ -1204,8 +1213,8 @@ class coinlist extends Exchange {
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$orders
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
-         * @param {int} [$limit] the maximum number of  orde structures to retrieve (default 200, max 500)
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {int} [$limit] the maximum number of order structures to retrieve (default 200, max 500)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @param {string|string[]} [$params->status] the $status of the order - 'accepted', 'done', 'canceled', 'rejected', 'pending' (default array( 'accepted', 'done', 'canceled', 'rejected', 'pending' ))
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -1271,7 +1280,7 @@ class coinlist extends Exchange {
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-specific-order-by-$id
          * @param {int|string} $id order $id
          * @param {string} $symbol not used by coinlist fetchOrder ()
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
@@ -1313,7 +1322,7 @@ class coinlist extends Exchange {
          * @param {string} $symbol unified market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of open order structures to retrieve (default 200, max 500)
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
@@ -1331,7 +1340,7 @@ class coinlist extends Exchange {
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of closed order structures to retrieve (default 200, max 500)
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
@@ -1349,7 +1358,7 @@ class coinlist extends Exchange {
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of canceled order structures to retrieve (default 200, max 500)
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
@@ -1365,7 +1374,7 @@ class coinlist extends Exchange {
          * cancel open $orders of $market
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#cancel-all-$orders
          * @param {string} $symbol unified $market $symbol
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -1392,7 +1401,7 @@ class coinlist extends Exchange {
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#cancel-specific-order-by-$id
          * @param {string} $id order $id
          * @param {string} $symbol not used by coinlist cancelOrder ()
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
@@ -1416,7 +1425,7 @@ class coinlist extends Exchange {
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#cancel-specific-orders
          * @param {string[]} $ids order $ids
          * @param {string} $symbol not used by coinlist cancelOrders ()
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -1434,7 +1443,7 @@ class coinlist extends Exchange {
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->postOnly] if true, the $order will only be posted to the $order book and not executed immediately (default false)
          * @param {float} [$params->triggerPrice] only for the 'stop_market', 'stop_limit', 'take_market' or 'take_limit' orders (the $price at which an $order is triggered)
          * @param {string} [$params->clientOrderId] client $order id (default null)
@@ -1507,7 +1516,7 @@ class coinlist extends Exchange {
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
@@ -1688,7 +1697,7 @@ class coinlist extends Exchange {
          * @param {float} $amount amount to $transfer
          * @param {string} $fromAccount account to $transfer from
          * @param {string} $toAccount account to $transfer to
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transfer-structure $transfer structure~
          */
         $this->load_markets();
@@ -1736,7 +1745,7 @@ class coinlist extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch $transfers for
          * @param {int} [$limit] the maximum number of transfer structures to retrieve (default 200, max 500)
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
          */
@@ -1856,7 +1865,7 @@ class coinlist extends Exchange {
          * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal
          * @param {int} [$limit] max number of deposit/withdrawals to return (default 200, max 500)
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         if ($code === null) {
@@ -1933,7 +1942,7 @@ class coinlist extends Exchange {
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         $this->load_markets();
@@ -2031,7 +2040,7 @@ class coinlist extends Exchange {
          * @param {string} $code unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest $ledger entry, default is null
          * @param {int} [$limit] max number of $ledger entrys to return (default 200, max 500)
-         * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger-structure $ledger structure~
          */

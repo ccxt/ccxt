@@ -32,6 +32,12 @@ class hitbtc extends hitbtc$1 {
                         'private': 'wss://api.hitbtc.com/api/3/ws/trading',
                     },
                 },
+                'test': {
+                    'ws': {
+                        'public': 'wss://api.demo.hitbtc.com/api/3/ws/public',
+                        'private': 'wss://api.demo.hitbtc.com/api/3/ws/trading',
+                    },
+                },
             },
             'options': {
                 'tradesLimit': 1000,
@@ -185,7 +191,7 @@ class hitbtc extends hitbtc$1 {
          * @see https://api.hitbtc.com/#subscribe-to-top-of-book-in-batches
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.method] 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch', 'orderbook/top/{speed}', or 'orderbook/top/{speed}/batch'
          * @param {int} [params.depth] 5 , 10, or 20 (default)
          * @param {int} [params.speed] 100 (default), 500, or 1000
@@ -290,7 +296,7 @@ class hitbtc extends hitbtc$1 {
          * @see https://api.hitbtc.com/#subscribe-to-mini-ticker
          * @see https://api.hitbtc.com/#subscribe-to-mini-ticker-in-batches
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.method] 'ticker/{speed}' (default), or 'ticker/price/{speed}'
          * @param {string} [params.speed] '1s' (default), or '3s'
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -307,7 +313,8 @@ class hitbtc extends hitbtc$1 {
                 'symbols': [market['id']],
             },
         };
-        return await this.subscribePublic(name, [symbol], this.deepExtend(request, params));
+        const result = await this.subscribePublic(name, [symbol], this.deepExtend(request, params));
+        return this.safeValue(result, symbol);
     }
     async watchTickers(symbols = undefined, params = {}) {
         /**
@@ -315,7 +322,7 @@ class hitbtc extends hitbtc$1 {
          * @name hitbtc#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the hitbtc api endpoint
+         * @param {object} params extra parameters specific to the exchange API endpoint
          * @param {string} params.method 'ticker/{speed}' (default),'ticker/price/{speed}', 'ticker/{speed}/batch', or 'ticker/{speed}/price/batch''
          * @param {string} params.speed '1s' (default), or '3s'
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -390,16 +397,16 @@ class hitbtc extends hitbtc$1 {
         const data = this.safeValue(message, 'data', {});
         const marketIds = Object.keys(data);
         const channel = this.safeString(message, 'ch');
-        const newTickers = [];
+        const newTickers = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket(marketId);
             const symbol = market['symbol'];
             const ticker = this.parseWsTicker(data[marketId], market);
             this.tickers[symbol] = ticker;
-            newTickers.push(ticker);
+            newTickers[symbol] = ticker;
             const messageHash = channel + '::' + symbol;
-            client.resolve(this.tickers[symbol], messageHash);
+            client.resolve(newTickers, messageHash);
         }
         const messageHashes = this.findMessageHashes(client, channel + '::');
         for (let i = 0; i < messageHashes.length; i++) {
@@ -481,7 +488,7 @@ class hitbtc extends hitbtc$1 {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
@@ -609,7 +616,7 @@ class hitbtc extends hitbtc$1 {
          * @param {string} [timeframe] the length of time each candle represents
          * @param {int} [since] not used by hitbtc watchOHLCV
          * @param {int} [limit] 0 – 1000, default value = 0 (no history returned)
-         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         const period = this.safeString(this.timeframes, timeframe, timeframe);
@@ -721,7 +728,7 @@ class hitbtc extends hitbtc$1 {
          * @param {string} [symbol] unified CCXT market symbol
          * @param {int} [since] timestamp in ms of the earliest order to fetch
          * @param {int} [limit] the maximum amount of orders to fetch
-         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets();
@@ -958,7 +965,7 @@ class hitbtc extends hitbtc$1 {
          * @description watches balance updates, cannot subscribe to margin account balances
          * @see https://api.hitbtc.com/#subscribe-to-spot-balances
          * @see https://api.hitbtc.com/#subscribe-to-futures-balances
-         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] 'spot', 'swap', or 'future'
          *
          * EXCHANGE SPECIFIC PARAMETERS
@@ -993,7 +1000,7 @@ class hitbtc extends hitbtc$1 {
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
          * @param {bool} [params.margin] true for creating a margin order
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
@@ -1030,7 +1037,7 @@ class hitbtc extends hitbtc$1 {
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
          * @param {bool} [params.margin] true for canceling a margin order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1065,7 +1072,7 @@ class hitbtc extends hitbtc$1 {
          * @see https://api.hitbtc.com/#cancel-futures-order-3
          * @description cancel all open orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
          * @param {bool} [params.margin] true for canceling margin orders
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1100,7 +1107,7 @@ class hitbtc extends hitbtc$1 {
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
          * @param {bool} [params.margin] true for fetching open margin orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}

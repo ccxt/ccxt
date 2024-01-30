@@ -10,6 +10,7 @@ use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use ccxt\AuthenticationError;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class blockchaincom extends \ccxt\async\blockchaincom {
 
@@ -57,12 +58,12 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         ));
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://exchange.blockchain.com/api/#balances
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->authenticate($params));
@@ -127,7 +128,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $client->resolve ($this->balance, $messageHash);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market->
@@ -136,7 +137,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
              * @param {string} $timeframe the length of time each candle represents. Allows '1m', '5m', '15m', '1h', '6h' '1d'. Can only watch one $timeframe per $symbol->
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -207,13 +208,13 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         }
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @see https://exchange.blockchain.com/api/#ticker
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
@@ -315,7 +316,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         ), $market);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -323,7 +324,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of    $trades to fetch
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
@@ -417,15 +418,15 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         ), $market);
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
              * @see https://exchange.blockchain.com/api/#mass-order-status-$request-ordermassstatusrequest
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
@@ -632,14 +633,14 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @see https://exchange.blockchain.com/api/#l2-order-book
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {arrayConstructor} [$params] extra parameters specific to the blockchaincom api endpoint
+             * @param {arrayConstructor} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] accepts l2 or l3 for level 2 or level 3 order book
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
@@ -710,7 +711,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         if ($event === 'subscribed') {
             return $message;
         } elseif ($event === 'snapshot') {
-            $snapshot = $this->parse_counted_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'px', 'qty', 'num');
+            $snapshot = $this->parse_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'px', 'qty', 'num');
             $storedOrderBook->reset ($snapshot);
         } elseif ($event === 'updated') {
             $asks = $this->safe_value($message, 'asks', array());
@@ -725,37 +726,8 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $client->resolve ($storedOrderBook, $messageHash);
     }
 
-    public function parse_counted_bid_ask($bidAsk, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countKey = 2) {
-        $price = $this->safe_number($bidAsk, $priceKey);
-        $amount = $this->safe_number($bidAsk, $amountKey);
-        $count = $this->safe_number($bidAsk, $countKey);
-        return array( $price, $amount, $count );
-    }
-
-    public function parse_counted_bids_asks($bidasks, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countKey = 2) {
-        $bidasks = $this->to_array($bidasks);
-        $result = array();
-        for ($i = 0; $i < count($bidasks); $i++) {
-            $result[] = $this->parse_counted_bid_ask($bidasks[$i], $priceKey, $amountKey, $countKey);
-        }
-        return $result;
-    }
-
-    public function parse_counted_order_book($orderbook, string $symbol, ?int $timestamp = null, int|string $bidsKey = 'bids', int|string $asksKey = 'asks', int|string $priceKey = 0, int|string $amountKey = 1, int|string $countKey = 2) {
-        $bids = $this->parse_counted_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey, $countKey);
-        $asks = $this->parse_counted_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey, $countKey);
-        return array(
-            'symbol' => $symbol,
-            'bids' => $this->sort_by($bids, 0, true),
-            'asks' => $this->sort_by($asks, 0),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'nonce' => null,
-        );
-    }
-
     public function handle_delta($bookside, $delta) {
-        $bookArray = $this->parse_counted_bid_ask($delta, 'px', 'qty', 'num');
+        $bookArray = $this->parse_bid_ask($delta, 'px', 'qty', 'num');
         $bookside->storeArray ($bookArray);
     }
 

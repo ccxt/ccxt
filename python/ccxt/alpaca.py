@@ -45,7 +45,7 @@ class alpaca(Exchange, ImplicitAPI):
                     'market': 'https://data.sandbox.{hostname}',
                 },
                 'doc': 'https://alpaca.markets/docs/',
-                'fees': 'https://alpaca.markets/support/what-are-the-fees-associated-with-crypto-trading/',
+                'fees': 'https://docs.alpaca.markets/docs/crypto-fees',
             },
             'has': {
                 'CORS': False,
@@ -56,8 +56,10 @@ class alpaca(Exchange, ImplicitAPI):
                 'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createOrder': True,
-                'fetchBalance': True,
+                'fetchBalance': False,
                 'fetchBidsAsks': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': False,
@@ -215,28 +217,28 @@ class alpaca(Exchange, ImplicitAPI):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'maker': self.parse_number('0.003'),
-                    'taker': self.parse_number('0.003'),
+                    'maker': self.parse_number('0.0015'),
+                    'taker': self.parse_number('0.0025'),
                     'tiers': {
                         'taker': [
-                            [self.parse_number('0'), self.parse_number('0.003')],
-                            [self.parse_number('500000'), self.parse_number('0.0028')],
-                            [self.parse_number('1000000'), self.parse_number('0.0025')],
-                            [self.parse_number('5000000'), self.parse_number('0.002')],
-                            [self.parse_number('10000000'), self.parse_number('0.0018')],
-                            [self.parse_number('25000000'), self.parse_number('0.0015')],
-                            [self.parse_number('50000000'), self.parse_number('0.00125')],
+                            [self.parse_number('0'), self.parse_number('0.0025')],
+                            [self.parse_number('100000'), self.parse_number('0.0022')],
+                            [self.parse_number('500000'), self.parse_number('0.0020')],
+                            [self.parse_number('1000000'), self.parse_number('0.0018')],
+                            [self.parse_number('10000000'), self.parse_number('0.0015')],
+                            [self.parse_number('25000000'), self.parse_number('0.0013')],
+                            [self.parse_number('50000000'), self.parse_number('0.0012')],
                             [self.parse_number('100000000'), self.parse_number('0.001')],
                         ],
                         'maker': [
-                            [self.parse_number('0'), self.parse_number('0.003')],
-                            [self.parse_number('500000'), self.parse_number('0.0028')],
-                            [self.parse_number('1000000'), self.parse_number('0.0025')],
-                            [self.parse_number('5000000'), self.parse_number('0.002')],
-                            [self.parse_number('10000000'), self.parse_number('0.0018')],
-                            [self.parse_number('25000000'), self.parse_number('0.0015')],
-                            [self.parse_number('50000000'), self.parse_number('0.00125')],
-                            [self.parse_number('100000000'), self.parse_number('0.001')],
+                            [self.parse_number('0'), self.parse_number('0.0015')],
+                            [self.parse_number('100000'), self.parse_number('0.0012')],
+                            [self.parse_number('500000'), self.parse_number('0.001')],
+                            [self.parse_number('1000000'), self.parse_number('0.0008')],
+                            [self.parse_number('10000000'), self.parse_number('0.0005')],
+                            [self.parse_number('25000000'), self.parse_number('0.0002')],
+                            [self.parse_number('50000000'), self.parse_number('0.0002')],
+                            [self.parse_number('100000000'), self.parse_number('0.00')],
                         ],
                     },
                 },
@@ -274,7 +276,7 @@ class alpaca(Exchange, ImplicitAPI):
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :param dict [params]: extra parameters specific to the alpaca api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
         response = self.traderPrivateGetV2Clock(params)
@@ -353,10 +355,15 @@ class alpaca(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(asset, 'symbol')
         parts = marketId.split('/')
+        assetClass = self.safe_string(asset, 'class')
         baseId = self.safe_string(parts, 0)
         quoteId = self.safe_string(parts, 1)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        # Us equity markets do not include quote in symbol.
+        # We can safely coerce us_equity quote to USD
+        if quote is None and assetClass == 'us_equity':
+            quote = 'USD'
         symbol = base + '/' + quote
         status = self.safe_string(asset, 'status')
         active = (status == 'active')
@@ -421,7 +428,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the alpaca api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.loc]: crypto location, default: us
         :param str [params.method]: method, default: marketPublicGetV1beta3CryptoLocTrades
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
@@ -487,10 +494,10 @@ class alpaca(Exchange, ImplicitAPI):
         :see: https://docs.alpaca.markets/reference/cryptolatestorderbooks
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the alpaca api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.loc]: crypto location, default: us
         :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
-       """
+        """
         self.load_markets()
         market = self.market(symbol)
         id = market['id']
@@ -661,7 +668,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the alpaca api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -741,7 +748,7 @@ class alpaca(Exchange, ImplicitAPI):
         :see: https://docs.alpaca.markets/reference/deleteorderbyorderid
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the alpaca api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         request = {
@@ -761,7 +768,7 @@ class alpaca(Exchange, ImplicitAPI):
         cancel all open orders in a market
         :see: https://docs.alpaca.markets/reference/deleteallorders
         :param str symbol: alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
-        :param dict [params]: extra parameters specific to the alpaca api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -776,7 +783,7 @@ class alpaca(Exchange, ImplicitAPI):
         fetches information on an order made by the user
         :see: https://docs.alpaca.markets/reference/getorderbyorderid
         :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the alpaca api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -795,7 +802,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
-        :param dict [params]: extra parameters specific to the alpaca api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -865,7 +872,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
-        :param dict [params]: extra parameters specific to the alpaca api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -881,7 +888,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
-        :param dict [params]: extra parameters specific to the alpaca api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
