@@ -4356,7 +4356,7 @@ export default class bybit extends Exchange {
         //         "time": 1676962409398
         //     }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeValue (response, 'result', []);
         const orders = this.safeValue (result, 'list');
         if (!Array.isArray (orders)) {
             return response;
