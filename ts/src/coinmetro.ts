@@ -137,7 +137,7 @@ export default class coinmetro extends Exchange {
                     'private': 'https://api.coinmetro.com',
                 },
                 'test': {
-                    'public': 'https://api.coinmetro.com',
+                    'public': 'https://api.coinmetro.com/open',
                     'private': 'https://api.coinmetro.com/open',
                 },
                 'www': 'https://coinmetro.com/',
