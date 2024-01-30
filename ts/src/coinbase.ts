@@ -3234,7 +3234,7 @@ export default class coinbase extends Exchange {
         const request = {};
         if (symbols !== undefined) {
             const marketIds = this.marketIds (symbols);
-            request['product_ids'] = marketIds.join (',');
+            request['product_ids'] = marketIds;
         }
         const response = await this.v3PrivateGetBrokerageBestBidAsk (this.extend (request, params));
         //
@@ -3367,7 +3367,7 @@ export default class coinbase extends Exchange {
         const savedPath = fullPath;
         if (method === 'GET') {
             if (Object.keys (query).length) {
-                fullPath += '?' + this.urlencode (query);
+                fullPath += '?' + this.urlencodeWithArrayRepeat (query);
             }
         }
         const url = this.urls['api']['rest'] + fullPath;
