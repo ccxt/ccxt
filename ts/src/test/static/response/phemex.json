@@ -1293,9 +1293,7 @@
         "description": "open swap orders",
         "method": "fetchOpenOrders",
         "input": [
-          [
-            "LTC/USDT:USDT"
-          ],
+          "LTC/USDT:USDT",
           null,
           1
         ],
