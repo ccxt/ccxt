@@ -1355,7 +1355,7 @@ export default class htx extends htxRest {
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('watchBalance', undefined, params, 'linear');
-        const isUnifiedAccount = this.safeValue2 (params, 'isUnifiedAccount', 'unified', false);
+        const isUnifiedAccount = this.safeBool2 (params, 'isUnifiedAccount', 'unified', false);
         params = this.omit (params, [ 'isUnifiedAccount', 'unified' ]);
         await this.loadMarkets ();
         let messageHash = undefined;

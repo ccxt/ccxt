@@ -3962,7 +3962,7 @@ export default class bybit extends Exchange {
         if (market['option']) {
             response = await this.privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder (this.extend (request, params));
         } else {
-            const isStop = this.safeValue2 (params, 'stop', 'trigger', false);
+            const isStop = this.safeBool2 (params, 'stop', 'trigger', false);
             const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
             const stopLossPrice = this.safeValue (params, 'stopLossPrice');
             const isStopLossOrder = stopLossPrice !== undefined;
@@ -4140,7 +4140,7 @@ export default class bybit extends Exchange {
             // 'orderLinkId': 'string', // one of order_id, stop_order_id or order_link_id is required
             // 'orderId': id,
         };
-        const isStop = this.safeValue2 (params, 'stop', 'trigger', false);
+        const isStop = this.safeBool2 (params, 'stop', 'trigger', false);
         params = this.omit (params, [ 'stop', 'trigger' ]);
         if (id !== undefined) { // The user can also use argument params["order_link_id"]
             request['orderId'] = id;
@@ -4202,7 +4202,7 @@ export default class bybit extends Exchange {
         };
         if (market['spot']) {
             // only works for spot market
-            const isStop = this.safeValue2 (params, 'stop', 'trigger', false);
+            const isStop = this.safeBool2 (params, 'stop', 'trigger', false);
             params = this.omit (params, [ 'stop', 'trigger' ]);
             request['orderFilter'] = isStop ? 'StopOrder' : 'Order';
         }
@@ -4248,7 +4248,7 @@ export default class bybit extends Exchange {
         if (market['option']) {
             response = await this.privatePostOptionUsdcOpenapiPrivateV1CancelAll (this.extend (request, params));
         } else {
-            const isStop = this.safeValue2 (params, 'stop', 'trigger', false);
+            const isStop = this.safeBool2 (params, 'stop', 'trigger', false);
             if (isStop) {
                 request['orderFilter'] = 'StopOrder';
             } else {
@@ -4322,7 +4322,7 @@ export default class bybit extends Exchange {
                 request['settleCoin'] = this.safeString (params, 'settleCoin', defaultSettle);
             }
         }
-        const isStop = this.safeValue2 (params, 'stop', 'trigger', false);
+        const isStop = this.safeBool2 (params, 'stop', 'trigger', false);
         params = this.omit (params, [ 'stop', 'trigger' ]);
         if (isStop) {
             request['orderFilter'] = 'StopOrder';
@@ -4390,7 +4390,7 @@ export default class bybit extends Exchange {
         } else {
             request['category'] = 'OPTION';
         }
-        const isStop = this.safeValue2 (params, 'stop', 'trigger', false);
+        const isStop = this.safeBool2 (params, 'stop', 'trigger', false);
         params = this.omit (params, [ 'stop', 'trigger' ]);
         if (isStop) {
             request['orderFilter'] = 'StopOrder';
@@ -4691,7 +4691,7 @@ export default class bybit extends Exchange {
             return await this.fetchUsdcOpenOrders (symbol, since, limit, params);
         }
         request['category'] = type;
-        const isStop = this.safeValue2 (params, 'stop', 'trigger', false);
+        const isStop = this.safeBool2 (params, 'stop', 'trigger', false);
         params = this.omit (params, [ 'stop', 'trigger' ]);
         if (isStop) {
             request['orderFilter'] = 'StopOrder';

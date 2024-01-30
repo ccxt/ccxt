@@ -2235,7 +2235,7 @@ export default class kucoin extends Exchange {
         await this.loadMarkets ();
         const request = {};
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
-        const stop = this.safeValue2 (params, 'stop', 'trigger', false);
+        const stop = this.safeBool2 (params, 'stop', 'trigger', false);
         const hf = this.safeBool (params, 'hf', false);
         if (hf) {
             if (symbol === undefined) {

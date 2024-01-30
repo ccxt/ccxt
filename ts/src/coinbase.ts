@@ -2244,7 +2244,7 @@ export default class coinbase extends Exchange {
         const isStopLoss = stopLossPrice !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
         const timeInForce = this.safeString (params, 'timeInForce');
-        const postOnly = (timeInForce === 'PO') ? true : this.safeValue2 (params, 'postOnly', 'post_only', false);
+        const postOnly = (timeInForce === 'PO') ? true : this.safeBool2 (params, 'postOnly', 'post_only', false);
         const endTime = this.safeString (params, 'end_time');
         let stopDirection = this.safeString (params, 'stop_direction');
         if (type === 'limit') {
@@ -2659,7 +2659,7 @@ export default class coinbase extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const preview = this.safeValue2 (params, 'preview', 'test', false);
+        const preview = this.safeBool2 (params, 'preview', 'test', false);
         let response = undefined;
         if (preview) {
             params = this.omit (params, [ 'preview', 'test' ]);

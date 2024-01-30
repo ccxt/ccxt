@@ -1559,7 +1559,7 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws']['ws'];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
-        const sor = this.safeValue2 (params, 'sor', 'SOR', false);
+        const sor = this.safeBool2 (params, 'sor', 'SOR', false);
         params = this.omit (params, 'sor', 'SOR');
         const payload = this.createOrderRequest (symbol, type, side, amount, price, params);
         let returnRateLimits = false;

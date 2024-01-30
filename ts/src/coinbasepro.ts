@@ -1271,7 +1271,7 @@ export default class coinbasepro extends Exchange {
         if (timeInForce !== undefined) {
             request['time_in_force'] = timeInForce;
         }
-        const postOnly = this.safeValue2 (params, 'postOnly', 'post_only', false);
+        const postOnly = this.safeBool2 (params, 'postOnly', 'post_only', false);
         if (postOnly) {
             request['post_only'] = true;
         }
