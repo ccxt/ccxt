@@ -4457,13 +4457,12 @@ export default class okx extends Exchange {
         const networksById = this.indexBy (networks, 'id');
         const networkData = this.safeValue (networksById, chain);
         const network = this.safeString (networkData, 'network');
-        const networkCode = this.networkIdToCode (network, code);
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': networkCode,
+            'network': network,
             'info': depositAddress,
         };
     }

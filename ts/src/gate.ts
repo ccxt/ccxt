@@ -1932,8 +1932,6 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const rawNetwork = this.safeStringUpper (params, 'network');
-        params = this.omit (params, 'network');
         const request = {
             'currency': currency['id'],
         };
@@ -1955,23 +1953,21 @@ export default class gate extends Exchange {
         //
         const currencyId = this.safeString (response, 'currency');
         code = this.safeCurrencyCode (currencyId);
-        const networkId = this.networkCodeToId (rawNetwork, code);
-        let network = undefined;
         let tag = undefined;
         let address = undefined;
-        if (networkId !== undefined) {
+        const network = this.safeString (params, 'network');
+        if (network !== undefined) {
             const addresses = this.safeValue (response, 'multichain_addresses');
             for (let i = 0; i < addresses.length; i++) {
                 const entry = addresses[i];
                 const entryNetwork = this.safeString (entry, 'chain');
-                if (networkId === entryNetwork) {
+                if (network === entryNetwork) {
                     const obtainFailed = this.safeInteger (entry, 'obtain_failed');
                     if (obtainFailed) {
                         break;
                     }
                     address = this.safeString (entry, 'address');
                     tag = this.safeString (entry, 'payment_id');
-                    network = this.networkIdToCode (networkId, code);
                     break;
                 }
             }
