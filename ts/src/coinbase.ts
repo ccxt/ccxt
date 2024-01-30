@@ -1381,7 +1381,11 @@ export default class coinbase extends Exchange {
     async fetchTickersV3 (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.v3PrivateGetBrokerageProducts (params);
+        const request = {};
+        if (symbols !== undefined) {
+            request['product_ids'] = this.marketIds (symbols);
+        }
+        const response = await this.v3PrivateGetBrokerageProducts (this.extend (request, params));
         //
         //     {
         //         "products": [
@@ -3362,7 +3366,7 @@ export default class coinbase extends Exchange {
         const savedPath = fullPath;
         if (method === 'GET') {
             if (Object.keys (query).length) {
-                fullPath += '?' + this.urlencode (query);
+                fullPath += '?' + this.urlencodeWithArrayRepeat (query);
             }
         }
         const url = this.urls['api']['rest'] + fullPath;
