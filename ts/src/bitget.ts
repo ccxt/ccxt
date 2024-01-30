@@ -5649,7 +5649,7 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeValue (response, 'data', {});
         if (marketType === 'spot') {
             if ((marginMode !== undefined) || stop) {
                 return this.parseOrders (this.safeValue (data, 'orderList', []), market, since, limit);
