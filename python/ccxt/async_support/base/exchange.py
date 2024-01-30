@@ -15,7 +15,7 @@ import ssl
 import sys
 import yarl
 import math
-from typing import Any, List
+from typing import Any, List, Dict
 from ccxt.base.types import Int, Str
 
 # -----------------------------------------------------------------------------

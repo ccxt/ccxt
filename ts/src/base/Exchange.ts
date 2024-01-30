@@ -1690,6 +1690,54 @@ export default class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    safeBoolN (dictionaryOrList, keys: string[], defaultValue: boolean = undefined): boolean | undefined {
+        const value = this.safeValueN (dictionaryOrList, keys, defaultValue);
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        return defaultValue;
+    }
+
+    safeBool2 (dictionary, key1: string, key2: string, defaultValue: boolean = undefined): boolean | undefined {
+        return this.safeBoolN (dictionary, [ key1, key2 ], defaultValue);
+    }
+
+    safeBool (dictionary, key: string, defaultValue: boolean = undefined): boolean | undefined {
+        return this.safeBoolN (dictionary, [ key ], defaultValue);
+    }
+
+    safeDictN (dictionaryOrList, keys: string[], defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
+        const value = this.safeValueN (dictionaryOrList, keys, defaultValue);
+        if (typeof value === 'object') {
+            return value;
+        }
+        return defaultValue;
+    }
+
+    safeDict (dictionary, key: string, defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
+        return this.safeDictN (dictionary, [ key ], defaultValue);
+    }
+
+    safeDict2 (dictionary, key1: string, key2: string, defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
+        return this.safeDictN (dictionary, [ key1, key2 ], defaultValue);
+    }
+
+    safeListN (dictionaryOrList, keys: string[], defaultValue: any[] = undefined): any[] | undefined {
+        const value = this.safeValueN (dictionaryOrList, keys, defaultValue);
+        if (Array.isArray (value)) {
+            return value;
+        }
+        return defaultValue;
+    }
+
+    safeList2 (dictionaryOrList, key1: string, key2: string, defaultValue: any[] = undefined): any[] | undefined {
+        return this.safeListN (dictionaryOrList, [ key1, key2 ], defaultValue);
+    }
+
+    safeList (dictionaryOrList, key: string, defaultValue: any[] = undefined): any[] | undefined {
+        return this.safeListN (dictionaryOrList, [ key ], defaultValue);
+    }
+
     handleDeltas (orderbook, deltas) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (orderbook, deltas[i]);

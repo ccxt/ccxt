@@ -1734,6 +1734,42 @@ class Exchange(object):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    def safe_bool_n(self, dictionaryOrList, keys: List[str], defaultValue: bool = None):
+        value = self.safe_value_n(dictionaryOrList, keys, defaultValue)
+        if isinstance(value, bool):
+            return value
+        return defaultValue
+
+    def safe_bool_2(self, dictionary, key1: str, key2: str, defaultValue: bool = None):
+        return self.safe_bool_n(dictionary, [key1, key2], defaultValue)
+
+    def safe_bool(self, dictionary, key: str, defaultValue: bool = None):
+        return self.safe_bool_n(dictionary, [key], defaultValue)
+
+    def safe_dict_n(self, dictionaryOrList, keys: List[str], defaultValue: dict = None):
+        value = self.safe_value_n(dictionaryOrList, keys, defaultValue)
+        if isinstance(value, dict):
+            return value
+        return defaultValue
+
+    def safe_dict(self, dictionary, key: str, defaultValue: dict = None):
+        return self.safe_dict_n(dictionary, [key], defaultValue)
+
+    def safe_dict_2(self, dictionary, key1: str, key2: str, defaultValue: dict = None):
+        return self.safe_dict_n(dictionary, [key1, key2], defaultValue)
+
+    def safe_list_n(self, dictionaryOrList, keys: List[str], defaultValue: List[Any] = None):
+        value = self.safe_value_n(dictionaryOrList, keys, defaultValue)
+        if isinstance(value, list):
+            return value
+        return defaultValue
+
+    def safe_list_2(self, dictionaryOrList, key1: str, key2: str, defaultValue: List[Any] = None):
+        return self.safe_list_n(dictionaryOrList, [key1, key2], defaultValue)
+
+    def safe_list(self, dictionaryOrList, key: str, defaultValue: List[Any] = None):
+        return self.safe_list_n(dictionaryOrList, [key], defaultValue)
+
     def handle_deltas(self, orderbook, deltas):
         for i in range(0, len(deltas)):
             self.handle_delta(orderbook, deltas[i])
