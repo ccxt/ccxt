@@ -101,8 +101,8 @@ export default class kucoinfutures extends kucoinfuturesRest {
             } else {
                 response = await this.futuresPublicPostBulletPublic (params);
             }
-            const data = this.safeValue (response, 'data', {});
-            const instanceServers = this.safeValue (data, 'instanceServers', []);
+            const data = this.safeDict (response, 'data', {});
+            const instanceServers = this.safeList (data, 'instanceServers', []);
             const firstInstanceServer = this.safeValue (instanceServers, 0);
             const pingInterval = this.safeInteger (firstInstanceServer, 'pingInterval');
             const endpoint = this.safeString (firstInstanceServer, 'endpoint');
@@ -209,7 +209,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         //        }
         //    }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const marketId = this.safeValue (data, 'symbol');
         const market = this.safeMarket (marketId, undefined, '-');
         const ticker = this.parseTicker (data, market);
@@ -384,7 +384,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const cache = this.positions;
         const currentPosition = this.getCurrentPosition (symbol);
         const messageHash = 'position:' + symbol;
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const newPosition = this.parsePosition (data);
         const keys = Object.keys (newPosition);
         for (let i = 0; i < keys.length; i++) {
@@ -472,7 +472,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         //        }
         //    }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const trade = this.parseTrade (data);
         const symbol = trade['symbol'];
         let trades = this.safeValue (this.trades, symbol);
@@ -553,7 +553,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const timestamp = this.safeInteger (delta, 'timestamp');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
-        const change = this.safeValue (delta, 'change', {});
+        const change = this.safeDict (delta, 'change', {});
         const splitChange = change.split (',');
         const price = this.safeNumber (splitChange, 0);
         const side = this.safeString (splitChange, 1);
@@ -861,7 +861,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         //        }
         //    }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         this.balance['info'] = data;
         const currencyId = this.safeString (data, 'currency');
         const code = this.safeCurrencyCode (currencyId);
@@ -926,7 +926,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
                 this.balance[code] = snapshot[code];
             }
         }
-        this.balance['info'] = this.safeValue (snapshot, 'info', {});
+        this.balance['info'] = this.safeDict (snapshot, 'info', {});
         client.resolve (this.balance, messageHash);
     }
 

@@ -211,7 +211,7 @@ export default class onetrading extends onetradingRest {
         //         "time": "2022-06-23T16:41:00.004162Z"
         //     }
         //
-        const tickers = this.safeValue (message, 'ticker_updates', []);
+        const tickers = this.safeList (message, 'ticker_updates', []);
         const datetime = this.safeString (message, 'time');
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
@@ -384,7 +384,7 @@ export default class onetrading extends onetradingRest {
             const snapshot = this.parseOrderBook (message, symbol, timestamp, 'bids', 'asks');
             storedOrderBook.reset (snapshot);
         } else if (type === 'ORDER_BOOK_UPDATE') {
-            const changes = this.safeValue (message, 'changes', []);
+            const changes = this.safeList (message, 'changes', []);
             this.handleDeltas (storedOrderBook, changes);
         } else {
             throw new NotSupported (this.id + ' watchOrderBook() did not recognize message type ' + type);
@@ -717,7 +717,7 @@ export default class onetrading extends onetradingRest {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
-        const rawOrders = this.safeValue (message, 'orders', []);
+        const rawOrders = this.safeList (message, 'orders', []);
         const rawOrdersLength = rawOrders.length;
         if (rawOrdersLength === 0) {
             return;
@@ -972,7 +972,7 @@ export default class onetrading extends onetradingRest {
         }
         let symbol = undefined;
         const orders = this.orders;
-        const update = this.safeValue (message, 'update', {});
+        const update = this.safeDict (message, 'update', {});
         const updateType = this.safeString (update, 'type');
         if (updateType === 'ORDER_REJECTED' || updateType === 'ORDER_CLOSED' || updateType === 'STOP_ORDER_TRIGGERED') {
             const orderId = this.safeString (update, 'order_id');

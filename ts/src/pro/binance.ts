@@ -334,8 +334,8 @@ export default class binance extends binanceRest {
 
     handleOrderBookMessage (client: Client, message, orderbook) {
         const u = this.safeInteger (message, 'u');
-        this.handleDeltas (orderbook['asks'], this.safeValue (message, 'a', []));
-        this.handleDeltas (orderbook['bids'], this.safeValue (message, 'b', []));
+        this.handleDeltas (orderbook['asks'], this.safeList (message, 'a', []));
+        this.handleDeltas (orderbook['bids'], this.safeList (message, 'b', []));
         orderbook['nonce'] = u;
         const timestamp = this.safeInteger (message, 'E');
         orderbook['timestamp'] = timestamp;
@@ -1373,7 +1373,7 @@ export default class binance extends binanceRest {
         //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeValue (message, 'result', {});
+        const result = this.safeDict (message, 'result', {});
         const parsedBalances = this.parseBalance (result, 'spot');
         client.resolve (parsedBalances, messageHash);
     }
@@ -1634,7 +1634,7 @@ export default class binance extends binanceRest {
         //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeValue (message, 'result', {});
+        const result = this.safeDict (message, 'result', {});
         const order = this.parseOrder (result);
         client.resolve (order, messageHash);
     }
@@ -1678,7 +1678,7 @@ export default class binance extends binanceRest {
         //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeValue (message, 'result', []);
+        const result = this.safeList (message, 'result', []);
         const orders = this.parseOrders (result);
         client.resolve (orders, messageHash);
     }
@@ -1786,8 +1786,8 @@ export default class binance extends binanceRest {
         //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeValue (message, 'result', {});
-        const rawOrder = this.safeValue (result, 'newOrderResponse', {});
+        const result = this.safeDict (message, 'result', {});
+        const rawOrder = this.safeDict (result, 'newOrderResponse', {});
         const order = this.parseOrder (rawOrder);
         client.resolve (order, messageHash);
     }
@@ -2410,8 +2410,8 @@ export default class binance extends binanceRest {
             this.positions[accountType] = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions[accountType];
-        const data = this.safeValue (message, 'a', {});
-        const rawPositions = this.safeValue (data, 'P', []);
+        const data = this.safeDict (message, 'a', {});
+        const rawPositions = this.safeList (data, 'P', []);
         const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
@@ -2554,7 +2554,7 @@ export default class binance extends binanceRest {
         //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeValue (message, 'result', []);
+        const result = this.safeList (message, 'result', []);
         const trades = this.parseTrades (result);
         client.resolve (trades, messageHash);
     }
@@ -2654,7 +2654,7 @@ export default class binance extends binanceRest {
                             order['fee'] = tradeFee;
                         }
                         // save this trade in the order
-                        const orderTrades = this.safeValue (order, 'trades', []);
+                        const orderTrades = this.safeList (order, 'trades', []);
                         orderTrades.push (trade);
                         order['trades'] = orderTrades;
                         // don't append twice cause it breaks newUpdates mode
@@ -2727,7 +2727,7 @@ export default class binance extends binanceRest {
         //
         const id = this.safeString (message, 'id');
         let rejected = false;
-        const error = this.safeValue (message, 'error', {});
+        const error = this.safeDict (message, 'error', {});
         const code = this.safeInteger (error, 'code');
         const msg = this.safeString (error, 'msg');
         try {

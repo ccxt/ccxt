@@ -72,7 +72,7 @@ export default class ndax extends ndaxRest {
     }
 
     handleTicker (client: Client, message) {
-        const payload = this.safeValue (message, 'o', {});
+        const payload = this.safeDict (message, 'o', {});
         //
         //     {
         //         "OMSId": 1,
@@ -146,7 +146,7 @@ export default class ndax extends ndaxRest {
     }
 
     handleTrades (client: Client, message) {
-        const payload = this.safeValue (message, 'o', []);
+        const payload = this.safeList (message, 'o', []);
         //
         // initial snapshot
         //
@@ -239,7 +239,7 @@ export default class ndax extends ndaxRest {
         //         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         //     }
         //
-        const payload = this.safeValue (message, 'o', []);
+        const payload = this.safeList (message, 'o', []);
         //
         //     [
         //         [
@@ -377,7 +377,7 @@ export default class ndax extends ndaxRest {
         //         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
         //     }
         //
-        const payload = this.safeValue (message, 'o', []);
+        const payload = this.safeList (message, 'o', []);
         //
         //     [
         //         0,   // 0 MDUpdateId
@@ -453,7 +453,7 @@ export default class ndax extends ndaxRest {
         //         "o": [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
         //     }
         //
-        const payload = this.safeValue (message, 'o', []);
+        const payload = this.safeList (message, 'o', []);
         //
         //     [
         //         [

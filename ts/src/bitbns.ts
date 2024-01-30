@@ -225,11 +225,11 @@ export default class bitbns extends Exchange {
             const quoteId = this.safeString (market, 'quote');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const marketPrecision = this.safeValue (market, 'precision', {});
-            const marketLimits = this.safeValue (market, 'limits', {});
-            const amountLimits = this.safeValue (marketLimits, 'amount', {});
-            const priceLimits = this.safeValue (marketLimits, 'price', {});
-            const costLimits = this.safeValue (marketLimits, 'cost', {});
+            const marketPrecision = this.safeDict (market, 'precision', {});
+            const marketLimits = this.safeDict (market, 'limits', {});
+            const amountLimits = this.safeDict (marketLimits, 'amount', {});
+            const priceLimits = this.safeDict (marketLimits, 'price', {});
+            const costLimits = this.safeDict (marketLimits, 'cost', {});
             const usdt = (quoteId === 'USDT');
             // INR markets don't need a _INR prefix
             const uppercaseId = usdt ? (baseId + '_' + quoteId) : baseId;
@@ -439,7 +439,7 @@ export default class bitbns extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const keys = Object.keys (data);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -732,7 +732,7 @@ export default class bitbns extends Exchange {
         //         "code":200
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const first = this.safeValue (data, 0);
         return this.parseOrder (first, market);
     }
@@ -785,7 +785,7 @@ export default class bitbns extends Exchange {
         //         "code":200
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -935,7 +935,7 @@ export default class bitbns extends Exchange {
         //         "code": 200
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1014,7 +1014,7 @@ export default class bitbns extends Exchange {
         //         "code":200
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -1042,7 +1042,7 @@ export default class bitbns extends Exchange {
         //
         //     ...
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -1159,7 +1159,7 @@ export default class bitbns extends Exchange {
         //         "error":null
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const address = this.safeString (data, 'token');
         const tag = this.safeString (data, 'tag');
         this.checkAddress (address);

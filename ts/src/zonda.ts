@@ -329,16 +329,16 @@ export default class zonda extends Exchange {
         //         },
         //     }
         //
-        const items = this.safeValue (response, 'items', {});
+        const items = this.safeDict (response, 'items', {});
         const markets = Object.values (items);
         return this.parseMarkets (markets);
     }
 
     parseMarket (item): Market {
-        const market = this.safeValue (item, 'market', {});
+        const market = this.safeDict (item, 'market', {});
         const id = this.safeString (market, 'code');
-        const first = this.safeValue (market, 'first', {});
-        const second = this.safeValue (market, 'second', {});
+        const first = this.safeDict (market, 'first', {});
+        const second = this.safeDict (market, 'second', {});
         const baseId = this.safeString (first, 'currency');
         const quoteId = this.safeString (second, 'currency');
         const base = this.safeCurrencyCode (baseId);
@@ -417,7 +417,7 @@ export default class zonda extends Exchange {
         await this.loadMarkets ();
         const request = {};
         const response = await this.v1_01PrivateGetTradingOffer (this.extend (request, params));
-        const items = this.safeValue (response, 'items', []);
+        const items = this.safeList (response, 'items', []);
         return this.parseOrders (items, undefined, since, limit, { 'status': 'open' });
     }
 
@@ -587,8 +587,8 @@ export default class zonda extends Exchange {
         //         "seqNo":"27641254"
         //     }
         //
-        const rawBids = this.safeValue (response, 'buy', []);
-        const rawAsks = this.safeValue (response, 'sell', []);
+        const rawBids = this.safeList (response, 'buy', []);
+        const rawAsks = this.safeList (response, 'sell', []);
         const timestamp = this.safeInteger (response, 'timestamp');
         return {
             'symbol': market['symbol'],
@@ -1113,9 +1113,9 @@ export default class zonda extends Exchange {
         //    }
         //
         const timestamp = this.safeInteger (item, 'time');
-        const balance = this.safeValue (item, 'balance', {});
+        const balance = this.safeDict (item, 'balance', {});
         const currencyId = this.safeString (balance, 'currency');
-        const change = this.safeValue (item, 'change', {});
+        const change = this.safeDict (item, 'change', {});
         let amount = this.safeString (change, 'total');
         let direction = 'in';
         if (Precise.stringLt (amount, '0')) {
@@ -1124,8 +1124,8 @@ export default class zonda extends Exchange {
         }
         // there are 2 undocumented api calls: (v1_01PrivateGetPaymentsDepositDetailId and v1_01PrivateGetPaymentsWithdrawalDetailId)
         // that can be used to enrich the transfers with txid, address etc (you need to use info.detailId as a parameter)
-        const fundsBefore = this.safeValue (item, 'fundsBefore', {});
-        const fundsAfter = this.safeValue (item, 'fundsAfter', {});
+        const fundsBefore = this.safeDict (item, 'fundsBefore', {});
+        const fundsAfter = this.safeDict (item, 'fundsAfter', {});
         return {
             'info': item,
             'id': this.safeString (item, 'historyId'),
@@ -1235,7 +1235,7 @@ export default class zonda extends Exchange {
         //         ]
         //     }
         //
-        const items = this.safeValue (response, 'items', []);
+        const items = this.safeList (response, 'items', []);
         return this.parseOHLCVs (items, market, timeframe, since, limit);
     }
 
@@ -1691,9 +1691,9 @@ export default class zonda extends Exchange {
         //     }
         //
         const status = this.safeString (transfer, 'status');
-        const fromAccount = this.safeValue (transfer, 'from', {});
+        const fromAccount = this.safeDict (transfer, 'from', {});
         const fromId = this.safeString (fromAccount, 'id');
-        const to = this.safeValue (transfer, 'to', {});
+        const to = this.safeDict (transfer, 'to', {});
         const toId = this.safeString (to, 'id');
         const currencyId = this.safeString (fromAccount, 'currency');
         return {

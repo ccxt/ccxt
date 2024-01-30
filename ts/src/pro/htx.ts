@@ -185,7 +185,7 @@ export default class htx extends htxRest {
         //         }
         //     }
         //
-        const tick = this.safeValue (message, 'tick', {});
+        const tick = this.safeDict (message, 'tick', {});
         const ch = this.safeString (message, 'ch');
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
@@ -244,8 +244,8 @@ export default class htx extends htxRest {
         //         }
         //     }
         //
-        const tick = this.safeValue (message, 'tick', {});
-        const data = this.safeValue (tick, 'data', {});
+        const tick = this.safeDict (message, 'tick', {});
+        const data = this.safeDict (tick, 'data', {});
         const ch = this.safeString (message, 'ch');
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
@@ -564,7 +564,7 @@ export default class htx extends htxRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const orderbook = this.orderbooks[symbol];
-        const tick = this.safeValue (message, 'tick', {});
+        const tick = this.safeDict (message, 'tick', {});
         const seqNum = this.safeInteger (tick, 'seqNum');
         const prevSeqNum = this.safeInteger (tick, 'prevSeqNum');
         const event = this.safeString (tick, 'event');
@@ -581,8 +581,8 @@ export default class htx extends htxRest {
         const spotConditon = market['spot'] && (prevSeqNum === orderbook['nonce']);
         const nonSpotCondition = market['contract'] && (version - 1 === orderbook['nonce']);
         if (spotConditon || nonSpotCondition) {
-            const asks = this.safeValue (tick, 'asks', []);
-            const bids = this.safeValue (tick, 'bids', []);
+            const asks = this.safeList (tick, 'asks', []);
+            const bids = this.safeList (tick, 'bids', []);
             this.handleDeltas (orderbook['asks'], asks);
             this.handleDeltas (orderbook['bids'], bids);
             orderbook['nonce'] = spotConditon ? seqNum : version;
@@ -955,7 +955,7 @@ export default class htx extends htxRest {
         } else {
             // contract branch
             parsedOrder = this.parseWsOrder (message, market);
-            const rawTrades = this.safeValue (message, 'trade', []);
+            const rawTrades = this.safeList (message, 'trade', []);
             const tradesLength = rawTrades.length;
             if (tradesLength > 0) {
                 const tradesObject = {
@@ -1318,7 +1318,7 @@ export default class htx extends htxRest {
             this.positions[url][marginMode] = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions[url][marginMode];
-        const rawPositions = this.safeValue (message, 'data', []);
+        const rawPositions = this.safeList (message, 'data', []);
         const newPositions = [];
         const timestamp = this.safeInteger (message, 'ts');
         for (let i = 0; i < rawPositions.length; i++) {
@@ -1553,7 +1553,7 @@ export default class htx extends htxRest {
         //     }
         //
         const channel = this.safeString (message, 'ch');
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const timestamp = this.safeInteger (data, 'changeTime', this.safeInteger (message, 'ts'));
         this.balance['timestamp'] = timestamp;
         this.balance['datetime'] = this.iso8601 (timestamp);
@@ -2134,7 +2134,7 @@ export default class htx extends htxRest {
             } else {
                 // this trades object is artificially created
                 // in handleOrder
-                const rawTrades = this.safeValue (message, 'trades', []);
+                const rawTrades = this.safeList (message, 'trades', []);
                 const marketId = this.safeValue (message, 'symbol');
                 const market = this.market (marketId);
                 for (let i = 0; i < rawTrades.length; i++) {

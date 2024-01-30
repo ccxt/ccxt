@@ -306,7 +306,7 @@ export default class bitmex extends bitmexRest {
         //     }
         //
         const table = this.safeString (message, 'table');
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const update = data[i];
             const marketId = this.safeValue (update, 'symbol');
@@ -314,7 +314,7 @@ export default class bitmex extends bitmexRest {
             const symbol = market['symbol'];
             const messageHash = table + ':' + marketId;
             let ticker = this.safeValue (this.tickers, symbol, {});
-            const info = this.safeValue (ticker, 'info', {});
+            const info = this.safeDict (ticker, 'info', {});
             ticker = this.parseTicker (this.extend (info, update), market);
             this.tickers[symbol] = ticker;
             client.resolve (ticker, messageHash);
@@ -510,7 +510,7 @@ export default class bitmex extends bitmexRest {
         //     }
         //
         const table = 'trade';
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const dataByMarketIds = this.groupBy (data, 'symbol');
         const marketIds = Object.keys (dataByMarketIds);
         for (let i = 0; i < marketIds.length; i++) {
@@ -787,7 +787,7 @@ export default class bitmex extends bitmexRest {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions;
-        const rawPositions = this.safeValue (message, 'data', []);
+        const rawPositions = this.safeList (message, 'data', []);
         const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
@@ -993,7 +993,7 @@ export default class bitmex extends bitmexRest {
         //         ]
         //     }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const messageHash = 'order';
         // initial subscription response with multiple orders
         const dataLength = data.length;
@@ -1119,9 +1119,9 @@ export default class bitmex extends bitmexRest {
         //     }
         //
         const messageHash = this.safeString (message, 'table');
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const dataByExecType = this.groupBy (data, 'execType');
-        const rawTrades = this.safeValue (dataByExecType, 'Trade', []);
+        const rawTrades = this.safeList (dataByExecType, 'Trade', []);
         const trades = this.parseTrades (rawTrades);
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -1300,7 +1300,7 @@ export default class bitmex extends bitmexRest {
         const interval = table.replace ('tradeBin', '');
         const timeframe = this.findTimeframe (interval);
         const duration = this.parseTimeframe (timeframe);
-        const candles = this.safeValue (message, 'data', []);
+        const candles = this.safeList (message, 'data', []);
         const results = {};
         for (let i = 0; i < candles.length; i++) {
             const candle = candles[i];
@@ -1392,10 +1392,10 @@ export default class bitmex extends bitmexRest {
         //
         const action = this.safeString (message, 'action');
         const table = this.safeString (message, 'table');
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         // if it's an initial snapshot
         if (action === 'partial') {
-            const filter = this.safeValue (message, 'filter', {});
+            const filter = this.safeDict (message, 'filter', {});
             const marketId = this.safeValue (filter, 'symbol');
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
@@ -1503,8 +1503,8 @@ export default class bitmex extends bitmexRest {
         //
         const error = this.safeValue (message, 'error');
         if (error !== undefined) {
-            const request = this.safeValue (message, 'request', {});
-            const args = this.safeValue (request, 'args', []);
+            const request = this.safeDict (message, 'request', {});
+            const args = this.safeList (request, 'args', []);
             const numArgs = args.length;
             if (numArgs > 0) {
                 const messageHash = args[0];
@@ -1577,7 +1577,7 @@ export default class bitmex extends bitmexRest {
             };
             const method = this.safeValue (methods, table);
             if (method === undefined) {
-                const request = this.safeValue (message, 'request', {});
+                const request = this.safeDict (message, 'request', {});
                 const op = this.safeValue (request, 'op');
                 if (op === 'authKeyExpires') {
                     return this.handleAuthenticationMessage.call (this, client, message);

@@ -412,7 +412,7 @@ export default class kraken extends krakenRest {
         //         "ETH/XBT", // Asset pair
         //     ]
         //
-        const info = this.safeValue (subscription, 'subscription', {});
+        const info = this.safeDict (subscription, 'subscription', {});
         const interval = this.safeInteger (info, 'interval');
         const name = this.safeString (info, 'name');
         const wsName = this.safeString (message, 3);
@@ -580,12 +580,12 @@ export default class kraken extends krakenRest {
                 const symbol = this.symbols[i];
                 const market = this.markets[symbol];
                 if (market['darkpool']) {
-                    const info = this.safeValue (market, 'info', {});
+                    const info = this.safeDict (market, 'info', {});
                     const altname = this.safeString (info, 'altname');
                     const wsName = altname.slice (0, 3) + '/' + altname.slice (3);
                     marketsByWsName[wsName] = market;
                 } else {
-                    const info = this.safeValue (market, 'info', {});
+                    const info = this.safeDict (market, 'info', {});
                     const wsName = this.safeString (info, 'wsname');
                     marketsByWsName[wsName] = market;
                 }
@@ -1187,7 +1187,7 @@ export default class kraken extends krakenRest {
         //        "vol_exec": "0.00000000"
         //    }
         //
-        const description = this.safeValue (order, 'descr', {});
+        const description = this.safeDict (order, 'descr', {});
         const orderDescription = this.safeString (description, 'order');
         let side = undefined;
         let type = undefined;
@@ -1343,7 +1343,7 @@ export default class kraken extends krakenRest {
         if (Array.isArray (message)) {
             const channelId = this.safeString (message, 0);
             const subscription = this.safeValue (client.subscriptions, channelId, {});
-            const info = this.safeValue (subscription, 'subscription', {});
+            const info = this.safeDict (subscription, 'subscription', {});
             const messageLength = message.length;
             const channelName = this.safeString (message, messageLength - 2);
             const name = this.safeString (info, 'name');

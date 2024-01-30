@@ -150,7 +150,7 @@ export default class okcoin extends okcoinRest {
         //   }
         //
         const table = this.safeString (message, 'table');
-        const orders = this.safeValue (message, 'data', []);
+        const orders = this.safeList (message, 'data', []);
         const ordersLength = orders.length;
         if (ordersLength > 0) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -204,7 +204,7 @@ export default class okcoin extends okcoinRest {
         //     }
         //
         const table = this.safeString (message, 'table');
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
         for (let i = 0; i < data.length; i++) {
             const trade = this.parseTrade (data[i]);
@@ -246,7 +246,7 @@ export default class okcoin extends okcoinRest {
         //     }
         //
         const table = this.safeString (message, 'table');
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseTicker (data[i]);
             const symbol = ticker['symbol'];
@@ -301,7 +301,7 @@ export default class okcoin extends okcoinRest {
         //     }
         //
         const table = this.safeString (message, 'table');
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const parts = table.split ('/');
         const part1 = this.safeString (parts, 1);
         let interval = part1.replace ('candle', '');
@@ -373,8 +373,8 @@ export default class okcoin extends okcoinRest {
         //         "checksum": 473370408
         //     }
         //
-        const asks = this.safeValue (message, 'asks', []);
-        const bids = this.safeValue (message, 'bids', []);
+        const asks = this.safeList (message, 'asks', []);
+        const bids = this.safeList (message, 'bids', []);
         this.handleDeltas (orderbook['asks'], asks);
         this.handleDeltas (orderbook['bids'], bids);
         const timestamp = this.parse8601 (this.safeString (message, 'timestamp'));
@@ -434,7 +434,7 @@ export default class okcoin extends okcoinRest {
         //     }
         //
         const action = this.safeString (message, 'action');
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const table = this.safeString (message, 'table');
         if (action === 'partial') {
             for (let i = 0; i < data.length; i++) {
@@ -597,7 +597,7 @@ export default class okcoin extends okcoinRest {
         //
         const table = this.safeString (message, 'table');
         const parts = table.split ('/');
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         this.balance['info'] = data;
         let type = this.safeString (parts, 0);
         if (type === 'spot') {

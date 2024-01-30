@@ -283,7 +283,7 @@ export default class phemex extends phemexRest {
             const ticker = this.safeValue (message, 'spot_market24h');
             tickers.push (this.parseTicker (ticker));
         } else if ('data' in message) {
-            const data = this.safeValue (message, 'data', []);
+            const data = this.safeList (message, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 tickers.push (this.parsePerpetualTicker (data[i]));
             }
@@ -723,8 +723,8 @@ export default class phemex extends phemexRest {
             const orderbook = this.safeValue (this.orderbooks, symbol);
             if (orderbook !== undefined) {
                 const changes = this.safeDict2 (message, 'book', 'orderbook_p', {});
-                const asks = this.safeValue (changes, 'asks', []);
-                const bids = this.safeValue (changes, 'bids', []);
+                const asks = this.safeList (changes, 'asks', []);
+                const bids = this.safeList (changes, 'bids', []);
                 this.handleDeltas (orderbook['asks'], asks, market);
                 this.handleDeltas (orderbook['bids'], bids, market);
                 orderbook['nonce'] = nonce;
@@ -1099,14 +1099,14 @@ export default class phemex extends phemexRest {
         let trades = [];
         const parsedOrders = [];
         if (('closed' in message) || ('fills' in message) || ('open' in message)) {
-            const closed = this.safeValue (message, 'closed', []);
-            const open = this.safeValue (message, 'open', []);
+            const closed = this.safeList (message, 'closed', []);
+            const open = this.safeList (message, 'open', []);
             const orders = this.arrayConcat (open, closed);
             const ordersLength = orders.length;
             if (ordersLength === 0) {
                 return;
             }
-            trades = this.safeValue (message, 'fills', []);
+            trades = this.safeList (message, 'fills', []);
             for (let i = 0; i < orders.length; i++) {
                 const rawOrder = orders[i];
                 const parsedOrder = this.parseOrder (rawOrder);

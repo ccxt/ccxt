@@ -329,7 +329,7 @@ export default class bitmex extends Exchange {
             const code = this.safeCurrencyCode (asset);
             const id = this.safeString (currency, 'currency');
             const name = this.safeString (currency, 'name');
-            const chains = this.safeValue (currency, 'networks', []);
+            const chains = this.safeList (currency, 'networks', []);
             let depositEnabled = false;
             let withdrawEnabled = false;
             const networks = {};
@@ -2681,7 +2681,7 @@ export default class bitmex extends Exchange {
         //        ]
         //    }
         //
-        const networks = this.safeValue (fee, 'networks', []);
+        const networks = this.safeList (fee, 'networks', []);
         const networksLength = networks.length;
         const result = {
             'info': fee,
@@ -2853,7 +2853,7 @@ export default class bitmex extends Exchange {
             throw new DDoSProtection (this.id + ' ' + body);
         }
         if (code >= 400) {
-            const error = this.safeValue (response, 'error', {});
+            const error = this.safeDict (response, 'error', {});
             const message = this.safeString (error, 'message');
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);

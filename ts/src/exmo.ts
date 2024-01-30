@@ -351,7 +351,7 @@ export default class exmo extends Exchange {
         //         ]
         //     }
         //
-        const pairs = this.safeValue (response, 'pairs', []);
+        const pairs = this.safeList (response, 'pairs', []);
         const result = {};
         for (let i = 0; i < pairs.length; i++) {
             const pair = pairs[i];
@@ -897,7 +897,7 @@ export default class exmo extends Exchange {
         //         ]
         //     }
         //
-        const candles = this.safeValue (response, 'candles', []);
+        const candles = this.safeList (response, 'candles', []);
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
@@ -938,8 +938,8 @@ export default class exmo extends Exchange {
                 result[currency] = account;
             }
         } else {
-            const free = this.safeValue (response, 'balances', {});
-            const used = this.safeValue (response, 'reserved', {});
+            const free = this.safeDict (response, 'balances', {});
+            const used = this.safeDict (response, 'reserved', {});
             const currencyIds = Object.keys (free);
             for (let i = 0; i < currencyIds.length; i++) {
                 const currencyId = currencyIds[i];
@@ -1906,7 +1906,7 @@ export default class exmo extends Exchange {
         }
         const price = this.safeString (order, 'price');
         const cost = this.safeString (order, 'amount');
-        const transactions = this.safeValue (order, 'trades', []);
+        const transactions = this.safeList (order, 'trades', []);
         const clientOrderId = this.safeInteger (order, 'client_id');
         let triggerPrice = this.safeString (order, 'stop_price');
         if (triggerPrice === '0') {
@@ -2238,7 +2238,7 @@ export default class exmo extends Exchange {
         }
         let txid = this.safeString (transaction, 'txid');
         if (txid === undefined) {
-            const extra = this.safeValue (transaction, 'extra', {});
+            const extra = this.safeDict (transaction, 'extra', {});
             const extraTxid = this.safeString (extra, 'txid');
             if (extraTxid !== '') {
                 txid = extraTxid;
@@ -2419,7 +2419,7 @@ export default class exmo extends Exchange {
         //         "count": 23
         //     }
         //
-        const items = this.safeValue (response, 'items', []);
+        const items = this.safeList (response, 'items', []);
         return this.parseTransactions (items, currency, since, limit);
     }
 
@@ -2470,7 +2470,7 @@ export default class exmo extends Exchange {
         //         "count": 23
         //     }
         //
-        const items = this.safeValue (response, 'items', []);
+        const items = this.safeList (response, 'items', []);
         const first = this.safeValue (items, 0, {});
         return this.parseTransaction (first, currency);
     }
@@ -2522,7 +2522,7 @@ export default class exmo extends Exchange {
         //         "count": 23
         //     }
         //
-        const items = this.safeValue (response, 'items', []);
+        const items = this.safeList (response, 'items', []);
         const first = this.safeValue (items, 0, {});
         return this.parseTransaction (first, currency);
     }
@@ -2577,7 +2577,7 @@ export default class exmo extends Exchange {
         //         "count": 23
         //     }
         //
-        const items = this.safeValue (response, 'items', []);
+        const items = this.safeList (response, 'items', []);
         return this.parseTransactions (items, currency, since, limit);
     }
 
@@ -2618,7 +2618,7 @@ export default class exmo extends Exchange {
             //     "msg": "Your margin balance is not sufficient to place the order for '5 TON'. Please top up your margin wallet by "2.5 USDT"."
             // }
             //
-            const errorCode = this.safeValue (response, 'error', {});
+            const errorCode = this.safeDict (response, 'error', {});
             const messageError = this.safeString (errorCode, 'msg');
             const code = this.safeString (errorCode, 'code');
             const feedback = this.id + ' ' + body;

@@ -635,7 +635,7 @@ export default class coinbasepro extends coinbaseproRest {
                 client.resolve (orders, messageHash);
             } else {
                 const sequence = this.safeInteger (message, 'sequence');
-                const previousInfo = this.safeValue (previousOrder, 'info', {});
+                const previousInfo = this.safeDict (previousOrder, 'info', {});
                 const previousSequence = this.safeInteger (previousInfo, 'sequence');
                 if ((previousSequence === undefined) || (sequence > previousSequence)) {
                     if (type === 'match') {
@@ -881,8 +881,8 @@ export default class coinbasepro extends coinbaseproRest {
         if (type === 'snapshot') {
             this.orderbooks[symbol] = this.orderBook ({}, limit);
             const orderbook = this.orderbooks[symbol];
-            this.handleDeltas (orderbook['asks'], this.safeValue (message, 'asks', []));
-            this.handleDeltas (orderbook['bids'], this.safeValue (message, 'bids', []));
+            this.handleDeltas (orderbook['asks'], this.safeList (message, 'asks', []));
+            this.handleDeltas (orderbook['bids'], this.safeList (message, 'bids', []));
             orderbook['timestamp'] = undefined;
             orderbook['datetime'] = undefined;
             orderbook['symbol'] = symbol;
@@ -890,7 +890,7 @@ export default class coinbasepro extends coinbaseproRest {
         } else if (type === 'l2update') {
             const orderbook = this.orderbooks[symbol];
             const timestamp = this.parse8601 (this.safeString (message, 'time'));
-            const changes = this.safeValue (message, 'changes', []);
+            const changes = this.safeList (message, 'changes', []);
             const sides = {
                 'sell': 'asks',
                 'buy': 'bids',

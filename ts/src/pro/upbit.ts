@@ -181,7 +181,7 @@ export default class upbit extends upbitRest {
         orderBook['symbol'] = symbol;
         const bids = orderBook['bids'];
         const asks = orderBook['asks'];
-        const data = this.safeValue (message, 'orderbook_units', []);
+        const data = this.safeList (message, 'orderbook_units', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const ask_price = this.safeFloat (entry, 'ask_price');

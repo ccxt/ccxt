@@ -346,7 +346,7 @@ export default class woo extends Exchange {
         //     "success": true
         // }
         //
-        const data = this.safeValue (response, 'rows', []);
+        const data = this.safeList (response, 'rows', []);
         return this.parseMarkets (data);
     }
 
@@ -483,7 +483,7 @@ export default class woo extends Exchange {
         //      ]
         // }
         //
-        const resultResponse = this.safeValue (response, 'rows', {});
+        const resultResponse = this.safeDict (response, 'rows', {});
         return this.parseTrades (resultResponse, market, since, limit);
     }
 
@@ -602,7 +602,7 @@ export default class woo extends Exchange {
         //         "timestamp": 1673323685109
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const maker = this.safeString (data, 'makerFeeRate');
         const taker = this.safeString (data, 'takerFeeRate');
         const result = {};
@@ -690,7 +690,7 @@ export default class woo extends Exchange {
         //     "success": true
         // }
         //
-        const tokenRows = this.safeValue (tokenResponse, 'rows', []);
+        const tokenRows = this.safeList (tokenResponse, 'rows', []);
         const networksByCurrencyId = this.groupBy (tokenRows, 'balance_token');
         const currencyIds = Object.keys (networksByCurrencyId);
         for (let i = 0; i < currencyIds.length; i++) {
@@ -1016,7 +1016,7 @@ export default class woo extends Exchange {
         // }
         const data = this.safeValue (response, 'data');
         if (data !== undefined) {
-            const rows = this.safeValue (data, 'rows', []);
+            const rows = this.safeList (data, 'rows', []);
             return this.parseOrder (rows[0], market);
         }
         const order = this.parseOrder (response, market);
@@ -1114,7 +1114,7 @@ export default class woo extends Exchange {
         //         "timestamp": 0
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -1436,7 +1436,7 @@ export default class woo extends Exchange {
         const childOrders = this.safeValue (order, 'childOrders');
         if (childOrders !== undefined) {
             const first = this.safeValue (childOrders, 0);
-            const innerChildOrders = this.safeValue (first, 'childOrders', []);
+            const innerChildOrders = this.safeList (first, 'childOrders', []);
             const innerChildOrdersLength = innerChildOrders.length;
             if (innerChildOrdersLength > 0) {
                 const takeProfitOrder = this.safeValue (innerChildOrders, 0);
@@ -1590,7 +1590,7 @@ export default class woo extends Exchange {
         //       ...
         //     ]
         // }
-        const data = this.safeValue (response, 'rows', []);
+        const data = this.safeList (response, 'rows', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -1645,7 +1645,7 @@ export default class woo extends Exchange {
         //       }
         //     ]
         // }
-        const trades = this.safeValue (response, 'rows', []);
+        const trades = this.safeList (response, 'rows', []);
         return this.parseTrades (trades, market, since, limit, params);
     }
 
@@ -1694,7 +1694,7 @@ export default class woo extends Exchange {
         //         ...
         //     ]
         // }
-        const trades = this.safeValue (response, 'rows', []);
+        const trades = this.safeList (response, 'rows', []);
         return this.parseTrades (trades, market, since, limit, params);
     }
 
@@ -1723,7 +1723,7 @@ export default class woo extends Exchange {
         //         "success": true
         //     }
         //
-        const rows = this.safeValue (response, 'rows', []);
+        const rows = this.safeList (response, 'rows', []);
         return this.parseAccounts (rows, params);
     }
 
@@ -1787,7 +1787,7 @@ export default class woo extends Exchange {
         const result = {
             'info': response,
         };
-        const balances = this.safeValue (response, 'holding', []);
+        const balances = this.safeList (response, 'holding', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const code = this.safeCurrencyCode (this.safeString (balance, 'token'));
@@ -1890,7 +1890,7 @@ export default class woo extends Exchange {
         //     "meta": { total: '1', records_per_page: "25", current_page: "1" },
         //     "success": true
         // }
-        return [ currency, this.safeValue (response, 'rows', {}) ];
+        return [ currency, this.safeDict (response, 'rows', {}) ];
     }
 
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2225,7 +2225,7 @@ export default class woo extends Exchange {
             request['extra'] = tag;
         }
         const networks = this.safeValue (this.options, 'networks', {});
-        const currencyNetworks = this.safeValue (currency, 'networks', {});
+        const currencyNetworks = this.safeDict (currency, 'networks', {});
         const network = this.safeStringUpper (params, 'network');
         const networkId = this.safeString (networks, network, network);
         const coinNetwork = this.safeValue (currencyNetworks, networkId, {});
@@ -2450,7 +2450,7 @@ export default class woo extends Exchange {
         //         "success":true
         //     }
         //
-        const result = this.safeValue (response, 'rows', []);
+        const result = this.safeList (response, 'rows', []);
         return this.parseIncomes (result, market, since, limit);
     }
 
@@ -2534,7 +2534,7 @@ export default class woo extends Exchange {
         //         "timestamp":1653633985646
         //     }
         //
-        const rows = this.safeValue (response, 'rows', {});
+        const rows = this.safeDict (response, 'rows', {});
         const result = this.parseFundingRates (rows);
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -2708,8 +2708,8 @@ export default class woo extends Exchange {
         //         "timestamp": 1673323880342
         //     }
         //
-        const result = this.safeValue (response, 'data', {});
-        const positions = this.safeValue (result, 'positions', []);
+        const result = this.safeDict (response, 'data', {});
+        const positions = this.safeList (result, 'positions', []);
         return this.parsePositions (positions, symbols);
     }
 

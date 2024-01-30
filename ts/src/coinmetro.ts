@@ -471,8 +471,8 @@ export default class coinmetro extends Exchange {
         const currencies = this.safeValue (this.options, 'currenciesByIdForParseMarket', {});
         const currency = this.safeValue (currencies, currencyId, {});
         const precision = this.safeInteger (currency, 'precision');
-        const limits = this.safeValue (currency, 'limits', {});
-        const amountLimits = this.safeValue (limits, 'amount', {});
+        const limits = this.safeDict (currency, 'limits', {});
+        const amountLimits = this.safeDict (limits, 'amount', {});
         const minLimit = this.safeNumber (amountLimits, 'min');
         const result = {
             'precision': precision,
@@ -546,7 +546,7 @@ export default class coinmetro extends Exchange {
         //         ]
         //     }
         //
-        const candleHistory = this.safeValue (response, 'candleHistory', []);
+        const candleHistory = this.safeList (response, 'candleHistory', []);
         return this.parseOHLCVs (candleHistory, market, timeframe, since, limit);
     }
 
@@ -613,7 +613,7 @@ export default class coinmetro extends Exchange {
         //         ]
         //     }
         //
-        const tickHistory = this.safeValue (response, 'tickHistory', []);
+        const tickHistory = this.safeList (response, 'tickHistory', []);
         return this.parseTrades (tickHistory, market, since, limit);
     }
 
@@ -772,9 +772,9 @@ export default class coinmetro extends Exchange {
         //         }
         //     }
         //
-        const book = this.safeValue (response, 'book', {});
-        const rawBids = this.safeValue (book, 'bid', {});
-        const rawAsks = this.safeValue (book, 'ask', {});
+        const book = this.safeDict (response, 'book', {});
+        const rawBids = this.safeDict (book, 'bid', {});
+        const rawAsks = this.safeDict (book, 'ask', {});
         const rawOrderbook = {
             'bids': rawBids,
             'asks': rawAsks,
@@ -856,8 +856,8 @@ export default class coinmetro extends Exchange {
         //         ]
         //     }
         //
-        const latestPrices = this.safeValue (response, 'latestPrices', []);
-        const twentyFourHInfos = this.safeValue (response, '24hInfo', []);
+        const latestPrices = this.safeList (response, 'latestPrices', []);
+        const twentyFourHInfos = this.safeList (response, '24hInfo', []);
         const tickersObject = {};
         // merging info from two lists into one
         for (let i = 0; i < latestPrices.length; i++) {
@@ -891,7 +891,7 @@ export default class coinmetro extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.publicGetExchangePrices (params);
-        const latestPrices = this.safeValue (response, 'latestPrices', []);
+        const latestPrices = this.safeList (response, 'latestPrices', []);
         return this.parseTickers (latestPrices, symbols);
     }
 
@@ -1117,12 +1117,12 @@ export default class coinmetro extends Exchange {
         //         ]
         //     }
         //
-        const ledgerByCurrencies = this.safeValue (response, 'list', []);
+        const ledgerByCurrencies = this.safeList (response, 'list', []);
         const ledger = [];
         for (let i = 0; i < ledgerByCurrencies.length; i++) {
             const currencyLedger = ledgerByCurrencies[i];
             const currencyId = this.safeString (currencyLedger, 'currency');
-            const balanceHistory = this.safeValue (currencyLedger, 'balanceHistory', []);
+            const balanceHistory = this.safeList (currencyLedger, 'balanceHistory', []);
             for (let j = 0; j < balanceHistory.length; j++) {
                 const rawLedgerEntry = balanceHistory[j];
                 rawLedgerEntry['currencyId'] = currencyId;
@@ -1139,7 +1139,7 @@ export default class coinmetro extends Exchange {
         currency = this.safeCurrency (currencyId, currency);
         const description = this.safeString (item, 'description', '');
         const [ type, referenceId ] = this.parseLedgerEntryDescription (description);
-        const JSONdata = this.safeValue (item, 'JSONdata', {});
+        const JSONdata = this.safeDict (item, 'JSONdata', {});
         const feeCost = this.safeString (JSONdata, 'fees');
         const fee = {
             'cost': feeCost,
@@ -1262,7 +1262,7 @@ export default class coinmetro extends Exchange {
             params = this.omit (params, [ 'triggerPrice' ]);
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
         }
-        const userData = this.safeValue (params, 'userData', {});
+        const userData = this.safeDict (params, 'userData', {});
         const comment = this.safeString2 (params, 'clientOrderId', 'comment');
         if (comment !== undefined) {
             params = this.omit (params, [ 'clientOrderId' ]);
@@ -1788,8 +1788,8 @@ export default class coinmetro extends Exchange {
                 'rate': undefined,
             };
         }
-        const trades = this.safeValue (order, 'fills', []);
-        const userData = this.safeValue (order, 'userData', {});
+        const trades = this.safeList (order, 'fills', []);
+        const userData = this.safeDict (order, 'userData', {});
         const triggerPrice = this.safeString (order, 'stopPrice');
         const clientOrderId = this.safeString (userData, 'comment');
         const takeProfitPrice = this.safeString (userData, 'takeProfit');
@@ -1852,7 +1852,7 @@ export default class coinmetro extends Exchange {
         //
         //     { "message": "OK" }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         const transaction = this.parseMarginLoan (result, currency);
         return this.extend (transaction, {
             'amount': amount,

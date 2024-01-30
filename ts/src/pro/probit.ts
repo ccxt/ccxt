@@ -106,7 +106,7 @@ export default class probit extends probitRest {
         //     }
         //
         const reset = this.safeBool (message, 'reset', false);
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const currencyIds = Object.keys (data);
         if (reset) {
             this.balance = {};
@@ -160,7 +160,7 @@ export default class probit extends probitRest {
         //
         const marketId = this.safeString (message, 'market_id');
         const symbol = this.safeSymbol (marketId);
-        const ticker = this.safeValue (message, 'ticker', {});
+        const ticker = this.safeDict (message, 'ticker', {});
         const market = this.safeMarket (marketId);
         const parsedTicker = this.parseTicker (ticker, market);
         const messageHash = 'ticker:' + symbol;
@@ -214,7 +214,7 @@ export default class probit extends probitRest {
         const marketId = this.safeString (message, 'market_id');
         const symbol = this.safeSymbol (marketId);
         const market = this.safeMarket (marketId);
-        const trades = this.safeValue (message, 'recent_trades', []);
+        const trades = this.safeList (message, 'recent_trades', []);
         const reset = this.safeBool (message, 'reset', false);
         const messageHash = 'trades:' + symbol;
         let stored = this.safeValue (this.trades, symbol);
@@ -285,7 +285,7 @@ export default class probit extends probitRest {
         //         }]
         //     }
         //
-        const rawTrades = this.safeValue (message, 'data', []);
+        const rawTrades = this.safeList (message, 'data', []);
         const length = rawTrades.length;
         if (length === 0) {
             return;
@@ -374,7 +374,7 @@ export default class probit extends probitRest {
         //         ]
         //     }
         //
-        const rawOrders = this.safeValue (message, 'data', []);
+        const rawOrders = this.safeList (message, 'data', []);
         const length = rawOrders.length;
         if (length === 0) {
             return;
@@ -496,8 +496,8 @@ export default class probit extends probitRest {
     handleDelta (orderbook, delta) {
         const storedBids = orderbook['bids'];
         const storedAsks = orderbook['asks'];
-        const asks = this.safeValue (delta, 'sell', []);
-        const bids = this.safeValue (delta, 'buy', []);
+        const asks = this.safeList (delta, 'sell', []);
+        const bids = this.safeList (delta, 'buy', []);
         this.handleBidAsks (storedBids, bids);
         this.handleBidAsks (storedAsks, asks);
     }
@@ -538,7 +538,7 @@ export default class probit extends probitRest {
         if (ticker !== undefined) {
             this.handleTicker (client, message);
         }
-        const trades = this.safeValue (message, 'recent_trades', []);
+        const trades = this.safeList (message, 'recent_trades', []);
         if (trades.length) {
             this.handleTrades (client, message);
         }

@@ -1453,7 +1453,7 @@ export default class latoken extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const content = this.safeValue (response, 'content', []);
+        const content = this.safeList (response, 'content', []);
         return this.parseTransactions (content, currency, since, limit);
     }
 
@@ -1583,7 +1583,7 @@ export default class latoken extends Exchange {
         //         "hasContent": true
         //     }
         //
-        const transfers = this.safeValue (response, 'content', []);
+        const transfers = this.safeList (response, 'content', []);
         return this.parseTransfers (transfers, currency, since, limit);
     }
 

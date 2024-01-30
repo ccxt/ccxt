@@ -547,9 +547,9 @@ export default class coinsph extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const limits = this.indexBy (this.safeValue (market, 'filters'), 'filterType');
-            const amountLimits = this.safeValue (limits, 'LOT_SIZE', {});
-            const priceLimits = this.safeValue (limits, 'PRICE_FILTER', {});
-            const costLimits = this.safeValue (limits, 'NOTIONAL', {});
+            const amountLimits = this.safeDict (limits, 'LOT_SIZE', {});
+            const priceLimits = this.safeDict (limits, 'PRICE_FILTER', {});
+            const costLimits = this.safeDict (limits, 'NOTIONAL', {});
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -1064,7 +1064,7 @@ export default class coinsph extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const balances = this.safeValue (response, 'balances', []);
+        const balances = this.safeList (response, 'balances', []);
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -1110,7 +1110,7 @@ export default class coinsph extends Exchange {
             'side': orderSide,
         };
         const options = this.safeValue (this.options, 'createOrder', {});
-        let newOrderRespType = this.safeValue (options, 'newOrderRespType', {});
+        let newOrderRespType = this.safeDict (options, 'newOrderRespType', {});
         // if limit order
         if (orderType === 'LIMIT' || orderType === 'STOP_LOSS_LIMIT' || orderType === 'TAKE_PROFIT_LIMIT' || orderType === 'LIMIT_MAKER') {
             if (price === undefined) {

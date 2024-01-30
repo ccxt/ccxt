@@ -592,7 +592,7 @@ export default class idex extends idexRest {
         const marketId = this.safeString (order, 'm');
         const symbol = this.safeSymbol (marketId);
         const timestamp = this.safeInteger (order, 't');
-        const fills = this.safeValue (order, 'F', []);
+        const fills = this.safeList (order, 'F', []);
         const trades = [];
         for (let i = 0; i < fills.length; i++) {
             trades.push (this.parseWsTrade (fills[i]));

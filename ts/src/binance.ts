@@ -2000,7 +2000,7 @@ export default class binance extends Exchange {
             let minPrecision = undefined;
             let isWithdrawEnabled = true;
             let isDepositEnabled = true;
-            const networkList = this.safeValue (entry, 'networkList', []);
+            const networkList = this.safeList (entry, 'networkList', []);
             const fees = {};
             let fee = undefined;
             for (let j = 0; j < networkList.length; j++) {
@@ -2335,7 +2335,7 @@ export default class binance extends Exchange {
         }
         const settle = this.safeCurrencyCode (settleId);
         const spot = !contract;
-        const filters = this.safeValue (market, 'filters', []);
+        const filters = this.safeList (market, 'filters', []);
         const filtersByType = this.indexBy (filters, 'filterType');
         const status = this.safeString2 (market, 'status', 'contractStatus');
         let contractSize = undefined;
@@ -2360,7 +2360,7 @@ export default class binance extends Exchange {
         }
         let active = (status === 'TRADING');
         if (spot) {
-            const permissions = this.safeValue (market, 'permissions', []);
+            const permissions = this.safeList (market, 'permissions', []);
             for (let j = 0; j < permissions.length; j++) {
                 if (permissions[j] === 'TRD_GRP_003') {
                     active = false;
@@ -2435,7 +2435,7 @@ export default class binance extends Exchange {
             'created': this.safeInteger (market, 'onboardDate'), // present in inverse & linear apis
         };
         if ('PRICE_FILTER' in filtersByType) {
-            const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
+            const filter = this.safeDict (filtersByType, 'PRICE_FILTER', {});
             // PRICE_FILTER reports zero values for maxPrice
             // since they updated filter types in November 2018
             // https://github.com/ccxt/ccxt/issues/4286
@@ -2447,7 +2447,7 @@ export default class binance extends Exchange {
             entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
         }
         if ('LOT_SIZE' in filtersByType) {
-            const filter = this.safeValue (filtersByType, 'LOT_SIZE', {});
+            const filter = this.safeDict (filtersByType, 'LOT_SIZE', {});
             const stepSize = this.safeString (filter, 'stepSize');
             entry['precision']['amount'] = this.precisionFromString (stepSize);
             entry['limits']['amount'] = {
@@ -2456,7 +2456,7 @@ export default class binance extends Exchange {
             };
         }
         if ('MARKET_LOT_SIZE' in filtersByType) {
-            const filter = this.safeValue (filtersByType, 'MARKET_LOT_SIZE', {});
+            const filter = this.safeDict (filtersByType, 'MARKET_LOT_SIZE', {});
             entry['limits']['market'] = {
                 'min': this.safeNumber (filter, 'minQty'),
                 'max': this.safeNumber (filter, 'maxQty'),
@@ -2510,8 +2510,8 @@ export default class binance extends Exchange {
                 const asset = assets[i];
                 const marketId = this.safeValue (asset, 'symbol');
                 const symbol = this.safeSymbol (marketId, undefined, undefined, 'spot');
-                const base = this.safeValue (asset, 'baseAsset', {});
-                const quote = this.safeValue (asset, 'quoteAsset', {});
+                const base = this.safeDict (asset, 'baseAsset', {});
+                const quote = this.safeDict (asset, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'asset'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'asset'));
                 const subResult = {};
@@ -2520,7 +2520,7 @@ export default class binance extends Exchange {
                 result[symbol] = this.safeBalance (subResult);
             }
         } else if (type === 'savings') {
-            const positionAmountVos = this.safeValue (response, 'positionAmountVos', []);
+            const positionAmountVos = this.safeList (response, 'positionAmountVos', []);
             for (let i = 0; i < positionAmountVos.length; i++) {
                 const entry = positionAmountVos[i];
                 const currencyId = this.safeString (entry, 'asset');
@@ -2547,7 +2547,7 @@ export default class binance extends Exchange {
         } else {
             let balances = response;
             if (!Array.isArray (response)) {
-                balances = this.safeValue (response, 'assets', []);
+                balances = this.safeList (response, 'assets', []);
             }
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
@@ -4347,7 +4347,7 @@ export default class binance extends Exchange {
         const id = this.safeString (order, 'orderId');
         let type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');
-        const fills = this.safeValue (order, 'fills', []);
+        const fills = this.safeList (order, 'fills', []);
         const clientOrderId = this.safeString (order, 'clientOrderId');
         let timeInForce = this.safeString (order, 'timeInForce');
         if (timeInForce === 'GTX') {
@@ -4416,7 +4416,7 @@ export default class binance extends Exchange {
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
-            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const orderParams = this.safeDict (rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
@@ -5554,7 +5554,7 @@ export default class binance extends Exchange {
         //         },
         //       ]
         //     }
-        const results = this.safeValue (response, 'userAssetDribblets', []);
+        const results = this.safeList (response, 'userAssetDribblets', []);
         const rows = this.safeInteger (response, 'total', 0);
         const data = [];
         for (let i = 0; i < rows; i++) {
@@ -6320,7 +6320,7 @@ export default class binance extends Exchange {
         //         ]
         //     }
         //
-        const rows = this.safeValue (response, 'rows', []);
+        const rows = this.safeList (response, 'rows', []);
         return this.parseTransfers (rows, currency, since, limit);
     }
 
@@ -6499,7 +6499,7 @@ export default class binance extends Exchange {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (currencyId);
-            const networkList = this.safeValue (entry, 'networkList', []);
+            const networkList = this.safeList (entry, 'networkList', []);
             withdrawFees[code] = {};
             for (let j = 0; j < networkList.length; j++) {
                 const networkEntry = networkList[j];
@@ -6614,7 +6614,7 @@ export default class binance extends Exchange {
         //        ]
         //    }
         //
-        const networkList = this.safeValue (fee, 'networkList', []);
+        const networkList = this.safeList (fee, 'networkList', []);
         const result = this.depositWithdrawFee (fee);
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
@@ -7174,7 +7174,7 @@ export default class binance extends Exchange {
 
     parseAccountPositions (account) {
         const positions = this.safeValue (account, 'positions');
-        const assets = this.safeValue (account, 'assets', []);
+        const assets = this.safeList (account, 'assets', []);
         const balances = {};
         for (let i = 0; i < assets.length; i++) {
             const entry = assets[i];
@@ -7482,7 +7482,7 @@ export default class binance extends Exchange {
         const linear = ('notional' in position);
         if (marginMode === 'cross') {
             // calculate collateral
-            const precision = this.safeValue (market, 'precision', {});
+            const precision = this.safeDict (market, 'precision', {});
             if (linear) {
                 // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
                 let onePlusMaintenanceMarginPercentageString = undefined;
@@ -7599,7 +7599,7 @@ export default class binance extends Exchange {
                 const entry = response[i];
                 const marketId = this.safeString (entry, 'symbol');
                 const symbol = this.safeSymbol (marketId, undefined, undefined, 'contract');
-                const brackets = this.safeValue (entry, 'brackets', []);
+                const brackets = this.safeList (entry, 'brackets', []);
                 const result = [];
                 for (let j = 0; j < brackets.length; j++) {
                     const bracket = brackets[j];
@@ -7703,7 +7703,7 @@ export default class binance extends Exchange {
         //
         const marketId = this.safeString (info, 'symbol');
         market = this.safeMarket (marketId, market, undefined, 'contract');
-        const brackets = this.safeValue (info, 'brackets', []);
+        const brackets = this.safeList (info, 'brackets', []);
         const tiers = [];
         for (let j = 0; j < brackets.length; j++) {
             const bracket = brackets[j];
@@ -8652,8 +8652,8 @@ export default class binance extends Exchange {
                 query = this.urlencodeWithArrayRepeat (extendedParams);
             } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0) || (path === 'capital/withdraw/apply') || (path.indexOf ('staking') >= 0)) {
                 if ((method === 'DELETE') && (path === 'batchOrders')) {
-                    const orderidlist = this.safeValue (extendedParams, 'orderidlist', []);
-                    const origclientorderidlist = this.safeValue (extendedParams, 'origclientorderidlist', []);
+                    const orderidlist = this.safeList (extendedParams, 'orderidlist', []);
+                    const origclientorderidlist = this.safeList (extendedParams, 'origclientorderidlist', []);
                     extendedParams = this.omit (extendedParams, [ 'orderidlist', 'origclientorderidlist' ]);
                     query = this.rawencode (extendedParams);
                     const orderidlistLength = orderidlist.length;

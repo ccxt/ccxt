@@ -125,7 +125,7 @@ export default class ascendex extends ascendexRest {
         const marketId = this.safeString (message, 's');
         const symbol = this.safeSymbol (marketId);
         const channel = this.safeString (message, 'm');
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const interval = this.safeString (data, 'i');
         const messageHash = channel + ':' + interval + ':' + marketId;
         const timeframe = this.findTimeframe (interval);
@@ -344,11 +344,11 @@ export default class ascendex extends ascendexRest {
         //     }
         //  }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const seqNum = this.safeInteger (data, 'seqnum');
         if (seqNum > orderbook['nonce']) {
-            const asks = this.safeValue (data, 'asks', []);
-            const bids = this.safeValue (data, 'bids', []);
+            const asks = this.safeList (data, 'asks', []);
+            const bids = this.safeList (data, 'bids', []);
             this.handleDeltas (orderbook['asks'], asks);
             this.handleDeltas (orderbook['bids'], bids);
             orderbook['nonce'] = seqNum;

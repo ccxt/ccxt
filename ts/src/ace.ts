@@ -468,7 +468,7 @@ export default class ace extends Exchange {
             request['startTime'] = since;
         }
         const response = await this.privatePostV2KlineGetKline (this.extend (request, params));
-        const data = this.safeValue (response, 'attachment', []);
+        const data = this.safeList (response, 'attachment', []);
         //
         //     {
         //         "attachment":[
@@ -897,7 +897,7 @@ export default class ace extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'attachment');
-        const trades = this.safeValue (data, 'trades', []);
+        const trades = this.safeList (data, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -957,7 +957,7 @@ export default class ace extends Exchange {
         //         "status": 200
         //     }
         //
-        const trades = this.safeValue (response, 'attachment', []);
+        const trades = this.safeList (response, 'attachment', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1002,7 +1002,7 @@ export default class ace extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privatePostV2CoinCustomerAccount (params);
-        const balances = this.safeValue (response, 'attachment', []);
+        const balances = this.safeList (response, 'attachment', []);
         //
         //     {
         //         "attachment":[

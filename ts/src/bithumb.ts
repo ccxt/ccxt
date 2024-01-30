@@ -348,7 +348,7 @@ export default class bithumb extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (data, 'timestamp');
         return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
@@ -443,7 +443,7 @@ export default class bithumb extends Exchange {
             //         }
             //     }
             //
-            const data = this.safeValue (response, 'data', {});
+            const data = this.safeDict (response, 'data', {});
             const timestamp = this.safeInteger (data, 'date');
             const tickers = this.omit (data, 'date');
             const currencyIds = Object.keys (tickers);
@@ -495,7 +495,7 @@ export default class bithumb extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTicker (data, market);
     }
 
@@ -563,7 +563,7 @@ export default class bithumb extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -680,7 +680,7 @@ export default class bithumb extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -858,7 +858,7 @@ export default class bithumb extends Exchange {
             symbol = market['symbol'];
         }
         const id = this.safeString (order, 'order_id');
-        const rawTrades = this.safeValue (order, 'contract', []);
+        const rawTrades = this.safeList (order, 'contract', []);
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -930,7 +930,7 @@ export default class bithumb extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 

@@ -117,7 +117,7 @@ export default class bitvavo extends bitvavoRest {
         //     }
         //
         const event = this.safeString (message, 'event');
-        const tickers = this.safeValue (message, 'data', []);
+        const tickers = this.safeList (message, 'data', []);
         for (let i = 0; i < tickers.length; i++) {
             const data = tickers[i];
             const marketId = this.safeString (data, 'market');
@@ -345,8 +345,8 @@ export default class bitvavo extends bitvavoRest {
         //
         const nonce = this.safeInteger (message, 'nonce');
         if (nonce > orderbook['nonce']) {
-            this.handleDeltas (orderbook['asks'], this.safeValue (message, 'asks', []));
-            this.handleDeltas (orderbook['bids'], this.safeValue (message, 'bids', []));
+            this.handleDeltas (orderbook['asks'], this.safeList (message, 'asks', []));
+            this.handleDeltas (orderbook['bids'], this.safeList (message, 'bids', []));
             orderbook['nonce'] = nonce;
         }
         return orderbook;
@@ -1049,7 +1049,7 @@ export default class bitvavo extends bitvavoRest {
         //
         const action = this.safeString (message, 'action', 'privateGetBalance');
         const messageHash = this.buildMessageHash (action, message);
-        const response = this.safeValue (message, 'response', []);
+        const response = this.safeList (message, 'response', []);
         const balance = this.parseBalance (response);
         client.resolve (balance, messageHash);
     }
@@ -1084,7 +1084,7 @@ export default class bitvavo extends bitvavoRest {
         //    }
         //
         const action = this.safeString (message, 'action');
-        const response = this.safeValue (message, 'response', {});
+        const response = this.safeDict (message, 'response', {});
         const order = this.parseOrder (response);
         const messageHash = this.buildMessageHash (action, response);
         client.resolve (order, messageHash);
@@ -1111,7 +1111,7 @@ export default class bitvavo extends bitvavoRest {
         //    }
         //
         const action = this.safeString (message, 'action');
-        const response = this.safeValue (message, 'response', {});
+        const response = this.safeDict (message, 'response', {});
         const markets = this.parseMarkets (response);
         const messageHash = this.buildMessageHash (action, response);
         client.resolve (markets, messageHash);
@@ -1234,7 +1234,7 @@ export default class bitvavo extends bitvavoRest {
         //         }
         //     }
         //
-        const subscriptions = this.safeValue (message, 'subscriptions', {});
+        const subscriptions = this.safeDict (message, 'subscriptions', {});
         const methods = {
             'book': this.handleOrderBookSubscriptions,
         };

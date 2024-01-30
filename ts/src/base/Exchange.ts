@@ -2331,7 +2331,7 @@ export default class Exchange {
             fee['cost'] = this.safeNumber (fee, 'cost');
         }
         const timestamp = this.safeInteger (entry, 'timestamp');
-        const info = this.safeValue (entry, 'info', {});
+        const info = this.safeDict (entry, 'info', {});
         return {
             'id': this.safeString (entry, 'id'),
             'timestamp': timestamp,
@@ -2502,7 +2502,7 @@ export default class Exchange {
             for (let i = 0; i < values.length; i++) {
                 const market = values[i];
                 const defaultCurrencyPrecision = (this.precisionMode === DECIMAL_PLACES) ? 8 : this.parseNumber ('1e-8');
-                const marketPrecision = this.safeValue (market, 'precision', {});
+                const marketPrecision = this.safeDict (market, 'precision', {});
                 if ('base' in market) {
                     const currency = this.safeCurrencyStructure ({
                         'id': this.safeString2 (market, 'baseId', 'base'),
@@ -2616,7 +2616,7 @@ export default class Exchange {
         const parseSymbol = symbol === undefined;
         const parseSide = side === undefined;
         const shouldParseFees = parseFee || parseFees;
-        const fees = this.safeValue (order, 'fees', []);
+        const fees = this.safeList (order, 'fees', []);
         let trades = [];
         if (parseFilled || parseCost || shouldParseFees) {
             const rawTrades = this.safeValue (order, 'trades', trades);
@@ -2795,12 +2795,12 @@ export default class Exchange {
             entry['amount'] = this.safeNumber (entry, 'amount');
             entry['price'] = this.safeNumber (entry, 'price');
             entry['cost'] = this.safeNumber (entry, 'cost');
-            const tradeFee = this.safeValue (entry, 'fee', {});
+            const tradeFee = this.safeDict (entry, 'fee', {});
             tradeFee['cost'] = this.safeNumber (tradeFee, 'cost');
             if ('rate' in tradeFee) {
                 tradeFee['rate'] = this.safeNumber (tradeFee, 'rate');
             }
-            const entryFees = this.safeValue (entry, 'fees', []);
+            const entryFees = this.safeList (entry, 'fees', []);
             for (let j = 0; j < entryFees.length; j++) {
                 entryFees[j]['cost'] = this.safeNumber (entryFees[j], 'cost');
             }
@@ -4881,7 +4881,7 @@ export default class Exchange {
         const currency = this.currencies[code];
         let precision = this.safeValue (currency, 'precision');
         if (networkCode !== undefined) {
-            const networks = this.safeValue (currency, 'networks', {});
+            const networks = this.safeDict (currency, 'networks', {});
             const networkItem = this.safeValue (networks, networkCode, {});
             precision = this.safeValue (networkItem, 'precision', precision);
         }

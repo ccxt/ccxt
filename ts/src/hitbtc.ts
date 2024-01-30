@@ -830,7 +830,7 @@ export default class hitbtc extends Exchange {
             const payoutEnabled = this.safeBool (entry, 'payout_enabled', false);
             const transferEnabled = this.safeBool (entry, 'transfer_enabled', false);
             const active = payinEnabled && payoutEnabled && transferEnabled;
-            const rawNetworks = this.safeValue (entry, 'networks', []);
+            const rawNetworks = this.safeList (entry, 'networks', []);
             const networks = {};
             let fee = undefined;
             let depositEnabled = undefined;
@@ -1326,7 +1326,7 @@ export default class hitbtc extends Exchange {
             takerOrMaker = 'taker'; // the only case when `taker` field is missing, is public fetchTrades and it must be taker
         }
         if (feeCostString !== undefined) {
-            const info = this.safeValue (market, 'info', {});
+            const info = this.safeDict (market, 'info', {});
             const feeCurrency = this.safeString (info, 'fee_currency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrency);
             fee = {
@@ -1457,7 +1457,7 @@ export default class hitbtc extends Exchange {
         const updated = this.parse8601 (this.safeString (transaction, 'updated_at'));
         const type = this.parseTransactionType (this.safeString (transaction, 'type'));
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const native = this.safeValue (transaction, 'native', {});
+        const native = this.safeDict (transaction, 'native', {});
         const currencyId = this.safeString (native, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const txhash = this.safeString (native, 'hash');
@@ -2550,7 +2550,7 @@ export default class hitbtc extends Exchange {
         //         }]
         //     }
         //
-        const config = this.safeValue (response, 'config', []);
+        const config = this.safeList (response, 'config', []);
         const marginModes = [];
         for (let i = 0; i < config.length; i++) {
             const data = this.safeValue (config, i);
@@ -3021,7 +3021,7 @@ export default class hitbtc extends Exchange {
         const marginMode = this.safeString (position, 'type');
         const leverage = this.safeNumber (position, 'leverage');
         const datetime = this.safeString (position, 'updated_at');
-        const positions = this.safeValue (position, 'positions', []);
+        const positions = this.safeList (position, 'positions', []);
         let liquidationPrice = undefined;
         let entryPrice = undefined;
         let contracts = undefined;
@@ -3031,7 +3031,7 @@ export default class hitbtc extends Exchange {
             entryPrice = this.safeNumber (entry, 'price_entry');
             contracts = this.safeNumber (entry, 'quantity');
         }
-        const currencies = this.safeValue (position, 'currencies', []);
+        const currencies = this.safeList (position, 'currencies', []);
         let collateral = undefined;
         for (let i = 0; i < currencies.length; i++) {
             const entry = currencies[i];
@@ -3278,7 +3278,7 @@ export default class hitbtc extends Exchange {
     }
 
     parseMarginModification (data, market: Market = undefined) {
-        const currencies = this.safeValue (data, 'currencies', []);
+        const currencies = this.safeList (data, 'currencies', []);
         const currencyInfo = this.safeValue (currencies, 0);
         return {
             'info': data,
@@ -3495,7 +3495,7 @@ export default class hitbtc extends Exchange {
         //         ]
         //    }
         //
-        const networks = this.safeValue (fee, 'networks', []);
+        const networks = this.safeList (fee, 'networks', []);
         const result = this.depositWithdrawFee (fee);
         for (let j = 0; j < networks.length; j++) {
             const networkEntry = networks[j];

@@ -2010,7 +2010,7 @@ export default class bitfinex2 extends Exchange {
         const currency = this.currency (code);
         // if not provided explicitly we will try to match using the currency name
         const network = this.safeString (params, 'network', code);
-        const currencyNetworks = this.safeValue (currency, 'networks', {});
+        const currencyNetworks = this.safeDict (currency, 'networks', {});
         const currencyNetwork = this.safeValue (currencyNetworks, network);
         const networkId = this.safeString (currencyNetwork, 'id');
         if (networkId === undefined) {
@@ -2406,7 +2406,7 @@ export default class bitfinex2 extends Exchange {
         // if not provided explicitly we will try to match using the currency name
         const network = this.safeString (params, 'network', code);
         params = this.omit (params, 'network');
-        const currencyNetworks = this.safeValue (currency, 'networks', {});
+        const currencyNetworks = this.safeDict (currency, 'networks', {});
         const currencyNetwork = this.safeValue (currencyNetworks, network);
         const networkId = this.safeString (currencyNetwork, 'id');
         if (networkId === undefined) {
