@@ -2761,7 +2761,7 @@ export default class bingx extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeDict (response, 'data', {});
         const orders = this.safeList (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
@@ -2856,7 +2856,7 @@ export default class bingx extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeDict (response, 'data', {});
         const orders = this.safeList (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
@@ -3442,7 +3442,7 @@ export default class bingx extends Exchange {
         let fills = undefined;
         if (market['spot']) {
             response = await this.spotV1PrivateGetTradeMyTrades (this.extend (request, params));
-            const data = this.safeList (response, 'data', []);
+            const data = this.safeDict (response, 'data', {});
             fills = this.safeList (data, 'fills', []);
             //
             //     {
@@ -3473,7 +3473,7 @@ export default class bingx extends Exchange {
             params = this.omit (params, 'tradingUnit');
             request['tradingUnit'] = tradingUnit;
             response = await this.swapV2PrivateGetTradeAllFillOrders (this.extend (request, params));
-            const data = this.safeList (response, 'data', []);
+            const data = this.safeDict (response, 'data', {});
             fills = this.safeList (data, 'fill_orders', []);
             //
             //    {
