@@ -66,7 +66,7 @@ async function testWatchTickers (exchange, symbol) {
         {
             'name': 'delivery - all tickers',
             'symbols': undefined,
-            'params': undefined,
+            'params': {},
         },
     ];
 
