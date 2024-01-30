@@ -17,6 +17,7 @@ async function storeInDb (message: Message) {
 function priceAlert (message: Message) {
     if (message.payload['last'] > 10000) {
         console.log ('Price is over 10000!!!!!!!!!!');
+        exchange.stream.unsubscribe ('tickers', priceAlert);
     }
 }
 

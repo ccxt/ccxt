@@ -55,7 +55,14 @@ export class Stream {
             this.consumers.set (topic, []);
         }
 
-        this.consumers.get (topic)!.push (consumer);
+        this.consumers.get (topic).push (consumer);
+    }
+
+    unsubscribe (topic: Topic, consumerFn: ConsumerFunction): void {
+        if (this.consumers.has (topic)) {
+            const consumersForTopic = this.consumers.get (topic)!;
+            this.consumers.set (topic, consumersForTopic.filter ((consumer) => consumer.fn !== consumerFn));
+        }
     }
 
     getMessageHistory (topic: Topic): Message[] {
@@ -70,10 +77,13 @@ export class Stream {
             for (const consumer of topicConsumers) {
                 while (consumer.currentIndex < messages.length - 1) {
                     const message = messages[++consumer.currentIndex];
-                    if (consumer.synchronous) {
-                        await consumer.fn (message);
-                    } else {
-                        consumer.fn (message);
+                    try {
+                        if (consumer.synchronous) {
+                            await consumer.fn (message);
+                        } else {
+                            consumer.fn (message);
+                        }
+                    } catch (e) {
                     }
                 }
             }
