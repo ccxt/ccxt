@@ -962,7 +962,7 @@ export default class binance extends binanceRest {
             const first = this.safeValue (tickers, 0);
             const tickerSymbol = this.safeString (first, 'symbol');
             const limit = tickers.getLimit (tickerSymbol, undefined);
-            return this.filterByArray (this.filterByLimit (tickers, limit), 'symbol', symbols);
+            return this.filterByArrayTickers (this.filterByLimit (tickers, limit), 'symbol', symbols);
         }
         return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }

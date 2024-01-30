@@ -1880,21 +1880,22 @@ export default class Exchange {
     }
 
     filterByLimit (array: object[], limit: Int = undefined, key: IndexType = 'timestamp'): any {
+        let parsedArray = this.toArray (array) as any;
         if (this.valueIsDefined (limit)) {
-            const arrayLength = array.length;
+            const arrayLength = parsedArray.length;
             if (arrayLength > 0) {
                 let ascending = true;
-                if ((key in array[0])) {
-                    const first = array[0][key];
-                    const last = array[arrayLength - 1][key];
+                if ((key in parsedArray[0])) {
+                    const first = parsedArray[0][key];
+                    const last = parsedArray[arrayLength - 1][key];
                     if (first !== undefined && last !== undefined) {
                         ascending = first <= last;  // true if array is sorted in ascending order based on 'timestamp'
                     }
                 }
-                array = ascending ? this.arraySlice (array, -limit) : this.arraySlice (array, 0, limit);
+                parsedArray = ascending ? this.arraySlice (parsedArray, -limit) : this.arraySlice (parsedArray, 0, limit);
             }
         }
-        return array;
+        return parsedArray;
     }
 
     filterBySinceLimit (array: object[], since: Int = undefined, limit: Int = undefined, key: IndexType = 'timestamp', tail = false): any {
