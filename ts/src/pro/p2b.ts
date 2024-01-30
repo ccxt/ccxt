@@ -54,7 +54,6 @@ export default class p2b extends p2bRest {
                 },
             },
             'streaming': {
-                'keepAlive': 15000,
                 'ping': this.ping,
             },
         });
@@ -392,6 +391,11 @@ export default class p2b extends p2bRest {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
+        const result = this.safeString (message, 'result');
+        if (result === 'pong') {
+            this.handlePong (client, message);
+            return;
+        }
         const method = this.safeString (message, 'method');
         const methods = {
             'depth.update': this.handleOrderBook,
@@ -424,6 +428,18 @@ export default class p2b extends p2bRest {
             'params': [],
             'id': this.milliseconds (),
         };
+    }
+
+    handlePong (client: Client, message) {
+        //
+        //    {
+        //        error: null,
+        //        result: 'pong',
+        //        id: 1706539608030
+        //    }
+        //
+        client.lastPong = this.safeInteger (message, 'id');
+        return message;
     }
 }
 
