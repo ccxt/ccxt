@@ -157,6 +157,18 @@
                   "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "setMargin": [
+            {
+                "description": "Set the margin collateral for a swap position",
+                "method": "setMargin",
+                "url": "https://api.bitfinex.com/v2/auth/w/deriv/collateral/set",
+                "input": [
+                  "BTC/USDT:USDT",
+                  0.5
+                ],
+                "output": "{\"symbol\":\"tBTCF0:USTF0\",\"collateral\":0.5}"
+            }
         ]
     }
 }

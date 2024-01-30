@@ -11,6 +11,10 @@ import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
+/**
+ * @class bingx
+ * @augments Exchange
+ */
 export default class bingx extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {

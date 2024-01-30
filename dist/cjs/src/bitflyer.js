@@ -28,6 +28,7 @@ class bitflyer extends bitflyer$1 {
                 'swap': undefined,
                 'future': undefined,
                 'option': false,
+                'cancelAllOrders': undefined,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,

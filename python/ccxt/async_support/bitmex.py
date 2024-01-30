@@ -113,7 +113,7 @@ class bitmex(Exchange, ImplicitAPI):
                     'public': 'https://testnet.bitmex.com',
                     'private': 'https://testnet.bitmex.com',
                 },
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
+                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/cea9cfe5-c57e-4b84-b2ac-77b960b04445',
                 'api': {
                     'public': 'https://www.bitmex.com',
                     'private': 'https://www.bitmex.com',
@@ -124,7 +124,10 @@ class bitmex(Exchange, ImplicitAPI):
                     'https://github.com/BitMEX/api-connectors/tree/master/official-http',
                 ],
                 'fees': 'https://www.bitmex.com/app/fees',
-                'referral': 'https://www.bitmex.com/register/upZpOX',
+                'referral': {
+                    'url': 'https://www.bitmex.com/app/register/NZTR1q',
+                    'discount': 0.1,
+                },
             },
             'api': {
                 'public': {

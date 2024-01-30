@@ -88,6 +88,7 @@ class bitfinex2(Exchange, ImplicitAPI):
                 'fetchTradingFees': True,
                 'fetchTransactionFees': None,
                 'fetchTransactions': 'emulated',
+                'setMargin': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -817,6 +818,10 @@ class bitfinex2(Exchange, ImplicitAPI):
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
+            account = self.account()
+            interest = self.safe_string(balance, 3)
+            if interest != '0':
+                account['debt'] = interest
             type = self.safe_string(balance, 0)
             currencyId = self.safe_string_lower(balance, 1, '')
             start = len(currencyId) - 2
@@ -825,7 +830,6 @@ class bitfinex2(Exchange, ImplicitAPI):
             derivativeCondition = (not isDerivative or isDerivativeCode)
             if (accountType == type) and derivativeCondition:
                 code = self.safe_currency_code(currencyId)
-                account = self.account()
                 account['total'] = self.safe_string(balance, 2)
                 account['free'] = self.safe_string(balance, 4)
                 result[code] = account
@@ -3085,3 +3089,43 @@ class bitfinex2(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         })
+
+    def set_margin(self, symbol: str, amount, params={}):
+        """
+        either adds or reduces margin in a swap position in order to set the margin to a specific value
+        :see: https://docs.bitfinex.com/reference/rest-auth-deriv-pos-collateral-set
+        :param str symbol: unified market symbol of the market to set margin in
+        :param float amount: the amount to set the margin to
+        :param dict [params]: parameters specific to the exchange API endpoint
+        :returns dict: A `margin structure <https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise NotSupported(self.id + ' setMargin() only support swap markets')
+        request = {
+            'symbol': market['id'],
+            'collateral': self.parse_to_numeric(amount),
+        }
+        response = self.privatePostAuthWDerivCollateralSet(self.extend(request, params))
+        #
+        #     [
+        #         [
+        #             1
+        #         ]
+        #     ]
+        #
+        data = self.safe_value(response, 0)
+        return self.parse_margin_modification(data, market)
+
+    def parse_margin_modification(self, data, market=None):
+        marginStatusRaw = data[0]
+        marginStatus = 'ok' if (marginStatusRaw == 1) else 'failed'
+        return {
+            'info': data,
+            'type': None,
+            'amount': None,
+            'code': None,
+            'symbol': market['symbol'],
+            'status': marginStatus,
+        }

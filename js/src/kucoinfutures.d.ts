@@ -1,5 +1,9 @@
 import kucoin from './abstract/kucoinfutures.js';
 import type { Int, OrderSide, OrderType, OHLCV, Order, Trade, FundingHistory, Balances, Str, Ticker, OrderBook, Transaction, Strings, Market, Currency, OrderRequest } from './base/types.js';
+/**
+ * @class kucoinfutures
+ * @augments Exchange
+ */
 export default class kucoinfutures extends kucoin {
     describe(): any;
     fetchStatus(params?: {}): Promise<{

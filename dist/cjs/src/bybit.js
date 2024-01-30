@@ -854,6 +854,7 @@ class bybit extends bybit$1 {
                     '181003': errors.InvalidOrder,
                     '181004': errors.InvalidOrder,
                     '182000': errors.InvalidOrder,
+                    '181017': errors.BadRequest,
                     '20001': errors.OrderNotFound,
                     '20003': errors.InvalidOrder,
                     '20004': errors.InvalidOrder,
@@ -3346,16 +3347,31 @@ class bybit extends bybit$1 {
         let fee = undefined;
         const feeCostString = this.safeString(order, 'cumExecFee');
         if (feeCostString !== undefined) {
-            let feeCurrency = undefined;
+            let feeCurrencyCode = undefined;
             if (market['spot']) {
-                feeCurrency = (side === 'buy') ? market['quote'] : market['base'];
+                if (Precise["default"].stringGt(feeCostString, '0')) {
+                    if (side === 'buy') {
+                        feeCurrencyCode = market['base'];
+                    }
+                    else {
+                        feeCurrencyCode = market['quote'];
+                    }
+                }
+                else {
+                    if (side === 'buy') {
+                        feeCurrencyCode = market['quote'];
+                    }
+                    else {
+                        feeCurrencyCode = market['base'];
+                    }
+                }
             }
             else {
-                feeCurrency = market['settle'];
+                feeCurrencyCode = market['inverse'] ? market['base'] : market['settle'];
             }
             fee = {
                 'cost': feeCostString,
-                'currency': feeCurrency,
+                'currency': feeCurrencyCode,
             };
         }
         let clientOrderId = this.safeString(order, 'orderLinkId');

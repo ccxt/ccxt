@@ -28,6 +28,7 @@ class bit2c extends bit2c$1 {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'cancelAllOrders': false,
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,

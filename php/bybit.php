@@ -850,6 +850,7 @@ class bybit extends Exchange {
                     '181003' => '\\ccxt\\InvalidOrder', // side is null.
                     '181004' => '\\ccxt\\InvalidOrder', // side only support Buy or Sell.
                     '182000' => '\\ccxt\\InvalidOrder', // symbol related quote price is null
+                    '181017' => '\\ccxt\\BadRequest', // OrderStatus must be final status
                     '20001' => '\\ccxt\\OrderNotFound', // Order not exists
                     '20003' => '\\ccxt\\InvalidOrder', // missing parameter side
                     '20004' => '\\ccxt\\InvalidOrder', // invalid parameter side
@@ -3304,15 +3305,27 @@ class bybit extends Exchange {
         $fee = null;
         $feeCostString = $this->safe_string($order, 'cumExecFee');
         if ($feeCostString !== null) {
-            $feeCurrency = null;
+            $feeCurrencyCode = null;
             if ($market['spot']) {
-                $feeCurrency = ($side === 'buy') ? $market['quote'] : $market['base'];
+                if (Precise::string_gt($feeCostString, '0')) {
+                    if ($side === 'buy') {
+                        $feeCurrencyCode = $market['base'];
+                    } else {
+                        $feeCurrencyCode = $market['quote'];
+                    }
+                } else {
+                    if ($side === 'buy') {
+                        $feeCurrencyCode = $market['quote'];
+                    } else {
+                        $feeCurrencyCode = $market['base'];
+                    }
+                }
             } else {
-                $feeCurrency = $market['settle'];
+                $feeCurrencyCode = $market['inverse'] ? $market['base'] : $market['settle'];
             }
             $fee = array(
                 'cost' => $feeCostString,
-                'currency' => $feeCurrency,
+                'currency' => $feeCurrencyCode,
             );
         }
         $clientOrderId = $this->safe_string($order, 'orderLinkId');
