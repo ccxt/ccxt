@@ -645,7 +645,7 @@ export default class alpaca extends Exchange {
         //     }
         //
         const bars = this.safeDict (response, 'bars', {});
-        let ohlcvs = this.safeDict (bars, marketId, {});
+        let ohlcvs = this.safeValue (bars, marketId, {});
         if (!Array.isArray (ohlcvs)) {
             ohlcvs = [ ohlcvs ];
         }

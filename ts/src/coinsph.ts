@@ -1110,7 +1110,7 @@ export default class coinsph extends Exchange {
             'side': orderSide,
         };
         const options = this.safeValue (this.options, 'createOrder', {});
-        let newOrderRespType = this.safeDict (options, 'newOrderRespType', {});
+        let newOrderRespType = this.safeValue (options, 'newOrderRespType', {});
         // if limit order
         if (orderType === 'LIMIT' || orderType === 'STOP_LOSS_LIMIT' || orderType === 'TAKE_PROFIT_LIMIT' || orderType === 'LIMIT_MAKER') {
             if (price === undefined) {

@@ -881,7 +881,7 @@ export default class whitebit extends whitebitRest {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
-        const result = this.safeDict (message, 'result', {});
+        const result = this.safeValue (message, 'result', {});
         if (result !== undefined) {
             if (result === 'pong') {
                 this.handlePong (client, message);

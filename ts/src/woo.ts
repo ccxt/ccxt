@@ -1890,7 +1890,7 @@ export default class woo extends Exchange {
         //     "meta": { total: '1', records_per_page: "25", current_page: "1" },
         //     "success": true
         // }
-        return [ currency, this.safeDict (response, 'rows', {}) ];
+        return [ currency, this.safeValue (response, 'rows', {}) ];
     }
 
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

@@ -1530,7 +1530,7 @@ export default class kraken extends Exchange {
         //        "txid": "OTI672-HJFAO-XOIPPK"
         //    }
         //
-        const description = this.safeDict (order, 'descr', {});
+        const description = this.safeValue (order, 'descr', {});
         const orderDescription = this.safeString (description, 'order', description);
         let side = undefined;
         let type = undefined;
