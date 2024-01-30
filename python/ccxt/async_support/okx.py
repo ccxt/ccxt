@@ -195,6 +195,7 @@ class okx(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
+                        'market/books-full': 2,
                         'market/tickers': 1,
                         'market/ticker': 1,
                         'market/index-tickers': 1,
@@ -1655,6 +1656,7 @@ class okx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -1662,10 +1664,18 @@ class okx(Exchange, ImplicitAPI):
         request = {
             'instId': market['id'],
         }
-        limit = 20 if (limit is None) else limit
+        method = None
+        method, params = self.handle_option_and_params(params, 'fetchOrderBook', 'method', 'publicGetMarketBooks')
+        if method == 'publicGetMarketBooksFull' and limit is None:
+            limit = 5000
+        limit = 100 if (limit is None) else limit
         if limit is not None:
             request['sz'] = limit  # max 400
-        response = await self.publicGetMarketBooks(self.extend(request, params))
+        response = None
+        if (method == 'publicGetMarketBooksFull') or (limit > 400):
+            response = await self.publicGetMarketBooksFull(self.extend(request, params))
+        else:
+            response = await self.publicGetMarketBooks(self.extend(request, params))
         #
         #     {
         #         "code": "0",

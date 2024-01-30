@@ -179,6 +179,7 @@ class okx extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
+                        'market/books-full' => 2,
                         'market/tickers' => 1,
                         'market/ticker' => 1,
                         'market/index-tickers' => 1,
@@ -1686,6 +1687,7 @@ class okx extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->method] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
@@ -1693,11 +1695,21 @@ class okx extends Exchange {
             $request = array(
                 'instId' => $market['id'],
             );
-            $limit = ($limit === null) ? 20 : $limit;
+            $method = null;
+            list($method, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'method', 'publicGetMarketBooks');
+            if ($method === 'publicGetMarketBooksFull' && $limit === null) {
+                $limit = 5000;
+            }
+            $limit = ($limit === null) ? 100 : $limit;
             if ($limit !== null) {
                 $request['sz'] = $limit; // max 400
             }
-            $response = Async\await($this->publicGetMarketBooks (array_merge($request, $params)));
+            $response = null;
+            if (($method === 'publicGetMarketBooksFull') || ($limit > 400)) {
+                $response = Async\await($this->publicGetMarketBooksFull (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->publicGetMarketBooks (array_merge($request, $params)));
+            }
             //
             //     {
             //         "code" => "0",
