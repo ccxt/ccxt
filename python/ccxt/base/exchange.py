@@ -873,11 +873,15 @@ class Exchange(object):
         return value if value is not None else default_value
 
     @staticmethod
-    def get_object_value_from_key_list(dictionary, key_list):
-        filtered_list = list(filter(lambda el: el in dictionary and dictionary[el] != '' and dictionary[el] is not None, key_list))
-        if (len(filtered_list) == 0):
-            return None
-        return dictionary[filtered_list[0]]
+    def get_object_value_from_key_list(dictionary_or_list, key_list):
+        for key in key_list:
+            if isinstance(key, str):
+                if key in dictionary_or_list and dictionary_or_list[key] is not None and dictionary_or_list[key] != '':
+                    return dictionary_or_list[key]
+            else:
+                if (key < len(dictionary_or_list)) and (dictionary_or_list[key] is not None) and (dictionary_or_list[key] != ''):
+                    return dictionary_or_list[key]
+        return None
 
     @staticmethod
     def safe_either(method, dictionary, key1, key2, default_value=None):
