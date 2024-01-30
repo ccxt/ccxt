@@ -2171,6 +2171,11 @@ class Exchange {
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     public function safe_bool_n($dictionaryOrList, array $keys, ?bool $defaultValue = null) {
+        /**
+         * @ignore
+         * safely extract boolean $value from dictionary or list
+         * @return array(bool | null)
+         */
         $value = $this->safe_value_n($dictionaryOrList, $keys, $defaultValue);
         if (is_bool($value)) {
             return $value;
@@ -2178,15 +2183,30 @@ class Exchange {
         return $defaultValue;
     }
 
-    public function safe_bool_2($dictionary, string $key1, string $key2, ?bool $defaultValue = null) {
+    public function safe_bool_2($dictionary, int|string $key1, int|string $key2, ?bool $defaultValue = null) {
+        /**
+         * @ignore
+         * safely extract boolean value from $dictionary or list
+         * @return array(bool | null)
+         */
         return $this->safe_bool_n($dictionary, array( $key1, $key2 ), $defaultValue);
     }
 
-    public function safe_bool($dictionary, string $key, ?bool $defaultValue = null) {
+    public function safe_bool($dictionary, int|string $key, ?bool $defaultValue = null) {
+        /**
+         * @ignore
+         * safely extract boolean value from $dictionary or list
+         * @return array(bool | null)
+         */
         return $this->safe_bool_n($dictionary, array( $key ), $defaultValue);
     }
 
     public function safe_dict_n($dictionaryOrList, array $keys, ?array $defaultValue = null) {
+        /**
+         * @ignore
+         * safely extract a dictionary from dictionary or list
+         * @return array(object | null)
+         */
         $value = $this->safe_value_n($dictionaryOrList, $keys, $defaultValue);
         if (gettype($value) === 'array') {
             return $value;
@@ -2194,15 +2214,30 @@ class Exchange {
         return $defaultValue;
     }
 
-    public function safe_dict($dictionary, string $key, ?array $defaultValue = null) {
+    public function safe_dict($dictionary, int|string $key, ?array $defaultValue = null) {
+        /**
+         * @ignore
+         * safely extract a $dictionary from $dictionary or list
+         * @return array(object | null)
+         */
         return $this->safe_dict_n($dictionary, array( $key ), $defaultValue);
     }
 
-    public function safe_dict_2($dictionary, string $key1, string $key2, ?array $defaultValue = null) {
+    public function safe_dict_2($dictionary, int|string $key1, string $key2, ?array $defaultValue = null) {
+        /**
+         * @ignore
+         * safely extract a $dictionary from $dictionary or list
+         * @return array(object | null)
+         */
         return $this->safe_dict_n($dictionary, array( $key1, $key2 ), $defaultValue);
     }
 
     public function safe_list_n($dictionaryOrList, array $keys, ?array $defaultValue = null) {
+        /**
+         * @ignore
+         * safely extract an Array from dictionary or list
+         * @return array(Array | null)
+         */
         $value = $this->safe_value_n($dictionaryOrList, $keys, $defaultValue);
         if (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
             return $value;
@@ -2210,11 +2245,21 @@ class Exchange {
         return $defaultValue;
     }
 
-    public function safe_list_2($dictionaryOrList, string $key1, string $key2, ?array $defaultValue = null) {
+    public function safe_list_2($dictionaryOrList, int|string $key1, string $key2, ?array $defaultValue = null) {
+        /**
+         * @ignore
+         * safely extract an Array from dictionary or list
+         * @return array(Array | null)
+         */
         return $this->safe_list_n($dictionaryOrList, array( $key1, $key2 ), $defaultValue);
     }
 
-    public function safe_list($dictionaryOrList, string $key, ?array $defaultValue = null) {
+    public function safe_list($dictionaryOrList, int|string $key, ?array $defaultValue = null) {
+        /**
+         * @ignore
+         * safely extract an Array from dictionary or list
+         * @return array(Array | null)
+         */
         return $this->safe_list_n($dictionaryOrList, array( $key ), $defaultValue);
     }
 

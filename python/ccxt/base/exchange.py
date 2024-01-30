@@ -1738,40 +1738,85 @@ class Exchange(object):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    def safe_bool_n(self, dictionaryOrList, keys: List[str], defaultValue: bool = None):
+    def safe_bool_n(self, dictionaryOrList, keys: List[IndexType], defaultValue: bool = None):
+        """
+         * @ignore
+        safely extract boolean value from dictionary or list
+        :returns bool | None:
+        """
         value = self.safe_value_n(dictionaryOrList, keys, defaultValue)
         if isinstance(value, bool):
             return value
         return defaultValue
 
-    def safe_bool_2(self, dictionary, key1: str, key2: str, defaultValue: bool = None):
+    def safe_bool_2(self, dictionary, key1: IndexType, key2: IndexType, defaultValue: bool = None):
+        """
+         * @ignore
+        safely extract boolean value from dictionary or list
+        :returns bool | None:
+        """
         return self.safe_bool_n(dictionary, [key1, key2], defaultValue)
 
-    def safe_bool(self, dictionary, key: str, defaultValue: bool = None):
+    def safe_bool(self, dictionary, key: IndexType, defaultValue: bool = None):
+        """
+         * @ignore
+        safely extract boolean value from dictionary or list
+        :returns bool | None:
+        """
         return self.safe_bool_n(dictionary, [key], defaultValue)
 
-    def safe_dict_n(self, dictionaryOrList, keys: List[str], defaultValue: dict = None):
+    def safe_dict_n(self, dictionaryOrList, keys: List[IndexType], defaultValue: dict = None):
+        """
+         * @ignore
+        safely extract a dictionary from dictionary or list
+        :returns dict | None:
+        """
         value = self.safe_value_n(dictionaryOrList, keys, defaultValue)
         if isinstance(value, dict):
             return value
         return defaultValue
 
-    def safe_dict(self, dictionary, key: str, defaultValue: dict = None):
+    def safe_dict(self, dictionary, key: IndexType, defaultValue: dict = None):
+        """
+         * @ignore
+        safely extract a dictionary from dictionary or list
+        :returns dict | None:
+        """
         return self.safe_dict_n(dictionary, [key], defaultValue)
 
-    def safe_dict_2(self, dictionary, key1: str, key2: str, defaultValue: dict = None):
+    def safe_dict_2(self, dictionary, key1: IndexType, key2: str, defaultValue: dict = None):
+        """
+         * @ignore
+        safely extract a dictionary from dictionary or list
+        :returns dict | None:
+        """
         return self.safe_dict_n(dictionary, [key1, key2], defaultValue)
 
-    def safe_list_n(self, dictionaryOrList, keys: List[str], defaultValue: List[Any] = None):
+    def safe_list_n(self, dictionaryOrList, keys: List[IndexType], defaultValue: List[Any] = None):
+        """
+         * @ignore
+        safely extract an Array from dictionary or list
+        :returns Array | None:
+        """
         value = self.safe_value_n(dictionaryOrList, keys, defaultValue)
         if isinstance(value, list):
             return value
         return defaultValue
 
-    def safe_list_2(self, dictionaryOrList, key1: str, key2: str, defaultValue: List[Any] = None):
+    def safe_list_2(self, dictionaryOrList, key1: IndexType, key2: str, defaultValue: List[Any] = None):
+        """
+         * @ignore
+        safely extract an Array from dictionary or list
+        :returns Array | None:
+        """
         return self.safe_list_n(dictionaryOrList, [key1, key2], defaultValue)
 
-    def safe_list(self, dictionaryOrList, key: str, defaultValue: List[Any] = None):
+    def safe_list(self, dictionaryOrList, key: IndexType, defaultValue: List[Any] = None):
+        """
+         * @ignore
+        safely extract an Array from dictionary or list
+        :returns Array | None:
+        """
         return self.safe_list_n(dictionaryOrList, [key], defaultValue)
 
     def handle_deltas(self, orderbook, deltas):
