@@ -1691,6 +1691,12 @@ export default class Exchange {
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     safeBoolN (dictionaryOrList, keys: string[], defaultValue: boolean = undefined): boolean | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract boolean value from dictionary or list
+         * @returns {bool | undefined}
+         */
         const value = this.safeValueN (dictionaryOrList, keys, defaultValue);
         if (typeof value === 'boolean') {
             return value;
@@ -1699,14 +1705,32 @@ export default class Exchange {
     }
 
     safeBool2 (dictionary, key1: string, key2: string, defaultValue: boolean = undefined): boolean | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract boolean value from dictionary or list
+         * @returns {bool | undefined}
+         */
         return this.safeBoolN (dictionary, [ key1, key2 ], defaultValue);
     }
 
     safeBool (dictionary, key: string, defaultValue: boolean = undefined): boolean | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract boolean value from dictionary or list
+         * @returns {bool | undefined}
+         */
         return this.safeBoolN (dictionary, [ key ], defaultValue);
     }
 
-    safeDictN (dictionaryOrList, keys: string[], defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
+    safeDictN (dictionaryOrList, keys: IndexType[], defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract a dictionary from dictionary or list
+         * @returns {object | undefined}
+         */
         const value = this.safeValueN (dictionaryOrList, keys, defaultValue);
         if (typeof value === 'object') {
             return value;
@@ -1714,15 +1738,33 @@ export default class Exchange {
         return defaultValue;
     }
 
-    safeDict (dictionary, key: string, defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
+    safeDict (dictionary, key: IndexType, defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract a dictionary from dictionary or list
+         * @returns {object | undefined}
+         */
         return this.safeDictN (dictionary, [ key ], defaultValue);
     }
 
-    safeDict2 (dictionary, key1: string, key2: string, defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
+    safeDict2 (dictionary, key1: IndexType, key2: string, defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract a dictionary from dictionary or list
+         * @returns {object | undefined}
+         */
         return this.safeDictN (dictionary, [ key1, key2 ], defaultValue);
     }
 
-    safeListN (dictionaryOrList, keys: string[], defaultValue: any[] = undefined): any[] | undefined {
+    safeListN (dictionaryOrList, keys: IndexType[], defaultValue: any[] = undefined): any[] | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract an Array from dictionary or list
+         * @returns {Array | undefined}
+         */
         const value = this.safeValueN (dictionaryOrList, keys, defaultValue);
         if (Array.isArray (value)) {
             return value;
@@ -1730,11 +1772,23 @@ export default class Exchange {
         return defaultValue;
     }
 
-    safeList2 (dictionaryOrList, key1: string, key2: string, defaultValue: any[] = undefined): any[] | undefined {
+    safeList2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue: any[] = undefined): any[] | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract an Array from dictionary or list
+         * @returns {Array | undefined}
+         */
         return this.safeListN (dictionaryOrList, [ key1, key2 ], defaultValue);
     }
 
-    safeList (dictionaryOrList, key: string, defaultValue: any[] = undefined): any[] | undefined {
+    safeList (dictionaryOrList, key: IndexType, defaultValue: any[] = undefined): any[] | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract an Array from dictionary or list
+         * @returns {Array | undefined}
+         */
         return this.safeListN (dictionaryOrList, [ key ], defaultValue);
     }
 
