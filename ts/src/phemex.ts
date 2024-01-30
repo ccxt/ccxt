@@ -2902,7 +2902,7 @@ export default class phemex extends Exchange {
         } else {
             response = await this.privateGetExchangeOrder (this.extend (request, params));
         }
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeValue (response, 'data', {});
         let order = data;
         if (Array.isArray (data)) {
             const numOrders = data.length;
@@ -2996,7 +2996,7 @@ export default class phemex extends Exchange {
             }
             throw e;
         }
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeValue (response, 'data', {});
         if (Array.isArray (data)) {
             return this.parseOrders (data, market, since, limit);
         } else {
@@ -3082,7 +3082,7 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeValue (response, 'data', {});
         if (Array.isArray (data)) {
             return this.parseOrders (data, market, since, limit);
         } else {

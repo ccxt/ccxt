@@ -4274,7 +4274,7 @@ export default class bybit extends Exchange {
         //         ]
         //     }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeValue (response, 'result', []);
         if (!Array.isArray (result)) {
             return response;
         }
