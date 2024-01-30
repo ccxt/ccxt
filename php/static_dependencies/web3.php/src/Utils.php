@@ -93,7 +93,6 @@ class Utils
             $hex = $bn->toHex(true);
             $hex = preg_replace('/^0+(?!$)/', '', $hex);
         } elseif (is_string($value)) {
-            $value = self::stripZero($value);
             $hex = implode('', unpack('H*', $value));
         } elseif ($value instanceof BigNumber) {
             $hex = $value->toHex(true);
