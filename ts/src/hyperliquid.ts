@@ -679,7 +679,6 @@ export default class hyperliquid extends Exchange {
             let triggerPrice = this.safeValue2 (orderParams, 'triggerPrice', 'stopPrice');
             const stopLossPrice = this.safeValue (orderParams, 'stopLossPrice', triggerPrice);
             const takeProfitPrice = this.safeValue (orderParams, 'takeProfitPrice');
-            const triggerPx = (triggerPrice !== undefined) ? this.priceToPrecision (symbol, triggerPrice) : '0';
             const isTrigger = (stopLossPrice || takeProfitPrice);
             // TODO: round px to 5 significant figures and 6 decimals
             let px = undefined;
@@ -695,15 +694,15 @@ export default class hyperliquid extends Exchange {
             if (isTrigger) {
                 let isTp = false;
                 if (takeProfitPrice !== undefined) {
-                    triggerPrice = takeProfitPrice;
+                    triggerPrice = this.priceToPrecision (symbol, takeProfitPrice);
                     isTp = true;
                     signingOrderType = (isMarket) ? 4 : 5;
                 } else {
-                    triggerPrice = stopLossPrice;
+                    triggerPrice = this.priceToPrecision (symbol, stopLossPrice);
                     signingOrderType = (isMarket) ? 6 : 7;
                 }
                 orderType['trigger'] = {
-                    'triggerPx': this.parseToInt (this.priceToPrecision (symbol, triggerPrice)),
+                    'triggerPx': triggerPrice,
                     'tpsl': (isTp) ? 'tp' : 'sl',
                     'isMarket': isMarket,
                 };
@@ -719,6 +718,9 @@ export default class hyperliquid extends Exchange {
                     signingOrderType = 2;
                 }
             }
+            if (triggerPrice === undefined) {
+                triggerPrice = '0';
+            }
             if (clientOrderId !== undefined) {
                 orderSig.push ([
                     this.parseToInt (market['baseId']), // asset
@@ -727,7 +729,7 @@ export default class hyperliquid extends Exchange {
                     this.parseToInt (Precise.stringMul (sz, base)), // sz
                     reduceOnly, // reduceOnly
                     signingOrderType, // signingOrderType
-                    this.parseToInt (Precise.stringMul (triggerPx, base)), // trigger_px
+                    this.parseToInt (Precise.stringMul (triggerPrice, base)), // trigger_px
                     this.base16ToBinary (this.remove0xPrefix (clientOrderId)), // clientOid
                 ]);
             } else {
@@ -738,7 +740,7 @@ export default class hyperliquid extends Exchange {
                     this.parseToInt (Precise.stringMul (sz, base)), // sz
                     reduceOnly, // reduceOnly
                     signingOrderType, // signingOrderType
-                    this.parseToInt (Precise.stringMul (triggerPx, base)), // trigger_px
+                    this.parseToInt (Precise.stringMul (triggerPrice, base)), // trigger_px
                 ]);
             }
             orderReq.push ({
