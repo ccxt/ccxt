@@ -104,7 +104,7 @@ async def test_watch_tickers(exchange, symbol):
             except Exception as e:
                 if not (isinstance(e, errors.NetworkError)):
                     exchange.log('[FAILED] - TEST - ' + exchange.id + ' ' + method + ' ' + params['name'])
-                    print (e)
+                    print(e)
                     raise e
                 break
             now = exchange.milliseconds()
@@ -112,4 +112,4 @@ async def test_watch_tickers(exchange, symbol):
         exchange.log('[OK] - TEST - ' + exchange.id + ' ' + method + ' ' + params['name'])
     return True
 binance = ccxtpro.binance()
-asyncio.run (test_watch_tickers(binance, 'BTC/USDT'))
+asyncio.run(test_watch_tickers(binance, 'BTC/USDT'))
