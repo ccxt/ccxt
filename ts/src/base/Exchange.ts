@@ -152,6 +152,7 @@ export type {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balanc
 // move this elsewhere
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from './ws/Cache.js'
 import totp from './functions/totp.js';
+import { Message, Stream } from './ws/Stream.js'
 
 // ----------------------------------------------------------------------------
 /**
@@ -444,6 +445,7 @@ export default class Exchange {
     ymd = ymd
     base64ToString = base64ToString
     crc32 = crc32
+    stream: Stream = new Stream ();
 
     describe () {
         return {
@@ -793,7 +795,16 @@ export default class Exchange {
         }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
 
+        this.stream = new Stream ();
+        this.stream.subscribe('tickers', this.tickersConsumer.bind(this), true);
+
         this.afterConstruct ();
+    }
+
+    tickersConsumer (message: Message) {
+        const ticker = message.payload;
+        const symbol = safeString (ticker, 'symbol');
+        this.stream.produce ('tickers.' + symbol, ticker);
     }
 
     encodeURIComponent (...args) {

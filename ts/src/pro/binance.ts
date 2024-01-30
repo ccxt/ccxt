@@ -129,7 +129,7 @@ export default class binance extends binanceRest {
         return newValue;
     }
 
-    stream (type, subscriptionHash, numSubscriptions = 1) {
+    streamId (type, subscriptionHash, numSubscriptions = 1) {
         const streamBySubscriptionsHash = this.safeValue (this.options, 'streamBySubscriptionsHash', {});
         let stream = this.safeString (streamBySubscriptionsHash, subscriptionHash);
         if (stream === undefined) {
@@ -244,7 +244,7 @@ export default class binance extends binanceRest {
             subParams.push (symbolHash);
         }
         const messageHashesLength = messageHashes.length;
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, messageHashesLength);
+        const url = this.urls['api']['ws'][type] + '/' + this.streamId (type, streamHash, messageHashesLength);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -513,7 +513,7 @@ export default class binance extends binanceRest {
         }
         const query = this.omit (params, 'type');
         const subParamsLength = subParams.length;
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, subParamsLength);
+        const url = this.urls['api']['ws'][type] + '/' + this.streamId (type, streamHash, subParamsLength);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -760,7 +760,7 @@ export default class binance extends binanceRest {
         if (market['contract']) {
             type = market['linear'] ? 'future' : 'delivery';
         }
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
+        const url = this.urls['api']['ws'][type] + '/' + this.streamId (type, messageHash);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -867,7 +867,7 @@ export default class binance extends binanceRest {
         name = this.safeString (params, 'name', name);
         params = this.omit (params, 'name');
         const messageHash = marketId + '@' + name;
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
+        const url = this.urls['api']['ws'][type] + '/' + this.streamId (type, messageHash);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -929,7 +929,7 @@ export default class binance extends binanceRest {
                 '!' + name + '@arr',
             ];
         }
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
+        const url = this.urls['api']['ws'][type] + '/' + this.streamId (type, messageHash);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -1106,19 +1106,7 @@ export default class binance extends binanceRest {
             const symbol = result['symbol'];
             this.tickers[symbol] = result;
             newTickers[symbol] = result;
-        }
-        const messageHashes = this.findMessageHashes (client, 'tickers::');
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const parts = messageHash.split ('::');
-            const symbolsString = parts[1];
-            const symbols = symbolsString.split (',');
-            const tickers = this.filterByArray (newTickers, 'symbol', symbols);
-            const tickersSymbols = Object.keys (tickers);
-            const numTickers = tickersSymbols.length;
-            if (numTickers > 0) {
-                client.resolve (tickers, messageHash);
-            }
+            this.stream.produce ('tickers', result);
         }
         const messageHashes = this.findMessageHashes (client, 'tickers::');
         for (let i = 0; i < messageHashes.length; i++) {
