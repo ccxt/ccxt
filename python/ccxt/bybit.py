@@ -868,6 +868,7 @@ class bybit(Exchange, ImplicitAPI):
                     '181003': InvalidOrder,  # side is null.
                     '181004': InvalidOrder,  # side only support Buy or Sell.
                     '182000': InvalidOrder,  # symbol related quote price is null
+                    '181017': BadRequest,  # OrderStatus must be final status
                     '20001': OrderNotFound,  # Order not exists
                     '20003': InvalidOrder,  # missing parameter side
                     '20004': InvalidOrder,  # invalid parameter side
@@ -3197,14 +3198,23 @@ class bybit(Exchange, ImplicitAPI):
         fee = None
         feeCostString = self.safe_string(order, 'cumExecFee')
         if feeCostString is not None:
-            feeCurrency = None
+            feeCurrencyCode = None
             if market['spot']:
-                feeCurrency = market['quote'] if (side == 'buy') else market['base']
+                if Precise.string_gt(feeCostString, '0'):
+                    if side == 'buy':
+                        feeCurrencyCode = market['base']
+                    else:
+                        feeCurrencyCode = market['quote']
+                else:
+                    if side == 'buy':
+                        feeCurrencyCode = market['quote']
+                    else:
+                        feeCurrencyCode = market['base']
             else:
-                feeCurrency = market['settle']
+                feeCurrencyCode = market['base'] if market['inverse'] else market['settle']
             fee = {
                 'cost': feeCostString,
-                'currency': feeCurrency,
+                'currency': feeCurrencyCode,
             }
         clientOrderId = self.safe_string(order, 'orderLinkId')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
