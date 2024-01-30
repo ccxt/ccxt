@@ -3231,7 +3231,12 @@ export default class coinbase extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         // the 'product_ids' param isn't working properly and returns {"pricebooks":[]} when defined
-        const response = await this.v3PrivateGetBrokerageBestBidAsk (params);
+        const request = {};
+        if (symbols !== undefined) {
+            const marketIds = this.marketIds (symbols);
+            request['product_ids'] = marketIds.join (',');
+        }
+        const response = await this.v3PrivateGetBrokerageBestBidAsk (this.extend (request, params));
         //
         //     {
         //         "pricebooks": [
