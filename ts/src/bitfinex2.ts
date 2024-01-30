@@ -828,6 +828,11 @@ export default class bitfinex2 extends Exchange {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
+            const account = this.account ();
+            const interest = this.safeString (balance, 3);
+            if (interest !== '0') {
+                account['debt'] = interest;
+            }
             const type = this.safeString (balance, 0);
             const currencyId = this.safeStringLower (balance, 1, '');
             const start = currencyId.length - 2;
@@ -836,7 +841,6 @@ export default class bitfinex2 extends Exchange {
             const derivativeCondition = (!isDerivative || isDerivativeCode);
             if ((accountType === type) && derivativeCondition) {
                 const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
                 account['total'] = this.safeString (balance, 2);
                 account['free'] = this.safeString (balance, 4);
                 result[code] = account;
