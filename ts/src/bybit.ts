@@ -4491,7 +4491,7 @@ export default class bybit extends Exchange {
             return await this.fetchUsdcOrders (symbol, since, limit, params);
         }
         request['category'] = type;
-        const isStop = this.safeValueN (params, [ 'trigger', 'stop' ], false);
+        const isStop = this.safeBoolN (params, [ 'trigger', 'stop' ], false);
         params = this.omit (params, [ 'trigger', 'stop' ]);
         if (isStop) {
             request['orderFilter'] = 'StopOrder';
