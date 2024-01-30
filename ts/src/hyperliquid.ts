@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/hyperliquid.js';
 import { ExchangeError, ArgumentsRequired, NotSupported } from './base/errors.js';
-// import { Precise } from './base/Precise.js';
+import { Precise } from './base/Precise.js';
 import { TICK_SIZE, ROUND, DECIMAL_PLACES } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
@@ -360,8 +360,8 @@ export default class hyperliquid extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': 8,
-                'price': 8,
+                'amount': 0.00000001,
+                'price': 0.00000001,
             },
             'limits': {
                 'leverage': {
@@ -566,7 +566,7 @@ export default class hyperliquid extends Exchange {
     }
 
     amountToPrecision (symbol, amount) {
-        return this.decimalToPrecision (amount, ROUND, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
+        return this.decimalToPrecision (amount, ROUND, this.markets[symbol]['precision']['amount'], this.precisionMode);
     }
 
     hashMessage (message) {
@@ -602,6 +602,7 @@ export default class hyperliquid extends Exchange {
          * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {string} [params.clientOrderId] client order id (default undefined)
+         * @param {string} [params.slippage] the slippage for market order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -652,8 +653,8 @@ export default class hyperliquid extends Exchange {
                 }
             }
         }
-        params = this.omit (params, [ 'slippage', 'clientOrderId', 'client_id', 'vaultAddress' ]);
-        const base = Math.pow (10, 8);
+        params = this.omit (params, [ 'slippage', 'clientOrderId', 'client_id', 'vaultAddress', 'slippage' ]);
+        const base = '100000000';
         const nonce = this.milliseconds ();
         const orderSig = [];
         const orderReq = [];
@@ -666,8 +667,8 @@ export default class hyperliquid extends Exchange {
             const isMarket = (type === 'MARKET');
             const side = this.safeStringUpper (rawOrder, 'side');
             const isBuy = (side === 'BUY');
-            const amount = this.safeNumber (rawOrder, 'amount');
-            const price = this.safeNumber (rawOrder, 'price');
+            const amount = this.safeValue (rawOrder, 'amount');
+            const price = this.safeValue (rawOrder, 'price');
             let orderParams = this.safeValue (rawOrder, 'params', {});
             orderParams = this.extend (params, orderParams);
             const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
@@ -675,17 +676,20 @@ export default class hyperliquid extends Exchange {
             const defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
             let timeInForce = this.safeStringLower (orderParams, 'timeInForce', defaultTimeInForce);
             timeInForce = this.capitalize (timeInForce);
-            let triggerPrice = this.safeValue2 (orderParams, 'triggerPrice', 'stopPrice', 0);
+            let triggerPrice = this.safeValue2 (orderParams, 'triggerPrice', 'stopPrice');
             const stopLossPrice = this.safeValue (orderParams, 'stopLossPrice', triggerPrice);
             const takeProfitPrice = this.safeValue (orderParams, 'takeProfitPrice');
+            const triggerPx = (triggerPrice !== undefined) ? this.priceToPrecision (symbol, triggerPrice) : '0';
             const isTrigger = (stopLossPrice || takeProfitPrice);
             // TODO: round px to 5 significant figures and 6 decimals
-            let px = price;
+            let px = undefined;
             if (isMarket) {
-                px = (isBuy) ? price * (1 + slippage) : price * (1 - slippage);
+                px = (isBuy) ? Precise.stringMul (price, Precise.stringAdd ('1', slippage)) : Precise.stringMul (price, Precise.stringSub ('1', slippage));
+            } else {
+                px = this.priceToPrecision (symbol, price);
             }
-            const reduceOnly = this.safeValue (params, 'reduceOnly', false);
-            // TODO: trigger order type
+            const sz = this.amountToPrecision (symbol, amount);
+            const reduceOnly = this.safeValue (orderParams, 'reduceOnly', false);
             const orderType = {};
             let signingOrderType = 0;
             if (isTrigger) {
@@ -719,29 +723,29 @@ export default class hyperliquid extends Exchange {
                 orderSig.push ([
                     this.parseToInt (market['baseId']), // asset
                     isBuy, // isBuy
-                    this.parseToInt (px * base), // px
-                    this.parseToInt (amount * base), // sz
+                    this.parseToInt (Precise.stringMul (px, base)), // px
+                    this.parseToInt (Precise.stringMul (sz, base)), // sz
                     reduceOnly, // reduceOnly
                     signingOrderType, // signingOrderType
-                    this.parseToInt (triggerPrice * base), // trigger_px
+                    this.parseToInt (Precise.stringMul (triggerPx, base)), // trigger_px
                     this.base16ToBinary (this.remove0xPrefix (clientOrderId)), // clientOid
                 ]);
             } else {
                 orderSig.push ([
                     this.parseToInt (market['baseId']), // asset
                     isBuy, // isBuy
-                    this.parseToInt (px * base), // px
-                    this.parseToInt (amount * base), // sz
+                    this.parseToInt (Precise.stringMul (px, base)), // px
+                    this.parseToInt (Precise.stringMul (sz, base)), // sz
                     reduceOnly, // reduceOnly
                     signingOrderType, // signingOrderType
-                    this.parseToInt (triggerPrice * base), // trigger_px
+                    this.parseToInt (Precise.stringMul (triggerPx, base)), // trigger_px
                 ]);
             }
             orderReq.push ({
                 'asset': this.parseToInt (market['baseId']),
                 'isBuy': isBuy,
-                'sz': this.amountToPrecision (symbol, amount),
-                'limitPx': this.amountToPrecision (symbol, px),
+                'sz': sz,
+                'limitPx': px,
                 'reduceOnly': reduceOnly,
                 'orderType': orderType,
                 'cloid': clientOrderId,
@@ -756,7 +760,7 @@ export default class hyperliquid extends Exchange {
                 (vaultAddress) ? vaultAddress : zeroAddress,
                 nonce,
             ];
-            sig = this.buildSig (signatureTypes, signatureData);
+            sig = this.buildOrderSig (signatureTypes, signatureData);
         } else {
             const signatureTypes = [ '(uint32,bool,uint64,uint64,bool,uint8,uint64)[]', 'uint8', 'address', 'uint256' ];
             const signatureData = [
@@ -765,7 +769,7 @@ export default class hyperliquid extends Exchange {
                 (vaultAddress) ? vaultAddress : zeroAddress,
                 nonce,
             ];
-            sig = this.buildSig (signatureTypes, signatureData);
+            sig = this.buildOrderSig (signatureTypes, signatureData);
         }
         const request = {
             'action': {
@@ -1009,7 +1013,7 @@ export default class hyperliquid extends Exchange {
                 (vaultAddress) ? vaultAddress : zeroAddress,
                 nonce,
             ];
-            const sig = this.buildSig (signatureTypes, signatureData);
+            const sig = this.buildOrderSig (signatureTypes, signatureData);
             request['action'] = {
                 'type': 'cancelByCloid',
                 'cancels': ordersReq,
@@ -1034,7 +1038,7 @@ export default class hyperliquid extends Exchange {
                 (vaultAddress) ? vaultAddress : zeroAddress,
                 nonce,
             ];
-            const sig = this.buildSig (signatureTypes, signatureData);
+            const sig = this.buildOrderSig (signatureTypes, signatureData);
             request['action'] = {
                 'type': 'cancel',
                 'cancels': ordersReq,
@@ -1160,7 +1164,7 @@ export default class hyperliquid extends Exchange {
                 nonce,
                 40,
             ];
-            sig = this.buildSig (signatureTypes, signatureData);
+            sig = this.buildOrderSig (signatureTypes, signatureData);
         } else {
             const signatureTypes = [ '(uint64,uint32,bool,uint64,uint64,bool,uint8,uint64,bytes16)[]', 'address', 'uint256', 'uint16' ];
             const signatureData = [
@@ -1181,7 +1185,7 @@ export default class hyperliquid extends Exchange {
                 nonce,
                 40,
             ];
-            sig = this.buildSig (signatureTypes, signatureData);
+            sig = this.buildOrderSig (signatureTypes, signatureData);
         }
         const tmpRequest = {
             'action': {
@@ -1193,7 +1197,7 @@ export default class hyperliquid extends Exchange {
                             'asset': this.parseToInt (market['baseId']),
                             'isBuy': isBuy,
                             'sz': this.amountToPrecision (symbol, amount),
-                            'limitPx': this.amountToPrecision (symbol, px),
+                            'limitPx': this.priceToPrecision (symbol, px),
                             'reduceOnly': reduceOnly,
                             'orderType': orderType,
                             'cloid': clientOrderId,
@@ -1667,20 +1671,27 @@ export default class hyperliquid extends Exchange {
         return response;
     }
 
-    buildSig (signatureTypes, signatureData) {
-        const connectionId = this.ethAbiEncode (signatureTypes, signatureData);
-        const connectionIdHash = this.hash (connectionId, keccak, 'binary');
-        const isSandboxMode = this.safeValue (this.options, 'sandboxMode');
+    buildSig (chainId, messageTypes, message) {
         const zeroAddress = this.safeString (this.options, 'zeroAddress');
-        const message = {
-            'source': (isSandboxMode) ? 'b' : 'a',
-            'connectionId': connectionIdHash,
-        };
         const domain = {
-            'chainId': 1337,
+            'chainId': chainId,
             'name': 'Exchange',
             'verifyingContract': zeroAddress,
             'version': '1',
+        };
+        const msg = this.ethEncodeStructuredData (domain, messageTypes, message);
+        const signature = this.signMessage (msg, this.privateKey);
+        return signature;
+    }
+
+    buildOrderSig (signatureTypes, signatureData) {
+        const connectionId = this.ethAbiEncode (signatureTypes, signatureData);
+        const connectionIdHash = this.hash (connectionId, keccak, 'binary');
+        const isSandboxMode = this.safeValue (this.options, 'sandboxMode');
+        const chainId = 1337;
+        const message = {
+            'source': (isSandboxMode) ? 'b' : 'a',
+            'connectionId': connectionIdHash,
         };
         const messageTypes = {
             'Agent': [
@@ -1688,23 +1699,12 @@ export default class hyperliquid extends Exchange {
                 { 'name': 'connectionId', 'type': 'bytes32' },
             ],
         };
-        // const account = this.eth_recover_account (this.privateKey);
-        // const signedMsg = account.sign_message(msg);
-        // TODO: use encode typed data?
-        const msg = this.ethEncodeStructuredData (domain, messageTypes, message);
-        const signature = this.signMessage (msg, this.privateKey);
-        return signature;
+        return this.buildSig (chainId, messageTypes, message);
     }
 
     buildTransferSig (message) {
         const isSandboxMode = this.safeValue (this.options, 'sandboxMode');
-        const zeroAddress = this.safeString (this.options, 'zeroAddress');
-        const domain = {
-            'chainId': (isSandboxMode) ? 421614 : 42161,
-            'name': 'Exchange',
-            'verifyingContract': zeroAddress,
-            'version': '1',
-        };
+        const chainId = (isSandboxMode) ? 421614 : 42161;
         const messageTypes = {
             'UsdTransferSignPayload': [
                 { 'name': 'destination', 'type': 'string' },
@@ -1712,23 +1712,12 @@ export default class hyperliquid extends Exchange {
                 { 'name': 'time', 'type': 'uint64' },
             ],
         };
-        // const account = this.eth_recover_account (this.privateKey);
-        // const signedMsg = account.sign_message(msg);
-        // TODO: use encode typed data?
-        const msg = this.ethEncodeStructuredData (domain, messageTypes, message);
-        const signature = this.signMessage (msg, this.privateKey);
-        return signature;
+        return this.buildSig (chainId, messageTypes, message);
     }
 
     buildWithdrawSig (message) {
         const isSandboxMode = this.safeValue (this.options, 'sandboxMode');
-        const zeroAddress = this.safeString (this.options, 'zeroAddress');
-        const domain = {
-            'chainId': (isSandboxMode) ? 421614 : 42161,
-            'name': 'Exchange',
-            'verifyingContract': zeroAddress,
-            'version': '1',
-        };
+        const chainId = (isSandboxMode) ? 421614 : 42161;
         const messageTypes = {
             'WithdrawFromBridge2SignPayload': [
                 { 'name': 'destination', 'type': 'string' },
@@ -1736,12 +1725,7 @@ export default class hyperliquid extends Exchange {
                 { 'name': 'time', 'type': 'uint64' },
             ],
         };
-        // const account = this.eth_recover_account (this.privateKey);
-        // const signedMsg = account.sign_message(msg);
-        // TODO: use encode typed data?
-        const msg = this.ethEncodeStructuredData (domain, messageTypes, message);
-        const signature = this.signMessage (msg, this.privateKey);
-        return signature;
+        return this.buildSig (chainId, messageTypes, message);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
