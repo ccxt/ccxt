@@ -1690,6 +1690,108 @@ export default class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    safeBoolN (dictionaryOrList, keys: IndexType[], defaultValue: boolean = undefined): boolean | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract boolean value from dictionary or list
+         * @returns {bool | undefined}
+         */
+        const value = this.safeValueN (dictionaryOrList, keys, defaultValue);
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        return defaultValue;
+    }
+
+    safeBool2 (dictionary, key1: IndexType, key2: IndexType, defaultValue: boolean = undefined): boolean | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract boolean value from dictionary or list
+         * @returns {bool | undefined}
+         */
+        return this.safeBoolN (dictionary, [ key1, key2 ], defaultValue);
+    }
+
+    safeBool (dictionary, key: IndexType, defaultValue: boolean = undefined): boolean | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract boolean value from dictionary or list
+         * @returns {bool | undefined}
+         */
+        return this.safeBoolN (dictionary, [ key ], defaultValue);
+    }
+
+    safeDictN (dictionaryOrList, keys: IndexType[], defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract a dictionary from dictionary or list
+         * @returns {object | undefined}
+         */
+        const value = this.safeValueN (dictionaryOrList, keys, defaultValue);
+        if (typeof value === 'object') {
+            return value;
+        }
+        return defaultValue;
+    }
+
+    safeDict (dictionary, key: IndexType, defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract a dictionary from dictionary or list
+         * @returns {object | undefined}
+         */
+        return this.safeDictN (dictionary, [ key ], defaultValue);
+    }
+
+    safeDict2 (dictionary, key1: IndexType, key2: string, defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract a dictionary from dictionary or list
+         * @returns {object | undefined}
+         */
+        return this.safeDictN (dictionary, [ key1, key2 ], defaultValue);
+    }
+
+    safeListN (dictionaryOrList, keys: IndexType[], defaultValue: any[] = undefined): any[] | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract an Array from dictionary or list
+         * @returns {Array | undefined}
+         */
+        const value = this.safeValueN (dictionaryOrList, keys, defaultValue);
+        if (Array.isArray (value)) {
+            return value;
+        }
+        return defaultValue;
+    }
+
+    safeList2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue: any[] = undefined): any[] | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract an Array from dictionary or list
+         * @returns {Array | undefined}
+         */
+        return this.safeListN (dictionaryOrList, [ key1, key2 ], defaultValue);
+    }
+
+    safeList (dictionaryOrList, key: IndexType, defaultValue: any[] = undefined): any[] | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract an Array from dictionary or list
+         * @returns {Array | undefined}
+         */
+        return this.safeListN (dictionaryOrList, [ key ], defaultValue);
+    }
+
     handleDeltas (orderbook, deltas) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (orderbook, deltas[i]);

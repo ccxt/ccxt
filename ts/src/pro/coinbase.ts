@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import coinbaseRest from '../coinbase.js';
-import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
+import { ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order } from '../base/types.js';
@@ -113,7 +113,7 @@ export default class coinbase extends coinbaseRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchTickers requires a symbols argument');
+            symbols = this.symbols;
         }
         const name = 'ticker_batch';
         const tickers = await this.subscribe (name, symbols, params);
