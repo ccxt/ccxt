@@ -32,6 +32,7 @@ class bitbns extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => null, // coming soon
+                'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,

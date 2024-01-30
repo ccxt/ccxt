@@ -72,6 +72,7 @@ export default class bitfinex2 extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactionFees': undefined,
                 'fetchTransactions': 'emulated',
+                'setMargin': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -822,6 +823,11 @@ export default class bitfinex2 extends Exchange {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
+            const account = this.account();
+            const interest = this.safeString(balance, 3);
+            if (interest !== '0') {
+                account['debt'] = interest;
+            }
             const type = this.safeString(balance, 0);
             const currencyId = this.safeStringLower(balance, 1, '');
             const start = currencyId.length - 2;
@@ -830,7 +836,6 @@ export default class bitfinex2 extends Exchange {
             const derivativeCondition = (!isDerivative || isDerivativeCode);
             if ((accountType === type) && derivativeCondition) {
                 const code = this.safeCurrencyCode(currencyId);
-                const account = this.account();
                 account['total'] = this.safeString(balance, 2);
                 account['free'] = this.safeString(balance, 4);
                 result[code] = account;
@@ -3264,5 +3269,48 @@ export default class bitfinex2 extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
         });
+    }
+    async setMargin(symbol, amount, params = {}) {
+        /**
+         * @method
+         * @name bitfinex2#setMargin
+         * @description either adds or reduces margin in a swap position in order to set the margin to a specific value
+         * @see https://docs.bitfinex.com/reference/rest-auth-deriv-pos-collateral-set
+         * @param {string} symbol unified market symbol of the market to set margin in
+         * @param {float} amount the amount to set the margin to
+         * @param {object} [params] parameters specific to the exchange API endpoint
+         * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['swap']) {
+            throw new NotSupported(this.id + ' setMargin() only support swap markets');
+        }
+        const request = {
+            'symbol': market['id'],
+            'collateral': this.parseToNumeric(amount),
+        };
+        const response = await this.privatePostAuthWDerivCollateralSet(this.extend(request, params));
+        //
+        //     [
+        //         [
+        //             1
+        //         ]
+        //     ]
+        //
+        const data = this.safeValue(response, 0);
+        return this.parseMarginModification(data, market);
+    }
+    parseMarginModification(data, market = undefined) {
+        const marginStatusRaw = data[0];
+        const marginStatus = (marginStatusRaw === 1) ? 'ok' : 'failed';
+        return {
+            'info': data,
+            'type': undefined,
+            'amount': undefined,
+            'code': undefined,
+            'symbol': market['symbol'],
+            'status': marginStatus,
+        };
     }
 }

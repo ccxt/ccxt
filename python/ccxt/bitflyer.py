@@ -32,6 +32,7 @@ class bitflyer(Exchange, ImplicitAPI):
                 'swap': None,  # has but not fully implemented
                 'future': None,  # has but not fully implemented
                 'option': False,
+                'cancelAllOrders': None,  # https://lightning.bitflyer.com/docs?lang=en#cancel-all-orders
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
