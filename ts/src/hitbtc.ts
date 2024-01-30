@@ -3242,16 +3242,12 @@ export default class hitbtc extends Exchange {
         [ marginMode, params ] = this.handleMarginModeAndParams ('modifyMarginHelper', params);
         params = this.omit (params, [ 'marginMode', 'margin' ]);
         let response = undefined;
-        if (marginMode !== undefined) {
+        if (marketType === 'swap') {
+            response = await this.privatePutFuturesAccountIsolatedSymbol (this.extend (request, params));
+        } else if ((marketType === 'margin') || ((marketType === 'spot') && (marginMode === 'isolated'))) {
             response = await this.privatePutMarginAccountIsolatedSymbol (this.extend (request, params));
         } else {
-            if (marketType === 'swap') {
-                response = await this.privatePutFuturesAccountIsolatedSymbol (this.extend (request, params));
-            } else if (marketType === 'margin') {
-                response = await this.privatePutMarginAccountIsolatedSymbol (this.extend (request, params));
-            } else {
-                throw new NotSupported (this.id + ' modifyMarginHelper() not support this market type');
-            }
+            throw new NotSupported (this.id + ' modifyMarginHelper() not support this market type');
         }
         //
         //     {
