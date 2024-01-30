@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/hyperliquid.js';
-import { ExchangeError, ArgumentsRequired, NotSupported, ExchangeNotAvailable } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, NotSupported } from './base/errors.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE, ROUND, DECIMAL_PLACES } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -1451,6 +1451,7 @@ export default class hyperliquid extends Exchange {
          * @param {string} [params.user] *required* Onchain address in 42-character hexadecimal format; e.g. 0x0000000000000000000000000000000000000000
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
+        await this.loadMarkets ();
         const user = this.safeString (params, 'user');
         if (user === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchBalance() requires a user argument');
