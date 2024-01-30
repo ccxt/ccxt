@@ -518,14 +518,14 @@ export default class kraken extends Exchange {
             const darkpool = id.indexOf ('.d') >= 0;
             const altname = this.safeString (market, 'altname');
             const makerFees = this.safeList (market, 'fees_maker', []);
-            const firstMakerFee = this.safeValue (makerFees, 0, []);
+            const firstMakerFee = this.safeList (makerFees, 0, []);
             const firstMakerFeeRate = this.safeString (firstMakerFee, 1);
             let maker = undefined;
             if (firstMakerFeeRate !== undefined) {
                 maker = this.parseNumber (Precise.stringDiv (firstMakerFeeRate, '100'));
             }
             const takerFees = this.safeList (market, 'fees', []);
-            const firstTakerFee = this.safeValue (takerFees, 0, []);
+            const firstTakerFee = this.safeList (takerFees, 0, []);
             const firstTakerFeeRate = this.safeString (firstTakerFee, 1);
             let taker = undefined;
             if (firstTakerFeeRate !== undefined) {
@@ -1321,7 +1321,7 @@ export default class kraken extends Exchange {
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
-            const balance = this.safeValue (balances, currencyId, {});
+            const balance = this.safeDict (balances, currencyId, {});
             const account = this.account ();
             account['used'] = this.safeString (balance, 'hold_trade');
             account['total'] = this.safeString (balance, 'balance');
@@ -2593,7 +2593,7 @@ export default class kraken extends Exchange {
             }
             // if depositMethod was not specified, fallback to the first available deposit method
             if (depositMethod === undefined) {
-                const firstDepositMethod = this.safeValue (depositMethods, 0, {});
+                const firstDepositMethod = this.safeDict (depositMethods, 0, {});
                 depositMethod = this.safeString (firstDepositMethod, 'method');
             }
         }
@@ -2611,7 +2611,7 @@ export default class kraken extends Exchange {
         //     }
         //
         const result = this.safeList (response, 'result', []);
-        const firstResult = this.safeValue (result, 0, {});
+        const firstResult = this.safeDict (result, 0, {});
         if (firstResult === undefined) {
             throw new InvalidAddress (this.id + ' privatePostDepositAddresses() returned no addresses for ' + code);
         }

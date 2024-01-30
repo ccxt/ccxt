@@ -202,7 +202,7 @@ export default class bithumb extends Exchange {
         for (let i = 0; i < quotes.length; i++) {
             const quote = quotes[i];
             const quoteId = quote;
-            const extension = this.safeValue (quoteCurrencies, quote, {});
+            const extension = this.safeDict (quoteCurrencies, quote, {});
             const request = {
                 'quoteId': quoteId,
             };

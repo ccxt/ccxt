@@ -714,7 +714,7 @@ export default class idex extends Exchange {
     }
 
     parseSide (book, side) {
-        const bookSide = this.safeValue (book, side, []);
+        const bookSide = this.safeList (book, side, []);
         const result = [];
         for (let i = 0; i < bookSide.length; i++) {
             const order = bookSide[i];

@@ -1295,7 +1295,7 @@ export default class coinbase extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const type = (key in dataById) ? 'fiat' : 'crypto';
-            const currency = this.safeValue (dataById, key, {});
+            const currency = this.safeDict (dataById, key, {});
             const id = this.safeString (currency, 'id', key);
             const name = this.safeString (currency, 'name');
             const code = this.safeCurrencyCode (id);
@@ -2588,7 +2588,7 @@ export default class coinbase extends Exchange {
          */
         await this.loadMarkets ();
         const orders = await this.cancelOrders ([ id ], symbol, params);
-        return this.safeValue (orders, 0, {});
+        return this.safeDict (orders, 0, {});
     }
 
     async cancelOrders (ids, symbol: Str = undefined, params = {}) {

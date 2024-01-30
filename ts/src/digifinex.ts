@@ -870,7 +870,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const balanceRequest = (marketType === 'swap') ? 'data' : 'list';
-        const balances = this.safeValue (response, balanceRequest, []);
+        const balances = this.safeList (response, balanceRequest, []);
         return this.parseBalance (balances);
     }
 
@@ -1110,7 +1110,7 @@ export default class digifinex extends Exchange {
         const date = this.safeInteger (response, 'date');
         const tickers = this.safeList (response, 'ticker', []);
         const data = this.safeDict (response, 'data', {});
-        const firstTicker = this.safeValue (tickers, 0, {});
+        const firstTicker = this.safeDict (tickers, 0, {});
         let result = undefined;
         if (market['swap']) {
             result = data;
@@ -2502,7 +2502,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const responseRequest = (marketType === 'swap') ? 'data' : 'list';
-        const data = this.safeValue (response, responseRequest, []);
+        const data = this.safeList (response, responseRequest, []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -3444,7 +3444,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const positionRequest = (marketType === 'swap') ? 'data' : 'positions';
-        const positions = this.safeValue (response, positionRequest, []);
+        const positions = this.safeList (response, positionRequest, []);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
             result.push (this.parsePosition (positions[i], market));
@@ -3534,7 +3534,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const dataRequest = (marketType === 'swap') ? 'data' : 'positions';
-        const data = this.safeValue (response, dataRequest, []);
+        const data = this.safeList (response, dataRequest, []);
         const position = this.parsePosition (data[0], market);
         if (marketType === 'swap') {
             return position;

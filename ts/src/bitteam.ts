@@ -562,7 +562,7 @@ export default class bitteam extends Exchange {
             } else {
                 feesByNetworkId = withdrawCommissionFixed;
             }
-            const statuses = this.safeValue (statusesResponse, numericId, {});
+            const statuses = this.safeDict (statusesResponse, numericId, {});
             const deposit = this.safeValue (statuses, 'depositStatus');
             const withdraw = this.safeValue (statuses, 'withdrawStatus');
             const networkIds = Object.keys (feesByNetworkId);
@@ -1624,10 +1624,10 @@ export default class bitteam extends Exchange {
         const bids = this.safeValue (ticker, 'bids');
         const asks = this.safeValue (ticker, 'asks');
         if ((bids !== undefined) && (Array.isArray (bids)) && (asks !== undefined) && (Array.isArray (asks))) {
-            const bestBid = this.safeValue (bids, 0, {});
+            const bestBid = this.safeDict (bids, 0, {});
             bestBidPrice = this.safeString (bestBid, 'price');
             bestBidVolume = this.safeString (bestBid, 'quantity');
-            const bestAsk = this.safeValue (asks, 0, {});
+            const bestAsk = this.safeDict (asks, 0, {});
             bestAskPrice = this.safeString (bestAsk, 'price');
             bestAskVolume = this.safeString (bestAsk, 'quantity');
         } else {
@@ -2229,7 +2229,7 @@ export default class bitteam extends Exchange {
         let networkId = this.safeString (transaction, 'blockChain');
         if (networkId === undefined) {
             const links = this.safeList (currencyObject, 'links', []);
-            const blockChain = this.safeValue (links, 0, {});
+            const blockChain = this.safeDict (links, 0, {});
             networkId = this.safeString (blockChain, 'blockChain');
         }
         const addressFrom = this.safeString (transaction, 'sender');

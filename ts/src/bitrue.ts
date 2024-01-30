@@ -1276,7 +1276,7 @@ export default class bitrue extends Exchange {
                 'symbol': market['id'],
             };
             response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
-            data = this.safeValue (response, 0, {});
+            data = this.safeDict (response, 0, {});
         } else {
             throw new NotSupported (this.id + ' fetchTicker only support spot & swap markets');
         }
@@ -1598,7 +1598,7 @@ export default class bitrue extends Exchange {
         // https://github.com/ccxt/ccxt/issues/13856
         const tickers = {};
         for (let i = 0; i < data.length; i++) {
-            const ticker = this.safeValue (data, i, {});
+            const ticker = this.safeDict (data, i, {});
             const market = this.market (this.safeValue (ticker, 'symbol'));
             tickers[market['id']] = ticker;
         }
@@ -2612,7 +2612,7 @@ export default class bitrue extends Exchange {
                 '6': 'canceled',
             },
         };
-        const statuses = this.safeValue (statusesByType, type, {});
+        const statuses = this.safeDict (statusesByType, type, {});
         return this.safeString (statuses, status, status);
     }
 
@@ -2766,7 +2766,7 @@ export default class bitrue extends Exchange {
             const optionsNetworks = this.safeValue (this.options, 'networks', {});
             let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
             network = this.safeString (optionsNetworks, network, network);
-            const networkEntry = this.safeValue (networks, network, {});
+            const networkEntry = this.safeDict (networks, network, {});
             chainName = this.safeString (networkEntry, 'id'); // handle ERC20>ETH alias
             if (chainName === undefined) {
                 throw new ArgumentsRequired (this.id + ' withdraw() requires a network parameter or a chainName parameter');

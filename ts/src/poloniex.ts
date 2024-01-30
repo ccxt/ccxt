@@ -1606,7 +1606,7 @@ export default class poloniex extends Exchange {
             'datetime': undefined,
         };
         for (let i = 0; i < response.length; i++) {
-            const account = this.safeValue (response, i, {});
+            const account = this.safeDict (response, i, {});
             const balances = this.safeValue (account, 'balances');
             for (let j = 0; j < balances.length; j++) {
                 const balance = this.safeValue (balances, j);

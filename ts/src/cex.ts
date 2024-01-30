@@ -386,8 +386,8 @@ export default class cex extends Exchange {
             const quoteId = this.safeString (market, 'symbol2');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const baseCurrency = this.safeValue (currenciesById, baseId, {});
-            const quoteCurrency = this.safeValue (currenciesById, quoteId, {});
+            const baseCurrency = this.safeDict (currenciesById, baseId, {});
+            const quoteCurrency = this.safeDict (currenciesById, quoteId, {});
             let pricePrecisionString = this.safeString (quoteCurrency, 'precision', '8');
             for (let j = 0; j < pairs.length; j++) {
                 const pair = pairs[j];
@@ -459,7 +459,7 @@ export default class cex extends Exchange {
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
-            const balance = this.safeValue (balances, currencyId, {});
+            const balance = this.safeDict (balances, currencyId, {});
             const account = this.account ();
             account['free'] = this.safeString (balance, 'available');
             // https://github.com/ccxt/ccxt/issues/5484
@@ -1637,7 +1637,7 @@ export default class cex extends Exchange {
         const addresses = this.safeList (data, 'addresses', []);
         const chainsIndexedById = this.indexBy (addresses, 'blockchain');
         const selectedNetworkId = this.selectNetworkIdFromRawNetworks (code, networkCode, chainsIndexedById);
-        const addressObject = this.safeValue (chainsIndexedById, selectedNetworkId, {});
+        const addressObject = this.safeDict (chainsIndexedById, selectedNetworkId, {});
         const address = this.safeString2 (addressObject, 'address', 'destination');
         this.checkAddress (address);
         return {

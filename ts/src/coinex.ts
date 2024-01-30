@@ -1493,7 +1493,7 @@ export default class coinex extends Exchange {
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
-            const balance = this.safeValue (balances, currencyId, {});
+            const balance = this.safeDict (balances, currencyId, {});
             const account = this.account ();
             account['free'] = this.safeString (balance, 'available');
             account['used'] = this.safeString (balance, 'frozen');
@@ -1527,7 +1527,7 @@ export default class coinex extends Exchange {
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
-            const balance = this.safeValue (balances, currencyId, {});
+            const balance = this.safeDict (balances, currencyId, {});
             const account = this.account ();
             account['free'] = this.safeString (balance, 'available');
             account['used'] = this.safeString (balance, 'frozen');
@@ -2511,7 +2511,7 @@ export default class coinex extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const dataRequest = market['spot'] ? 'data' : 'order';
-            const item = this.safeValue (entry, dataRequest, {});
+            const item = this.safeDict (entry, dataRequest, {});
             const order = this.parseOrder (item, market);
             results.push (order);
         }
@@ -3181,7 +3181,7 @@ export default class coinex extends Exchange {
         //
         const tradeRequest = (marketType === 'swap') ? 'records' : 'data';
         const data = this.safeValue (response, 'data');
-        const orders = this.safeValue (data, tradeRequest, []);
+        const orders = this.safeList (data, tradeRequest, []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -3483,7 +3483,7 @@ export default class coinex extends Exchange {
         //
         const tradeRequest = swap ? 'records' : 'data';
         const data = this.safeValue (response, 'data');
-        const trades = this.safeValue (data, tradeRequest, []);
+        const trades = this.safeList (data, tradeRequest, []);
         return this.parseTrades (trades, market, since, limit);
     }
 

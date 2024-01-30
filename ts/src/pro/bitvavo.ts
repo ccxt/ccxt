@@ -651,7 +651,7 @@ export default class bitvavo extends bitvavoRest {
         //
         const action = this.safeString (message, 'action');
         const response = this.safeValue (message, 'response');
-        const firstRawOrder = this.safeValue (response, 0, {});
+        const firstRawOrder = this.safeDict (response, 0, {});
         const marketId = this.safeString (firstRawOrder, 'market');
         const orders = this.parseOrders (response);
         let messageHash = this.buildMessageHash (action, { 'market': marketId });
@@ -784,7 +784,7 @@ export default class bitvavo extends bitvavoRest {
         //
         const action = this.safeString (message, 'action');
         const response = this.safeValue (message, 'response');
-        const firstRawTrade = this.safeValue (response, 0, {});
+        const firstRawTrade = this.safeDict (response, 0, {});
         const marketId = this.safeString (firstRawTrade, 'market');
         const trades = this.parseTrades (response, undefined, undefined, undefined);
         const messageHash = this.buildMessageHash (action, { 'market': marketId });

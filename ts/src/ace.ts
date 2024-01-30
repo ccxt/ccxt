@@ -303,7 +303,7 @@ export default class ace extends Exchange {
         const market = this.market (symbol);
         const response = await this.publicGetOapiV2ListTradePrice (params);
         const marketId = market['id'];
-        const ticker = this.safeValue (response, marketId, {});
+        const ticker = this.safeDict (response, marketId, {});
         //
         //     {
         //         "BTC/USDT":{

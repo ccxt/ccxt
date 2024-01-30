@@ -970,9 +970,9 @@ export default class gate extends Exchange {
             rawPromises = this.arrayConcat (rawPromises, mainnetOnly);
         }
         const promises = await Promise.all (rawPromises);
-        const spotMarkets = this.safeValue (promises, 0, []);
-        const contractMarkets = this.safeValue (promises, 1, []);
-        const optionMarkets = this.safeValue (promises, 2, []);
+        const spotMarkets = this.safeList (promises, 0, []);
+        const contractMarkets = this.safeList (promises, 1, []);
+        const optionMarkets = this.safeList (promises, 2, []);
         const markets = this.arrayConcat (spotMarkets, contractMarkets);
         return this.arrayConcat (markets, optionMarkets);
     }
@@ -1547,7 +1547,7 @@ export default class gate extends Exchange {
 
     getSettlementCurrencies (type, method) {
         const options = this.safeValue (this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
-        const fetchMarketsContractOptions = this.safeValue (options, method, {});
+        const fetchMarketsContractOptions = this.safeDict (options, method, {});
         const defaultSettle = (type === 'swap') ? [ 'usdt' ] : [ 'btc' ];
         return this.safeValue (fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle);
     }
@@ -5942,7 +5942,7 @@ export default class gate extends Exchange {
             // endpoints like createOrders use an array instead of an object
             // so we infer the settle from one of the elements
             // they have to be all the same so relying on the first one is fine
-            const first = this.safeValue (params, 0, {});
+            const first = this.safeDict (params, 0, {});
             path = this.implodeParams (path, first);
         } else {
             path = this.implodeParams (path, params);

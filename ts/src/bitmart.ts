@@ -2268,7 +2268,7 @@ export default class bitmart extends Exchange {
                 '4': 'closed', // Completed
             },
         };
-        const statuses = this.safeValue (statusesByType, type, {});
+        const statuses = this.safeDict (statusesByType, type, {});
         return this.safeString (statuses, status, status);
     }
 
@@ -4163,7 +4163,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         return this.parsePosition (first, market);
     }
 

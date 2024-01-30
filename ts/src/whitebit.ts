@@ -980,7 +980,7 @@ export default class whitebit extends Exchange {
             for (let i = 0; i < keys.length; i++) {
                 const marketId = keys[i];
                 const marketNew = this.safeMarket (marketId, undefined, '_');
-                const rawTrades = this.safeValue (response, marketId, []);
+                const rawTrades = this.safeList (response, marketId, []);
                 const parsed = this.parseTrades (rawTrades, marketNew, since, limit);
                 results = this.arrayConcat (results, parsed);
             }
@@ -1969,7 +1969,7 @@ export default class whitebit extends Exchange {
         //     }
         //
         const records = this.safeList (response, 'records', []);
-        const first = this.safeValue (records, 0, {});
+        const first = this.safeDict (records, 0, {});
         return this.parseTransaction (first, currency);
     }
 
@@ -2325,7 +2325,7 @@ export default class whitebit extends Exchange {
                     const errorObject = this.safeValue (response, 'errors');
                     if (errorObject !== undefined) {
                         const errorKey = Object.keys (errorObject)[0];
-                        const errorMessageArray = this.safeValue (errorObject, errorKey, []);
+                        const errorMessageArray = this.safeList (errorObject, errorKey, []);
                         const errorMessageLength = errorMessageArray.length;
                         errorInfo = (errorMessageLength > 0) ? errorMessageArray[0] : body;
                     }

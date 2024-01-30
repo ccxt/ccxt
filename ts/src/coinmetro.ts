@@ -469,7 +469,7 @@ export default class coinmetro extends Exchange {
 
     parseMarketPrecisionAndLimits (currencyId) {
         const currencies = this.safeValue (this.options, 'currenciesByIdForParseMarket', {});
-        const currency = this.safeValue (currencies, currencyId, {});
+        const currency = this.safeDict (currencies, currencyId, {});
         const precision = this.safeInteger (currency, 'precision');
         const limits = this.safeDict (currency, 'limits', {});
         const amountLimits = this.safeDict (limits, 'amount', {});
@@ -871,7 +871,7 @@ export default class coinmetro extends Exchange {
             const twentyFourHInfo = twentyFourHInfos[i];
             const marketId = this.safeString (twentyFourHInfo, 'pair');
             if (marketId !== undefined) {
-                const latestPrice = this.safeValue (tickersObject, marketId, {});
+                const latestPrice = this.safeDict (tickersObject, marketId, {});
                 tickersObject[marketId] = this.extend (twentyFourHInfo, latestPrice);
             }
         }
@@ -996,7 +996,7 @@ export default class coinmetro extends Exchange {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            const currency = this.safeValue (balances, currencyId, {});
+            const currency = this.safeDict (balances, currencyId, {});
             account['total'] = this.safeString (currency, currencyId);
             result[code] = account;
         }

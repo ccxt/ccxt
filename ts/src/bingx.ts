@@ -687,8 +687,8 @@ export default class bingx extends Exchange {
             requests.push (this.fetchSpotMarkets (params)); // sandbox is swap only
         }
         const promises = await Promise.all (requests);
-        const spotMarkets = this.safeValue (promises, 0, []);
-        const swapMarkets = this.safeValue (promises, 1, []);
+        const spotMarkets = this.safeList (promises, 0, []);
+        const swapMarkets = this.safeList (promises, 1, []);
         return this.arrayConcat (spotMarkets, swapMarkets);
     }
 

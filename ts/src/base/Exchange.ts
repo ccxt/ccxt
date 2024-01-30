@@ -2532,7 +2532,7 @@ export default class Exchange {
             const resultingCurrencies = [];
             for (let i = 0; i < codes.length; i++) {
                 const code = codes[i];
-                const groupedCurrenciesCode = this.safeValue (groupedCurrencies, code, []);
+                const groupedCurrenciesCode = this.safeList (groupedCurrencies, code, []);
                 let highestPrecisionCurrency = this.safeValue (groupedCurrenciesCode, 0);
                 for (let j = 1; j < groupedCurrenciesCode.length; j++) {
                     const currentCurrency = groupedCurrenciesCode[j];
@@ -3229,12 +3229,12 @@ export default class Exchange {
 
     convertTradingViewToOHLCV (ohlcvs, timestamp = 't', open = 'o', high = 'h', low = 'l', close = 'c', volume = 'v', ms = false) {
         const result = [];
-        const timestamps = this.safeValue (ohlcvs, timestamp, []);
-        const opens = this.safeValue (ohlcvs, open, []);
-        const highs = this.safeValue (ohlcvs, high, []);
-        const lows = this.safeValue (ohlcvs, low, []);
-        const closes = this.safeValue (ohlcvs, close, []);
-        const volumes = this.safeValue (ohlcvs, volume, []);
+        const timestamps = this.safeList (ohlcvs, timestamp, []);
+        const opens = this.safeList (ohlcvs, open, []);
+        const highs = this.safeList (ohlcvs, high, []);
+        const lows = this.safeList (ohlcvs, low, []);
+        const closes = this.safeList (ohlcvs, close, []);
+        const volumes = this.safeList (ohlcvs, volume, []);
         for (let i = 0; i < timestamps.length; i++) {
             result.push ([
                 ms ? this.safeInteger (timestamps, i) : this.safeTimestamp (timestamps, i),
@@ -3488,7 +3488,7 @@ export default class Exchange {
         if (currencyCode !== undefined) {
             const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
             if (currencyCode in defaultNetworkCodeReplacements) {
-                const replacementObject = this.safeValue (defaultNetworkCodeReplacements, currencyCode, {});
+                const replacementObject = this.safeDict (defaultNetworkCodeReplacements, currencyCode, {});
                 networkCode = this.safeString (replacementObject, networkCode, networkCode);
             }
         }
@@ -4882,7 +4882,7 @@ export default class Exchange {
         let precision = this.safeValue (currency, 'precision');
         if (networkCode !== undefined) {
             const networks = this.safeDict (currency, 'networks', {});
-            const networkItem = this.safeValue (networks, networkCode, {});
+            const networkItem = this.safeDict (networks, networkCode, {});
             precision = this.safeValue (networkItem, 'precision', precision);
         }
         if (precision === undefined) {

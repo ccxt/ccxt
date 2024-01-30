@@ -1502,7 +1502,7 @@ export default class coinsph extends Exchange {
         //       }
         //     ]
         //
-        const tradingFee = this.safeValue (response, 0, {});
+        const tradingFee = this.safeDict (response, 0, {});
         return this.parseTradingFee (tradingFee, market);
     }
 

@@ -1180,7 +1180,7 @@ export default class bybit extends bybitRest {
         }
         const orders = this.orders;
         let rawOrders = this.safeList (message, 'data', []);
-        const first = this.safeValue (rawOrders, 0, {});
+        const first = this.safeDict (rawOrders, 0, {});
         const category = this.safeString (first, 'category');
         const isSpot = category === 'spot';
         if (!isSpot) {
@@ -1563,7 +1563,7 @@ export default class bybit extends bybitRest {
         if (topic === 'wallet') {
             const data = this.safeDict (message, 'data', {});
             for (let i = 0; i < data.length; i++) {
-                const result = this.safeValue (data, 0, {});
+                const result = this.safeDict (data, 0, {});
                 account = this.safeStringLower (result, 'accountType');
                 rawBalances = this.arrayConcat (rawBalances, this.safeList (result, 'coin', []));
             }

@@ -2379,12 +2379,12 @@ export default class krakenfutures extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const apiVersions = this.safeValue (this.options['versions'], api, {});
-        const methodVersions = this.safeValue (apiVersions, method, {});
+        const methodVersions = this.safeDict (apiVersions, method, {});
         const defaultVersion = this.safeString (methodVersions, path, this.version);
         const version = this.safeString (params, 'version', defaultVersion);
         params = this.omit (params, 'version');
         const apiAccess = this.safeValue (this.options['access'], api, {});
-        const methodAccess = this.safeValue (apiAccess, method, {});
+        const methodAccess = this.safeDict (apiAccess, method, {});
         const access = this.safeString (methodAccess, path, 'public');
         const endpoint = version + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));

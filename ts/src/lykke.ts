@@ -557,7 +557,7 @@ export default class lykke extends Exchange {
         //         "error":null
         //     }
         //
-        const orderbook = this.safeValue (payload, 0, {});
+        const orderbook = this.safeDict (payload, 0, {});
         const timestamp = this.safeInteger (orderbook, 'timestamp');
         return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 'p', 'v');
     }

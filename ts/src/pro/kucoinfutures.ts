@@ -257,7 +257,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             return undefined;
         }
         const cache = this.positions.hashmap;
-        const symbolCache = this.safeValue (cache, symbol, {});
+        const symbolCache = this.safeDict (cache, symbol, {});
         const values = Object.values (symbolCache);
         return this.safeValue (values, 0);
     }
@@ -672,7 +672,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         //
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeValue (subscriptionsById, id, {});
+        const subscription = this.safeDict (subscriptionsById, id, {});
         const method = this.safeValue (subscription, 'method');
         if (method !== undefined) {
             method.call (this, client, message, subscription);

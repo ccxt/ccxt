@@ -527,7 +527,7 @@ export default class bitbank extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const candlestick = this.safeList (data, 'candlestick', []);
-        const first = this.safeValue (candlestick, 0, {});
+        const first = this.safeDict (candlestick, 0, {});
         const ohlcv = this.safeList (first, 'ohlcv', []);
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
@@ -802,7 +802,7 @@ export default class bitbank extends Exchange {
         const data = this.safeDict (response, 'data', {});
         // Not sure about this if there could be more than one account...
         const accounts = this.safeList (data, 'accounts', []);
-        const firstAccount = this.safeValue (accounts, 0, {});
+        const firstAccount = this.safeDict (accounts, 0, {});
         const address = this.safeString (firstAccount, 'address');
         return {
             'currency': currency,

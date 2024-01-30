@@ -642,7 +642,7 @@ export default class cryptocom extends cryptocomRest {
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
         const data = this.safeList (message, 'data', []);
-        const firstData = this.safeValue (data, 0, {});
+        const firstData = this.safeDict (data, 0, {});
         const rawPositions = this.safeList (firstData, 'positions', []);
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();

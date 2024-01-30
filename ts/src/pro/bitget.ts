@@ -276,7 +276,7 @@ export default class bitget extends bitgetRest {
         //
         const arg = this.safeDict (message, 'arg', {});
         const data = this.safeList (message, 'data', []);
-        const ticker = this.safeValue (data, 0, {});
+        const ticker = this.safeDict (data, 0, {});
         const timestamp = this.safeInteger (ticker, 'ts');
         const instType = this.safeString (arg, 'instType');
         const marketType = (instType === 'SPOT') ? 'spot' : 'contract';

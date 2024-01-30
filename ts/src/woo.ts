@@ -2228,7 +2228,7 @@ export default class woo extends Exchange {
         const currencyNetworks = this.safeDict (currency, 'networks', {});
         const network = this.safeStringUpper (params, 'network');
         const networkId = this.safeString (networks, network, network);
-        const coinNetwork = this.safeValue (currencyNetworks, networkId, {});
+        const coinNetwork = this.safeDict (currencyNetworks, networkId, {});
         const coinNetworkId = this.safeString (coinNetwork, 'id');
         if (coinNetworkId === undefined) {
             throw new BadRequest (this.id + ' withdraw() require network parameter');

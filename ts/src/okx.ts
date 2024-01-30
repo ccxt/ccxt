@@ -1245,7 +1245,7 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         return this.safeInteger (first, 'ts');
     }
 
@@ -1478,7 +1478,7 @@ export default class okx extends Exchange {
             const promisesResult = await Promise.all (promises);
             let markets = [];
             for (let i = 0; i < promisesResult.length; i++) {
-                const res = this.safeValue (promisesResult, i, {});
+                const res = this.safeDict (promisesResult, i, {});
                 const options = this.safeList (res, 'data', []);
                 markets = this.arrayConcat (markets, options);
             }
@@ -1726,7 +1726,7 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         const timestamp = this.safeInteger (first, 'ts');
         return this.parseOrderBook (first, symbol, timestamp);
     }
@@ -1830,7 +1830,7 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         return this.parseTicker (first, market);
     }
 
@@ -2282,7 +2282,7 @@ export default class okx extends Exchange {
     parseTradingBalance (response) {
         const result = { 'info': response };
         const data = this.safeList (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         const timestamp = this.safeInteger (first, 'uTime');
         const details = this.safeList (first, 'details', []);
         for (let i = 0; i < details.length; i++) {
@@ -2392,7 +2392,7 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         return this.parseTradingFee (first, market);
     }
 
@@ -4823,7 +4823,7 @@ export default class okx extends Exchange {
         }
         const response = await this.privateGetAssetDepositHistory (this.extend (request, params));
         const data = this.safeValue (response, 'data');
-        const deposit = this.safeValue (data, 0, {});
+        const deposit = this.safeDict (data, 0, {});
         return this.parseTransaction (deposit, currency);
     }
 
@@ -4944,7 +4944,7 @@ export default class okx extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const withdrawal = this.safeValue (data, 0, {});
+        const withdrawal = this.safeDict (data, 0, {});
         return this.parseTransaction (withdrawal);
     }
 
@@ -5507,7 +5507,7 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const rawTransfer = this.safeValue (data, 0, {});
+        const rawTransfer = this.safeDict (data, 0, {});
         return this.parseTransfer (rawTransfer, currency);
     }
 
@@ -5831,7 +5831,7 @@ export default class okx extends Exchange {
         //    }
         //
         const data = this.safeList (response, 'data', []);
-        const entry = this.safeValue (data, 0, {});
+        const entry = this.safeDict (data, 0, {});
         return this.parseFundingRate (entry, market);
     }
 
@@ -6392,7 +6392,7 @@ export default class okx extends Exchange {
 
     parseMarginModification (data, market: Market = undefined) {
         const innerData = this.safeList (data, 'data', []);
-        const entry = this.safeValue (innerData, 0, {});
+        const entry = this.safeDict (innerData, 0, {});
         const errorCode = this.safeString (data, 'code');
         const status = (errorCode === '0') ? 'ok' : 'failed';
         const amountRaw = this.safeNumber (entry, 'amt');

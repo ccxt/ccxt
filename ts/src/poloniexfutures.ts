@@ -1746,8 +1746,8 @@ export default class poloniexfutures extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         const versions = this.safeValue (this.options, 'versions', {});
-        const apiVersions = this.safeValue (versions, api, {});
-        const methodVersions = this.safeValue (apiVersions, method, {});
+        const apiVersions = this.safeDict (versions, api, {});
+        const methodVersions = this.safeDict (apiVersions, method, {});
         const defaultVersion = this.safeString (methodVersions, path, this.version);
         const version = this.safeString (params, 'version', defaultVersion);
         const tail = '/api/' + version + '/' + this.implodeParams (path, params);

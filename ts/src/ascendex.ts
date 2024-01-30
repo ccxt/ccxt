@@ -2471,10 +2471,10 @@ export default class ascendex extends Exchange {
                 const chains = chainNames.join (', ');
                 throw new ArgumentsRequired (this.id + ' fetchDepositAddress() returned more than one address, a chainName parameter is required, one of ' + chains);
             }
-            address = this.safeValue (addressesByChainName, chainName, {});
+            address = this.safeDict (addressesByChainName, chainName, {});
         } else {
             // first address
-            address = this.safeValue (addresses, 0, {});
+            address = this.safeDict (addresses, 0, {});
         }
         const result = this.parseDepositAddress (address, currency);
         return this.extend (result, {

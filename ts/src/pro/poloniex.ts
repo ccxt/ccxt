@@ -1123,7 +1123,7 @@ export default class poloniex extends poloniexRest {
         //        }
         //    ]
         //
-        const firstBalance = this.safeValue (response, 0, {});
+        const firstBalance = this.safeDict (response, 0, {});
         const timestamp = this.safeInteger (firstBalance, 'ts');
         const result = {
             'info': response,

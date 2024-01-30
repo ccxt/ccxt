@@ -401,7 +401,7 @@ export default class htx extends htxRest {
             const orderbook = this.orderbooks[symbol];
             const data = this.safeValue (message, 'data');
             const messages = orderbook.cache;
-            const firstMessage = this.safeValue (messages, 0, {});
+            const firstMessage = this.safeDict (messages, 0, {});
             const snapshot = this.parseOrderBook (data, symbol);
             const tick = this.safeValue (firstMessage, 'tick');
             const sequence = this.safeInteger (tick, 'prevSeqNum');
@@ -1574,7 +1574,7 @@ export default class htx extends htxRest {
             if (dataLength === 0) {
                 return;
             }
-            const first = this.safeValue (data, 0, {});
+            const first = this.safeDict (data, 0, {});
             const topic = this.safeString (message, 'topic');
             const splitTopic = topic.split ('.');
             let messageHash = this.safeString (splitTopic, 0);
@@ -1618,7 +1618,7 @@ export default class htx extends htxRest {
                 const margin = this.safeString (subscription, 'margin');
                 if (margin === 'cross') {
                     const fieldName = (type === 'future') ? 'futures_contract_detail' : 'contract_detail';
-                    const balances = this.safeValue (first, fieldName, []);
+                    const balances = this.safeList (first, fieldName, []);
                     const balancesLength = balances.length;
                     if (balancesLength > 0) {
                         for (let i = 0; i < balances.length; i++) {

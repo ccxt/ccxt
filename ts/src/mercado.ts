@@ -412,7 +412,7 @@ export default class mercado extends Exchange {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
             if (currencyId in balances) {
-                const balance = this.safeValue (balances, currencyId, {});
+                const balance = this.safeDict (balances, currencyId, {});
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'available');
                 account['total'] = this.safeString (balance, 'total');

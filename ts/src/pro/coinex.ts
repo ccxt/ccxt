@@ -133,7 +133,7 @@ export default class coinex extends coinexRest {
         //
         const defaultType = this.safeString (this.options, 'defaultType');
         const params = this.safeList (message, 'params', []);
-        const rawTickers = this.safeValue (params, 0, {});
+        const rawTickers = this.safeDict (params, 0, {});
         const keys = Object.keys (rawTickers);
         const newTickers = [];
         for (let i = 0; i < keys.length; i++) {
@@ -266,7 +266,7 @@ export default class coinex extends coinexRest {
         //     }
         //
         const params = this.safeList (message, 'params', []);
-        const first = this.safeValue (params, 0, {});
+        const first = this.safeDict (params, 0, {});
         this.balance['info'] = first;
         const currencies = Object.keys (first);
         for (let i = 0; i < currencies.length; i++) {
@@ -303,7 +303,7 @@ export default class coinex extends coinexRest {
         //
         const params = this.safeList (message, 'params', []);
         const marketId = this.safeString (params, 0);
-        const trades = this.safeValue (params, 1, []);
+        const trades = this.safeList (params, 1, []);
         const defaultType = this.safeString (this.options, 'defaultType');
         const market = this.safeMarket (marketId, undefined, undefined, defaultType);
         const symbol = market['symbol'];
@@ -821,7 +821,7 @@ export default class coinex extends coinexRest {
         //      }
         //
         const params = this.safeList (message, 'params', []);
-        const order = this.safeValue (params, 1, {});
+        const order = this.safeDict (params, 1, {});
         const parsedOrder = this.parseWsOrder (order);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);

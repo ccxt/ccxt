@@ -950,14 +950,14 @@ export default class phemex extends Exchange {
             const type = this.safeStringLower (market, 'type');
             if ((type === 'perpetual') || (type === 'perpetualv2')) {
                 const id = this.safeString (market, 'symbol');
-                const riskLimitValues = this.safeValue (riskLimitsById, id, {});
+                const riskLimitValues = this.safeDict (riskLimitsById, id, {});
                 market = this.extend (market, riskLimitValues);
-                const v1ProductsValues = this.safeValue (v1ProductsById, id, {});
+                const v1ProductsValues = this.safeDict (v1ProductsById, id, {});
                 market = this.extend (market, v1ProductsValues);
                 market = this.parseSwapMarket (market);
             } else {
                 const baseCurrency = this.safeString (market, 'baseCurrency');
-                const currencyValues = this.safeValue (currenciesByCode, baseCurrency, {});
+                const currencyValues = this.safeDict (currenciesByCode, baseCurrency, {});
                 const valueScale = this.safeString (currencyValues, 'valueScale', '8');
                 market = this.extend (market, { 'valueScale': valueScale });
                 market = this.parseSpotMarket (market);
@@ -2913,7 +2913,7 @@ export default class phemex extends Exchange {
                     throw new OrderNotFound (this.id + ' fetchOrder() ' + symbol + ' order with id ' + id + ' not found');
                 }
             }
-            order = this.safeValue (data, 0, {});
+            order = this.safeDict (data, 0, {});
         }
         return this.parseOrder (order, market);
     }

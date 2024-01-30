@@ -770,7 +770,7 @@ export default class yobit extends Exchange {
         const result = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const pair = this.safeValue (pairs, marketId, {});
+            const pair = this.safeDict (pairs, marketId, {});
             const symbol = this.safeSymbol (marketId, undefined, '_');
             const takerString = this.safeString (pair, 'fee_buyer');
             const makerString = this.safeString (pair, 'fee_seller');

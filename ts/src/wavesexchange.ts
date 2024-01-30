@@ -891,7 +891,7 @@ export default class wavesexchange extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const ticker = this.safeValue (data, 0, {});
+        const ticker = this.safeDict (data, 0, {});
         const dataTicker = this.safeDict (ticker, 'data', {});
         return this.parseTicker (dataTicker, market);
     }

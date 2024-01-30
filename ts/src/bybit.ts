@@ -1456,12 +1456,12 @@ export default class bybit extends Exchange {
             }
         }
         const promises = await Promise.all (promisesUnresolved);
-        const spotMarkets = this.safeValue (promises, 0, []);
-        const linearMarkets = this.safeValue (promises, 1, []);
-        const inverseMarkets = this.safeValue (promises, 2, []);
-        const btcOptionMarkets = this.safeValue (promises, 3, []);
-        const ethOptionMarkets = this.safeValue (promises, 4, []);
-        const solOptionMarkets = this.safeValue (promises, 5, []);
+        const spotMarkets = this.safeList (promises, 0, []);
+        const linearMarkets = this.safeList (promises, 1, []);
+        const inverseMarkets = this.safeList (promises, 2, []);
+        const btcOptionMarkets = this.safeList (promises, 3, []);
+        const ethOptionMarkets = this.safeList (promises, 4, []);
+        const solOptionMarkets = this.safeList (promises, 5, []);
         const futureMarkets = this.arrayConcat (linearMarkets, inverseMarkets);
         let optionMarkets = this.arrayConcat (btcOptionMarkets, ethOptionMarkets);
         optionMarkets = this.arrayConcat (optionMarkets, solOptionMarkets);
@@ -5023,7 +5023,7 @@ export default class bybit extends Exchange {
         const chains = this.safeList (result, 'chains', []);
         const chainsIndexedById = this.indexBy (chains, 'chain');
         const selectedNetworkId = this.selectNetworkIdFromRawNetworks (code, networkCode, chainsIndexedById);
-        const addressObject = this.safeValue (chainsIndexedById, selectedNetworkId, {});
+        const addressObject = this.safeDict (chainsIndexedById, selectedNetworkId, {});
         return this.parseDepositAddress (addressObject, currency);
     }
 
@@ -6973,7 +6973,7 @@ export default class bybit extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         const fees = this.safeList (result, 'list', []);
-        const first = this.safeValue (fees, 0, {});
+        const first = this.safeDict (fees, 0, {});
         return this.parseTradingFee (first);
     }
 

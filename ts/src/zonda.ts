@@ -1179,7 +1179,7 @@ export default class zonda extends Exchange {
         //         }
         //     ]
         //
-        const first = this.safeValue (ohlcv, 1, {});
+        const first = this.safeDict (ohlcv, 1, {});
         return [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (first, 'o'),

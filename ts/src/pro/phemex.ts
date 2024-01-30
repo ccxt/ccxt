@@ -478,7 +478,7 @@ export default class phemex extends phemexRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const candles = this.safeList2 (message, 'kline', 'kline_p', []);
-        const first = this.safeValue (candles, 0, []);
+        const first = this.safeList (candles, 0, []);
         const interval = this.safeString (first, 1);
         const timeframe = this.findTimeframe (interval);
         if (timeframe !== undefined) {

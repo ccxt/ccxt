@@ -978,7 +978,7 @@ export default class onetrading extends onetradingRest {
             const orderId = this.safeString (update, 'order_id');
             const datetime = this.safeString2 (update, 'time', 'timestamp');
             const previousOrderArray = this.filterByArray (this.orders, 'id', orderId, false);
-            const previousOrder = this.safeValue (previousOrderArray, 0, {});
+            const previousOrder = this.safeDict (previousOrderArray, 0, {});
             symbol = previousOrder['symbol'];
             const filled = this.safeNumber (update, 'filled_amount');
             let status = this.parseWsOrderStatus (updateType);
@@ -1076,7 +1076,7 @@ export default class onetrading extends onetradingRest {
         if (client !== undefined) {
             subscription = this.safeValue (client.subscriptions, subscriptionHash);
             if (subscription !== undefined) {
-                const ohlcvMarket = this.safeValue (subscription, marketId, {});
+                const ohlcvMarket = this.safeDict (subscription, marketId, {});
                 const marketSubscribed = this.safeValue (ohlcvMarket, timeframe, false);
                 if (!marketSubscribed) {
                     type = 'UPDATE_SUBSCRIPTION';

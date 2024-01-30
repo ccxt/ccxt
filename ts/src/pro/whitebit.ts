@@ -280,7 +280,7 @@ export default class whitebit extends whitebitRest {
         const marketId = this.safeString (tickers, 0);
         const market = this.safeMarket (marketId, undefined);
         const symbol = market['symbol'];
-        const rawTicker = this.safeValue (tickers, 1, {});
+        const rawTicker = this.safeDict (tickers, 1, {});
         const messageHash = 'ticker' + ':' + symbol;
         const ticker = this.parseTicker (rawTicker, market);
         this.tickers[symbol] = ticker;
@@ -365,7 +365,7 @@ export default class whitebit extends whitebitRest {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const data = this.safeValue (params, 1, []);
+        const data = this.safeList (params, 1, []);
         const parsedTrades = this.parseTrades (data, market);
         for (let j = 0; j < parsedTrades.length; j++) {
             stored.append (parsedTrades[j]);

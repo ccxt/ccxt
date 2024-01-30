@@ -832,7 +832,7 @@ export default class okcoin extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         const timestamp = this.safeInteger (first, 'ts');
         return this.parseOrderBook (first, symbol, timestamp);
     }
@@ -910,7 +910,7 @@ export default class okcoin extends Exchange {
         };
         const response = await this.publicGetMarketTicker (this.extend (request, params));
         const data = this.safeList (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         //
         //     {
         //         "code": "0",
@@ -1239,7 +1239,7 @@ export default class okcoin extends Exchange {
     parseTradingBalance (response) {
         const result = { 'info': response };
         const data = this.safeList (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         const timestamp = this.safeInteger (first, 'uTime');
         const details = this.safeList (first, 'details', []);
         for (let i = 0; i < details.length; i++) {
@@ -2336,7 +2336,7 @@ export default class okcoin extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const rawTransfer = this.safeValue (data, 0, {});
+        const rawTransfer = this.safeDict (data, 0, {});
         return this.parseTransfer (rawTransfer, currency);
     }
 

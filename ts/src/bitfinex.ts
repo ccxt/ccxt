@@ -1586,7 +1586,7 @@ export default class bitfinex extends Exchange {
         //         }
         //     ]
         //
-        const response = this.safeValue (responses, 0, {});
+        const response = this.safeDict (responses, 0, {});
         const id = this.safeNumber (response, 'withdrawal_id');
         const message = this.safeString (response, 'message');
         const errorMessage = this.findBroadlyMatchedKey (this.exceptions['broad'], message);
@@ -1682,7 +1682,7 @@ export default class bitfinex extends Exchange {
         } else {
             // json response with error, i.e:
             // [{"status":"error","message":"Momentary balance check. Please wait few seconds and try the transfer again."}]
-            const responseObject = this.safeValue (response, 0, {});
+            const responseObject = this.safeDict (response, 0, {});
             const status = this.safeString (responseObject, 'status', '');
             if (status === 'error') {
                 throwError = true;

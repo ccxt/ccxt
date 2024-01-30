@@ -1526,7 +1526,7 @@ export default class hollaex extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const transaction = this.safeValue (data, 0, {});
+        const transaction = this.safeDict (data, 0, {});
         return this.parseTransaction (transaction, currency);
     }
 

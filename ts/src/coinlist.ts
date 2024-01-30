@@ -952,7 +952,7 @@ export default class coinlist extends Exchange {
         const groupsOfSymbols = Object.keys (fees);
         for (let i = 0; i < groupsOfSymbols.length; i++) {
             const group = groupsOfSymbols[i];
-            const feeTiers = this.safeValue (fees, group, {});
+            const feeTiers = this.safeDict (fees, group, {});
             const tiers = this.parseFeeTiers (feeTiers);
             const firstTier = this.safeDict (feeTiers, 'base', {});
             const firstTierFees = this.safeDict (firstTier, 'fees', {});
@@ -1035,7 +1035,7 @@ export default class coinlist extends Exchange {
         if (keysLength > 0) {
             for (let i = 0; i < keysLength; i++) {
                 const key = keys[i];
-                const tier = this.safeValue (feeTiers, key, {});
+                const tier = this.safeDict (feeTiers, key, {});
                 const tierFees = this.safeDict (tier, 'fees', {});
                 const taker = this.safeString (tierFees, 'taker');
                 const maker = this.safeString (tierFees, 'maker');
@@ -1044,7 +1044,7 @@ export default class coinlist extends Exchange {
             }
             takerFees = this.sortBy (takerFees, 1, true);
             makerFees = this.sortBy (makerFees, 1, true);
-            const firstTier = this.safeValue (takerFees, 0, []);
+            const firstTier = this.safeList (takerFees, 0, []);
             const exchangeFees = this.safeDict (this, 'fees', {});
             const exchangeFeesTrading = this.safeDict (exchangeFees, 'trading', {});
             const exchangeFeesTradingTiers = this.safeDict (exchangeFeesTrading, 'tiers', {});

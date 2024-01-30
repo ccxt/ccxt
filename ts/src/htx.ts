@@ -1522,7 +1522,7 @@ export default class htx extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         return this.parseTradingFee (first, market);
     }
 
@@ -3117,7 +3117,7 @@ export default class htx extends Exchange {
                 return this.safeString (account, 'id');
             }
         }
-        const defaultAccount = this.safeValue (accounts, 0, {});
+        const defaultAccount = this.safeDict (accounts, 0, {});
         return this.safeString (defaultAccount, 'id');
     }
 
@@ -3564,7 +3564,7 @@ export default class htx extends Exchange {
                 }
             }
         } else if (linear) {
-            const first = this.safeValue (data, 0, {});
+            const first = this.safeDict (data, 0, {});
             if (isolated) {
                 for (let i = 0; i < data.length; i++) {
                     const balance = data[i];

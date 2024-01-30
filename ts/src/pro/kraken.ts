@@ -385,7 +385,7 @@ export default class kraken extends krakenRest {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const trades = this.safeValue (message, 1, []);
+        const trades = this.safeList (message, 1, []);
         const parsed = this.parseTrades (trades, market);
         for (let i = 0; i < parsed.length; i++) {
             stored.append (parsed[i]);
@@ -896,7 +896,7 @@ export default class kraken extends krakenRest {
         //         { sequence: 1 }
         //     ]
         //
-        const allTrades = this.safeValue (message, 0, []);
+        const allTrades = this.safeList (message, 0, []);
         const allTradesLength = allTrades.length;
         if (allTradesLength > 0) {
             if (this.myTrades === undefined) {
@@ -906,7 +906,7 @@ export default class kraken extends krakenRest {
             const stored = this.myTrades;
             const symbols = {};
             for (let i = 0; i < allTrades.length; i++) {
-                const trades = this.safeValue (allTrades, i, {});
+                const trades = this.safeDict (allTrades, i, {});
                 const ids = Object.keys (trades);
                 for (let j = 0; j < ids.length; j++) {
                     const id = ids[j];
@@ -1100,7 +1100,7 @@ export default class kraken extends krakenRest {
         //         { "sequence": 59342 }
         //     ]
         //
-        const allOrders = this.safeValue (message, 0, []);
+        const allOrders = this.safeList (message, 0, []);
         const allOrdersLength = allOrders.length;
         if (allOrdersLength > 0) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -1110,7 +1110,7 @@ export default class kraken extends krakenRest {
             const stored = this.orders;
             const symbols = {};
             for (let i = 0; i < allOrders.length; i++) {
-                const orders = this.safeValue (allOrders, i, {});
+                const orders = this.safeDict (allOrders, i, {});
                 const ids = Object.keys (orders);
                 for (let j = 0; j < ids.length; j++) {
                     const id = ids[j];

@@ -489,7 +489,7 @@ export default class exmo extends Exchange {
             };
             const currency = this.currency (code);
             const currencyId = this.safeString (currency, 'id');
-            const providers = this.safeValue (cryptoList, currencyId, []);
+            const providers = this.safeList (cryptoList, currencyId, []);
             for (let j = 0; j < providers.length; j++) {
                 const provider = providers[j];
                 const typeInner = this.safeString (provider, 'type');
@@ -2274,7 +2274,7 @@ export default class exmo extends Exchange {
             let feeCost = this.safeString (transaction, 'commission');
             if (feeCost === undefined) {
                 const transactionFees = this.safeValue (this.options, 'transactionFees', {});
-                const codeFees = this.safeValue (transactionFees, code, {});
+                const codeFees = this.safeDict (transactionFees, code, {});
                 feeCost = this.safeString (codeFees, key);
             }
             // users don't pay for cashbacks, no fees for that
@@ -2471,7 +2471,7 @@ export default class exmo extends Exchange {
         //     }
         //
         const items = this.safeList (response, 'items', []);
-        const first = this.safeValue (items, 0, {});
+        const first = this.safeDict (items, 0, {});
         return this.parseTransaction (first, currency);
     }
 
@@ -2523,7 +2523,7 @@ export default class exmo extends Exchange {
         //     }
         //
         const items = this.safeList (response, 'items', []);
-        const first = this.safeValue (items, 0, {});
+        const first = this.safeDict (items, 0, {});
         return this.parseTransaction (first, currency);
     }
 

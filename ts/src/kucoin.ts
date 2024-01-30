@@ -990,7 +990,7 @@ export default class kucoin extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
-            const ticker = this.safeValue (tickersByMarketId, id, {});
+            const ticker = this.safeDict (tickersByMarketId, id, {});
             const makerFeeRate = this.safeString (ticker, 'makerFeeRate');
             const takerFeeRate = this.safeString (ticker, 'takerFeeRate');
             const makerCoefficient = this.safeString (ticker, 'makerCoefficient');
@@ -1127,9 +1127,9 @@ export default class kucoin extends Exchange {
         //    }
         //
         const responses = await Promise.all (promises);
-        const currenciesResponse = this.safeValue (responses, 0, {});
+        const currenciesResponse = this.safeDict (responses, 0, {});
         const currenciesData = this.safeList (currenciesResponse, 'data', []);
-        const additionalResponse = this.safeValue (responses, 1, {});
+        const additionalResponse = this.safeDict (responses, 1, {});
         const additionalData = this.safeList (additionalResponse, 'data', []);
         const additionalDataGrouped = this.groupBy (additionalData, 'currency');
         const result = {};
@@ -1167,7 +1167,7 @@ export default class kucoin extends Exchange {
                 } else {
                     isDepositEnabled = isDepositEnabled || chainDepositEnabled;
                 }
-                const chainExtraData = this.safeValue (extraChainsData, chainId, {});
+                const chainExtraData = this.safeDict (extraChainsData, chainId, {});
                 networks[networkCode] = {
                     'info': chain,
                     'id': chainId,
@@ -3983,8 +3983,8 @@ export default class kucoin extends Exchange {
 
     calculateRateLimiterCost (api, method, path, params, config = {}) {
         const versions = this.safeValue (this.options, 'versions', {});
-        const apiVersions = this.safeValue (versions, api, {});
-        const methodVersions = this.safeValue (apiVersions, method, {});
+        const apiVersions = this.safeDict (versions, api, {});
+        const methodVersions = this.safeDict (apiVersions, method, {});
         const defaultVersion = this.safeString (methodVersions, path, this.options['version']);
         const version = this.safeString (params, 'version', defaultVersion);
         if (version === 'v3' && ('v3' in config)) {
@@ -4418,8 +4418,8 @@ export default class kucoin extends Exchange {
         //                                ↑                 ↑
         //
         const versions = this.safeValue (this.options, 'versions', {});
-        const apiVersions = this.safeValue (versions, api, {});
-        const methodVersions = this.safeValue (apiVersions, method, {});
+        const apiVersions = this.safeDict (versions, api, {});
+        const methodVersions = this.safeDict (apiVersions, method, {});
         const defaultVersion = this.safeString (methodVersions, path, this.options['version']);
         const version = this.safeString (params, 'version', defaultVersion);
         params = this.omit (params, 'version');

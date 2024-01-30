@@ -439,7 +439,7 @@ export default class probit extends Exchange {
                 }
                 const precision = this.parsePrecision (this.safeString (network, 'precision'));
                 const withdrawFee = this.safeList (network, 'withdrawal_fee', []);
-                let networkFee = this.safeValue (withdrawFee, 0, {});
+                let networkFee = this.safeDict (withdrawFee, 0, {});
                 for (let k = 0; k < withdrawFee.length; k++) {
                     const withdrawPlatform = withdrawFee[k];
                     const feeCurrencyId = this.safeString (withdrawPlatform, 'currency_id');
@@ -470,7 +470,7 @@ export default class probit extends Exchange {
                 };
             }
             if (platform === undefined) {
-                platform = this.safeValue (platformsByPriority, 0, {});
+                platform = this.safeDict (platformsByPriority, 0, {});
             }
             const depositSuspended = this.safeValue (platform, 'deposit_suspended');
             const withdrawalSuspended = this.safeValue (platform, 'withdrawal_suspended');
@@ -490,7 +490,7 @@ export default class probit extends Exchange {
                 }
             }
             const withdrawalFeesByPriority = this.sortBy (fees, 'priority');
-            const withdrawalFee = this.safeValue (withdrawalFeesByPriority, 0, {});
+            const withdrawalFee = this.safeDict (withdrawalFeesByPriority, 0, {});
             const fee = this.safeNumber (withdrawalFee, 'amount');
             result[code] = {
                 'id': id,

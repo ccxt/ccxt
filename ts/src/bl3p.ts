@@ -127,7 +127,7 @@ export default class bl3p extends Exchange {
             const code = codes[i];
             const currency = this.currency (code);
             const currencyId = currency['id'];
-            const wallet = this.safeValue (wallets, currencyId, {});
+            const wallet = this.safeDict (wallets, currencyId, {});
             const available = this.safeDict (wallet, 'available', {});
             const balance = this.safeDict (wallet, 'balance', {});
             const account = this.account ();

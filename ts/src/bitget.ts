@@ -6128,7 +6128,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         return this.parsePosition (first, market);
     }
 
@@ -7766,7 +7766,7 @@ export default class bitget extends Exchange {
         //
         const timestamp = this.safeInteger (response, 'requestTime');
         const data = this.safeList (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         first['timestamp'] = timestamp;
         return this.parseIsolatedBorrowRate (first, market);
     }
@@ -7869,7 +7869,7 @@ export default class bitget extends Exchange {
         //
         const timestamp = this.safeInteger (response, 'requestTime');
         const data = this.safeList (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         first['timestamp'] = timestamp;
         return this.parseBorrowRate (first, currency);
     }

@@ -484,10 +484,10 @@ export default class onetrading extends Exchange {
         //         }
         //     ]
         //
-        const first = this.safeValue (response, 0, {});
+        const first = this.safeDict (response, 0, {});
         const feeTiers = this.safeValue (first, 'fee_tiers');
         const tiers = this.parseFeeTiers (feeTiers);
-        const firstTier = this.safeValue (feeTiers, 0, {});
+        const firstTier = this.safeDict (feeTiers, 0, {});
         const result = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
