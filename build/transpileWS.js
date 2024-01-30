@@ -173,7 +173,7 @@ class CCXTProTranspiler extends Transpiler {
                 wsCollectedTests.push(test);
             }
         }
-        
+
         this.transpileAndSaveExchangeTests (wsCollectedTests);
     }
 
