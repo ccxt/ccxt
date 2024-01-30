@@ -1634,7 +1634,7 @@ export default class coinbase extends Exchange {
     }
 
     parseBalance (response, params = {}) {
-        const balances = this.safeValue2 (response, 'data', 'accounts', []);
+        const balances = this.safeList2 (response, 'data', 'accounts', []);
         const accounts = this.safeValue (params, 'type', this.options['accounts']);
         const v3Accounts = this.safeValue (params, 'type', this.options['v3Accounts']);
         const result = { 'info': response };

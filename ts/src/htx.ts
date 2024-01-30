@@ -2227,7 +2227,7 @@ export default class htx extends Exchange {
         //         "ts":1640745627988
         //     }
         //
-        const tickers = this.safeValue2 (response, 'data', 'ticks', []);
+        const tickers = this.safeList2 (response, 'data', 'ticks', []);
         const timestamp = this.safeInteger (response, 'ts');
         const result = {};
         for (let i = 0; i < tickers.length; i++) {

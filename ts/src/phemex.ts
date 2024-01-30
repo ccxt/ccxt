@@ -1128,7 +1128,7 @@ export default class phemex extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const book = this.safeValue2 (result, 'book', 'orderbook_p', {});
+        const book = this.safeDict2 (result, 'book', 'orderbook_p', {});
         const timestamp = this.safeIntegerProduct (result, 'timestamp', 0.000001);
         const orderbook = this.customParseOrderBook (book, symbol, timestamp, 'bids', 'asks', 0, 1, market);
         orderbook['nonce'] = this.safeInteger (result, 'sequence');
@@ -1546,7 +1546,7 @@ export default class phemex extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const trades = this.safeValue2 (result, 'trades', 'trades_p', []);
+        const trades = this.safeList2 (result, 'trades', 'trades_p', []);
         return this.parseTrades (trades, market, since, limit);
     }
 

@@ -434,7 +434,7 @@ export default class phemex extends phemexRest {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const trades = this.safeValue2 (message, 'trades', 'trades_p', []);
+        const trades = this.safeList2 (message, 'trades', 'trades_p', []);
         const parsed = this.parseTrades (trades, market);
         for (let i = 0; i < parsed.length; i++) {
             stored.append (parsed[i]);
@@ -477,7 +477,7 @@ export default class phemex extends phemexRest {
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const candles = this.safeValue2 (message, 'kline', 'kline_p', []);
+        const candles = this.safeList2 (message, 'kline', 'kline_p', []);
         const first = this.safeValue (candles, 0, []);
         const interval = this.safeString (first, 1);
         const timeframe = this.findTimeframe (interval);
@@ -713,7 +713,7 @@ export default class phemex extends phemexRest {
         const nonce = this.safeInteger (message, 'sequence');
         const timestamp = this.safeIntegerProduct (message, 'timestamp', 0.000001);
         if (type === 'snapshot') {
-            const book = this.safeValue2 (message, 'book', 'orderbook_p', {});
+            const book = this.safeDict2 (message, 'book', 'orderbook_p', {});
             const snapshot = this.customParseOrderBook (book, symbol, timestamp, 'bids', 'asks', 0, 1, market);
             snapshot['nonce'] = nonce;
             const orderbook = this.orderBook (snapshot, depth);
@@ -722,7 +722,7 @@ export default class phemex extends phemexRest {
         } else {
             const orderbook = this.safeValue (this.orderbooks, symbol);
             if (orderbook !== undefined) {
-                const changes = this.safeValue2 (message, 'book', 'orderbook_p', {});
+                const changes = this.safeDict2 (message, 'book', 'orderbook_p', {});
                 const asks = this.safeValue (changes, 'asks', []);
                 const bids = this.safeValue (changes, 'bids', []);
                 this.handleDeltas (orderbook['asks'], asks, market);
@@ -1441,7 +1441,7 @@ export default class phemex extends phemexRest {
             return this.handleOrderBook (client, message);
         }
         if (('orders' in message) || ('orders_p' in message)) {
-            const orders = this.safeValue2 (message, 'orders', 'orders_p', {});
+            const orders = this.safeDict2 (message, 'orders', 'orders_p', {});
             this.handleOrders (client, orders);
         }
         if (('accounts' in message) || ('accounts_p' in message) || ('wallets' in message)) {

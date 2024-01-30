@@ -1672,7 +1672,7 @@ export default class ascendex extends Exchange {
         //      }
         //
         const data = this.safeValue (response, 'data', {});
-        const order = this.safeValue2 (data, 'order', 'info', {});
+        const order = this.safeDict2 (data, 'order', 'info', {});
         return this.parseOrder (order, market);
     }
 
@@ -2282,7 +2282,7 @@ export default class ascendex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const order = this.safeValue2 (data, 'order', 'info', {});
+        const order = this.safeDict2 (data, 'order', 'info', {});
         return this.parseOrder (order, market);
     }
 

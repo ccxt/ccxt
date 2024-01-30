@@ -293,7 +293,7 @@ export default class mexc extends mexcRest {
         //       "ts": 1651230713067
         //   }
         //
-        const d = this.safeValue2 (message, 'd', 'data', {});
+        const d = this.safeDict2 (message, 'd', 'data', {});
         const rawOhlcv = this.safeValue (d, 'k', d);
         const timeframeId = this.safeString2 (rawOhlcv, 'i', 'interval');
         const timeframes = this.safeValue (this.options, 'timeframes', {});

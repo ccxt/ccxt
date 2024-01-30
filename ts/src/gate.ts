@@ -4416,7 +4416,7 @@ export default class gate extends Exchange {
                 'status': 'rejected',
             });
         }
-        const put = this.safeValue2 (order, 'put', 'initial', {});
+        const put = this.safeDict2 (order, 'put', 'initial', {});
         const trigger = this.safeValue (order, 'trigger', {});
         let contract = this.safeString (put, 'contract');
         let type = this.safeString (put, 'type');

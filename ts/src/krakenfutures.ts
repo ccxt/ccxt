@@ -1798,7 +1798,7 @@ export default class krakenfutures extends Exchange {
         const accountType = this.safeString2 (response, 'accountType', 'type');
         const isFlex = (accountType === 'multiCollateralMarginAccount');
         const isCash = (accountType === 'cashAccount');
-        const balances = this.safeValue2 (response, 'balances', 'currencies', {});
+        const balances = this.safeDict2 (response, 'balances', 'currencies', {});
         const result = {};
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {

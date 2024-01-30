@@ -1027,7 +1027,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const result = {};
-        const tickers = this.safeValue2 (response, 'ticker', 'data', []);
+        const tickers = this.safeList2 (response, 'ticker', 'data', []);
         const date = this.safeInteger (response, 'date');
         for (let i = 0; i < tickers.length; i++) {
             const rawTicker = this.extend ({
