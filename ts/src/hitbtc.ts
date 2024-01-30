@@ -242,7 +242,7 @@ export default class hitbtc extends Exchange {
                     },
                     'put': {
                         'margin/account/isolated/{symbol}': 1,
-                        'futures/account/isolated/{symbol}': 1,
+                        'futures/account/{margin_mode}/{symbol}': 1,
                         'wallet/crypto/withdraw/{id}': 30,
                     },
                 },
@@ -3401,31 +3401,39 @@ export default class hitbtc extends Exchange {
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} params.marginBalance amount of currency reserved, transfers margin to the specified trading pair
+         * @param {string} params.marginMode "cross" or "isolated"
          * @returns {object} response from the exchange
          */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marginBalance = this.safeString2 (params, 'marginBalance', 'margin_balance');
+        const maxLeverage = this.safeInteger (market['limits']['leverage'], 'max', 50);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
+        params = this.omit (params, [ 'marginBalance', 'margin_balance' ]);
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
-        await this.loadMarkets ();
-        if (params['margin_balance'] === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair');
+        if (marginBalance === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a marginBalance parameter that will transfer margin to the specified trading pair');
         }
-        const market = this.market (symbol);
-        const amount = this.safeNumber (params, 'margin_balance');
-        const maxLeverage = this.safeInteger (market['limits']['leverage'], 'max', 50);
         if (market['type'] !== 'swap') {
             throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
         }
         if ((leverage < 1) || (leverage > maxLeverage)) {
             throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and ' + maxLeverage.toString () + ' for ' + symbol);
         }
+        if (marginMode === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage () requires an extra parameter params["marginMode"]');
+        }
         const request = {
             'symbol': market['id'],
             'leverage': leverage.toString (),
-            'margin_balance': this.amountToPrecision (symbol, amount),
-            // 'strict_validate': false,
+            'margin_balance': this.amountToPrecision (symbol, marginBalance),
+            'margin_mode': marginMode,
         };
-        return await this.privatePutFuturesAccountIsolatedSymbol (this.extend (request, params));
+        return await this.privatePutFuturesAccountMarginModeSymbol (this.extend (request, params));
     }
 
     async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
