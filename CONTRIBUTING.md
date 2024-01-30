@@ -505,10 +505,13 @@ Therefore we have a family of `safe*` functions:
 - `safeString (object, key, default)`, `safeString2 (object, key1, key2, default)` – for parsing ids, types, statuses
 - `safeStringLower (object, key, default)`, `safeStringLower2 (object, key1, key2, default)` – for parsing and turning to lowercase
 - `safeStringUpper (object, key, default)`, `safeStringUpper2 (object, key1, key2, default)` – for parsing and turning to lowercase
+- `safeBool(object, key, default)` - for parsing bools inside dictionaries and arrays/lists
+- `safeList(object, key, default)` - for parsing lists/arrays inside dictionaries and arrays/lists
+- `safeDict(object, key, default)` - for parsing dictionaries inside dictionaries and arrays/lists
 - `safeValue (object, key, default)`, `safeValue2 (object, key1, key2, default)` – for parsing objects (dictionaries) and arrays (lists)
 - `safeTimestamp (object, key, default)`, `safeTimestamp2 (object, key1, key2, default)` – for parsing UNIX timestamps in seconds
 
-The `safeValue` function is used for objects inside objects, arrays inside objects and boolean `true/false` values.
+The `safeValue` function is used for objects inside objects, arrays inside objects and boolean `true/false` values (**deprecated, use it only when you don't know exactly which type is going to be returned, otherwise prefer** `safeBool/safeDict/safeList`).
 
 If you need to search for several different keys within an object you have available the `safeMethodN` function's family that allows for a search with an arbitrary number of keys by accepting an array of keys as an argument.
 
