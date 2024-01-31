@@ -106,9 +106,14 @@ export default class bitmex extends bitmexRest {
             'op': 'subscribe',
             'args': messageHashes,
         };
-        const tickers = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         if (this.newUpdates) {
-            return tickers;
+            if (symbols === undefined) {
+                return ticker;
+            }
+            const result = {};
+            result[ticker['symbol']] = ticker;
+            return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
