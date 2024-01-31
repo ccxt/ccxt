@@ -384,11 +384,13 @@
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
                 "bid": "bid ask crossed",
-                "ask": "bid ask crossed"
+                "ask": "bid ask crossed",
+                "vwap": "error in vwap calculation"
             },
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "baseVolume": "quoteVolume >= baseVolume * low is failing",
+                "vwap": "error in vwap calculation"
             }
         }
     },
