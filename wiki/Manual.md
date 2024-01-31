@@ -6362,7 +6362,7 @@ From `BaseError` derives two different families of errors: `OperationFailed` and
 ### OperationFailed
 <a name="NetworkError" id="NetworkError"></a>
 
-An `OperationFailed` happens when user sends **correctly constructed & valid request** to exchange, but an non-deterministic problem occurred. In suchcases, you might consider retrying after some time.
+An `OperationFailed` happens when user sends **correctly constructed & valid request** to exchange, but an non-deterministic problem occurred. In such cases, you might consider retrying after some time.
 - maintenance ongoing
 - internet/network connectivitiy issues
 - DDoS protections
