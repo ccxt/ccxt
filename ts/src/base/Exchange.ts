@@ -5003,7 +5003,7 @@ export default class Exchange {
         }
     }
 
-    async createPostOnlyOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number, params = {}) {
+    async createPostOnlyOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         if (!this.has['createPostOnlyOrder']) {
             throw new NotSupported (this.id + 'createPostOnlyOrder() is not supported yet');
         }
@@ -5011,7 +5011,7 @@ export default class Exchange {
         return await this.createOrder (symbol, type, side, amount, price, query);
     }
 
-    async createReduceOnlyOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number, params = {}) {
+    async createReduceOnlyOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         if (!this.has['createReduceOnlyOrder']) {
             throw new NotSupported (this.id + 'createReduceOnlyOrder() is not supported yet');
         }
