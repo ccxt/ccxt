@@ -3217,7 +3217,7 @@ export default class hitbtc extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const leverage = this.safeString (params, 'leverage');
-        if (market['type'] === 'swap') {
+        if (market['swap']) {
             if (leverage === undefined) {
                 throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a leverage parameter for swap markets');
             }
@@ -3240,18 +3240,13 @@ export default class hitbtc extends Exchange {
         let marginMode = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('modifyMarginHelper', market, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('modifyMarginHelper', params);
-        params = this.omit (params, [ 'marginMode', 'margin' ]);
         let response = undefined;
-        if (marginMode !== undefined) {
+        if (marketType === 'swap') {
+            response = await this.privatePutFuturesAccountIsolatedSymbol (this.extend (request, params));
+        } else if ((marketType === 'margin') || (marketType === 'spot') || (marginMode === 'isolated')) {
             response = await this.privatePutMarginAccountIsolatedSymbol (this.extend (request, params));
         } else {
-            if (marketType === 'swap') {
-                response = await this.privatePutFuturesAccountIsolatedSymbol (this.extend (request, params));
-            } else if (marketType === 'margin') {
-                response = await this.privatePutMarginAccountIsolatedSymbol (this.extend (request, params));
-            } else {
-                throw new NotSupported (this.id + ' modifyMarginHelper() not support this market type');
-            }
+            throw new NotSupported (this.id + ' modifyMarginHelper() not support this market type');
         }
         //
         //     {
