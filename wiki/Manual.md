@@ -4730,7 +4730,7 @@ Returns
 The `cancelOrder()` is usually used on open orders only. However, it may happen that your order gets executed (filled and closed)
 before your cancel-request comes in, so a cancel-request might hit an already-closed order.
 
-A cancel-request might also throw a `NetworkError` indicating that the order might or might not have been canceled successfully and whether you need to retry or not. Consecutive calls to `cancelOrder()` may hit an already canceled order as well.
+A cancel-request might also throw a `OperationFailed` indicating that the order might or might not have been canceled successfully and whether you need to retry or not. Consecutive calls to `cancelOrder()` may hit an already canceled order as well.
 
 As such, `cancelOrder()` can throw an `OrderNotFound` exception in these cases:
 - canceling an already-closed order
@@ -6196,11 +6196,12 @@ So, in such cases you will need to communicate a "CORS" proxy, which would redir
 
 - [Exception Hierarchy](#exception-hierarchy)
 - [ExchangeError](#exchangeerror)
-- [NetworkError](#networkerror)
+- [OperationFailed](#operationfailed)
 - [DDoSProtection](#ddosprotection)
+- [RateLimitExceeded](#ratelimitexceeded)
+- [RequestTimeout](#requesttimeout)
 - [RequestTimeout](#requesttimeout)
 - [ExchangeNotAvailable](#exchangenotavailable)
-- [InvalidNonce](#invalidnonce)
 
 The error handling with CCXT is done with the exception mechanism that is natively available with all languages.
 
@@ -6216,7 +6217,7 @@ try {
     // if the exception is thrown, it is "caught" and can be handled here
     // the handling reaction depends on the type of the exception
     // and on the purpose or business logic of your application
-    if (e instanceof ccxt.NetworkError) {
+    if (e instanceof ccxt.OperationFailed) {
         console.log (exchange.id, 'fetchTicker failed due to a network error:', e.message)
         // retry or whatever
     } else if (e instanceof ccxt.ExchangeError) {
@@ -6234,7 +6235,7 @@ try {
 try:
     response = await exchange.fetch_order_book('ETH/BTC')
     print(response)
-except ccxt.NetworkError as e:
+except ccxt.OperationFailed as e:
     print(exchange.id, 'fetch_order_book failed due to a network error:', str(e))
     # retry or whatever
 except ccxt.ExchangeError as e:
@@ -6250,7 +6251,7 @@ except Exception as e:
 try {
     $response = $exchange->fetch_trades('ETH/BTC');
     print_r($response);
-} catch (\ccxt\NetworkError $e) {
+} catch (\ccxt\OperationFailed $e) {
     echo $exchange->id . ' fetch_trades failed due to a network error: ' . $e->getMessage () . "\n";
     // retry or whatever
 } catch (\ccxt\ExchangeError $e) {
@@ -6350,9 +6351,9 @@ The exception inheritance hierarchy lives in this file: https://github.com/ccxt/
         |   |
         |   +---+ OnMaintenance
         |
+        +---+ RateLimitExceeded
+        |
         +---+ DDoSProtection
-            |
-            +---+ RateLimitExceeded
 ```
 
 The `BaseError` class is a generic root error class for all sorts of errors, including accessibility and request/response mismatch. If you don't need to catch any specific subclass of exceptions, you can just use `BaseError`, where all exception types are being caught.
