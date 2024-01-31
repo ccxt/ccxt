@@ -2,6 +2,7 @@ from ccxt.base.types import Entry
 
 
 class ImplicitAPI:
+    public_get_market_books_full = publicGetMarketBooksFull = Entry('market/books-full', 'public', 'GET', {'cost': 2})
     public_get_market_tickers = publicGetMarketTickers = Entry('market/tickers', 'public', 'GET', {'cost': 1})
     public_get_market_ticker = publicGetMarketTicker = Entry('market/ticker', 'public', 'GET', {'cost': 1})
     public_get_market_index_tickers = publicGetMarketIndexTickers = Entry('market/index-tickers', 'public', 'GET', {'cost': 1})
@@ -82,6 +83,7 @@ class ImplicitAPI:
     private_get_sprd_order = privateGetSprdOrder = Entry('sprd/order', 'private', 'GET', {'cost': 0.3333333333333333})
     private_get_sprd_orders_pending = privateGetSprdOrdersPending = Entry('sprd/orders-pending', 'private', 'GET', {'cost': 0.3333333333333333})
     private_get_sprd_orders_history = privateGetSprdOrdersHistory = Entry('sprd/orders-history', 'private', 'GET', {'cost': 0.5})
+    private_get_sprd_orders_history_archive = privateGetSprdOrdersHistoryArchive = Entry('sprd/orders-history-archive', 'private', 'GET', {'cost': 0.5})
     private_get_sprd_trades = privateGetSprdTrades = Entry('sprd/trades', 'private', 'GET', {'cost': 0.3333333333333333})
     private_get_trade_order = privateGetTradeOrder = Entry('trade/order', 'private', 'GET', {'cost': 0.3333333333333333})
     private_get_trade_orders_pending = privateGetTradeOrdersPending = Entry('trade/orders-pending', 'private', 'GET', {'cost': 0.3333333333333333})

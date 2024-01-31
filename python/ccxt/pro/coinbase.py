@@ -6,10 +6,9 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Int, Order, OrderBook, Ticker, Trade
+from ccxt.base.types import Int, Order, OrderBook, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import ArgumentsRequired
 
 
 class coinbase(ccxt.async_support.coinbase):
@@ -100,7 +99,7 @@ class coinbase(ccxt.async_support.coinbase):
         name = 'ticker'
         return await self.subscribe(name, symbol, params)
 
-    async def watch_tickers(self, symbols=None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-batch-channel
@@ -109,10 +108,12 @@ class coinbase(ccxt.async_support.coinbase):
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         if symbols is None:
-            raise ArgumentsRequired(self.id + ' watchTickers requires a symbols argument')
+            symbols = self.symbols
         name = 'ticker_batch'
         tickers = await self.subscribe(name, symbols, params)
-        return tickers
+        if self.newUpdates:
+            return tickers
+        return self.tickers
 
     def handle_tickers(self, client, message):
         #

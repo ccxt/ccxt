@@ -64,8 +64,12 @@ class htx(Exchange, ImplicitAPI):
                 'createOrders': True,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': True,
+                'createStopLossOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
+                'createTakeProfitOrder': True,
+                'createTrailingPercentOrder': True,
+                'createTriggerOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
@@ -93,6 +97,7 @@ class htx(Exchange, ImplicitAPI):
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': True,
                 'fetchL3OrderBook': None,
+                'fetchLastPrices': True,
                 'fetchLedger': True,
                 'fetchLedgerEntry': None,
                 'fetchLeverage': False,
@@ -623,10 +628,13 @@ class htx(Exchange, ImplicitAPI):
                     'private': {
                         'get': {
                             # Future Account Interface
+                            'api/v1/contract_sub_auth_list': 1,
                             'api/v1/contract_api_trading_status': 1,
                             # Swap Account Interface
+                            'swap-api/v1/swap_sub_auth_list': 1,
                             'swap-api/v1/swap_api_trading_status': 1,
                             # Swap Account Interface
+                            'linear-swap-api/v1/swap_sub_auth_list': 1,
                             'linear-swap-api/v1/swap_api_trading_status': 1,
                             'linear-swap-api/v1/swap_cross_position_side': 1,
                             'linear-swap-api/v1/swap_position_side': 1,
@@ -2202,6 +2210,121 @@ class htx(Exchange, ImplicitAPI):
             ticker['datetime'] = self.iso8601(timestamp)
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
+
+    async def fetch_last_prices(self, symbols: Strings = None, params={}):
+        """
+        fetches the last price for multiple markets
+        :see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb81024-77b5-11ed-9966-0242ac110003 linear swap & linear future
+        :see: https://www.htx.com/en-us/opend/newApiPages/?id=28c2e8fc-77ae-11ed-9966-0242ac110003 inverse future
+        :see: https://www.htx.com/en-us/opend/newApiPages/?id=5d517ef5-77b6-11ed-9966-0242ac110003 inverse swap
+        :param str[]|None symbols: unified symbols of the markets to fetch the last prices
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of lastprices structures
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        market = self.get_market_from_symbols(symbols)
+        type = None
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchLastPrices', market, params)
+        type, params = self.handle_market_type_and_params('fetchLastPrices', market, params)
+        response = None
+        if ((type == 'swap') or (type == 'future')) and (subType == 'linear'):
+            response = await self.contractPublicGetLinearSwapExMarketTrade(params)
+            #
+            #     {
+            #         "ch": "market.*.trade.detail",
+            #         "status": "ok",
+            #         "tick": {
+            #           "data": [
+            #             {
+            #               "amount": "4",
+            #               "quantity": "40",
+            #               "trade_turnover": "22.176",
+            #               "ts": 1703697705028,
+            #               "id": 1000003558478170000,
+            #               "price": "0.5544",
+            #               "direction": "buy",
+            #               "contract_code": "MANA-USDT",
+            #               "business_type": "swap",
+            #               "trade_partition": "USDT"
+            #             },
+            #           ],
+            #           "id": 1703697740147,
+            #           "ts": 1703697740147
+            #         },
+            #         "ts": 1703697740147
+            #     }
+            #
+        elif (type == 'swap') and (subType == 'inverse'):
+            response = await self.contractPublicGetSwapExMarketTrade(params)
+            #
+            #     {
+            #         "ch": "market.*.trade.detail",
+            #         "status": "ok",
+            #         "tick": {
+            #           "data": [
+            #             {
+            #               "amount": "6",
+            #               "quantity": "94.5000945000945000945000945000945000945",
+            #               "ts": 1703698704594,
+            #               "id": 1000001187811060000,
+            #               "price": "0.63492",
+            #               "direction": "buy",
+            #               "contract_code": "XRP-USD"
+            #             },
+            #           ],
+            #           "id": 1703698706589,
+            #           "ts": 1703698706589
+            #         },
+            #         "ts": 1703698706589
+            #     }
+            #
+        elif (type == 'future') and (subType == 'inverse'):
+            response = await self.contractPublicGetMarketTrade(params)
+            #
+            #     {
+            #         "ch": "market.*.trade.detail",
+            #         "status": "ok",
+            #         "tick": {
+            #           "data": [
+            #             {
+            #               "amount": "20",
+            #               "quantity": "44.4444444444444444444444444444444444444",
+            #               "ts": 1686134498885,
+            #               "id": 2323000000174820000,
+            #               "price": "4.5",
+            #               "direction": "sell",
+            #               "symbol": "DORA_CW"
+            #             },
+            #           ],
+            #           "id": 1703698855142,
+            #           "ts": 1703698855142
+            #         },
+            #         "ts": 1703698855142
+            #     }
+            #
+        else:
+            raise NotSupported(self.id + ' fetchLastPrices() does not support ' + type + ' markets yet')
+        tick = self.safe_value(response, 'tick', {})
+        data = self.safe_value(tick, 'data', [])
+        return self.parse_last_prices(data, symbols)
+
+    def parse_last_price(self, entry, market: Market = None):
+        # example responses are documented in fetchLastPrices
+        marketId = self.safe_string_2(entry, 'symbol', 'contract_code')
+        market = self.safe_market(marketId, market)
+        price = self.safe_number(entry, 'price')
+        direction = self.safe_string(entry, 'direction')  # "buy" or "sell"
+        # group timestamp should not be assigned to the individual trades' times
+        return {
+            'symbol': market['symbol'],
+            'timestamp': None,
+            'datetime': None,
+            'price': price,
+            'side': direction,
+            'info': entry,
+        }
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -4646,6 +4769,27 @@ class htx(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
+    async def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, trailingPercent=None, trailingTriggerPrice=None, params={}) -> Order:
+        """
+        create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much you want to trade in units of the base currency, or number of contracts
+        :param float [price]: the price for the order to be filled at, in units of the quote currency, ignored in market orders
+        :param float trailingPercent: the percent to trail away from the current market price
+        :param float trailingTriggerPrice: the price to activate a trailing order, default uses the price argument
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if trailingPercent is None:
+            raise ArgumentsRequired(self.id + ' createTrailingPercentOrder() requires a trailingPercent argument')
+        if trailingTriggerPrice is None:
+            raise ArgumentsRequired(self.id + ' createTrailingPercentOrder() requires a trailingTriggerPrice argument')
+        params['trailingPercent'] = trailingPercent
+        params['trailingTriggerPrice'] = trailingTriggerPrice
+        return await self.create_order(symbol, type, side, amount, price, params)
+
     async def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
          * @ignore
@@ -4819,14 +4963,10 @@ class htx(Exchange, ImplicitAPI):
             if type == 'limit' or type == 'ioc' or type == 'fok' or type == 'post_only':
                 request['price'] = self.price_to_precision(symbol, price)
         if not isStopLossTriggerOrder and not isTakeProfitTriggerOrder:
-            leverRate = self.safe_integer_n(params, ['leverRate', 'lever_rate', 'leverage'], 1)
             reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only', False)
-            openOrClose = 'close' if (reduceOnly) else 'open'
-            offset = self.safe_string(params, 'offset', openOrClose)
-            request['offset'] = offset
             if reduceOnly:
                 request['reduce_only'] = 1
-            request['lever_rate'] = leverRate
+            request['lever_rate'] = self.safe_integer_n(params, ['leverRate', 'lever_rate', 'leverage'], 1)
             if not isTrailingPercentOrder:
                 request['order_price_type'] = type
         broker = self.safe_value(self.options, 'broker', {})
@@ -4887,7 +5027,7 @@ class htx(Exchange, ImplicitAPI):
             contractRequest = self.create_contract_order_request(symbol, type, side, amount, price, params)
             if market['linear']:
                 marginMode = None
-                marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
+                marginMode, contractRequest = self.handle_margin_mode_and_params('createOrder', contractRequest)
                 marginMode = 'cross' if (marginMode is None) else marginMode
                 if marginMode == 'isolated':
                     if isStop:

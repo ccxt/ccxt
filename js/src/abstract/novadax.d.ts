@@ -19,9 +19,13 @@ interface Exchange {
     privateGetAccountSubsTransferRecord(params?: {}): Promise<implicitReturnType>;
     privateGetWalletQueryDepositWithdraw(params?: {}): Promise<implicitReturnType>;
     privatePostOrdersCreate(params?: {}): Promise<implicitReturnType>;
+    privatePostOrdersBatchCreate(params?: {}): Promise<implicitReturnType>;
     privatePostOrdersCancel(params?: {}): Promise<implicitReturnType>;
-    privatePostAccountWithdrawCoin(params?: {}): Promise<implicitReturnType>;
+    privatePostOrdersBatchCancel(params?: {}): Promise<implicitReturnType>;
+    privatePostOrdersCancelBySymbol(params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubsTransfer(params?: {}): Promise<implicitReturnType>;
+    privatePostWalletWithdrawCoin(params?: {}): Promise<implicitReturnType>;
+    privatePostAccountWithdrawCoin(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

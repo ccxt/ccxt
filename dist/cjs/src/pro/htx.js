@@ -930,11 +930,16 @@ class htx extends htx$1 {
                 // inject trade in existing order by faking an order object
                 const orderId = this.safeString(parsedTrade, 'order');
                 const trades = [parsedTrade];
+                const status = this.parseOrderStatus(this.safeString2(data, 'orderStatus', 'status', 'closed'));
+                const filled = this.safeString(data, 'execAmt');
+                const remaining = this.safeString(data, 'remainAmt');
                 const order = {
                     'id': orderId,
                     'trades': trades,
-                    'status': 'closed',
+                    'status': status,
                     'symbol': market['symbol'],
+                    'filled': this.parseNumber(filled),
+                    'remaining': this.parseNumber(remaining),
                 };
                 parsedOrder = order;
             }

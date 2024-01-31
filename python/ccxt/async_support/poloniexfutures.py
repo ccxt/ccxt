@@ -46,6 +46,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': False,
                 'fetchFundingRate': True,
+                'fetchFundingRateHistory': False,
                 'fetchL3OrderBook': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,

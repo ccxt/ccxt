@@ -53,8 +53,12 @@ class htx extends Exchange {
                 'createOrders' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => true,
+                'createStopLossOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
+                'createTakeProfitOrder' => true,
+                'createTrailingPercentOrder' => true,
+                'createTriggerOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
@@ -82,6 +86,7 @@ class htx extends Exchange {
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => true,
                 'fetchL3OrderBook' => null,
+                'fetchLastPrices' => true,
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => null,
                 'fetchLeverage' => false,
@@ -612,10 +617,13 @@ class htx extends Exchange {
                     'private' => array(
                         'get' => array(
                             // Future Account Interface
+                            'api/v1/contract_sub_auth_list' => 1,
                             'api/v1/contract_api_trading_status' => 1,
                             // Swap Account Interface
+                            'swap-api/v1/swap_sub_auth_list' => 1,
                             'swap-api/v1/swap_api_trading_status' => 1,
                             // Swap Account Interface
+                            'linear-swap-api/v1/swap_sub_auth_list' => 1,
                             'linear-swap-api/v1/swap_api_trading_status' => 1,
                             'linear-swap-api/v1/swap_cross_position_side' => 1,
                             'linear-swap-api/v1/swap_position_side' => 1,
@@ -2266,6 +2274,126 @@ class htx extends Exchange {
             }
             return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
+    }
+
+    public function fetch_last_prices(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches the last price for multiple markets
+             * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81024-77b5-11ed-9966-0242ac110003 linear swap & linear future
+             * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c2e8fc-77ae-11ed-9966-0242ac110003 inverse future
+             * @see https://www.htx.com/en-us/opend/newApiPages/?id=5d517ef5-77b6-11ed-9966-0242ac110003 inverse swap
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the last prices
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of lastprices structures
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $market = $this->get_market_from_symbols($symbols);
+            $type = null;
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchLastPrices', $market, $params);
+            list($type, $params) = $this->handle_market_type_and_params('fetchLastPrices', $market, $params);
+            $response = null;
+            if ((($type === 'swap') || ($type === 'future')) && ($subType === 'linear')) {
+                $response = Async\await($this->contractPublicGetLinearSwapExMarketTrade ($params));
+                //
+                //     {
+                //         "ch" => "market.*.trade.detail",
+                //         "status" => "ok",
+                //         "tick" => array(
+                //           "data" => array(
+                //             array(
+                //               "amount" => "4",
+                //               "quantity" => "40",
+                //               "trade_turnover" => "22.176",
+                //               "ts" => 1703697705028,
+                //               "id" => 1000003558478170000,
+                //               "price" => "0.5544",
+                //               "direction" => "buy",
+                //               "contract_code" => "MANA-USDT",
+                //               "business_type" => "swap",
+                //               "trade_partition" => "USDT"
+                //             ),
+                //           ),
+                //           "id" => 1703697740147,
+                //           "ts" => 1703697740147
+                //         ),
+                //         "ts" => 1703697740147
+                //     }
+                //
+            } elseif (($type === 'swap') && ($subType === 'inverse')) {
+                $response = Async\await($this->contractPublicGetSwapExMarketTrade ($params));
+                //
+                //     {
+                //         "ch" => "market.*.trade.detail",
+                //         "status" => "ok",
+                //         "tick" => array(
+                //           "data" => array(
+                //             array(
+                //               "amount" => "6",
+                //               "quantity" => "94.5000945000945000945000945000945000945",
+                //               "ts" => 1703698704594,
+                //               "id" => 1000001187811060000,
+                //               "price" => "0.63492",
+                //               "direction" => "buy",
+                //               "contract_code" => "XRP-USD"
+                //             ),
+                //           ),
+                //           "id" => 1703698706589,
+                //           "ts" => 1703698706589
+                //         ),
+                //         "ts" => 1703698706589
+                //     }
+                //
+            } elseif (($type === 'future') && ($subType === 'inverse')) {
+                $response = Async\await($this->contractPublicGetMarketTrade ($params));
+                //
+                //     {
+                //         "ch" => "market.*.trade.detail",
+                //         "status" => "ok",
+                //         "tick" => array(
+                //           "data" => array(
+                //             array(
+                //               "amount" => "20",
+                //               "quantity" => "44.4444444444444444444444444444444444444",
+                //               "ts" => 1686134498885,
+                //               "id" => 2323000000174820000,
+                //               "price" => "4.5",
+                //               "direction" => "sell",
+                //               "symbol" => "DORA_CW"
+                //             ),
+                //           ),
+                //           "id" => 1703698855142,
+                //           "ts" => 1703698855142
+                //         ),
+                //         "ts" => 1703698855142
+                //     }
+                //
+            } else {
+                throw new NotSupported($this->id . ' fetchLastPrices() does not support ' . $type . ' markets yet');
+            }
+            $tick = $this->safe_value($response, 'tick', array());
+            $data = $this->safe_value($tick, 'data', array());
+            return $this->parse_last_prices($data, $symbols);
+        }) ();
+    }
+
+    public function parse_last_price($entry, ?array $market = null) {
+        // example responses are documented in fetchLastPrices
+        $marketId = $this->safe_string_2($entry, 'symbol', 'contract_code');
+        $market = $this->safe_market($marketId, $market);
+        $price = $this->safe_number($entry, 'price');
+        $direction = $this->safe_string($entry, 'direction'); // "buy" or "sell"
+        // group timestamp should not be assigned to the individual trades' times
+        return array(
+            'symbol' => $market['symbol'],
+            'timestamp' => null,
+            'datetime' => null,
+            'price' => $price,
+            'side' => $direction,
+            'info' => $entry,
+        );
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
@@ -4919,6 +5047,32 @@ class htx extends Exchange {
         }) ();
     }
 
+    public function create_trailing_percent_order(string $symbol, string $type, string $side, $amount, $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $trailingPercent, $trailingTriggerPrice, $params) {
+            /**
+             * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much you want to trade in units of the base currency, or number of contracts
+             * @param {float} [$price] the $price for the order to be filled at, in units of the quote currency, ignored in market orders
+             * @param {float} $trailingPercent the percent to trail away from the current market $price
+             * @param {float} $trailingTriggerPrice the $price to activate a trailing order, default uses the $price argument
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            if ($trailingPercent === null) {
+                throw new ArgumentsRequired($this->id . ' createTrailingPercentOrder() requires a $trailingPercent argument');
+            }
+            if ($trailingTriggerPrice === null) {
+                throw new ArgumentsRequired($this->id . ' createTrailingPercentOrder() requires a $trailingTriggerPrice argument');
+            }
+            $params['trailingPercent'] = $trailingPercent;
+            $params['trailingTriggerPrice'] = $trailingTriggerPrice;
+            return Async\await($this->create_order($symbol, $type, $side, $amount, $price, $params));
+        }) ();
+    }
+
     public function create_spot_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
@@ -5115,15 +5269,11 @@ class htx extends Exchange {
             }
         }
         if (!$isStopLossTriggerOrder && !$isTakeProfitTriggerOrder) {
-            $leverRate = $this->safe_integer_n($params, array( 'leverRate', 'lever_rate', 'leverage' ), 1);
             $reduceOnly = $this->safe_value_2($params, 'reduceOnly', 'reduce_only', false);
-            $openOrClose = ($reduceOnly) ? 'close' : 'open';
-            $offset = $this->safe_string($params, 'offset', $openOrClose);
-            $request['offset'] = $offset;
             if ($reduceOnly) {
                 $request['reduce_only'] = 1;
             }
-            $request['lever_rate'] = $leverRate;
+            $request['lever_rate'] = $this->safe_integer_n($params, array( 'leverRate', 'lever_rate', 'leverage' ), 1);
             if (!$isTrailingPercentOrder) {
                 $request['order_price_type'] = $type;
             }
@@ -5189,7 +5339,7 @@ class htx extends Exchange {
                 $contractRequest = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $params);
                 if ($market['linear']) {
                     $marginMode = null;
-                    list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+                    list($marginMode, $contractRequest) = $this->handle_margin_mode_and_params('createOrder', $contractRequest);
                     $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
                     if ($marginMode === 'isolated') {
                         if ($isStop) {

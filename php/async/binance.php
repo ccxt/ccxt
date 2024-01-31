@@ -56,8 +56,12 @@ class binance extends Exchange {
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
+                'createStopLossOrder' => true,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => true,
+                'createTakeProfitOrder' => true,
+                'createTrailingPercentOrder' => true,
+                'createTriggerOrder' => true,
                 'editOrder' => true,
                 'fetchAccounts' => null,
                 'fetchBalance' => true,
@@ -88,6 +92,7 @@ class binance extends Exchange {
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
                 'fetchL3OrderBook' => false,
+                'fetchLastPrices' => true,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => true,
@@ -224,6 +229,7 @@ class binance extends Exchange {
                         'margin/allPairs' => 0.1,
                         'margin/priceIndex' => 1,
                         // these endpoints require $this->apiKey . $this->secret
+                        'spot/delist-schedule' => 10,
                         'asset/assetDividend' => 1,
                         'asset/dribblet' => 0.1,
                         'asset/transfer' => 0.1,
@@ -233,6 +239,7 @@ class binance extends Exchange {
                         'asset/convert-transfer/queryByPage' => 0.033335,
                         'asset/wallet/balance' => 6, // Weight(IP) => 60 => cost = 0.1 * 60 = 6
                         'asset/custody/transfer-history' => 6, // Weight(IP) => 60 => cost = 0.1 * 60 = 6
+                        'margin/borrow-repay' => 1,
                         'margin/loan' => 1,
                         'margin/repay' => 1,
                         'margin/account' => 1,
@@ -308,6 +315,7 @@ class binance extends Exchange {
                         'convert/exchangeInfo' => 50,
                         'convert/assetInfo' => 10,
                         'convert/orderStatus' => 0.6667,
+                        'convert/limit/queryOpenOrders' => 20.001, // Weight(UID) => 3000 => cost = 0.006667 * 3000 = 20.001
                         'account/status' => 0.1,
                         'account/apiTradingStatus' => 0.1,
                         'account/apiRestrictions/ipRestriction' => 0.1,
@@ -484,6 +492,7 @@ class binance extends Exchange {
                         'capital/withdraw/apply' => 4.0002, // Weight(UID) => 600 => cost = 0.006667 * 600 = 4.0002
                         'capital/contract/convertible-coins' => 4.0002,
                         'capital/deposit/credit-apply' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
+                        'margin/borrow-repay' => 20.001,
                         'margin/transfer' => 4.0002,
                         'margin/loan' => 20.001, // Weight(UID) => 3000 => cost = 0.006667 * 3000 = 20.001
                         'margin/repay' => 20.001,
@@ -578,6 +587,8 @@ class binance extends Exchange {
                         'loan/vip/repay' => 40.002,
                         'convert/getQuote' => 1.3334, // Weight(UID) => 200 => cost = 0.006667 * 200 = 1.3334
                         'convert/acceptQuote' => 3.3335, // Weight(UID) => 500 => cost = 0.006667 * 500 = 3.3335
+                        'convert/limit/placeOrder' => 3.3335, // Weight(UID) => 500 => cost = 0.006667 * 500 = 3.3335
+                        'convert/limit/cancelOrder' => 1.3334, // Weight(UID) => 200 => cost = 0.006667 * 200 = 1.3334
                         'portfolio/auto-collection' => 150, // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/asset-collection' => 6, // Weight(IP) => 60 => cost = 0.1 * 60 = 6
                         'portfolio/bnb-transfer' => 150, // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
@@ -951,6 +962,7 @@ class binance extends Exchange {
                 ),
                 'papi' => array(
                     'get' => array(
+                        'ping' => 1,
                         'um/order' => 1, // 1
                         'um/openOrder' => 1, // 1
                         'um/openOrders' => 1, // 1
@@ -3138,6 +3150,109 @@ class binance extends Exchange {
             }
             return $this->parse_tickers($response, $symbols);
         }) ();
+    }
+
+    public function fetch_last_prices(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches the last price for multiple markets
+             * @see https://binance-docs.github.io/apidocs/spot/en/#symbol-price-ticker         // spot
+             * @see https://binance-docs.github.io/apidocs/future/en/#symbol-price-ticker       // swap
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker     // future
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the last prices
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of lastprices structures
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $market = $this->get_market_from_symbols($symbols);
+            $type = null;
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchLastPrices', $market, $params);
+            list($type, $params) = $this->handle_market_type_and_params('fetchLastPrices', $market, $params);
+            $response = null;
+            if ($this->is_linear($type, $subType)) {
+                $response = Async\await($this->fapiPublicV2GetTickerPrice ($params));
+                //
+                //     array(
+                //         array(
+                //             "symbol" => "LTCBTC",
+                //             "price" => "4.00000200"
+                //             "time" => 1589437530011
+                //         ),
+                //         ...
+                //     )
+                //
+            } elseif ($this->is_inverse($type, $subType)) {
+                $response = Async\await($this->dapiPublicGetTickerPrice ($params));
+                //
+                //     array(
+                //         {
+                //             "symbol" => "BTCUSD_200626",
+                //             "ps" => "9647.8",
+                //             "price" => "9647.8",
+                //             "time" => 1591257246176
+                //         }
+                //     )
+                //
+            } elseif ($type === 'spot') {
+                $response = Async\await($this->publicGetTickerPrice ($params));
+                //
+                //     array(
+                //         array(
+                //             "symbol" => "LTCBTC",
+                //             "price" => "4.00000200"
+                //         ),
+                //         ...
+                //     )
+                //
+            } else {
+                throw new NotSupported($this->id . ' fetchLastPrices() does not support ' . $type . ' markets yet');
+            }
+            return $this->parse_last_prices($response, $symbols);
+        }) ();
+    }
+
+    public function parse_last_price($entry, ?array $market = null) {
+        //
+        // spot
+        //
+        //     {
+        //         "symbol" => "LTCBTC",
+        //         "price" => "4.00000200"
+        //     }
+        //
+        // usdm (swap/future)
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "price" => "6000.01",
+        //         "time" => 1589437530011   // Transaction time
+        //     }
+        //
+        //
+        // coinm (swap/future)
+        //
+        //     {
+        //         "symbol" => "BTCUSD_200626", // symbol ("BTCUSD_200626", "BTCUSD_PERP", etc..)
+        //         "ps" => "BTCUSD", // pair
+        //         "price" => "9647.8",
+        //         "time" => 1591257246176
+        //     }
+        //
+        $timestamp = $this->safe_integer($entry, 'time');
+        $type = ($timestamp === null) ? 'spot' : 'swap';
+        $marketId = $this->safe_string($entry, 'symbol');
+        $market = $this->safe_market($marketId, $market, null, $type);
+        $price = $this->safe_number($entry, 'price');
+        return array(
+            'symbol' => $market['symbol'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'price' => $price,
+            'side' => null,
+            'info' => $entry,
+        );
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
@@ -5389,6 +5504,7 @@ class binance extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch my dust $trades for
              * @param {int} [$limit] the maximum number of dust $trades to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->type] 'spot' or 'margin', default spot
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             //
@@ -5402,6 +5518,11 @@ class binance extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = $since;
                 $request['endTime'] = $this->sum($since, 7776000000);
+            }
+            $accountType = $this->safe_string_upper($params, 'type');
+            $params = $this->omit($params, 'type');
+            if ($accountType !== null) {
+                $request['accountType'] = $accountType;
             }
             $response = Async\await($this->sapiGetAssetDribblet (array_merge($request, $params)));
             //     {
@@ -6029,12 +6150,13 @@ class binance extends Exchange {
             /**
              * transfer $currency internally between wallets on the same account
              * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
-             * @see https://binance-docs.github.io/apidocs/spot/en/#isolated-margin-account-transfer-margin
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to transfer
              * @param {string} $fromAccount account to transfer from
              * @param {string} $toAccount account to transfer to
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->type] exchange specific transfer type
+             * @param {string} [$params->symbol] the unified $symbol, required for isolated margin transfers
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
              */
             Async\await($this->load_markets());
@@ -6045,70 +6167,77 @@ class binance extends Exchange {
             );
             $request['type'] = $this->safe_string($params, 'type');
             $params = $this->omit($params, 'type');
-            $response = null;
             if ($request['type'] === null) {
                 $symbol = $this->safe_string($params, 'symbol');
+                $market = null;
                 if ($symbol !== null) {
+                    $market = $this->market($symbol);
                     $params = $this->omit($params, 'symbol');
                 }
                 $fromId = strtoupper($this->convert_type_to_account($fromAccount));
                 $toId = strtoupper($this->convert_type_to_account($toAccount));
+                $isolatedSymbol = null;
+                if ($market !== null) {
+                    $isolatedSymbol = $market['id'];
+                }
                 if ($fromId === 'ISOLATED') {
                     if ($symbol === null) {
                         throw new ArgumentsRequired($this->id . ' transfer () requires $params["symbol"] when $fromAccount is ' . $fromAccount);
-                    } else {
-                        $fromId = $this->market_id($symbol);
                     }
                 }
                 if ($toId === 'ISOLATED') {
                     if ($symbol === null) {
                         throw new ArgumentsRequired($this->id . ' transfer () requires $params["symbol"] when $toAccount is ' . $toAccount);
-                    } else {
-                        $toId = $this->market_id($symbol);
                     }
                 }
                 $accountsById = $this->safe_value($this->options, 'accountsById', array());
                 $fromIsolated = !(is_array($accountsById) && array_key_exists($fromId, $accountsById));
                 $toIsolated = !(is_array($accountsById) && array_key_exists($toId, $accountsById));
+                if ($fromIsolated && ($market === null)) {
+                    $isolatedSymbol = $fromId; // allow user provide $symbol from/to account
+                }
+                if ($toIsolated && ($market === null)) {
+                    $isolatedSymbol = $toId;
+                }
                 if ($fromIsolated || $toIsolated) { // Isolated margin transfer
                     $fromFuture = $fromId === 'UMFUTURE' || $fromId === 'CMFUTURE';
                     $toFuture = $toId === 'UMFUTURE' || $toId === 'CMFUTURE';
                     $fromSpot = $fromId === 'MAIN';
                     $toSpot = $toId === 'MAIN';
                     $funding = $fromId === 'FUNDING' || $toId === 'FUNDING';
-                    $mining = $fromId === 'MINING' || $toId === 'MINING';
                     $option = $fromId === 'OPTION' || $toId === 'OPTION';
-                    $prohibitedWithIsolated = $fromFuture || $toFuture || $mining || $funding || $option;
+                    $prohibitedWithIsolated = $fromFuture || $toFuture || $funding || $option;
                     if (($fromIsolated || $toIsolated) && $prohibitedWithIsolated) {
                         throw new BadRequest($this->id . ' transfer () does not allow transfers between ' . $fromAccount . ' and ' . $toAccount);
                     } elseif ($toSpot && $fromIsolated) {
-                        $request['transFrom'] = 'ISOLATED_MARGIN';
-                        $request['transTo'] = 'SPOT';
-                        $request['symbol'] = $fromId;
-                        $response = Async\await($this->sapiPostMarginIsolatedTransfer (array_merge($request, $params)));
+                        $fromId = 'ISOLATED_MARGIN';
+                        $request['fromSymbol'] = $isolatedSymbol;
                     } elseif ($fromSpot && $toIsolated) {
-                        $request['transFrom'] = 'SPOT';
-                        $request['transTo'] = 'ISOLATED_MARGIN';
-                        $request['symbol'] = $toId;
-                        $response = Async\await($this->sapiPostMarginIsolatedTransfer (array_merge($request, $params)));
+                        $toId = 'ISOLATED_MARGIN';
+                        $request['toSymbol'] = $isolatedSymbol;
                     } else {
-                        if ($fromIsolated) {
+                        if ($fromIsolated && $toIsolated) {
                             $request['fromSymbol'] = $fromId;
-                            $fromId = 'ISOLATEDMARGIN';
-                        }
-                        if ($toIsolated) {
                             $request['toSymbol'] = $toId;
+                            $fromId = 'ISOLATEDMARGIN';
                             $toId = 'ISOLATEDMARGIN';
+                        } else {
+                            if ($fromIsolated) {
+                                $request['fromSymbol'] = $isolatedSymbol;
+                                $fromId = 'ISOLATEDMARGIN';
+                            }
+                            if ($toIsolated) {
+                                $request['toSymbol'] = $isolatedSymbol;
+                                $toId = 'ISOLATEDMARGIN';
+                            }
                         }
-                        $request['type'] = $fromId . '_' . $toId;
                     }
+                    $request['type'] = $fromId . '_' . $toId;
                 } else {
                     $request['type'] = $fromId . '_' . $toId;
                 }
             }
-            if ($response === null) {
-                $response = Async\await($this->sapiPostAssetTransfer (array_merge($request, $params)));
-            }
+            $response = Async\await($this->sapiPostAssetTransfer (array_merge($request, $params)));
             //
             //     {
             //         "tranId":13526853623
@@ -7758,12 +7887,20 @@ class binance extends Exchange {
     public function fetch_positions(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
+             * @see https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#position-information-user_data
+             * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
+             * @see https://binance-docs.github.io/apidocs/voptions/en/#option-position-information-user_data
              * fetch all open positions
-             * @param {string[]|null} $symbols list of unified market $symbols
+             * @param {string[]} [$symbols] list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
-            $defaultMethod = $this->safe_string($this->options, 'fetchPositions', 'positionRisk');
+            $defaultValue = $this->safe_string($this->options, 'fetchPositions', 'positionRisk');
+            $defaultMethod = null;
+            list($defaultMethod, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'method', $defaultValue);
             if ($defaultMethod === 'positionRisk') {
                 return Async\await($this->fetch_positions_risk($symbols, $params));
             } elseif ($defaultMethod === 'account') {
@@ -7771,7 +7908,7 @@ class binance extends Exchange {
             } elseif ($defaultMethod === 'option') {
                 return Async\await($this->fetch_option_positions($symbols, $params));
             } else {
-                throw new NotSupported($this->id . '.options["fetchPositions"] = "' . $defaultMethod . '" is invalid, please choose between "account", "positionRisk" and "option"');
+                throw new NotSupported($this->id . '.options["fetchPositions"]/params["method"] = "' . $defaultMethod . '" is invalid, please choose between "account", "positionRisk" and "option"');
             }
         }) ();
     }
@@ -8481,7 +8618,7 @@ class binance extends Exchange {
             } else {
                 throw new AuthenticationError($this->id . ' $userDataStream endpoint requires `apiKey` credential');
             }
-        } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2') || ($api === 'papi')) {
+        } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2') || ($api === 'papi' && $path !== 'ping')) {
             $this->check_required_credentials();
             if ($method === 'POST' && (($path === 'order') || ($path === 'sor/order'))) {
                 // inject in implicit API calls
@@ -9041,7 +9178,7 @@ class binance extends Exchange {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * repay borrowed margin and interest
-             * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
+             * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
              * @param {string} $code unified $currency $code of the $currency to repay
              * @param {float} $amount the $amount to repay
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -9053,8 +9190,9 @@ class binance extends Exchange {
                 'asset' => $currency['id'],
                 'amount' => $this->currency_to_precision($code, $amount),
                 'isIsolated' => 'FALSE',
+                'type' => 'REPAY',
             );
-            $response = Async\await($this->sapiPostMarginRepay (array_merge($request, $params)));
+            $response = Async\await($this->sapiPostMarginBorrowRepay (array_merge($request, $params)));
             //
             //     {
             //         "tranId" => 108988250265,
@@ -9069,7 +9207,7 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * repay borrowed margin and interest
-             * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
+             * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
              * @param {string} $symbol unified $market $symbol, required for isolated margin
              * @param {string} $code unified $currency $code of the $currency to repay
              * @param {float} $amount the $amount to repay
@@ -9084,8 +9222,9 @@ class binance extends Exchange {
                 'amount' => $this->currency_to_precision($code, $amount),
                 'symbol' => $market['id'],
                 'isIsolated' => 'TRUE',
+                'type' => 'REPAY',
             );
-            $response = Async\await($this->sapiPostMarginRepay (array_merge($request, $params)));
+            $response = Async\await($this->sapiPostMarginBorrowRepay (array_merge($request, $params)));
             //
             //     {
             //         "tranId" => 108988250265,
@@ -9100,7 +9239,7 @@ class binance extends Exchange {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * create a loan to borrow margin
-             * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
+             * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
              * @param {string} $code unified $currency $code of the $currency to borrow
              * @param {float} $amount the $amount to borrow
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -9112,8 +9251,9 @@ class binance extends Exchange {
                 'asset' => $currency['id'],
                 'amount' => $this->currency_to_precision($code, $amount),
                 'isIsolated' => 'FALSE',
+                'type' => 'BORROW',
             );
-            $response = Async\await($this->sapiPostMarginLoan (array_merge($request, $params)));
+            $response = Async\await($this->sapiPostMarginBorrowRepay (array_merge($request, $params)));
             //
             //     {
             //         "tranId" => 108988250265,
@@ -9128,7 +9268,7 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * create a loan to borrow margin
-             * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
+             * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
              * @param {string} $symbol unified $market $symbol, required for isolated margin
              * @param {string} $code unified $currency $code of the $currency to borrow
              * @param {float} $amount the $amount to borrow
@@ -9143,8 +9283,9 @@ class binance extends Exchange {
                 'amount' => $this->currency_to_precision($code, $amount),
                 'symbol' => $market['id'],
                 'isIsolated' => 'TRUE',
+                'type' => 'BORROW',
             );
-            $response = Async\await($this->sapiPostMarginLoan (array_merge($request, $params)));
+            $response = Async\await($this->sapiPostMarginBorrowRepay (array_merge($request, $params)));
             //
             //     {
             //         "tranId" => 108988250265,

@@ -7,6 +7,9 @@ namespace ccxt\abstract;
 
 
 abstract class okx extends \ccxt\Exchange {
+    public function public_get_market_books_full($params = array()) {
+        return $this->request('market/books-full', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function public_get_market_tickers($params = array()) {
         return $this->request('market/tickers', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -246,6 +249,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function private_get_sprd_orders_history($params = array()) {
         return $this->request('sprd/orders-history', 'private', 'GET', $params, null, null, array("cost" => 0.5));
+    }
+    public function private_get_sprd_orders_history_archive($params = array()) {
+        return $this->request('sprd/orders-history-archive', 'private', 'GET', $params, null, null, array("cost" => 0.5));
     }
     public function private_get_sprd_trades($params = array()) {
         return $this->request('sprd/trades', 'private', 'GET', $params, null, null, array("cost" => 0.3333333333333333));
@@ -880,6 +886,9 @@ abstract class okx extends \ccxt\Exchange {
     public function private_post_broker_fd_rebate_per_orders($params = array()) {
         return $this->request('broker/fd/rebate-per-orders', 'private', 'POST', $params, null, null, array("cost" => 36000));
     }
+    public function publicGetMarketBooksFull($params = array()) {
+        return $this->request('market/books-full', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function publicGetMarketTickers($params = array()) {
         return $this->request('market/tickers', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1119,6 +1128,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function privateGetSprdOrdersHistory($params = array()) {
         return $this->request('sprd/orders-history', 'private', 'GET', $params, null, null, array("cost" => 0.5));
+    }
+    public function privateGetSprdOrdersHistoryArchive($params = array()) {
+        return $this->request('sprd/orders-history-archive', 'private', 'GET', $params, null, null, array("cost" => 0.5));
     }
     public function privateGetSprdTrades($params = array()) {
         return $this->request('sprd/trades', 'private', 'GET', $params, null, null, array("cost" => 0.3333333333333333));

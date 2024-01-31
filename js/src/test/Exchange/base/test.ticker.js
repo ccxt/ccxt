@@ -86,9 +86,6 @@ function testTicker(exchange, skippedProperties, method, entry, symbol) {
         //    assert ((askString === undefined) && (bidString === undefined), 'ask & bid should be both defined or both undefined' + logText);
         // }
     }
-    // if singular fetchTicker was called, then symbol needs to be asserted
-    if (method === 'fetchTicker') {
-        testSharedMethods.assertSymbol(exchange, skippedProperties, method, entry, 'symbol', symbol);
-    }
+    testSharedMethods.assertSymbol(exchange, skippedProperties, method, entry, 'symbol', symbol);
 }
 export default testTicker;

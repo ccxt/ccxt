@@ -273,6 +273,10 @@ class testMainClass(baseMainTestClass):
 
     def init(self, exchange_id, symbol_argv):
         self.parse_cli_args()
+        if self.request_tests and self.response_tests:
+            self.run_static_request_tests(exchange_id, symbol_argv)
+            self.run_static_response_tests(exchange_id, symbol_argv)
+            return
         if self.response_tests:
             self.run_static_response_tests(exchange_id, symbol_argv)
             return
@@ -506,6 +510,7 @@ class testMainClass(baseMainTestClass):
             'fetchCurrencies': [],
             'fetchTicker': [symbol],
             'fetchTickers': [symbol],
+            'fetchLastPrices': [symbol],
             'fetchOHLCV': [symbol],
             'fetchTrades': [symbol],
             'fetchOrderBook': [symbol],
@@ -519,6 +524,7 @@ class testMainClass(baseMainTestClass):
             tests = {
                 'watchOHLCV': [symbol],
                 'watchTicker': [symbol],
+                'watchTickers': [symbol],
                 'watchOrderBook': [symbol],
                 'watchTrades': [symbol],
             }
@@ -1022,8 +1028,13 @@ class testMainClass(baseMainTestClass):
             'password': 'password',
             'walletAddress': 'wallet',
             'uid': 'uid',
+            'token': 'token',
             'accounts': [{
     'id': 'myAccount',
+    'code': 'USDT',
+}, {
+    'id': 'myAccount',
+    'code': 'USDC',
 }],
             'options': {
                 'enableUnifiedAccount': True,
@@ -1046,12 +1057,20 @@ class testMainClass(baseMainTestClass):
             results = methods[method]
             for j in range(0, len(results)):
                 result = results[j]
+                old_exchange_options = exchange.options  # snapshot options;
+                test_exchange_options = exchange.safe_value(result, 'options', {})
+                exchange.options = exchange.deep_extend(old_exchange_options, test_exchange_options)  # custom options to be used in the tests
                 description = exchange.safe_value(result, 'description')
                 if (test_name is not None) and (test_name != description):
+                    continue
+                is_disabled = exchange.safe_value(result, 'disabled', False)
+                if is_disabled:
                     continue
                 type = exchange.safe_string(exchange_data, 'outputType')
                 skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
                 self.test_method_statically(exchange, method, result, type, skip_keys)
+                # reset options
+                exchange.options = old_exchange_options
         close(exchange)
 
     def test_exchange_response_statically(self, exchange_name, exchange_data, test_name=None):
@@ -1066,13 +1085,21 @@ class testMainClass(baseMainTestClass):
             for j in range(0, len(results)):
                 result = results[j]
                 description = exchange.safe_value(result, 'description')
+                old_exchange_options = exchange.options  # snapshot options;
+                test_exchange_options = exchange.safe_value(result, 'options', {})
+                exchange.options = exchange.deep_extend(old_exchange_options, test_exchange_options)  # custom options to be used in the tests
                 is_disabled = exchange.safe_value(result, 'disabled', False)
                 if is_disabled:
+                    continue
+                is_disabled_php = exchange.safe_value(result, 'disabledPHP', False)
+                if is_disabled_php and (self.ext == 'php'):
                     continue
                 if (test_name is not None) and (test_name != description):
                     continue
                 skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
                 self.test_response_statically(exchange, method, skip_keys, result)
+                # reset options
+                exchange.options = old_exchange_options
         close(exchange)
 
     def get_number_of_tests_from_exchange(self, exchange, exchange_data):
@@ -1117,7 +1144,6 @@ class testMainClass(baseMainTestClass):
         else:
             success_message = '[' + self.lang + '][TEST_SUCCESS] ' + str(sum) + ' static ' + type + ' tests passed.'
             dump('[INFO]' + success_message)
-            exit_script(0)
 
     def run_static_response_tests(self, exchange_name=None, test=None):
         #  -----------------------------------------------------------------------------
@@ -1129,7 +1155,7 @@ class testMainClass(baseMainTestClass):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_huobi(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1260,8 +1286,8 @@ class testMainClass(baseMainTestClass):
         assert req_headers['source'] == id, 'id not in headers'
         close(exchange)
 
-    def test_huobi(self):
-        exchange = self.init_offline_exchange('huobi')
+    def test_htx(self):
+        exchange = self.init_offline_exchange('htx')
         # spot test
         id = 'AA03022abc'
         spot_order_request = None
@@ -1352,7 +1378,7 @@ class testMainClass(baseMainTestClass):
 
     def test_phemex(self):
         exchange = self.init_offline_exchange('phemex')
-        id = 'CCXT'
+        id = 'CCXT123456'
         request = None
         try:
             exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)

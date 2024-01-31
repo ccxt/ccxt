@@ -29,6 +29,7 @@ class bitforex extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
@@ -693,6 +694,35 @@ class bitforex extends Exchange {
             'fee' => $fee,
             'trades' => null,
         ), $market);
+    }
+
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * @see https://github.com/githubdev2020/API_Doc_en/wiki/Cancle-all-orders
+             * cancel all open orders in a $market
+             * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelAllOrders () requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->privatePostApiV1TradeCancelAllOrder (array_merge($request, $params)));
+            //
+            //    {
+            //        'data' => True,
+            //        'success' => True,
+            //        'time' => '1706542995252'
+            //    }
+            //
+            return $response;
+        }) ();
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {

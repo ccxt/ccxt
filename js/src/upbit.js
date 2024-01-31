@@ -264,11 +264,11 @@ export default class upbit extends Exchange {
         else if ((locked !== undefined) && locked) {
             active = false;
         }
-        const maxOnetimeWithdrawal = this.safeNumber(withdrawLimits, 'onetime');
-        const maxDailyWithdrawal = this.safeNumber(withdrawLimits, 'daily', maxOnetimeWithdrawal);
-        const remainingDailyWithdrawal = this.safeNumber(withdrawLimits, 'remaining_daily', maxDailyWithdrawal);
+        const maxOnetimeWithdrawal = this.safeString(withdrawLimits, 'onetime');
+        const maxDailyWithdrawal = this.safeString(withdrawLimits, 'daily', maxOnetimeWithdrawal);
+        const remainingDailyWithdrawal = this.safeString(withdrawLimits, 'remaining_daily', maxDailyWithdrawal);
         let maxWithdrawLimit = undefined;
-        if (remainingDailyWithdrawal > 0) {
+        if (Precise.stringGt(remainingDailyWithdrawal, '0')) {
             maxWithdrawLimit = remainingDailyWithdrawal;
         }
         else {
@@ -287,7 +287,7 @@ export default class upbit extends Exchange {
             'limits': {
                 'withdraw': {
                     'min': this.safeNumber(withdrawLimits, 'minimum'),
-                    'max': maxWithdrawLimit,
+                    'max': this.parseNumber(maxWithdrawLimit),
                 },
             },
         };
@@ -347,10 +347,10 @@ export default class upbit extends Exchange {
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         const state = this.safeString(marketInfo, 'state');
-        const bidFee = this.safeNumber(response, 'bid_fee');
-        const askFee = this.safeNumber(response, 'ask_fee');
-        const fee = Math.max(bidFee, askFee);
-        return {
+        const bidFee = this.safeString(response, 'bid_fee');
+        const askFee = this.safeString(response, 'ask_fee');
+        const fee = this.parseNumber(Precise.stringMax(bidFee, askFee));
+        return this.safeMarketStructure({
             'id': marketId,
             'symbol': base + '/' + quote,
             'base': base,
@@ -399,7 +399,7 @@ export default class upbit extends Exchange {
                 },
                 'info': response,
             },
-        };
+        });
     }
     async fetchMarkets(params = {}) {
         /**
@@ -428,7 +428,7 @@ export default class upbit extends Exchange {
         const [quoteId, baseId] = id.split('-');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -478,7 +478,7 @@ export default class upbit extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
     parseBalance(response) {
         const result = {
@@ -1638,22 +1638,24 @@ export default class upbit extends Exchange {
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //
-        //     {
-        //         "currency": "BTC",
-        //         "deposit_address": "3EusRwybuZUhVDeHL7gh3HSLmbhLcy7NqD",
-        //         "secondary_address": null
-        //     }
+        //    {
+        //        currency: 'XRP',
+        //        net_type: 'XRP',
+        //        deposit_address: 'raQwCVAJVqjrVm1Nj5SFRcX8i22BhdC9WA',
+        //        secondary_address: '167029435'
+        //    }
         //
         const address = this.safeString(depositAddress, 'deposit_address');
         const tag = this.safeString(depositAddress, 'secondary_address');
         const currencyId = this.safeString(depositAddress, 'currency');
         const code = this.safeCurrencyCode(currencyId);
+        const networkId = this.safeString(depositAddress, 'net_type');
         this.checkAddress(address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': undefined,
+            'network': this.networkIdToCode(networkId),
             'info': depositAddress,
         };
     }
@@ -1665,19 +1667,27 @@ export default class upbit extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} params.network deposit chain, can view all chains via this.publicGetWalletAssets, default is eth, unless the currency has a default chain within this.options['networks']
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired(this.id + ' fetchDepositAddress requires params["network"]');
+        }
         const response = await this.privateGetDepositsCoinAddress(this.extend({
             'currency': currency['id'],
+            'net_type': this.networkCodeToId(networkCode, currency['code']),
         }, params));
         //
-        //     {
-        //         "currency": "BTC",
-        //         "deposit_address": "3EusRwybuZUhVDeHL7gh3HSLmbhLcy7NqD",
-        //         "secondary_address": null
-        //     }
+        //    {
+        //        currency: 'XRP',
+        //        net_type: 'XRP',
+        //        deposit_address: 'raQwCVAJVqjrVm1Nj5SFRcX8i22BhdC9WA',
+        //        secondary_address: '167029435'
+        //    }
         //
         return this.parseDepositAddress(response);
     }

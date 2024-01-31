@@ -436,7 +436,7 @@ class bitget(ccxt.async_support.bitget):
         symbols = self.market_symbols(symbols)
         channel = 'books'
         incrementalFeed = True
-        if (limit == 5) or (limit == 15):
+        if (limit == 1) or (limit == 5) or (limit == 15):
             channel += str(limit)
             incrementalFeed = False
         topics = []
@@ -1184,7 +1184,7 @@ class bitget(ccxt.async_support.bitget):
             'price': self.safe_string(order, 'price'),
             'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
-            'amount': self.safe_string_2(order, 'size', 'baseSize'),
+            'amount': self.safe_string(order, 'baseVolume'),
             'cost': self.safe_string_n(order, ['notional', 'notionalUsd', 'quoteSize']),
             'average': self.omit_zero(self.safe_string_2(order, 'priceAvg', 'fillPrice')),
             'filled': self.safe_string_2(order, 'accBaseVolume', 'baseVolume'),

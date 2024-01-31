@@ -207,6 +207,11 @@ export default class testMainClass extends baseMainTestClass {
     async init (exchangeId, symbolArgv) {
         this.parseCliArgs ();
 
+        if (this.requestTests && this.responseTests) {
+            await this.runStaticRequestTests (exchangeId, symbolArgv);
+            await this.runStaticResponseTests (exchangeId, symbolArgv);
+            return;
+        }
         if (this.responseTests) {
             await this.runStaticResponseTests (exchangeId, symbolArgv);
             return;
@@ -496,6 +501,7 @@ export default class testMainClass extends baseMainTestClass {
             'fetchCurrencies': [],
             'fetchTicker': [ symbol ],
             'fetchTickers': [ symbol ],
+            'fetchLastPrices': [ symbol ],
             'fetchOHLCV': [ symbol ],
             'fetchTrades': [ symbol ],
             'fetchOrderBook': [ symbol ],
@@ -510,6 +516,7 @@ export default class testMainClass extends baseMainTestClass {
                 // @ts-ignore
                 'watchOHLCV': [ symbol ],
                 'watchTicker': [ symbol ],
+                'watchTickers': [ symbol ],
                 'watchOrderBook': [ symbol ],
                 'watchTrades': [ symbol ],
             };
@@ -1214,7 +1221,7 @@ export default class testMainClass extends baseMainTestClass {
     initOfflineExchange (exchangeName: string) {
         const markets = this.loadMarketsFromFile (exchangeName);
         const currencies = this.loadCurrenciesFromFile (exchangeName);
-        const exchange = initExchange (exchangeName, { 'markets': markets, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'uid': 'uid', 'accounts': [ { 'id': 'myAccount' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
+        const exchange = initExchange (exchangeName, { 'markets': markets, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'uid': 'uid', 'token': 'token', 'accounts': [ { 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
         exchange.currencies = currencies; // not working in python if assigned  in the config dict
         return exchange;
     }
@@ -1229,13 +1236,22 @@ export default class testMainClass extends baseMainTestClass {
             const results = methods[method];
             for (let j = 0; j < results.length; j++) {
                 const result = results[j];
+                const oldExchangeOptions = exchange.options; // snapshot options;
+                const testExchangeOptions = exchange.safeValue (result, 'options', {});
+                exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
                 const description = exchange.safeValue (result, 'description');
                 if ((testName !== undefined) && (testName !== description)) {
+                    continue;
+                }
+                const isDisabled = exchange.safeValue (result, 'disabled', false);
+                if (isDisabled) {
                     continue;
                 }
                 const type = exchange.safeString (exchangeData, 'outputType');
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
                 await this.testMethodStatically (exchange, method, result, type, skipKeys);
+                // reset options
+                exchange.options = oldExchangeOptions;
             }
         }
         await close (exchange);
@@ -1253,8 +1269,15 @@ export default class testMainClass extends baseMainTestClass {
             for (let j = 0; j < results.length; j++) {
                 const result = results[j];
                 const description = exchange.safeValue (result, 'description');
+                const oldExchangeOptions = exchange.options; // snapshot options;
+                const testExchangeOptions = exchange.safeValue (result, 'options', {});
+                exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
                 const isDisabled = exchange.safeValue (result, 'disabled', false);
                 if (isDisabled) {
+                    continue;
+                }
+                const isDisabledPHP = exchange.safeValue (result, 'disabledPHP', false);
+                if (isDisabledPHP && (this.ext === 'php')) {
                     continue;
                 }
                 if ((testName !== undefined) && (testName !== description)) {
@@ -1262,6 +1285,8 @@ export default class testMainClass extends baseMainTestClass {
                 }
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
                 await this.testResponseStatically (exchange, method, skipKeys, result);
+                // reset options
+                exchange.options = oldExchangeOptions;
             }
         }
         await close (exchange);
@@ -1317,7 +1342,6 @@ export default class testMainClass extends baseMainTestClass {
         } else {
             const successMessage = '[' + this.lang + '][TEST_SUCCESS] ' + sum.toString () + ' static ' + type + ' tests passed.';
             dump ('[INFO]' + successMessage);
-            exitScript (0);
         }
     }
 
@@ -1341,7 +1365,7 @@ export default class testMainClass extends baseMainTestClass {
             this.testKucoinfutures (),
             this.testBitget (),
             this.testMexc (),
-            this.testHuobi (),
+            this.testHtx (),
             this.testWoo (),
             this.testBitmart (),
             this.testCoinex (),
@@ -1498,8 +1522,8 @@ export default class testMainClass extends baseMainTestClass {
         await close (exchange);
     }
 
-    async testHuobi () {
-        const exchange = this.initOfflineExchange ('huobi');
+    async testHtx () {
+        const exchange = this.initOfflineExchange ('htx');
         // spot test
         const id = 'AA03022abc';
         let spotOrderRequest = undefined;
@@ -1601,7 +1625,7 @@ export default class testMainClass extends baseMainTestClass {
 
     async testPhemex () {
         const exchange = this.initOfflineExchange ('phemex');
-        const id = 'CCXT';
+        const id = 'CCXT123456';
         let request = undefined;
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
