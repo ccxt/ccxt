@@ -234,7 +234,7 @@ class DDoSProtection extends NetworkError {
         this.name = 'DDoSProtection';
     }
 }
-class RateLimitExceeded extends DDoSProtection {
+class RateLimitExceeded extends NetworkError {
     constructor (message) {
         super (message);
         this.name = 'RateLimitExceeded';
