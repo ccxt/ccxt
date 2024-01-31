@@ -2151,7 +2151,8 @@ export default class okx extends Exchange {
             if (since < historyBorder) {
                 defaultType = 'HistoryCandles';
             }
-            request['before'] = since;
+            const startTime = Math.max (since - 1, 0);
+            request['before'] = startTime;
             request['after'] = this.sum (since, durationInMilliseconds * limit);
         }
         const until = this.safeInteger (params, 'until');
