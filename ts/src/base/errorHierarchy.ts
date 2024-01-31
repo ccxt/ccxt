@@ -10,9 +10,10 @@ const errorHierarchy = {
             'ArgumentsRequired': {},
             'BadRequest': {
                 'BadSymbol': {},
+            },
+            'OperationRejected': {
                 'MarginModeAlreadySet': {},
                 'NoChange': {},
-                'OperationRejected': {},
             },
             'BadResponse': {
                 'NullResponse': {},

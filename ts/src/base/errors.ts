@@ -101,7 +101,7 @@ class BadRequest extends ExchangeError {
         this.name = 'BadRequest';
     }
 }
-class OperationRejected extends BadRequest {
+class OperationRejected extends ExchangeError {
     constructor (message) {
         super (message);
         this.name = 'OperationRejected';
@@ -113,13 +113,13 @@ class BadSymbol extends BadRequest {
         this.name = 'BadSymbol';
     }
 }
-class NoChange extends BadRequest {
+class NoChange extends OperationRejected {
     constructor (message) {
         super (message);
         this.name = 'NoChange';
     }
 }
-class MarginModeAlreadySet extends NoChange {
+class MarginModeAlreadySet extends OperationRejected {
     constructor (message) {
         super (message);
         this.name = 'MarginModeAlreadySet';
