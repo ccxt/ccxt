@@ -6202,6 +6202,7 @@ So, in such cases you will need to communicate a "CORS" proxy, which would redir
 - [RequestTimeout](#requesttimeout)
 - [RequestTimeout](#requesttimeout)
 - [ExchangeNotAvailable](#exchangenotavailable)
+- [InvalidNonce](#invalidnonce)
 
 The error handling with CCXT is done with the exception mechanism that is natively available with all languages.
 
