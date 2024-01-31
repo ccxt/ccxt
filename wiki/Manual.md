@@ -4253,7 +4253,7 @@ We have different classification of trigger orders:
 
 ##### Basic trigger order
 
-It is independent basic trigger order, that can increase or reduce your position. Implemented by specifying a `triggerPrice` parameter. e.g. you want to activate `buy 0.3 ETH at limit price 1000` when price crosses `1234`:
+Implemented by specifying a `triggerPrice` parameter. e.g. you want to activate `buy 0.3 ETH at limit price 1000` when price touches `1234`:
 
 <!-- tabs:start -->
 #### **Javascript**
@@ -4278,16 +4278,16 @@ $params = {
 $order = $exchange->create_order ('ETH/USDT', 'limit', 'buy', 0.3, 1000, params)
 ```
 <!-- tabs:end -->
-Typically, it means to cross the price from **any direction**, however some exchanges' API require you to set param `triggerDirection` to either `'above'` or `'below'` values:
+Typically, it means to touch the price from **any direction**, however some exchanges' API require you to set param `triggerDirection` to be toward `'above'` or `'below'` values:
 
 ```
 params = {
     'triggerPrice': 1700,
-    'triggerDirection': 'above', // order will be triggered when price is above 1700
+    'triggerDirection': 'above', // order will be triggered when price goes upward and touches 1700
 }
 ```
 
-Note, you can also add `reduceOnly: true` param to trigger order, so it can act like "stop-loss" or "take-profit" order.
+Note, you can also add `reduceOnly: true` param to trigger order, so it can act like "stop-loss" or "take-profit" order (however, some exchanges have dedicated "stop-loss" and "take-profit" methods, see them below)
 
 ##### Stop Loss Order
 
