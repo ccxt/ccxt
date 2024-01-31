@@ -1361,7 +1361,11 @@ class coinbase extends coinbase$1 {
     async fetchTickersV3(symbols = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        const response = await this.v3PrivateGetBrokerageProducts(params);
+        const request = {};
+        if (symbols !== undefined) {
+            request['product_ids'] = this.marketIds(symbols);
+        }
+        const response = await this.v3PrivateGetBrokerageProducts(this.extend(request, params));
         //
         //     {
         //         "products": [
@@ -3195,8 +3199,11 @@ class coinbase extends coinbase$1 {
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        // the 'product_ids' param isn't working properly and returns {"pricebooks":[]} when defined
-        const response = await this.v3PrivateGetBrokerageBestBidAsk(params);
+        const request = {};
+        if (symbols !== undefined) {
+            request['product_ids'] = this.marketIds(symbols);
+        }
+        const response = await this.v3PrivateGetBrokerageBestBidAsk(this.extend(request, params));
         //
         //     {
         //         "pricebooks": [
@@ -3325,7 +3332,7 @@ class coinbase extends coinbase$1 {
         const savedPath = fullPath;
         if (method === 'GET') {
             if (Object.keys(query).length) {
-                fullPath += '?' + this.urlencode(query);
+                fullPath += '?' + this.urlencodeWithArrayRepeat(query);
             }
         }
         const url = this.urls['api']['rest'] + fullPath;
