@@ -1,4 +1,6 @@
-import parsimonious
+from ...parsimonious import (
+    ParseError
+)
 
 
 class EncodingError(Exception):
@@ -76,7 +78,7 @@ class NonEmptyPaddingBytes(DecodingError):
     pass
 
 
-class ParseError(parsimonious.ParseError):
+class ParseError(ParseError):
     """
     Raised when an ABI type string cannot be parsed.
     """

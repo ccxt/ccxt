@@ -1,1 +1,1 @@
-__all__ = ['ecdsa', 'keccak', 'aiohttp_socks', 'ethereum']
+__all__ = ['ecdsa', 'keccak', 'aiohttp_socks', 'ethereum', 'parsimonious']

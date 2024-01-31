@@ -1,9 +1,11 @@
 import functools
 import re
 
-import parsimonious
-from parsimonious import (
+from ...parsimonious import (
     expressions,
+    ParseError,
+    NodeVisitor,
+    Grammar
 )
 
 from .exceptions import (
@@ -11,7 +13,7 @@ from .exceptions import (
     ParseError,
 )
 
-grammar = parsimonious.Grammar(
+grammar = Grammar(
     r"""
     type = tuple_type / basic_type
 
@@ -40,7 +42,7 @@ grammar = parsimonious.Grammar(
 )
 
 
-class NodeVisitor(parsimonious.NodeVisitor):
+class NodeVisitor(NodeVisitor):
     """
     Parsimonious node visitor which performs both parsing of type strings and
     post-processing of parse trees.  Parsing operations are cached.
@@ -98,7 +100,6 @@ class NodeVisitor(parsimonious.NodeVisitor):
         if isinstance(node.expr, expressions.OneOf):
             # Unwrap value chosen from alternatives
             return visited_children[0]
-
         if isinstance(node.expr, expressions.Optional):
             # Unwrap optional value or return `None`
             if len(visited_children) != 0:
@@ -126,7 +127,7 @@ class NodeVisitor(parsimonious.NodeVisitor):
 
         try:
             return super().parse(type_str)
-        except parsimonious.ParseError as e:
+        except ParseError as e:
             raise ParseError(e.text, e.pos, e.expr)
 
 
