@@ -341,16 +341,16 @@ export default class bitmex extends bitmexRest {
         //     }
         //
         const table = this.safeString (message, 'table');
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const tickers = {};
         for (let i = 0; i < data.length; i++) {
             const update = data[i];
-            const marketId = this.safeValue (update, 'symbol');
+            const marketId = this.safeString (update, 'symbol');
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             const messageHash = table + ':' + marketId;
-            let ticker = this.safeValue (this.tickers, symbol, {});
-            const info = this.safeValue (ticker, 'info', {});
+            let ticker = this.safeDict (this.tickers, symbol, {});
+            const info = this.safeDict (ticker, 'info', {});
             ticker = this.parseTicker (this.extend (info, update), market);
             tickers[symbol] = ticker;
             this.tickers[symbol] = ticker;
