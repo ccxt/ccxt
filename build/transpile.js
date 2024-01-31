@@ -307,6 +307,8 @@ class Transpiler {
             [ /\.selectNetworkIdFromRawNetworks\s/g, '.select_network_id_from_raw_networks'],
             [ /\.selectNetworkKeyFromNetworks\s/g, '.select_network_key_from_networks'],
             [ /\.createNetworksByIdObject\s/g, '.create_networks_by_id_object'],
+            [ /\.checkMainnetNetworkCodeReplacement\s/g, '.check_mainnet_network_code_replacement'],
+            [ /\.checkNetworkCodeConflict\s/g, '.check_network_code_conflict'],
             [ /\.invertFlatStringDictionary\s/g, '.invert_flat_string_dictionary'],
             [ /\.safeCurrencyStructure\s/g, '.safe_currency_structure'],
             [ /\.isTickPrecision\s/g, '.is_tick_precision'],
