@@ -1325,6 +1325,7 @@
     },
     "p2b": {
         "skip": "temp issues",
+        "skipWs": "flaky",
         "httpsProxy": "http://51.83.140.52:11230",
         "skipMethods": {
             "loadMarkets": "invalid URL",

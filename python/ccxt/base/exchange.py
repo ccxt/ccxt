@@ -851,6 +851,8 @@ class Exchange(object):
 
     @staticmethod
     def safe_integer_product_n(dictionary, key_list, factor, default_value=None):
+        if dictionary is None:
+            return default_value
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
         if value is None:
             return default_value
@@ -869,6 +871,8 @@ class Exchange(object):
 
     @staticmethod
     def safe_value_n(dictionary, key_list, default_value=None):
+        if dictionary is None:
+            return default_value
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
         return value if value is not None else default_value
 
@@ -2234,7 +2238,7 @@ class Exchange(object):
         if fee is not None:
             fee['cost'] = self.safe_number(fee, 'cost')
         timestamp = self.safe_integer(entry, 'timestamp')
-        info = self.safe_value(entry, 'info', {})
+        info = self.safe_dict(entry, 'info', {})
         return {
             'id': self.safe_string(entry, 'id'),
             'timestamp': timestamp,
@@ -2392,7 +2396,7 @@ class Exchange(object):
             for i in range(0, len(values)):
                 market = values[i]
                 defaultCurrencyPrecision = 8 if (self.precisionMode == DECIMAL_PLACES) else self.parse_number('1e-8')
-                marketPrecision = self.safe_value(market, 'precision', {})
+                marketPrecision = self.safe_dict(market, 'precision', {})
                 if 'base' in market:
                     currency = self.safe_currency_structure({
                         'id': self.safe_string_2(market, 'baseId', 'base'),
@@ -2419,7 +2423,7 @@ class Exchange(object):
             resultingCurrencies = []
             for i in range(0, len(codes)):
                 code = codes[i]
-                groupedCurrenciesCode = self.safe_value(groupedCurrencies, code, [])
+                groupedCurrenciesCode = self.safe_list(groupedCurrencies, code, [])
                 highestPrecisionCurrency = self.safe_value(groupedCurrenciesCode, 0)
                 for j in range(1, len(groupedCurrenciesCode)):
                     currentCurrency = groupedCurrenciesCode[j]
@@ -2491,7 +2495,7 @@ class Exchange(object):
         parseSymbol = symbol is None
         parseSide = side is None
         shouldParseFees = parseFee or parseFees
-        fees = self.safe_value(order, 'fees', [])
+        fees = self.safe_list(order, 'fees', [])
         trades = []
         if parseFilled or parseCost or shouldParseFees:
             rawTrades = self.safe_value(order, 'trades', trades)
@@ -2586,7 +2590,7 @@ class Exchange(object):
             elif status == 'closed':
                 remaining = '0'
         # ensure that the average field is calculated correctly
-        inverse = self.safe_value(market, 'inverse', False)
+        inverse = self.safe_bool(market, 'inverse', False)
         contractSize = self.number_to_string(self.safe_value(market, 'contractSize', 1))
         # inverse
         # price = filled * contract size / cost
@@ -2630,11 +2634,11 @@ class Exchange(object):
             entry['amount'] = self.safe_number(entry, 'amount')
             entry['price'] = self.safe_number(entry, 'price')
             entry['cost'] = self.safe_number(entry, 'cost')
-            tradeFee = self.safe_value(entry, 'fee', {})
+            tradeFee = self.safe_dict(entry, 'fee', {})
             tradeFee['cost'] = self.safe_number(tradeFee, 'cost')
             if 'rate' in tradeFee:
                 tradeFee['rate'] = self.safe_number(tradeFee, 'rate')
-            entryFees = self.safe_value(entry, 'fees', [])
+            entryFees = self.safe_list(entry, 'fees', [])
             for j in range(0, len(entryFees)):
                 entryFees[j]['cost'] = self.safe_number(entryFees[j], 'cost')
             entry['fees'] = entryFees
@@ -2788,7 +2792,7 @@ class Exchange(object):
             contractSize = self.safe_string(market, 'contractSize')
             multiplyPrice = price
             if contractSize is not None:
-                inverse = self.safe_value(market, 'inverse', False)
+                inverse = self.safe_bool(market, 'inverse', False)
                 if inverse:
                     multiplyPrice = Precise.string_div('1', price)
                 multiplyPrice = Precise.string_mul(multiplyPrice, contractSize)
@@ -2998,12 +3002,12 @@ class Exchange(object):
 
     def convert_trading_view_to_ohlcv(self, ohlcvs, timestamp='t', open='o', high='h', low='l', close='c', volume='v', ms=False):
         result = []
-        timestamps = self.safe_value(ohlcvs, timestamp, [])
-        opens = self.safe_value(ohlcvs, open, [])
-        highs = self.safe_value(ohlcvs, high, [])
-        lows = self.safe_value(ohlcvs, low, [])
-        closes = self.safe_value(ohlcvs, close, [])
-        volumes = self.safe_value(ohlcvs, volume, [])
+        timestamps = self.safe_list(ohlcvs, timestamp, [])
+        opens = self.safe_list(ohlcvs, open, [])
+        highs = self.safe_list(ohlcvs, high, [])
+        lows = self.safe_list(ohlcvs, low, [])
+        closes = self.safe_list(ohlcvs, close, [])
+        volumes = self.safe_list(ohlcvs, volume, [])
         for i in range(0, len(timestamps)):
             result.append([
                 self.safe_integer(timestamps, i) if ms else self.safe_timestamp(timestamps, i),
@@ -3036,10 +3040,10 @@ class Exchange(object):
     def fetch_web_endpoint(self, method, endpointMethod, returnAsJson, startRegex=None, endRegex=None):
         errorMessage = ''
         options = self.safe_value(self.options, method, {})
-        muteOnFailure = self.safe_value(options, 'webApiMuteFailure', True)
+        muteOnFailure = self.safe_bool(options, 'webApiMuteFailure', True)
         try:
             # if it was not explicitly disabled, then don't fetch
-            if self.safe_value(options, 'webApiEnable', True) is not True:
+            if self.safe_bool(options, 'webApiEnable', True) is not True:
                 return None
             maxRetries = self.safe_value(options, 'webApiRetries', 10)
             response = None
@@ -3204,7 +3208,7 @@ class Exchange(object):
         if currencyCode is not None:
             defaultNetworkCodeReplacements = self.safe_value(self.options, 'defaultNetworkCodeReplacements', {})
             if currencyCode in defaultNetworkCodeReplacements:
-                replacementObject = self.safe_value(defaultNetworkCodeReplacements, currencyCode, {})
+                replacementObject = self.safe_dict(defaultNetworkCodeReplacements, currencyCode, {})
                 networkCode = self.safe_string(replacementObject, networkCode, networkCode)
         return networkCode
 
@@ -3291,7 +3295,7 @@ class Exchange(object):
             id = self.safe_string(item, marketIdKey)
             market = self.safe_market(id, None, None, 'swap')
             symbol = market['symbol']
-            contract = self.safe_value(market, 'contract', False)
+            contract = self.safe_bool(market, 'contract', False)
             if contract and ((symbols is None) or self.in_array(symbol, symbols)):
                 tiers[symbol] = self.parse_market_leverage_tiers(item, market)
         return tiers
@@ -4297,8 +4301,8 @@ class Exchange(object):
         currency = self.currencies[code]
         precision = self.safe_value(currency, 'precision')
         if networkCode is not None:
-            networks = self.safe_value(currency, 'networks', {})
-            networkItem = self.safe_value(networks, networkCode, {})
+            networks = self.safe_dict(currency, 'networks', {})
+            networkItem = self.safe_dict(networks, networkCode, {})
             precision = self.safe_value(networkItem, 'precision', precision)
         if precision is None:
             return self.forceString(fee)
@@ -4561,7 +4565,7 @@ class Exchange(object):
         :returns Array:
         """
         timeInForce = self.safe_string_upper(params, 'timeInForce')
-        postOnly = self.safe_value(params, 'postOnly', False)
+        postOnly = self.safe_bool(params, 'postOnly', False)
         ioc = timeInForce == 'IOC'
         fok = timeInForce == 'FOK'
         po = timeInForce == 'PO'

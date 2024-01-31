@@ -210,6 +210,130 @@
           }
         ]
       }
+    ],
+    "fetchClosedOrders": [
+      {
+        "description": "spot closed orders",
+        "method": "fetchClosedOrders",
+        "input": [
+          "LTC/USDT",
+          null,
+          10
+        ],
+        "httpResponse": {
+          "code": "200000",
+          "data": {
+            "currentPage": 1,
+            "pageSize": 10,
+            "totalNum": 1,
+            "totalPage": 1,
+            "items": [
+              {
+                "id": "65ba3fc497c9e300079f2003",
+                "symbol": "LTC-USDT",
+                "opType": "DEAL",
+                "type": "market",
+                "side": "buy",
+                "price": "0",
+                "size": "0.1",
+                "funds": "0",
+                "dealFunds": "6.81",
+                "dealSize": "0.1",
+                "fee": "0.00681",
+                "feeCurrency": "USDT",
+                "stp": "",
+                "stop": "",
+                "stopTriggered": false,
+                "stopPrice": "0",
+                "timeInForce": "GTC",
+                "postOnly": false,
+                "hidden": false,
+                "iceberg": false,
+                "visibleSize": "0",
+                "cancelAfter": 0,
+                "channel": "API",
+                "clientOid": "ce802c82-3b80-4adb-8da5-c39103f102af",
+                "remark": null,
+                "tags": "partner:ccxt",
+                "isActive": false,
+                "cancelExist": false,
+                "createdAt": 1706704836933,
+                "tradeType": "TRADE"
+              }
+            ]
+          }
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "id": "65ba3fc497c9e300079f2003",
+              "symbol": "LTC-USDT",
+              "opType": "DEAL",
+              "type": "market",
+              "side": "buy",
+              "price": "0",
+              "size": "0.1",
+              "funds": "0",
+              "dealFunds": "6.81",
+              "dealSize": "0.1",
+              "fee": "0.00681",
+              "feeCurrency": "USDT",
+              "stp": "",
+              "stop": "",
+              "stopTriggered": false,
+              "stopPrice": "0",
+              "timeInForce": "GTC",
+              "postOnly": false,
+              "hidden": false,
+              "iceberg": false,
+              "visibleSize": "0",
+              "cancelAfter": 0,
+              "channel": "API",
+              "clientOid": "ce802c82-3b80-4adb-8da5-c39103f102af",
+              "remark": null,
+              "tags": "partner:ccxt",
+              "isActive": false,
+              "cancelExist": false,
+              "createdAt": 1706704836933,
+              "tradeType": "TRADE"
+            },
+            "id": "65ba3fc497c9e300079f2003",
+            "clientOrderId": "ce802c82-3b80-4adb-8da5-c39103f102af",
+            "symbol": "LTC/USDT",
+            "type": "market",
+            "timeInForce": "GTC",
+            "postOnly": false,
+            "side": "buy",
+            "amount": 0.1,
+            "price": 68.1,
+            "stopPrice": 0,
+            "triggerPrice": 0,
+            "cost": 6.81,
+            "filled": 0.1,
+            "remaining": 0,
+            "timestamp": 1706704836933,
+            "datetime": "2024-01-31T12:40:36.933Z",
+            "fee": {
+              "currency": "USDT",
+              "cost": 0.00681
+            },
+            "status": "closed",
+            "lastTradeTimestamp": null,
+            "average": 68.1,
+            "trades": [],
+            "fees": [
+              {
+                "currency": "USDT",
+                "cost": 0.00681
+              }
+            ],
+            "lastUpdateTimestamp": null,
+            "reduceOnly": null,
+            "takeProfitPrice": null,
+            "stopLossPrice": null
+          }
+        ]
+      }
     ]
   }
 }

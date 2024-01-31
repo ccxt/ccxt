@@ -1132,7 +1132,7 @@ export default class kucoinfutures extends kucoin {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const testOrder = this.safeValue (params, 'test', false);
+        const testOrder = this.safeBool (params, 'test', false);
         params = this.omit (params, 'test');
         const orderRequest = this.createContractOrderRequest (symbol, type, side, amount, price, params);
         let response = undefined;
@@ -1794,7 +1794,7 @@ export default class kucoinfutures extends kucoin {
         // const average = Precise.stringDiv (cost, Precise.stringMul (filled, market['contractSize']));
         // bool
         const isActive = this.safeValue (order, 'isActive');
-        const cancelExist = this.safeValue (order, 'cancelExist', false);
+        const cancelExist = this.safeBool (order, 'cancelExist', false);
         let status = undefined;
         if (isActive !== undefined) {
             status = isActive ? 'open' : 'closed';
@@ -2533,7 +2533,7 @@ export default class kucoinfutures extends kucoin {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let clientOrderId = this.safeString (params, 'clientOrderId');
-        const testOrder = this.safeValue (params, 'test', false);
+        const testOrder = this.safeBool (params, 'test', false);
         params = this.omit (params, [ 'test', 'clientOrderId' ]);
         if (clientOrderId === undefined) {
             clientOrderId = this.numberToString (this.nonce ());

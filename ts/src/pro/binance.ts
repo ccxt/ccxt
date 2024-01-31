@@ -1275,7 +1275,7 @@ export default class binance extends binanceRest {
             return;
         }
         const options = this.safeValue (this.options, 'watchBalance');
-        const fetchBalanceSnapshot = this.safeValue (options, 'fetchBalanceSnapshot', false);
+        const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
         if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
@@ -1403,8 +1403,8 @@ export default class binance extends binanceRest {
         this.setBalanceCache (client, type);
         this.setPositionsCache (client, type);
         const options = this.safeValue (this.options, 'watchBalance');
-        const fetchBalanceSnapshot = this.safeValue (options, 'fetchBalanceSnapshot', false);
-        const awaitBalanceSnapshot = this.safeValue (options, 'awaitBalanceSnapshot', true);
+        const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
+        const awaitBalanceSnapshot = this.safeBool (options, 'awaitBalanceSnapshot', true);
         if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
             await client.future (type + ':fetchBalanceSnapshot');
         }
@@ -1566,7 +1566,7 @@ export default class binance extends binanceRest {
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'createOrderWs', 'returnRateLimits', false);
         payload['returnRateLimits'] = returnRateLimits;
-        const test = this.safeValue (params, 'test', false);
+        const test = this.safeBool (params, 'test', false);
         params = this.omit (params, 'test');
         const message = {
             'id': messageHash,

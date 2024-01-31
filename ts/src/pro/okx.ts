@@ -887,7 +887,7 @@ export default class okx extends okxRest {
         // By default, receive order updates from any instrument type
         let type = undefined;
         [ type, params ] = this.handleOptionAndParams (params, 'watchMyTrades', 'type', 'ANY');
-        const isStop = this.safeValue (params, 'stop', false);
+        const isStop = this.safeBool (params, 'stop', false);
         params = this.omit (params, [ 'stop' ]);
         await this.loadMarkets ();
         await this.authenticate ({ 'access': isStop ? 'business' : 'private' });

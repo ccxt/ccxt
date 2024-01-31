@@ -2234,7 +2234,7 @@ export default class bitget extends Exchange {
             'fee': undefined,
         };
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
-        const fillResponseFromRequest = this.safeValue (withdrawOptions, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool (withdrawOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             result['currency'] = code;
             result['timestamp'] = this.milliseconds ();
@@ -3118,7 +3118,7 @@ export default class bitget extends Exchange {
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchTradingFees', params);
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
         if (marketType === 'spot') {
-            const margin = this.safeValue (params, 'margin', false);
+            const margin = this.safeBool (params, 'margin', false);
             params = this.omit (params, 'margin');
             if ((marginMode !== undefined) || margin) {
                 response = await this.publicMarginGetV2MarginCurrencies (params);
@@ -4123,7 +4123,7 @@ export default class bitget extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const triggerType = this.safeString (params, 'triggerType', 'mark_price');
-        const reduceOnly = this.safeValue (params, 'reduceOnly', false);
+        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
         const exchangeSpecificTifParam = this.safeString2 (params, 'force', 'timeInForce');
         let postOnly = undefined;
@@ -4212,7 +4212,7 @@ export default class bitget extends Exchange {
                 }
                 const marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
                 request['marginMode'] = marginModeRequest;
-                const oneWayMode = this.safeValue (params, 'oneWayMode', false);
+                const oneWayMode = this.safeBool (params, 'oneWayMode', false);
                 params = this.omit (params, 'oneWayMode');
                 let requestSide = side;
                 if (reduceOnly) {

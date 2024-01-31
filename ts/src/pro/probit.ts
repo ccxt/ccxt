@@ -103,7 +103,7 @@ export default class probit extends probitRest {
         //         }
         //     }
         //
-        const reset = this.safeValue (message, 'reset', false);
+        const reset = this.safeBool (message, 'reset', false);
         const data = this.safeValue (message, 'data', {});
         const currencyIds = Object.keys (data);
         if (reset) {
@@ -213,7 +213,7 @@ export default class probit extends probitRest {
         const symbol = this.safeSymbol (marketId);
         const market = this.safeMarket (marketId);
         const trades = this.safeValue (message, 'recent_trades', []);
-        const reset = this.safeValue (message, 'reset', false);
+        const reset = this.safeBool (message, 'reset', false);
         const messageHash = 'trades:' + symbol;
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined || reset) {
@@ -288,7 +288,7 @@ export default class probit extends probitRest {
         if (length === 0) {
             return;
         }
-        const reset = this.safeValue (message, 'reset', false);
+        const reset = this.safeBool (message, 'reset', false);
         const messageHash = 'myTrades';
         let stored = this.myTrades;
         if ((stored === undefined) || reset) {
@@ -378,7 +378,7 @@ export default class probit extends probitRest {
             return;
         }
         const messageHash = 'orders';
-        const reset = this.safeValue (message, 'reset', false);
+        const reset = this.safeBool (message, 'reset', false);
         let stored = this.orders;
         if (stored === undefined || reset) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -473,7 +473,7 @@ export default class probit extends probitRest {
             orderbook = this.orderBook ({});
             this.orderbooks[symbol] = orderbook;
         }
-        const reset = this.safeValue (message, 'reset', false);
+        const reset = this.safeBool (message, 'reset', false);
         if (reset) {
             const snapshot = this.parseOrderBook (dataBySide, symbol, undefined, 'buy', 'sell', 'price', 'quantity');
             orderbook.reset (snapshot);
