@@ -6290,7 +6290,7 @@ class BaseError extends \Exception {}
 ```
 <!-- tabs:end -->
 
-CCXT's current exception inheritance hierarchy lives in this file: https://github.com/ccxt/ccxt/blob/master/ts/src/base/errorHierarchy.ts , and visually can be outlined like shown below:
+The exception inheritance hierarchy lives in this file: https://github.com/ccxt/ccxt/blob/master/ts/src/base/errorHierarchy.ts , and visually can be outlined like shown below:
 
 ```text
 + BaseError
@@ -6362,13 +6362,12 @@ From `BaseError` derives two sub-types family: `OperationFailed` and `ExchangeEr
 ### OperationFailed
 <a name="NetworkError" id="NetworkError"></a>
 
-An `OperationFailed` happens when user sends **correctly constructed & valid request** to exchange, but something temporary problem might be happening during process. In such temporary fail cases, you can just wait some time (from milliseconds to minutes) and then retrying can succeed:
-- Rate Limit exceeded 
-- exchange might be having a maintenance
+An `OperationFailed` happens when user sends **correctly constructed & valid request** to exchange, but an non-deterministic problem occurred. In suchcases, you might consider retrying after some time.
+- maintenance ongoing
 - internet/network connectivitiy issues
-- temporary ban (except "location ban" which is not a "temporary error")
 - DDoS protections
 - "Server busy, try again"...
+
 Such network-related exceptions are time-dependent and re-trying the request later might be enough, but if the error still happens, then it may indicate some persistent problem with the exchange or with your connection.
 
 `OperationFailed` has the following sub-types: `RequestTimeout`,`DDoSProtection` (includes sub-type `RateLimitExceeded`),  `ExchangeNotAvailable`, `InvalidNonce`.
@@ -6429,8 +6428,8 @@ Possible reasons for this exception:
 `ExchangeError` has the following sub-type exceptions:
 
   - `NotSupported`: when the endpoint/operation is not offered or supported by the exchange API.
-  - `BadRequest`: user sends **incorrectly** constructed request/parameter/action that is forbidden by exchange (i.e.: "invalid number", "forbidden symbol", "size beyond min/max limits", "incorrect precision", etc). So, request itself needs to be fixed at first, as exchange will never accept that request.
-  - `OperationRejected` - user sends **correctly** constructed request (that should be accepted by engine typically and neither API/docs forbid that parameters/action for users), but specifically your account needs to do something extra step before exchange eventually accepts that same request (i.e. "please close existing positions before changing the leverage", "too many pending orders, close some of them before sending a new order" ...). So, after you address that "other problem" then your exactly same request can be retried and can be accepted by exchange. So, notice how this exception differs from [**OperationFailed**](#operationfailed)
+  - `BadRequest`: user sends an **incorrectly** constructed request/parameter/action that is forbidden by exchange (i.e.: "invalid number", "forbidden symbol", "size beyond min/max limits", "incorrect precision", etc). Retrying would not help in this case, the request needs to be fixed/adjusted first.
+  - `OperationRejected` - user sends a **correctly** constructed request (that should be accepted by engine typically and neither API/docs forbid that parameters/action for users), but your current account status does not allow it. (i.e. "please close existing positions before changing the leverage", "too many pending orders"). Please otice how this exception differs from [**OperationFailed**](#operationfailed)
   - `AuthenticationError`: when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need `apiKey` and `secret`, sometimes you also need `uid` and/or `password` if exchange API requires it.
   - `PermissionDenied`: when there's no access for specified action or insufficient permissions on the specified `apiKey`.
   - `InsufficientFunds`: when you don't have enough currency on your account balance to place an order.
