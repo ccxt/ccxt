@@ -126,6 +126,48 @@
                     50
                 ],
                 "output": "{\"type\":\"LIMIT\",\"symbol\":\"tLTCF0:USTF0\",\"amount\":\"0.1\",\"price\":\"50\"}"
+            },
+            {
+                "description": "Swap create market buy order",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "buy",
+                  0.0001
+                ],
+                "output": "{\"type\":\"MARKET\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"0.0001\"}"
+            },
+            {
+                "description": "Swap create market sell order with reduceOnly set to true",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.0001,
+                  null,
+                  {
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"type\":\"MARKET\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"flags\":1024}"
+            }
+        ],
+        "createReduceOnlyOrder": [
+            {
+                "description": "Swap create market sell reduce only order",
+                "method": "createReduceOnlyOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.0001
+                ],
+                "output": "{\"type\":\"MARKET\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"flags\":1024}"
             }
         ],
         "fetchOpenInterest": [
