@@ -154,6 +154,22 @@
                   }
                 ],
                 "output": "{\"type\":\"MARKET\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"flags\":1024}"
+            },
+            {
+                "description": "Swap create a trailing amount order",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.0001,
+                  null,
+                  {
+                    "trailingAmount": "500"
+                  }
+                ],
+                "output": "{\"type\":\"TRAILING STOP\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"price_trailing\":\"500\"}"
             }
         ],
         "createReduceOnlyOrder": [
@@ -168,6 +184,22 @@
                   0.0001
                 ],
                 "output": "{\"type\":\"MARKET\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"flags\":1024}"
+            }
+        ],
+        "createTrailingAmountOrder": [
+            {
+                "description": "Swap create a trailing amount order",
+                "method": "createTrailingAmountOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.0001,
+                  null,
+                  500
+                ],
+                "output": "{\"type\":\"TRAILING STOP\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"price_trailing\":\"500\"}"
             }
         ],
         "fetchOpenInterest": [
