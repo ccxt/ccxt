@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.2.23'
+__version__ = '4.2.29'
 
 # ----------------------------------------------------------------------------
 
@@ -123,6 +123,7 @@ from ccxt.coincheck import coincheck                                  # noqa: F4
 from ccxt.coinex import coinex                                        # noqa: F401
 from ccxt.coinlist import coinlist                                    # noqa: F401
 from ccxt.coinmate import coinmate                                    # noqa: F401
+from ccxt.coinmetro import coinmetro                                  # noqa: F401
 from ccxt.coinone import coinone                                      # noqa: F401
 from ccxt.coinsph import coinsph                                      # noqa: F401
 from ccxt.coinspot import coinspot                                    # noqa: F401
@@ -224,6 +225,7 @@ exchanges = [
     'coinex',
     'coinlist',
     'coinmate',
+    'coinmetro',
     'coinone',
     'coinsph',
     'coinspot',

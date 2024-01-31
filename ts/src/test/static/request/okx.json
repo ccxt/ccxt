@@ -1040,6 +1040,38 @@
             ],
             "output": "[{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"1\",\"tdMode\":\"cross\",\"px\":\"60\",\"slTriggerPx\":\"50\",\"slOrdPx\":\"-1\",\"slTriggerPxType\":\"last\",\"tpTriggerPx\":\"70\",\"tpOrdPx\":\"-1\",\"tpTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBCdb76299fc4b696da\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}]"
           }
+        ],
+        "fetchOrderBook": [
+          {
+            "description": "spot orderbook",
+            "method": "fetchOrderBook",
+            "url": "https://www.okx.com/api/v5/market/books?instId=BTC-USDT&sz=5",
+            "input": [
+              "BTC/USDT",
+              5
+            ]
+          },
+          {
+            "description": "Swap orderbook",
+            "method": "fetchOrderBook",
+            "url": "https://www.okx.com/api/v5/market/books?instId=BTC-USDT-SWAP&sz=5",
+            "input": [
+              "BTC/USDT:USDT",
+              5
+            ]
+          },
+          {
+            "description": "fetch full spot orderbook",
+            "method": "fetchOrderBook",
+            "url": "https://www.okx.com/api/v5/market/books-full?instId=BTC-USDT&sz=5000",
+            "input": [
+              "BTC/USDT",
+              null,
+              {
+                "method": "publicGetMarketBooksFull"
+              }
+            ]
+          }
         ]
     }
 }

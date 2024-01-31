@@ -338,6 +338,7 @@
         }
     },
     "bitopro": {
+        "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
                 "precision": "not provided",
@@ -675,6 +676,13 @@
             "fetchCurrencies": {
                 "withdraw": "not provided",
                 "deposit": "not provided"
+            }
+        }
+    },
+    "coinmetro": {
+        "skipMethods": {
+            "fetchTrades": {
+                "side":"side is undefined"
             }
         }
     },

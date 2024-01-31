@@ -20,6 +20,7 @@ export default class bitforex extends Exchange {
     parseOrderStatus(status: any): any;
     parseSide(sideId: any): "buy" | "sell";
     parseOrder(order: any, market?: Market): Order;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;

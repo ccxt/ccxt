@@ -172,6 +172,7 @@ class okx extends okx$1 {
             'api': {
                 'public': {
                     'get': {
+                        'market/books-full': 2,
                         'market/tickers': 1,
                         'market/ticker': 1,
                         'market/index-tickers': 1,
@@ -1670,6 +1671,7 @@ class okx extends okx$1 {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.method] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -1677,11 +1679,22 @@ class okx extends okx$1 {
         const request = {
             'instId': market['id'],
         };
-        limit = (limit === undefined) ? 20 : limit;
+        let method = undefined;
+        [method, params] = this.handleOptionAndParams(params, 'fetchOrderBook', 'method', 'publicGetMarketBooks');
+        if (method === 'publicGetMarketBooksFull' && limit === undefined) {
+            limit = 5000;
+        }
+        limit = (limit === undefined) ? 100 : limit;
         if (limit !== undefined) {
             request['sz'] = limit; // max 400
         }
-        const response = await this.publicGetMarketBooks(this.extend(request, params));
+        let response = undefined;
+        if ((method === 'publicGetMarketBooksFull') || (limit > 400)) {
+            response = await this.publicGetMarketBooksFull(this.extend(request, params));
+        }
+        else {
+            response = await this.publicGetMarketBooks(this.extend(request, params));
+        }
         //
         //     {
         //         "code": "0",
@@ -1735,7 +1748,7 @@ class okx extends okx$1 {
         const symbol = market['symbol'];
         const last = this.safeString(ticker, 'last');
         const open = this.safeString(ticker, 'open24h');
-        const spot = this.safeValue(market, 'spot', false);
+        const spot = this.safeBool(market, 'spot', false);
         const quoteVolume = spot ? this.safeString(ticker, 'volCcy24h') : undefined;
         const baseVolume = this.safeString(ticker, 'vol24h');
         const high = this.safeString(ticker, 'high24h');
@@ -2591,7 +2604,7 @@ class okx extends okx$1 {
         }
         else {
             marginMode = defaultMarginMode;
-            margin = this.safeValue(params, 'margin', false);
+            margin = this.safeBool(params, 'margin', false);
         }
         if (spot) {
             if (margin) {

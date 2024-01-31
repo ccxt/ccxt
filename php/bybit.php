@@ -850,6 +850,7 @@ class bybit extends Exchange {
                     '181003' => '\\ccxt\\InvalidOrder', // side is null.
                     '181004' => '\\ccxt\\InvalidOrder', // side only support Buy or Sell.
                     '182000' => '\\ccxt\\InvalidOrder', // symbol related quote price is null
+                    '181017' => '\\ccxt\\BadRequest', // OrderStatus must be final status
                     '20001' => '\\ccxt\\OrderNotFound', // Order not exists
                     '20003' => '\\ccxt\\InvalidOrder', // missing parameter side
                     '20004' => '\\ccxt\\InvalidOrder', // invalid parameter side
@@ -3304,15 +3305,27 @@ class bybit extends Exchange {
         $fee = null;
         $feeCostString = $this->safe_string($order, 'cumExecFee');
         if ($feeCostString !== null) {
-            $feeCurrency = null;
+            $feeCurrencyCode = null;
             if ($market['spot']) {
-                $feeCurrency = ($side === 'buy') ? $market['quote'] : $market['base'];
+                if (Precise::string_gt($feeCostString, '0')) {
+                    if ($side === 'buy') {
+                        $feeCurrencyCode = $market['base'];
+                    } else {
+                        $feeCurrencyCode = $market['quote'];
+                    }
+                } else {
+                    if ($side === 'buy') {
+                        $feeCurrencyCode = $market['quote'];
+                    } else {
+                        $feeCurrencyCode = $market['base'];
+                    }
+                }
             } else {
-                $feeCurrency = $market['settle'];
+                $feeCurrencyCode = $market['inverse'] ? $market['base'] : $market['settle'];
             }
             $fee = array(
                 'cost' => $feeCostString,
-                'currency' => $feeCurrency,
+                'currency' => $feeCurrencyCode,
             );
         }
         $clientOrderId = $this->safe_string($order, 'orderLinkId');
@@ -4432,7 +4445,7 @@ class bybit extends Exchange {
             return $this->fetch_usdc_orders($symbol, $since, $limit, $params);
         }
         $request['category'] = $type;
-        $isStop = $this->safe_value_n($params, array( 'trigger', 'stop' ), false);
+        $isStop = $this->safe_bool_n($params, array( 'trigger', 'stop' ), false);
         $params = $this->omit($params, array( 'trigger', 'stop' ));
         if ($isStop) {
             $request['orderFilter'] = 'StopOrder';
@@ -5580,10 +5593,10 @@ class bybit extends Exchange {
         //         "time" => 1672280219169
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
-        $positions = $this->safe_value_2($result, 'list', 'dataList', array());
+        $result = $this->safe_dict($response, 'result', array());
+        $positions = $this->safe_list_2($result, 'list', 'dataList', array());
         $timestamp = $this->safe_integer($response, 'time');
-        $first = $this->safe_value($positions, 0, array());
+        $first = $this->safe_dict($positions, 0, array());
         $position = $this->parse_position($first, $market);
         $position['timestamp'] = $timestamp;
         $position['datetime'] = $this->iso8601($timestamp);
@@ -6302,7 +6315,7 @@ class bybit extends Exchange {
             throw new BadRequest($this->id . 'fetchOpenInterestHistory cannot use the 1m timeframe');
         }
         $this->load_markets();
-        $paginate = $this->safe_value($params, 'paginate');
+        $paginate = $this->safe_bool($params, 'paginate');
         if ($paginate) {
             $params = $this->omit($params, 'paginate');
             return $this->fetch_paginated_call_deterministic('fetchOpenInterestHistory', $symbol, $since, $limit, $timeframe, $params, 500);

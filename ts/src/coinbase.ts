@@ -1381,7 +1381,11 @@ export default class coinbase extends Exchange {
     async fetchTickersV3 (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.v3PrivateGetBrokerageProducts (params);
+        const request = {};
+        if (symbols !== undefined) {
+            request['product_ids'] = this.marketIds (symbols);
+        }
+        const response = await this.v3PrivateGetBrokerageProducts (this.extend (request, params));
         //
         //     {
         //         "products": [
@@ -3230,8 +3234,11 @@ export default class coinbase extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        // the 'product_ids' param isn't working properly and returns {"pricebooks":[]} when defined
-        const response = await this.v3PrivateGetBrokerageBestBidAsk (params);
+        const request = {};
+        if (symbols !== undefined) {
+            request['product_ids'] = this.marketIds (symbols);
+        }
+        const response = await this.v3PrivateGetBrokerageBestBidAsk (this.extend (request, params));
         //
         //     {
         //         "pricebooks": [
@@ -3362,7 +3369,7 @@ export default class coinbase extends Exchange {
         const savedPath = fullPath;
         if (method === 'GET') {
             if (Object.keys (query).length) {
-                fullPath += '?' + this.urlencode (query);
+                fullPath += '?' + this.urlencodeWithArrayRepeat (query);
             }
         }
         const url = this.urls['api']['rest'] + fullPath;
@@ -3373,11 +3380,16 @@ export default class coinbase extends Exchange {
                     'Authorization': authorization,
                     'Content-Type': 'application/json',
                 };
-            } else if (this.token) {
+            } else if (this.token && !this.checkRequiredCredentials (false)) {
                 headers = {
                     'Authorization': 'Bearer ' + this.token,
                     'Content-Type': 'application/json',
                 };
+                if (method !== 'GET') {
+                    if (Object.keys (query).length) {
+                        body = this.json (query);
+                    }
+                }
             } else {
                 this.checkRequiredCredentials ();
                 const nonce = this.nonce ().toString ();

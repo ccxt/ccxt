@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.2.23';
+$version = '4.2.29';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.23';
+    const VERSION = '4.2.29';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -414,6 +414,7 @@ class Exchange {
         'coinex',
         'coinlist',
         'coinmate',
+        'coinmetro',
         'coinone',
         'coinsph',
         'coinspot',
@@ -2168,6 +2169,99 @@ class Exchange {
     // ########################################################################
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function safe_bool_n($dictionaryOrList, array $keys, ?bool $defaultValue = null) {
+        /**
+         * @ignore
+         * safely extract boolean $value from dictionary or list
+         * @return array(bool | null)
+         */
+        $value = $this->safe_value_n($dictionaryOrList, $keys, $defaultValue);
+        if (is_bool($value)) {
+            return $value;
+        }
+        return $defaultValue;
+    }
+
+    public function safe_bool_2($dictionary, int|string $key1, int|string $key2, ?bool $defaultValue = null) {
+        /**
+         * @ignore
+         * safely extract boolean value from $dictionary or list
+         * @return array(bool | null)
+         */
+        return $this->safe_bool_n($dictionary, array( $key1, $key2 ), $defaultValue);
+    }
+
+    public function safe_bool($dictionary, int|string $key, ?bool $defaultValue = null) {
+        /**
+         * @ignore
+         * safely extract boolean value from $dictionary or list
+         * @return array(bool | null)
+         */
+        return $this->safe_bool_n($dictionary, array( $key ), $defaultValue);
+    }
+
+    public function safe_dict_n($dictionaryOrList, array $keys, ?array $defaultValue = null) {
+        /**
+         * @ignore
+         * safely extract a dictionary from dictionary or list
+         * @return array(object | null)
+         */
+        $value = $this->safe_value_n($dictionaryOrList, $keys, $defaultValue);
+        if (gettype($value) === 'array') {
+            return $value;
+        }
+        return $defaultValue;
+    }
+
+    public function safe_dict($dictionary, int|string $key, ?array $defaultValue = null) {
+        /**
+         * @ignore
+         * safely extract a $dictionary from $dictionary or list
+         * @return array(object | null)
+         */
+        return $this->safe_dict_n($dictionary, array( $key ), $defaultValue);
+    }
+
+    public function safe_dict_2($dictionary, int|string $key1, string $key2, ?array $defaultValue = null) {
+        /**
+         * @ignore
+         * safely extract a $dictionary from $dictionary or list
+         * @return array(object | null)
+         */
+        return $this->safe_dict_n($dictionary, array( $key1, $key2 ), $defaultValue);
+    }
+
+    public function safe_list_n($dictionaryOrList, array $keys, ?array $defaultValue = null) {
+        /**
+         * @ignore
+         * safely extract an Array from dictionary or list
+         * @return array(Array | null)
+         */
+        $value = $this->safe_value_n($dictionaryOrList, $keys, $defaultValue);
+        if (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
+            return $value;
+        }
+        return $defaultValue;
+    }
+
+    public function safe_list_2($dictionaryOrList, int|string $key1, string $key2, ?array $defaultValue = null) {
+        /**
+         * @ignore
+         * safely extract an Array from dictionary or list
+         * @return array(Array | null)
+         */
+        return $this->safe_list_n($dictionaryOrList, array( $key1, $key2 ), $defaultValue);
+    }
+
+    public function safe_list($dictionaryOrList, int|string $key, ?array $defaultValue = null) {
+        /**
+         * @ignore
+         * safely extract an Array from dictionary or list
+         * @return array(Array | null)
+         */
+        return $this->safe_list_n($dictionaryOrList, array( $key ), $defaultValue);
+    }
 
     public function handle_deltas($orderbook, $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
@@ -4958,6 +5052,9 @@ class Exchange {
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        if ($this->has['fetchOpenOrders'] && $this->has['fetchClosedOrders']) {
+            throw new NotSupported($this->id . ' fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead');
+        }
         throw new NotSupported($this->id . ' fetchOrders() is not supported yet');
     }
 

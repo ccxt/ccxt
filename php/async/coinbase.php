@@ -1399,7 +1399,11 @@ class coinbase extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
-            $response = Async\await($this->v3PrivateGetBrokerageProducts ($params));
+            $request = array();
+            if ($symbols !== null) {
+                $request['product_ids'] = $this->market_ids($symbols);
+            }
+            $response = Async\await($this->v3PrivateGetBrokerageProducts (array_merge($request, $params)));
             //
             //     {
             //         "products" => array(
@@ -3258,8 +3262,11 @@ class coinbase extends Exchange {
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
-            // the 'product_ids' param isn't working properly and returns array("pricebooks":array()) when defined
-            $response = Async\await($this->v3PrivateGetBrokerageBestBidAsk ($params));
+            $request = array();
+            if ($symbols !== null) {
+                $request['product_ids'] = $this->market_ids($symbols);
+            }
+            $response = Async\await($this->v3PrivateGetBrokerageBestBidAsk (array_merge($request, $params)));
             //
             //     {
             //         "pricebooks" => array(
@@ -3391,7 +3398,7 @@ class coinbase extends Exchange {
         $savedPath = $fullPath;
         if ($method === 'GET') {
             if ($query) {
-                $fullPath .= '?' . $this->urlencode($query);
+                $fullPath .= '?' . $this->urlencode_with_array_repeat($query);
             }
         }
         $url = $this->urls['api']['rest'] . $fullPath;
@@ -3402,11 +3409,16 @@ class coinbase extends Exchange {
                     'Authorization' => $authorization,
                     'Content-Type' => 'application/json',
                 );
-            } elseif ($this->token) {
+            } elseif ($this->token && !$this->check_required_credentials(false)) {
                 $headers = array(
                     'Authorization' => 'Bearer ' . $this->token,
                     'Content-Type' => 'application/json',
                 );
+                if ($method !== 'GET') {
+                    if ($query) {
+                        $body = $this->json($query);
+                    }
+                }
             } else {
                 $this->check_required_credentials();
                 $nonce = (string) $this->nonce();

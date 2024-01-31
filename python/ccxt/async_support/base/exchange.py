@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.23'
+__version__ = '4.2.29'
 
 # -----------------------------------------------------------------------------
 
@@ -430,9 +430,9 @@ class Exchange(BaseExchange):
                     try:
                         await client.send(message)
                     except ConnectionError as e:
-                        for subscribe_hash in missing_subscriptions:
-                            del client.subscriptions[subscribe_hash]
-                        future.reject(e)
+                        client.on_error(e)
+                    except Exception as e:
+                        client.on_error(e)
                 asyncio.ensure_future(send_message())
 
         if missing_subscriptions:
@@ -468,8 +468,9 @@ class Exchange(BaseExchange):
                     try:
                         await client.send(message)
                     except ConnectionError as e:
-                        del client.subscriptions[subscribe_hash]
-                        future.reject(e)
+                        client.on_error(e)
+                    except Exception as e:
+                        client.on_error(e)
                 asyncio.ensure_future(send_message())
 
         if not subscribed:
@@ -1160,6 +1161,8 @@ class Exchange(BaseExchange):
         return self.cancelOrder(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
 
     async def fetch_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+        if self.has['fetchOpenOrders'] and self.has['fetchClosedOrders']:
+            raise NotSupported(self.id + ' fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead')
         raise NotSupported(self.id + ' fetchOrders() is not supported yet')
 
     async def fetch_orders_ws(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):

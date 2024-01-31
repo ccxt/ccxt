@@ -36,6 +36,7 @@ class bitbns(Exchange, ImplicitAPI):
                 'swap': False,
                 'future': False,
                 'option': None,  # coming soon
+                'cancelAllOrders': False,
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,

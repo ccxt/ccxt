@@ -7,7 +7,6 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\ArgumentsRequired;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -117,7 +116,7 @@ class coinbase extends \ccxt\async\coinbase {
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             if ($symbols === null) {
-                throw new ArgumentsRequired($this->id . ' watchTickers requires a $symbols argument');
+                $symbols = $this->symbols;
             }
             $name = 'ticker_batch';
             $tickers = Async\await($this->subscribe($name, $symbols, $params));

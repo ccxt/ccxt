@@ -602,18 +602,14 @@
                 "output": "{\"symbol\":\"TRXUSDT_PERP\",\"margin_balance\":\"10\",\"leverage\":5}"
             },
             {
-                "description": "Add margin - margin",
+                "description": "Add margin to spot-margin pair",
                 "method": "addMargin",
-                "url": "https://api.hitbtc.com/api/3/margin/account/isolated/TRXUSDT_PERP",
+                "url": "https://api.hitbtc.com/api/3/margin/account/isolated/TRXUSDT",
                 "input": [
-                    "TRX/USDT:USDT",
-                    10,
-                    {
-                        "leverage": 5,
-                        "margin": true
-                    }
+                  "TRX/USDT",
+                  5
                 ],
-                "output": "{\"symbol\":\"TRXUSDT_PERP\",\"margin_balance\":\"10\",\"leverage\":5}"
+                "output": "{\"symbol\":\"TRXUSDT\",\"margin_balance\":\"5\"}"
             }
         ],
         "reduceMargin": [
@@ -631,18 +627,14 @@
                 "output": "{\"symbol\":\"TRXUSDT_PERP\",\"margin_balance\":\"0\",\"leverage\":5}"
             },
             {
-                "description": "Reduce margin - margin",
+                "description": "Remove margin from the spot-margin pair",
                 "method": "reduceMargin",
-                "url": "https://api.hitbtc.com/api/3/margin/account/isolated/TRXUSDT_PERP",
+                "url": "https://api.hitbtc.com/api/3/margin/account/isolated/TRXUSDT",
                 "input": [
-                    "TRX/USDT:USDT",
-                    0,
-                    {
-                        "leverage": 5,
-                        "margin": true
-                    }
+                  "TRX/USDT",
+                  0
                 ],
-                "output": "{\"symbol\":\"TRXUSDT_PERP\",\"margin_balance\":\"0\",\"leverage\":5}"
+                "output": "{\"symbol\":\"TRXUSDT\",\"margin_balance\":\"0\"}"
             }
         ],
         "fetchLeverage": [
