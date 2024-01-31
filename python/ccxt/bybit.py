@@ -4223,7 +4223,7 @@ class bybit(Exchange, ImplicitAPI):
         if ((type == 'option') or isUsdcSettled) and not isUnifiedAccount:
             return self.fetch_usdc_orders(symbol, since, limit, params)
         request['category'] = type
-        isStop = self.safe_value_n(params, ['trigger', 'stop'], False)
+        isStop = self.safe_bool_n(params, ['trigger', 'stop'], False)
         params = self.omit(params, ['trigger', 'stop'])
         if isStop:
             request['orderFilter'] = 'StopOrder'
@@ -5312,10 +5312,10 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672280219169
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        positions = self.safe_value_2(result, 'list', 'dataList', [])
+        result = self.safe_dict(response, 'result', {})
+        positions = self.safe_list_2(result, 'list', 'dataList', [])
         timestamp = self.safe_integer(response, 'time')
-        first = self.safe_value(positions, 0, {})
+        first = self.safe_dict(positions, 0, {})
         position = self.parse_position(first, market)
         position['timestamp'] = timestamp
         position['datetime'] = self.iso8601(timestamp)
@@ -5979,7 +5979,7 @@ class bybit(Exchange, ImplicitAPI):
         if timeframe == '1m':
             raise BadRequest(self.id + 'fetchOpenInterestHistory cannot use the 1m timeframe')
         self.load_markets()
-        paginate = self.safe_value(params, 'paginate')
+        paginate = self.safe_bool(params, 'paginate')
         if paginate:
             params = self.omit(params, 'paginate')
             return self.fetch_paginated_call_deterministic('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 500)

@@ -4531,7 +4531,7 @@ class bybit extends bybit$1 {
             return await this.fetchUsdcOrders(symbol, since, limit, params);
         }
         request['category'] = type;
-        const isStop = this.safeValueN(params, ['trigger', 'stop'], false);
+        const isStop = this.safeBoolN(params, ['trigger', 'stop'], false);
         params = this.omit(params, ['trigger', 'stop']);
         if (isStop) {
             request['orderFilter'] = 'StopOrder';
@@ -5689,10 +5689,10 @@ class bybit extends bybit$1 {
         //         "time": 1672280219169
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const positions = this.safeValue2(result, 'list', 'dataList', []);
+        const result = this.safeDict(response, 'result', {});
+        const positions = this.safeList2(result, 'list', 'dataList', []);
         const timestamp = this.safeInteger(response, 'time');
-        const first = this.safeValue(positions, 0, {});
+        const first = this.safeDict(positions, 0, {});
         const position = this.parsePosition(first, market);
         position['timestamp'] = timestamp;
         position['datetime'] = this.iso8601(timestamp);
@@ -6438,7 +6438,7 @@ class bybit extends bybit$1 {
             throw new errors.BadRequest(this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
         }
         await this.loadMarkets();
-        const paginate = this.safeValue(params, 'paginate');
+        const paginate = this.safeBool(params, 'paginate');
         if (paginate) {
             params = this.omit(params, 'paginate');
             return await this.fetchPaginatedCallDeterministic('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 500);

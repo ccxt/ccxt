@@ -1762,10 +1762,10 @@ class coinmetro(Exchange, ImplicitAPI):
         endpoint = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + endpoint
         query = self.urlencode(request)
+        if headers is None:
+            headers = {}
+        headers['CCXT'] = 'true'
         if api == 'private':
-            if headers is None:
-                headers = {}
-            headers['CCXT'] = True
             if (self.uid is None) and (self.apiKey is not None):
                 self.uid = self.apiKey
             if (self.token is None) and (self.secret is not None):

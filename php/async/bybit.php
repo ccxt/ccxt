@@ -4514,7 +4514,7 @@ class bybit extends Exchange {
                 return Async\await($this->fetch_usdc_orders($symbol, $since, $limit, $params));
             }
             $request['category'] = $type;
-            $isStop = $this->safe_value_n($params, array( 'trigger', 'stop' ), false);
+            $isStop = $this->safe_bool_n($params, array( 'trigger', 'stop' ), false);
             $params = $this->omit($params, array( 'trigger', 'stop' ));
             if ($isStop) {
                 $request['orderFilter'] = 'StopOrder';
@@ -5690,10 +5690,10 @@ class bybit extends Exchange {
             //         "time" => 1672280219169
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
-            $positions = $this->safe_value_2($result, 'list', 'dataList', array());
+            $result = $this->safe_dict($response, 'result', array());
+            $positions = $this->safe_list_2($result, 'list', 'dataList', array());
             $timestamp = $this->safe_integer($response, 'time');
-            $first = $this->safe_value($positions, 0, array());
+            $first = $this->safe_dict($positions, 0, array());
             $position = $this->parse_position($first, $market);
             $position['timestamp'] = $timestamp;
             $position['datetime'] = $this->iso8601($timestamp);
@@ -6428,7 +6428,7 @@ class bybit extends Exchange {
                 throw new BadRequest($this->id . 'fetchOpenInterestHistory cannot use the 1m timeframe');
             }
             Async\await($this->load_markets());
-            $paginate = $this->safe_value($params, 'paginate');
+            $paginate = $this->safe_bool($params, 'paginate');
             if ($paginate) {
                 $params = $this->omit($params, 'paginate');
                 return Async\await($this->fetch_paginated_call_deterministic('fetchOpenInterestHistory', $symbol, $since, $limit, $timeframe, $params, 500));

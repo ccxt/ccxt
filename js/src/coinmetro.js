@@ -1857,11 +1857,11 @@ export default class coinmetro extends Exchange {
         const endpoint = '/' + this.implodeParams(path, params);
         let url = this.urls['api'][api] + endpoint;
         const query = this.urlencode(request);
+        if (headers === undefined) {
+            headers = {};
+        }
+        headers['CCXT'] = 'true';
         if (api === 'private') {
-            if (headers === undefined) {
-                headers = {};
-            }
-            headers['CCXT'] = true;
             if ((this.uid === undefined) && (this.apiKey !== undefined)) {
                 this.uid = this.apiKey;
             }
