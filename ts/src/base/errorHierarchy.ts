@@ -12,8 +12,9 @@ const errorHierarchy = {
                 'BadSymbol': {},
             },
             'OperationRejected': {
-                'MarginModeAlreadySet': {},
-                'NoChange': {},
+                'NoChange': {
+                    'MarginModeAlreadySet': {},
+                },
             },
             'BadResponse': {
                 'NullResponse': {},

@@ -119,7 +119,7 @@ class NoChange extends OperationRejected {
         this.name = 'NoChange';
     }
 }
-class MarginModeAlreadySet extends OperationRejected {
+class MarginModeAlreadySet extends NoChange {
     constructor (message) {
         super (message);
         this.name = 'MarginModeAlreadySet';
