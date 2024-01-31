@@ -1548,10 +1548,10 @@ export default class bitfinex2 extends Exchange {
         const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
         const trailingAmount = this.safeString (params, 'trailingAmount');
         const timeInForce = this.safeString (params, 'timeInForce');
-        const postOnlyParam = this.safeValue (params, 'postOnly', false);
-        const reduceOnly = this.safeValue (params, 'reduceOnly', false);
+        const postOnlyParam = this.safeBool (params, 'postOnly', false);
+        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
         const clientOrderId = this.safeValue2 (params, 'cid', 'clientOrderId');
-        params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount' ]);
+        params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId' ]);
         let orderType = type.toUpperCase ();
         if (trailingAmount !== undefined) {
             orderType = 'TRAILING STOP';
@@ -1603,7 +1603,6 @@ export default class bitfinex2 extends Exchange {
         }
         if (clientOrderId !== undefined) {
             request['cid'] = clientOrderId;
-            params = this.omit (params, [ 'cid', 'clientOrderId' ]);
         }
         const response = await this.privatePostAuthWOrderSubmit (this.extend (request, params));
         //
@@ -1659,8 +1658,8 @@ export default class bitfinex2 extends Exchange {
             const errorText = response[7];
             throw new ExchangeError (this.id + ' ' + response[6] + ': ' + errorText + ' (#' + errorCode + ')');
         }
-        const orders = this.safeValue (response, 4, []);
-        const order = this.safeValue (orders, 0);
+        const orders = this.safeList (response, 4, []);
+        const order = this.safeList (orders, 0);
         return this.parseOrder (order, market);
     }
 

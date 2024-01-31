@@ -325,6 +325,22 @@
                   }
                 ],
                 "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"price\":\"41000\",\"type\":\"EXCHANGE STOP\"}"
+            },
+            {
+                "description": "create order with clientOrderId",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  50,
+                  {
+                    "clientOrderId": 1003434
+                  }
+                ],
+                "output": "{\"symbol\":\"tLTCUST\",\"amount\":\"0.1\",\"price\":\"50\",\"type\":\"EXCHANGE LIMIT\",\"cid\":1003434}"
             }
         ],
         "createReduceOnlyOrder": [
