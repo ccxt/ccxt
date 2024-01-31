@@ -385,7 +385,7 @@ export default class kraken extends krakenRest {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const trades = this.safeValue (message, 1, []);
+        const trades = this.safeList (message, 1, []);
         const parsed = this.parseTrades (trades, market);
         for (let i = 0; i < parsed.length; i++) {
             stored.append (parsed[i]);
@@ -412,7 +412,7 @@ export default class kraken extends krakenRest {
         //         "ETH/XBT", // Asset pair
         //     ]
         //
-        const info = this.safeValue (subscription, 'subscription', {});
+        const info = this.safeDict (subscription, 'subscription', {});
         const interval = this.safeInteger (info, 'interval');
         const name = this.safeString (info, 'name');
         const wsName = this.safeString (message, 3);
@@ -580,12 +580,12 @@ export default class kraken extends krakenRest {
                 const symbol = this.symbols[i];
                 const market = this.markets[symbol];
                 if (market['darkpool']) {
-                    const info = this.safeValue (market, 'info', {});
+                    const info = this.safeDict (market, 'info', {});
                     const altname = this.safeString (info, 'altname');
                     const wsName = altname.slice (0, 3) + '/' + altname.slice (3);
                     marketsByWsName[wsName] = market;
                 } else {
-                    const info = this.safeValue (market, 'info', {});
+                    const info = this.safeDict (market, 'info', {});
                     const wsName = this.safeString (info, 'wsname');
                     marketsByWsName[wsName] = market;
                 }
@@ -896,7 +896,7 @@ export default class kraken extends krakenRest {
         //         { sequence: 1 }
         //     ]
         //
-        const allTrades = this.safeValue (message, 0, []);
+        const allTrades = this.safeList (message, 0, []);
         const allTradesLength = allTrades.length;
         if (allTradesLength > 0) {
             if (this.myTrades === undefined) {
@@ -906,7 +906,7 @@ export default class kraken extends krakenRest {
             const stored = this.myTrades;
             const symbols = {};
             for (let i = 0; i < allTrades.length; i++) {
-                const trades = this.safeValue (allTrades, i, {});
+                const trades = this.safeDict (allTrades, i, {});
                 const ids = Object.keys (trades);
                 for (let j = 0; j < ids.length; j++) {
                     const id = ids[j];
@@ -1100,7 +1100,7 @@ export default class kraken extends krakenRest {
         //         { "sequence": 59342 }
         //     ]
         //
-        const allOrders = this.safeValue (message, 0, []);
+        const allOrders = this.safeList (message, 0, []);
         const allOrdersLength = allOrders.length;
         if (allOrdersLength > 0) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -1110,7 +1110,7 @@ export default class kraken extends krakenRest {
             const stored = this.orders;
             const symbols = {};
             for (let i = 0; i < allOrders.length; i++) {
-                const orders = this.safeValue (allOrders, i, {});
+                const orders = this.safeDict (allOrders, i, {});
                 const ids = Object.keys (orders);
                 for (let j = 0; j < ids.length; j++) {
                     const id = ids[j];
@@ -1187,7 +1187,7 @@ export default class kraken extends krakenRest {
         //        "vol_exec": "0.00000000"
         //    }
         //
-        const description = this.safeValue (order, 'descr', {});
+        const description = this.safeDict (order, 'descr', {});
         const orderDescription = this.safeString (description, 'order');
         let side = undefined;
         let type = undefined;
@@ -1343,7 +1343,7 @@ export default class kraken extends krakenRest {
         if (Array.isArray (message)) {
             const channelId = this.safeString (message, 0);
             const subscription = this.safeValue (client.subscriptions, channelId, {});
-            const info = this.safeValue (subscription, 'subscription', {});
+            const info = this.safeDict (subscription, 'subscription', {});
             const messageLength = message.length;
             const channelName = this.safeString (message, messageLength - 2);
             const name = this.safeString (info, 'name');

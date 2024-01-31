@@ -386,8 +386,8 @@ export default class onetrading extends Exchange {
     }
 
     parseMarket (market): Market {
-        const baseAsset = this.safeValue (market, 'base', {});
-        const quoteAsset = this.safeValue (market, 'quote', {});
+        const baseAsset = this.safeDict (market, 'base', {});
+        const quoteAsset = this.safeDict (market, 'quote', {});
         const baseId = this.safeString (baseAsset, 'code');
         const quoteId = this.safeString (quoteAsset, 'code');
         const id = baseId + '_' + quoteId;
@@ -484,10 +484,10 @@ export default class onetrading extends Exchange {
         //         }
         //     ]
         //
-        const first = this.safeValue (response, 0, {});
+        const first = this.safeDict (response, 0, {});
         const feeTiers = this.safeValue (first, 'fee_tiers');
         const tiers = this.parseFeeTiers (feeTiers);
-        const firstTier = this.safeValue (feeTiers, 0, {});
+        const firstTier = this.safeDict (feeTiers, 0, {});
         const result = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
@@ -528,7 +528,7 @@ export default class onetrading extends Exchange {
         //         "active_fee_tier": { "volume": "0.0", "fee_group_id": "default", "maker_fee": "0.1", "taker_fee": "0.1" }
         //     }
         //
-        const activeFeeTier = this.safeValue (response, 'active_fee_tier', {});
+        const activeFeeTier = this.safeDict (response, 'active_fee_tier', {});
         let makerFee = this.safeString (activeFeeTier, 'maker_fee');
         let takerFee = this.safeString (activeFeeTier, 'taker_fee');
         makerFee = Precise.stringDiv (makerFee, '100');
@@ -913,7 +913,7 @@ export default class onetrading extends Exchange {
         //         }
         //     }
         //
-        const feeInfo = this.safeValue (trade, 'fee', {});
+        const feeInfo = this.safeDict (trade, 'fee', {});
         trade = this.safeValue (trade, 'trade', trade);
         let timestamp = this.safeInteger (trade, 'trade_timestamp');
         if (timestamp === undefined) {
@@ -999,7 +999,7 @@ export default class onetrading extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const balances = this.safeValue (response, 'balances', []);
+        const balances = this.safeList (response, 'balances', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -1173,7 +1173,7 @@ export default class onetrading extends Exchange {
         //         "cursor": "eyJhY2NvdW50X2lkIjp7InMiOiJlMzY5YWM4MC00NTc3LTExZTktYWUwOC05YmVkYzQ3OTBiODQiLCJzcyI6W10sIm5zIjpbXSwiYnMiOltdLCJtIjp7fSwibCI6W119LCJpdGVtX2tleSI6eyJzIjoiV0lUSERSQVdBTDo6MmFlMjYwY2ItOTk3MC00YmNiLTgxNmEtZGY4MDVmY2VhZTY1Iiwic3MiOltdLCJucyI6W10sImJzIjpbXSwibSI6e30sImwiOltdfSwiZ2xvYmFsX3dpdGhkcmF3YWxfaW5kZXhfaGFzaF9rZXkiOnsicyI6ImUzNjlhYzgwLTQ1NzctMTFlOS1hZTA4LTliZWRjNDc5MGI4NCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX0sInRpbWVzdGFtcCI6eyJuIjoiMTU4ODA1ODc2Nzk0OCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX19"
         //     }
         //
-        const depositHistory = this.safeValue (response, 'deposit_history', []);
+        const depositHistory = this.safeList (response, 'deposit_history', []);
         return this.parseTransactions (depositHistory, currency, since, limit, { 'type': 'deposit' });
     }
 
@@ -1239,7 +1239,7 @@ export default class onetrading extends Exchange {
         //         "max_page_size": 2
         //     }
         //
-        const withdrawalHistory = this.safeValue (response, 'withdrawal_history', []);
+        const withdrawalHistory = this.safeList (response, 'withdrawal_history', []);
         return this.parseTransactions (withdrawalHistory, currency, since, limit, { 'type': 'withdrawal' });
     }
 
@@ -1481,7 +1481,7 @@ export default class onetrading extends Exchange {
         const timeInForce = this.parseTimeInForce (this.safeString (rawOrder, 'time_in_force'));
         const stopPrice = this.safeNumber (rawOrder, 'trigger_price');
         const postOnly = this.safeValue (rawOrder, 'is_post_only');
-        const rawTrades = this.safeValue (order, 'trades', []);
+        const rawTrades = this.safeList (order, 'trades', []);
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1840,7 +1840,7 @@ export default class onetrading extends Exchange {
         //         "max_page_size": 100
         //     }
         //
-        const orderHistory = this.safeValue (response, 'order_history', []);
+        const orderHistory = this.safeList (response, 'order_history', []);
         return this.parseOrders (orderHistory, market, since, limit);
     }
 
@@ -1913,7 +1913,7 @@ export default class onetrading extends Exchange {
         //         "cursor": "string"
         //     }
         //
-        const tradeHistory = this.safeValue (response, 'trade_history', []);
+        const tradeHistory = this.safeList (response, 'trade_history', []);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1986,7 +1986,7 @@ export default class onetrading extends Exchange {
         //         "cursor": "string"
         //     }
         //
-        const tradeHistory = this.safeValue (response, 'trade_history', []);
+        const tradeHistory = this.safeList (response, 'trade_history', []);
         return this.parseTrades (tradeHistory, market, since, limit);
     }
 

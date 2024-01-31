@@ -147,7 +147,7 @@ export default class bitmart extends bitmartRest {
             return;
         }
         const options = this.safeValue (this.options, 'watchBalance');
-        const snapshot = this.safeValue (options, 'fetchBalanceSnapshot', true);
+        const snapshot = this.safeBool (options, 'fetchBalanceSnapshot', true);
         if (snapshot) {
             const messageHash = type + ':' + 'fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
@@ -690,7 +690,7 @@ export default class bitmart extends bitmartRest {
         //        ]
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const cache = this.positions;
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
@@ -1102,7 +1102,7 @@ export default class bitmart extends bitmartRest {
             const marketId = this.safeString (data, 'symbol');
             const market = this.safeMarket (marketId, undefined, undefined, 'swap');
             const symbol = market['symbol'];
-            const items = this.safeValue (data, 'items', []);
+            const items = this.safeList (data, 'items', []);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
@@ -1179,8 +1179,8 @@ export default class bitmart extends bitmartRest {
         //         "symbol": "BTC_USDT"
         //     }
         //
-        const asks = this.safeValue (message, 'asks', []);
-        const bids = this.safeValue (message, 'bids', []);
+        const asks = this.safeList (message, 'asks', []);
+        const bids = this.safeList (message, 'bids', []);
         this.handleDeltas (orderbook['asks'], asks);
         this.handleDeltas (orderbook['bids'], bids);
         const timestamp = this.safeInteger (message, 'ms_t');

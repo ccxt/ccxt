@@ -357,13 +357,13 @@ export default class coinlist extends Exchange {
         //         ]
         //     }
         //
-        const currencies = this.safeValue (response, 'assets', []);
+        const currencies = this.safeList (response, 'assets', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'asset');
             const code = this.safeCurrencyCode (id);
-            const isTransferable = this.safeValue (currency, 'is_transferable', false);
+            const isTransferable = this.safeBool (currency, 'is_transferable', false);
             const withdrawEnabled = isTransferable;
             const depositEnabled = isTransferable;
             const active = isTransferable;
@@ -425,7 +425,7 @@ export default class coinlist extends Exchange {
         //         ]
         //     }
         //
-        const markets = this.safeValue (response, 'symbols', []);
+        const markets = this.safeList (response, 'symbols', []);
         return this.parseMarkets (markets);
     }
 
@@ -587,7 +587,7 @@ export default class coinlist extends Exchange {
         //         "lowest_price_24h":"0.55500000"
         //     }
         //
-        const lastTrade = this.safeValue (ticker, 'last_trade', {});
+        const lastTrade = this.safeDict (ticker, 'last_trade', {});
         const timestamp = this.parse8601 (this.safeString (lastTrade, 'logicalTime'));
         const bid = this.safeString (ticker, 'highest_bid');
         const ask = this.safeString (ticker, 'lowest_ask');
@@ -720,7 +720,7 @@ export default class coinlist extends Exchange {
         //         ]
         //     }
         //
-        const candles = this.safeValue (response, 'candles', []);
+        const candles = this.safeList (response, 'candles', []);
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
@@ -800,7 +800,7 @@ export default class coinlist extends Exchange {
         //         ]
         //     }
         //
-        const auctions = this.safeValue (response, 'auctions', []);
+        const auctions = this.safeList (response, 'auctions', []);
         return this.parseTrades (auctions, market, since, limit);
     }
 
@@ -947,15 +947,15 @@ export default class coinlist extends Exchange {
         //         }
         //     }
         //
-        const fees = this.safeValue (response, 'fees_by_symbols', {});
+        const fees = this.safeDict (response, 'fees_by_symbols', {});
         const result = {};
         const groupsOfSymbols = Object.keys (fees);
         for (let i = 0; i < groupsOfSymbols.length; i++) {
             const group = groupsOfSymbols[i];
-            const feeTiers = this.safeValue (fees, group, {});
+            const feeTiers = this.safeDict (fees, group, {});
             const tiers = this.parseFeeTiers (feeTiers);
-            const firstTier = this.safeValue (feeTiers, 'base', {});
-            const firstTierFees = this.safeValue (firstTier, 'fees', {});
+            const firstTier = this.safeDict (feeTiers, 'base', {});
+            const firstTierFees = this.safeDict (firstTier, 'fees', {});
             const ids = group.split (',');
             for (let j = 0; j < ids.length; j++) {
                 const id = ids[j];
@@ -1035,8 +1035,8 @@ export default class coinlist extends Exchange {
         if (keysLength > 0) {
             for (let i = 0; i < keysLength; i++) {
                 const key = keys[i];
-                const tier = this.safeValue (feeTiers, key, {});
-                const tierFees = this.safeValue (tier, 'fees', {});
+                const tier = this.safeDict (feeTiers, key, {});
+                const tierFees = this.safeDict (tier, 'fees', {});
                 const taker = this.safeString (tierFees, 'taker');
                 const maker = this.safeString (tierFees, 'maker');
                 makerFees.push ([ undefined, this.parseNumber (maker) ]);
@@ -1044,12 +1044,12 @@ export default class coinlist extends Exchange {
             }
             takerFees = this.sortBy (takerFees, 1, true);
             makerFees = this.sortBy (makerFees, 1, true);
-            const firstTier = this.safeValue (takerFees, 0, []);
-            const exchangeFees = this.safeValue (this, 'fees', {});
-            const exchangeFeesTrading = this.safeValue (exchangeFees, 'trading', {});
-            const exchangeFeesTradingTiers = this.safeValue (exchangeFeesTrading, 'tiers', {});
-            const exchangeFeesTradingTiersTaker = this.safeValue (exchangeFeesTradingTiers, 'taker', []);
-            const exchangeFeesTradingTiersMaker = this.safeValue (exchangeFeesTradingTiers, 'maker', []);
+            const firstTier = this.safeList (takerFees, 0, []);
+            const exchangeFees = this.safeDict (this, 'fees', {});
+            const exchangeFeesTrading = this.safeDict (exchangeFees, 'trading', {});
+            const exchangeFeesTradingTiers = this.safeDict (exchangeFeesTrading, 'tiers', {});
+            const exchangeFeesTradingTiersTaker = this.safeList (exchangeFeesTradingTiers, 'taker', []);
+            const exchangeFeesTradingTiersMaker = this.safeList (exchangeFeesTradingTiers, 'maker', []);
             if ((keysLength === exchangeFeesTradingTiersTaker.length) && (firstTier.length > 0)) {
                 for (let i = 0; i < keysLength; i++) {
                     takerFees[i][0] = exchangeFeesTradingTiersTaker[i][0];
@@ -1084,7 +1084,7 @@ export default class coinlist extends Exchange {
         //         ]
         //     }
         //
-        const accounts = this.safeValue (response, 'accounts', []);
+        const accounts = this.safeList (response, 'accounts', []);
         return this.parseAccounts (accounts, params);
     }
 
@@ -1136,8 +1136,8 @@ export default class coinlist extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const totalBalances = this.safeValue (response, 'asset_balances', {});
-        const usedBalances = this.safeValue (response, 'asset_holds', {});
+        const totalBalances = this.safeDict (response, 'asset_balances', {});
+        const usedBalances = this.safeDict (response, 'asset_holds', {});
         const currencyIds = Object.keys (totalBalances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
@@ -1210,7 +1210,7 @@ export default class coinlist extends Exchange {
         //         ]
         //     }
         //
-        const fills = this.safeValue (response, 'fills', []);
+        const fills = this.safeList (response, 'fills', []);
         return this.parseTrades (fills, market, since, limit);
     }
 
@@ -1298,7 +1298,7 @@ export default class coinlist extends Exchange {
         //         ]
         //     }
         //
-        const orders = this.safeValue (response, 'orders', []);
+        const orders = this.safeList (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1547,7 +1547,7 @@ export default class coinlist extends Exchange {
         //         "timestamp": "2023-10-26T11:30:55.376Z"
         //     }
         //
-        const order = this.safeValue (response, 'order', {});
+        const order = this.safeDict (response, 'order', {});
         return this.parseOrder (order, market);
     }
 
@@ -1839,7 +1839,7 @@ export default class coinlist extends Exchange {
         //         ]
         //     }
         //
-        const transfers = this.safeValue (response, 'transfers', []);
+        const transfers = this.safeList (response, 'transfers', []);
         return this.parseTransfers (transfers, currency, since, limit);
     }
 
@@ -2012,7 +2012,7 @@ export default class coinlist extends Exchange {
         //         "transfer_id": "d4a2d8dd-7def-4545-a062-761683b9aa05"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTransaction (data, currency);
     }
 
@@ -2190,7 +2190,7 @@ export default class coinlist extends Exchange {
         //         ]
         //     }
         //
-        const ledger = this.safeValue (response, 'transactions', []);
+        const ledger = this.safeList (response, 'transactions', []);
         return this.parseLedger (ledger, currency, since, limit);
     }
 

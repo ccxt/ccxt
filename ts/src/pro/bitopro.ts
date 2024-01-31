@@ -168,7 +168,7 @@ export default class bitopro extends bitoproRest {
         const symbol = market['symbol'];
         const event = this.safeString (message, 'event');
         const messageHash = event + ':' + symbol;
-        const rawData = this.safeValue (message, 'data', []);
+        const rawData = this.safeList (message, 'data', []);
         const trades = this.parseTrades (rawData, market);
         let tradesCache = this.safeValue (this.trades, symbol);
         if (tradesCache === undefined) {
@@ -234,7 +234,7 @@ export default class bitopro extends bitoproRest {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const baseId = this.safeString (data, 'base');
         const quoteId = this.safeString (data, 'quote');
         const base = this.safeCurrencyCode (baseId);

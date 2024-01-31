@@ -293,7 +293,7 @@ export default class mexc extends mexcRest {
         //       "ts": 1651230713067
         //   }
         //
-        const d = this.safeValue2 (message, 'd', 'data', {});
+        const d = this.safeDict2 (message, 'd', 'data', {});
         const rawOhlcv = this.safeValue (d, 'k', d);
         const timeframeId = this.safeString2 (rawOhlcv, 'i', 'interval');
         const timeframes = this.safeValue (this.options, 'timeframes', {});
@@ -519,8 +519,8 @@ export default class mexc extends mexcRest {
             throw new ExchangeError (this.id + ' handleOrderBook received an out-of-order nonce');
         }
         orderbook['nonce'] = deltaNonce;
-        const asks = this.safeValue (delta, 'asks', []);
-        const bids = this.safeValue (delta, 'bids', []);
+        const asks = this.safeList (delta, 'asks', []);
+        const bids = this.safeList (delta, 'bids', []);
         const asksOrderSide = orderbook['asks'];
         const bidsOrderSide = orderbook['bids'];
         this.handleBooksideDelta (asksOrderSide, asks);

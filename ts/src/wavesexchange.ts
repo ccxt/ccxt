@@ -400,7 +400,7 @@ export default class wavesexchange extends Exchange {
         //        "matcherFee":"4077612"
         //     }
         //  }
-        const isDiscountFee = this.safeValue (params, 'isDiscountFee', false);
+        const isDiscountFee = this.safeBool (params, 'isDiscountFee', false);
         let mode = undefined;
         if (isDiscountFee) {
             mode = this.safeValue (response, 'discount');
@@ -890,9 +890,9 @@ export default class wavesexchange extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const ticker = this.safeValue (data, 0, {});
-        const dataTicker = this.safeValue (ticker, 'data', {});
+        const data = this.safeList (response, 'data', []);
+        const ticker = this.safeDict (data, 0, {});
+        const dataTicker = this.safeDict (ticker, 'data', {});
         return this.parseTicker (dataTicker, market);
     }
 
@@ -997,7 +997,7 @@ export default class wavesexchange extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         let result = this.parseOHLCVs (data, market, timeframe, since, limit);
         result = this.filterFutureCandles (result);
         let lastClose = undefined;
@@ -1050,7 +1050,7 @@ export default class wavesexchange extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (ohlcv, 'data', {});
+        const data = this.safeDict (ohlcv, 'data', {});
         return [
             this.parse8601 (this.safeString (data, 'time')),
             this.safeNumber (data, 'open'),
@@ -1110,11 +1110,11 @@ export default class wavesexchange extends Exchange {
         //
         const currencies = {};
         const networksByCurrency = {};
-        const items = this.safeValue (supportedCurrencies, 'items', []);
+        const items = this.safeList (supportedCurrencies, 'items', []);
         for (let i = 0; i < items.length; i++) {
             const entry = items[i];
             const currencyId = this.safeString (entry, 'id');
-            const innerCurrencies = this.safeValue (entry, 'currencies', []);
+            const innerCurrencies = this.safeList (entry, 'currencies', []);
             for (let j = 0; j < innerCurrencies.length; j++) {
                 const currencyCode = this.safeString (innerCurrencies, j);
                 currencies[currencyCode] = true;
@@ -1908,7 +1908,7 @@ export default class wavesexchange extends Exchange {
         //     }
         //   ]
         // }
-        const balances = this.safeValue (totalBalance, 'balances', []);
+        const balances = this.safeList (totalBalance, 'balances', []);
         const result = {};
         let timestamp = undefined;
         const assetIds = [];
@@ -1939,7 +1939,7 @@ export default class wavesexchange extends Exchange {
                 'ids': assetIds,
             };
             const response = await this.publicGetAssets (requestInner);
-            const data = this.safeValue (response, 'data', []);
+            const data = this.safeList (response, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const entry = data[i];
                 const balance = nonStandardBalances[i];
@@ -1989,7 +1989,7 @@ export default class wavesexchange extends Exchange {
         //   "confirmations": 0,
         //   "balance": 909085978
         // }
-        result['WAVES'] = this.safeValue (result, 'WAVES', {});
+        result['WAVES'] = this.safeDict (result, 'WAVES', {});
         result['WAVES']['total'] = this.currencyFromPrecision ('WAVES', this.safeString (wavesTotal, 'balance'));
         const codes = Object.keys (result);
         for (let i = 0; i < codes.length; i++) {
@@ -2435,7 +2435,7 @@ export default class wavesexchange extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const errorCode = this.safeString (response, 'error');
-        const success = this.safeValue (response, 'success', true);
+        const success = this.safeBool (response, 'success', true);
         const Exception = this.safeValue (this.exceptions, errorCode);
         if (Exception !== undefined) {
             const messageInner = this.safeString (response, 'message');
@@ -2468,7 +2468,7 @@ export default class wavesexchange extends Exchange {
         if (code !== 'WAVES') {
             const supportedCurrencies = await this.privateGetWithdrawCurrencies ();
             const currencies = {};
-            const items = this.safeValue (supportedCurrencies, 'items', []);
+            const items = this.safeList (supportedCurrencies, 'items', []);
             for (let i = 0; i < items.length; i++) {
                 const entry = items[i];
                 const currencyCode = this.safeString (entry, 'id');
@@ -2534,7 +2534,7 @@ export default class wavesexchange extends Exchange {
             //     "3P3qqmkiLwNHB7x1FeoE8bvkRtULwGpo9ga"
             //   ]
             // }
-            const proxyAddresses = this.safeValue (withdrawAddress, 'proxy_addresses', []);
+            const proxyAddresses = this.safeList (withdrawAddress, 'proxy_addresses', []);
             proxyAddress = this.safeString (proxyAddresses, 0);
         }
         const fee = this.safeInteger (this.options, 'withdrawFeeWAVES', 100000);  // 0.001 WAVES

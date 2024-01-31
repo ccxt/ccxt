@@ -160,7 +160,7 @@ export default class bingx extends bingxRest {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 's');
         // const marketId = messageHash.split('@')[0];
         const isSwap = client.url.indexOf ('swap') >= 0;
@@ -320,7 +320,7 @@ export default class bingx extends bingxRest {
         //        ]
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const messageHash = this.safeString (message, 'dataType');
         const marketId = messageHash.split ('@')[0];
         const isSwap = client.url.indexOf ('swap') >= 0;
@@ -436,7 +436,7 @@ export default class bingx extends bingxRest {
         //        }
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const messageHash = this.safeString (message, 'dataType');
         const marketId = messageHash.split ('@')[0];
         const isSwap = client.url.indexOf ('swap') >= 0;
@@ -523,12 +523,12 @@ export default class bingx extends bingxRest {
         //        ]
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         let candles = undefined;
         if (Array.isArray (data)) {
             candles = data;
         } else {
-            candles = [ this.safeValue (data, 'K', []) ];
+            candles = [ this.safeList (data, 'K', []) ];
         }
         const messageHash = this.safeString (message, 'dataType');
         const timeframeId = messageHash.split ('_')[1];
@@ -573,7 +573,7 @@ export default class bingx extends bingxRest {
             throw new BadRequest (this.id + ' watchOHLCV is not supported for ' + marketType + ' markets.');
         }
         const options = this.safeValue (this.options, marketType, {});
-        const timeframes = this.safeValue (options, 'timeframes', {});
+        const timeframes = this.safeDict (options, 'timeframes', {});
         const interval = this.safeString (timeframes, timeframe, timeframe);
         const messageHash = market['id'] + '@kline_' + interval;
         const uuid = this.uuid ();
@@ -906,7 +906,7 @@ export default class bingx extends bingxRest {
         //    }
         //
         const isSpot = ('dataType' in message);
-        const data = this.safeValue2 (message, 'data', 'o', {});
+        const data = this.safeDict2 (message, 'data', 'o', {});
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -980,7 +980,7 @@ export default class bingx extends bingxRest {
         //    }
         //
         const isSpot = ('dataType' in message);
-        const result = this.safeValue2 (message, 'data', 'o', {});
+        const result = this.safeDict2 (message, 'data', 'o', {});
         let cachedTrades = this.myTrades;
         if (cachedTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -1034,8 +1034,8 @@ export default class bingx extends bingxRest {
         //         }
         //     }
         //
-        const a = this.safeValue (message, 'a', {});
-        const data = this.safeValue (a, 'B', []);
+        const a = this.safeDict (message, 'a', {});
+        const data = this.safeList (a, 'B', []);
         const timestamp = this.safeInteger2 (message, 'T', 'E');
         const type = ('P' in a) ? 'swap' : 'spot';
         this.balance[type]['info'] = data;
@@ -1084,7 +1084,7 @@ export default class bingx extends bingxRest {
             return;
         }
         if (dataType.indexOf ('executionReport') >= 0) {
-            const data = this.safeValue (message, 'data', {});
+            const data = this.safeDict (message, 'data', {});
             const type = this.safeString (data, 'x');
             if (type === 'TRADE') {
                 this.handleMyTrades (client, message);
@@ -1098,7 +1098,7 @@ export default class bingx extends bingxRest {
         }
         if (e === 'ORDER_TRADE_UPDATE') {
             this.handleOrder (client, message);
-            const data = this.safeValue (message, 'o', {});
+            const data = this.safeDict (message, 'o', {});
             const type = this.safeString (data, 'x');
             const status = this.safeString (data, 'X');
             if ((type === 'TRADE') && (status === 'FILLED')) {

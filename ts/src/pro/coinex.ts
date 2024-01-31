@@ -132,8 +132,8 @@ export default class coinex extends coinexRest {
         //     }
         //
         const defaultType = this.safeString (this.options, 'defaultType');
-        const params = this.safeValue (message, 'params', []);
-        const rawTickers = this.safeValue (params, 0, {});
+        const params = this.safeList (message, 'params', []);
+        const rawTickers = this.safeDict (params, 0, {});
         const keys = Object.keys (rawTickers);
         const newTickers = [];
         for (let i = 0; i < keys.length; i++) {
@@ -265,8 +265,8 @@ export default class coinex extends coinexRest {
         //         "id": null
         //     }
         //
-        const params = this.safeValue (message, 'params', []);
-        const first = this.safeValue (params, 0, {});
+        const params = this.safeList (message, 'params', []);
+        const first = this.safeDict (params, 0, {});
         this.balance['info'] = first;
         const currencies = Object.keys (first);
         for (let i = 0; i < currencies.length; i++) {
@@ -301,9 +301,9 @@ export default class coinex extends coinexRest {
         //         "id": null
         //     }
         //
-        const params = this.safeValue (message, 'params', []);
+        const params = this.safeList (message, 'params', []);
         const marketId = this.safeString (params, 0);
-        const trades = this.safeValue (params, 1, []);
+        const trades = this.safeList (params, 1, []);
         const defaultType = this.safeString (this.options, 'defaultType');
         const market = this.safeMarket (marketId, undefined, undefined, defaultType);
         const symbol = market['symbol'];
@@ -387,7 +387,7 @@ export default class coinex extends coinexRest {
         //         "id": null
         //     }
         //
-        const candles = this.safeValue2 (message, 'params', 'result', []);
+        const candles = this.safeList2 (message, 'params', 'result', []);
         const messageHash = 'ohlcv';
         const id = this.safeString (message, 'id');
         const ohlcvs = this.parseOHLCVs (candles);
@@ -509,7 +509,7 @@ export default class coinex extends coinexRest {
         const name = 'orderbook';
         const messageHash = name + ':' + symbol;
         const options = this.safeValue (this.options, 'watchOrderBook', {});
-        const limits = this.safeValue (options, 'limits', []);
+        const limits = this.safeList (options, 'limits', []);
         if (limit === undefined) {
             limit = this.safeValue (options, 'defaultLimit', 50);
         }
@@ -517,7 +517,7 @@ export default class coinex extends coinexRest {
             throw new NotSupported (this.id + ' watchOrderBook() limit must be one of ' + limits.join (', '));
         }
         const defaultAggregation = this.safeString (options, 'defaultAggregation', '0');
-        const aggregations = this.safeValue (options, 'aggregations', []);
+        const aggregations = this.safeList (options, 'aggregations', []);
         const aggregation = this.safeString (params, 'aggregation', defaultAggregation);
         if (!this.inArray (aggregation, aggregations)) {
             throw new NotSupported (this.id + ' watchOrderBook() aggregation must be one of ' + aggregations.join (', '));
@@ -562,7 +562,7 @@ export default class coinex extends coinexRest {
         const messageHash = 'ohlcv';
         const watchOHLCVWarning = this.safeValue (this.options, 'watchOHLCVWarning', true);
         const client = this.safeValue (this.clients, url, {});
-        const clientSub = this.safeValue (client, 'subscriptions', {});
+        const clientSub = this.safeDict (client, 'subscriptions', {});
         const existingSubscription = this.safeValue (clientSub, messageHash);
         const subSymbol = this.safeString (existingSubscription, 'symbol');
         const subTimeframe = this.safeString (existingSubscription, 'timeframe');
@@ -672,7 +672,7 @@ export default class coinex extends coinexRest {
         //         "id": null
         //     }
         //
-        const params = this.safeValue (message, 'params', []);
+        const params = this.safeList (message, 'params', []);
         const fullOrderBook = this.safeValue (params, 0);
         let orderBook = this.safeValue (params, 1);
         const marketId = this.safeString (params, 2);
@@ -693,8 +693,8 @@ export default class coinex extends coinexRest {
                 orderBook.reset (snapshot);
             }
         } else {
-            const asks = this.safeValue (orderBook, 'asks', []);
-            const bids = this.safeValue (orderBook, 'bids', []);
+            const asks = this.safeList (orderBook, 'asks', []);
+            const bids = this.safeList (orderBook, 'bids', []);
             this.handleDeltas (currentOrderBook['asks'], asks);
             this.handleDeltas (currentOrderBook['bids'], bids);
             currentOrderBook['nonce'] = timestamp;
@@ -820,8 +820,8 @@ export default class coinex extends coinexRest {
         //          "id": null
         //      }
         //
-        const params = this.safeValue (message, 'params', []);
-        const order = this.safeValue (params, 1, {});
+        const params = this.safeList (message, 'params', []);
+        const order = this.safeDict (params, 1, {});
         const parsedOrder = this.parseWsOrder (order);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);

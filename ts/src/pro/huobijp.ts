@@ -97,7 +97,7 @@ export default class huobijp extends huobijpRest {
         //         }
         //     }
         //
-        const tick = this.safeValue (message, 'tick', {});
+        const tick = this.safeDict (message, 'tick', {});
         const ch = this.safeString (message, 'ch');
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
@@ -170,8 +170,8 @@ export default class huobijp extends huobijpRest {
         //         }
         //     }
         //
-        const tick = this.safeValue (message, 'tick', {});
-        const data = this.safeValue (tick, 'data', {});
+        const tick = this.safeDict (message, 'tick', {});
+        const data = this.safeDict (tick, 'data', {});
         const ch = this.safeString (message, 'ch');
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
@@ -408,12 +408,12 @@ export default class huobijp extends huobijpRest {
         //         }
         //     }
         //
-        const tick = this.safeValue (message, 'tick', {});
+        const tick = this.safeDict (message, 'tick', {});
         const seqNum = this.safeInteger (tick, 'seqNum');
         const prevSeqNum = this.safeInteger (tick, 'prevSeqNum');
         if ((prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce'])) {
-            const asks = this.safeValue (tick, 'asks', []);
-            const bids = this.safeValue (tick, 'bids', []);
+            const asks = this.safeList (tick, 'asks', []);
+            const bids = this.safeList (tick, 'bids', []);
             this.handleDeltas (orderbook['asks'], asks);
             this.handleDeltas (orderbook['bids'], bids);
             orderbook['nonce'] = seqNum;

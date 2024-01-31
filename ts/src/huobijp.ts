@@ -457,7 +457,7 @@ export default class huobijp extends Exchange {
         //         ]
         //    }
         //
-        const markets = this.safeValue (response, 'data', []);
+        const markets = this.safeList (response, 'data', []);
         const numMarkets = markets.length;
         if (numMarkets < 1) {
             throw new NetworkError (this.id + ' fetchMarkets() returned empty response: ' + this.json (markets));
@@ -722,7 +722,7 @@ export default class huobijp extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.marketGetTickers (params);
-        const tickers = this.safeValue (response, 'data', []);
+        const tickers = this.safeList (response, 'data', []);
         const timestamp = this.safeInteger (response, 'ts');
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
@@ -913,7 +913,7 @@ export default class huobijp extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         let result = [];
         for (let i = 0; i < data.length; i++) {
             const trades = this.safeValue (data[i], 'data', []);
@@ -983,7 +983,7 @@ export default class huobijp extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -1052,7 +1052,7 @@ export default class huobijp extends Exchange {
         //         ]
         //     }
         //
-        const currencies = this.safeValue (response, 'data', []);
+        const currencies = this.safeList (response, 'data', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
@@ -1061,7 +1061,7 @@ export default class huobijp extends Exchange {
             const depositEnabled = this.safeValue (currency, 'deposit-enabled');
             const withdrawEnabled = this.safeValue (currency, 'withdraw-enabled');
             const countryDisabled = this.safeValue (currency, 'country-disabled');
-            const visible = this.safeValue (currency, 'visible', false);
+            const visible = this.safeBool (currency, 'visible', false);
             const state = this.safeString (currency, 'state');
             const active = visible && depositEnabled && withdrawEnabled && (state === 'online') && !countryDisabled;
             const name = this.safeString (currency, 'display-name');
@@ -1290,7 +1290,7 @@ export default class huobijp extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -1639,7 +1639,7 @@ export default class huobijp extends Exchange {
         currency = this.safeCurrency (currencyId, currency);
         const code = this.safeCurrencyCode (currencyId, currency);
         const networkId = this.safeString (depositAddress, 'chain');
-        const networks = this.safeValue (currency, 'networks', {});
+        const networks = this.safeDict (currency, 'networks', {});
         const networksById = this.indexBy (networks, 'id');
         const networkValue = this.safeValue (networksById, networkId, networkId);
         const network = this.safeString (networkValue, 'network');

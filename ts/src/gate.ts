@@ -970,9 +970,9 @@ export default class gate extends Exchange {
             rawPromises = this.arrayConcat (rawPromises, mainnetOnly);
         }
         const promises = await Promise.all (rawPromises);
-        const spotMarkets = this.safeValue (promises, 0, []);
-        const contractMarkets = this.safeValue (promises, 1, []);
-        const optionMarkets = this.safeValue (promises, 2, []);
+        const spotMarkets = this.safeList (promises, 0, []);
+        const contractMarkets = this.safeList (promises, 1, []);
+        const optionMarkets = this.safeList (promises, 2, []);
         const markets = this.arrayConcat (spotMarkets, contractMarkets);
         return this.arrayConcat (markets, optionMarkets);
     }
@@ -1547,7 +1547,7 @@ export default class gate extends Exchange {
 
     getSettlementCurrencies (type, method) {
         const options = this.safeValue (this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
-        const fetchMarketsContractOptions = this.safeValue (options, method, {});
+        const fetchMarketsContractOptions = this.safeDict (options, method, {});
         const defaultSettle = (type === 'swap') ? [ 'usdt' ] : [ 'btc' ];
         return this.safeValue (fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle);
     }
@@ -1598,9 +1598,9 @@ export default class gate extends Exchange {
             const networkId = this.safeString (entry, 'chain');
             const networkCode = this.networkIdToCode (networkId, code);
             const delisted = this.safeValue (entry, 'delisted');
-            const withdrawDisabled = this.safeValue (entry, 'withdraw_disabled', false);
-            const depositDisabled = this.safeValue (entry, 'deposit_disabled', false);
-            const tradeDisabled = this.safeValue (entry, 'trade_disabled', false);
+            const withdrawDisabled = this.safeBool (entry, 'withdraw_disabled', false);
+            const depositDisabled = this.safeBool (entry, 'deposit_disabled', false);
+            const tradeDisabled = this.safeBool (entry, 'trade_disabled', false);
             const withdrawEnabled = !withdrawDisabled;
             const depositEnabled = !depositDisabled;
             const tradeEnabled = !tradeDisabled;
@@ -2834,7 +2834,7 @@ export default class gate extends Exchange {
         let data = response;
         if ('balances' in data) { // True for cross_margin
             const flatBalances = [];
-            const balances = this.safeValue (data, 'balances', []);
+            const balances = this.safeList (data, 'balances', []);
             // inject currency and create an artificial balance object
             // so it can follow the existent flow
             const keys = Object.keys (balances);
@@ -2851,8 +2851,8 @@ export default class gate extends Exchange {
             if (isolated) {
                 const marketId = this.safeString (entry, 'currency_pair');
                 const symbolInner = this.safeSymbol (marketId, undefined, '_', 'margin');
-                const base = this.safeValue (entry, 'base', {});
-                const quote = this.safeValue (entry, 'quote', {});
+                const base = this.safeDict (entry, 'base', {});
+                const quote = this.safeDict (entry, 'quote', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency'));
                 const subResult = {};
@@ -3884,7 +3884,7 @@ export default class gate extends Exchange {
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
-            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const orderParams = this.safeDict (rawOrder, 'params', {});
             const extendedParams = this.extend (orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             const triggerValue = this.safeValueN (orderParams, [ 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ]);
             if (triggerValue !== undefined) {
@@ -4037,7 +4037,7 @@ export default class gate extends Exchange {
                 }
             }
             let clientOrderId = this.safeString2 (params, 'text', 'clientOrderId');
-            const textIsRequired = this.safeValue (params, 'textIsRequired', false);
+            const textIsRequired = this.safeBool (params, 'textIsRequired', false);
             if (clientOrderId !== undefined) {
                 // user-defined, must follow the rules if not empty
                 //     prefixed with t-
@@ -4407,7 +4407,7 @@ export default class gate extends Exchange {
         //        "message": "Not enough balance"
         //    }
         //
-        const succeeded = this.safeValue (order, 'succeeded', true);
+        const succeeded = this.safeBool (order, 'succeeded', true);
         if (!succeeded) {
             // cancelOrders response
             return this.safeOrder ({
@@ -4416,8 +4416,8 @@ export default class gate extends Exchange {
                 'status': 'rejected',
             });
         }
-        const put = this.safeValue2 (order, 'put', 'initial', {});
-        const trigger = this.safeValue (order, 'trigger', {});
+        const put = this.safeDict2 (order, 'put', 'initial', {});
+        const trigger = this.safeDict (order, 'trigger', {});
         let contract = this.safeString (put, 'contract');
         let type = this.safeString (put, 'type');
         let timeInForce = this.safeStringUpper2 (put, 'time_in_force', 'tif');
@@ -4545,7 +4545,7 @@ export default class gate extends Exchange {
          * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const stop = this.safeValue2 (params, 'is_stop_order', 'stop', false);
+        const stop = this.safeBool2 (params, 'is_stop_order', 'stop', false);
         params = this.omit (params, [ 'is_stop_order', 'stop' ]);
         let clientOrderId = this.safeString2 (params, 'text', 'clientOrderId');
         let orderId = id;
@@ -4854,7 +4854,7 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const market = (symbol === undefined) ? undefined : this.market (symbol);
-        const stop = this.safeValue2 (params, 'is_stop_order', 'stop', false);
+        const stop = this.safeBool2 (params, 'is_stop_order', 'stop', false);
         params = this.omit (params, [ 'is_stop_order', 'stop' ]);
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         const [ request, requestParams ] = (type === 'spot' || type === 'margin') ? this.spotOrderPrepareRequest (market, stop, query) : this.prepareRequest (market, type, query);
@@ -5942,7 +5942,7 @@ export default class gate extends Exchange {
             // endpoints like createOrders use an array instead of an object
             // so we infer the settle from one of the elements
             // they have to be all the same so relying on the first one is fine
-            const first = this.safeValue (params, 0, {});
+            const first = this.safeDict (params, 0, {});
             path = this.implodeParams (path, first);
         } else {
             path = this.implodeParams (path, params);
@@ -5979,7 +5979,7 @@ export default class gate extends Exchange {
                     body = this.json (query);
                 }
             } else {
-                const urlQueryParams = this.safeValue (query, 'query', {});
+                const urlQueryParams = this.safeDict (query, 'query', {});
                 if (Object.keys (urlQueryParams).length) {
                     queryString = this.urlencode (urlQueryParams);
                     url += '?' + queryString;
@@ -6283,8 +6283,8 @@ export default class gate extends Exchange {
         //         }
         //     ]
         //
-        const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'list', []);
+        const result = this.safeDict (response, 'result', {});
+        const data = this.safeList (result, 'list', []);
         const settlements = this.parseSettlements (data, market);
         const sorted = this.sortBy (settlements, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);

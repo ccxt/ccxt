@@ -306,7 +306,7 @@ export default class btcmarkets extends Exchange {
         if (type === 'withdraw') {
             type = 'withdrawal';
         }
-        const cryptoPaymentDetail = this.safeValue (transaction, 'paymentDetail', {});
+        const cryptoPaymentDetail = this.safeDict (transaction, 'paymentDetail', {});
         const txid = this.safeString (cryptoPaymentDetail, 'txId');
         let address = this.safeString (cryptoPaymentDetail, 'address');
         let tag = undefined;

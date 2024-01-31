@@ -547,9 +547,9 @@ export default class coinsph extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const limits = this.indexBy (this.safeValue (market, 'filters'), 'filterType');
-            const amountLimits = this.safeValue (limits, 'LOT_SIZE', {});
-            const priceLimits = this.safeValue (limits, 'PRICE_FILTER', {});
-            const costLimits = this.safeValue (limits, 'NOTIONAL', {});
+            const amountLimits = this.safeDict (limits, 'LOT_SIZE', {});
+            const priceLimits = this.safeDict (limits, 'PRICE_FILTER', {});
+            const costLimits = this.safeDict (limits, 'NOTIONAL', {});
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -1064,7 +1064,7 @@ export default class coinsph extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const balances = this.safeValue (response, 'balances', []);
+        const balances = this.safeList (response, 'balances', []);
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -1502,7 +1502,7 @@ export default class coinsph extends Exchange {
         //       }
         //     ]
         //
-        const tradingFee = this.safeValue (response, 0, {});
+        const tradingFee = this.safeDict (response, 0, {});
         return this.parseTradingFee (tradingFee, market);
     }
 
@@ -1572,7 +1572,7 @@ export default class coinsph extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         const options = this.safeValue (this.options, 'withdraw');
-        const warning = this.safeValue (options, 'warning', true);
+        const warning = this.safeBool (options, 'warning', true);
         if (warning) {
             throw new InvalidAddress (this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }

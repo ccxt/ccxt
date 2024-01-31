@@ -953,13 +953,13 @@ export default class mexc extends Exchange {
             let depositEnabled = false;
             let withdrawEnabled = false;
             const networks = {};
-            const chains = this.safeValue (currency, 'networkList', []);
+            const chains = this.safeList (currency, 'networkList', []);
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'network');
                 const network = this.safeNetwork (networkId);
-                const isDepositEnabled = this.safeValue (chain, 'depositEnable', false);
-                const isWithdrawEnabled = this.safeValue (chain, 'withdrawEnable', false);
+                const isDepositEnabled = this.safeBool (chain, 'depositEnable', false);
+                const isWithdrawEnabled = this.safeBool (chain, 'withdrawEnable', false);
                 const active = (isDepositEnabled && isWithdrawEnabled);
                 currencyActive = active || currencyActive;
                 const withdrawMin = this.safeString (chain, 'withdrawMin');
@@ -1109,7 +1109,7 @@ export default class mexc extends Exchange {
         // Notes:
         // - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
         //
-        const data = this.safeValue (response, 'symbols', []);
+        const data = this.safeList (response, 'symbols', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -1229,7 +1229,7 @@ export default class mexc extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -1845,7 +1845,7 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            tickers = this.safeValue (response, 'data', []);
+            tickers = this.safeList (response, 'data', []);
         }
         // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
         if (isSingularMarket) {
@@ -1921,7 +1921,7 @@ export default class mexc extends Exchange {
             //         }
             //     }
             //
-            ticker = this.safeValue (response, 'data', {});
+            ticker = this.safeDict (response, 'data', {});
         }
         // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
         return this.parseTicker (ticker, market);
@@ -2282,7 +2282,7 @@ export default class mexc extends Exchange {
                 throw new ArgumentsRequired (this.id + ' createSwapOrder() requires a leverage parameter for isolated margin orders');
             }
         }
-        const reduceOnly = this.safeValue (params, 'reduceOnly', false);
+        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
         if (reduceOnly) {
             request['side'] = (side === 'buy') ? 2 : 4;
         } else {
@@ -2347,7 +2347,7 @@ export default class mexc extends Exchange {
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
-            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const orderParams = this.safeDict (rawOrder, 'params', {});
             let marginMode = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
             const orderRequest = this.createSpotOrderRequest (market, type, side, amount, price, marginMode, orderParams);
@@ -3099,7 +3099,7 @@ export default class mexc extends Exchange {
             //         "code": "0"
             //     }
             //
-            const data = this.safeValue (response, 'data', []);
+            const data = this.safeList (response, 'data', []);
             return this.parseOrders (data, market);
         }
     }
@@ -3429,7 +3429,7 @@ export default class mexc extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchAccounts', undefined, params);
         await this.loadMarkets ();
         const response = await this.fetchAccountHelper (marketType, query);
-        const data = this.safeValue (response, 'balances', []);
+        const data = this.safeList (response, 'balances', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
@@ -3537,11 +3537,11 @@ export default class mexc extends Exchange {
         //
         let wallet = undefined;
         if (marketType === 'margin') {
-            wallet = this.safeValue (response, 'assets', []);
+            wallet = this.safeList (response, 'assets', []);
         } else if (marketType === 'swap') {
-            wallet = this.safeValue (response, 'data', []);
+            wallet = this.safeList (response, 'data', []);
         } else {
-            wallet = this.safeValue (response, 'balances', []);
+            wallet = this.safeList (response, 'balances', []);
         }
         const result = { 'info': response };
         if (marketType === 'margin') {
@@ -3549,8 +3549,8 @@ export default class mexc extends Exchange {
                 const entry = wallet[i];
                 const marketId = this.safeString (entry, 'symbol');
                 const symbol = this.safeSymbol (marketId, undefined);
-                const base = this.safeValue (entry, 'baseAsset', {});
-                const quote = this.safeValue (entry, 'quoteAsset', {});
+                const base = this.safeDict (entry, 'baseAsset', {});
+                const quote = this.safeDict (entry, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'asset'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'asset'));
                 const subResult = {};
@@ -3612,7 +3612,7 @@ export default class mexc extends Exchange {
         const request = {};
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const marginMode = this.safeString (params, 'marginMode');
-        const isMargin = this.safeValue (params, 'margin', false);
+        const isMargin = this.safeBool (params, 'margin', false);
         params = this.omit (params, [ 'margin', 'marginMode' ]);
         let response = undefined;
         if ((marginMode !== undefined) || (isMargin) || (marketType === 'margin')) {
@@ -4032,8 +4032,8 @@ export default class mexc extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const resultList = this.safeValue (data, 'resultList', []);
+        const data = this.safeDict (response, 'data', {});
+        const resultList = this.safeList (data, 'resultList', []);
         const result = [];
         for (let i = 0; i < resultList.length; i++) {
             const entry = resultList[i];
@@ -4120,7 +4120,7 @@ export default class mexc extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'data', {});
+        const result = this.safeDict (response, 'data', {});
         return this.parseFundingRate (result, market);
     }
 
@@ -4174,7 +4174,7 @@ export default class mexc extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const result = this.safeValue (data, 'resultList', []);
+        const result = this.safeList (data, 'resultList', []);
         const rates = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
@@ -4657,7 +4657,7 @@ export default class mexc extends Exchange {
                 '10': 'pending', // MANUAL
             },
         };
-        const statuses = this.safeValue (statusesByType, type, {});
+        const statuses = this.safeDict (statusesByType, type, {});
         return this.safeString (statuses, status, status);
     }
 
@@ -4720,7 +4720,7 @@ export default class mexc extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parsePositions (data, symbols);
     }
 
@@ -4813,7 +4813,7 @@ export default class mexc extends Exchange {
             //         }
             //     }
             //
-            const data = this.safeValue (response, 'data', {});
+            const data = this.safeDict (response, 'data', {});
             return this.parseTransfer (data);
         } else if (marketType === 'swap') {
             throw new BadRequest (this.id + ' fetchTransfer() is not supported for ' + marketType);
@@ -4871,8 +4871,8 @@ export default class mexc extends Exchange {
             //         }
             //     }
             //
-            const data = this.safeValue (response, 'data', {});
-            resultList = this.safeValue (data, 'result_list', []);
+            const data = this.safeDict (response, 'data', {});
+            resultList = this.safeList (data, 'result_list', []);
         } else if (marketType === 'swap') {
             if (limit !== undefined) {
                 request['page_size'] = limit;
@@ -5204,7 +5204,7 @@ export default class mexc extends Exchange {
         //        ]
         //    }
         //
-        const networkList = this.safeValue (transaction, 'networkList', []);
+        const networkList = this.safeList (transaction, 'networkList', []);
         const result = {};
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
@@ -5287,7 +5287,7 @@ export default class mexc extends Exchange {
         //        ]
         //    }
         //
-        const networkList = this.safeValue (fee, 'networkList', []);
+        const networkList = this.safeList (fee, 'networkList', []);
         const result = this.depositWithdrawFee (fee);
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
@@ -5317,7 +5317,7 @@ export default class mexc extends Exchange {
          * @returns {Array} the marginMode in lowercase
          */
         const defaultType = this.safeString (this.options, 'defaultType');
-        const isMargin = this.safeValue (params, 'margin', false);
+        const isMargin = this.safeBool (params, 'margin', false);
         let marginMode = undefined;
         [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
         if ((defaultType === 'margin') || (isMargin === true)) {
@@ -5407,7 +5407,7 @@ export default class mexc extends Exchange {
         //     {"code":10216,"msg":"No available deposit address"}
         //     {"success":true, "code":0, "data":1634095541710}
         //
-        const success = this.safeValue (response, 'success', false); // v1
+        const success = this.safeBool (response, 'success', false); // v1
         if (success === true) {
             return undefined;
         }
