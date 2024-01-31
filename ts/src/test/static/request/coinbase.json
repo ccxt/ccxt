@@ -279,6 +279,19 @@
                   ]
                 ]
             }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.coinbase.com/api/v3/brokerage/products?product_ids=BTC-USDT&product_ids=ETH-USDT",
+                "input": [
+                  [
+                    "BTC/USDT",
+                    "ETH/USDT"
+                  ]
+                ]
+            }
         ]
     }
 }
