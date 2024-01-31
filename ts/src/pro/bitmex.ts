@@ -631,7 +631,7 @@ export default class bitmex extends bitmexRest {
     }
 
     handleAuthenticationMessage (client: Client, message) {
-        const authenticated = this.safeValue (message, 'success', false);
+        const authenticated = this.safeBool (message, 'success', false);
         const messageHash = 'authenticated';
         if (authenticated) {
             // we resolve the future here permanently so authentication only happens once

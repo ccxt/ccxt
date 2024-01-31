@@ -3019,7 +3019,7 @@ export default class binance extends Exchange {
                 }
             }
         }
-        const isMarginTradingAllowed = this.safeValue (market, 'isMarginTradingAllowed', false);
+        const isMarginTradingAllowed = this.safeBool (market, 'isMarginTradingAllowed', false);
         let unifiedType = undefined;
         if (spot) {
             unifiedType = 'spot';
@@ -3744,7 +3744,7 @@ export default class binance extends Exchange {
         } else if (market['inverse']) {
             response = await this.dapiPublicGetTicker24hr (this.extend (request, params));
         } else {
-            const rolling = this.safeValue (params, 'rolling', false);
+            const rolling = this.safeBool (params, 'rolling', false);
             params = this.omit (params, 'rolling');
             if (rolling) {
                 response = await this.publicGetTicker (this.extend (request, params));
@@ -5172,7 +5172,7 @@ export default class binance extends Exchange {
         }
         // support for testing orders
         if (market['spot'] || marketType === 'margin') {
-            const test = this.safeValue (query, 'test', false);
+            const test = this.safeBool (query, 'test', false);
             if (test) {
                 method += 'Test';
             }
@@ -6318,7 +6318,7 @@ export default class binance extends Exchange {
         let response = undefined;
         const request = {};
         const legalMoney = this.safeValue (this.options, 'legalMoney', {});
-        const fiatOnly = this.safeValue (params, 'fiat', false);
+        const fiatOnly = this.safeBool (params, 'fiat', false);
         params = this.omit (params, 'fiatOnly');
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
@@ -6430,7 +6430,7 @@ export default class binance extends Exchange {
             return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, params);
         }
         const legalMoney = this.safeValue (this.options, 'legalMoney', {});
-        const fiatOnly = this.safeValue (params, 'fiat', false);
+        const fiatOnly = this.safeBool (params, 'fiat', false);
         params = this.omit (params, 'fiatOnly');
         const request = {};
         const until = this.safeInteger (params, 'until');
@@ -9392,7 +9392,7 @@ export default class binance extends Exchange {
             return undefined; // fallback to default error handler
         }
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        const success = this.safeValue (response, 'success', true);
+        const success = this.safeBool (response, 'success', true);
         if (!success) {
             const messageNew = this.safeString (response, 'msg');
             let parsedMessage = undefined;

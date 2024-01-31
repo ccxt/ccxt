@@ -1598,9 +1598,9 @@ export default class gate extends Exchange {
             const networkId = this.safeString (entry, 'chain');
             const networkCode = this.networkIdToCode (networkId, code);
             const delisted = this.safeValue (entry, 'delisted');
-            const withdrawDisabled = this.safeValue (entry, 'withdraw_disabled', false);
-            const depositDisabled = this.safeValue (entry, 'deposit_disabled', false);
-            const tradeDisabled = this.safeValue (entry, 'trade_disabled', false);
+            const withdrawDisabled = this.safeBool (entry, 'withdraw_disabled', false);
+            const depositDisabled = this.safeBool (entry, 'deposit_disabled', false);
+            const tradeDisabled = this.safeBool (entry, 'trade_disabled', false);
             const withdrawEnabled = !withdrawDisabled;
             const depositEnabled = !depositDisabled;
             const tradeEnabled = !tradeDisabled;
@@ -4037,7 +4037,7 @@ export default class gate extends Exchange {
                 }
             }
             let clientOrderId = this.safeString2 (params, 'text', 'clientOrderId');
-            const textIsRequired = this.safeValue (params, 'textIsRequired', false);
+            const textIsRequired = this.safeBool (params, 'textIsRequired', false);
             if (clientOrderId !== undefined) {
                 // user-defined, must follow the rules if not empty
                 //     prefixed with t-
@@ -4407,7 +4407,7 @@ export default class gate extends Exchange {
         //        "message": "Not enough balance"
         //    }
         //
-        const succeeded = this.safeValue (order, 'succeeded', true);
+        const succeeded = this.safeBool (order, 'succeeded', true);
         if (!succeeded) {
             // cancelOrders response
             return this.safeOrder ({

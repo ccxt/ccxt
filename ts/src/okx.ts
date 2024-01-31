@@ -3093,7 +3093,7 @@ export default class okx extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         const stop = this.safeValue2 (params, 'stop', 'trigger');
-        const trailing = this.safeValue (params, 'trailing', false);
+        const trailing = this.safeBool (params, 'trailing', false);
         if (stop || trailing) {
             const orderInner = await this.cancelOrders ([ id ], symbol, params);
             return this.safeValue (orderInner, 0);
@@ -3161,7 +3161,7 @@ export default class okx extends Exchange {
         const clientOrderIds = this.parseIds (this.safeValue2 (params, 'clOrdId', 'clientOrderId'));
         const algoIds = this.parseIds (this.safeValue (params, 'algoId'));
         const stop = this.safeValue2 (params, 'stop', 'trigger');
-        const trailing = this.safeValue (params, 'trailing', false);
+        const trailing = this.safeBool (params, 'trailing', false);
         if (stop || trailing) {
             method = 'privatePostTradeCancelAlgos';
         }
@@ -3654,7 +3654,7 @@ export default class okx extends Exchange {
         let method = this.safeString (params, 'method', defaultMethod);
         const ordType = this.safeString (params, 'ordType');
         const stop = this.safeValue2 (params, 'stop', 'trigger');
-        const trailing = this.safeValue (params, 'trailing', false);
+        const trailing = this.safeBool (params, 'trailing', false);
         if (trailing || stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoPending';
         }
@@ -3822,7 +3822,7 @@ export default class okx extends Exchange {
         let method = this.safeString (params, 'method', defaultMethod);
         const ordType = this.safeString (params, 'ordType');
         const stop = this.safeValue2 (params, 'stop', 'trigger');
-        const trailing = this.safeValue (params, 'trailing', false);
+        const trailing = this.safeBool (params, 'trailing', false);
         if (trailing) {
             method = 'privateGetTradeOrdersAlgoHistory';
             request['ordType'] = 'move_order_stop';
@@ -4014,7 +4014,7 @@ export default class okx extends Exchange {
         let method = this.safeString (params, 'method', defaultMethod);
         const ordType = this.safeString (params, 'ordType');
         const stop = this.safeValue2 (params, 'stop', 'trigger');
-        const trailing = this.safeValue (params, 'trailing', false);
+        const trailing = this.safeBool (params, 'trailing', false);
         if (trailing || stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoHistory';
             request['state'] = 'effective';

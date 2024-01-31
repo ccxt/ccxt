@@ -691,7 +691,7 @@ export default class hitbtc extends Exchange {
             const expiry = this.safeInteger (market, 'expiry');
             const contract = (marketType === 'futures');
             const spot = (marketType === 'spot');
-            const marginTrading = this.safeValue (market, 'margin_trading', false);
+            const marginTrading = this.safeBool (market, 'margin_trading', false);
             const margin = spot && marginTrading;
             const future = (expiry !== undefined);
             const swap = (contract && !future);
@@ -826,9 +826,9 @@ export default class hitbtc extends Exchange {
             const entry = response[currencyId];
             const name = this.safeString (entry, 'full_name');
             const precision = this.safeNumber (entry, 'precision_transfer');
-            const payinEnabled = this.safeValue (entry, 'payin_enabled', false);
-            const payoutEnabled = this.safeValue (entry, 'payout_enabled', false);
-            const transferEnabled = this.safeValue (entry, 'transfer_enabled', false);
+            const payinEnabled = this.safeBool (entry, 'payin_enabled', false);
+            const payoutEnabled = this.safeBool (entry, 'payout_enabled', false);
+            const transferEnabled = this.safeBool (entry, 'transfer_enabled', false);
             const active = payinEnabled && payoutEnabled && transferEnabled;
             const rawNetworks = this.safeValue (entry, 'networks', []);
             const networks = {};
@@ -841,8 +841,8 @@ export default class hitbtc extends Exchange {
                 const network = this.safeNetwork (networkId);
                 fee = this.safeNumber (rawNetwork, 'payout_fee');
                 const networkPrecision = this.safeNumber (rawNetwork, 'precision_payout');
-                const payinEnabledNetwork = this.safeValue (entry, 'payin_enabled', false);
-                const payoutEnabledNetwork = this.safeValue (entry, 'payout_enabled', false);
+                const payinEnabledNetwork = this.safeBool (entry, 'payin_enabled', false);
+                const payoutEnabledNetwork = this.safeBool (entry, 'payout_enabled', false);
                 const activeNetwork = payinEnabledNetwork && payoutEnabledNetwork;
                 if (payinEnabledNetwork && !depositEnabled) {
                     depositEnabled = true;
@@ -2691,7 +2691,7 @@ export default class hitbtc extends Exchange {
             params = this.omit (params, 'network');
         }
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
-        const includeFee = this.safeValue (withdrawOptions, 'includeFee', false);
+        const includeFee = this.safeBool (withdrawOptions, 'includeFee', false);
         if (includeFee) {
             request['include_fee'] = true;
         }
@@ -3563,7 +3563,7 @@ export default class hitbtc extends Exchange {
          * @returns {Array} the marginMode in lowercase
          */
         const defaultType = this.safeString (this.options, 'defaultType');
-        const isMargin = this.safeValue (params, 'margin', false);
+        const isMargin = this.safeBool (params, 'margin', false);
         let marginMode = undefined;
         [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
         if (marginMode === undefined) {
