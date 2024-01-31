@@ -76,7 +76,7 @@ export default class independentreserve extends independentreserveRest {
         //        "Event": "Trade"
         //    }
         //
-        const data = this.safeDict (message, 'Data', {});
+        const data = this.safeValue (message, 'Data', {});
         const marketId = this.safeString (data, 'Pair');
         const symbol = this.safeSymbol (marketId, undefined, '-');
         const messageHash = 'trades:' + symbol;
@@ -182,10 +182,10 @@ export default class independentreserve extends independentreserveRest {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
-        const orderBook = this.safeDict (message, 'Data', {});
+        const orderBook = this.safeValue (message, 'Data', {});
         const messageHash = 'orderbook:' + symbol + ':' + depth;
         const subscription = this.safeValue (client.subscriptions, messageHash, {});
-        const receivedSnapshot = this.safeBool (subscription, 'receivedSnapshot', false);
+        const receivedSnapshot = this.safeValue (subscription, 'receivedSnapshot', false);
         const timestamp = this.safeInteger (message, 'Time');
         let storedOrderBook = this.safeValue (this.orderbooks, symbol);
         if (storedOrderBook === undefined) {
@@ -197,8 +197,8 @@ export default class independentreserve extends independentreserveRest {
             storedOrderBook.reset (snapshot);
             subscription['receivedSnapshot'] = true;
         } else {
-            const asks = this.safeList (orderBook, 'Offers', []);
-            const bids = this.safeList (orderBook, 'Bids', []);
+            const asks = this.safeValue (orderBook, 'Offers', []);
+            const bids = this.safeValue (orderBook, 'Bids', []);
             this.handleDeltas (storedOrderBook['asks'], asks);
             this.handleDeltas (storedOrderBook['bids'], bids);
             storedOrderBook['timestamp'] = timestamp;

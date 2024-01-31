@@ -283,7 +283,7 @@ export default class phemex extends phemexRest {
             const ticker = this.safeValue (message, 'spot_market24h');
             tickers.push (this.parseTicker (ticker));
         } else if ('data' in message) {
-            const data = this.safeList (message, 'data', []);
+            const data = this.safeValue (message, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 tickers.push (this.parsePerpetualTicker (data[i]));
             }
@@ -434,7 +434,7 @@ export default class phemex extends phemexRest {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const trades = this.safeList2 (message, 'trades', 'trades_p', []);
+        const trades = this.safeValue2 (message, 'trades', 'trades_p', []);
         const parsed = this.parseTrades (trades, market);
         for (let i = 0; i < parsed.length; i++) {
             stored.append (parsed[i]);
@@ -477,8 +477,8 @@ export default class phemex extends phemexRest {
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const candles = this.safeList2 (message, 'kline', 'kline_p', []);
-        const first = this.safeList (candles, 0, []);
+        const candles = this.safeValue2 (message, 'kline', 'kline_p', []);
+        const first = this.safeValue (candles, 0, []);
         const interval = this.safeString (first, 1);
         const timeframe = this.findTimeframe (interval);
         if (timeframe !== undefined) {
@@ -713,7 +713,7 @@ export default class phemex extends phemexRest {
         const nonce = this.safeInteger (message, 'sequence');
         const timestamp = this.safeIntegerProduct (message, 'timestamp', 0.000001);
         if (type === 'snapshot') {
-            const book = this.safeDict2 (message, 'book', 'orderbook_p', {});
+            const book = this.safeValue2 (message, 'book', 'orderbook_p', {});
             const snapshot = this.customParseOrderBook (book, symbol, timestamp, 'bids', 'asks', 0, 1, market);
             snapshot['nonce'] = nonce;
             const orderbook = this.orderBook (snapshot, depth);
@@ -722,9 +722,9 @@ export default class phemex extends phemexRest {
         } else {
             const orderbook = this.safeValue (this.orderbooks, symbol);
             if (orderbook !== undefined) {
-                const changes = this.safeDict2 (message, 'book', 'orderbook_p', {});
-                const asks = this.safeList (changes, 'asks', []);
-                const bids = this.safeList (changes, 'bids', []);
+                const changes = this.safeValue2 (message, 'book', 'orderbook_p', {});
+                const asks = this.safeValue (changes, 'asks', []);
+                const bids = this.safeValue (changes, 'bids', []);
                 this.handleDeltas (orderbook['asks'], asks, market);
                 this.handleDeltas (orderbook['bids'], bids, market);
                 orderbook['nonce'] = nonce;
@@ -1099,14 +1099,14 @@ export default class phemex extends phemexRest {
         let trades = [];
         const parsedOrders = [];
         if (('closed' in message) || ('fills' in message) || ('open' in message)) {
-            const closed = this.safeList (message, 'closed', []);
-            const open = this.safeList (message, 'open', []);
+            const closed = this.safeValue (message, 'closed', []);
+            const open = this.safeValue (message, 'open', []);
             const orders = this.arrayConcat (open, closed);
             const ordersLength = orders.length;
             if (ordersLength === 0) {
                 return;
             }
-            trades = this.safeList (message, 'fills', []);
+            trades = this.safeValue (message, 'fills', []);
             for (let i = 0; i < orders.length; i++) {
                 const rawOrder = orders[i];
                 const parsedOrder = this.parseOrder (rawOrder);
@@ -1441,7 +1441,7 @@ export default class phemex extends phemexRest {
             return this.handleOrderBook (client, message);
         }
         if (('orders' in message) || ('orders_p' in message)) {
-            const orders = this.safeDict2 (message, 'orders', 'orders_p', {});
+            const orders = this.safeValue2 (message, 'orders', 'orders_p', {});
             this.handleOrders (client, orders);
         }
         if (('accounts' in message) || ('accounts_p' in message) || ('wallets' in message)) {

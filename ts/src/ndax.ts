@@ -1943,7 +1943,7 @@ export default class ndax extends Exchange {
         //     ]
         //
         const grouped = this.groupBy (response, 'ChangeReason');
-        const trades = this.safeList (grouped, 'Trade', []);
+        const trades = this.safeValue (grouped, 'Trade', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -2195,7 +2195,7 @@ export default class ndax extends Exchange {
                 'Confirmed2Fa': 'pending', // user has confirmed withdraw via 2-factor authentication.
             },
         };
-        const statuses = this.safeDict (statusesByType, type, {});
+        const statuses = this.safeValue (statusesByType, type, {});
         return this.safeString (statuses, status, status);
     }
 
@@ -2345,7 +2345,7 @@ export default class ndax extends Exchange {
         //         ]
         //     }
         //
-        const templateTypes = this.safeList (withdrawTemplateTypesResponse, 'TemplateTypes', []);
+        const templateTypes = this.safeValue (withdrawTemplateTypesResponse, 'TemplateTypes', []);
         const firstTemplateType = this.safeValue (templateTypes, 0);
         if (firstTemplateType === undefined) {
             throw new ExchangeError (this.id + ' withdraw() could not find a withdraw template type for ' + currency['code']);

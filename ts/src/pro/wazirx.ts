@@ -82,8 +82,8 @@ export default class wazirx extends wazirxRest {
         //         "stream":"outboundAccountPosition"
         //     }
         //
-        const data = this.safeDict (message, 'data', {});
-        const balances = this.safeList (data, 'B', []);
+        const data = this.safeValue (message, 'data', {});
+        const balances = this.safeValue (data, 'B', []);
         const timestamp = this.safeInteger (data, 'E');
         this.balance['info'] = balances;
         this.balance['timestamp'] = timestamp;
@@ -237,7 +237,7 @@ export default class wazirx extends wazirxRest {
         //         "stream":"!ticker@arr"
         //     }
         //
-        const data = this.safeList (message, 'data', []);
+        const data = this.safeValue (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const ticker = data[i];
             const parsedTicker = this.parseWSTicker (ticker);
@@ -339,8 +339,8 @@ export default class wazirx extends wazirxRest {
         //         "stream": "btcinr@trades"
         //     }
         //
-        const data = this.safeDict (message, 'data', {});
-        const rawTrades = this.safeList (data, 'trades', []);
+        const data = this.safeValue (message, 'data', {});
+        const rawTrades = this.safeValue (data, 'trades', []);
         const messageHash = this.safeString (message, 'stream');
         const split = messageHash.split ('@');
         const marketId = this.safeString (split, 0);
@@ -440,7 +440,7 @@ export default class wazirx extends wazirxRest {
         //         "stream": "btcinr@kline_1m"
         //     }
         //
-        const data = this.safeDict (message, 'data', {});
+        const data = this.safeValue (message, 'data', {});
         const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId);
         const symbol = this.safeSymbol (marketId, market);
@@ -536,7 +536,7 @@ export default class wazirx extends wazirxRest {
         //         "stream": "btcusdt@depth"
         //     }
         //
-        const data = this.safeDict (message, 'data', {});
+        const data = this.safeValue (message, 'data', {});
         const timestamp = this.safeInteger (data, 'E');
         const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId);
@@ -548,8 +548,8 @@ export default class wazirx extends wazirxRest {
             const orderBook = this.orderBook (snapshot);
             this.orderbooks[symbol] = orderBook;
         } else {
-            const asks = this.safeList (data, 'a', []);
-            const bids = this.safeList (data, 'b', []);
+            const asks = this.safeValue (data, 'a', []);
+            const bids = this.safeValue (data, 'b', []);
             this.handleDeltas (currentOrderBook['asks'], asks);
             this.handleDeltas (currentOrderBook['bids'], bids);
             currentOrderBook['nonce'] = timestamp;
@@ -602,7 +602,7 @@ export default class wazirx extends wazirxRest {
         //         "stream": "orderUpdate"
         //     }
         //
-        const order = this.safeDict (message, 'data', {});
+        const order = this.safeValue (message, 'data', {});
         const parsedOrder = this.parseWsOrder (order);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -686,7 +686,7 @@ export default class wazirx extends wazirxRest {
         //         "stream": "ownTrade"
         //     }
         //
-        const trade = this.safeDict (message, 'data', {});
+        const trade = this.safeValue (message, 'data', {});
         const messageHash = 'myTrades';
         let myTrades = undefined;
         if (this.myTrades === undefined) {

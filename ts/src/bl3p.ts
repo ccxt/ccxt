@@ -119,17 +119,17 @@ export default class bl3p extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const data = this.safeDict (response, 'data', {});
-        const wallets = this.safeDict (data, 'wallets', {});
+        const data = this.safeValue (response, 'data', {});
+        const wallets = this.safeValue (data, 'wallets', {});
         const result = { 'info': data };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             const currency = this.currency (code);
             const currencyId = currency['id'];
-            const wallet = this.safeDict (wallets, currencyId, {});
-            const available = this.safeDict (wallet, 'available', {});
-            const balance = this.safeDict (wallet, 'balance', {});
+            const wallet = this.safeValue (wallets, currencyId, {});
+            const available = this.safeValue (wallet, 'available', {});
+            const balance = this.safeValue (wallet, 'balance', {});
             const account = this.account ();
             account['free'] = this.safeString (available, 'value');
             account['total'] = this.safeString (balance, 'value');
@@ -198,7 +198,7 @@ export default class bl3p extends Exchange {
         const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const last = this.safeString (ticker, 'last');
-        const volume = this.safeDict (ticker, 'volume', {});
+        const volume = this.safeValue (ticker, 'volume', {});
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -359,7 +359,7 @@ export default class bl3p extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeValue (response, 'data', {});
         const feeString = this.safeString (data, 'trade_fee');
         const fee = this.parseNumber (Precise.stringDiv (feeString, '100'));
         const result = {};

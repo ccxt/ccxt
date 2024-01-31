@@ -121,9 +121,6 @@ const safeFloatN = (o: implicitReturnType, k: (IndexType)[], $default?: number):
 };
 
 const safeIntegerN = (o: implicitReturnType, k: (IndexType)[], $default?: number): Int => {
-    if (o === undefined) {
-        return $default;
-    }
     const n = asInteger (getValueFromKeysInArray (o, k));
     return isNumber (n) ? n : $default;
 };
@@ -139,25 +136,16 @@ const safeTimestampN = (o: implicitReturnType, k: (IndexType)[], $default?: numb
 };
 
 const safeValueN = (o: implicitReturnType, k: (IndexType)[], $default?) => {
-    if (o === undefined) {
-        return $default;
-    }
     const x = getValueFromKeysInArray (o, k);
     return hasProps (x) ? x : $default;
 };
 
 const safeStringN = (o: implicitReturnType, k: (IndexType)[], $default?: string): Str => {
-    if (o === undefined) {
-        return $default;
-    }
     const x = getValueFromKeysInArray (o, k);
     return isStringCoercible (x) ? String (x) : $default;
 };
 
 const safeStringLowerN = (o: implicitReturnType, k: (IndexType)[], $default?: string): Str => {
-    if (o === undefined) {
-        return $default;
-    }
     const x = getValueFromKeysInArray (o, k);
     return isStringCoercible (x) ? String (x).toLowerCase () : $default;
 };

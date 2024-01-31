@@ -438,7 +438,7 @@ export default class bitforex extends Exchange {
         //         "time": 1685009320042
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeValue (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -601,7 +601,7 @@ export default class bitforex extends Exchange {
         //         "time":1591509427131
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 

@@ -186,7 +186,7 @@ export default class idex extends Exchange {
         // {"code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\": all quantities and prices must be below 100 billion, above 0, need to be provided as strings, and always require 4 decimals ending with 4 zeroes"}
         //
         const market = this.market (symbol);
-        const info = this.safeDict (market, 'info', {});
+        const info = this.safeValue (market, 'info', {});
         const quoteAssetPrecision = this.safeInteger (info, 'quoteAssetPrecision');
         price = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode);
         return this.decimalToPrecision (price, TRUNCATE, quoteAssetPrecision, DECIMAL_PLACES, PAD_WITH_ZERO);
@@ -714,7 +714,7 @@ export default class idex extends Exchange {
     }
 
     parseSide (book, side) {
-        const bookSide = this.safeList (book, side, []);
+        const bookSide = this.safeValue (book, side, []);
         const result = [];
         for (let i = 0; i < bookSide.length; i++) {
             const order = bookSide[i];
@@ -1085,7 +1085,7 @@ export default class idex extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (order, 'time');
-        const fills = this.safeList (order, 'fills', []);
+        const fills = this.safeValue (order, 'fills', []);
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const marketId = this.safeString (order, 'market');

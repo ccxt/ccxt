@@ -668,8 +668,8 @@ export default class tokocrypto extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        const data = this.safeDict (response, 'data', {});
-        const list = this.safeList (data, 'list', []);
+        const data = this.safeValue (response, 'data', {});
+        const list = this.safeValue (data, 'list', []);
         const result = [];
         for (let i = 0; i < list.length; i++) {
             const market = list[i];
@@ -682,18 +682,18 @@ export default class tokocrypto extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
             const symbol = base + '/' + quote;
-            const filters = this.safeList (market, 'filters', []);
+            const filters = this.safeValue (market, 'filters', []);
             const filtersByType = this.indexBy (filters, 'filterType');
             const status = this.safeString (market, 'spotTradingEnable');
             let active = (status === '1');
-            const permissions = this.safeList (market, 'permissions', []);
+            const permissions = this.safeValue (market, 'permissions', []);
             for (let j = 0; j < permissions.length; j++) {
                 if (permissions[j] === 'TRD_GRP_003') {
                     active = false;
                     break;
                 }
             }
-            const isMarginTradingAllowed = this.safeBool (market, 'isMarginTradingAllowed', false);
+            const isMarginTradingAllowed = this.safeValue (market, 'isMarginTradingAllowed', false);
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -748,7 +748,7 @@ export default class tokocrypto extends Exchange {
                 'info': market,
             };
             if ('PRICE_FILTER' in filtersByType) {
-                const filter = this.safeDict (filtersByType, 'PRICE_FILTER', {});
+                const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
                 const tickSize = this.safeString (filter, 'tickSize');
                 entry['precision']['price'] = this.precisionFromString (tickSize);
                 // PRICE_FILTER reports zero values for maxPrice
@@ -762,7 +762,7 @@ export default class tokocrypto extends Exchange {
                 entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
             }
             if ('LOT_SIZE' in filtersByType) {
-                const filter = this.safeDict (filtersByType, 'LOT_SIZE', {});
+                const filter = this.safeValue (filtersByType, 'LOT_SIZE', {});
                 const stepSize = this.safeString (filter, 'stepSize');
                 entry['precision']['amount'] = this.precisionFromString (stepSize);
                 entry['limits']['amount'] = {
@@ -771,14 +771,14 @@ export default class tokocrypto extends Exchange {
                 };
             }
             if ('MARKET_LOT_SIZE' in filtersByType) {
-                const filter = this.safeDict (filtersByType, 'MARKET_LOT_SIZE', {});
+                const filter = this.safeValue (filtersByType, 'MARKET_LOT_SIZE', {});
                 entry['limits']['market'] = {
                     'min': this.safeNumber (filter, 'minQty'),
                     'max': this.safeNumber (filter, 'maxQty'),
                 };
             }
             if ('MIN_NOTIONAL' in filtersByType) {
-                const filter = this.safeDict (filtersByType, 'MIN_NOTIONAL', {});
+                const filter = this.safeValue (filtersByType, 'MIN_NOTIONAL', {});
                 entry['limits']['cost']['min'] = this.safeNumber2 (filter, 'minNotional', 'notional');
             }
             result.push (entry);
@@ -1020,7 +1020,7 @@ export default class tokocrypto extends Exchange {
                 request['limit'] = limit;
             }
             const responseInner = this.publicGetOpenV1MarketTrades (this.extend (request, params));
-            const data = this.safeDict (responseInner, 'data', {});
+            const data = this.safeValue (responseInner, 'data', {});
             return this.parseTrades (data, market, since, limit);
         }
         if (limit !== undefined) {
@@ -1203,7 +1203,7 @@ export default class tokocrypto extends Exchange {
         };
         const response = await this.binanceGetTicker24hr (this.extend (request, params));
         if (Array.isArray (response)) {
-            const firstTicker = this.safeDict (response, 0, {});
+            const firstTicker = this.safeValue (response, 0, {});
             return this.parseTicker (firstTicker, market);
         }
         return this.parseTicker (response, market);
@@ -1380,8 +1380,8 @@ export default class tokocrypto extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        const data = this.safeDict (response, 'data', {});
-        const balances = this.safeList (data, 'accountAssets', []);
+        const data = this.safeValue (response, 'data', {});
+        const balances = this.safeValue (data, 'accountAssets', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'asset');
@@ -1533,7 +1533,7 @@ export default class tokocrypto extends Exchange {
         } else if (side === '1') {
             side = 'sell';
         }
-        const fills = this.safeList (order, 'fills', []);
+        const fills = this.safeValue (order, 'fills', []);
         const clientOrderId = this.safeString2 (order, 'clientOrderId', 'clientId');
         let timeInForce = this.safeString (order, 'timeInForce');
         if (timeInForce === 'GTX') {
@@ -1600,7 +1600,7 @@ export default class tokocrypto extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientId');
-        const postOnly = this.safeBool (params, 'postOnly', false);
+        const postOnly = this.safeValue (params, 'postOnly', false);
         // only supported for spot/margin api
         if (postOnly) {
             type = 'LIMIT_MAKER';
@@ -1756,7 +1756,7 @@ export default class tokocrypto extends Exchange {
         //         "timestamp": 1662710994975
         //     }
         //
-        const rawOrder = this.safeDict (response, 'data', {});
+        const rawOrder = this.safeValue (response, 'data', {});
         return this.parseOrder (rawOrder, market);
     }
 
@@ -1804,9 +1804,9 @@ export default class tokocrypto extends Exchange {
         //         "timestamp": 1662710056523
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
-        const list = this.safeList (data, 'list', []);
-        const rawOrder = this.safeDict (list, 0, {});
+        const data = this.safeValue (response, 'data', {});
+        const list = this.safeValue (data, 'list', []);
+        const rawOrder = this.safeValue (list, 0, {});
         return this.parseOrder (rawOrder);
     }
 
@@ -1877,8 +1877,8 @@ export default class tokocrypto extends Exchange {
         //         "timestamp": 1572860756458
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList (data, 'list', []);
+        const data = this.safeValue (response, 'data', {});
+        const orders = this.safeValue (data, 'list', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1956,7 +1956,7 @@ export default class tokocrypto extends Exchange {
         //         "timestamp": 1662710683634
         //     }
         //
-        const rawOrder = this.safeDict (response, 'data', {});
+        const rawOrder = this.safeValue (response, 'data', {});
         return this.parseOrder (rawOrder);
     }
 
@@ -2017,8 +2017,8 @@ export default class tokocrypto extends Exchange {
         //         "timestamp": 1573723498893
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
-        const trades = this.safeList (data, 'list', []);
+        const data = this.safeValue (response, 'data', {});
+        const trades = this.safeValue (data, 'list', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -2063,7 +2063,7 @@ export default class tokocrypto extends Exchange {
         //         "timestamp":1660685915746
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeValue (response, 'data', {});
         const address = this.safeString (data, 'address');
         let tag = this.safeString (data, 'addressTag', '');
         if (tag.length === 0) {
@@ -2136,8 +2136,8 @@ export default class tokocrypto extends Exchange {
         //         "timestamp":1659758865998
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
-        const deposits = this.safeList (data, 'list', []);
+        const data = this.safeValue (response, 'data', {});
+        const deposits = this.safeValue (data, 'list', []);
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
@@ -2194,8 +2194,8 @@ export default class tokocrypto extends Exchange {
         //         "timestamp":1659759062187
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
-        const withdrawals = this.safeList (data, 'list', []);
+        const data = this.safeValue (response, 'data', {});
+        const withdrawals = this.safeValue (data, 'list', []);
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
@@ -2215,7 +2215,7 @@ export default class tokocrypto extends Exchange {
                 '10': 'ok', // Completed
             },
         };
-        const statuses = this.safeDict (statusesByType, type, {});
+        const statuses = this.safeValue (statusesByType, type, {});
         return this.safeString (statuses, status, status);
     }
 
@@ -2307,7 +2307,7 @@ export default class tokocrypto extends Exchange {
         }
         let id = this.safeString (transaction, 'id');
         if (id === undefined) {
-            const data = this.safeDict (transaction, 'data', {});
+            const data = this.safeValue (transaction, 'data', {});
             id = this.safeString (data, 'withdrawId');
             type = 'withdrawal';
         }
@@ -2468,7 +2468,7 @@ export default class tokocrypto extends Exchange {
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        const success = this.safeBool (response, 'success', true);
+        const success = this.safeValue (response, 'success', true);
         if (!success) {
             const messageInner = this.safeString (response, 'msg');
             let parsedMessage = undefined;

@@ -426,8 +426,8 @@ export default class whitebit extends Exchange {
             const currency = response[id];
             // breaks down in Python due to utf8 encoding issues on the exchange side
             // const name = this.safeString (currency, 'name');
-            const canDeposit = this.safeBool (currency, 'can_deposit', true);
-            const canWithdraw = this.safeBool (currency, 'can_withdraw', true);
+            const canDeposit = this.safeValue (currency, 'can_deposit', true);
+            const canWithdraw = this.safeValue (currency, 'can_withdraw', true);
             const active = canDeposit && canWithdraw;
             const code = this.safeCurrencyCode (id);
             result[code] = {
@@ -500,9 +500,9 @@ export default class whitebit extends Exchange {
             const currency = currenciesIds[i];
             const data = response[currency];
             const code = this.safeCurrencyCode (currency);
-            const withdraw = this.safeDict (data, 'withdraw', {});
+            const withdraw = this.safeValue (data, 'withdraw', {});
             withdrawFees[code] = this.safeString (withdraw, 'fixed');
-            const deposit = this.safeDict (data, 'deposit', {});
+            const deposit = this.safeValue (data, 'deposit', {});
             depositFees[code] = this.safeString (deposit, 'fixed');
         }
         return {
@@ -745,7 +745,7 @@ export default class whitebit extends Exchange {
         //         },
         //     }
         //
-        const ticker = this.safeDict (response, 'result', {});
+        const ticker = this.safeValue (response, 'result', {});
         return this.parseTicker (ticker, market);
     }
 
@@ -980,7 +980,7 @@ export default class whitebit extends Exchange {
             for (let i = 0; i < keys.length; i++) {
                 const marketId = keys[i];
                 const marketNew = this.safeMarket (marketId, undefined, '_');
-                const rawTrades = this.safeList (response, marketId, []);
+                const rawTrades = this.safeValue (response, marketId, []);
                 const parsed = this.parseTrades (rawTrades, marketNew, since, limit);
                 results = this.arrayConcat (results, parsed);
             }
@@ -1113,7 +1113,7 @@ export default class whitebit extends Exchange {
         //         ]
         //     }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeValue (response, 'result', []);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
@@ -1621,7 +1621,7 @@ export default class whitebit extends Exchange {
         //         "limit": 100
         //     }
         //
-        const data = this.safeList (response, 'records', []);
+        const data = this.safeValue (response, 'records', []);
         return this.parseTrades (data, market);
     }
 
@@ -1688,7 +1688,7 @@ export default class whitebit extends Exchange {
         //     }
         //
         const url = this.safeString (response, 'url');
-        const account = this.safeDict (response, 'account', {});
+        const account = this.safeValue (response, 'account', {});
         const address = this.safeString (account, 'address', url);
         const tag = this.safeString (account, 'memo');
         this.checkAddress (address);
@@ -1968,8 +1968,8 @@ export default class whitebit extends Exchange {
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        const records = this.safeList (response, 'records', []);
-        const first = this.safeDict (records, 0, {});
+        const records = this.safeValue (response, 'records', []);
+        const first = this.safeValue (records, 0, {});
         return this.parseTransaction (first, currency);
     }
 
@@ -2037,7 +2037,7 @@ export default class whitebit extends Exchange {
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        const records = this.safeList (response, 'records', []);
+        const records = this.safeValue (response, 'records', []);
         return this.parseTransactions (records, currency, since, limit);
     }
 
@@ -2196,7 +2196,7 @@ export default class whitebit extends Exchange {
         //        }
         //    ]
         //
-        const data = this.safeList (response, 'result', []);
+        const data = this.safeValue (response, 'result', []);
         const result = this.parseFundingRates (data);
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -2325,7 +2325,7 @@ export default class whitebit extends Exchange {
                     const errorObject = this.safeValue (response, 'errors');
                     if (errorObject !== undefined) {
                         const errorKey = Object.keys (errorObject)[0];
-                        const errorMessageArray = this.safeList (errorObject, errorKey, []);
+                        const errorMessageArray = this.safeValue (errorObject, errorKey, []);
                         const errorMessageLength = errorMessageArray.length;
                         errorInfo = (errorMessageLength > 0) ? errorMessageArray[0] : body;
                     }

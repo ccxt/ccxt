@@ -213,7 +213,7 @@ export default class wazirx extends Exchange {
         //         ]
         //     },
         //
-        const markets = this.safeList (response, 'symbols', []);
+        const markets = this.safeValue (response, 'symbols', []);
         return this.parseMarkets (markets);
     }
 

@@ -197,7 +197,7 @@ export default class bitbank extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        const pairs = this.safeList (data, 'pairs', []);
+        const pairs = this.safeValue (data, 'pairs', []);
         return this.parseMarkets (pairs);
     }
 
@@ -304,7 +304,7 @@ export default class bitbank extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetPairTicker (this.extend (request, params));
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeValue (response, 'data', {});
         return this.parseTicker (data, market);
     }
 
@@ -325,7 +325,7 @@ export default class bitbank extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetPairDepth (this.extend (request, params));
-        const orderbook = this.safeDict (response, 'data', {});
+        const orderbook = this.safeValue (response, 'data', {});
         const timestamp = this.safeInteger (orderbook, 'timestamp');
         return this.parseOrderBook (orderbook, market['symbol'], timestamp);
     }
@@ -394,8 +394,8 @@ export default class bitbank extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetPairTransactions (this.extend (request, params));
-        const data = this.safeDict (response, 'data', {});
-        const trades = this.safeList (data, 'transactions', []);
+        const data = this.safeValue (response, 'data', {});
+        const trades = this.safeValue (data, 'transactions', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -438,8 +438,8 @@ export default class bitbank extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
-        const pairs = this.safeList (data, 'pairs', []);
+        const data = this.safeValue (response, 'data', {});
+        const pairs = this.safeValue (data, 'pairs', []);
         const result = {};
         for (let i = 0; i < pairs.length; i++) {
             const pair = pairs[i];
@@ -525,10 +525,10 @@ export default class bitbank extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
-        const candlestick = this.safeList (data, 'candlestick', []);
-        const first = this.safeDict (candlestick, 0, {});
-        const ohlcv = this.safeList (first, 'ohlcv', []);
+        const data = this.safeValue (response, 'data', {});
+        const candlestick = this.safeValue (data, 'candlestick', []);
+        const first = this.safeValue (candlestick, 0, {});
+        const ohlcv = this.safeValue (first, 'ohlcv', []);
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
@@ -538,8 +538,8 @@ export default class bitbank extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const data = this.safeDict (response, 'data', {});
-        const assets = this.safeList (data, 'assets', []);
+        const data = this.safeValue (response, 'data', {});
+        const assets = this.safeValue (data, 'assets', []);
         for (let i = 0; i < assets.length; i++) {
             const balance = assets[i];
             const currencyId = this.safeString (balance, 'asset');
@@ -747,8 +747,8 @@ export default class bitbank extends Exchange {
             request['since'] = this.parseToInt (since / 1000);
         }
         const response = await this.privateGetUserSpotActiveOrders (this.extend (request, params));
-        const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList (data, 'orders', []);
+        const data = this.safeValue (response, 'data', {});
+        const orders = this.safeValue (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -778,8 +778,8 @@ export default class bitbank extends Exchange {
             request['since'] = this.parseToInt (since / 1000);
         }
         const response = await this.privateGetUserSpotTradeHistory (this.extend (request, params));
-        const data = this.safeDict (response, 'data', {});
-        const trades = this.safeList (data, 'trades', []);
+        const data = this.safeValue (response, 'data', {});
+        const trades = this.safeValue (data, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -799,10 +799,10 @@ export default class bitbank extends Exchange {
             'asset': currency['id'],
         };
         const response = await this.privateGetUserWithdrawalAccount (this.extend (request, params));
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeValue (response, 'data', {});
         // Not sure about this if there could be more than one account...
-        const accounts = this.safeList (data, 'accounts', []);
-        const firstAccount = this.safeDict (accounts, 0, {});
+        const accounts = this.safeValue (data, 'accounts', []);
+        const firstAccount = this.safeValue (accounts, 0, {});
         const address = this.safeString (firstAccount, 'address');
         return {
             'currency': currency,
@@ -854,7 +854,7 @@ export default class bitbank extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeValue (response, 'data', {});
         return this.parseTransaction (data, currency);
     }
 

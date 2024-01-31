@@ -251,7 +251,7 @@ export default class exmo extends Exchange {
         //
         const margin = this.parseMarginModification (response, market);
         const options = this.safeValue (this.options, 'margin', {});
-        const fillResponseFromRequest = this.safeBool (options, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeValue (options, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             margin['type'] = type;
             margin['amount'] = amount;
@@ -351,7 +351,7 @@ export default class exmo extends Exchange {
         //         ]
         //     }
         //
-        const pairs = this.safeList (response, 'pairs', []);
+        const pairs = this.safeValue (response, 'pairs', []);
         const result = {};
         for (let i = 0; i < pairs.length; i++) {
             const pair = pairs[i];
@@ -489,7 +489,7 @@ export default class exmo extends Exchange {
             };
             const currency = this.currency (code);
             const currencyId = this.safeString (currency, 'id');
-            const providers = this.safeList (cryptoList, currencyId, []);
+            const providers = this.safeValue (cryptoList, currencyId, []);
             for (let j = 0; j < providers.length; j++) {
                 const provider = providers[j];
                 const typeInner = this.safeString (provider, 'type');
@@ -897,7 +897,7 @@ export default class exmo extends Exchange {
         //         ]
         //     }
         //
-        const candles = this.safeList (response, 'candles', []);
+        const candles = this.safeValue (response, 'candles', []);
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
@@ -938,8 +938,8 @@ export default class exmo extends Exchange {
                 result[currency] = account;
             }
         } else {
-            const free = this.safeDict (response, 'balances', {});
-            const used = this.safeDict (response, 'reserved', {});
+            const free = this.safeValue (response, 'balances', {});
+            const used = this.safeValue (response, 'reserved', {});
             const currencyIds = Object.keys (free);
             for (let i = 0; i < currencyIds.length; i++) {
                 const currencyId = currencyIds[i];
@@ -1906,7 +1906,7 @@ export default class exmo extends Exchange {
         }
         const price = this.safeString (order, 'price');
         const cost = this.safeString (order, 'amount');
-        const transactions = this.safeList (order, 'trades', []);
+        const transactions = this.safeValue (order, 'trades', []);
         const clientOrderId = this.safeInteger (order, 'client_id');
         let triggerPrice = this.safeString (order, 'stop_price');
         if (triggerPrice === '0') {
@@ -2238,7 +2238,7 @@ export default class exmo extends Exchange {
         }
         let txid = this.safeString (transaction, 'txid');
         if (txid === undefined) {
-            const extra = this.safeDict (transaction, 'extra', {});
+            const extra = this.safeValue (transaction, 'extra', {});
             const extraTxid = this.safeString (extra, 'txid');
             if (extraTxid !== '') {
                 txid = extraTxid;
@@ -2274,7 +2274,7 @@ export default class exmo extends Exchange {
             let feeCost = this.safeString (transaction, 'commission');
             if (feeCost === undefined) {
                 const transactionFees = this.safeValue (this.options, 'transactionFees', {});
-                const codeFees = this.safeDict (transactionFees, code, {});
+                const codeFees = this.safeValue (transactionFees, code, {});
                 feeCost = this.safeString (codeFees, key);
             }
             // users don't pay for cashbacks, no fees for that
@@ -2419,7 +2419,7 @@ export default class exmo extends Exchange {
         //         "count": 23
         //     }
         //
-        const items = this.safeList (response, 'items', []);
+        const items = this.safeValue (response, 'items', []);
         return this.parseTransactions (items, currency, since, limit);
     }
 
@@ -2470,8 +2470,8 @@ export default class exmo extends Exchange {
         //         "count": 23
         //     }
         //
-        const items = this.safeList (response, 'items', []);
-        const first = this.safeDict (items, 0, {});
+        const items = this.safeValue (response, 'items', []);
+        const first = this.safeValue (items, 0, {});
         return this.parseTransaction (first, currency);
     }
 
@@ -2522,8 +2522,8 @@ export default class exmo extends Exchange {
         //         "count": 23
         //     }
         //
-        const items = this.safeList (response, 'items', []);
-        const first = this.safeDict (items, 0, {});
+        const items = this.safeValue (response, 'items', []);
+        const first = this.safeValue (items, 0, {});
         return this.parseTransaction (first, currency);
     }
 
@@ -2577,7 +2577,7 @@ export default class exmo extends Exchange {
         //         "count": 23
         //     }
         //
-        const items = this.safeList (response, 'items', []);
+        const items = this.safeValue (response, 'items', []);
         return this.parseTransactions (items, currency, since, limit);
     }
 
@@ -2618,7 +2618,7 @@ export default class exmo extends Exchange {
             //     "msg": "Your margin balance is not sufficient to place the order for '5 TON'. Please top up your margin wallet by "2.5 USDT"."
             // }
             //
-            const errorCode = this.safeDict (response, 'error', {});
+            const errorCode = this.safeValue (response, 'error', {});
             const messageError = this.safeString (errorCode, 'msg');
             const code = this.safeString (errorCode, 'code');
             const feedback = this.id + ' ' + body;
@@ -2631,7 +2631,7 @@ export default class exmo extends Exchange {
             //     {"result":false,"error":"Error 50052: Insufficient funds"}
             //     {"s":"error","errmsg":"strconv.ParseInt: parsing \"\": invalid syntax"}
             //
-            let success = this.safeBool (response, 'result', false);
+            let success = this.safeValue (response, 'result', false);
             if (typeof success === 'string') {
                 if ((success === 'true') || (success === '1')) {
                     success = true;

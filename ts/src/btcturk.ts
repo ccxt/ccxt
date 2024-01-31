@@ -195,7 +195,7 @@ export default class btcturk extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const markets = this.safeList (data, 'symbols', []);
+        const markets = this.safeValue (data, 'symbols', []);
         return this.parseMarkets (markets);
     }
 
@@ -205,7 +205,7 @@ export default class btcturk extends Exchange {
         const quoteId = this.safeString (entry, 'denominator');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const filters = this.safeList (entry, 'filters', []);
+        const filters = this.safeValue (entry, 'filters', []);
         let minPrice = undefined;
         let maxPrice = undefined;
         let minAmount = undefined;
@@ -275,7 +275,7 @@ export default class btcturk extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeValue (response, 'data', []);
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -732,8 +732,8 @@ export default class btcturk extends Exchange {
         }
         const response = await this.privateGetOpenOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data');
-        const bids = this.safeList (data, 'bids', []);
-        const asks = this.safeList (data, 'asks', []);
+        const bids = this.safeValue (data, 'bids', []);
+        const asks = this.safeValue (data, 'asks', []);
         return this.parseOrders (this.arrayConcat (bids, asks), market, since, limit);
     }
 

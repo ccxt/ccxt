@@ -117,7 +117,7 @@ export default class bitvavo extends bitvavoRest {
         //     }
         //
         const event = this.safeString (message, 'event');
-        const tickers = this.safeList (message, 'data', []);
+        const tickers = this.safeValue (message, 'data', []);
         for (let i = 0; i < tickers.length; i++) {
             const data = tickers[i];
             const marketId = this.safeString (data, 'market');
@@ -345,8 +345,8 @@ export default class bitvavo extends bitvavoRest {
         //
         const nonce = this.safeInteger (message, 'nonce');
         if (nonce > orderbook['nonce']) {
-            this.handleDeltas (orderbook['asks'], this.safeList (message, 'asks', []));
-            this.handleDeltas (orderbook['bids'], this.safeList (message, 'bids', []));
+            this.handleDeltas (orderbook['asks'], this.safeValue (message, 'asks', []));
+            this.handleDeltas (orderbook['bids'], this.safeValue (message, 'bids', []));
             orderbook['nonce'] = nonce;
         }
         return orderbook;
@@ -651,7 +651,7 @@ export default class bitvavo extends bitvavoRest {
         //
         const action = this.safeString (message, 'action');
         const response = this.safeValue (message, 'response');
-        const firstRawOrder = this.safeDict (response, 0, {});
+        const firstRawOrder = this.safeValue (response, 0, {});
         const marketId = this.safeString (firstRawOrder, 'market');
         const orders = this.parseOrders (response);
         let messageHash = this.buildMessageHash (action, { 'market': marketId });
@@ -784,7 +784,7 @@ export default class bitvavo extends bitvavoRest {
         //
         const action = this.safeString (message, 'action');
         const response = this.safeValue (message, 'response');
-        const firstRawTrade = this.safeDict (response, 0, {});
+        const firstRawTrade = this.safeValue (response, 0, {});
         const marketId = this.safeString (firstRawTrade, 'market');
         const trades = this.parseTrades (response, undefined, undefined, undefined);
         const messageHash = this.buildMessageHash (action, { 'market': marketId });
@@ -1049,7 +1049,7 @@ export default class bitvavo extends bitvavoRest {
         //
         const action = this.safeString (message, 'action', 'privateGetBalance');
         const messageHash = this.buildMessageHash (action, message);
-        const response = this.safeList (message, 'response', []);
+        const response = this.safeValue (message, 'response', []);
         const balance = this.parseBalance (response);
         client.resolve (balance, messageHash);
     }
@@ -1084,7 +1084,7 @@ export default class bitvavo extends bitvavoRest {
         //    }
         //
         const action = this.safeString (message, 'action');
-        const response = this.safeDict (message, 'response', {});
+        const response = this.safeValue (message, 'response', {});
         const order = this.parseOrder (response);
         const messageHash = this.buildMessageHash (action, response);
         client.resolve (order, messageHash);
@@ -1111,7 +1111,7 @@ export default class bitvavo extends bitvavoRest {
         //    }
         //
         const action = this.safeString (message, 'action');
-        const response = this.safeDict (message, 'response', {});
+        const response = this.safeValue (message, 'response', {});
         const markets = this.parseMarkets (response);
         const messageHash = this.buildMessageHash (action, response);
         client.resolve (markets, messageHash);
@@ -1234,7 +1234,7 @@ export default class bitvavo extends bitvavoRest {
         //         }
         //     }
         //
-        const subscriptions = this.safeDict (message, 'subscriptions', {});
+        const subscriptions = this.safeValue (message, 'subscriptions', {});
         const methods = {
             'book': this.handleOrderBookSubscriptions,
         };
@@ -1282,7 +1282,7 @@ export default class bitvavo extends bitvavoRest {
         //     }
         //
         const messageHash = 'authenticated';
-        const authenticated = this.safeBool (message, 'authenticated', false);
+        const authenticated = this.safeValue (message, 'authenticated', false);
         if (authenticated) {
             // we resolve the future here permanently so authentication only happens once
             client.resolve (message, messageHash);

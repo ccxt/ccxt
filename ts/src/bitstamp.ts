@@ -1104,8 +1104,8 @@ export default class bitstamp extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
-        const ohlc = this.safeList (data, 'ohlc', []);
+        const data = this.safeValue (response, 'data', {});
+        const ohlc = this.safeValue (data, 'ohlc', []);
         return this.parseOHLCVs (ohlc, market, timeframe, since, limit);
     }
 
@@ -1835,7 +1835,7 @@ export default class bitstamp extends Exchange {
         const symbol = this.safeSymbol (marketId, market, '/');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const amount = this.safeString (order, 'amount');
-        const transactions = this.safeList (order, 'transactions', []);
+        const transactions = this.safeValue (order, 'transactions', []);
         const price = this.safeString (order, 'price');
         return this.safeOrder ({
             'id': id,
@@ -2188,11 +2188,11 @@ export default class bitstamp extends Exchange {
                     }
                 }
             }
-            const reasonInner = this.safeDict (response, 'reason', {});
+            const reasonInner = this.safeValue (response, 'reason', {});
             if (typeof reasonInner === 'string') {
                 errors.push (reasonInner);
             } else {
-                const all = this.safeList (reasonInner, '__all__', []);
+                const all = this.safeValue (reasonInner, '__all__', []);
                 for (let i = 0; i < all.length; i++) {
                     errors.push (all[i]);
                 }

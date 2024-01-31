@@ -329,7 +329,7 @@ export default class bitmex extends Exchange {
             const code = this.safeCurrencyCode (asset);
             const id = this.safeString (currency, 'currency');
             const name = this.safeString (currency, 'name');
-            const chains = this.safeList (currency, 'networks', []);
+            const chains = this.safeValue (currency, 'networks', []);
             let depositEnabled = false;
             let withdrawEnabled = false;
             const networks = {};
@@ -342,8 +342,8 @@ export default class bitmex extends Exchange {
                 const network = this.networkIdToCode (networkId);
                 const withdrawalFeeRaw = this.safeString (chain, 'withdrawalFee');
                 const withdrawalFee = this.parseNumber (Precise.stringMul (withdrawalFeeRaw, precisionString));
-                const isDepositEnabled = this.safeBool (chain, 'depositEnabled', false);
-                const isWithdrawEnabled = this.safeBool (chain, 'withdrawalEnabled', false);
+                const isDepositEnabled = this.safeValue (chain, 'depositEnabled', false);
+                const isWithdrawEnabled = this.safeValue (chain, 'withdrawalEnabled', false);
                 const active = (isDepositEnabled && isWithdrawEnabled);
                 if (isDepositEnabled) {
                     depositEnabled = true;
@@ -1738,7 +1738,7 @@ export default class bitmex extends Exchange {
             const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
             isInverse = (defaultSubType === 'inverse');
         } else {
-            isInverse = this.safeBool (market, 'inverse', false);
+            isInverse = this.safeValue (market, 'inverse', false);
         }
         if (isInverse) {
             cost = this.convertFromRawQuantity (symbol, qty);
@@ -2023,7 +2023,7 @@ export default class bitmex extends Exchange {
             params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
         const response = await this.privateDeleteOrder (this.extend (request, params));
-        const order = this.safeDict (response, 0, {});
+        const order = this.safeValue (response, 0, {});
         const error = this.safeString (order, 'error');
         if (error !== undefined) {
             if (error.indexOf ('Unable to cancel order due to existing state') >= 0) {
@@ -2441,7 +2441,7 @@ export default class bitmex extends Exchange {
             const item = response[i];
             const marketId = this.safeString (item, 'symbol');
             const market = this.safeMarket (marketId);
-            const swap = this.safeBool (market, 'swap', false);
+            const swap = this.safeValue (market, 'swap', false);
             if (swap) {
                 filteredResponse.push (item);
             }
@@ -2681,7 +2681,7 @@ export default class bitmex extends Exchange {
         //        ]
         //    }
         //
-        const networks = this.safeList (fee, 'networks', []);
+        const networks = this.safeValue (fee, 'networks', []);
         const networksLength = networks.length;
         const result = {
             'info': fee,
@@ -2853,7 +2853,7 @@ export default class bitmex extends Exchange {
             throw new DDoSProtection (this.id + ' ' + body);
         }
         if (code >= 400) {
-            const error = this.safeDict (response, 'error', {});
+            const error = this.safeValue (response, 'error', {});
             const message = this.safeString (error, 'message');
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);

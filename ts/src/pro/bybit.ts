@@ -336,7 +336,7 @@ export default class bybit extends bybitRest {
         //
         const topic = this.safeString (message, 'topic', '');
         const updateType = this.safeString (message, 'type', '');
-        const data = this.safeDict (message, 'data', {});
+        const data = this.safeValue (message, 'data', {});
         const isSpot = this.safeString (data, 'fundingRate') === undefined;
         const type = isSpot ? 'spot' : 'contract';
         let symbol = undefined;
@@ -352,7 +352,7 @@ export default class bybit extends bybitRest {
             symbol = market['symbol'];
             // update the info in place
             const ticker = this.safeValue (this.tickers, symbol, {});
-            const rawTicker = this.safeDict (ticker, 'info', {});
+            const rawTicker = this.safeValue (ticker, 'info', {});
             const merged = this.extend (rawTicker, data);
             parsed = this.parseTicker (merged);
         }
@@ -417,7 +417,7 @@ export default class bybit extends bybitRest {
         //         "type": "snapshot"
         //     }
         //
-        const data = this.safeDict (message, 'data', {});
+        const data = this.safeValue (message, 'data', {});
         const topic = this.safeString (message, 'topic');
         const topicParts = topic.split ('.');
         const topicLength = topicParts.length;
@@ -567,7 +567,7 @@ export default class bybit extends bybitRest {
         const isSpot = client.url.indexOf ('spot') >= 0;
         const type = this.safeString (message, 'type');
         const isSnapshot = (type === 'snapshot');
-        const data = this.safeDict (message, 'data', {});
+        const data = this.safeValue (message, 'data', {});
         const marketId = this.safeString (data, 's');
         const marketType = isSpot ? 'spot' : 'contract';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
@@ -581,8 +581,8 @@ export default class bybit extends bybitRest {
             const snapshot = this.parseOrderBook (data, symbol, timestamp, 'b', 'a');
             orderbook.reset (snapshot);
         } else {
-            const asks = this.safeList (data, 'a', []);
-            const bids = this.safeList (data, 'b', []);
+            const asks = this.safeValue (data, 'a', []);
+            const bids = this.safeValue (data, 'b', []);
             this.handleDeltas (orderbook['asks'], asks);
             this.handleDeltas (orderbook['bids'], bids);
             orderbook['timestamp'] = timestamp;
@@ -678,7 +678,7 @@ export default class bybit extends bybitRest {
         //         ]
         //     }
         //
-        const data = this.safeDict (message, 'data', {});
+        const data = this.safeValue (message, 'data', {});
         const topic = this.safeString (message, 'topic');
         const trades = data;
         const parts = topic.split ('.');
@@ -882,9 +882,9 @@ export default class bybit extends bybitRest {
         //
         const topic = this.safeString (message, 'topic');
         const spot = topic === 'ticketInfo';
-        let data = this.safeList (message, 'data', []);
+        let data = this.safeValue (message, 'data', []);
         if (!Array.isArray (data)) {
-            data = this.safeList (data, 'result', []);
+            data = this.safeValue (data, 'result', []);
         }
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -1035,7 +1035,7 @@ export default class bybit extends bybitRest {
         }
         const cache = this.positions;
         const newPositions = [];
-        const rawPositions = this.safeList (message, 'data', []);
+        const rawPositions = this.safeValue (message, 'data', []);
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition (rawPosition);
@@ -1179,8 +1179,8 @@ export default class bybit extends bybitRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const orders = this.orders;
-        let rawOrders = this.safeList (message, 'data', []);
-        const first = this.safeDict (rawOrders, 0, {});
+        let rawOrders = this.safeValue (message, 'data', []);
+        const first = this.safeValue (rawOrders, 0, {});
         const category = this.safeString (first, 'category');
         const isSpot = category === 'spot';
         if (!isSpot) {
@@ -1553,7 +1553,7 @@ export default class bybit extends bybitRest {
         let account = undefined;
         if (topic === 'outboundAccountInfo') {
             account = 'spot';
-            const data = this.safeList (message, 'data', []);
+            const data = this.safeValue (message, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const B = this.safeValue (data[i], 'B', []);
                 rawBalances = this.arrayConcat (rawBalances, B);
@@ -1561,11 +1561,11 @@ export default class bybit extends bybitRest {
             info = rawBalances;
         }
         if (topic === 'wallet') {
-            const data = this.safeDict (message, 'data', {});
+            const data = this.safeValue (message, 'data', {});
             for (let i = 0; i < data.length; i++) {
-                const result = this.safeDict (data, 0, {});
+                const result = this.safeValue (data, 0, {});
                 account = this.safeStringLower (result, 'accountType');
-                rawBalances = this.arrayConcat (rawBalances, this.safeList (result, 'coin', []));
+                rawBalances = this.arrayConcat (rawBalances, this.safeValue (result, 'coin', []));
             }
             info = data;
         }
@@ -1705,7 +1705,7 @@ export default class bybit extends bybitRest {
             const success = this.safeValue (message, 'success');
             if (success !== undefined && !success) {
                 const ret_msg = this.safeString (message, 'ret_msg');
-                const request = this.safeDict (message, 'request', {});
+                const request = this.safeValue (message, 'request', {});
                 const op = this.safeString (request, 'op');
                 if (op === 'auth') {
                     throw new AuthenticationError ('Authentication failed: ' + ret_msg);

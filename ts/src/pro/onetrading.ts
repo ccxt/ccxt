@@ -211,7 +211,7 @@ export default class onetrading extends onetradingRest {
         //         "time": "2022-06-23T16:41:00.004162Z"
         //     }
         //
-        const tickers = this.safeList (message, 'ticker_updates', []);
+        const tickers = this.safeValue (message, 'ticker_updates', []);
         const datetime = this.safeString (message, 'time');
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
@@ -384,7 +384,7 @@ export default class onetrading extends onetradingRest {
             const snapshot = this.parseOrderBook (message, symbol, timestamp, 'bids', 'asks');
             storedOrderBook.reset (snapshot);
         } else if (type === 'ORDER_BOOK_UPDATE') {
-            const changes = this.safeList (message, 'changes', []);
+            const changes = this.safeValue (message, 'changes', []);
             this.handleDeltas (storedOrderBook, changes);
         } else {
             throw new NotSupported (this.id + ' watchOrderBook() did not recognize message type ' + type);
@@ -717,7 +717,7 @@ export default class onetrading extends onetradingRest {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
-        const rawOrders = this.safeList (message, 'orders', []);
+        const rawOrders = this.safeValue (message, 'orders', []);
         const rawOrdersLength = rawOrders.length;
         if (rawOrdersLength === 0) {
             return;
@@ -972,13 +972,13 @@ export default class onetrading extends onetradingRest {
         }
         let symbol = undefined;
         const orders = this.orders;
-        const update = this.safeDict (message, 'update', {});
+        const update = this.safeValue (message, 'update', {});
         const updateType = this.safeString (update, 'type');
         if (updateType === 'ORDER_REJECTED' || updateType === 'ORDER_CLOSED' || updateType === 'STOP_ORDER_TRIGGERED') {
             const orderId = this.safeString (update, 'order_id');
             const datetime = this.safeString2 (update, 'time', 'timestamp');
             const previousOrderArray = this.filterByArray (this.orders, 'id', orderId, false);
-            const previousOrder = this.safeDict (previousOrderArray, 0, {});
+            const previousOrder = this.safeValue (previousOrderArray, 0, {});
             symbol = previousOrder['symbol'];
             const filled = this.safeNumber (update, 'filled_amount');
             let status = this.parseWsOrderStatus (updateType);
@@ -1076,7 +1076,7 @@ export default class onetrading extends onetradingRest {
         if (client !== undefined) {
             subscription = this.safeValue (client.subscriptions, subscriptionHash);
             if (subscription !== undefined) {
-                const ohlcvMarket = this.safeDict (subscription, marketId, {});
+                const ohlcvMarket = this.safeValue (subscription, marketId, {});
                 const marketSubscribed = this.safeValue (ohlcvMarket, timeframe, false);
                 if (!marketSubscribed) {
                     type = 'UPDATE_SUBSCRIPTION';

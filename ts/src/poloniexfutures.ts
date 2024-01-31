@@ -275,7 +275,7 @@ export default class poloniexfutures extends Exchange {
         //   ]
         // }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeValue (response, 'data', []);
         return this.parseMarkets (data);
     }
 
@@ -527,7 +527,7 @@ export default class poloniexfutures extends Exchange {
         //     ],
         // }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeValue (response, 'data', {});
         const timestamp = this.safeIntegerProduct (data, 'ts', 0.000001);
         let orderbook = undefined;
         if (level === 3) {
@@ -681,7 +681,7 @@ export default class poloniexfutures extends Exchange {
         //        },
         //    }
         //
-        const trades = this.safeList (response, 'data', []);
+        const trades = this.safeValue (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -754,7 +754,7 @@ export default class poloniexfutures extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -871,7 +871,7 @@ export default class poloniexfutures extends Exchange {
                 request['timeInForce'] = timeInForce;
             }
         }
-        const postOnly = this.safeBool (params, 'postOnly', false);
+        const postOnly = this.safeValue (params, 'postOnly', false);
         const hidden = this.safeValue (params, 'hidden');
         if (postOnly && (hidden !== undefined)) {
             throw new BadRequest (this.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter');
@@ -893,7 +893,7 @@ export default class poloniexfutures extends Exchange {
         //        },
         //    }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeValue (response, 'data', {});
         return this.safeOrder ({
             'id': this.safeString (data, 'orderId'),
             'clientOrderId': undefined,
@@ -1166,7 +1166,7 @@ export default class poloniexfutures extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const dataList = this.safeList (data, 'dataList', []);
+        const dataList = this.safeValue (data, 'dataList', []);
         const dataListLength = dataList.length;
         const fees = [];
         for (let i = 0; i < dataListLength; i++) {
@@ -1350,8 +1350,8 @@ export default class poloniexfutures extends Exchange {
         //        }
         //    }
         //
-        const responseData = this.safeDict (response, 'data', {});
-        const orders = this.safeList (responseData, 'items', []);
+        const responseData = this.safeValue (response, 'data', {});
+        const orders = this.safeValue (responseData, 'items', []);
         const ordersLength = orders.length;
         const result = [];
         for (let i = 0; i < ordersLength; i++) {
@@ -1566,8 +1566,8 @@ export default class poloniexfutures extends Exchange {
         // precision reported by their api is 8 d.p.
         // const average = Precise.stringDiv (rawCost, Precise.stringMul (filled, market['contractSize']));
         // bool
-        const isActive = this.safeBool (order, 'isActive', false);
-        const cancelExist = this.safeBool (order, 'cancelExist', false);
+        const isActive = this.safeValue (order, 'isActive', false);
+        const cancelExist = this.safeValue (order, 'cancelExist', false);
         const status = isActive ? 'open' : 'closed';
         let id = this.safeString (order, 'id');
         if ('cancelledOrderIds' in order) {
@@ -1712,8 +1712,8 @@ export default class poloniexfutures extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeDict (response, 'data', {});
-        const trades = this.safeDict (data, 'items', {});
+        const data = this.safeValue (response, 'data', {});
+        const trades = this.safeValue (data, 'items', {});
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1746,8 +1746,8 @@ export default class poloniexfutures extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         const versions = this.safeValue (this.options, 'versions', {});
-        const apiVersions = this.safeDict (versions, api, {});
-        const methodVersions = this.safeDict (apiVersions, method, {});
+        const apiVersions = this.safeValue (versions, api, {});
+        const methodVersions = this.safeValue (apiVersions, method, {});
         const defaultVersion = this.safeString (methodVersions, path, this.version);
         const version = this.safeString (params, 'version', defaultVersion);
         const tail = '/api/' + version + '/' + this.implodeParams (path, params);

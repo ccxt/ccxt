@@ -266,8 +266,8 @@ export default class gate extends gateRest {
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
         orderbook['nonce'] = this.safeInteger (delta, 'u');
-        const bids = this.safeList (delta, 'b', []);
-        const asks = this.safeList (delta, 'a', []);
+        const bids = this.safeValue (delta, 'b', []);
+        const asks = this.safeValue (delta, 'a', []);
         const storedBids = orderbook['bids'];
         const storedAsks = orderbook['asks'];
         this.handleBidAsks (storedBids, bids);
@@ -618,7 +618,7 @@ export default class gate extends gateRest {
         //     ]
         // }
         //
-        const result = this.safeList (message, 'result', []);
+        const result = this.safeValue (message, 'result', []);
         const tradesLength = result.length;
         if (tradesLength === 0) {
             return;
@@ -735,7 +735,7 @@ export default class gate extends gateRest {
         //       ]
         //   }
         //
-        const result = this.safeList (message, 'result', []);
+        const result = this.safeValue (message, 'result', []);
         const timestamp = this.safeInteger (message, 'time_ms');
         this.balance['info'] = result;
         this.balance['timestamp'] = timestamp;
@@ -881,7 +881,7 @@ export default class gate extends gateRest {
         //    }
         //
         const type = this.getMarketTypeByUrl (client.url);
-        const data = this.safeList (message, 'result', []);
+        const data = this.safeValue (message, 'result', []);
         const cache = this.positions[type];
         const newPositions = [];
         for (let i = 0; i < data.length; i++) {
@@ -989,7 +989,7 @@ export default class gate extends gateRest {
         //     ]
         // }
         //
-        const orders = this.safeList (message, 'result', []);
+        const orders = this.safeValue (message, 'result', []);
         const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
         if (this.orders === undefined) {
             this.orders = new ArrayCacheBySymbolById (limit);
