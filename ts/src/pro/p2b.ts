@@ -209,14 +209,14 @@ export default class p2b extends p2bRest {
         //        "id": null
         //    }
         //
-        let data = this.safeValue (message, 'params');
-        data = this.safeValue (data, 0);
+        let data = this.safeList (message, 'params');
+        data = this.safeList (data, 0);
         const method = this.safeString (message, 'method');
         const splitMethod = method.split ('.');
         const channel = this.safeString (splitMethod, 0);
         const marketId = this.safeString (data, 7);
         const market = this.safeMarket (marketId);
-        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeDict (this.options, 'timeframes', {});
         const timeframe = this.findTimeframe (channel, timeframes);
         const symbol = this.safeString (market, 'symbol');
         const messageHash = channel + '::' + symbol;
@@ -255,8 +255,8 @@ export default class p2b extends p2bRest {
         //        "id": null
         //    }
         //
-        const data = this.safeValue (message, 'params', []);
-        const trades = this.safeValue (data, 1);
+        const data = this.safeList (message, 'params', []);
+        const trades = this.safeDict (data, 1);
         const marketId = this.safeString (data, 0);
         const market = this.safeMarket (marketId);
         const symbol = this.safeString (market, 'symbol');
@@ -309,13 +309,13 @@ export default class p2b extends p2bRest {
         //        "id": null
         //    }
         //
-        const data = this.safeValue (message, 'params', []);
+        const data = this.safeList (message, 'params', []);
         const marketId = this.safeString (data, 0);
         const market = this.safeMarket (marketId);
         const method = this.safeString (message, 'method');
         const splitMethod = method.split ('.');
         const messageHashStart = this.safeString (splitMethod, 0);
-        const tickerData = this.safeValue (data, 1);
+        const tickerData = this.safeDict (data, 1);
         let ticker = undefined;
         if (method === 'price.update') {
             const lastPrice = this.safeString (data, 1);
@@ -352,7 +352,7 @@ export default class p2b extends p2bRest {
         //        "id": null
         //    }
         //
-        const params = this.safeValue (message, 'params', []);
+        const params = this.safeList (message, 'params', []);
         const data = this.safeValue (params, 1);
         const asks = this.safeValue (data, 'asks');
         const bids = this.safeValue (data, 'bids');
