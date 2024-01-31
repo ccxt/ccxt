@@ -243,6 +243,18 @@
                 ],
                 "output": "{\"symbol\":\"tBTCF0:USTF0\",\"collateral\":0.5}"
             }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Swap cancel order",
+                "method": "cancelOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/cancel",
+                "input": [
+                  "139449164689",
+                  "BTC/USDT:USDT"
+                ],
+                "output": "{\"id\":139449164689}"
+            }
         ]
     }
 }
