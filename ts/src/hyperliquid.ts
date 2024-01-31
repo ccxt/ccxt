@@ -103,8 +103,8 @@ export default class hyperliquid extends Exchange {
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
-                'setLeverage': false,
-                'setMarginMode': false,
+                'setLeverage': true,
+                'setMarginMode': true,
                 'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,
@@ -762,7 +762,7 @@ export default class hyperliquid extends Exchange {
                 (vaultAddress) ? vaultAddress : zeroAddress,
                 nonce,
             ];
-            sig = this.buildOrderSig (signatureTypes, signatureData);
+            sig = this.buildActionSig (signatureTypes, signatureData);
         } else {
             const signatureTypes = [ '(uint32,bool,uint64,uint64,bool,uint8,uint64)[]', 'uint8', 'address', 'uint256' ];
             const signatureData = [
@@ -771,7 +771,7 @@ export default class hyperliquid extends Exchange {
                 (vaultAddress) ? vaultAddress : zeroAddress,
                 nonce,
             ];
-            sig = this.buildOrderSig (signatureTypes, signatureData);
+            sig = this.buildActionSig (signatureTypes, signatureData);
         }
         const request = {
             'action': {
@@ -1015,7 +1015,7 @@ export default class hyperliquid extends Exchange {
                 (vaultAddress) ? vaultAddress : zeroAddress,
                 nonce,
             ];
-            const sig = this.buildOrderSig (signatureTypes, signatureData);
+            const sig = this.buildActionSig (signatureTypes, signatureData);
             request['action'] = {
                 'type': 'cancelByCloid',
                 'cancels': ordersReq,
@@ -1040,7 +1040,7 @@ export default class hyperliquid extends Exchange {
                 (vaultAddress) ? vaultAddress : zeroAddress,
                 nonce,
             ];
-            const sig = this.buildOrderSig (signatureTypes, signatureData);
+            const sig = this.buildActionSig (signatureTypes, signatureData);
             request['action'] = {
                 'type': 'cancel',
                 'cancels': ordersReq,
@@ -1166,7 +1166,7 @@ export default class hyperliquid extends Exchange {
                 nonce,
                 40,
             ];
-            sig = this.buildOrderSig (signatureTypes, signatureData);
+            sig = this.buildActionSig (signatureTypes, signatureData);
         } else {
             const signatureTypes = [ '(uint64,uint32,bool,uint64,uint64,bool,uint8,uint64,bytes16)[]', 'address', 'uint256', 'uint16' ];
             const signatureData = [
@@ -1187,7 +1187,7 @@ export default class hyperliquid extends Exchange {
                 nonce,
                 40,
             ];
-            sig = this.buildOrderSig (signatureTypes, signatureData);
+            sig = this.buildActionSig (signatureTypes, signatureData);
         }
         const tmpRequest = {
             'action': {
@@ -1589,6 +1589,122 @@ export default class hyperliquid extends Exchange {
         });
     }
 
+
+
+    async setMarginMode (marginMode, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#setMarginMode
+         * @description set margin mode (symbol)
+         * @param {string} marginMode margin mode must be either [isolated, cross]
+         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.leverage] the rate of leverage, is required if setting trade mode (symbol)
+         * @returns {object} response from the exchange
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const leverage = this.safeValue (params, 'leverage');
+        if (leverage === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter');
+        }
+        const asset = this.parseToInt (market['baseId']);
+        const isCross = (marginMode === 'isolated');
+        const vaultAddress = this.safeString (params, 'vaultAddress');
+        const zeroAddress = this.safeString (this.options, 'zeroAddress');
+        const nonce = this.milliseconds ();
+        params = this.omit (params, [ 'leverage', 'vaultAddress' ]);
+        const signatureTypes = [ 'uint32', 'bool', 'uint32', 'address', 'uint256' ];
+        const signatureData = [
+            asset,
+            isCross,
+            leverage,
+            (vaultAddress) ? vaultAddress : zeroAddress,
+            nonce,
+        ];
+        const sig = this.buildActionSig (signatureTypes, signatureData);
+        const request = {
+            'action': {
+                'type': 'updateLeverage',
+                'asset': asset,
+                'isCross': isCross,
+                'leverage': leverage,
+            },
+            'nonce': nonce,
+            'signature': sig,
+        };
+        const response = await this.privatePostExchange (request);
+        //
+        //     {
+        //         'response': {
+        //             'type': 'default'
+        //         },
+        //         'status': 'ok'
+        //     }
+        //
+        return response;
+    }
+
+    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#setLeverage
+         * @description set the level of leverage for a market
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginMode] margin mode must be either [isolated, cross]
+         * @returns {object} response from the exchange
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marginMode = this.safeValue (params, 'marginMode');
+        if (marginMode === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a marginMode parameter');
+        }
+        const isCross = (marginMode === 'cross');
+        const asset = this.parseToInt (market['baseId']);
+        const vaultAddress = this.safeString (params, 'vaultAddress');
+        const zeroAddress = this.safeString (this.options, 'zeroAddress');
+        const nonce = this.milliseconds ();
+        params = this.omit (params, 'vaultAddress');
+        const signatureTypes = [ 'uint32', 'bool', 'uint32', 'address', 'uint256' ];
+        const signatureData = [
+            asset,
+            isCross,
+            leverage,
+            (vaultAddress) ? vaultAddress : zeroAddress,
+            nonce,
+        ];
+        const sig = this.buildActionSig (signatureTypes, signatureData);
+        const request = {
+            'action': {
+                'type': 'updateLeverage',
+                'asset': asset,
+                'isCross': isCross,
+                'leverage': leverage,
+            },
+            'nonce': nonce,
+            'signature': sig,
+        };
+        const response = await this.privatePostExchange (request);
+        //
+        //     {
+        //         'response': {
+        //             'type': 'default'
+        //         },
+        //         'status': 'ok'
+        //     }
+        //
+        return response;
+    }
+
     async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
@@ -1686,7 +1802,7 @@ export default class hyperliquid extends Exchange {
         return signature;
     }
 
-    buildOrderSig (signatureTypes, signatureData) {
+    buildActionSig (signatureTypes, signatureData) {
         const connectionId = this.ethAbiEncode (signatureTypes, signatureData);
         const connectionIdHash = this.hash (connectionId, keccak, 'binary');
         const isSandboxMode = this.safeValue (this.options, 'sandboxMode');
