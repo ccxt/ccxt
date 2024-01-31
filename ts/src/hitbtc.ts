@@ -3243,7 +3243,7 @@ export default class hitbtc extends Exchange {
         let response = undefined;
         if (marketType === 'swap') {
             response = await this.privatePutFuturesAccountIsolatedSymbol (this.extend (request, params));
-        } else if ((marketType === 'margin') || ((marketType === 'spot') && (marginMode === 'isolated'))) {
+        } else if ((marketType === 'margin') || (marketType === 'spot') || (marginMode === 'isolated')) {
             response = await this.privatePutMarginAccountIsolatedSymbol (this.extend (request, params));
         } else {
             throw new NotSupported (this.id + ' modifyMarginHelper() not support this market type');
