@@ -472,11 +472,11 @@ export default class bitfinex2 extends Exchange {
          */
         let spotMarketsInfo = await this.publicGetConfPubInfoPair (params);
         let futuresMarketsInfo = await this.publicGetConfPubInfoPairFutures (params);
-        spotMarketsInfo = this.safeList (spotMarketsInfo, 0, []);
-        futuresMarketsInfo = this.safeList (futuresMarketsInfo, 0, []);
+        spotMarketsInfo = this.safeValue (spotMarketsInfo, 0, []);
+        futuresMarketsInfo = this.safeValue (futuresMarketsInfo, 0, []);
         const markets = this.arrayConcat (spotMarketsInfo, futuresMarketsInfo);
         let marginIds = await this.publicGetConfPubListPairMargin (params);
-        marginIds = this.safeList (marginIds, 0, []);
+        marginIds = this.safeValue (marginIds, 0, []);
         //
         //    [
         //        "1INCH:USD",
@@ -500,7 +500,7 @@ export default class bitfinex2 extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const pair = markets[i];
             const id = this.safeStringUpper (pair, 0);
-            const market = this.safeDict (pair, 1, {});
+            const market = this.safeValue (pair, 1, {});
             let spot = true;
             if (id.indexOf ('F0') >= 0) {
                 spot = false;
@@ -703,7 +703,7 @@ export default class bitfinex2 extends Exchange {
             'explorer': this.indexBy (this.safeValue (response, 6, []), 0),
             'fees': this.indexBy (this.safeValue (response, 7, []), 0),
         };
-        const ids = this.safeList (response, 0, []);
+        const ids = this.safeValue (response, 0, []);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
@@ -718,7 +718,7 @@ export default class bitfinex2 extends Exchange {
             const rawType = this.safeString (pool, 1);
             const type = (rawType === undefined) ? 'other' : 'crypto';
             const feeValues = this.safeValue (indexed['fees'], id, []);
-            const fees = this.safeList (feeValues, 1, []);
+            const fees = this.safeValue (feeValues, 1, []);
             const fee = this.safeNumber (fees, 1);
             const undl = this.safeValue (indexed['undl'], id, []);
             const precision = '8'; // default precision, todo: fix "magic constants"
@@ -748,7 +748,7 @@ export default class bitfinex2 extends Exchange {
                 'networks': {},
             };
             const networks = {};
-            const currencyNetworks = this.safeList (response, 8, []);
+            const currencyNetworks = this.safeValue (response, 8, []);
             const cleanId = id.replace ('F0', '');
             for (let j = 0; j < currencyNetworks.length; j++) {
                 const pair = currencyNetworks[j];
@@ -981,7 +981,7 @@ export default class bitfinex2 extends Exchange {
         //   "info": [ 'USTF0', [], [], [], [ "USTF0", "UST" ] ],
         const info = this.safeValue (currency, 'info');
         const transferId = this.safeString (info, 0);
-        const underlying = this.safeList (info, 4, []);
+        const underlying = this.safeValue (info, 4, []);
         let currencyId = undefined;
         if (type === 'derivatives') {
             currencyId = this.safeString (underlying, 0, transferId);
@@ -1546,8 +1546,8 @@ export default class bitfinex2 extends Exchange {
         }
         const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
         const timeInForce = this.safeString (params, 'timeInForce');
-        const postOnlyParam = this.safeBool (params, 'postOnly', false);
-        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        const postOnlyParam = this.safeValue (params, 'postOnly', false);
+        const reduceOnly = this.safeValue (params, 'reduceOnly', false);
         const clientOrderId = this.safeValue2 (params, 'cid', 'clientOrderId');
         params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'price_aux_limit' ]);
         let amountString = this.amountToPrecision (symbol, amount);
@@ -1669,7 +1669,7 @@ export default class bitfinex2 extends Exchange {
             const errorText = response[7];
             throw new ExchangeError (this.id + ' ' + response[6] + ': ' + errorText + ' (#' + errorCode + ')');
         }
-        const orders = this.safeList (response, 4, []);
+        const orders = this.safeValue (response, 4, []);
         const order = this.safeValue (orders, 0);
         return this.parseOrder (order, market);
     }
@@ -1688,7 +1688,7 @@ export default class bitfinex2 extends Exchange {
             'all': 1,
         };
         const response = await this.privatePostAuthWOrderCancelMulti (this.extend (request, params));
-        const orders = this.safeList (response, 4, []);
+        const orders = this.safeValue (response, 4, []);
         return this.parseOrders (orders);
     }
 
@@ -2010,7 +2010,7 @@ export default class bitfinex2 extends Exchange {
         const currency = this.currency (code);
         // if not provided explicitly we will try to match using the currency name
         const network = this.safeString (params, 'network', code);
-        const currencyNetworks = this.safeDict (currency, 'networks', {});
+        const currencyNetworks = this.safeValue (currency, 'networks', {});
         const currencyNetwork = this.safeValue (currencyNetworks, network);
         const networkId = this.safeString (currencyNetwork, 'id');
         if (networkId === undefined) {
@@ -2043,7 +2043,7 @@ export default class bitfinex2 extends Exchange {
         //         "success", // TEXT Text of the notification
         //     ]
         //
-        const result = this.safeList (response, 4, []);
+        const result = this.safeValue (response, 4, []);
         const poolAddress = this.safeString (result, 5);
         const address = (poolAddress === undefined) ? this.safeString (result, 4) : poolAddress;
         const tag = (poolAddress === undefined) ? undefined : this.safeString (result, 4);
@@ -2141,7 +2141,7 @@ export default class bitfinex2 extends Exchange {
         let network = undefined;
         let comment = undefined;
         if (transactionLength === 8) {
-            const data = this.safeList (transaction, 4, []);
+            const data = this.safeValue (transaction, 4, []);
             timestamp = this.safeInteger (transaction, 0);
             if (currency !== undefined) {
                 code = currency['code'];
@@ -2293,9 +2293,9 @@ export default class bitfinex2 extends Exchange {
         //
         const result = {};
         const fiat = this.safeValue (this.options, 'fiat', {});
-        const feeData = this.safeList (response, 4, []);
-        const makerData = this.safeList (feeData, 0, []);
-        const takerData = this.safeList (feeData, 1, []);
+        const feeData = this.safeValue (response, 4, []);
+        const makerData = this.safeValue (feeData, 0, []);
+        const takerData = this.safeValue (feeData, 1, []);
         const makerFee = this.safeNumber (makerData, 0);
         const makerFeeFiat = this.safeNumber (makerData, 2);
         const makerFeeDeriv = this.safeNumber (makerData, 5);
@@ -2406,7 +2406,7 @@ export default class bitfinex2 extends Exchange {
         // if not provided explicitly we will try to match using the currency name
         const network = this.safeString (params, 'network', code);
         params = this.omit (params, 'network');
-        const currencyNetworks = this.safeDict (currency, 'networks', {});
+        const currencyNetworks = this.safeValue (currency, 'networks', {});
         const currencyNetwork = this.safeValue (currencyNetworks, network);
         const networkId = this.safeString (currencyNetwork, 'id');
         if (networkId === undefined) {
@@ -2424,7 +2424,7 @@ export default class bitfinex2 extends Exchange {
             request['payment_id'] = tag;
         }
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
-        const includeFee = this.safeBool (withdrawOptions, 'includeFee', false);
+        const includeFee = this.safeValue (withdrawOptions, 'includeFee', false);
         if (includeFee) {
             request['fee_deduct'] = 1;
         }

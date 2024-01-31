@@ -105,8 +105,8 @@ export default class poloniexfutures extends poloniexfuturesRest {
             } else {
                 response = await this.publicPostBulletPublic (params);
             }
-            const data = this.safeDict (response, 'data', {});
-            const instanceServers = this.safeList (data, 'instanceServers', []);
+            const data = this.safeValue (response, 'data', {});
+            const instanceServers = this.safeValue (data, 'instanceServers', []);
             const firstInstanceServer = this.safeValue (instanceServers, 0);
             const pingInterval = this.safeInteger (firstInstanceServer, 'pingInterval');
             const endpoint = this.safeString (firstInstanceServer, 'endpoint');
@@ -222,7 +222,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeDict (subscriptionsById, id, {});
+        const subscription = this.safeValue (subscriptionsById, id, {});
         const method = this.safeValue (subscription, 'method');
         if (method !== undefined) {
             method.call (this, client, message, subscription);
@@ -375,7 +375,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //        "type": "message",
         //    }
         //
-        const data = this.safeDict (message, 'data', {});
+        const data = this.safeValue (message, 'data', {});
         const marketId = this.safeString (data, 'symbol');
         if (marketId !== undefined) {
             const trade = this.parseWsTrade (data);
@@ -534,7 +534,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //        "userId": "1160396"
         //    }
         //
-        const data = this.safeDict (message, 'data', {});
+        const data = this.safeValue (message, 'data', {});
         let orders = this.orders;
         if (orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit');
@@ -674,7 +674,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //        }
         //    }
         //
-        const data = this.safeDict (message, 'data', {});
+        const data = this.safeValue (message, 'data', {});
         const messageHash = this.safeString (message, 'topic');
         const symbol = this.getSymbolFromTopic (messageHash);
         if (symbol !== undefined) {
@@ -777,7 +777,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //        }
         //    }
         //
-        const data = this.safeDict (message, 'data', {});
+        const data = this.safeValue (message, 'data', {});
         const messageHash = this.safeString (message, 'topic', '');
         const symbol = this.getSymbolFromTopic (messageHash);
         let orderBook = this.safeValue (this.orderbooks, symbol);
@@ -831,7 +831,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //        }
         //    }
         //
-        const data = this.safeDict (message, 'data', {});
+        const data = this.safeValue (message, 'data', {});
         const messageHash = this.safeString (message, 'topic', '');
         const symbol = this.getSymbolFromTopic (messageHash);
         const timestamp = this.safeInteger (data, 'timestamp');
@@ -920,7 +920,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //        "userId": "1139790"
         //    }
         //
-        const data = this.safeList (message, 'data', []);
+        const data = this.safeValue (message, 'data', []);
         const messageHash = '/contractAccount/wallet';
         const currencyId = this.safeString (data, 'currency');
         const currency = this.currency (currencyId);

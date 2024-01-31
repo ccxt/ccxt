@@ -235,7 +235,7 @@ export default class alpaca extends alpacaRest {
         const symbol = this.safeSymbol (marketId);
         const datetime = this.safeString (message, 't');
         const timestamp = this.parse8601 (datetime);
-        const isSnapshot = this.safeBool (message, 'r', false);
+        const isSnapshot = this.safeValue (message, 'r', false);
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
             orderbook = this.orderBook ();
@@ -244,8 +244,8 @@ export default class alpaca extends alpacaRest {
             const snapshot = this.parseOrderBook (message, symbol, timestamp, 'b', 'a', 'p', 's');
             orderbook.reset (snapshot);
         } else {
-            const asks = this.safeList (message, 'a', []);
-            const bids = this.safeList (message, 'b', []);
+            const asks = this.safeValue (message, 'a', []);
+            const bids = this.safeValue (message, 'b', []);
             this.handleDeltas (orderbook['asks'], asks);
             this.handleDeltas (orderbook['bids'], bids);
             orderbook['timestamp'] = timestamp;
@@ -438,8 +438,8 @@ export default class alpaca extends alpacaRest {
         //        }
         //      }
         //
-        const data = this.safeDict (message, 'data', {});
-        const rawOrder = this.safeDict (data, 'order', {});
+        const data = this.safeValue (message, 'data', {});
+        const rawOrder = this.safeValue (data, 'order', {});
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -499,12 +499,12 @@ export default class alpaca extends alpacaRest {
         //        }
         //      }
         //
-        const data = this.safeDict (message, 'data', {});
+        const data = this.safeValue (message, 'data', {});
         const event = this.safeString (data, 'event');
         if (event !== 'fill' && event !== 'partial_fill') {
             return;
         }
-        const rawOrder = this.safeDict (data, 'order', {});
+        const rawOrder = this.safeValue (data, 'order', {});
         let myTrades = this.myTrades;
         if (myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -616,7 +616,7 @@ export default class alpaca extends alpacaRest {
         //    }
         //
         const code = this.safeString (message, 'code');
-        const msg = this.safeDict (message, 'msg', {});
+        const msg = this.safeValue (message, 'msg', {});
         throw new ExchangeError (this.id + ' code: ' + code + ' message: ' + msg);
     }
 
@@ -705,7 +705,7 @@ export default class alpaca extends alpacaRest {
         //    }
         //
         const T = this.safeString (message, 'T');
-        const data = this.safeDict (message, 'data', {});
+        const data = this.safeValue (message, 'data', {});
         const status = this.safeString (data, 'status');
         if (T === 'success' || status === 'authorized') {
             const promise = client.futures['authenticated'];

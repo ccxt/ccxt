@@ -173,7 +173,7 @@ export default class oceanex extends Exchange {
         //        "minimum_trading_amount": "1.0"
         //    },
         //
-        const markets = this.safeList (response, 'data', []);
+        const markets = this.safeValue (response, 'data', []);
         return this.parseMarkets (markets);
     }
 
@@ -270,7 +270,7 @@ export default class oceanex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeValue (response, 'data', {});
         return this.parseTicker (data, market);
     }
 
@@ -309,7 +309,7 @@ export default class oceanex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = data[i];
@@ -335,7 +335,7 @@ export default class oceanex extends Exchange {
         //             }
         //         }
         //
-        const ticker = this.safeDict (data, 'ticker', {});
+        const ticker = this.safeValue (data, 'ticker', {});
         const timestamp = this.safeTimestamp (data, 'at');
         const symbol = this.safeSymbol (undefined, market);
         return this.safeTicker ({
@@ -401,7 +401,7 @@ export default class oceanex extends Exchange {
         //         }
         //     }
         //
-        const orderbook = this.safeDict (response, 'data', {});
+        const orderbook = this.safeValue (response, 'data', {});
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
         return this.parseOrderBook (orderbook, symbol, timestamp);
     }
@@ -452,7 +452,7 @@ export default class oceanex extends Exchange {
         //         ],
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const orderbook = data[i];
@@ -579,12 +579,12 @@ export default class oceanex extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         const response = await this.publicGetFeesTrading (params);
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const group = data[i];
-            const maker = this.safeDict (group, 'ask_fee', {});
-            const taker = this.safeDict (group, 'bid_fee', {});
+            const maker = this.safeValue (group, 'ask_fee', {});
+            const taker = this.safeValue (group, 'bid_fee', {});
             const marketId = this.safeString (group, 'market');
             const symbol = this.safeSymbol (marketId);
             result[symbol] = {
@@ -605,7 +605,7 @@ export default class oceanex extends Exchange {
 
     parseBalance (response): Balances {
         const data = this.safeValue (response, 'data');
-        const balances = this.safeList (data, 'accounts', []);
+        const balances = this.safeValue (data, 'accounts', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -760,7 +760,7 @@ export default class oceanex extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetOrdersFilter (this.extend (request, query));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeValue (response, 'data', []);
         let result = [];
         for (let i = 0; i < data.length; i++) {
             const orders = this.safeValue (data[i], 'orders', []);
@@ -816,7 +816,7 @@ export default class oceanex extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicPostK (this.extend (request, params));
-        const ohlcvs = this.safeList (response, 'data', []);
+        const ohlcvs = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 

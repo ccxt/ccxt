@@ -105,8 +105,8 @@ export default class probit extends probitRest {
         //         }
         //     }
         //
-        const reset = this.safeBool (message, 'reset', false);
-        const data = this.safeDict (message, 'data', {});
+        const reset = this.safeValue (message, 'reset', false);
+        const data = this.safeValue (message, 'data', {});
         const currencyIds = Object.keys (data);
         if (reset) {
             this.balance = {};
@@ -160,7 +160,7 @@ export default class probit extends probitRest {
         //
         const marketId = this.safeString (message, 'market_id');
         const symbol = this.safeSymbol (marketId);
-        const ticker = this.safeDict (message, 'ticker', {});
+        const ticker = this.safeValue (message, 'ticker', {});
         const market = this.safeMarket (marketId);
         const parsedTicker = this.parseTicker (ticker, market);
         const messageHash = 'ticker:' + symbol;
@@ -214,8 +214,8 @@ export default class probit extends probitRest {
         const marketId = this.safeString (message, 'market_id');
         const symbol = this.safeSymbol (marketId);
         const market = this.safeMarket (marketId);
-        const trades = this.safeList (message, 'recent_trades', []);
-        const reset = this.safeBool (message, 'reset', false);
+        const trades = this.safeValue (message, 'recent_trades', []);
+        const reset = this.safeValue (message, 'reset', false);
         const messageHash = 'trades:' + symbol;
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined || reset) {
@@ -285,12 +285,12 @@ export default class probit extends probitRest {
         //         }]
         //     }
         //
-        const rawTrades = this.safeList (message, 'data', []);
+        const rawTrades = this.safeValue (message, 'data', []);
         const length = rawTrades.length;
         if (length === 0) {
             return;
         }
-        const reset = this.safeBool (message, 'reset', false);
+        const reset = this.safeValue (message, 'reset', false);
         const messageHash = 'myTrades';
         let stored = this.myTrades;
         if ((stored === undefined) || reset) {
@@ -374,13 +374,13 @@ export default class probit extends probitRest {
         //         ]
         //     }
         //
-        const rawOrders = this.safeList (message, 'data', []);
+        const rawOrders = this.safeValue (message, 'data', []);
         const length = rawOrders.length;
         if (length === 0) {
             return;
         }
         const messageHash = 'orders';
-        const reset = this.safeBool (message, 'reset', false);
+        const reset = this.safeValue (message, 'reset', false);
         let stored = this.orders;
         if (stored === undefined || reset) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -475,7 +475,7 @@ export default class probit extends probitRest {
             storedOrderBook = this.orderBook ({});
             this.orderbooks[symbol] = storedOrderBook;
         }
-        const reset = this.safeBool (message, 'reset', false);
+        const reset = this.safeValue (message, 'reset', false);
         if (reset) {
             const snapshot = this.parseOrderBook (dataBySide, symbol, undefined, 'buy', 'sell', 'price', 'quantity');
             storedOrderBook.reset (snapshot);
@@ -496,8 +496,8 @@ export default class probit extends probitRest {
     handleDelta (orderbook, delta) {
         const storedBids = orderbook['bids'];
         const storedAsks = orderbook['asks'];
-        const asks = this.safeList (delta, 'sell', []);
-        const bids = this.safeList (delta, 'buy', []);
+        const asks = this.safeValue (delta, 'sell', []);
+        const bids = this.safeValue (delta, 'buy', []);
         this.handleBidAsks (storedBids, bids);
         this.handleBidAsks (storedAsks, asks);
     }
@@ -538,7 +538,7 @@ export default class probit extends probitRest {
         if (ticker !== undefined) {
             this.handleTicker (client, message);
         }
-        const trades = this.safeList (message, 'recent_trades', []);
+        const trades = this.safeValue (message, 'recent_trades', []);
         if (trades.length) {
             this.handleTrades (client, message);
         }

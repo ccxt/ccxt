@@ -236,14 +236,14 @@ export default class zaif extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const balances = this.safeDict (response, 'return', {});
+        const balances = this.safeValue (response, 'return', {});
         const deposit = this.safeValue (balances, 'deposit');
         const result = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const funds = this.safeDict (balances, 'funds', {});
+        const funds = this.safeValue (balances, 'funds', {});
         const currencyIds = Object.keys (funds);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
@@ -744,7 +744,7 @@ export default class zaif extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
-        const success = this.safeBool (response, 'success', true);
+        const success = this.safeValue (response, 'success', true);
         if (!success) {
             throw new ExchangeError (feedback);
         }

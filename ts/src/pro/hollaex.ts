@@ -161,7 +161,7 @@ export default class hollaex extends hollaexRest {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const data = this.safeList (message, 'data', []);
+        const data = this.safeValue (message, 'data', []);
         const parsedTrades = this.parseTrades (data, market);
         for (let j = 0; j < parsedTrades.length; j++) {
             stored.append (parsedTrades[j]);
@@ -338,7 +338,7 @@ export default class hollaex extends hollaexRest {
         //       }
         //
         const channel = this.safeString (message, 'topic');
-        const data = this.safeDict (message, 'data', {});
+        const data = this.safeValue (message, 'data', {});
         // usually the first message is an empty array
         const dataLength = data.length;
         if (dataLength === 0) {

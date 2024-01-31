@@ -396,7 +396,7 @@ export default class bit2c extends Exchange {
         //         }
         //     }
         //
-        const fees = this.safeDict (response, 'Fees', {});
+        const fees = this.safeValue (response, 'Fees', {});
         const keys = Object.keys (fees);
         const result = {};
         for (let i = 0; i < keys.length; i++) {
@@ -489,8 +489,8 @@ export default class bit2c extends Exchange {
         };
         const response = await this.privateGetOrderMyOrders (this.extend (request, params));
         const orders = this.safeValue (response, market['id'], {});
-        const asks = this.safeList (orders, 'ask', []);
-        const bids = this.safeList (orders, 'bid', []);
+        const asks = this.safeValue (orders, 'ask', []);
+        const bids = this.safeValue (orders, 'bid', []);
         return this.parseOrders (this.arrayConcat (asks, bids), market, since, limit);
     }
 

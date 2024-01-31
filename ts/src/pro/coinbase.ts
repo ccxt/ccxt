@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import coinbaseRest from '../coinbase.js';
-import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
+import { ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order } from '../base/types.js';
@@ -113,7 +113,7 @@ export default class coinbase extends coinbaseRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchTickers requires a symbols argument');
+            symbols = this.symbols;
         }
         const name = 'ticker_batch';
         const tickers = await this.subscribe (name, symbols, params);
@@ -176,11 +176,11 @@ export default class coinbase extends coinbaseRest {
         //    }
         //
         const channel = this.safeString (message, 'channel');
-        const events = this.safeList (message, 'events', []);
+        const events = this.safeValue (message, 'events', []);
         const newTickers = [];
         for (let i = 0; i < events.length; i++) {
             const tickersObj = events[i];
-            const tickers = this.safeList (tickersObj, 'tickers', []);
+            const tickers = this.safeValue (tickersObj, 'tickers', []);
             for (let j = 0; j < tickers.length; j++) {
                 const ticker = tickers[j];
                 const result = this.parseWsTicker (ticker);
@@ -510,7 +510,7 @@ export default class coinbase extends coinbaseRest {
         const datetime = this.safeString (message, 'timestamp');
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
-            const updates = this.safeList (event, 'updates', []);
+            const updates = this.safeValue (event, 'updates', []);
             const marketId = this.safeString (event, 'product_id');
             const messageHash = 'level2::' + marketId;
             const subscription = this.safeValue (client.subscriptions, messageHash, {});

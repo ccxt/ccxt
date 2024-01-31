@@ -225,7 +225,7 @@ export default class bitopro extends Exchange {
          * @returns {object} an associative dictionary of currencies
          */
         const response = await this.publicGetProvisioningCurrencies (params);
-        const currencies = this.safeList (response, 'data', []);
+        const currencies = this.safeValue (response, 'data', []);
         //
         //     {
         //         "data":[
@@ -289,7 +289,7 @@ export default class bitopro extends Exchange {
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetProvisioningTradingPairs ();
-        const markets = this.safeList (response, 'data', []);
+        const markets = this.safeValue (response, 'data', []);
         //
         //     {
         //         "data":[
@@ -430,7 +430,7 @@ export default class bitopro extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetTickersPair (this.extend (request, params));
-        const ticker = this.safeDict (response, 'data', {});
+        const ticker = this.safeValue (response, 'data', {});
         //
         //     {
         //         "data":{
@@ -459,7 +459,7 @@ export default class bitopro extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.publicGetTickers ();
-        const tickers = this.safeList (response, 'data', []);
+        const tickers = this.safeValue (response, 'data', []);
         //
         //     {
         //         "data":[
@@ -626,7 +626,7 @@ export default class bitopro extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetTradesPair (this.extend (request, params));
-        const trades = this.safeList (response, 'data', []);
+        const trades = this.safeValue (response, 'data', []);
         //
         //     {
         //         "data":[
@@ -653,7 +653,7 @@ export default class bitopro extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.publicGetProvisioningLimitationsAndFees (params);
-        const tradingFeeRate = this.safeDict (response, 'tradingFeeRate', {});
+        const tradingFeeRate = this.safeValue (response, 'tradingFeeRate', {});
         const first = this.safeValue (tradingFeeRate, 0);
         //
         //     {
@@ -780,7 +780,7 @@ export default class bitopro extends Exchange {
             request['to'] = this.sum (request['from'], limit * timeframeInSeconds);
         }
         const response = await this.publicGetTradingHistoryPair (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeValue (response, 'data', []);
         //
         //     {
         //         "data":[
@@ -878,7 +878,7 @@ export default class bitopro extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privateGetAccountsBalance (params);
-        const balances = this.safeList (response, 'data', []);
+        const balances = this.safeValue (response, 'data', []);
         //
         //     {
         //         "data":[
@@ -1147,7 +1147,7 @@ export default class bitopro extends Exchange {
         } else {
             response = await this.privateDeleteOrdersAll (this.extend (request, params));
         }
-        const result = this.safeDict (response, 'data', {});
+        const result = this.safeValue (response, 'data', {});
         //
         //     {
         //         "data":{
@@ -1317,7 +1317,7 @@ export default class bitopro extends Exchange {
             'pair': market['id'],
         };
         const response = await this.privateGetOrdersTradesPair (this.extend (request, params));
-        const trades = this.safeList (response, 'data', []);
+        const trades = this.safeValue (response, 'data', []);
         //
         //     {
         //         "data":[
@@ -1468,7 +1468,7 @@ export default class bitopro extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetWalletDepositHistoryCurrency (this.extend (request, params));
-        const result = this.safeList (response, 'data', []);
+        const result = this.safeValue (response, 'data', []);
         //
         //     {
         //         "data":[
@@ -1521,7 +1521,7 @@ export default class bitopro extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetWalletWithdrawHistoryCurrency (this.extend (request, params));
-        const result = this.safeList (response, 'data', []);
+        const result = this.safeValue (response, 'data', []);
         //
         //     {
         //         "data":[
@@ -1564,7 +1564,7 @@ export default class bitopro extends Exchange {
             'currency': currency['id'],
         };
         const response = await this.privateGetWalletWithdrawCurrencySerial (this.extend (request, params));
-        const result = this.safeDict (response, 'data', {});
+        const result = this.safeValue (response, 'data', {});
         //
         //     {
         //         "data":{
@@ -1620,7 +1620,7 @@ export default class bitopro extends Exchange {
             request['message'] = tag;
         }
         const response = await this.privatePostWalletWithdrawCurrency (this.extend (request, params));
-        const result = this.safeDict (response, 'data', {});
+        const result = this.safeValue (response, 'data', {});
         //
         //     {
         //         "data":{
@@ -1690,7 +1690,7 @@ export default class bitopro extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeValue (response, 'data', []);
         return this.parseDepositWithdrawFees (data, codes, 'currency');
     }
 

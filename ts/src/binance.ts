@@ -2000,7 +2000,7 @@ export default class binance extends Exchange {
             let minPrecision = undefined;
             let isWithdrawEnabled = true;
             let isDepositEnabled = true;
-            const networkList = this.safeList (entry, 'networkList', []);
+            const networkList = this.safeValue (entry, 'networkList', []);
             const fees = {};
             let fee = undefined;
             for (let j = 0; j < networkList.length; j++) {
@@ -2335,7 +2335,7 @@ export default class binance extends Exchange {
         }
         const settle = this.safeCurrencyCode (settleId);
         const spot = !contract;
-        const filters = this.safeList (market, 'filters', []);
+        const filters = this.safeValue (market, 'filters', []);
         const filtersByType = this.indexBy (filters, 'filterType');
         const status = this.safeString2 (market, 'status', 'contractStatus');
         let contractSize = undefined;
@@ -2360,7 +2360,7 @@ export default class binance extends Exchange {
         }
         let active = (status === 'TRADING');
         if (spot) {
-            const permissions = this.safeList (market, 'permissions', []);
+            const permissions = this.safeValue (market, 'permissions', []);
             for (let j = 0; j < permissions.length; j++) {
                 if (permissions[j] === 'TRD_GRP_003') {
                     active = false;
@@ -2368,7 +2368,7 @@ export default class binance extends Exchange {
                 }
             }
         }
-        const isMarginTradingAllowed = this.safeBool (market, 'isMarginTradingAllowed', false);
+        const isMarginTradingAllowed = this.safeValue (market, 'isMarginTradingAllowed', false);
         let unifiedType = undefined;
         if (spot) {
             unifiedType = 'spot';
@@ -2435,7 +2435,7 @@ export default class binance extends Exchange {
             'created': this.safeInteger (market, 'onboardDate'), // present in inverse & linear apis
         };
         if ('PRICE_FILTER' in filtersByType) {
-            const filter = this.safeDict (filtersByType, 'PRICE_FILTER', {});
+            const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
             // PRICE_FILTER reports zero values for maxPrice
             // since they updated filter types in November 2018
             // https://github.com/ccxt/ccxt/issues/4286
@@ -2447,7 +2447,7 @@ export default class binance extends Exchange {
             entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
         }
         if ('LOT_SIZE' in filtersByType) {
-            const filter = this.safeDict (filtersByType, 'LOT_SIZE', {});
+            const filter = this.safeValue (filtersByType, 'LOT_SIZE', {});
             const stepSize = this.safeString (filter, 'stepSize');
             entry['precision']['amount'] = this.precisionFromString (stepSize);
             entry['limits']['amount'] = {
@@ -2456,14 +2456,14 @@ export default class binance extends Exchange {
             };
         }
         if ('MARKET_LOT_SIZE' in filtersByType) {
-            const filter = this.safeDict (filtersByType, 'MARKET_LOT_SIZE', {});
+            const filter = this.safeValue (filtersByType, 'MARKET_LOT_SIZE', {});
             entry['limits']['market'] = {
                 'min': this.safeNumber (filter, 'minQty'),
                 'max': this.safeNumber (filter, 'maxQty'),
             };
         }
         if (('MIN_NOTIONAL' in filtersByType) || ('NOTIONAL' in filtersByType)) { // notional added in 12/04/23 to spot testnet
-            const filter = this.safeDict2 (filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', {});
+            const filter = this.safeValue2 (filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', {});
             entry['limits']['cost']['min'] = this.safeNumber2 (filter, 'minNotional', 'notional');
             entry['limits']['cost']['max'] = this.safeNumber (filter, 'maxNotional');
         }
@@ -2489,7 +2489,7 @@ export default class binance extends Exchange {
         const cross = (type === 'margin') || (marginMode === 'cross');
         if (!isolated && ((type === 'spot') || cross)) {
             timestamp = this.safeInteger (response, 'updateTime');
-            const balances = this.safeList2 (response, 'balances', 'userAssets', []);
+            const balances = this.safeValue2 (response, 'balances', 'userAssets', []);
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
                 const currencyId = this.safeString (balance, 'asset');
@@ -2510,8 +2510,8 @@ export default class binance extends Exchange {
                 const asset = assets[i];
                 const marketId = this.safeValue (asset, 'symbol');
                 const symbol = this.safeSymbol (marketId, undefined, undefined, 'spot');
-                const base = this.safeDict (asset, 'baseAsset', {});
-                const quote = this.safeDict (asset, 'quoteAsset', {});
+                const base = this.safeValue (asset, 'baseAsset', {});
+                const quote = this.safeValue (asset, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'asset'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'asset'));
                 const subResult = {};
@@ -2520,7 +2520,7 @@ export default class binance extends Exchange {
                 result[symbol] = this.safeBalance (subResult);
             }
         } else if (type === 'savings') {
-            const positionAmountVos = this.safeList (response, 'positionAmountVos', []);
+            const positionAmountVos = this.safeValue (response, 'positionAmountVos', []);
             for (let i = 0; i < positionAmountVos.length; i++) {
                 const entry = positionAmountVos[i];
                 const currencyId = this.safeString (entry, 'asset');
@@ -2547,7 +2547,7 @@ export default class binance extends Exchange {
         } else {
             let balances = response;
             if (!Array.isArray (response)) {
-                balances = this.safeList (response, 'assets', []);
+                balances = this.safeValue (response, 'assets', []);
             }
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
@@ -3093,7 +3093,7 @@ export default class binance extends Exchange {
         } else if (market['inverse']) {
             response = await this.dapiPublicGetTicker24hr (this.extend (request, params));
         } else {
-            const rolling = this.safeBool (params, 'rolling', false);
+            const rolling = this.safeValue (params, 'rolling', false);
             params = this.omit (params, 'rolling');
             if (rolling) {
                 response = await this.publicGetTicker (this.extend (request, params));
@@ -3102,7 +3102,7 @@ export default class binance extends Exchange {
             }
         }
         if (Array.isArray (response)) {
-            const firstTicker = this.safeDict (response, 0, {});
+            const firstTicker = this.safeValue (response, 0, {});
             return this.parseTicker (firstTicker, market);
         }
         return this.parseTicker (response, market);
@@ -4347,7 +4347,7 @@ export default class binance extends Exchange {
         const id = this.safeString (order, 'orderId');
         let type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');
-        const fills = this.safeList (order, 'fills', []);
+        const fills = this.safeValue (order, 'fills', []);
         const clientOrderId = this.safeString (order, 'clientOrderId');
         let timeInForce = this.safeString (order, 'timeInForce');
         if (timeInForce === 'GTX') {
@@ -4416,7 +4416,7 @@ export default class binance extends Exchange {
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
-            const orderParams = this.safeDict (rawOrder, 'params', {});
+            const orderParams = this.safeValue (rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
@@ -4521,7 +4521,7 @@ export default class binance extends Exchange {
         }
         // support for testing orders
         if (market['spot'] || marketType === 'margin') {
-            const test = this.safeBool (query, 'test', false);
+            const test = this.safeValue (query, 'test', false);
             if (test) {
                 method += 'Test';
             }
@@ -5554,7 +5554,7 @@ export default class binance extends Exchange {
         //         },
         //       ]
         //     }
-        const results = this.safeList (response, 'userAssetDribblets', []);
+        const results = this.safeValue (response, 'userAssetDribblets', []);
         const rows = this.safeInteger (response, 'total', 0);
         const data = [];
         for (let i = 0; i < rows; i++) {
@@ -5667,7 +5667,7 @@ export default class binance extends Exchange {
         let response = undefined;
         const request = {};
         const legalMoney = this.safeValue (this.options, 'legalMoney', {});
-        const fiatOnly = this.safeBool (params, 'fiat', false);
+        const fiatOnly = this.safeValue (params, 'fiat', false);
         params = this.omit (params, 'fiatOnly');
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
@@ -5779,7 +5779,7 @@ export default class binance extends Exchange {
             return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, params);
         }
         const legalMoney = this.safeValue (this.options, 'legalMoney', {});
-        const fiatOnly = this.safeBool (params, 'fiat', false);
+        const fiatOnly = this.safeValue (params, 'fiat', false);
         params = this.omit (params, 'fiatOnly');
         const request = {};
         const until = this.safeInteger (params, 'until');
@@ -5922,7 +5922,7 @@ export default class binance extends Exchange {
                 'Refund Failed': 'failed',
             },
         };
-        const statuses = this.safeDict (statusesByType, type, {});
+        const statuses = this.safeValue (statusesByType, type, {});
         return this.safeString (statuses, status, status);
     }
 
@@ -6320,7 +6320,7 @@ export default class binance extends Exchange {
         //         ]
         //     }
         //
-        const rows = this.safeList (response, 'rows', []);
+        const rows = this.safeValue (response, 'rows', []);
         return this.parseTransfers (rows, currency, since, limit);
     }
 
@@ -6382,7 +6382,7 @@ export default class binance extends Exchange {
                 'TRX': { 'TRC20': 'TRX' },
             });
             if (code in impliedNetworks) {
-                const conversion = this.safeDict (impliedNetworks, code, {});
+                const conversion = this.safeValue (impliedNetworks, code, {});
                 impliedNetwork = this.safeString (conversion, impliedNetwork, impliedNetwork);
             }
         }
@@ -6499,7 +6499,7 @@ export default class binance extends Exchange {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (currencyId);
-            const networkList = this.safeList (entry, 'networkList', []);
+            const networkList = this.safeValue (entry, 'networkList', []);
             withdrawFees[code] = {};
             for (let j = 0; j < networkList.length; j++) {
                 const networkEntry = networkList[j];
@@ -6614,7 +6614,7 @@ export default class binance extends Exchange {
         //        ]
         //    }
         //
-        const networkList = this.safeList (fee, 'networkList', []);
+        const networkList = this.safeValue (fee, 'networkList', []);
         const result = this.depositWithdrawFee (fee);
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
@@ -6762,7 +6762,7 @@ export default class binance extends Exchange {
         //
         let data = response;
         if (Array.isArray (data)) {
-            data = this.safeDict (data, 0, {});
+            data = this.safeValue (data, 0, {});
         }
         return this.parseTradingFee (data);
     }
@@ -7174,7 +7174,7 @@ export default class binance extends Exchange {
 
     parseAccountPositions (account) {
         const positions = this.safeValue (account, 'positions');
-        const assets = this.safeList (account, 'assets', []);
+        const assets = this.safeValue (account, 'assets', []);
         const balances = {};
         for (let i = 0; i < assets.length; i++) {
             const entry = assets[i];
@@ -7277,7 +7277,7 @@ export default class binance extends Exchange {
         }
         const contracts = this.parseNumber (contractsStringAbs);
         const leverageBrackets = this.safeValue (this.options, 'leverageBrackets', {});
-        const leverageBracket = this.safeList (leverageBrackets, symbol, []);
+        const leverageBracket = this.safeValue (leverageBrackets, symbol, []);
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
@@ -7446,7 +7446,7 @@ export default class binance extends Exchange {
         market = this.safeMarket (marketId, market, undefined, 'contract');
         const symbol = this.safeString (market, 'symbol');
         const leverageBrackets = this.safeValue (this.options, 'leverageBrackets', {});
-        const leverageBracket = this.safeList (leverageBrackets, symbol, []);
+        const leverageBracket = this.safeValue (leverageBrackets, symbol, []);
         const notionalString = this.safeString2 (position, 'notional', 'notionalValue');
         const notionalStringAbs = Precise.stringAbs (notionalString);
         let maintenanceMarginPercentageString = undefined;
@@ -7482,7 +7482,7 @@ export default class binance extends Exchange {
         const linear = ('notional' in position);
         if (marginMode === 'cross') {
             // calculate collateral
-            const precision = this.safeDict (market, 'precision', {});
+            const precision = this.safeValue (market, 'precision', {});
             if (linear) {
                 // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
                 let onePlusMaintenanceMarginPercentageString = undefined;
@@ -7599,7 +7599,7 @@ export default class binance extends Exchange {
                 const entry = response[i];
                 const marketId = this.safeString (entry, 'symbol');
                 const symbol = this.safeSymbol (marketId, undefined, undefined, 'contract');
-                const brackets = this.safeList (entry, 'brackets', []);
+                const brackets = this.safeValue (entry, 'brackets', []);
                 const result = [];
                 for (let j = 0; j < brackets.length; j++) {
                     const bracket = brackets[j];
@@ -7703,7 +7703,7 @@ export default class binance extends Exchange {
         //
         const marketId = this.safeString (info, 'symbol');
         market = this.safeMarket (marketId, market, undefined, 'contract');
-        const brackets = this.safeList (info, 'brackets', []);
+        const brackets = this.safeValue (info, 'brackets', []);
         const tiers = [];
         for (let j = 0; j < brackets.length; j++) {
             const bracket = brackets[j];
@@ -8652,8 +8652,8 @@ export default class binance extends Exchange {
                 query = this.urlencodeWithArrayRepeat (extendedParams);
             } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0) || (path === 'capital/withdraw/apply') || (path.indexOf ('staking') >= 0)) {
                 if ((method === 'DELETE') && (path === 'batchOrders')) {
-                    const orderidlist = this.safeList (extendedParams, 'orderidlist', []);
-                    const origclientorderidlist = this.safeList (extendedParams, 'origclientorderidlist', []);
+                    const orderidlist = this.safeValue (extendedParams, 'orderidlist', []);
+                    const origclientorderidlist = this.safeValue (extendedParams, 'origclientorderidlist', []);
                     extendedParams = this.omit (extendedParams, [ 'orderidlist', 'origclientorderidlist' ]);
                     query = this.rawencode (extendedParams);
                     const orderidlistLength = orderidlist.length;
@@ -8720,7 +8720,7 @@ export default class binance extends Exchange {
             return undefined; // fallback to default error handler
         }
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        const success = this.safeBool (response, 'success', true);
+        const success = this.safeValue (response, 'success', true);
         if (!success) {
             const messageNew = this.safeString (response, 'msg');
             let parsedMessage = undefined;

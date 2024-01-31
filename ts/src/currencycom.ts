@@ -453,7 +453,7 @@ export default class currencycom extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        const markets = this.safeList (response, 'symbols', []);
+        const markets = this.safeValue (response, 'symbols', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -480,13 +480,13 @@ export default class currencycom extends Exchange {
             let takerFee = this.safeString (market, 'takerFee', exchangeFee);
             makerFee = Precise.stringDiv (makerFee, '100');
             takerFee = Precise.stringDiv (takerFee, '100');
-            const filters = this.safeList (market, 'filters', []);
+            const filters = this.safeValue (market, 'filters', []);
             const filtersByType = this.indexBy (filters, 'filterType');
             let limitPriceMin = undefined;
             let limitPriceMax = undefined;
             let precisionPrice = this.safeNumber (market, 'tickSize');
             if ('PRICE_FILTER' in filtersByType) {
-                const filter = this.safeDict (filtersByType, 'PRICE_FILTER', {});
+                const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
                 precisionPrice = this.safeNumber (filter, 'tickSize');
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
@@ -504,7 +504,7 @@ export default class currencycom extends Exchange {
                 'max': undefined,
             };
             if ('LOT_SIZE' in filtersByType) {
-                const filter = this.safeDict (filtersByType, 'LOT_SIZE', {});
+                const filter = this.safeValue (filtersByType, 'LOT_SIZE', {});
                 precisionAmount = this.safeNumber (filter, 'stepSize');
                 limitAmount = {
                     'min': this.safeNumber (filter, 'minQty'),
@@ -516,7 +516,7 @@ export default class currencycom extends Exchange {
                 'max': undefined,
             };
             if ('MARKET_LOT_SIZE' in filtersByType) {
-                const filter = this.safeDict (filtersByType, 'MARKET_LOT_SIZE', {});
+                const filter = this.safeValue (filtersByType, 'MARKET_LOT_SIZE', {});
                 limitMarket = {
                     'min': this.safeNumber (filter, 'minQty'),
                     'max': this.safeNumber (filter, 'maxQty'),
@@ -524,7 +524,7 @@ export default class currencycom extends Exchange {
             }
             let costMin = undefined;
             if ('MIN_NOTIONAL' in filtersByType) {
-                const filter = this.safeDict (filtersByType, 'MIN_NOTIONAL', {});
+                const filter = this.safeValue (filtersByType, 'MIN_NOTIONAL', {});
                 costMin = this.safeNumber (filter, 'minNotional');
             }
             const isContract = swap || futures;
@@ -621,7 +621,7 @@ export default class currencycom extends Exchange {
         //         ]
         //     }
         //
-        const accounts = this.safeList (response, 'balances', []);
+        const accounts = this.safeValue (response, 'balances', []);
         const result = [];
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
@@ -703,7 +703,7 @@ export default class currencycom extends Exchange {
         //     }
         //
         const result = { 'info': response };
-        const balances = this.safeList (response, 'balances', []);
+        const balances = this.safeValue (response, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'asset');
@@ -1936,7 +1936,7 @@ export default class currencycom extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeList (response, 'positions', []);
+        const data = this.safeValue (response, 'positions', []);
         return this.parsePositions (data, symbols);
     }
 
