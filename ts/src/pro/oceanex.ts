@@ -32,7 +32,7 @@ export default class oceanex extends oceanexRest {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://ws.oceanex.cc/ws/v1',
+                    'ws': 'wss://ws.oceanex.pro/ws/v1',
                 },
             },
             'options': {
@@ -312,7 +312,8 @@ export default class oceanex extends oceanexRest {
         //        }
         //    }
         //
-        const data = this.safeValue (message, 'data', {});
+        const msg = this.safeValue (message, 'message', {});
+        const data = this.safeValue (msg, 'data', {});
         const marketIds = Object.keys (data);
         const channel = this.safeString (message, 'ch');
         const newTickers = {};
@@ -1064,6 +1065,9 @@ export default class oceanex extends oceanexRest {
             const pong = { 'command': 'pong' };
             return pong;
             // TODO: send pong to server
+        } else if (type === 'welcome') {
+            const keepAlive = this.safeIntegerProduct (message, 'message', 1000, 60000);
+            this.streaming['keepAlive'] = keepAlive;
         }
         const identifier = this.safeDict (message, 'identifier');
         const handler = this.safeString (identifier, 'handler');
