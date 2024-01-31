@@ -336,7 +336,8 @@
                   "BTC/USDT:USDT",
                   "market",
                   "sell",
-                  0.0001
+                  0.0001,
+                  null
                 ],
                 "output": "{\"type\":\"MARKET\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"flags\":1024}"
             }
