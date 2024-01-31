@@ -39,6 +39,8 @@ export default class bitfinex2 extends Exchange {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'createTrailingAmountOrder': true,
+                'createTrailingPercentOrder': false,
                 'editOrder': false,
                 'fetchBalance': true,
                 'fetchClosedOrder': true,
@@ -1515,23 +1517,23 @@ export default class bitfinex2 extends Exchange {
         /**
          * @method
          * @name bitfinex2#createOrder
-         * @description Create an order on the exchange
+         * @description create an order on the exchange
          * @see https://docs.bitfinex.com/reference/rest-auth-submit-order
-         * @param {string} symbol Unified CCXT market symbol
+         * @param {string} symbol unified CCXT market symbol
          * @param {string} type 'limit' or 'market'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
-         * @param {float} [price] price of order
-         * @param {object} [params]  extra parameters specific to the exchange API endpoint
+         * @param {float} [price] price of the order
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {boolean} [params.postOnly] set to true if you want to make a post only order
          * @param {boolean} [params.reduceOnly] indicates that the order is to reduce the size of a position
          * @param {int} [params.flags] additional order parameters: 4096 (Post Only), 1024 (Reduce Only), 16384 (OCO), 64 (Hidden), 512 (Close), 524288 (No Var Rates)
          * @param {int} [params.lev] leverage for a derivative order, supported by derivative symbol orders only. The value should be between 1 and 100 inclusive.
-         * @param {string} [params.price_traling] The trailing price for a trailing stop order
-         * @param {string} [params.price_aux_limit] Order price for stop limit orders
+         * @param {string} [params.price_aux_limit] order price for stop limit orders
          * @param {string} [params.price_oco_stop] OCO stop price
+         * @param {string} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1546,11 +1548,12 @@ export default class bitfinex2 extends Exchange {
             orderType = this.safeStringUpper (orderTypes, type, type);
         }
         const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
+        const trailingAmount = this.safeString (params, 'trailingAmount');
         const timeInForce = this.safeString (params, 'timeInForce');
         const postOnlyParam = this.safeValue (params, 'postOnly', false);
         const reduceOnly = this.safeValue (params, 'reduceOnly', false);
         const clientOrderId = this.safeValue2 (params, 'cid', 'clientOrderId');
-        params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'price_aux_limit' ]);
+        params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'price_aux_limit', 'trailingAmount' ]);
         let amountString = this.amountToPrecision (symbol, amount);
         amountString = (side === 'buy') ? amountString : Precise.stringNeg (amountString);
         const request = {
@@ -1570,6 +1573,10 @@ export default class bitfinex2 extends Exchange {
             //     'aff_code': 'AFF_CODE_HERE'
             // },
         };
+        if (trailingAmount !== undefined) {
+            request['type'] = 'TRAILING STOP';
+            request['price_trailing'] = trailingAmount;
+        }
         const stopLimit = ((orderType === 'EXCHANGE STOP LIMIT') || ((orderType === 'EXCHANGE LIMIT') && (stopPrice !== undefined)));
         const exchangeStop = (orderType === 'EXCHANGE STOP');
         const exchangeMarket = (orderType === 'EXCHANGE MARKET');
