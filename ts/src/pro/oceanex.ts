@@ -100,13 +100,13 @@ export default class oceanex extends oceanexRest {
             this.authenticate (name, method, params);
         }
         const subscribe = {
-            'identifier': this.json ({ 'handler': name }),
+            'identifier': { 'handler': name },
             'command': 'message',
-            'data': this.json ({
+            'data': {
                 'action': 'index',
                 'uuid': this.uuid (),
                 'args': params,
-            }),
+            },
         };
         return await this.watch (url, messageHash, subscribe, messageHash);
     }
@@ -146,7 +146,7 @@ export default class oceanex extends oceanexRest {
         const name = 'OrderBookHandler';
         const market = this.market (symbol);
         const request = {
-            'market_id': market['id'],
+            'market': market['id'],
         };
         if (limit !== undefined) {
             request['level'] = limit;
@@ -242,7 +242,7 @@ export default class oceanex extends oceanexRest {
         const market = this.market (symbol);
         const messageHash = name + '::' + market['id'];
         const request = {
-            'market_ids': [ market['id'] ],
+            'markets': [ market['id'] ],
         };
         return await this.subscribe (name, messageHash, false, 'GET', this.deepExtend (request, params));
     }
