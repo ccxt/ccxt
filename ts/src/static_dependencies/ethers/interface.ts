@@ -918,44 +918,6 @@ export class Interface {
         });
     }
 
-    makeError(_data: BytesLike, tx: CallExceptionTransaction): CallExceptionError {
-        const data = getBytes(_data, "data");
-
-        const error = AbiCoder.getBuiltinCallException("call", tx, data);
-
-        // Not a built-in error; try finding a custom error
-        const customPrefix = "execution reverted (unknown custom error)";
-        if (error.message.startsWith(customPrefix)) {
-            const selector = hexlify(data.slice(0, 4));
-
-            const ef = this.getError(selector);
-            if (ef) {
-                try {
-                    const args = this.#abiCoder.decode(ef.inputs, data.slice(4));
-                    error.revert = {
-                        name: ef.name, signature: ef.format(), args
-                    };
-                    error.reason = error.revert.signature;
-                    error.message = `execution reverted: ${ error.reason }`
-                 } catch (e) {
-                    error.message = `execution reverted (coult not decode custom error)`
-                }
-            }
-        }
-
-        // Add the invocation, if available
-        const parsed = this.parseTransaction(tx);
-        if (parsed) {
-            error.invocation = {
-                method: parsed.name,
-                signature: parsed.signature,
-                args: parsed.args
-            };
-        }
-
-        return error;
-    }
-
     /**
      *  Encodes the result data (e.g. from an ``eth_call``) for the
      *  specified function (see [[getFunction]] for valid values

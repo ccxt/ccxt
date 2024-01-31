@@ -27,9 +27,6 @@ import { StringCoder } from "./coders/string.js";
 import { TupleCoder } from "./coders/tuple.js";
 import { ParamType } from "./fragments.js";
 
-import { getAddress } from "./address/index.js";
-import { getBytes, hexlify, makeError } from "./utils/index.js";
-
 import type {
     BytesLike,
     CallExceptionAction, CallExceptionError, CallExceptionTransaction
@@ -54,71 +51,6 @@ const paramTypeNumber = new RegExp(/^(u?int)([0-9]*)$/);
 
 let defaultCoder: null | AbiCoder = null;
 let defaultMaxInflation = 1024;
-
-function getBuiltinCallException(action: CallExceptionAction, tx: { to?: null | string, from?: null | string, data?: string }, data: null | BytesLike, abiCoder: AbiCoder): CallExceptionError {
-    let message = "missing revert data";
-
-    let reason: null | string = null;
-    const invocation = null;
-    let revert: null | { signature: string, name: string, args: Array<any> } = null;
-
-    if (data) {
-        message = "execution reverted";
-
-        const bytes = getBytes(data);
-        data = hexlify(data);
-
-        if (bytes.length === 0) {
-            message += " (no data present; likely require(false) occurred";
-            reason = "require(false)";
-
-        } else if (bytes.length % 32 !== 4) {
-            message += " (could not decode reason; invalid data length)";
-
-        } else if (hexlify(bytes.slice(0, 4)) === "0x08c379a0") {
-            // Error(string)
-            try {
-                reason = abiCoder.decode([ "string" ], bytes.slice(4))[0]
-                revert = {
-                    signature: "Error(string)",
-                    name: "Error",
-                    args: [ reason ]
-                };
-                message += `: ${ JSON.stringify(reason) }`;
-
-            } catch (error) {
-                message += " (could not decode reason; invalid string data)";
-            }
-
-        } else if (hexlify(bytes.slice(0, 4)) === "0x4e487b71") {
-            // Panic(uint256)
-            try {
-                const code = Number(abiCoder.decode([ "uint256" ], bytes.slice(4))[0]);
-                revert = {
-                    signature: "Panic(uint256)",
-                    name: "Panic",
-                    args: [ code ]
-                };
-                reason = `Panic due to ${ PanicReasons.get(code) || "UNKNOWN" }(${ code })`;
-                message += `: ${ reason }`;
-            } catch (error) {
-                message += " (could not decode panic code)";
-            }
-        } else {
-            message += " (unknown custom error)";
-        }
-    }
-
-    const transaction: CallExceptionTransaction = {
-        to: (tx.to ? getAddress(tx.to): null),
-        data: (tx.data || "0x")
-    };
-    if (tx.from) { transaction.from = getAddress(tx.from); }
-
-    return makeError(message, "CALL_EXCEPTION", {
-        action, data, reason, transaction, invocation, revert
-    });
-}
 
 /**
  *  The **AbiCoder** is a low-level class responsible for encoding JavaScript
@@ -224,14 +156,5 @@ export class AbiCoder {
             defaultCoder = new AbiCoder();
         }
         return defaultCoder;
-    }
-
-    /**
-     *  Returns an ethers-compatible [[CallExceptionError]] Error for the given
-     *  result %%data%% for the [[CallExceptionAction]] %%action%% against
-     *  the Transaction %%tx%%.
-     */
-    static getBuiltinCallException(action: CallExceptionAction, tx: { to?: null | string, from?: null | string, data?: string }, data: null | BytesLike): CallExceptionError {
-        return getBuiltinCallException(action, tx, data, AbiCoder.defaultAbiCoder());
     }
 }

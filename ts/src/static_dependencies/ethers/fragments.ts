@@ -628,7 +628,7 @@ export class ParamType {
                 type: ((this.baseType === "tuple") ? "tuple": this.type),
                 name
             };
-
+            
 
             if (typeof(this.indexed) === "boolean") { result.indexed = this.indexed; }
             if (this.isTuple()) {
@@ -669,7 +669,7 @@ export class ParamType {
      *  This provides a type gaurd ensuring that [[arrayChildren]]
      *  and [[arrayLength]] are non-null.
      */
-    isArray(): this is (ParamType & { arrayChildren: ParamType, arrayLength: number }) {
+    isArray(): boolean {
         return (this.baseType === "array")
     }
 
@@ -679,7 +679,7 @@ export class ParamType {
      *  This provides a type gaurd ensuring that [[components]]
      *  is non-null.
      */
-    isTuple(): this is (ParamType & { components: ReadonlyArray<ParamType> }) {
+    isTuple(): boolean {
         return (this.baseType === "tuple");
     }
 
@@ -689,7 +689,7 @@ export class ParamType {
      *  This provides a type gaurd ensuring that [[indexed]]
      *  is non-null.
      */
-    isIndexable(): this is (ParamType & { indexed: boolean }) {
+    isIndexable(): boolean {
         return (this.indexed != null);
     }
 
