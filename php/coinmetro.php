@@ -1839,11 +1839,11 @@ class coinmetro extends Exchange {
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
         $query = $this->urlencode($request);
+        if ($headers === null) {
+            $headers = array();
+        }
+        $headers['CCXT'] = 'true';
         if ($api === 'private') {
-            if ($headers === null) {
-                $headers = array();
-            }
-            $headers['CCXT'] = true;
             if (($this->uid === null) && ($this->apiKey !== null)) {
                 $this->uid = $this->apiKey;
             }
