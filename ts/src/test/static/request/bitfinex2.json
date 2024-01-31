@@ -156,6 +156,47 @@
                 "output": "{\"type\":\"MARKET\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"flags\":1024}"
             },
             {
+                "description": "Swap market buy order with reduceOnly set to true",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "buy",
+                  0.0001,
+                  null,
+                  {
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"type\":\"MARKET\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"0.0001\",\"flags\":1024}"
+            },
+            {
+                "description": "Swap limit sell order",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "sell",
+                  0.0001,
+                  49000
+                ],
+                "output": "{\"type\":\"LIMIT\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"price\":\"49000\"}"
+            },
+            {
+                "description": "Swap market sell order",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.0001
+                ],
+                "output": "{\"type\":\"MARKET\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\"}"
+            },
+            {
                 "description": "Swap create a trailing amount order",
                 "method": "createOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
