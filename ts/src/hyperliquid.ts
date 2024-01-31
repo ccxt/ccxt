@@ -1084,6 +1084,7 @@ export default class hyperliquid extends Exchange {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
+         * @param {bool} [params.postOnly] true or false whether the order is post-only
          * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
@@ -1101,12 +1102,16 @@ export default class hyperliquid extends Exchange {
         const defaultSlippage = this.safeValue (this.options, 'defaultSlippage');
         const slippage = this.safeValue (params, 'slippage', defaultSlippage);
         const vaultAddress = this.safeString (params, 'vaultAddress');
-        const defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
+        let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        if (postOnly) {
+            defaultTimeInForce = 'alo';
+        }
         let timeInForce = this.safeStringLower (params, 'timeInForce', defaultTimeInForce);
         timeInForce = this.capitalize (timeInForce);
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         const zeroAddress = this.safeString (this.options, 'zeroAddress');
-        let triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice', 0);
+        let triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const isTrigger = (stopLossPrice || takeProfitPrice);
@@ -1115,8 +1120,11 @@ export default class hyperliquid extends Exchange {
         // TODO: cloid
         let px = price;
         if (isMarket) {
-            px = (isBuy) ? price * (1 + slippage) : price * (1 - slippage);
+            px = (isBuy) ? Precise.stringMul (price, Precise.stringAdd ('1', slippage)) : Precise.stringMul (price, Precise.stringSub ('1', slippage));
+        } else {
+            px = this.priceToPrecision (symbol, price);
         }
+        const sz = this.amountToPrecision (symbol, amount);
         const reduceOnly = this.safeValue (params, 'reduceOnly', false);
         // TODO: trigger order type
         const orderType = {};
@@ -1124,15 +1132,15 @@ export default class hyperliquid extends Exchange {
         if (isTrigger) {
             let isTp = false;
             if (takeProfitPrice !== undefined) {
-                triggerPrice = takeProfitPrice;
+                triggerPrice = this.priceToPrecision (symbol, takeProfitPrice);
                 isTp = true;
                 signingOrderType = (isMarket) ? 4 : 5;
             } else {
-                triggerPrice = stopLossPrice;
+                triggerPrice = this.priceToPrecision (symbol, stopLossPrice);
                 signingOrderType = (isMarket) ? 6 : 7;
             }
             orderType['trigger'] = {
-                'triggerPx': this.parseToInt (this.priceToPrecision (symbol, triggerPrice)),
+                'triggerPx': triggerPrice,
                 'tpsl': (isTp) ? 'tp' : 'sl',
                 'isMarket': isMarket,
             };
@@ -1148,7 +1156,10 @@ export default class hyperliquid extends Exchange {
                 signingOrderType = 2;
             }
         }
-        const base = Math.pow (10, 8);
+        if (triggerPrice === undefined) {
+            triggerPrice = '0';
+        }
+        const base = '100000000';
         const nonce = this.milliseconds ();
         let sig = undefined;
         if (clientOrderId !== undefined) {
@@ -1159,11 +1170,11 @@ export default class hyperliquid extends Exchange {
                         this.parseToNumeric (id),
                         this.parseToInt (market['baseId']),
                         isBuy,
-                        this.parseToInt (px * base),
-                        this.parseToInt (amount * base),
+                        this.parseToInt (Precise.stringMul (px, base)),
+                        this.parseToInt (Precise.stringMul (sz, base)),
                         reduceOnly,
                         signingOrderType,
-                        this.parseToInt (triggerPrice * base),
+                        this.parseToInt (Precise.stringMul (triggerPrice, base)),
                         this.base16ToBinary (this.remove0xPrefix (clientOrderId)), // clientOid
                     ],
                 ],
@@ -1180,11 +1191,11 @@ export default class hyperliquid extends Exchange {
                         this.parseToNumeric (id),
                         this.parseToInt (market['baseId']),
                         isBuy,
-                        this.parseToInt (px * base),
-                        this.parseToInt (amount * base),
+                        this.parseToInt (Precise.stringMul (px, base)),
+                        this.parseToInt (Precise.stringMul (sz, base)),
                         reduceOnly,
                         signingOrderType,
-                        this.parseToInt (triggerPrice * base),
+                        this.parseToInt (Precise.stringMul (triggerPrice, base)),
                         this.base16ToBinary (this.remove0xPrefix ('0x00000000000000000000000000000000')),
                     ],
                 ],
@@ -1203,8 +1214,8 @@ export default class hyperliquid extends Exchange {
                         'order': {
                             'asset': this.parseToInt (market['baseId']),
                             'isBuy': isBuy,
-                            'sz': this.amountToPrecision (symbol, amount),
-                            'limitPx': this.priceToPrecision (symbol, px),
+                            'sz': sz,
+                            'limitPx': px,
                             'reduceOnly': reduceOnly,
                             'orderType': orderType,
                             'cloid': clientOrderId,
