@@ -2417,12 +2417,13 @@ export default class ascendex extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.network] unified network code for deposit chain
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const chainName = this.safeString (params, 'chainName');
-        params = this.omit (params, 'chainName');
+        const chainName = this.safeString2 (params, 'network', 'chainName');
+        params = this.omit (params, [ 'network', 'chainName' ]);
         const request = {
             'asset': currency['id'],
         };
