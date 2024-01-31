@@ -266,6 +266,32 @@
                 ],
                 "output": "{\"type\":\"send\",\"to\":\"0x93536de4c50a8a90874162504f26978fa946c23a\",\"amount\":10,\"currency\":\"USDC\"}"
             }
+        ],
+        "fetchBidsAsks": [
+            {
+                "description": "fetchBidsAsks with symbols",
+                "method": "fetchBidsAsks",
+                "url": "https://api.coinbase.com/api/v3/brokerage/best_bid_ask?product_ids=BTC-USDT&product_ids=ETH-USDT",
+                "input": [
+                  [
+                    "BTC/USDT",
+                    "ETH/USDT"
+                  ]
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.coinbase.com/api/v3/brokerage/products?product_ids=BTC-USDT&product_ids=ETH-USDT",
+                "input": [
+                  [
+                    "BTC/USDT",
+                    "ETH/USDT"
+                  ]
+                ]
+            }
         ]
     }
 }
