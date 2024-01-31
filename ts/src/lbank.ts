@@ -13,7 +13,7 @@ import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSid
 //  ---------------------------------------------------------------------------
 
 /**
- * @class lbank2
+ * @class lbank
  * @augments Exchange
  */
 export default class lbank extends Exchange {
@@ -300,7 +300,7 @@ export default class lbank extends Exchange {
     async fetchTime (params = {}) {
         /**
          * @method
-         * @name lbank2#fetchTime
+         * @name lbank#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
          * @see https://www.lbank.com/en-US/docs/index.html#get-timestamp
          * @see https://www.lbank.com/en-US/docs/contract.html#get-the-current-time
@@ -341,8 +341,8 @@ export default class lbank extends Exchange {
     async fetchMarkets (params = {}) {
         /**
          * @method
-         * @name lbank2#fetchMarkets
-         * @description retrieves data on all markets for lbank2
+         * @name lbank#fetchMarkets
+         * @description retrieves data on all markets for lbank
          * @see https://www.lbank.com/en-US/docs/index.html#trading-pairs
          * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-information-list
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -599,7 +599,7 @@ export default class lbank extends Exchange {
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
-         * @name lbank2#fetchTicker
+         * @name lbank#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://www.lbank.com/en-US/docs/index.html#query-current-market-data-new
          * @param {string} symbol unified symbol of the market to fetch the ticker for
@@ -645,7 +645,7 @@ export default class lbank extends Exchange {
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
-         * @name lbank2#fetchTickers
+         * @name lbank#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @see https://www.lbank.com/en-US/docs/index.html#query-current-market-data-new
          * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
@@ -725,7 +725,7 @@ export default class lbank extends Exchange {
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
-         * @name lbank2#fetchOrderBook
+         * @name lbank#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://www.lbank.com/en-US/docs/index.html#query-market-depth
          * @see https://www.lbank.com/en-US/docs/contract.html#get-handicap
@@ -914,7 +914,7 @@ export default class lbank extends Exchange {
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
-         * @name lbank2#fetchTrades
+         * @name lbank#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @see https://www.lbank.com/en-US/docs/index.html#query-historical-transactions
          * @see https://www.lbank.com/en-US/docs/index.html#recent-transactions-list
@@ -991,7 +991,7 @@ export default class lbank extends Exchange {
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
-         * @name lbank2#fetchOHLCV
+         * @name lbank#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @see https://www.lbank.com/en-US/docs/index.html#query-k-bar-data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -1178,7 +1178,7 @@ export default class lbank extends Exchange {
     async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
-         * @name lbank2#fetchBalance
+         * @name lbank#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://www.lbank.com/en-US/docs/index.html#asset-information
          * @see https://www.lbank.com/en-US/docs/index.html#account-information
@@ -1252,7 +1252,7 @@ export default class lbank extends Exchange {
     async fetchTradingFee (symbol: string, params = {}) {
         /**
          * @method
-         * @name lbank2#fetchTradingFee
+         * @name lbank#fetchTradingFee
          * @description fetch the trading fees for a market
          * @see https://www.lbank.com/en-US/docs/index.html#transaction-fee-rate-query
          * @param {string} symbol unified market symbol
@@ -1267,7 +1267,7 @@ export default class lbank extends Exchange {
     async fetchTradingFees (params = {}) {
         /**
          * @method
-         * @name lbank2#fetchTradingFees
+         * @name lbank#fetchTradingFees
          * @description fetch the trading fees for multiple markets
          * @see https://www.lbank.com/en-US/docs/index.html#transaction-fee-rate-query
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1310,7 +1310,7 @@ export default class lbank extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
-         * @name lbank2#createOrder
+         * @name lbank#createOrder
          * @description create a trade order
          * @see https://www.lbank.com/en-US/docs/index.html#place-order
          * @see https://www.lbank.com/en-US/docs/index.html#place-an-order
@@ -1549,7 +1549,7 @@ export default class lbank extends Exchange {
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name lbank2#fetchOrder
+         * @name lbank#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://www.lbank.com/en-US/docs/index.html#query-order
          * @see https://www.lbank.com/en-US/docs/index.html#query-order-new
@@ -1655,7 +1655,7 @@ export default class lbank extends Exchange {
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name lbank2#fetchMyTrades
+         * @name lbank#fetchMyTrades
          * @description fetch all trades made by the user
          * @see https://www.lbank.com/en-US/docs/index.html#past-transaction-details
          * @param {string} symbol unified market symbol
@@ -1715,7 +1715,7 @@ export default class lbank extends Exchange {
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
-         * @name lbank2#fetchOrders
+         * @name lbank#fetchOrders
          * @description fetches information on multiple orders made by the user
          * @see https://www.lbank.com/en-US/docs/index.html#query-all-orders
          * @param {string} symbol unified market symbol of the market orders were made in
@@ -1776,7 +1776,7 @@ export default class lbank extends Exchange {
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
-         * @name lbank2#fetchOpenOrders
+         * @name lbank#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @see https://www.lbank.com/en-US/docs/index.html#current-pending-order
          * @param {string} symbol unified market symbol
@@ -1834,7 +1834,7 @@ export default class lbank extends Exchange {
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name lbank2#cancelOrder
+         * @name lbank#cancelOrder
          * @description cancels an open order
          * @see https://www.lbank.com/en-US/docs/index.html#cancel-order-new
          * @param {string} id order id
@@ -1877,7 +1877,7 @@ export default class lbank extends Exchange {
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name lbank2#cancelAllOrders
+         * @name lbank#cancelAllOrders
          * @description cancel all open orders in a market
          * @see https://www.lbank.com/en-US/docs/index.html#cancel-all-pending-orders-for-a-single-trading-pair
          * @param {string} symbol unified market symbol of the market to cancel orders in
@@ -1926,7 +1926,7 @@ export default class lbank extends Exchange {
     async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
-         * @name lbank2#fetchDepositAddress
+         * @name lbank#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
          * @see https://www.lbank.com/en-US/docs/index.html#get-deposit-address
          * @see https://www.lbank.com/en-US/docs/index.html#the-user-obtains-the-deposit-address
@@ -2032,7 +2032,7 @@ export default class lbank extends Exchange {
     async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
-         * @name lbank2#withdraw
+         * @name lbank#withdraw
          * @description make a withdrawal
          * @see https://www.lbank.com/en-US/docs/index.html#withdrawal
          * @param {string} code unified currency code
@@ -2199,7 +2199,7 @@ export default class lbank extends Exchange {
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
-         * @name lbank2#fetchDeposits
+         * @name lbank#fetchDeposits
          * @description fetch all deposits made to an account
          * @see https://www.lbank.com/en-US/docs/index.html#get-recharge-history
          * @param {string} code unified currency code
@@ -2253,7 +2253,7 @@ export default class lbank extends Exchange {
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
-         * @name lbank2#fetchWithdrawals
+         * @name lbank#fetchWithdrawals
          * @description fetch all withdrawals made from an account
          * @see https://www.lbank.com/en-US/docs/index.html#get-withdrawal-history
          * @param {string} code unified currency code
@@ -2311,10 +2311,10 @@ export default class lbank extends Exchange {
     async fetchTransactionFees (codes = undefined, params = {}) {
         /**
          * @method
-         * @name lbank2#fetchTransactionFees
+         * @name lbank#fetchTransactionFees
          * @deprecated
          * @description please use fetchDepositWithdrawFees instead
-         * @param {string[]|undefined} codes not used by lbank2 fetchTransactionFees ()
+         * @param {string[]|undefined} codes not used by lbank fetchTransactionFees ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
@@ -2461,7 +2461,7 @@ export default class lbank extends Exchange {
     async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
-         * @name lbank2#fetchDepositWithdrawFees
+         * @name lbank#fetchDepositWithdrawFees
          * @description when using private endpoint, only returns information for currencies with non-zero balance, use public method by specifying this.options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
          * @see https://www.lbank.com/en-US/docs/index.html#get-all-coins-information
          * @see https://www.lbank.com/en-US/docs/index.html#withdrawal-configurations
