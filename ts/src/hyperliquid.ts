@@ -4,7 +4,7 @@
 import Exchange from './abstract/hyperliquid.js';
 import { ExchangeError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { TICK_SIZE, ROUND, DECIMAL_PLACES } from './base/functions/number.js';
+import { TICK_SIZE, ROUND } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
@@ -599,6 +599,7 @@ export default class hyperliquid extends Exchange {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
+         * @param {bool} [params.postOnly] true or false whether the order is post-only
          * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {string} [params.clientOrderId] client order id (default undefined)
@@ -673,7 +674,11 @@ export default class hyperliquid extends Exchange {
             orderParams = this.extend (params, orderParams);
             const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
             const slippage = this.safeValue (orderParams, 'slippage', defaultSlippage);
-            const defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
+            let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
+            const postOnly = this.safeValue (orderParams, 'postOnly', false);
+            if (postOnly) {
+                defaultTimeInForce = 'alo';
+            }
             let timeInForce = this.safeStringLower (orderParams, 'timeInForce', defaultTimeInForce);
             timeInForce = this.capitalize (timeInForce);
             let triggerPrice = this.safeValue2 (orderParams, 'triggerPrice', 'stopPrice');
@@ -1588,8 +1593,6 @@ export default class hyperliquid extends Exchange {
             'percentage': percentage,
         });
     }
-
-
 
     async setMarginMode (marginMode, symbol: Str = undefined, params = {}) {
         /**
