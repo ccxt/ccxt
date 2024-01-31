@@ -211,6 +211,70 @@
                   }
                 ],
                 "output": "{\"type\":\"TRAILING STOP\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"price_trailing\":\"500\"}"
+            },
+            {
+                "description": "Swap trigger limit buy order",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  40000,
+                  {
+                    "triggerPrice": "41000"
+                  }
+                ],
+                "output": "{\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"0.0001\",\"price\":\"41000\",\"price_aux_limit\":\"40000\",\"type\":\"STOP LIMIT\"}"
+            },
+            {
+                "description": "Swap trigger market buy order",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "buy",
+                  0.0001,
+                  null,
+                  {
+                    "triggerPrice": "47000"
+                  }
+                ],
+                "output": "{\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"0.0001\",\"price\":\"47000\",\"type\":\"STOP\"}"
+            },
+            {
+                "description": "Spot trigger limit buy order",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  40000,
+                  {
+                    "triggerPrice": "41000"
+                  }
+                ],
+                "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"price\":\"41000\",\"price_aux_limit\":\"40000\",\"type\":\"EXCHANGE STOP LIMIT\"}"
+            },
+            {
+                "description": "Spot trigger market buy order",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT",
+                  "market",
+                  "buy",
+                  0.0001,
+                  null,
+                  {
+                    "triggerPrice": "41000"
+                  }
+                ],
+                "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"price\":\"41000\",\"type\":\"EXCHANGE STOP\"}"
             }
         ],
         "createReduceOnlyOrder": [
@@ -241,6 +305,36 @@
                   500
                 ],
                 "output": "{\"type\":\"TRAILING STOP\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"price_trailing\":\"500\"}"
+            }
+        ],
+        "createTriggerOrder": [
+            {
+                "description": "Swap limit buy trigger order",
+                "method": "createTriggerOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  40000,
+                  41000
+                ],
+                "output": "{\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"0.0001\",\"price\":\"41000\",\"price_aux_limit\":\"40000\",\"type\":\"STOP LIMIT\"}"
+            },
+            {
+                "description": "Spot limit buy trigger order",
+                "method": "createTriggerOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  40000,
+                  41000
+                ],
+                "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"price\":\"41000\",\"price_aux_limit\":\"40000\",\"type\":\"EXCHANGE STOP LIMIT\"}"
             }
         ],
         "fetchOpenInterest": [
