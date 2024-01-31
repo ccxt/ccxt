@@ -353,9 +353,9 @@ export default class p2b extends p2bRest {
         //    }
         //
         const params = this.safeList (message, 'params', []);
-        const data = this.safeValue (params, 1);
-        const asks = this.safeValue (data, 'asks');
-        const bids = this.safeValue (data, 'bids');
+        const data = this.safeDict (params, 1);
+        const asks = this.safeList (data, 'asks');
+        const bids = this.safeList (data, 'bids');
         const marketId = this.safeString (params, 2);
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
