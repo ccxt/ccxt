@@ -6357,7 +6357,7 @@ The exception inheritance hierarchy lives in this file: https://github.com/ccxt/
 
 The `BaseError` class is a generic root error class for all sorts of errors, including accessibility and request/response mismatch. If you don't need to catch any specific subclass of exceptions, you can just use `BaseError`, where all exception types are being caught.
 
-From `BaseError` derives two sub-types family: `OperationFailed` and `ExchangeError` (they also have their specific sub-types, as explained below).
+From `BaseError` derives two different families of errors: `OperationFailed` and `ExchangeError` (they also have their specific sub-types, as explained below).
 
 ### OperationFailed
 <a name="NetworkError" id="NetworkError"></a>
