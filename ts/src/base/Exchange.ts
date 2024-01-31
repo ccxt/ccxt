@@ -3274,7 +3274,7 @@ export default class Exchange {
         const muteOnFailure = this.safeBool (options, 'webApiMuteFailure', true);
         try {
             // if it was not explicitly disabled, then don't fetch
-            if (this.safeValue (options, 'webApiEnable', true) !== true) {
+            if (this.safeBool (options, 'webApiEnable', true) !== true) {
                 return undefined;
             }
             const maxRetries = this.safeValue (options, 'webApiRetries', 10);

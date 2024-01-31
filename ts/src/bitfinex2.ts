@@ -1546,8 +1546,8 @@ export default class bitfinex2 extends Exchange {
         }
         const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
         const timeInForce = this.safeString (params, 'timeInForce');
-        const postOnlyParam = this.safeValue (params, 'postOnly', false);
-        const reduceOnly = this.safeValue (params, 'reduceOnly', false);
+        const postOnlyParam = this.safeBool (params, 'postOnly', false);
+        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
         const clientOrderId = this.safeValue2 (params, 'cid', 'clientOrderId');
         params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'price_aux_limit' ]);
         let amountString = this.amountToPrecision (symbol, amount);
@@ -2424,7 +2424,7 @@ export default class bitfinex2 extends Exchange {
             request['payment_id'] = tag;
         }
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
-        const includeFee = this.safeValue (withdrawOptions, 'includeFee', false);
+        const includeFee = this.safeBool (withdrawOptions, 'includeFee', false);
         if (includeFee) {
             request['fee_deduct'] = 1;
         }
