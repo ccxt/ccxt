@@ -6218,7 +6218,7 @@ try {
     // if the exception is thrown, it is "caught" and can be handled here
     // the handling reaction depends on the type of the exception
     // and on the purpose or business logic of your application
-    if (e instanceof ccxt.OperationFailed) {
+    if (e instanceof ccxt.NetworkError) {
         console.log (exchange.id, 'fetchTicker failed due to a network error:', e.message)
         // retry or whatever
     } else if (e instanceof ccxt.ExchangeError) {
@@ -6236,7 +6236,7 @@ try {
 try:
     response = await exchange.fetch_order_book('ETH/BTC')
     print(response)
-except ccxt.OperationFailed as e:
+except ccxt.NetworkError as e:
     print(exchange.id, 'fetch_order_book failed due to a network error:', str(e))
     # retry or whatever
 except ccxt.ExchangeError as e:
@@ -6252,7 +6252,7 @@ except Exception as e:
 try {
     $response = $exchange->fetch_trades('ETH/BTC');
     print_r($response);
-} catch (\ccxt\OperationFailed $e) {
+} catch (\ccxt\NetworkError $e) {
     echo $exchange->id . ' fetch_trades failed due to a network error: ' . $e->getMessage () . "\n";
     // retry or whatever
 } catch (\ccxt\ExchangeError $e) {
