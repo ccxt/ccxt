@@ -1648,6 +1648,14 @@ export default class Exchange {
         return modifiedContent;
     }
 
+    ethAbiEncode (types, args) {
+        return this.base16ToBinary (ethers.encode (types, args).slice (2));
+    }
+
+    ethEncodeStructuredData (domain, messageTypes, messageData) {
+        return this.base16ToBinary (TypedDataEncoder.encode (domain, messageTypes, messageData).slice (-132));
+    }
+
     /* eslint-enable */
     // ------------------------------------------------------------------------
 
@@ -5906,14 +5914,6 @@ export default class Exchange {
 
     parseGreeks (greeks, market: Market = undefined): Greeks {
         throw new NotSupported (this.id + ' parseGreeks () is not supported yet');
-    }
-
-    ethAbiEncode (types, args) {
-        return this.base16ToBinary (ethers.encode (types, args).slice (2));
-    }
-
-    ethEncodeStructuredData (domain, messageTypes, messageData) {
-        return this.base16ToBinary (TypedDataEncoder.encode (domain, messageTypes, messageData).slice (-132));
     }
 }
 
