@@ -324,6 +324,8 @@ export default class Exchange {
     commonCurrencies = undefined
 
     hostname: string = undefined;
+    chain: string = undefined;
+
 
     precisionMode: number = undefined;
     paddingMode = undefined

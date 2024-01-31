@@ -29,7 +29,7 @@ export function bytesToHex(bytes: Uint8Array): string {
 
 export function numberToHexUnpadded(num: number | bigint): string {
   const hex = num.toString(16);
-  return hex.length & 1 ? `0${hex}` : hex;
+  return hex.length ? `0x${hex}` : hex;
 }
 
 export function hexToNumber(hex: string): bigint {
