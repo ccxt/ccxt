@@ -138,7 +138,7 @@ class coinmetro extends Exchange {
                     'private' => 'https://api.coinmetro.com',
                 ),
                 'test' => array(
-                    'public' => 'https://api.coinmetro.com',
+                    'public' => 'https://api.coinmetro.com/open',
                     'private' => 'https://api.coinmetro.com/open',
                 ),
                 'www' => 'https://coinmetro.com/',
@@ -1878,11 +1878,17 @@ class coinmetro extends Exchange {
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
         $query = $this->urlencode($request);
+        if ($headers === null) {
+            $headers = array();
+        }
+        $headers['CCXT'] = 'true';
         if ($api === 'private') {
-            if ($headers === null) {
-                $headers = array();
+            if (($this->uid === null) && ($this->apiKey !== null)) {
+                $this->uid = $this->apiKey;
             }
-            $headers['CCXT'] = true;
+            if (($this->token === null) && ($this->secret !== null)) {
+                $this->token = $this->secret;
+            }
             if ($url === 'https://api->coinmetro.com/jwt') { // handle with $headers for login $endpoint
                 $headers['X-Device-Id'] = 'bypass';
                 if ($this->twofa !== null) {

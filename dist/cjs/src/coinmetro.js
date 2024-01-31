@@ -135,7 +135,7 @@ class coinmetro extends coinmetro$1 {
                     'private': 'https://api.coinmetro.com',
                 },
                 'test': {
-                    'public': 'https://api.coinmetro.com',
+                    'public': 'https://api.coinmetro.com/open',
                     'private': 'https://api.coinmetro.com/open',
                 },
                 'www': 'https://coinmetro.com/',
@@ -1854,11 +1854,17 @@ class coinmetro extends coinmetro$1 {
         const endpoint = '/' + this.implodeParams(path, params);
         let url = this.urls['api'][api] + endpoint;
         const query = this.urlencode(request);
+        if (headers === undefined) {
+            headers = {};
+        }
+        headers['CCXT'] = 'true';
         if (api === 'private') {
-            if (headers === undefined) {
-                headers = {};
+            if ((this.uid === undefined) && (this.apiKey !== undefined)) {
+                this.uid = this.apiKey;
             }
-            headers['CCXT'] = true;
+            if ((this.token === undefined) && (this.secret !== undefined)) {
+                this.token = this.secret;
+            }
             if (url === 'https://api.coinmetro.com/jwt') { // handle with headers for login endpoint
                 headers['X-Device-Id'] = 'bypass';
                 if (this.twofa !== undefined) {

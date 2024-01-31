@@ -558,6 +558,15 @@ export default class Exchange {
     setProperty(obj: any, property: any, defaultValue?: any): void;
     axolotl(payload: any, hexKey: any, ed25519: any): string;
     fixStringifiedJsonMembers(content: any): any;
+    safeBoolN(dictionaryOrList: any, keys: IndexType[], defaultValue?: boolean): boolean | undefined;
+    safeBool2(dictionary: any, key1: IndexType, key2: IndexType, defaultValue?: boolean): boolean | undefined;
+    safeBool(dictionary: any, key: IndexType, defaultValue?: boolean): boolean | undefined;
+    safeDictN(dictionaryOrList: any, keys: IndexType[], defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
+    safeDict(dictionary: any, key: IndexType, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
+    safeDict2(dictionary: any, key1: IndexType, key2: string, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
+    safeListN(dictionaryOrList: any, keys: IndexType[], defaultValue?: any[]): any[] | undefined;
+    safeList2(dictionaryOrList: any, key1: IndexType, key2: string, defaultValue?: any[]): any[] | undefined;
+    safeList(dictionaryOrList: any, key: IndexType, defaultValue?: any[]): any[] | undefined;
     handleDeltas(orderbook: any, deltas: any): void;
     handleDelta(bookside: any, delta: any): void;
     getCacheIndex(orderbook: any, deltas: any): number;

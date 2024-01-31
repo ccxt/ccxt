@@ -145,7 +145,7 @@ class coinmetro(Exchange, ImplicitAPI):
                     'private': 'https://api.coinmetro.com',
                 },
                 'test': {
-                    'public': 'https://api.coinmetro.com',
+                    'public': 'https://api.coinmetro.com/open',
                     'private': 'https://api.coinmetro.com/open',
                 },
                 'www': 'https://coinmetro.com/',
@@ -1762,10 +1762,14 @@ class coinmetro(Exchange, ImplicitAPI):
         endpoint = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + endpoint
         query = self.urlencode(request)
+        if headers is None:
+            headers = {}
+        headers['CCXT'] = 'true'
         if api == 'private':
-            if headers is None:
-                headers = {}
-            headers['CCXT'] = True
+            if (self.uid is None) and (self.apiKey is not None):
+                self.uid = self.apiKey
+            if (self.token is None) and (self.secret is not None):
+                self.token = self.secret
             if url == 'https://api.coinmetro.com/jwt':  # handle with headers for login endpoint
                 headers['X-Device-Id'] = 'bypass'
                 if self.twofa is not None:

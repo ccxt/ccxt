@@ -1728,7 +1728,7 @@ class okx(Exchange, ImplicitAPI):
         symbol = market['symbol']
         last = self.safe_string(ticker, 'last')
         open = self.safe_string(ticker, 'open24h')
-        spot = self.safe_value(market, 'spot', False)
+        spot = self.safe_bool(market, 'spot', False)
         quoteVolume = self.safe_string(ticker, 'volCcy24h') if spot else None
         baseVolume = self.safe_string(ticker, 'vol24h')
         high = self.safe_string(ticker, 'high24h')
@@ -2519,7 +2519,7 @@ class okx(Exchange, ImplicitAPI):
             margin = True
         else:
             marginMode = defaultMarginMode
-            margin = self.safe_value(params, 'margin', False)
+            margin = self.safe_bool(params, 'margin', False)
         if spot:
             if margin:
                 defaultCurrency = market['quote'] if (side == 'buy') else market['base']
