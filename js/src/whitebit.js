@@ -22,7 +22,7 @@ export default class whitebit extends Exchange {
             'name': 'WhiteBit',
             'version': 'v4',
             'countries': ['EE'],
-            'rateLimit': 50,
+            'rateLimit': 500,
             'pro': true,
             'has': {
                 'CORS': undefined,
