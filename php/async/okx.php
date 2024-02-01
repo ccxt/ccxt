@@ -4198,10 +4198,13 @@ class okx extends Exchange {
                 $market = $this->market($symbol);
                 $request['instId'] = $market['id'];
             }
+            if ($since !== null) {
+                $request['begin'] = $since;
+            }
             list($request, $params) = $this->handle_until_option('end', $request, $params);
             list($type, $query) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
             $request['instType'] = $this->convert_to_instrument_type($type);
-            if ($limit !== null) {
+            if (($limit !== null) && ($since === null)) {  // $limit = n, okx will return the n most recent results, instead of the n results after $limit, so $limit should only be sent when $since is null
                 $request['limit'] = $limit; // default 100, max 100
             }
             $response = Async\await($this->privateGetTradeFillsHistory (array_merge($request, $query)));

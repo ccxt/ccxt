@@ -588,7 +588,7 @@ export default class Exchange {
     checkWsProxySettings(): any[];
     checkConflictingProxies(proxyAgentSet: any, proxyUrlSet: any): void;
     findMessageHashes(client: any, element: string): string[];
-    filterByLimit(array: object[], limit?: Int, key?: IndexType): any;
+    filterByLimit(array: object[], limit?: Int, key?: IndexType, fromStart?: boolean): any;
     filterBySinceLimit(array: object[], since?: Int, limit?: Int, key?: IndexType, tail?: boolean): any;
     filterByValueSinceLimit(array: object[], field: IndexType, value?: any, since?: Int, limit?: Int, key?: string, tail?: boolean): any;
     setSandboxMode(enabled: any): void;

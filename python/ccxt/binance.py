@@ -5514,7 +5514,7 @@ class binance(Exchange, ImplicitAPI):
         params = self.omit(params, 'type')
         orders = self.fetch_orders(symbol, since, None, params)
         filteredOrders = self.filter_by(orders, 'status', 'canceled')
-        return self.filter_by_limit(filteredOrders, limit)
+        return self.filter_by_since_limit(filteredOrders, since, limit)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """

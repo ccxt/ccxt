@@ -5856,7 +5856,7 @@ export default class binance extends Exchange {
         params = this.omit(params, 'type');
         const orders = await this.fetchOrders(symbol, since, undefined, params);
         const filteredOrders = this.filterBy(orders, 'status', 'canceled');
-        return this.filterByLimit(filteredOrders, limit);
+        return this.filterBySinceLimit(filteredOrders, since, limit);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

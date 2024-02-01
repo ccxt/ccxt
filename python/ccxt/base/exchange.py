@@ -1969,7 +1969,7 @@ class Exchange(object):
                 result.append(messageHash)
         return result
 
-    def filter_by_limit(self, array: List[object], limit: Int = None, key: IndexType = 'timestamp'):
+    def filter_by_limit(self, array: List[object], limit: Int = None, key: IndexType = 'timestamp', fromStart: bool = False):
         if self.valueIsDefined(limit):
             arrayLength = len(array)
             if arrayLength > 0:
@@ -1979,7 +1979,10 @@ class Exchange(object):
                     last = array[arrayLength - 1][key]
                     if first is not None and last is not None:
                         ascending = first <= last  # True if array is sorted in ascending order based on 'timestamp'
-                array = self.arraySlice(array, -limit) if ascending else self.arraySlice(array, 0, limit)
+                if fromStart:
+                    array = self.arraySlice(array, 0, limit) if ascending else self.arraySlice(array, -limit)
+                else:
+                    array = self.arraySlice(array, -limit) if ascending else self.arraySlice(array, 0, limit)
         return array
 
     def filter_by_since_limit(self, array: List[object], since: Int = None, limit: Int = None, key: IndexType = 'timestamp', tail=False):
@@ -1995,7 +1998,10 @@ class Exchange(object):
                     result.append(entry)
         if tail and limit is not None:
             return self.arraySlice(result, -limit)
-        return self.filter_by_limit(result, limit, key)
+        # if the user provided a 'since' argument
+        # we want to limit the result starting from the 'since'
+        shouldFilterFromStart = not tail and sinceIsDefined
+        return self.filter_by_limit(result, limit, key, shouldFilterFromStart)
 
     def filter_by_value_since_limit(self, array: List[object], field: IndexType, value=None, since: Int = None, limit: Int = None, key='timestamp', tail=False):
         valueIsDefined = self.valueIsDefined(value)
@@ -2016,7 +2022,7 @@ class Exchange(object):
                     result.append(entry)
         if tail and limit is not None:
             return self.arraySlice(result, -limit)
-        return self.filter_by_limit(result, limit, key)
+        return self.filter_by_limit(result, limit, key, sinceIsDefined)
 
     def set_sandbox_mode(self, enabled):
         if enabled:

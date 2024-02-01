@@ -5721,7 +5721,7 @@ class binance extends Exchange {
         $params = $this->omit($params, 'type');
         $orders = $this->fetch_orders($symbol, $since, null, $params);
         $filteredOrders = $this->filter_by($orders, 'status', 'canceled');
-        return $this->filter_by_limit($filteredOrders, $limit);
+        return $this->filter_by_since_limit($filteredOrders, $since, $limit);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
