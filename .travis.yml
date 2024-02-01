@@ -48,7 +48,7 @@ script:
     if $SHOULD_DEPLOY; then
       echo "Publishing";
       npm config set git-tag-version=false && NPM_VERSION=$(npm version patch);
-      npm run vss && npm run copy-python-files && npm run buildCsharpRelease;
+      npm run vss && npm run copy-python-files && npm run buildCSRelease;
       env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} SHOULD_TAG=${SHOULD_DEPLOY} ./build/push.sh;
       ./cs/deploy.sh;
       cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
