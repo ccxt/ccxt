@@ -179,7 +179,7 @@ if [ ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
 fi
 
 # build dotnet project
-npm run buildCsharp
+npm run buildCS
 
 # run base tests (base js,py,php, brokerId )
 # npm run test-base
@@ -196,7 +196,7 @@ for exchange in "${REST_EXCHANGES[@]}"; do
   npm run request-js -- $exchange
   npm run request-py -- $exchange
   php php/test/test_async.php $exchange --requestTests
-  npm run request-csharp -- $exchange
+  npm run request-cs -- $exchange
 done
 
 #response static tests
@@ -204,7 +204,7 @@ for exchange in "${REST_EXCHANGES[@]}"; do
   npm run response-js -- $exchange
   npm run response-py -- $exchange
   php php/test/test_async.php $exchange --responseTests
-  npm run response-csharp -- $exchange
+  npm run response-cs -- $exchange
 done
 
 run_tests "$rest_args" "$ws_args"

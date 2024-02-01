@@ -1,6 +1,6 @@
 version=$(cat package.json | jq -r '.version')
 
-bin_folder="./c#/ccxt/bin/Release/"
+bin_folder="./cs/ccxt/bin/Release/"
 
 bin_file="ccxt.${version}.nupkg"
 
