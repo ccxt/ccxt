@@ -948,7 +948,7 @@ class kucoin extends Exchange {
             //
             $data = $this->safe_value($response, 'data');
             $options = $this->safe_value($this->options, 'fetchMarkets', array());
-            $fetchTickersFees = $this->safe_value($options, 'fetchTickersFees', true);
+            $fetchTickersFees = $this->safe_bool($options, 'fetchTickersFees', true);
             $tickersResponse = array();
             if ($fetchTickersFees) {
                 $tickersResponse = Async\await($this->publicGetMarketAllTickers ($params));
@@ -1157,13 +1157,13 @@ class kucoin extends Exchange {
                     $chain = $chains[$j];
                     $chainId = $this->safe_string($chain, 'chainId');
                     $networkCode = $this->network_id_to_code($chainId);
-                    $chainWithdrawEnabled = $this->safe_value($chain, 'isWithdrawEnabled', false);
+                    $chainWithdrawEnabled = $this->safe_bool($chain, 'isWithdrawEnabled', false);
                     if ($isWithdrawEnabled === null) {
                         $isWithdrawEnabled = $chainWithdrawEnabled;
                     } else {
                         $isWithdrawEnabled = $isWithdrawEnabled || $chainWithdrawEnabled;
                     }
-                    $chainDepositEnabled = $this->safe_value($chain, 'isDepositEnabled', false);
+                    $chainDepositEnabled = $this->safe_bool($chain, 'isDepositEnabled', false);
                     if ($isDepositEnabled === null) {
                         $isDepositEnabled = $chainDepositEnabled;
                     } else {
@@ -1934,9 +1934,9 @@ class kucoin extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $testOrder = $this->safe_value($params, 'test', false);
+            $testOrder = $this->safe_bool($params, 'test', false);
             $params = $this->omit($params, 'test');
-            $isHf = $this->safe_value($params, 'hf', false);
+            $isHf = $this->safe_bool($params, 'hf', false);
             list($triggerPrice, $stopLossPrice, $takeProfitPrice) = $this->handle_trigger_prices($params);
             $tradeType = $this->safe_string($params, 'tradeType'); // keep it for backward compatibility
             $isTriggerOrder = ($triggerPrice || $stopLossPrice || $takeProfitPrice);
@@ -2061,7 +2061,7 @@ class kucoin extends Exchange {
                 'symbol' => $market['id'],
                 'orderList' => $ordersRequests,
             );
-            $hf = $this->safe_value($params, 'hf', false);
+            $hf = $this->safe_bool($params, 'hf', false);
             $params = $this->omit($params, 'hf');
             $response = null;
             if ($hf) {
@@ -2238,7 +2238,7 @@ class kucoin extends Exchange {
             $request = array();
             $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
             $stop = $this->safe_value_2($params, 'stop', 'trigger', false);
-            $hf = $this->safe_value($params, 'hf', false);
+            $hf = $this->safe_bool($params, 'hf', false);
             if ($hf) {
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol parameter for $hf orders');
@@ -2289,8 +2289,8 @@ class kucoin extends Exchange {
              */
             Async\await($this->load_markets());
             $request = array();
-            $stop = $this->safe_value($params, 'stop', false);
-            $hf = $this->safe_value($params, 'hf', false);
+            $stop = $this->safe_bool($params, 'stop', false);
+            $hf = $this->safe_bool($params, 'hf', false);
             $params = $this->omit($params, array( 'stop', 'hf' ));
             list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
             if ($symbol !== null) {
@@ -2345,8 +2345,8 @@ class kucoin extends Exchange {
             Async\await($this->load_markets());
             $lowercaseStatus = strtolower($status);
             $until = $this->safe_integer_2($params, 'until', 'till');
-            $stop = $this->safe_value($params, 'stop', false);
-            $hf = $this->safe_value($params, 'hf', false);
+            $stop = $this->safe_bool($params, 'stop', false);
+            $hf = $this->safe_bool($params, 'hf', false);
             $params = $this->omit($params, array( 'stop', 'hf', 'till', 'until' ));
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrdersByStatus', $params);
             if ($lowercaseStatus === 'open') {
@@ -2519,8 +2519,8 @@ class kucoin extends Exchange {
             Async\await($this->load_markets());
             $request = array();
             $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
-            $stop = $this->safe_value($params, 'stop', false);
-            $hf = $this->safe_value($params, 'hf', false);
+            $stop = $this->safe_bool($params, 'stop', false);
+            $hf = $this->safe_bool($params, 'hf', false);
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -2694,10 +2694,10 @@ class kucoin extends Exchange {
         $marketId = $this->safe_string($order, 'symbol');
         $timestamp = $this->safe_integer($order, 'createdAt');
         $feeCurrencyId = $this->safe_string($order, 'feeCurrency');
-        $cancelExist = $this->safe_value($order, 'cancelExist', false);
+        $cancelExist = $this->safe_bool($order, 'cancelExist', false);
         $responseStop = $this->safe_string($order, 'stop');
         $stop = $responseStop !== null;
-        $stopTriggered = $this->safe_value($order, 'stopTriggered', false);
+        $stopTriggered = $this->safe_bool($order, 'stopTriggered', false);
         $isActive = $this->safe_value_2($order, 'isActive', 'active');
         $responseStatus = $this->safe_string($order, 'status');
         $status = null;
@@ -2793,7 +2793,7 @@ class kucoin extends Exchange {
                 return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params));
             }
             $request = array();
-            $hf = $this->safe_value($params, 'hf', false);
+            $hf = $this->safe_bool($params, 'hf', false);
             if ($hf && $symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol parameter for $hf orders');
             }
@@ -3475,7 +3475,7 @@ class kucoin extends Exchange {
             $accountsByType = $this->safe_value($this->options, 'accountsByType');
             $type = $this->safe_string($accountsByType, $requestedType, $requestedType);
             $params = $this->omit($params, 'type');
-            $isHf = $this->safe_value($params, 'hf', false);
+            $isHf = $this->safe_bool($params, 'hf', false);
             if ($isHf) {
                 $type = 'trade_hf';
             }

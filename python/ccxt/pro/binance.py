@@ -1152,7 +1152,7 @@ class binance(ccxt.async_support.binance):
         if type in client.subscriptions:
             return None
         options = self.safe_value(self.options, 'watchBalance')
-        fetchBalanceSnapshot = self.safe_value(options, 'fetchBalanceSnapshot', False)
+        fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
         if fetchBalanceSnapshot:
             messageHash = type + ':fetchBalanceSnapshot'
             if not (messageHash in client.futures):
@@ -1269,8 +1269,8 @@ class binance(ccxt.async_support.binance):
         self.set_balance_cache(client, type)
         self.set_positions_cache(client, type)
         options = self.safe_value(self.options, 'watchBalance')
-        fetchBalanceSnapshot = self.safe_value(options, 'fetchBalanceSnapshot', False)
-        awaitBalanceSnapshot = self.safe_value(options, 'awaitBalanceSnapshot', True)
+        fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
+        awaitBalanceSnapshot = self.safe_bool(options, 'awaitBalanceSnapshot', True)
         if fetchBalanceSnapshot and awaitBalanceSnapshot:
             await client.future(type + ':fetchBalanceSnapshot')
         messageHash = type + ':balance'
@@ -1417,7 +1417,7 @@ class binance(ccxt.async_support.binance):
         returnRateLimits = False
         returnRateLimits, params = self.handle_option_and_params(params, 'createOrderWs', 'returnRateLimits', False)
         payload['returnRateLimits'] = returnRateLimits
-        test = self.safe_value(params, 'test', False)
+        test = self.safe_bool(params, 'test', False)
         params = self.omit(params, 'test')
         message = {
             'id': messageHash,

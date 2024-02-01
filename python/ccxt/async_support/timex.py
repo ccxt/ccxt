@@ -109,7 +109,7 @@ class timex(Exchange, ImplicitAPI):
                     'rest': 'https://plasma-relay-backend.timex.io',
                 },
                 'www': 'https://timex.io',
-                'doc': 'https://docs.timex.io',
+                'doc': 'https://plasma-relay-backend.timex.io/swagger-ui/index.html',
                 'referral': 'https://timex.io/?refcode=1x27vNkTbP1uwkCck',
             },
             'api': {
@@ -701,7 +701,7 @@ class timex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         uppercaseSide = side.upper()
         uppercaseType = type.upper()
-        postOnly = self.safe_value(params, 'postOnly', False)
+        postOnly = self.safe_bool(params, 'postOnly', False)
         if postOnly:
             uppercaseType = 'POST_ONLY'
             params = self.omit(params, ['postOnly'])

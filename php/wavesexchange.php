@@ -395,7 +395,7 @@ class wavesexchange extends Exchange {
         //        "matcherFee":"4077612"
         //     }
         //  }
-        $isDiscountFee = $this->safe_value($params, 'isDiscountFee', false);
+        $isDiscountFee = $this->safe_bool($params, 'isDiscountFee', false);
         $mode = null;
         if ($isDiscountFee) {
             $mode = $this->safe_value($response, 'discount');
@@ -2396,7 +2396,7 @@ class wavesexchange extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         $errorCode = $this->safe_string($response, 'error');
-        $success = $this->safe_value($response, 'success', true);
+        $success = $this->safe_bool($response, 'success', true);
         $Exception = $this->safe_value($this->exceptions, $errorCode);
         if ($Exception !== null) {
             $messageInner = $this->safe_string($response, 'message');

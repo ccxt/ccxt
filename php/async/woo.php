@@ -1132,7 +1132,7 @@ class woo extends Exchange {
              * @param {boolean} [$params->stop] whether the order is a stop/algo order
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
-            $stop = $this->safe_value($params, 'stop', false);
+            $stop = $this->safe_bool($params, 'stop', false);
             $params = $this->omit($params, 'stop');
             if (!$stop && ($symbol === null)) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
@@ -1298,7 +1298,7 @@ class woo extends Exchange {
             $request = array();
             $market = null;
             $stop = $this->safe_value($params, 'stop');
-            $trailing = $this->safe_value($params, 'trailing', false);
+            $trailing = $this->safe_bool($params, 'trailing', false);
             $params = $this->omit($params, array( 'stop', 'trailing' ));
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -2102,7 +2102,7 @@ class woo extends Exchange {
             //
             $transfer = $this->parse_transfer($response, $currency);
             $transferOptions = $this->safe_value($this->options, 'transfer', array());
-            $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
+            $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
             if ($fillResponseFromRequest) {
                 $transfer['amount'] = $amount;
                 $transfer['fromAccount'] = $fromAccount;

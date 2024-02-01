@@ -1106,7 +1106,7 @@ class kucoinfutures extends kucoin {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $testOrder = $this->safe_value($params, 'test', false);
+        $testOrder = $this->safe_bool($params, 'test', false);
         $params = $this->omit($params, 'test');
         $orderRequest = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $params);
         $response = null;
@@ -1754,7 +1754,7 @@ class kucoinfutures extends kucoin {
         // $average = Precise::string_div($cost, Precise::string_mul($filled, $market['contractSize']));
         // bool
         $isActive = $this->safe_value($order, 'isActive');
-        $cancelExist = $this->safe_value($order, 'cancelExist', false);
+        $cancelExist = $this->safe_bool($order, 'cancelExist', false);
         $status = null;
         if ($isActive !== null) {
             $status = $isActive ? 'open' : 'closed';
@@ -2472,7 +2472,7 @@ class kucoinfutures extends kucoin {
         $this->load_markets();
         $market = $this->market($symbol);
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
-        $testOrder = $this->safe_value($params, 'test', false);
+        $testOrder = $this->safe_bool($params, 'test', false);
         $params = $this->omit($params, array( 'test', 'clientOrderId' ));
         if ($clientOrderId === null) {
             $clientOrderId = $this->number_to_string($this->nonce());

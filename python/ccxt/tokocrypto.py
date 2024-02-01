@@ -706,7 +706,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 if permissions[j] == 'TRD_GRP_003':
                     active = False
                     break
-            isMarginTradingAllowed = self.safe_value(market, 'isMarginTradingAllowed', False)
+            isMarginTradingAllowed = self.safe_bool(market, 'isMarginTradingAllowed', False)
             entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1555,7 +1555,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientId')
-        postOnly = self.safe_value(params, 'postOnly', False)
+        postOnly = self.safe_bool(params, 'postOnly', False)
         # only supported for spot/margin api
         if postOnly:
             type = 'LIMIT_MAKER'
@@ -2328,7 +2328,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             return None  # fallback to default error handler
         # check success value for wapi endpoints
         # response in format {'msg': 'The coin does not exist.', 'success': True/false}
-        success = self.safe_value(response, 'success', True)
+        success = self.safe_bool(response, 'success', True)
         if not success:
             messageInner = self.safe_string(response, 'msg')
             parsedMessage = None

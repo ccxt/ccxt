@@ -395,7 +395,7 @@ class wavesexchange extends wavesexchange$1 {
         //        "matcherFee":"4077612"
         //     }
         //  }
-        const isDiscountFee = this.safeValue(params, 'isDiscountFee', false);
+        const isDiscountFee = this.safeBool(params, 'isDiscountFee', false);
         let mode = undefined;
         if (isDiscountFee) {
             mode = this.safeValue(response, 'discount');
@@ -2412,7 +2412,7 @@ class wavesexchange extends wavesexchange$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const errorCode = this.safeString(response, 'error');
-        const success = this.safeValue(response, 'success', true);
+        const success = this.safeBool(response, 'success', true);
         const Exception = this.safeValue(this.exceptions, errorCode);
         if (Exception !== undefined) {
             const messageInner = this.safeString(response, 'message');

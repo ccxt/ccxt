@@ -686,7 +686,7 @@ class cex(ccxt.async_support.cex):
         if order is None:
             order = self.parse_ws_order_update(data, market)
         order['remaining'] = remains
-        canceled = self.safe_value(data, 'cancel', False)
+        canceled = self.safe_bool(data, 'cancel', False)
         if canceled:
             order['status'] = 'canceled'
         if isTransaction:
@@ -767,7 +767,7 @@ class cex(ccxt.async_support.cex):
         timestamp = time
         if isTransaction:
             timestamp = self.parse8601(time)
-        canceled = self.safe_value(order, 'cancel', False)
+        canceled = self.safe_bool(order, 'cancel', False)
         status = 'open'
         if canceled:
             status = 'canceled'

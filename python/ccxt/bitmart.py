@@ -1864,7 +1864,7 @@ class bitmart(Exchange, ImplicitAPI):
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
         marginMode = self.safe_string(params, 'marginMode')
-        isMargin = self.safe_value(params, 'margin', False)
+        isMargin = self.safe_bool(params, 'margin', False)
         params = self.omit(params, ['margin', 'marginMode'])
         if marginMode is not None or isMargin:
             marketType = 'margin'
@@ -2643,7 +2643,7 @@ class bitmart(Exchange, ImplicitAPI):
             if isStop:
                 response = self.privateGetContractPrivateCurrentPlanOrder(self.extend(request, params))
             else:
-                trailing = self.safe_value(params, 'trailing', False)
+                trailing = self.safe_bool(params, 'trailing', False)
                 orderType = self.safe_string(params, 'orderType')
                 params = self.omit(params, ['orderType', 'trailing'])
                 if trailing:
@@ -2798,7 +2798,7 @@ class bitmart(Exchange, ImplicitAPI):
         elif type == 'swap':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-            trailing = self.safe_value(params, 'trailing', False)
+            trailing = self.safe_bool(params, 'trailing', False)
             orderType = self.safe_string(params, 'orderType')
             params = self.omit(params, ['orderType', 'trailing'])
             if trailing:

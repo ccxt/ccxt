@@ -339,8 +339,8 @@ class bitmex extends bitmex$1 {
                 const network = this.networkIdToCode(networkId);
                 const withdrawalFeeRaw = this.safeString(chain, 'withdrawalFee');
                 const withdrawalFee = this.parseNumber(Precise["default"].stringMul(withdrawalFeeRaw, precisionString));
-                const isDepositEnabled = this.safeValue(chain, 'depositEnabled', false);
-                const isWithdrawEnabled = this.safeValue(chain, 'withdrawalEnabled', false);
+                const isDepositEnabled = this.safeBool(chain, 'depositEnabled', false);
+                const isWithdrawEnabled = this.safeBool(chain, 'withdrawalEnabled', false);
                 const active = (isDepositEnabled && isWithdrawEnabled);
                 if (isDepositEnabled) {
                     depositEnabled = true;
@@ -1716,7 +1716,7 @@ class bitmex extends bitmex$1 {
             isInverse = (defaultSubType === 'inverse');
         }
         else {
-            isInverse = this.safeValue(market, 'inverse', false);
+            isInverse = this.safeBool(market, 'inverse', false);
         }
         if (isInverse) {
             cost = this.convertFromRawQuantity(symbol, qty);
@@ -2423,7 +2423,7 @@ class bitmex extends bitmex$1 {
             const item = response[i];
             const marketId = this.safeString(item, 'symbol');
             const market = this.safeMarket(marketId);
-            const swap = this.safeValue(market, 'swap', false);
+            const swap = this.safeBool(market, 'swap', false);
             if (swap) {
                 filteredResponse.push(item);
             }

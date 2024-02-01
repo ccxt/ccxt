@@ -107,7 +107,7 @@ class probit extends \ccxt\async\probit {
         //         }
         //     }
         //
-        $reset = $this->safe_value($message, 'reset', false);
+        $reset = $this->safe_bool($message, 'reset', false);
         $data = $this->safe_value($message, 'data', array());
         $currencyIds = is_array($data) ? array_keys($data) : array();
         if ($reset) {
@@ -217,7 +217,7 @@ class probit extends \ccxt\async\probit {
         $symbol = $this->safe_symbol($marketId);
         $market = $this->safe_market($marketId);
         $trades = $this->safe_value($message, 'recent_trades', array());
-        $reset = $this->safe_value($message, 'reset', false);
+        $reset = $this->safe_bool($message, 'reset', false);
         $messageHash = 'trades:' . $symbol;
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null || $reset) {
@@ -292,7 +292,7 @@ class probit extends \ccxt\async\probit {
         if ($length === 0) {
             return;
         }
-        $reset = $this->safe_value($message, 'reset', false);
+        $reset = $this->safe_bool($message, 'reset', false);
         $messageHash = 'myTrades';
         $stored = $this->myTrades;
         if (($stored === null) || $reset) {
@@ -382,7 +382,7 @@ class probit extends \ccxt\async\probit {
             return;
         }
         $messageHash = 'orders';
-        $reset = $this->safe_value($message, 'reset', false);
+        $reset = $this->safe_bool($message, 'reset', false);
         $stored = $this->orders;
         if ($stored === null || $reset) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
@@ -479,7 +479,7 @@ class probit extends \ccxt\async\probit {
             $storedOrderBook = $this->order_book(array());
             $this->orderbooks[$symbol] = $storedOrderBook;
         }
-        $reset = $this->safe_value($message, 'reset', false);
+        $reset = $this->safe_bool($message, 'reset', false);
         if ($reset) {
             $snapshot = $this->parse_order_book($dataBySide, $symbol, null, 'buy', 'sell', 'price', 'quantity');
             $storedOrderBook->reset ($snapshot);

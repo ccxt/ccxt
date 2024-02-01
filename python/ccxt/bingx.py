@@ -1752,7 +1752,7 @@ class bingx(Exchange, ImplicitAPI):
             isTakeProfit = takeProfit is not None
             if ((type == 'LIMIT') or (type == 'TRIGGER_LIMIT') or (type == 'STOP') or (type == 'TAKE_PROFIT')) and not isTrailing:
                 request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
-            reduceOnly = self.safe_value(params, 'reduceOnly', False)
+            reduceOnly = self.safe_bool(params, 'reduceOnly', False)
             if isTriggerOrder:
                 request['stopPrice'] = self.parse_to_numeric(self.price_to_precision(symbol, triggerPrice))
                 if isMarketOrder or (type == 'TRIGGER_MARKET'):

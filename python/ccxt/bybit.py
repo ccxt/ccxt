@@ -310,8 +310,6 @@ class bybit(Exchange, ImplicitAPI):
                         # account
                         'v5/account/wallet-balance': 1,
                         'v5/account/borrow-history': 1,
-                        'v5/account/set-collateral-switch': 5,
-                        'v5/account/set-collateral-switch-batch': 5,
                         'v5/account/collateral-info': 1,
                         'v5/asset/coin-greeks': 1,
                         'v5/account/fee-rate': 10,  # 5/s = 1000 / (20 * 10)
@@ -504,6 +502,8 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/lending/purchase': 5,
                         'v5/lending/redeem': 5,
                         'v5/lending/redeem-cancel': 5,
+                        'v5/account/set-collateral-switch': 5,
+                        'v5/account/set-collateral-switch-batch': 5,
                     },
                 },
             },
@@ -3291,7 +3291,7 @@ class bybit(Exchange, ImplicitAPI):
         result = self.fetch_orders(symbol, None, None, self.extend(request, params))
         length = len(result)
         if length == 0:
-            isTrigger = self.safe_value_n(params, ['trigger', 'stop'], False)
+            isTrigger = self.safe_bool_n(params, ['trigger', 'stop'], False)
             extra = '' if isTrigger else 'If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
             raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
         if length > 1:

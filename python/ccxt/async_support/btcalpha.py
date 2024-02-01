@@ -655,7 +655,7 @@ class btcalpha(Exchange, ImplicitAPI):
         marketId = self.safe_string(order, 'pair')
         market = self.safe_market(marketId, market, '_')
         symbol = market['symbol']
-        success = self.safe_value(order, 'success', False)
+        success = self.safe_bool(order, 'success', False)
         timestamp = None
         if success:
             timestamp = self.safe_timestamp(order, 'date')

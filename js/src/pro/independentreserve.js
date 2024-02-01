@@ -179,7 +179,7 @@ export default class independentreserve extends independentreserveRest {
         const orderBook = this.safeValue(message, 'Data', {});
         const messageHash = 'orderbook:' + symbol + ':' + depth;
         const subscription = this.safeValue(client.subscriptions, messageHash, {});
-        const receivedSnapshot = this.safeValue(subscription, 'receivedSnapshot', false);
+        const receivedSnapshot = this.safeBool(subscription, 'receivedSnapshot', false);
         const timestamp = this.safeInteger(message, 'Time');
         let storedOrderBook = this.safeValue(this.orderbooks, symbol);
         if (storedOrderBook === undefined) {

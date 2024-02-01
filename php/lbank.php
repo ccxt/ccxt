@@ -44,6 +44,7 @@ class lbank extends Exchange {
                 'fetchClosedOrders' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchDepositAddress' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
@@ -1294,7 +1295,7 @@ class lbank extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $clientOrderId = $this->safe_string_2($params, 'custom_id', 'clientOrderId');
-        $postOnly = $this->safe_value($params, 'postOnly', false);
+        $postOnly = $this->safe_bool($params, 'postOnly', false);
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $params = $this->omit($params, array( 'custom_id', 'clientOrderId', 'timeInForce', 'postOnly' ));
         $request = array(

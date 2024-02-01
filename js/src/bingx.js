@@ -1845,7 +1845,7 @@ export default class bingx extends Exchange {
             if (((type === 'LIMIT') || (type === 'TRIGGER_LIMIT') || (type === 'STOP') || (type === 'TAKE_PROFIT')) && !isTrailing) {
                 request['price'] = this.parseToNumeric(this.priceToPrecision(symbol, price));
             }
-            let reduceOnly = this.safeValue(params, 'reduceOnly', false);
+            let reduceOnly = this.safeBool(params, 'reduceOnly', false);
             if (isTriggerOrder) {
                 request['stopPrice'] = this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice));
                 if (isMarketOrder || (type === 'TRIGGER_MARKET')) {

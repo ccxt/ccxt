@@ -668,7 +668,7 @@ export default class Exchange {
         after: number;
         status: string;
         fee: any;
-        info: any;
+        info: Dictionary<any>;
     };
     safeCurrencyStructure(currency: object): any;
     safeMarketStructure(market?: any): MarketInterface;

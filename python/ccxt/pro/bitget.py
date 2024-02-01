@@ -847,7 +847,7 @@ class bitget(ccxt.async_support.bitget):
         await self.load_markets()
         market = None
         marketId = None
-        isStop = self.safe_value(params, 'stop', False)
+        isStop = self.safe_bool(params, 'stop', False)
         params = self.omit(params, 'stop')
         messageHash = 'triggerOrder' if (isStop) else 'order'
         subscriptionHash = 'order:trades'

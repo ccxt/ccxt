@@ -1117,7 +1117,7 @@ class novadax(Exchange, ImplicitAPI):
         #
         transfer = self.parse_transfer(response, currency)
         transferOptions = self.safe_value(self.options, 'transfer', {})
-        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             transfer['fromAccount'] = fromAccount
             transfer['toAccount'] = toAccount

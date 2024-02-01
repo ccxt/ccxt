@@ -1053,7 +1053,7 @@ class hollaex(Exchange, ImplicitAPI):
         filled = self.safe_string(order, 'filled')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         meta = self.safe_value(order, 'meta', {})
-        postOnly = self.safe_value(meta, 'post_only', False)
+        postOnly = self.safe_bool(meta, 'post_only', False)
         return self.safe_order({
             'id': id,
             'clientOrderId': None,
@@ -1105,7 +1105,7 @@ class hollaex(Exchange, ImplicitAPI):
         }
         stopPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop'])
         meta = self.safe_value(params, 'meta', {})
-        exchangeSpecificParam = self.safe_value(meta, 'post_only', False)
+        exchangeSpecificParam = self.safe_bool(meta, 'post_only', False)
         isMarketOrder = type == 'market'
         postOnly = self.is_post_only(isMarketOrder, exchangeSpecificParam, params)
         if not isMarketOrder:

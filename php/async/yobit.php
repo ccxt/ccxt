@@ -1307,7 +1307,7 @@ class yobit extends Exchange {
             //
             // To cover points 1, 2, 3 and 4 combined this handler should work like this:
             //
-            $success = $this->safe_value($response, 'success', false);
+            $success = $this->safe_bool($response, 'success', false);
             if (gettype($success) === 'string') {
                 if (($success === 'true') || ($success === '1')) {
                     $success = true;
