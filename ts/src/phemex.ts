@@ -2550,7 +2550,7 @@ export default class phemex extends Exchange {
             if (market['settle'] === 'USDT') {
                 request['orderQtyRq'] = amount;
             } else {
-                request['orderQty'] = parseInt (amount);
+                request['orderQty'] = this.parseToInt (amount);
             }
             if (stopPrice !== undefined) {
                 const triggerType = this.safeString (params, 'triggerType', 'ByMarkPrice');

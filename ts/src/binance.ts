@@ -5223,7 +5223,6 @@ export default class binance extends Exchange {
         if (market['spot'] || marketType === 'margin') {
             // only supported for spot/margin api (all margin markets are spot markets)
             if (postOnly) {
-                s.n;
                 type = 'LIMIT_MAKER';
             }
         }
