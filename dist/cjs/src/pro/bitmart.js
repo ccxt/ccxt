@@ -143,7 +143,7 @@ class bitmart extends bitmart$1 {
             return;
         }
         const options = this.safeValue(this.options, 'watchBalance');
-        const snapshot = this.safeValue(options, 'fetchBalanceSnapshot', true);
+        const snapshot = this.safeBool(options, 'fetchBalanceSnapshot', true);
         if (snapshot) {
             const messageHash = type + ':' + 'fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {

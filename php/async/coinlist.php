@@ -368,7 +368,7 @@ class coinlist extends Exchange {
                 $currency = $currencies[$i];
                 $id = $this->safe_string($currency, 'asset');
                 $code = $this->safe_currency_code($id);
-                $isTransferable = $this->safe_value($currency, 'is_transferable', false);
+                $isTransferable = $this->safe_bool($currency, 'is_transferable', false);
                 $withdrawEnabled = $isTransferable;
                 $depositEnabled = $isTransferable;
                 $active = $isTransferable;

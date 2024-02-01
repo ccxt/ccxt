@@ -408,7 +408,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         #        "matcherFee":"4077612"
         #     }
         #  }
-        isDiscountFee = self.safe_value(params, 'isDiscountFee', False)
+        isDiscountFee = self.safe_bool(params, 'isDiscountFee', False)
         mode = None
         if isDiscountFee:
             mode = self.safe_value(response, 'discount')
@@ -2276,7 +2276,7 @@ class wavesexchange(Exchange, ImplicitAPI):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         errorCode = self.safe_string(response, 'error')
-        success = self.safe_value(response, 'success', True)
+        success = self.safe_bool(response, 'success', True)
         Exception = self.safe_value(self.exceptions, errorCode)
         if Exception is not None:
             messageInner = self.safe_string(response, 'message')

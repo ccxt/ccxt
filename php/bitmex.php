@@ -335,8 +335,8 @@ class bitmex extends Exchange {
                 $network = $this->network_id_to_code($networkId);
                 $withdrawalFeeRaw = $this->safe_string($chain, 'withdrawalFee');
                 $withdrawalFee = $this->parse_number(Precise::string_mul($withdrawalFeeRaw, $precisionString));
-                $isDepositEnabled = $this->safe_value($chain, 'depositEnabled', false);
-                $isWithdrawEnabled = $this->safe_value($chain, 'withdrawalEnabled', false);
+                $isDepositEnabled = $this->safe_bool($chain, 'depositEnabled', false);
+                $isWithdrawEnabled = $this->safe_bool($chain, 'withdrawalEnabled', false);
                 $active = ($isDepositEnabled && $isWithdrawEnabled);
                 if ($isDepositEnabled) {
                     $depositEnabled = true;
@@ -1704,7 +1704,7 @@ class bitmex extends Exchange {
             $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'linear');
             $isInverse = ($defaultSubType === 'inverse');
         } else {
-            $isInverse = $this->safe_value($market, 'inverse', false);
+            $isInverse = $this->safe_bool($market, 'inverse', false);
         }
         if ($isInverse) {
             $cost = $this->convert_from_raw_quantity($symbol, $qty);
@@ -2391,7 +2391,7 @@ class bitmex extends Exchange {
             $item = $response[$i];
             $marketId = $this->safe_string($item, 'symbol');
             $market = $this->safe_market($marketId);
-            $swap = $this->safe_value($market, 'swap', false);
+            $swap = $this->safe_bool($market, 'swap', false);
             if ($swap) {
                 $filteredResponse[] = $item;
             }

@@ -95,7 +95,7 @@ class timex extends Exchange {
                     'rest' => 'https://plasma-relay-backend.timex.io',
                 ),
                 'www' => 'https://timex.io',
-                'doc' => 'https://docs.timex.io',
+                'doc' => 'https://plasma-relay-backend.timex.io/swagger-ui/index.html',
                 'referral' => 'https://timex.io/?refcode=1x27vNkTbP1uwkCck',
             ),
             'api' => array(
@@ -712,7 +712,7 @@ class timex extends Exchange {
         $market = $this->market($symbol);
         $uppercaseSide = strtoupper($side);
         $uppercaseType = strtoupper($type);
-        $postOnly = $this->safe_value($params, 'postOnly', false);
+        $postOnly = $this->safe_bool($params, 'postOnly', false);
         if ($postOnly) {
             $uppercaseType = 'POST_ONLY';
             $params = $this->omit($params, array( 'postOnly' ));

@@ -25,6 +25,7 @@ class p2b(Exchange, ImplicitAPI):
             'countries': ['LT'],
             'rateLimit': 100,
             'version': 'v2',
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,

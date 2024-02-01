@@ -3107,7 +3107,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         depositAddress = self.parse_deposit_address(data, currency)
         options = self.safe_value(self.options, 'fetchDepositAddress', {})
-        fillResponseFromRequest = self.safe_value(options, 'fillResponseFromRequest', True)
+        fillResponseFromRequest = self.safe_bool(options, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             depositAddress['network'] = self.safe_network_code(network, currency)
         return depositAddress
@@ -4998,7 +4998,7 @@ class coinex(Exchange, ImplicitAPI):
         :returns Array: the marginMode in lowercase
         """
         defaultType = self.safe_string(self.options, 'defaultType')
-        isMargin = self.safe_value(params, 'margin', False)
+        isMargin = self.safe_bool(params, 'margin', False)
         marginMode = None
         marginMode, params = super(coinex, self).handle_margin_mode_and_params(methodName, params, defaultValue)
         if marginMode is None:

@@ -349,8 +349,8 @@ class bitmex(Exchange, ImplicitAPI):
                 network = self.network_id_to_code(networkId)
                 withdrawalFeeRaw = self.safe_string(chain, 'withdrawalFee')
                 withdrawalFee = self.parse_number(Precise.string_mul(withdrawalFeeRaw, precisionString))
-                isDepositEnabled = self.safe_value(chain, 'depositEnabled', False)
-                isWithdrawEnabled = self.safe_value(chain, 'withdrawalEnabled', False)
+                isDepositEnabled = self.safe_bool(chain, 'depositEnabled', False)
+                isWithdrawEnabled = self.safe_bool(chain, 'withdrawalEnabled', False)
                 active = (isDepositEnabled and isWithdrawEnabled)
                 if isDepositEnabled:
                     depositEnabled = True
@@ -1637,7 +1637,7 @@ class bitmex(Exchange, ImplicitAPI):
             defaultSubType = self.safe_string(self.options, 'defaultSubType', 'linear')
             isInverse = (defaultSubType == 'inverse')
         else:
-            isInverse = self.safe_value(market, 'inverse', False)
+            isInverse = self.safe_bool(market, 'inverse', False)
         if isInverse:
             cost = self.convert_from_raw_quantity(symbol, qty)
         else:
@@ -2277,7 +2277,7 @@ class bitmex(Exchange, ImplicitAPI):
             item = response[i]
             marketId = self.safe_string(item, 'symbol')
             market = self.safe_market(marketId)
-            swap = self.safe_value(market, 'swap', False)
+            swap = self.safe_bool(market, 'swap', False)
             if swap:
                 filteredResponse.append(item)
         symbols = self.market_symbols(symbols)

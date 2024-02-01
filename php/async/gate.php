@@ -1606,9 +1606,9 @@ class gate extends Exchange {
                 $networkId = $this->safe_string($entry, 'chain');
                 $networkCode = $this->network_id_to_code($networkId, $code);
                 $delisted = $this->safe_value($entry, 'delisted');
-                $withdrawDisabled = $this->safe_value($entry, 'withdraw_disabled', false);
-                $depositDisabled = $this->safe_value($entry, 'deposit_disabled', false);
-                $tradeDisabled = $this->safe_value($entry, 'trade_disabled', false);
+                $withdrawDisabled = $this->safe_bool($entry, 'withdraw_disabled', false);
+                $depositDisabled = $this->safe_bool($entry, 'deposit_disabled', false);
+                $tradeDisabled = $this->safe_bool($entry, 'trade_disabled', false);
                 $withdrawEnabled = !$withdrawDisabled;
                 $depositEnabled = !$depositDisabled;
                 $tradeEnabled = !$tradeDisabled;
@@ -4052,7 +4052,7 @@ class gate extends Exchange {
                 }
             }
             $clientOrderId = $this->safe_string_2($params, 'text', 'clientOrderId');
-            $textIsRequired = $this->safe_value($params, 'textIsRequired', false);
+            $textIsRequired = $this->safe_bool($params, 'textIsRequired', false);
             if ($clientOrderId !== null) {
                 // user-defined, must follow the rules if not empty
                 //     prefixed with t-
@@ -4422,7 +4422,7 @@ class gate extends Exchange {
         //        "message" => "Not enough balance"
         //    }
         //
-        $succeeded = $this->safe_value($order, 'succeeded', true);
+        $succeeded = $this->safe_bool($order, 'succeeded', true);
         if (!$succeeded) {
             // cancelOrders response
             return $this->safe_order(array(

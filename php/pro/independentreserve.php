@@ -189,7 +189,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         $orderBook = $this->safe_value($message, 'Data', array());
         $messageHash = 'orderbook:' . $symbol . ':' . $depth;
         $subscription = $this->safe_value($client->subscriptions, $messageHash, array());
-        $receivedSnapshot = $this->safe_value($subscription, 'receivedSnapshot', false);
+        $receivedSnapshot = $this->safe_bool($subscription, 'receivedSnapshot', false);
         $timestamp = $this->safe_integer($message, 'Time');
         $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
         if ($storedOrderBook === null) {

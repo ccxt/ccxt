@@ -953,7 +953,7 @@ class kucoin(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data')
         options = self.safe_value(self.options, 'fetchMarkets', {})
-        fetchTickersFees = self.safe_value(options, 'fetchTickersFees', True)
+        fetchTickersFees = self.safe_bool(options, 'fetchTickersFees', True)
         tickersResponse = {}
         if fetchTickersFees:
             tickersResponse = await self.publicGetMarketAllTickers(params)
@@ -1156,12 +1156,12 @@ class kucoin(Exchange, ImplicitAPI):
                 chain = chains[j]
                 chainId = self.safe_string(chain, 'chainId')
                 networkCode = self.network_id_to_code(chainId)
-                chainWithdrawEnabled = self.safe_value(chain, 'isWithdrawEnabled', False)
+                chainWithdrawEnabled = self.safe_bool(chain, 'isWithdrawEnabled', False)
                 if isWithdrawEnabled is None:
                     isWithdrawEnabled = chainWithdrawEnabled
                 else:
                     isWithdrawEnabled = isWithdrawEnabled or chainWithdrawEnabled
-                chainDepositEnabled = self.safe_value(chain, 'isDepositEnabled', False)
+                chainDepositEnabled = self.safe_bool(chain, 'isDepositEnabled', False)
                 if isDepositEnabled is None:
                     isDepositEnabled = chainDepositEnabled
                 else:
@@ -1867,9 +1867,9 @@ class kucoin(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        testOrder = self.safe_value(params, 'test', False)
+        testOrder = self.safe_bool(params, 'test', False)
         params = self.omit(params, 'test')
-        isHf = self.safe_value(params, 'hf', False)
+        isHf = self.safe_bool(params, 'hf', False)
         triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(params)
         tradeType = self.safe_string(params, 'tradeType')  # keep it for backward compatibility
         isTriggerOrder = (triggerPrice or stopLossPrice or takeProfitPrice)
@@ -1976,7 +1976,7 @@ class kucoin(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'orderList': ordersRequests,
         }
-        hf = self.safe_value(params, 'hf', False)
+        hf = self.safe_bool(params, 'hf', False)
         params = self.omit(params, 'hf')
         response = None
         if hf:
@@ -2134,7 +2134,7 @@ class kucoin(Exchange, ImplicitAPI):
         request = {}
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
         stop = self.safe_value_2(params, 'stop', 'trigger', False)
-        hf = self.safe_value(params, 'hf', False)
+        hf = self.safe_bool(params, 'hf', False)
         if hf:
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol parameter for hf orders')
@@ -2177,8 +2177,8 @@ class kucoin(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request = {}
-        stop = self.safe_value(params, 'stop', False)
-        hf = self.safe_value(params, 'hf', False)
+        stop = self.safe_bool(params, 'stop', False)
+        hf = self.safe_bool(params, 'hf', False)
         params = self.omit(params, ['stop', 'hf'])
         marginMode, query = self.handle_margin_mode_and_params('cancelAllOrders', params)
         if symbol is not None:
@@ -2225,8 +2225,8 @@ class kucoin(Exchange, ImplicitAPI):
         await self.load_markets()
         lowercaseStatus = status.lower()
         until = self.safe_integer_2(params, 'until', 'till')
-        stop = self.safe_value(params, 'stop', False)
-        hf = self.safe_value(params, 'hf', False)
+        stop = self.safe_bool(params, 'stop', False)
+        hf = self.safe_bool(params, 'hf', False)
         params = self.omit(params, ['stop', 'hf', 'till', 'until'])
         marginMode, query = self.handle_margin_mode_and_params('fetchOrdersByStatus', params)
         if lowercaseStatus == 'open':
@@ -2381,8 +2381,8 @@ class kucoin(Exchange, ImplicitAPI):
         await self.load_markets()
         request = {}
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
-        stop = self.safe_value(params, 'stop', False)
-        hf = self.safe_value(params, 'hf', False)
+        stop = self.safe_bool(params, 'stop', False)
+        hf = self.safe_bool(params, 'hf', False)
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -2545,10 +2545,10 @@ class kucoin(Exchange, ImplicitAPI):
         marketId = self.safe_string(order, 'symbol')
         timestamp = self.safe_integer(order, 'createdAt')
         feeCurrencyId = self.safe_string(order, 'feeCurrency')
-        cancelExist = self.safe_value(order, 'cancelExist', False)
+        cancelExist = self.safe_bool(order, 'cancelExist', False)
         responseStop = self.safe_string(order, 'stop')
         stop = responseStop is not None
-        stopTriggered = self.safe_value(order, 'stopTriggered', False)
+        stopTriggered = self.safe_bool(order, 'stopTriggered', False)
         isActive = self.safe_value_2(order, 'isActive', 'active')
         responseStatus = self.safe_string(order, 'status')
         status = None
@@ -2632,7 +2632,7 @@ class kucoin(Exchange, ImplicitAPI):
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
         request = {}
-        hf = self.safe_value(params, 'hf', False)
+        hf = self.safe_bool(params, 'hf', False)
         if hf and symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol parameter for hf orders')
         market = None
@@ -3258,7 +3258,7 @@ class kucoin(Exchange, ImplicitAPI):
         accountsByType = self.safe_value(self.options, 'accountsByType')
         type = self.safe_string(accountsByType, requestedType, requestedType)
         params = self.omit(params, 'type')
-        isHf = self.safe_value(params, 'hf', False)
+        isHf = self.safe_bool(params, 'hf', False)
         if isHf:
             type = 'trade_hf'
         params = self.omit(params, 'hf')

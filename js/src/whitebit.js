@@ -22,7 +22,7 @@ export default class whitebit extends Exchange {
             'name': 'WhiteBit',
             'version': 'v4',
             'countries': ['EE'],
-            'rateLimit': 500,
+            'rateLimit': 50,
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -425,8 +425,8 @@ export default class whitebit extends Exchange {
             const currency = response[id];
             // breaks down in Python due to utf8 encoding issues on the exchange side
             // const name = this.safeString (currency, 'name');
-            const canDeposit = this.safeValue(currency, 'can_deposit', true);
-            const canWithdraw = this.safeValue(currency, 'can_withdraw', true);
+            const canDeposit = this.safeBool(currency, 'can_deposit', true);
+            const canWithdraw = this.safeBool(currency, 'can_withdraw', true);
             const active = canDeposit && canWithdraw;
             const code = this.safeCurrencyCode(id);
             result[code] = {

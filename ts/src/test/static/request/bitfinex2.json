@@ -458,30 +458,18 @@
                 "output": "{\"id\":139449164689}"
             }
         ],
-        "createOrders": [
+        "cancelOrders": [
             {
-                "description": "Create multiple spot orders at once with different symbols",
-                "method": "createOrders",
-                "url": "https://api.bitfinex.com/v2/auth/w/order/multi",
+                "description": "Cancel multiple orders at the same time",
+                "method": "cancelOrders",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/cancel/multi",
                 "input": [
                   [
-                    {
-                      "symbol": "BTC/USDT",
-                      "type": "limit",
-                      "side": "buy",
-                      "amount": 0.0001,
-                      "price": 35000
-                    },
-                    {
-                      "symbol": "LTC/USDT",
-                      "type": "limit",
-                      "side": "buy",
-                      "amount": 0.25,
-                      "price": 50
-                    }
+                    139535430656,
+                    139533608984
                   ]
                 ],
-                "output": "{\"ops\":[[\"on\",{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"price\":\"35000\",\"type\":\"EXCHANGE LIMIT\"}],[\"on\",{\"symbol\":\"tLTCUST\",\"amount\":\"0.25\",\"price\":\"50\",\"type\":\"EXCHANGE LIMIT\"}]]}"
+                "output": "{\"id\":[139535430656,139533608984]}"
             }
         ]
     }

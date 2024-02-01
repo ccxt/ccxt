@@ -1054,7 +1054,7 @@ class cryptocom extends cryptocom$1 {
                 request['time_in_force'] = timeInForce;
             }
         }
-        const postOnly = this.safeValue(params, 'postOnly', false);
+        const postOnly = this.safeBool(params, 'postOnly', false);
         if ((postOnly) || (timeInForce === 'PO')) {
             request['exec_inst'] = ['POST_ONLY'];
             request['time_in_force'] = 'GOOD_TILL_CANCEL';
@@ -1275,7 +1275,7 @@ class cryptocom extends cryptocom$1 {
                 request['time_in_force'] = timeInForce;
             }
         }
-        const postOnly = this.safeValue(params, 'postOnly', false);
+        const postOnly = this.safeBool(params, 'postOnly', false);
         if ((postOnly) || (timeInForce === 'PO')) {
             request['exec_inst'] = ['POST_ONLY'];
             request['time_in_force'] = 'GOOD_TILL_CANCEL';
@@ -2246,7 +2246,7 @@ class cryptocom extends cryptocom$1 {
          * @returns {Array} the marginMode in lowercase
          */
         const defaultType = this.safeString(this.options, 'defaultType');
-        const isMargin = this.safeValue(params, 'margin', false);
+        const isMargin = this.safeBool(params, 'margin', false);
         params = this.omit(params, 'margin');
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams(methodName, params);

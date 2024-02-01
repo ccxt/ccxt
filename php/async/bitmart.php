@@ -1947,7 +1947,7 @@ class bitmart extends Exchange {
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
             $marginMode = $this->safe_string($params, 'marginMode');
-            $isMargin = $this->safe_value($params, 'margin', false);
+            $isMargin = $this->safe_bool($params, 'margin', false);
             $params = $this->omit($params, array( 'margin', 'marginMode' ));
             if ($marginMode !== null || $isMargin) {
                 $marketType = 'margin';
@@ -2802,7 +2802,7 @@ class bitmart extends Exchange {
                 if ($isStop) {
                     $response = Async\await($this->privateGetContractPrivateCurrentPlanOrder (array_merge($request, $params)));
                 } else {
-                    $trailing = $this->safe_value($params, 'trailing', false);
+                    $trailing = $this->safe_bool($params, 'trailing', false);
                     $orderType = $this->safe_string($params, 'orderType');
                     $params = $this->omit($params, array( 'orderType', 'trailing' ));
                     if ($trailing) {
@@ -2981,7 +2981,7 @@ class bitmart extends Exchange {
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
                 }
-                $trailing = $this->safe_value($params, 'trailing', false);
+                $trailing = $this->safe_bool($params, 'trailing', false);
                 $orderType = $this->safe_string($params, 'orderType');
                 $params = $this->omit($params, array( 'orderType', 'trailing' ));
                 if ($trailing) {

@@ -698,7 +698,7 @@ class tokocrypto extends Exchange {
                         break;
                     }
                 }
-                $isMarginTradingAllowed = $this->safe_value($market, 'isMarginTradingAllowed', false);
+                $isMarginTradingAllowed = $this->safe_bool($market, 'isMarginTradingAllowed', false);
                 $entry = array(
                     'id' => $id,
                     'lowercaseId' => $lowercaseId,
@@ -1605,7 +1605,7 @@ class tokocrypto extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clientId');
-            $postOnly = $this->safe_value($params, 'postOnly', false);
+            $postOnly = $this->safe_bool($params, 'postOnly', false);
             // only supported for spot/margin api
             if ($postOnly) {
                 $type = 'LIMIT_MAKER';
@@ -2474,7 +2474,7 @@ class tokocrypto extends Exchange {
         }
         // check $success value for wapi endpoints
         // $response in format array('msg' => 'The coin does not exist.', 'success' => true/false)
-        $success = $this->safe_value($response, 'success', true);
+        $success = $this->safe_bool($response, 'success', true);
         if (!$success) {
             $messageInner = $this->safe_string($response, 'msg');
             $parsedMessage = null;

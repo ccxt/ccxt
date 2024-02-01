@@ -383,7 +383,7 @@ class coinmetro extends Exchange {
         $quote = $this->safe_currency_code($quoteId);
         $basePrecisionAndLimits = $this->parse_market_precision_and_limits($baseId);
         $quotePrecisionAndLimits = $this->parse_market_precision_and_limits($quoteId);
-        $margin = $this->safe_value($market, 'margin', false);
+        $margin = $this->safe_bool($market, 'margin', false);
         $tradingFees = $this->safe_value($this->fees, 'trading', array());
         return $this->safe_market_structure(array(
             'id' => $id,
@@ -1354,7 +1354,7 @@ class coinmetro extends Exchange {
             );
             $marginMode = null;
             list($params, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
-            $isMargin = $this->safe_value($params, 'margin', false);
+            $isMargin = $this->safe_bool($params, 'margin', false);
             $params = $this->omit($params, 'margin');
             $response = null;
             if ($isMargin || ($marginMode !== null)) {

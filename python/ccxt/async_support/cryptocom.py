@@ -1018,7 +1018,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 request['time_in_force'] = 'FILL_OR_KILL'
             else:
                 request['time_in_force'] = timeInForce
-        postOnly = self.safe_value(params, 'postOnly', False)
+        postOnly = self.safe_bool(params, 'postOnly', False)
         if (postOnly) or (timeInForce == 'PO'):
             request['exec_inst'] = ['POST_ONLY']
             request['time_in_force'] = 'GOOD_TILL_CANCEL'
@@ -1204,7 +1204,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 request['time_in_force'] = 'FILL_OR_KILL'
             else:
                 request['time_in_force'] = timeInForce
-        postOnly = self.safe_value(params, 'postOnly', False)
+        postOnly = self.safe_bool(params, 'postOnly', False)
         if (postOnly) or (timeInForce == 'PO'):
             request['exec_inst'] = ['POST_ONLY']
             request['time_in_force'] = 'GOOD_TILL_CANCEL'
@@ -2091,7 +2091,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :returns Array: the marginMode in lowercase
         """
         defaultType = self.safe_string(self.options, 'defaultType')
-        isMargin = self.safe_value(params, 'margin', False)
+        isMargin = self.safe_bool(params, 'margin', False)
         params = self.omit(params, 'margin')
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params(methodName, params)

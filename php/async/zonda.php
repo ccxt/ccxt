@@ -1448,7 +1448,7 @@ class zonda extends Exchange {
             //     }
             //
             $id = $this->safe_string_2($response, 'offerId', 'stopOfferId');
-            $completed = $this->safe_value($response, 'completed', false);
+            $completed = $this->safe_bool($response, 'completed', false);
             $status = $completed ? 'closed' : 'open';
             $transactions = $this->safe_value($response, 'transactions');
             return $this->safe_order(array(
@@ -1513,7 +1513,7 @@ class zonda extends Exchange {
             'EUR' => true,
             'PLN' => true,
         );
-        return $this->safe_value($fiatCurrencies, $currency, false);
+        return $this->safe_bool($fiatCurrencies, $currency, false);
     }
 
     public function parse_deposit_address($depositAddress, ?array $currency = null) {
@@ -1653,7 +1653,7 @@ class zonda extends Exchange {
             //
             $transfer = $this->parse_transfer($response, $currency);
             $transferOptions = $this->safe_value($this->options, 'transfer', array());
-            $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
+            $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
             if ($fillResponseFromRequest) {
                 $transfer['amount'] = $amount;
             }

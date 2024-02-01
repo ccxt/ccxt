@@ -209,6 +209,13 @@ class coinbase extends Exchange {
                             'brokerage/best_bid_ask',
                             'brokerage/convert/trade/{trade_id}',
                             'brokerage/time',
+                            'brokerage/cfm/balance_summary',
+                            'brokerage/cfm/positions',
+                            'brokerage/cfm/positions/{product_id}',
+                            'brokerage/cfm/sweeps',
+                            'brokerage/intx/portfolio/{portfolio_uuid}',
+                            'brokerage/intx/positions/{portfolio_uuid}',
+                            'brokerage/intx/positions/{portfolio_uuid}/{symbol}',
                         ),
                         'post' => array(
                             'brokerage/orders',
@@ -219,12 +226,15 @@ class coinbase extends Exchange {
                             'brokerage/portfolios/move_funds',
                             'brokerage/convert/quote',
                             'brokerage/convert/trade/{trade_id}',
+                            'brokerage/cfm/sweeps/schedule',
+                            'brokerage/intx/allocate',
                         ),
                         'put' => array(
                             'brokerage/portfolios/{portfolio_uuid}',
                         ),
                         'delete' => array(
                             'brokerage/portfolios/{portfolio_uuid}',
+                            'brokerage/cfm/sweeps',
                         ),
                     ),
                 ),
@@ -1728,7 +1738,7 @@ class coinbase extends Exchange {
                 'limit' => 250,
             );
             $response = null;
-            $isV3 = $this->safe_value($params, 'v3', false);
+            $isV3 = $this->safe_bool($params, 'v3', false);
             $params = $this->omit($params, 'v3');
             $method = $this->safe_string($this->options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts');
             if (($isV3) || ($method === 'v3PrivateGetBrokerageAccounts')) {

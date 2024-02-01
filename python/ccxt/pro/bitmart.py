@@ -144,7 +144,7 @@ class bitmart(ccxt.async_support.bitmart):
         if subscribeHash in client.subscriptions:
             return
         options = self.safe_value(self.options, 'watchBalance')
-        snapshot = self.safe_value(options, 'fetchBalanceSnapshot', True)
+        snapshot = self.safe_bool(options, 'fetchBalanceSnapshot', True)
         if snapshot:
             messageHash = type + ':' + 'fetchBalanceSnapshot'
             if not (messageHash in client.futures):

@@ -152,7 +152,7 @@ class bitmart extends \ccxt\async\bitmart {
             return;
         }
         $options = $this->safe_value($this->options, 'watchBalance');
-        $snapshot = $this->safe_value($options, 'fetchBalanceSnapshot', true);
+        $snapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', true);
         if ($snapshot) {
             $messageHash = $type . ':' . 'fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {

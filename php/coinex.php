@@ -3250,7 +3250,7 @@ class coinex extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $depositAddress = $this->parse_deposit_address($data, $currency);
         $options = $this->safe_value($this->options, 'fetchDepositAddress', array());
-        $fillResponseFromRequest = $this->safe_value($options, 'fillResponseFromRequest', true);
+        $fillResponseFromRequest = $this->safe_bool($options, 'fillResponseFromRequest', true);
         if ($fillResponseFromRequest) {
             $depositAddress['network'] = $this->safe_network_code($network, $currency);
         }
@@ -5258,7 +5258,7 @@ class coinex extends Exchange {
          * @return {Array} the $marginMode in lowercase
          */
         $defaultType = $this->safe_string($this->options, 'defaultType');
-        $isMargin = $this->safe_value($params, 'margin', false);
+        $isMargin = $this->safe_bool($params, 'margin', false);
         $marginMode = null;
         list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
         if ($marginMode === null) {
