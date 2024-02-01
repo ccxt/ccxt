@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/hyperliquid.js';
-import { ExchangeError, ArgumentsRequired, NotSupported } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, ROUND } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -167,6 +167,15 @@ export default class hyperliquid extends Exchange {
                 'exact': {
                 },
                 'broad': {
+                    'Price must be divisible by tick size.': InvalidOrder,
+                    'Order must have minimum value of $10': InvalidOrder,
+                    'Insufficient margin to place order.': InvalidOrder,
+                    'Reduce only order would increase position.': InvalidOrder,
+                    'Post only order would have immediately matched,': InvalidOrder,
+                    'Order could not immediately match against any resting orders.': InvalidOrder,
+                    'Invalid TP/SL price.': InvalidOrder,
+                    'No liquidity available for market order.': InvalidOrder,
+                    'Order was never placed, already canceled, or filled.': OrderNotFound,
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -177,10 +186,6 @@ export default class hyperliquid extends Exchange {
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
             },
         });
-    }
-
-    test (params = {}) {
-        return this.ethAbiEncode ([ 'uint256', 'uint256' ], [ 1, 2 ]);
     }
 
     setSandboxMode (enabled) {
