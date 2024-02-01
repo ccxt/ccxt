@@ -85,7 +85,7 @@
                   "LTC/USDT:USDT",
                   "market",
                   "buy",
-                  null,
+                  0,
                   null,
                   {
                     "cost": 15
