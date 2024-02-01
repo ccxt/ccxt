@@ -991,7 +991,7 @@ export default class kraken extends Exchange {
         if (since !== undefined) {
             // contrary to kraken's api documentation, the since parameter must be passed in nanoseconds
             // the adding of '000000' is copied from the fetchTrades function
-            request['since'] = since.toString () + '000000'; // expected to be in nanoseconds
+            request['since'] = this.numberToString (since) + '000000'; // expected to be in nanoseconds
         }
         const response = await this.publicGetOHLC (this.extend (request, params));
         //
