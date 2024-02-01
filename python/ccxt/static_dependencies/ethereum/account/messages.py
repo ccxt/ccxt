@@ -14,7 +14,7 @@ from ..typing import (
 from ..utils.curried import (
     ValidationError,
 )
-from hexbytes import (
+from ..hexbytes import (
     HexBytes,
 )
 
