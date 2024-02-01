@@ -1077,6 +1077,139 @@
           ]
         ]
       }
+    ],
+    "fetchOrderBook": [
+      {
+        "description": "swap orderbook",
+        "method": "fetchOrderBook",
+        "input": [
+          "BTC/USDT:USDT",
+          2
+        ],
+        "httpResponse": {
+          "retCode": "0",
+          "retMsg": "OK",
+          "result": {
+            "s": "BTCUSDT",
+            "b": [
+              [
+                "42544.7",
+                "172.404"
+              ],
+              [
+                "42544.5",
+                "88.856"
+              ]
+            ],
+            "a": [
+              [
+                "42548",
+                "108.998"
+              ],
+              [
+                "42548.2",
+                "75.008"
+              ]
+            ],
+            "ts": "1706803948569",
+            "u": "342690",
+            "seq": "429272667"
+          },
+          "retExtInfo": {},
+          "time": "1706803949068"
+        },
+        "parsedResponse": {
+          "symbol": "BTC/USDT:USDT",
+          "bids": [
+            [
+              42544.7,
+              172.404
+            ],
+            [
+              42544.5,
+              88.856
+            ]
+          ],
+          "asks": [
+            [
+              42548,
+              108.998
+            ],
+            [
+              42548.2,
+              75.008
+            ]
+          ],
+          "timestamp": 1706803948569,
+          "datetime": "2024-02-01T16:12:28.569Z",
+          "nonce": null
+        }
+      },
+      {
+        "description": "Spot orderbook",
+        "method": "fetchOrderBook",
+        "input": [
+          "BTC/USDT",
+          2
+        ],
+        "httpResponse": {
+          "retCode": "0",
+          "retMsg": "OK",
+          "result": {
+            "s": "BTCUSDT",
+            "a": [
+              [
+                "29971.81",
+                "0.001161"
+              ],
+              [
+                "29988.93",
+                "0.112648"
+              ]
+            ],
+            "b": [
+              [
+                "29861",
+                "0.00101"
+              ],
+              [
+                "29829.3",
+                "0.000667"
+              ]
+            ],
+            "ts": "1706803989954",
+            "u": "4313234"
+          },
+          "retExtInfo": {},
+          "time": "1706803989955"
+        },
+        "parsedResponse": {
+          "symbol": "BTC/USDT",
+          "bids": [
+            [
+              29861,
+              0.00101
+            ],
+            [
+              29829.3,
+              0.000667
+            ]
+          ],
+          "asks": [
+            [
+              29971.81,
+              0.001161
+            ],
+            [
+              29988.93,
+              0.112648
+            ]
+          ],
+          "timestamp": 1706803989954,
+          "datetime": "2024-02-01T16:13:09.954Z",
+          "nonce": null
+        }
+      }
     ]
   }
 }
