@@ -7,7 +7,7 @@ const JS_PATH = './js/src/abstract/';
 const TS_PATH = './ts/src/abstract/';
 const PHP_PATH = './php/abstract/'
 const ASYNC_PHP_PATH = './php/async/abstract/'
-const CSHARP_PATH = './c#/ccxt/api/';
+const CSHARP_PATH = './cs/ccxt/api/';
 const PY_PATH = './python/ccxt/abstract/'
 const IDEN = '    ';
 

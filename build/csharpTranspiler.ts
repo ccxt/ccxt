@@ -33,18 +33,18 @@ if (platform === 'win32') {
     }
 }
 
-const GLOBAL_WRAPPER_FILE = './c#/ccxt/base/Exchange.Wrappers.cs';
-const EXCHANGE_WRAPPER_FOLDER = './c#/ccxt/wrappers/'
-const EXCHANGE_WS_WRAPPER_FOLDER = './c#/ccxt/exchanges/pro/wrappers/'
-const ERRORS_FILE = './c#/ccxt/base/Exchange.Errors.cs';
-const BASE_METHODS_FILE = './c#/ccxt/base/Exchange.BaseMethods.cs';
-const EXCHANGES_FOLDER = './c#/ccxt/exchanges/';
-const EXCHANGES_WS_FOLDER = './c#/ccxt/exchanges/pro/';
-const GENERATED_TESTS_FOLDER = './c#/tests/Generated/Exchange/';
-const BASE_TESTS_FOLDER = './c#/tests/Generated/Base';
-const BASE_TESTS_FILE =  './c#/tests/Generated/TestMethods.cs';
-const EXCHANGE_BASE_FOLDER = './c#/tests/Generated/Exchange/Base/';
-const EXCHANGE_GENERATED_FOLDER = './c#/tests/Generated/Exchange/';
+const GLOBAL_WRAPPER_FILE = './cs/ccxt/base/Exchange.Wrappers.cs';
+const EXCHANGE_WRAPPER_FOLDER = './cs/ccxt/wrappers/'
+const EXCHANGE_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/pro/wrappers/'
+const ERRORS_FILE = './cs/ccxt/base/Exchange.Errors.cs';
+const BASE_METHODS_FILE = './cs/ccxt/base/Exchange.BaseMethods.cs';
+const EXCHANGES_FOLDER = './cs/ccxt/exchanges/';
+const EXCHANGES_WS_FOLDER = './cs/ccxt/exchanges/pro/';
+const GENERATED_TESTS_FOLDER = './cs/tests/Generated/Exchange/';
+const BASE_TESTS_FOLDER = './cs/tests/Generated/Base';
+const BASE_TESTS_FILE =  './cs/tests/Generated/TestMethods.cs';
+const EXCHANGE_BASE_FOLDER = './cs/tests/Generated/Exchange/Base/';
+const EXCHANGE_GENERATED_FOLDER = './cs/tests/Generated/Exchange/';
 const EXAMPLES_INPUT_FOLDER = './examples/ts/';
 const EXAMPLES_OUTPUT_FOLDER = './examples/c#/examples/';
 const csharpComments ={};
