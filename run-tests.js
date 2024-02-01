@@ -276,7 +276,7 @@ const testExchange = async (exchange) => {
 
         if (!skipSettings[exchange] || !skipSettings[exchange].skipCSharp) {
             allTestsWithoutTs.push (
-                { language: 'C#',             key: '--csharp',        exec: ['dotnet', 'run', '--project', 'c#/tests/tests.csproj',               ...args] },
+                { language: 'C#',             key: '--csharp',        exec: ['dotnet', 'run', '--project', 'cs/tests/tests.csproj',               ...args] },
             )
         }
         // if it's not WS tests, then add sync versions to tests queue

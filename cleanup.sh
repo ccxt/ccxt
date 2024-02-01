@@ -4,9 +4,9 @@ git checkout HEAD package-lock.json
 git checkout HEAD yarn.lock
 git checkout HEAD README.md
 git checkout HEAD js
-git checkout HEAD c#/ccxt/api
-git checkout HEAD c#/ccxt/exchanges
-git checkout HEAD c#/tests/Generated
+git checkout HEAD cs/ccxt/api
+git checkout HEAD cs/ccxt/exchanges
+git checkout HEAD cs/tests/Generated
 git checkout HEAD ts/ccxt.ts
 git checkout HEAD ts/src/abstract
 git checkout HEAD python

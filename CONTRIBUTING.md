@@ -280,11 +280,11 @@ These PHP base classes and files are not transpiled:
 
 These files containing derived exchange classes are transpiled from TS into C#:
 
-- `ts/src/[_a-z].ts` → `c#/src/exchanges/[_a-z].cs`
+- `ts/src/[_a-z].ts` → `cs/src/exchanges/[_a-z].cs`
 
 These C# base classes and files are not transpiled:
 
-- `c#/base/*`
+- `cs/base/*`
 
 #### Typescript
 
