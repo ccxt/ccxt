@@ -1163,12 +1163,8 @@
           {
             "description": "spot trading fees",
             "method": "fetchTradingFees",
-            "url": "https://api.bitget.com/api/v2/spot/public/symbols?symbol=BTCUSDT",
-            "input": [
-              {
-                "symbol": "BTCUSDT"
-              }
-            ]
+            "url": "https://api.bitget.com/api/v2/spot/public/symbols",
+            "input": []
           }
         ],
         "fetchLedger": [
