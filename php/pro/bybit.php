@@ -1366,8 +1366,8 @@ class bybit extends \ccxt\async\bybit {
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('watchBalance', null, $params);
             $unified = Async\await($this->isUnifiedEnabled ());
-            $isUnifiedMargin = $this->safe_value($unified, 0, false);
-            $isUnifiedAccount = $this->safe_value($unified, 1, false);
+            $isUnifiedMargin = $this->safe_bool($unified, 0, false);
+            $isUnifiedAccount = $this->safe_bool($unified, 1, false);
             $url = $this->get_url_by_market_type(null, true, $method, $params);
             Async\await($this->authenticate($url));
             $topicByMarket = array(

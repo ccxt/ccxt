@@ -717,7 +717,7 @@ class cex extends cex$1 {
             order = this.parseWsOrderUpdate(data, market);
         }
         order['remaining'] = remains;
-        const canceled = this.safeValue(data, 'cancel', false);
+        const canceled = this.safeBool(data, 'cancel', false);
         if (canceled) {
             order['status'] = 'canceled';
         }
@@ -806,7 +806,7 @@ class cex extends cex$1 {
         if (isTransaction) {
             timestamp = this.parse8601(time);
         }
-        const canceled = this.safeValue(order, 'cancel', false);
+        const canceled = this.safeBool(order, 'cancel', false);
         let status = 'open';
         if (canceled) {
             status = 'canceled';

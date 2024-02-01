@@ -546,7 +546,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         volume = self.safe_string(ticker, 'vol24h')
         baseVolume = None
         quoteVolume = None
-        isIndex = self.safe_value(market, 'index', False)
+        isIndex = self.safe_bool(market, 'index', False)
         if not isIndex:
             if market['linear']:
                 baseVolume = volume

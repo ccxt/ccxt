@@ -1345,8 +1345,8 @@ export default class bybit extends bybitRest {
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('watchBalance', undefined, params);
         const unified = await this.isUnifiedEnabled();
-        const isUnifiedMargin = this.safeValue(unified, 0, false);
-        const isUnifiedAccount = this.safeValue(unified, 1, false);
+        const isUnifiedMargin = this.safeBool(unified, 0, false);
+        const isUnifiedAccount = this.safeBool(unified, 1, false);
         const url = this.getUrlByMarketType(undefined, true, method, params);
         await this.authenticate(url);
         const topicByMarket = {

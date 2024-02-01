@@ -815,7 +815,7 @@ class okx(ccxt.async_support.okx):
         # By default, receive order updates from any instrument type
         type = None
         type, params = self.handle_option_and_params(params, 'watchMyTrades', 'type', 'ANY')
-        isStop = self.safe_value(params, 'stop', False)
+        isStop = self.safe_bool(params, 'stop', False)
         params = self.omit(params, ['stop'])
         await self.load_markets()
         await self.authenticate({'access': 'business' if isStop else 'private'})

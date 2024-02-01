@@ -704,7 +704,7 @@ class hitbtc(Exchange, ImplicitAPI):
             expiry = self.safe_integer(market, 'expiry')
             contract = (marketType == 'futures')
             spot = (marketType == 'spot')
-            marginTrading = self.safe_value(market, 'margin_trading', False)
+            marginTrading = self.safe_bool(market, 'margin_trading', False)
             margin = spot and marginTrading
             future = (expiry is not None)
             swap = (contract and not future)
@@ -833,9 +833,9 @@ class hitbtc(Exchange, ImplicitAPI):
             entry = response[currencyId]
             name = self.safe_string(entry, 'full_name')
             precision = self.safe_number(entry, 'precision_transfer')
-            payinEnabled = self.safe_value(entry, 'payin_enabled', False)
-            payoutEnabled = self.safe_value(entry, 'payout_enabled', False)
-            transferEnabled = self.safe_value(entry, 'transfer_enabled', False)
+            payinEnabled = self.safe_bool(entry, 'payin_enabled', False)
+            payoutEnabled = self.safe_bool(entry, 'payout_enabled', False)
+            transferEnabled = self.safe_bool(entry, 'transfer_enabled', False)
             active = payinEnabled and payoutEnabled and transferEnabled
             rawNetworks = self.safe_value(entry, 'networks', [])
             networks = {}
@@ -848,8 +848,8 @@ class hitbtc(Exchange, ImplicitAPI):
                 network = self.safe_network(networkId)
                 fee = self.safe_number(rawNetwork, 'payout_fee')
                 networkPrecision = self.safe_number(rawNetwork, 'precision_payout')
-                payinEnabledNetwork = self.safe_value(entry, 'payin_enabled', False)
-                payoutEnabledNetwork = self.safe_value(entry, 'payout_enabled', False)
+                payinEnabledNetwork = self.safe_bool(entry, 'payin_enabled', False)
+                payoutEnabledNetwork = self.safe_bool(entry, 'payout_enabled', False)
                 activeNetwork = payinEnabledNetwork and payoutEnabledNetwork
                 if payinEnabledNetwork and not depositEnabled:
                     depositEnabled = True
@@ -2511,7 +2511,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 request['currency'] = parsedNetwork
             params = self.omit(params, 'network')
         withdrawOptions = self.safe_value(self.options, 'withdraw', {})
-        includeFee = self.safe_value(withdrawOptions, 'includeFee', False)
+        includeFee = self.safe_bool(withdrawOptions, 'includeFee', False)
         if includeFee:
             request['include_fee'] = True
         response = self.privatePostWalletCryptoWithdraw(self.extend(request, params))
@@ -2995,7 +2995,7 @@ class hitbtc(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         leverage = self.safe_string(params, 'leverage')
-        if market['type'] == 'swap':
+        if market['swap']:
             if leverage is None:
                 raise ArgumentsRequired(self.id + ' modifyMarginHelper() requires a leverage parameter for swap markets')
         if amount != 0:
@@ -3014,17 +3014,13 @@ class hitbtc(Exchange, ImplicitAPI):
         marginMode = None
         marketType, params = self.handle_market_type_and_params('modifyMarginHelper', market, params)
         marginMode, params = self.handle_margin_mode_and_params('modifyMarginHelper', params)
-        params = self.omit(params, ['marginMode', 'margin'])
         response = None
-        if marginMode is not None:
+        if marketType == 'swap':
+            response = self.privatePutFuturesAccountIsolatedSymbol(self.extend(request, params))
+        elif (marketType == 'margin') or (marketType == 'spot') or (marginMode == 'isolated'):
             response = self.privatePutMarginAccountIsolatedSymbol(self.extend(request, params))
         else:
-            if marketType == 'swap':
-                response = self.privatePutFuturesAccountIsolatedSymbol(self.extend(request, params))
-            elif marketType == 'margin':
-                response = self.privatePutMarginAccountIsolatedSymbol(self.extend(request, params))
-            else:
-                raise NotSupported(self.id + ' modifyMarginHelper() not support self market type')
+            raise NotSupported(self.id + ' modifyMarginHelper() not support self market type')
         #
         #     {
         #         "symbol": "BTCUSDT_PERP",
@@ -3309,7 +3305,7 @@ class hitbtc(Exchange, ImplicitAPI):
         :returns Array: the marginMode in lowercase
         """
         defaultType = self.safe_string(self.options, 'defaultType')
-        isMargin = self.safe_value(params, 'margin', False)
+        isMargin = self.safe_bool(params, 'margin', False)
         marginMode = None
         marginMode, params = super(hitbtc, self).handle_margin_mode_and_params(methodName, params, defaultValue)
         if marginMode is None:

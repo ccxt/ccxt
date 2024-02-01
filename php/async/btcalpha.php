@@ -700,7 +700,7 @@ class btcalpha extends Exchange {
         $marketId = $this->safe_string($order, 'pair');
         $market = $this->safe_market($marketId, $market, '_');
         $symbol = $market['symbol'];
-        $success = $this->safe_value($order, 'success', false);
+        $success = $this->safe_bool($order, 'success', false);
         $timestamp = null;
         if ($success) {
             $timestamp = $this->safe_timestamp($order, 'date');

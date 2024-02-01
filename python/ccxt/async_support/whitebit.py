@@ -429,8 +429,8 @@ class whitebit(Exchange, ImplicitAPI):
             currency = response[id]
             # breaks down in Python due to utf8 encoding issues on the exchange side
             # name = self.safe_string(currency, 'name')
-            canDeposit = self.safe_value(currency, 'can_deposit', True)
-            canWithdraw = self.safe_value(currency, 'can_withdraw', True)
+            canDeposit = self.safe_bool(currency, 'can_deposit', True)
+            canWithdraw = self.safe_bool(currency, 'can_withdraw', True)
             active = canDeposit and canWithdraw
             code = self.safe_currency_code(id)
             result[code] = {

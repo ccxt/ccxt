@@ -537,7 +537,7 @@ class krakenfutures extends Exchange {
         $volume = $this->safe_string($ticker, 'vol24h');
         $baseVolume = null;
         $quoteVolume = null;
-        $isIndex = $this->safe_value($market, 'index', false);
+        $isIndex = $this->safe_bool($market, 'index', false);
         if (!$isIndex) {
             if ($market['linear']) {
                 $baseVolume = $volume;

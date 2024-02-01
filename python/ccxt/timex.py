@@ -701,7 +701,7 @@ class timex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         uppercaseSide = side.upper()
         uppercaseType = type.upper()
-        postOnly = self.safe_value(params, 'postOnly', False)
+        postOnly = self.safe_bool(params, 'postOnly', False)
         if postOnly:
             uppercaseType = 'POST_ONLY'
             params = self.omit(params, ['postOnly'])

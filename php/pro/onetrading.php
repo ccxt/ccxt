@@ -1079,7 +1079,7 @@ class onetrading extends \ccxt\async\onetrading {
                 $subscription = $this->safe_value($client->subscriptions, $subscriptionHash);
                 if ($subscription !== null) {
                     $ohlcvMarket = $this->safe_value($subscription, $marketId, array());
-                    $marketSubscribed = $this->safe_value($ohlcvMarket, $timeframe, false);
+                    $marketSubscribed = $this->safe_bool($ohlcvMarket, $timeframe, false);
                     if (!$marketSubscribed) {
                         $type = 'UPDATE_SUBSCRIPTION';
                         $client->subscriptions[$subscriptionHash] = null;
@@ -1329,7 +1329,7 @@ class onetrading extends \ccxt\async\onetrading {
                 if ($subscription !== null) {
                     for ($i = 0; $i < count($marketIds); $i++) {
                         $marketId = $marketIds[$i];
-                        $marketSubscribed = $this->safe_value($subscription, $marketId, false);
+                        $marketSubscribed = $this->safe_bool($subscription, $marketId, false);
                         if (!$marketSubscribed) {
                             $type = 'UPDATE_SUBSCRIPTION';
                             $client->subscriptions[$subscriptionHash] = null;

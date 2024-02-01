@@ -830,7 +830,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
                 request['price'] = self.price_to_precision(symbol, price)
             if timeInForce is not None:
                 request['timeInForce'] = timeInForce
-        postOnly = self.safe_value(params, 'postOnly', False)
+        postOnly = self.safe_bool(params, 'postOnly', False)
         hidden = self.safe_value(params, 'hidden')
         if postOnly and (hidden is not None):
             raise BadRequest(self.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter')
@@ -1475,8 +1475,8 @@ class poloniexfutures(Exchange, ImplicitAPI):
         # precision reported by their api is 8 d.p.
         # average = Precise.string_div(rawCost, Precise.string_mul(filled, market['contractSize']))
         # bool
-        isActive = self.safe_value(order, 'isActive', False)
-        cancelExist = self.safe_value(order, 'cancelExist', False)
+        isActive = self.safe_bool(order, 'isActive', False)
+        cancelExist = self.safe_bool(order, 'cancelExist', False)
         status = 'open' if isActive else 'closed'
         id = self.safe_string(order, 'id')
         if 'cancelledOrderIds' in order:

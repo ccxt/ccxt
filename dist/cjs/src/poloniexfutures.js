@@ -861,7 +861,7 @@ class poloniexfutures extends poloniexfutures$1 {
                 request['timeInForce'] = timeInForce;
             }
         }
-        const postOnly = this.safeValue(params, 'postOnly', false);
+        const postOnly = this.safeBool(params, 'postOnly', false);
         const hidden = this.safeValue(params, 'hidden');
         if (postOnly && (hidden !== undefined)) {
             throw new errors.BadRequest(this.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter');
@@ -1552,8 +1552,8 @@ class poloniexfutures extends poloniexfutures$1 {
         // precision reported by their api is 8 d.p.
         // const average = Precise.stringDiv (rawCost, Precise.stringMul (filled, market['contractSize']));
         // bool
-        const isActive = this.safeValue(order, 'isActive', false);
-        const cancelExist = this.safeValue(order, 'cancelExist', false);
+        const isActive = this.safeBool(order, 'isActive', false);
+        const cancelExist = this.safeBool(order, 'cancelExist', false);
         const status = isActive ? 'open' : 'closed';
         let id = this.safeString(order, 'id');
         if ('cancelledOrderIds' in order) {

@@ -225,7 +225,7 @@ class alpaca(ccxt.async_support.alpaca):
         symbol = self.safe_symbol(marketId)
         datetime = self.safe_string(message, 't')
         timestamp = self.parse8601(datetime)
-        isSnapshot = self.safe_value(message, 'r', False)
+        isSnapshot = self.safe_bool(message, 'r', False)
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
             orderbook = self.order_book()

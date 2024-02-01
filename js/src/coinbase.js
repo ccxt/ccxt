@@ -1686,7 +1686,7 @@ export default class coinbase extends Exchange {
             'limit': 250,
         };
         let response = undefined;
-        const isV3 = this.safeValue(params, 'v3', false);
+        const isV3 = this.safeBool(params, 'v3', false);
         params = this.omit(params, 'v3');
         const method = this.safeString(this.options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts');
         if ((isV3) || (method === 'v3PrivateGetBrokerageAccounts')) {

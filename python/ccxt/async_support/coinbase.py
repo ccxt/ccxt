@@ -1627,7 +1627,7 @@ class coinbase(Exchange, ImplicitAPI):
             'limit': 250,
         }
         response = None
-        isV3 = self.safe_value(params, 'v3', False)
+        isV3 = self.safe_bool(params, 'v3', False)
         params = self.omit(params, 'v3')
         method = self.safe_string(self.options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts')
         if (isV3) or (method == 'v3PrivateGetBrokerageAccounts'):

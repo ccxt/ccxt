@@ -2159,7 +2159,8 @@ class okx extends Exchange {
                 if ($since < $historyBorder) {
                     $defaultType = 'HistoryCandles';
                 }
-                $request['before'] = $since;
+                $startTime = max ($since - 1, 0);
+                $request['before'] = $startTime;
                 $request['after'] = $this->sum($since, $durationInMilliseconds * $limit);
             }
             $until = $this->safe_integer($params, 'until');
@@ -3101,7 +3102,7 @@ class okx extends Exchange {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
             }
             $stop = $this->safe_value_2($params, 'stop', 'trigger');
-            $trailing = $this->safe_value($params, 'trailing', false);
+            $trailing = $this->safe_bool($params, 'trailing', false);
             if ($stop || $trailing) {
                 $orderInner = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
                 return $this->safe_value($orderInner, 0);
@@ -3167,7 +3168,7 @@ class okx extends Exchange {
             $clientOrderIds = $this->parse_ids($this->safe_value_2($params, 'clOrdId', 'clientOrderId'));
             $algoIds = $this->parse_ids($this->safe_value($params, 'algoId'));
             $stop = $this->safe_value_2($params, 'stop', 'trigger');
-            $trailing = $this->safe_value($params, 'trailing', false);
+            $trailing = $this->safe_bool($params, 'trailing', false);
             if ($stop || $trailing) {
                 $method = 'privatePostTradeCancelAlgos';
             }
@@ -3660,7 +3661,7 @@ class okx extends Exchange {
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $ordType = $this->safe_string($params, 'ordType');
             $stop = $this->safe_value_2($params, 'stop', 'trigger');
-            $trailing = $this->safe_value($params, 'trailing', false);
+            $trailing = $this->safe_bool($params, 'trailing', false);
             if ($trailing || $stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
                 $method = 'privateGetTradeOrdersAlgoPending';
             }
@@ -3828,7 +3829,7 @@ class okx extends Exchange {
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $ordType = $this->safe_string($params, 'ordType');
             $stop = $this->safe_value_2($params, 'stop', 'trigger');
-            $trailing = $this->safe_value($params, 'trailing', false);
+            $trailing = $this->safe_bool($params, 'trailing', false);
             if ($trailing) {
                 $method = 'privateGetTradeOrdersAlgoHistory';
                 $request['ordType'] = 'move_order_stop';
@@ -4020,7 +4021,7 @@ class okx extends Exchange {
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $ordType = $this->safe_string($params, 'ordType');
             $stop = $this->safe_value_2($params, 'stop', 'trigger');
-            $trailing = $this->safe_value($params, 'trailing', false);
+            $trailing = $this->safe_bool($params, 'trailing', false);
             if ($trailing || $stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
                 $method = 'privateGetTradeOrdersAlgoHistory';
                 $request['state'] = 'effective';

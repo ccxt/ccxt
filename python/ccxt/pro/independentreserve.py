@@ -179,7 +179,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         orderBook = self.safe_value(message, 'Data', {})
         messageHash = 'orderbook:' + symbol + ':' + depth
         subscription = self.safe_value(client.subscriptions, messageHash, {})
-        receivedSnapshot = self.safe_value(subscription, 'receivedSnapshot', False)
+        receivedSnapshot = self.safe_bool(subscription, 'receivedSnapshot', False)
         timestamp = self.safe_integer(message, 'Time')
         storedOrderBook = self.safe_value(self.orderbooks, symbol)
         if storedOrderBook is None:

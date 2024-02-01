@@ -3740,7 +3740,7 @@ class htx(Exchange, ImplicitAPI):
         response = None
         stop = self.safe_value(params, 'stop')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
-        trailing = self.safe_value(params, 'trailing', False)
+        trailing = self.safe_bool(params, 'trailing', False)
         params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing'])
         if stop or stopLossTakeProfit or trailing:
             if limit is not None:
@@ -4064,7 +4064,7 @@ class htx(Exchange, ImplicitAPI):
             request['contract_code'] = market['id']
             stop = self.safe_value(params, 'stop')
             stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
-            trailing = self.safe_value(params, 'trailing', False)
+            trailing = self.safe_bool(params, 'trailing', False)
             params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing'])
             if market['linear']:
                 marginMode = None
@@ -5296,7 +5296,7 @@ class htx(Exchange, ImplicitAPI):
                 request['contract_code'] = market['id']
             stop = self.safe_value(params, 'stop')
             stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
-            trailing = self.safe_value(params, 'trailing', False)
+            trailing = self.safe_bool(params, 'trailing', False)
             params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing'])
             if market['linear']:
                 marginMode = None
@@ -5555,7 +5555,7 @@ class htx(Exchange, ImplicitAPI):
             request['contract_code'] = market['id']
             stop = self.safe_value(params, 'stop')
             stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
-            trailing = self.safe_value(params, 'trailing', False)
+            trailing = self.safe_bool(params, 'trailing', False)
             params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing'])
             if market['linear']:
                 marginMode = None
@@ -5972,7 +5972,7 @@ class htx(Exchange, ImplicitAPI):
             request['chain'] = self.network_code_to_id(networkCode, code)
         amount = float(self.currency_to_precision(code, amount, networkCode))
         withdrawOptions = self.safe_value(self.options, 'withdraw', {})
-        if self.safe_value(withdrawOptions, 'includeFee', False):
+        if self.safe_bool(withdrawOptions, 'includeFee', False):
             fee = self.safe_number(params, 'fee')
             if fee is None:
                 currencies = self.fetch_currencies()

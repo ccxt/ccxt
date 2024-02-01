@@ -724,7 +724,7 @@ export default class timex extends Exchange {
         const market = this.market(symbol);
         const uppercaseSide = side.toUpperCase();
         let uppercaseType = type.toUpperCase();
-        const postOnly = this.safeValue(params, 'postOnly', false);
+        const postOnly = this.safeBool(params, 'postOnly', false);
         if (postOnly) {
             uppercaseType = 'POST_ONLY';
             params = this.omit(params, ['postOnly']);

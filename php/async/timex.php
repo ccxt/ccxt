@@ -739,7 +739,7 @@ class timex extends Exchange {
             $market = $this->market($symbol);
             $uppercaseSide = strtoupper($side);
             $uppercaseType = strtoupper($type);
-            $postOnly = $this->safe_value($params, 'postOnly', false);
+            $postOnly = $this->safe_bool($params, 'postOnly', false);
             if ($postOnly) {
                 $uppercaseType = 'POST_ONLY';
                 $params = $this->omit($params, array( 'postOnly' ));

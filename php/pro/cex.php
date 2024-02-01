@@ -744,7 +744,7 @@ class cex extends \ccxt\async\cex {
             $order = $this->parse_ws_order_update($data, $market);
         }
         $order['remaining'] = $remains;
-        $canceled = $this->safe_value($data, 'cancel', false);
+        $canceled = $this->safe_bool($data, 'cancel', false);
         if ($canceled) {
             $order['status'] = 'canceled';
         }
@@ -834,7 +834,7 @@ class cex extends \ccxt\async\cex {
         if ($isTransaction) {
             $timestamp = $this->parse8601($time);
         }
-        $canceled = $this->safe_value($order, 'cancel', false);
+        $canceled = $this->safe_bool($order, 'cancel', false);
         $status = 'open';
         if ($canceled) {
             $status = 'canceled';

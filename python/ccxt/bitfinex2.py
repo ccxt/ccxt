@@ -54,9 +54,13 @@ class bitfinex2(Exchange, ImplicitAPI):
                 'createLimitOrder': True,
                 'createMarketOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
+                'createTrailingAmountOrder': True,
+                'createTrailingPercentOrder': False,
+                'createTriggerOrder': True,
                 'editOrder': False,
                 'fetchBalance': True,
                 'fetchClosedOrder': True,
@@ -1446,85 +1450,71 @@ class bitfinex2(Exchange, ImplicitAPI):
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
-        Create an order on the exchange
+        create an order on the exchange
         :see: https://docs.bitfinex.com/reference/rest-auth-submit-order
-        :param str symbol: Unified CCXT market symbol
+        :param str symbol: unified CCXT market symbol
         :param str type: 'limit' or 'market'
         :param str side: 'buy' or 'sell'
         :param float amount: the amount of currency to trade
-        :param float [price]: price of order
-        :param dict [params]:  extra parameters specific to the exchange API endpoint
-        :param float [params.stopPrice]: The price at which a trigger order is triggered at
+        :param float [price]: price of the order
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.stopPrice]: the price that triggers a trigger order
         :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
-        :param bool params.postOnly:
-        :param bool [params.reduceOnly]: Ensures that the executed order does not flip the opened position.
+        :param boolean [params.postOnly]: set to True if you want to make a post only order
+        :param boolean [params.reduceOnly]: indicates that the order is to reduce the size of a position
         :param int [params.flags]: additional order parameters: 4096(Post Only), 1024(Reduce Only), 16384(OCO), 64(Hidden), 512(Close), 524288(No Var Rates)
         :param int [params.lev]: leverage for a derivative order, supported by derivative symbol orders only. The value should be between 1 and 100 inclusive.
-        :param str [params.price_traling]: The trailing price for a trailing stop order
-        :param str [params.price_aux_limit]: Order price for stop limit orders
+        :param str [params.price_aux_limit]: order price for stop limit orders
         :param str [params.price_oco_stop]: OCO stop price
+        :param str [params.trailingAmount]: *swap only* the quote amount to trail away from the current market price
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        # order types "limit" and "market" immediatley parsed "EXCHANGE LIMIT" and "EXCHANGE MARKET"
-        # note: same order types exist for margin orders without the EXCHANGE prefix
-        orderTypes = self.safe_value(self.options, 'orderTypes', {})
-        orderType = type.upper()
-        if market['spot']:
-            # although they claim that type needs to be 'exchange limit' or 'exchange market'
-            # in fact that's not the case for swap markets
-            orderType = self.safe_string_upper(orderTypes, type, type)
-        stopPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
-        timeInForce = self.safe_string(params, 'timeInForce')
-        postOnlyParam = self.safe_value(params, 'postOnly', False)
-        reduceOnly = self.safe_value(params, 'reduceOnly', False)
-        clientOrderId = self.safe_value_2(params, 'cid', 'clientOrderId')
-        params = self.omit(params, ['triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'price_aux_limit'])
         amountString = self.amount_to_precision(symbol, amount)
         amountString = amountString if (side == 'buy') else Precise.string_neg(amountString)
         request = {
-            # 'gid': 0123456789,  # int32,  optional group id for the order
-            # 'cid': 0123456789,  # int32 client order id
-            'type': orderType,
             'symbol': market['id'],
-            # 'price': self.number_to_string(price),
             'amount': amountString,
-            # 'flags': 0,  # int32, https://docs.bitfinex.com/v2/docs/flag-values
-            # 'lev': 10,  # leverage for a derivative orders, the value should be between 1 and 100 inclusive, optional, 10 by default
-            # 'price_trailing': self.number_to_string(priceTrailing),
-            # 'price_aux_limit': self.number_to_string(stopPrice),
-            # 'price_oco_stop': self.number_to_string(ocoStopPrice),
-            # 'tif': '2020-01-01 10:45:23',  # datetime for automatic order cancellation
-            # 'meta': {
-            #     'aff_code': 'AFF_CODE_HERE'
-            # },
         }
-        stopLimit = ((orderType == 'EXCHANGE STOP LIMIT') or ((orderType == 'EXCHANGE LIMIT') and (stopPrice is not None)))
-        exchangeStop = (orderType == 'EXCHANGE STOP')
-        exchangeMarket = (orderType == 'EXCHANGE MARKET')
-        stopMarket = (exchangeStop or (exchangeMarket and (stopPrice is not None)))
-        ioc = ((orderType == 'EXCHANGE IOC') or (timeInForce == 'IOC'))
-        fok = ((orderType == 'EXCHANGE FOK') or (timeInForce == 'FOK'))
+        stopPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
+        trailingAmount = self.safe_string(params, 'trailingAmount')
+        timeInForce = self.safe_string(params, 'timeInForce')
+        postOnlyParam = self.safe_bool(params, 'postOnly', False)
+        reduceOnly = self.safe_bool(params, 'reduceOnly', False)
+        clientOrderId = self.safe_value_2(params, 'cid', 'clientOrderId')
+        params = self.omit(params, ['triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId'])
+        orderType = type.upper()
+        if trailingAmount is not None:
+            orderType = 'TRAILING STOP'
+            request['price_trailing'] = trailingAmount
+        elif stopPrice is not None:
+            # request['price'] is taken for stop orders
+            request['price'] = self.price_to_precision(symbol, stopPrice)
+            if type == 'limit':
+                orderType = 'STOP LIMIT'
+                request['price_aux_limit'] = self.price_to_precision(symbol, price)
+            else:
+                orderType = 'STOP'
+        ioc = (timeInForce == 'IOC')
+        fok = (timeInForce == 'FOK')
         postOnly = (postOnlyParam or (timeInForce == 'PO'))
         if (ioc or fok) and (price is None):
             raise InvalidOrder(self.id + ' createOrder() requires a price argument with IOC and FOK orders')
-        if (ioc or fok) and exchangeMarket:
+        if (ioc or fok) and (type == 'market'):
             raise InvalidOrder(self.id + ' createOrder() does not allow market IOC and FOK orders')
-        if (orderType != 'MARKET') and (not exchangeMarket) and (not exchangeStop):
+        if (type != 'market') and (stopPrice is None):
             request['price'] = self.price_to_precision(symbol, price)
-        if stopLimit or stopMarket:
-            # request['price'] is taken for stop orders
-            request['price'] = self.price_to_precision(symbol, stopPrice)
-            if stopMarket:
-                request['type'] = 'EXCHANGE STOP'
-            elif stopLimit:
-                request['type'] = 'EXCHANGE STOP LIMIT'
-                request['price_aux_limit'] = self.price_to_precision(symbol, price)
         if ioc:
-            request['type'] = 'EXCHANGE IOC'
+            orderType = 'IOC'
         elif fok:
-            request['type'] = 'EXCHANGE FOK'
+            orderType = 'FOK'
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
+        if market['spot'] and (marginMode is None):
+            # The EXCHANGE prefix is only required for non margin spot markets
+            orderType = 'EXCHANGE ' + orderType
+        request['type'] = orderType
         # flag values may be summed to combine flags
         flags = 0
         if postOnly:
@@ -1535,7 +1525,6 @@ class bitfinex2(Exchange, ImplicitAPI):
             request['flags'] = flags
         if clientOrderId is not None:
             request['cid'] = clientOrderId
-            params = self.omit(params, ['cid', 'clientOrderId'])
         response = self.privatePostAuthWOrderSubmit(self.extend(request, params))
         #
         #      [
@@ -1589,8 +1578,8 @@ class bitfinex2(Exchange, ImplicitAPI):
             errorCode = response[5]
             errorText = response[7]
             raise ExchangeError(self.id + ' ' + response[6] + ': ' + errorText + '(#' + errorCode + ')')
-        orders = self.safe_value(response, 4, [])
-        order = self.safe_value(orders, 0)
+        orders = self.safe_list(response, 4, [])
+        order = self.safe_list(orders, 0)
         return self.parse_order(order, market)
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
@@ -2275,7 +2264,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         if tag is not None:
             request['payment_id'] = tag
         withdrawOptions = self.safe_value(self.options, 'withdraw', {})
-        includeFee = self.safe_value(withdrawOptions, 'includeFee', False)
+        includeFee = self.safe_bool(withdrawOptions, 'includeFee', False)
         if includeFee:
             request['fee_deduct'] = 1
         response = self.privatePostAuthWWithdraw(self.extend(request, params))

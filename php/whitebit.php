@@ -416,8 +416,8 @@ class whitebit extends Exchange {
             $currency = $response[$id];
             // breaks down in Python due to utf8 encoding issues on the exchange side
             // $name = $this->safe_string($currency, 'name');
-            $canDeposit = $this->safe_value($currency, 'can_deposit', true);
-            $canWithdraw = $this->safe_value($currency, 'can_withdraw', true);
+            $canDeposit = $this->safe_bool($currency, 'can_deposit', true);
+            $canWithdraw = $this->safe_bool($currency, 'can_withdraw', true);
             $active = $canDeposit && $canWithdraw;
             $code = $this->safe_currency_code($id);
             $result[$code] = array(

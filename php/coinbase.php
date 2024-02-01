@@ -1677,7 +1677,7 @@ class coinbase extends Exchange {
             'limit' => 250,
         );
         $response = null;
-        $isV3 = $this->safe_value($params, 'v3', false);
+        $isV3 = $this->safe_bool($params, 'v3', false);
         $params = $this->omit($params, 'v3');
         $method = $this->safe_string($this->options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts');
         if (($isV3) || ($method === 'v3PrivateGetBrokerageAccounts')) {
