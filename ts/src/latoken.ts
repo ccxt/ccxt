@@ -1260,7 +1260,7 @@ export default class latoken extends Exchange {
         return this.parseOrder (response);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name latoken#createOrder

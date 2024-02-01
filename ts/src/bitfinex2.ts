@@ -1598,7 +1598,7 @@ export default class bitfinex2 extends Exchange {
         return this.extend (request, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#createOrder

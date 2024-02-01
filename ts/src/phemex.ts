@@ -2435,7 +2435,7 @@ export default class phemex extends Exchange {
         return this.parseSpotOrder (order, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price:number = undefined, params = {}) {
         /**
          * @method
          * @name phemex#createOrder

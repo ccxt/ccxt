@@ -956,7 +956,7 @@ export default class bitso extends Exchange {
         return this.parseTrades (response['payload'], market, since, limit);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name bitso#createOrder

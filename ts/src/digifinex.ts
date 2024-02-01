@@ -1558,7 +1558,7 @@ export default class digifinex extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price:number = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#createOrder

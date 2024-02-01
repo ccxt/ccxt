@@ -1201,7 +1201,7 @@ export default class coinmetro extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name coinmetro#createOrder

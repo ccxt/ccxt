@@ -2118,7 +2118,7 @@ export default class coinex extends Exchange {
         return this.extend (request, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price:number = undefined, params = {}) {
         /**
          * @method
          * @name coinex#createOrder

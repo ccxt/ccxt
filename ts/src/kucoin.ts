@@ -1887,7 +1887,7 @@ export default class kucoin extends Exchange {
         return [ triggerPrice, stopLossPrice, takeProfitPrice ];
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#createOrder

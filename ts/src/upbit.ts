@@ -1032,7 +1032,7 @@ export default class upbit extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name upbit#createOrder

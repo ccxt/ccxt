@@ -948,7 +948,7 @@ export default class kuna extends Exchange {
         return this.parseBalance (data);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price:number = undefined, params = {}) {
         /**
          * @method
          * @name kuna#createOrder

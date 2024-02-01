@@ -1892,7 +1892,7 @@ export default class deribit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price:number = undefined, params = {}) {
         /**
          * @method
          * @name deribit#createOrder

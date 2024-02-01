@@ -1580,7 +1580,7 @@ export default class tokocrypto extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price:number = undefined, params = {}) {
         /**
          * @method
          * @name tokocrypto#createOrder

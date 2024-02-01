@@ -1346,7 +1346,7 @@ export default class zonda extends Exchange {
         return this.parseTrades (items, market, since, limit);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price:number = undefined, params = {}) {
         /**
          * @method
          * @name zonda#createOrder

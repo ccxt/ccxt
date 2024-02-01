@@ -1259,7 +1259,7 @@ export default class poloniex extends Exchange {
         return this.parseOrders (response, market, since, limit, extension);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#createOrder
