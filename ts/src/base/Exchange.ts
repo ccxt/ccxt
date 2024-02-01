@@ -1920,7 +1920,10 @@ export default class Exchange {
         if (tail && limit !== undefined) {
             return this.arraySlice (result, -limit);
         }
-        return this.filterByLimit (result, limit, key, sinceIsDefined);
+        // if the user provided a 'since' argument
+        // we want to limit the result starting from the 'since'
+        const shouldFilterFromStart = !tail && sinceIsDefined;
+        return this.filterByLimit (result, limit, key, shouldFilterFromStart);
     }
 
     filterByValueSinceLimit (array: object[], field: IndexType, value = undefined, since: Int = undefined, limit: Int = undefined, key = 'timestamp', tail = false): any {
