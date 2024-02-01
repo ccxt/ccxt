@@ -1407,7 +1407,7 @@ class bigone(Exchange, ImplicitAPI):
         requestSide = 'BID' if isBuy else 'ASK'
         uppercaseType = type.upper()
         isLimit = uppercaseType == 'LIMIT'
-        exchangeSpecificParam = self.safe_value(params, 'post_only', False)
+        exchangeSpecificParam = self.safe_bool(params, 'post_only', False)
         postOnly = None
         postOnly, params = self.handle_post_only((uppercaseType == 'MARKET'), exchangeSpecificParam, params)
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
@@ -1988,7 +1988,7 @@ class bigone(Exchange, ImplicitAPI):
         #
         transfer = self.parse_transfer(response, currency)
         transferOptions = self.safe_value(self.options, 'transfer', {})
-        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             transfer['fromAccount'] = fromAccount
             transfer['toAccount'] = toAccount

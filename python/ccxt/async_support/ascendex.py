@@ -622,7 +622,7 @@ class ascendex(Exchange, ImplicitAPI):
                 maxPrice = self.safe_number(priceFilter, 'maxPrice')
                 symbol = base + '/' + quote + ':' + settle
             fee = self.safe_number(market, 'commissionReserveRate')
-            marginTradable = self.safe_value(market, 'marginTradable', False)
+            marginTradable = self.safe_bool(market, 'marginTradable', False)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -806,7 +806,7 @@ class ascendex(Exchange, ImplicitAPI):
         marginMode = None
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
         marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
-        isMargin = self.safe_value(params, 'margin', False)
+        isMargin = self.safe_bool(params, 'margin', False)
         isCross = marginMode == 'cross'
         marketType = 'margin' if (isMargin or isCross) else marketType
         params = self.omit(params, 'margin')
@@ -1142,7 +1142,7 @@ class ascendex(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(trade, 'ts')
         priceString = self.safe_string_2(trade, 'price', 'p')
         amountString = self.safe_string(trade, 'q')
-        buyerIsMaker = self.safe_value(trade, 'bm', False)
+        buyerIsMaker = self.safe_bool(trade, 'bm', False)
         side = 'sell' if buyerIsMaker else 'buy'
         market = self.safe_market(None, market)
         return self.safe_trade({
@@ -1468,7 +1468,7 @@ class ascendex(Exchange, ImplicitAPI):
         isLimitOrder = ((type == 'limit') or (type == 'stop_limit'))
         timeInForce = self.safe_string(params, 'timeInForce')
         postOnly = self.is_post_only(isMarketOrder, False, params)
-        reduceOnly = self.safe_value(params, 'reduceOnly', False)
+        reduceOnly = self.safe_bool(params, 'reduceOnly', False)
         stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
         if isLimitOrder:
             request['orderPrice'] = self.price_to_precision(symbol, price)
@@ -2992,7 +2992,7 @@ class ascendex(Exchange, ImplicitAPI):
         #    {"code": "0"}
         #
         transferOptions = self.safe_value(self.options, 'transfer', {})
-        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
         transfer = self.parse_transfer(response, currency)
         if fillResponseFromRequest:
             transfer['fromAccount'] = fromAccount

@@ -1013,7 +1013,7 @@ class huobijp(Exchange, ImplicitAPI):
             depositEnabled = self.safe_value(currency, 'deposit-enabled')
             withdrawEnabled = self.safe_value(currency, 'withdraw-enabled')
             countryDisabled = self.safe_value(currency, 'country-disabled')
-            visible = self.safe_value(currency, 'visible', False)
+            visible = self.safe_bool(currency, 'visible', False)
             state = self.safe_string(currency, 'state')
             active = visible and depositEnabled and withdrawEnabled and (state == 'online') and not countryDisabled
             name = self.safe_string(currency, 'display-name')

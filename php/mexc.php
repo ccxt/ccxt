@@ -947,8 +947,8 @@ class mexc extends Exchange {
                 $chain = $chains[$j];
                 $networkId = $this->safe_string($chain, 'network');
                 $network = $this->safe_network($networkId);
-                $isDepositEnabled = $this->safe_value($chain, 'depositEnable', false);
-                $isWithdrawEnabled = $this->safe_value($chain, 'withdrawEnable', false);
+                $isDepositEnabled = $this->safe_bool($chain, 'depositEnable', false);
+                $isWithdrawEnabled = $this->safe_bool($chain, 'withdrawEnable', false);
                 $active = ($isDepositEnabled && $isWithdrawEnabled);
                 $currencyActive = $active || $currencyActive;
                 $withdrawMin = $this->safe_string($chain, 'withdrawMin');
@@ -2190,7 +2190,7 @@ class mexc extends Exchange {
         $this->load_markets();
         $symbol = $market['symbol'];
         $unavailableContracts = $this->safe_value($this->options, 'unavailableContracts', array());
-        $isContractUnavaiable = $this->safe_value($unavailableContracts, $symbol, false);
+        $isContractUnavaiable = $this->safe_bool($unavailableContracts, $symbol, false);
         if ($isContractUnavaiable) {
             throw new NotSupported($this->id . ' createSwapOrder() does not support yet this $symbol:' . $symbol);
         }
@@ -2253,7 +2253,7 @@ class mexc extends Exchange {
                 throw new ArgumentsRequired($this->id . ' createSwapOrder() requires a $leverage parameter for isolated margin orders');
             }
         }
-        $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
+        $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
         if ($reduceOnly) {
             $request['side'] = ($side === 'buy') ? 2 : 4;
         } else {
@@ -3559,7 +3559,7 @@ class mexc extends Exchange {
         $request = array();
         list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $marginMode = $this->safe_string($params, 'marginMode');
-        $isMargin = $this->safe_value($params, 'margin', false);
+        $isMargin = $this->safe_bool($params, 'margin', false);
         $params = $this->omit($params, array( 'margin', 'marginMode' ));
         $response = null;
         if (($marginMode !== null) || ($isMargin) || ($marketType === 'margin')) {
@@ -5221,7 +5221,7 @@ class mexc extends Exchange {
          * @return {Array} the $marginMode in lowercase
          */
         $defaultType = $this->safe_string($this->options, 'defaultType');
-        $isMargin = $this->safe_value($params, 'margin', false);
+        $isMargin = $this->safe_bool($params, 'margin', false);
         $marginMode = null;
         list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
         if (($defaultType === 'margin') || ($isMargin === true)) {
@@ -5311,7 +5311,7 @@ class mexc extends Exchange {
         //     array("code":10216,"msg":"No available deposit address")
         //     array("success":true, "code":0, "data":1634095541710)
         //
-        $success = $this->safe_value($response, 'success', false); // v1
+        $success = $this->safe_bool($response, 'success', false); // v1
         if ($success === true) {
             return null;
         }

@@ -820,7 +820,7 @@ class coincheck extends Exchange {
         //     array("success":false,"error":"disabled API Key")'
         //     array("success":false,"error":"invalid authentication")
         //
-        $success = $this->safe_value($response, 'success', true);
+        $success = $this->safe_bool($response, 'success', true);
         if (!$success) {
             $error = $this->safe_string($response, 'error');
             $feedback = $this->id . ' ' . $this->json($response);

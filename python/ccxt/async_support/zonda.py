@@ -1399,7 +1399,7 @@ class zonda(Exchange, ImplicitAPI):
         #     }
         #
         id = self.safe_string_2(response, 'offerId', 'stopOfferId')
-        completed = self.safe_value(response, 'completed', False)
+        completed = self.safe_bool(response, 'completed', False)
         status = 'closed' if completed else 'open'
         transactions = self.safe_value(response, 'transactions')
         return self.safe_order({
@@ -1457,7 +1457,7 @@ class zonda(Exchange, ImplicitAPI):
             'EUR': True,
             'PLN': True,
         }
-        return self.safe_value(fiatCurrencies, currency, False)
+        return self.safe_bool(fiatCurrencies, currency, False)
 
     def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
@@ -1588,7 +1588,7 @@ class zonda(Exchange, ImplicitAPI):
         #
         transfer = self.parse_transfer(response, currency)
         transferOptions = self.safe_value(self.options, 'transfer', {})
-        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             transfer['amount'] = amount
         return transfer

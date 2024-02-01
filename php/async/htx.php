@@ -3957,7 +3957,7 @@ class htx extends Exchange {
             $response = null;
             $stop = $this->safe_value($params, 'stop');
             $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
-            $trailing = $this->safe_value($params, 'trailing', false);
+            $trailing = $this->safe_bool($params, 'trailing', false);
             $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing' ));
             if ($stop || $stopLossTakeProfit || $trailing) {
                 if ($limit !== null) {
@@ -4319,7 +4319,7 @@ class htx extends Exchange {
                 $request['contract_code'] = $market['id'];
                 $stop = $this->safe_value($params, 'stop');
                 $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
-                $trailing = $this->safe_value($params, 'trailing', false);
+                $trailing = $this->safe_bool($params, 'trailing', false);
                 $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing' ));
                 if ($market['linear']) {
                     $marginMode = null;
@@ -5641,7 +5641,7 @@ class htx extends Exchange {
                 }
                 $stop = $this->safe_value($params, 'stop');
                 $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
-                $trailing = $this->safe_value($params, 'trailing', false);
+                $trailing = $this->safe_bool($params, 'trailing', false);
                 $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing' ));
                 if ($market['linear']) {
                     $marginMode = null;
@@ -5933,7 +5933,7 @@ class htx extends Exchange {
                 $request['contract_code'] = $market['id'];
                 $stop = $this->safe_value($params, 'stop');
                 $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
-                $trailing = $this->safe_value($params, 'trailing', false);
+                $trailing = $this->safe_bool($params, 'trailing', false);
                 $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing' ));
                 if ($market['linear']) {
                     $marginMode = null;
@@ -6394,7 +6394,7 @@ class htx extends Exchange {
             }
             $amount = floatval($this->currency_to_precision($code, $amount, $networkCode));
             $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
-            if ($this->safe_value($withdrawOptions, 'includeFee', false)) {
+            if ($this->safe_bool($withdrawOptions, 'includeFee', false)) {
                 $fee = $this->safe_number($params, 'fee');
                 if ($fee === null) {
                     $currencies = Async\await($this->fetch_currencies());

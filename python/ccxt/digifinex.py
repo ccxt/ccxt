@@ -1132,9 +1132,11 @@ class digifinex(Exchange, ImplicitAPI):
         #         "timestamp": 1663221614998
         #     }
         #
+        indexPrice = self.safe_number(ticker, 'index_price')
+        marketType = 'contract' if (indexPrice is not None) else 'spot'
         marketId = self.safe_string_upper_2(ticker, 'symbol', 'instrument_id')
-        symbol = self.safe_symbol(marketId, market)
-        market = self.safe_market(marketId)
+        symbol = self.safe_symbol(marketId, market, None, marketType)
+        market = self.safe_market(marketId, market, None, marketType)
         timestamp = self.safe_timestamp(ticker, 'date')
         if market['swap']:
             timestamp = self.safe_integer(ticker, 'timestamp')
@@ -1661,7 +1663,7 @@ class digifinex(Exchange, ImplicitAPI):
         postOnly = self.is_post_only(isMarketOrder, False, params)
         postOnlyParsed = None
         if swap:
-            reduceOnly = self.safe_value(params, 'reduceOnly', False)
+            reduceOnly = self.safe_bool(params, 'reduceOnly', False)
             timeInForce = self.safe_string(params, 'timeInForce')
             orderType = None
             if side == 'buy':
@@ -3653,7 +3655,7 @@ class digifinex(Exchange, ImplicitAPI):
         :returns Array: the marginMode in lowercase
         """
         defaultType = self.safe_string(self.options, 'defaultType')
-        isMargin = self.safe_value(params, 'margin', False)
+        isMargin = self.safe_bool(params, 'margin', False)
         marginMode = None
         marginMode, params = super(digifinex, self).handle_margin_mode_and_params(methodName, params, defaultValue)
         if marginMode is not None:

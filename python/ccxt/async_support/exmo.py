@@ -259,7 +259,7 @@ class exmo(Exchange, ImplicitAPI):
         #
         margin = self.parse_margin_modification(response, market)
         options = self.safe_value(self.options, 'margin', {})
-        fillResponseFromRequest = self.safe_value(options, 'fillResponseFromRequest', True)
+        fillResponseFromRequest = self.safe_bool(options, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             margin['type'] = type
             margin['amount'] = amount
@@ -2412,7 +2412,7 @@ class exmo(Exchange, ImplicitAPI):
             #     {"result":false,"error":"Error 50052: Insufficient funds"}
             #     {"s":"error","errmsg":"strconv.ParseInt: parsing \"\": invalid syntax"}
             #
-            success = self.safe_value(response, 'result', False)
+            success = self.safe_bool(response, 'result', False)
             if isinstance(success, str):
                 if (success == 'true') or (success == '1'):
                     success = True

@@ -1089,7 +1089,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        testOrder = self.safe_value(params, 'test', False)
+        testOrder = self.safe_bool(params, 'test', False)
         params = self.omit(params, 'test')
         orderRequest = self.create_contract_order_request(symbol, type, side, amount, price, params)
         response = None
@@ -1699,7 +1699,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         # average = Precise.string_div(cost, Precise.string_mul(filled, market['contractSize']))
         # bool
         isActive = self.safe_value(order, 'isActive')
-        cancelExist = self.safe_value(order, 'cancelExist', False)
+        cancelExist = self.safe_bool(order, 'cancelExist', False)
         status = None
         if isActive is not None:
             status = 'open' if isActive else 'closed'
@@ -2376,7 +2376,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         clientOrderId = self.safe_string(params, 'clientOrderId')
-        testOrder = self.safe_value(params, 'test', False)
+        testOrder = self.safe_bool(params, 'test', False)
         params = self.omit(params, ['test', 'clientOrderId'])
         if clientOrderId is None:
             clientOrderId = self.number_to_string(self.nonce())

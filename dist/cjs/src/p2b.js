@@ -19,6 +19,7 @@ class p2b extends p2b$1 {
             'countries': ['LT'],
             'rateLimit': 100,
             'version': 'v2',
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,

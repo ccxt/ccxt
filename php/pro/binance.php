@@ -1280,7 +1280,7 @@ class binance extends \ccxt\async\binance {
             return null;
         }
         $options = $this->safe_value($this->options, 'watchBalance');
-        $fetchBalanceSnapshot = $this->safe_value($options, 'fetchBalanceSnapshot', false);
+        $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
         if ($fetchBalanceSnapshot) {
             $messageHash = $type . ':fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
@@ -1409,8 +1409,8 @@ class binance extends \ccxt\async\binance {
             $this->set_balance_cache($client, $type);
             $this->set_positions_cache($client, $type);
             $options = $this->safe_value($this->options, 'watchBalance');
-            $fetchBalanceSnapshot = $this->safe_value($options, 'fetchBalanceSnapshot', false);
-            $awaitBalanceSnapshot = $this->safe_value($options, 'awaitBalanceSnapshot', true);
+            $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
+            $awaitBalanceSnapshot = $this->safe_bool($options, 'awaitBalanceSnapshot', true);
             if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
                 Async\await($client->future ($type . ':fetchBalanceSnapshot'));
             }
@@ -1571,7 +1571,7 @@ class binance extends \ccxt\async\binance {
             $returnRateLimits = false;
             list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'createOrderWs', 'returnRateLimits', false);
             $payload['returnRateLimits'] = $returnRateLimits;
-            $test = $this->safe_value($params, 'test', false);
+            $test = $this->safe_bool($params, 'test', false);
             $params = $this->omit($params, 'test');
             $message = array(
                 'id' => $messageHash,

@@ -1143,9 +1143,11 @@ class digifinex extends Exchange {
         //         "timestamp" => 1663221614998
         //     }
         //
+        $indexPrice = $this->safe_number($ticker, 'index_price');
+        $marketType = ($indexPrice !== null) ? 'contract' : 'spot';
         $marketId = $this->safe_string_upper_2($ticker, 'symbol', 'instrument_id');
-        $symbol = $this->safe_symbol($marketId, $market);
-        $market = $this->safe_market($marketId);
+        $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
+        $market = $this->safe_market($marketId, $market, null, $marketType);
         $timestamp = $this->safe_timestamp($ticker, 'date');
         if ($market['swap']) {
             $timestamp = $this->safe_integer($ticker, 'timestamp');
@@ -1710,7 +1712,7 @@ class digifinex extends Exchange {
         $postOnly = $this->is_post_only($isMarketOrder, false, $params);
         $postOnlyParsed = null;
         if ($swap) {
-            $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
+            $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
             $timeInForce = $this->safe_string($params, 'timeInForce');
             $orderType = null;
             if ($side === 'buy') {
@@ -3850,7 +3852,7 @@ class digifinex extends Exchange {
          * @return {Array} the $marginMode in lowercase
          */
         $defaultType = $this->safe_string($this->options, 'defaultType');
-        $isMargin = $this->safe_value($params, 'margin', false);
+        $isMargin = $this->safe_bool($params, 'margin', false);
         $marginMode = null;
         list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
         if ($marginMode !== null) {

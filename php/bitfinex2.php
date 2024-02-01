@@ -28,13 +28,18 @@ class bitfinex2 extends Exchange {
                 'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => true,
                 'createDepositAddress' => true,
                 'createLimitOrder' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
+                'createTrailingAmountOrder' => true,
+                'createTrailingPercentOrder' => false,
+                'createTriggerOrder' => true,
                 'editOrder' => false,
                 'fetchBalance' => true,
                 'fetchClosedOrder' => true,
@@ -1489,92 +1494,78 @@ class bitfinex2 extends Exchange {
 
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
-         * Create an $order on the exchange
+         * create an $order on the exchange
          * @see https://docs.bitfinex.com/reference/rest-auth-submit-$order
-         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {string} $symbol unified CCXT $market $symbol
          * @param {string} $type 'limit' or 'market'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount the $amount of currency to trade
-         * @param {float} [$price] $price of $order
-         * @param {array} [$params]  extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->stopPrice] The $price at which a trigger $order is triggered at
+         * @param {float} [$price] $price of the $order
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->stopPrice] the $price that triggers a trigger $order
          * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", or "PO"
-         * @param {bool} $params->postOnly
-         * @param {bool} [$params->reduceOnly] Ensures that the executed $order does not flip the opened position.
+         * @param {boolean} [$params->postOnly] set to true if you want to make a post only $order
+         * @param {boolean} [$params->reduceOnly] indicates that the $order is to reduce the size of a position
          * @param {int} [$params->flags] additional $order parameters => 4096 (Post Only), 1024 (Reduce Only), 16384 (OCO), 64 (Hidden), 512 (Close), 524288 (No Var Rates)
          * @param {int} [$params->lev] leverage for a derivative $order, supported by derivative $symbol $orders only. The value should be between 1 and 100 inclusive.
-         * @param {string} [$params->price_traling] The trailing $price for a trailing stop $order
-         * @param {string} [$params->price_aux_limit] Order $price for stop limit $orders
+         * @param {string} [$params->price_aux_limit] $order $price for stop limit $orders
          * @param {string} [$params->price_oco_stop] OCO stop $price
+         * @param {string} [$params->trailingAmount] *swap only* the quote $amount to trail away from the current $market $price
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        // $order types "limit" and "market" immediatley parsed "EXCHANGE LIMIT" and "EXCHANGE MARKET"
-        // note => same $order types exist for margin $orders without the EXCHANGE prefix
-        $orderTypes = $this->safe_value($this->options, 'orderTypes', array());
-        $orderType = strtoupper($type);
-        if ($market['spot']) {
-            // although they claim that $type needs to be 'exchange limit' or 'exchange market'
-            // in fact that's not the case for swap markets
-            $orderType = $this->safe_string_upper($orderTypes, $type, $type);
-        }
-        $stopPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
-        $timeInForce = $this->safe_string($params, 'timeInForce');
-        $postOnlyParam = $this->safe_value($params, 'postOnly', false);
-        $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
-        $clientOrderId = $this->safe_value_2($params, 'cid', 'clientOrderId');
-        $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'price_aux_limit' ));
         $amountString = $this->amount_to_precision($symbol, $amount);
         $amountString = ($side === 'buy') ? $amountString : Precise::string_neg($amountString);
         $request = array(
-            // 'gid' => 0123456789, // int32,  optional group id for the $order
-            // 'cid' => 0123456789, // int32 client $order id
-            'type' => $orderType,
             'symbol' => $market['id'],
-            // 'price' => $this->number_to_string($price),
             'amount' => $amountString,
-            // 'flags' => 0, // int32, https://docs.bitfinex.com/v2/docs/flag-values
-            // 'lev' => 10, // leverage for a derivative $orders, the value should be between 1 and 100 inclusive, optional, 10 by default
-            // 'price_trailing' => $this->number_to_string(priceTrailing),
-            // 'price_aux_limit' => $this->number_to_string($stopPrice),
-            // 'price_oco_stop' => $this->number_to_string(ocoStopPrice),
-            // 'tif' => '2020-01-01 10:45:23', // datetime for automatic $order cancellation
-            // 'meta' => array(
-            //     'aff_code' => 'AFF_CODE_HERE'
-            // ),
         );
-        $stopLimit = (($orderType === 'EXCHANGE STOP LIMIT') || (($orderType === 'EXCHANGE LIMIT') && ($stopPrice !== null)));
-        $exchangeStop = ($orderType === 'EXCHANGE STOP');
-        $exchangeMarket = ($orderType === 'EXCHANGE MARKET');
-        $stopMarket = ($exchangeStop || ($exchangeMarket && ($stopPrice !== null)));
-        $ioc = (($orderType === 'EXCHANGE IOC') || ($timeInForce === 'IOC'));
-        $fok = (($orderType === 'EXCHANGE FOK') || ($timeInForce === 'FOK'));
+        $stopPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
+        $trailingAmount = $this->safe_string($params, 'trailingAmount');
+        $timeInForce = $this->safe_string($params, 'timeInForce');
+        $postOnlyParam = $this->safe_bool($params, 'postOnly', false);
+        $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
+        $clientOrderId = $this->safe_value_2($params, 'cid', 'clientOrderId');
+        $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId' ));
+        $orderType = strtoupper($type);
+        if ($trailingAmount !== null) {
+            $orderType = 'TRAILING STOP';
+            $request['price_trailing'] = $trailingAmount;
+        } elseif ($stopPrice !== null) {
+            // $request['price'] is taken for stop $orders
+            $request['price'] = $this->price_to_precision($symbol, $stopPrice);
+            if ($type === 'limit') {
+                $orderType = 'STOP LIMIT';
+                $request['price_aux_limit'] = $this->price_to_precision($symbol, $price);
+            } else {
+                $orderType = 'STOP';
+            }
+        }
+        $ioc = ($timeInForce === 'IOC');
+        $fok = ($timeInForce === 'FOK');
         $postOnly = ($postOnlyParam || ($timeInForce === 'PO'));
         if (($ioc || $fok) && ($price === null)) {
             throw new InvalidOrder($this->id . ' createOrder() requires a $price argument with IOC and FOK orders');
         }
-        if (($ioc || $fok) && $exchangeMarket) {
+        if (($ioc || $fok) && ($type === 'market')) {
             throw new InvalidOrder($this->id . ' createOrder() does not allow $market IOC and FOK orders');
         }
-        if (($orderType !== 'MARKET') && (!$exchangeMarket) && (!$exchangeStop)) {
+        if (($type !== 'market') && ($stopPrice === null)) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        if ($stopLimit || $stopMarket) {
-            // $request['price'] is taken for stop $orders
-            $request['price'] = $this->price_to_precision($symbol, $stopPrice);
-            if ($stopMarket) {
-                $request['type'] = 'EXCHANGE STOP';
-            } elseif ($stopLimit) {
-                $request['type'] = 'EXCHANGE STOP LIMIT';
-                $request['price_aux_limit'] = $this->price_to_precision($symbol, $price);
-            }
-        }
         if ($ioc) {
-            $request['type'] = 'EXCHANGE IOC';
+            $orderType = 'IOC';
         } elseif ($fok) {
-            $request['type'] = 'EXCHANGE FOK';
+            $orderType = 'FOK';
         }
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+        if ($market['spot'] && ($marginMode === null)) {
+            // The EXCHANGE prefix is only required for non margin spot markets
+            $orderType = 'EXCHANGE ' . $orderType;
+        }
+        $request['type'] = $orderType;
         // flag values may be summed to combine $flags
         $flags = 0;
         if ($postOnly) {
@@ -1588,7 +1579,6 @@ class bitfinex2 extends Exchange {
         }
         if ($clientOrderId !== null) {
             $request['cid'] = $clientOrderId;
-            $params = $this->omit($params, array( 'cid', 'clientOrderId' ));
         }
         $response = $this->privatePostAuthWOrderSubmit (array_merge($request, $params));
         //
@@ -1644,8 +1634,8 @@ class bitfinex2 extends Exchange {
             $errorText = $response[7];
             throw new ExchangeError($this->id . ' ' . $response[6] . ' => ' . $errorText . ' (#' . $errorCode . ')');
         }
-        $orders = $this->safe_value($response, 4, array());
-        $order = $this->safe_value($orders, 0);
+        $orders = $this->safe_list($response, 4, array());
+        $order = $this->safe_list($orders, 0);
         return $this->parse_order($order, $market);
     }
 
@@ -1657,6 +1647,7 @@ class bitfinex2 extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
+        $this->load_markets();
         $request = array(
             'all' => 1,
         );
@@ -1674,6 +1665,7 @@ class bitfinex2 extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
+        $this->load_markets();
         $cid = $this->safe_value_2($params, 'cid', 'clientOrderId'); // client $order $id
         $request = null;
         if ($cid !== null) {
@@ -1694,6 +1686,81 @@ class bitfinex2 extends Exchange {
         $response = $this->privatePostAuthWOrderCancel (array_merge($request, $params));
         $order = $this->safe_value($response, 4);
         return $this->parse_order($order);
+    }
+
+    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+        /**
+         * cancel multiple $orders at the same time
+         * @see https://docs.bitfinex.com/reference/rest-auth-cancel-$orders-multiple
+         * @param {string[]} $ids order $ids
+         * @param {string} $symbol unified $market $symbol, default is null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
+        $this->load_markets();
+        for ($i = 0; $i < count($ids); $i++) {
+            $ids[$i] = $this->parse_to_numeric($ids[$i]);
+        }
+        $request = array(
+            'id' => $ids,
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $response = $this->privatePostAuthWOrderCancelMulti (array_merge($request, $params));
+        //
+        //     array(
+        //         1706740198811,
+        //         "oc_multi-req",
+        //         null,
+        //         null,
+        //         array(
+        //             array(
+        //                 139530205057,
+        //                 null,
+        //                 1706740132275,
+        //                 "tBTCF0:USTF0",
+        //                 1706740132276,
+        //                 1706740132276,
+        //                 0.0001,
+        //                 0.0001,
+        //                 "LIMIT",
+        //                 null,
+        //                 null,
+        //                 null,
+        //                 0,
+        //                 "ACTIVE",
+        //                 null,
+        //                 null,
+        //                 39000,
+        //                 0,
+        //                 0,
+        //                 0,
+        //                 null,
+        //                 null,
+        //                 null,
+        //                 0,
+        //                 0,
+        //                 null,
+        //                 null,
+        //                 null,
+        //                 "API>BFX",
+        //                 null,
+        //                 null,
+        //                 {
+        //                     "lev" => 10,
+        //                     "$F33" => 10
+        //                 }
+        //             ),
+        //         ),
+        //         null,
+        //         "SUCCESS",
+        //         "Submitting 2 order cancellations."
+        //     )
+        //
+        $orders = $this->safe_list($response, 4, array());
+        return $this->parse_orders($orders, $market);
     }
 
     public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -2373,7 +2440,7 @@ class bitfinex2 extends Exchange {
             $request['payment_id'] = $tag;
         }
         $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
-        $includeFee = $this->safe_value($withdrawOptions, 'includeFee', false);
+        $includeFee = $this->safe_bool($withdrawOptions, 'includeFee', false);
         if ($includeFee) {
             $request['fee_deduct'] = 1;
         }

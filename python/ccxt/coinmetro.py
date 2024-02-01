@@ -380,7 +380,7 @@ class coinmetro(Exchange, ImplicitAPI):
         quote = self.safe_currency_code(quoteId)
         basePrecisionAndLimits = self.parse_market_precision_and_limits(baseId)
         quotePrecisionAndLimits = self.parse_market_precision_and_limits(quoteId)
-        margin = self.safe_value(market, 'margin', False)
+        margin = self.safe_bool(market, 'margin', False)
         tradingFees = self.safe_value(self.fees, 'trading', {})
         return self.safe_market_structure({
             'id': id,
@@ -1272,7 +1272,7 @@ class coinmetro(Exchange, ImplicitAPI):
         }
         marginMode = None
         params, params = self.handle_margin_mode_and_params('cancelOrder', params)
-        isMargin = self.safe_value(params, 'margin', False)
+        isMargin = self.safe_bool(params, 'margin', False)
         params = self.omit(params, 'margin')
         response = None
         if isMargin or (marginMode is not None):
