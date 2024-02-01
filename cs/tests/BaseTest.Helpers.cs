@@ -89,11 +89,11 @@ public partial class testMainClass : BaseTest
             var testFilePath = "";
             if (!ws)
             {
-                testFilePath = rootDir + "c#/tests/Generated/Exchange/test." + key + ".cs";
+                testFilePath = rootDir + "cs/tests/Generated/Exchange/test." + key + ".cs";
             }
             else
             {
-                testFilePath = rootDir + "c#/tests/Generated/Exchange/Ws/test." + key + ".cs";
+                testFilePath = rootDir + "cs/tests/Generated/Exchange/Ws/test." + key + ".cs";
             }
             if (ioFileExists(testFilePath))
             {
