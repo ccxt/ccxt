@@ -346,7 +346,7 @@ class lbank(Exchange, ImplicitAPI):
 
     def fetch_markets(self, params={}):
         """
-        retrieves data on all markets for lbank2
+        retrieves data on all markets for lbank
         :see: https://www.lbank.com/en-US/docs/index.html#trading-pairs
         :see: https://www.lbank.com/en-US/docs/contract.html#query-contract-information-list
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2167,7 +2167,7 @@ class lbank(Exchange, ImplicitAPI):
         """
          * @deprecated
         please use fetchDepositWithdrawFees instead
-        :param str[]|None codes: not used by lbank2 fetchTransactionFees()
+        :param str[]|None codes: not used by lbank fetchTransactionFees()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """

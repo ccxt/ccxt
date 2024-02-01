@@ -1521,6 +1521,87 @@ class bitfinex2 extends Exchange {
         ), $market);
     }
 
+    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+        /**
+         * @ignore
+         * helper function to build an order $request
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much you want to trade in units of the base currency
+         * @param {float} [$price] the $price of the order, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} $request to be sent to the exchange
+         */
+        $market = $this->market($symbol);
+        $amountString = $this->amount_to_precision($symbol, $amount);
+        $amountString = ($side === 'buy') ? $amountString : Precise::string_neg($amountString);
+        $request = array(
+            'symbol' => $market['id'],
+            'amount' => $amountString,
+        );
+        $stopPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
+        $trailingAmount = $this->safe_string($params, 'trailingAmount');
+        $timeInForce = $this->safe_string($params, 'timeInForce');
+        $postOnlyParam = $this->safe_bool($params, 'postOnly', false);
+        $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
+        $clientOrderId = $this->safe_value_2($params, 'cid', 'clientOrderId');
+        $orderType = strtoupper($type);
+        if ($trailingAmount !== null) {
+            $orderType = 'TRAILING STOP';
+            $request['price_trailing'] = $trailingAmount;
+        } elseif ($stopPrice !== null) {
+            // $request['price'] is taken for stop orders
+            $request['price'] = $this->price_to_precision($symbol, $stopPrice);
+            if ($type === 'limit') {
+                $orderType = 'STOP LIMIT';
+                $request['price_aux_limit'] = $this->price_to_precision($symbol, $price);
+            } else {
+                $orderType = 'STOP';
+            }
+        }
+        $ioc = ($timeInForce === 'IOC');
+        $fok = ($timeInForce === 'FOK');
+        $postOnly = ($postOnlyParam || ($timeInForce === 'PO'));
+        if (($ioc || $fok) && ($price === null)) {
+            throw new InvalidOrder($this->id . ' createOrder() requires a $price argument with IOC and FOK orders');
+        }
+        if (($ioc || $fok) && ($type === 'market')) {
+            throw new InvalidOrder($this->id . ' createOrder() does not allow $market IOC and FOK orders');
+        }
+        if (($type !== 'market') && ($stopPrice === null)) {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        if ($ioc) {
+            $orderType = 'IOC';
+        } elseif ($fok) {
+            $orderType = 'FOK';
+        }
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+        if ($market['spot'] && ($marginMode === null)) {
+            // The EXCHANGE prefix is only required for non margin spot markets
+            $orderType = 'EXCHANGE ' . $orderType;
+        }
+        $request['type'] = $orderType;
+        // flag values may be summed to combine $flags
+        $flags = 0;
+        if ($postOnly) {
+            $flags = $this->sum($flags, 4096);
+        }
+        if ($reduceOnly) {
+            $flags = $this->sum($flags, 1024);
+        }
+        if ($flags !== 0) {
+            $request['flags'] = $flags;
+        }
+        if ($clientOrderId !== null) {
+            $request['cid'] = $clientOrderId;
+        }
+        $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId' ));
+        return array_merge($request, $params);
+    }
+
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
@@ -1545,72 +1626,8 @@ class bitfinex2 extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $amountString = $this->amount_to_precision($symbol, $amount);
-            $amountString = ($side === 'buy') ? $amountString : Precise::string_neg($amountString);
-            $request = array(
-                'symbol' => $market['id'],
-                'amount' => $amountString,
-            );
-            $stopPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
-            $trailingAmount = $this->safe_string($params, 'trailingAmount');
-            $timeInForce = $this->safe_string($params, 'timeInForce');
-            $postOnlyParam = $this->safe_bool($params, 'postOnly', false);
-            $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
-            $clientOrderId = $this->safe_value_2($params, 'cid', 'clientOrderId');
-            $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId' ));
-            $orderType = strtoupper($type);
-            if ($trailingAmount !== null) {
-                $orderType = 'TRAILING STOP';
-                $request['price_trailing'] = $trailingAmount;
-            } elseif ($stopPrice !== null) {
-                // $request['price'] is taken for stop $orders
-                $request['price'] = $this->price_to_precision($symbol, $stopPrice);
-                if ($type === 'limit') {
-                    $orderType = 'STOP LIMIT';
-                    $request['price_aux_limit'] = $this->price_to_precision($symbol, $price);
-                } else {
-                    $orderType = 'STOP';
-                }
-            }
-            $ioc = ($timeInForce === 'IOC');
-            $fok = ($timeInForce === 'FOK');
-            $postOnly = ($postOnlyParam || ($timeInForce === 'PO'));
-            if (($ioc || $fok) && ($price === null)) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $price argument with IOC and FOK orders');
-            }
-            if (($ioc || $fok) && ($type === 'market')) {
-                throw new InvalidOrder($this->id . ' createOrder() does not allow $market IOC and FOK orders');
-            }
-            if (($type !== 'market') && ($stopPrice === null)) {
-                $request['price'] = $this->price_to_precision($symbol, $price);
-            }
-            if ($ioc) {
-                $orderType = 'IOC';
-            } elseif ($fok) {
-                $orderType = 'FOK';
-            }
-            $marginMode = null;
-            list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
-            if ($market['spot'] && ($marginMode === null)) {
-                // The EXCHANGE prefix is only required for non margin spot markets
-                $orderType = 'EXCHANGE ' . $orderType;
-            }
-            $request['type'] = $orderType;
-            // flag values may be summed to combine $flags
-            $flags = 0;
-            if ($postOnly) {
-                $flags = $this->sum($flags, 4096);
-            }
-            if ($reduceOnly) {
-                $flags = $this->sum($flags, 1024);
-            }
-            if ($flags !== 0) {
-                $request['flags'] = $flags;
-            }
-            if ($clientOrderId !== null) {
-                $request['cid'] = $clientOrderId;
-            }
-            $response = Async\await($this->privatePostAuthWOrderSubmit (array_merge($request, $params)));
+            $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+            $response = Async\await($this->privatePostAuthWOrderSubmit ($request));
             //
             //      array(
             //          1653325121,   // Timestamp in milliseconds
@@ -1667,6 +1684,68 @@ class bitfinex2 extends Exchange {
             $orders = $this->safe_list($response, 4, array());
             $order = $this->safe_list($orders, 0);
             return $this->parse_order($order, $market);
+        }) ();
+    }
+
+    public function create_orders(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * create a list of trade $orders
+             * @see https://docs.bitfinex.com/reference/rest-auth-order-multi
+             * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $ordersRequests = array();
+            for ($i = 0; $i < count($orders); $i++) {
+                $rawOrder = $orders[$i];
+                $symbol = $this->safe_string($rawOrder, 'symbol');
+                $type = $this->safe_string($rawOrder, 'type');
+                $side = $this->safe_string($rawOrder, 'side');
+                $amount = $this->safe_number($rawOrder, 'amount');
+                $price = $this->safe_number($rawOrder, 'price');
+                $orderParams = $this->safe_dict($rawOrder, 'params', array());
+                $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $orderParams);
+                $ordersRequests[] = array( 'on', $orderRequest );
+            }
+            $request = array(
+                'ops' => $ordersRequests,
+            );
+            $response = Async\await($this->privatePostAuthWOrderMulti ($request));
+            //
+            //     [
+            //         1706762515553,
+            //         "ox_multi-req",
+            //         null,
+            //         null,
+            //         [
+            //             [
+            //                 1706762515,
+            //                 "on-req",
+            //                 null,
+            //                 null,
+            //                 [
+            //                     [139567428547,null,1706762515551,"tBTCUST",1706762515551,1706762515551,0.0001,0.0001,"EXCHANGE LIMIT",null,null,null,0,"ACTIVE",null,null,35000,0,0,0,null,null,null,0,0,null,null,null,"API>BFX",null,null,array()]
+            //                 ],
+            //                 null,
+            //                 "SUCCESS",
+            //                 "Submitting 1 $orders->"
+            //             ],
+            //         ],
+            //         null,
+            //         "SUCCESS",
+            //         "Submitting 2 order operations."
+            //     ]
+            //
+            $results = array();
+            $data = $this->safe_list($response, 4, array());
+            for ($i = 0; $i < count($data); $i++) {
+                $entry = $data[$i];
+                $individualOrder = $entry[4];
+                $results[] = $individualOrder[0];
+            }
+            return $this->parse_orders($results);
         }) ();
     }
 

@@ -1,7 +1,7 @@
 import Exchange from './abstract/lbank.js';
 import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
- * @class lbank2
+ * @class lbank
  * @augments Exchange
  */
 export default class lbank extends Exchange {

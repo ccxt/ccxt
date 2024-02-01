@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitfinex2 import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1449,28 +1449,18 @@ class bitfinex2(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
-        create an order on the exchange
-        :see: https://docs.bitfinex.com/reference/rest-auth-submit-order
-        :param str symbol: unified CCXT market symbol
-        :param str type: 'limit' or 'market'
+         * @ignore
+        helper function to build an order request
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
-        :param float amount: the amount of currency to trade
-        :param float [price]: price of the order
+        :param float amount: how much you want to trade in units of the base currency
+        :param float [price]: the price of the order, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.stopPrice]: the price that triggers a trigger order
-        :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
-        :param boolean [params.postOnly]: set to True if you want to make a post only order
-        :param boolean [params.reduceOnly]: indicates that the order is to reduce the size of a position
-        :param int [params.flags]: additional order parameters: 4096(Post Only), 1024(Reduce Only), 16384(OCO), 64(Hidden), 512(Close), 524288(No Var Rates)
-        :param int [params.lev]: leverage for a derivative order, supported by derivative symbol orders only. The value should be between 1 and 100 inclusive.
-        :param str [params.price_aux_limit]: order price for stop limit orders
-        :param str [params.price_oco_stop]: OCO stop price
-        :param str [params.trailingAmount]: *swap only* the quote amount to trail away from the current market price
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: request to be sent to the exchange
         """
-        self.load_markets()
         market = self.market(symbol)
         amountString = self.amount_to_precision(symbol, amount)
         amountString = amountString if (side == 'buy') else Precise.string_neg(amountString)
@@ -1484,7 +1474,6 @@ class bitfinex2(Exchange, ImplicitAPI):
         postOnlyParam = self.safe_bool(params, 'postOnly', False)
         reduceOnly = self.safe_bool(params, 'reduceOnly', False)
         clientOrderId = self.safe_value_2(params, 'cid', 'clientOrderId')
-        params = self.omit(params, ['triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId'])
         orderType = type.upper()
         if trailingAmount is not None:
             orderType = 'TRAILING STOP'
@@ -1526,7 +1515,34 @@ class bitfinex2(Exchange, ImplicitAPI):
             request['flags'] = flags
         if clientOrderId is not None:
             request['cid'] = clientOrderId
-        response = self.privatePostAuthWOrderSubmit(self.extend(request, params))
+        params = self.omit(params, ['triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId'])
+        return self.extend(request, params)
+
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+        """
+        create an order on the exchange
+        :see: https://docs.bitfinex.com/reference/rest-auth-submit-order
+        :param str symbol: unified CCXT market symbol
+        :param str type: 'limit' or 'market'
+        :param str side: 'buy' or 'sell'
+        :param float amount: the amount of currency to trade
+        :param float [price]: price of the order
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.stopPrice]: the price that triggers a trigger order
+        :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
+        :param boolean [params.postOnly]: set to True if you want to make a post only order
+        :param boolean [params.reduceOnly]: indicates that the order is to reduce the size of a position
+        :param int [params.flags]: additional order parameters: 4096(Post Only), 1024(Reduce Only), 16384(OCO), 64(Hidden), 512(Close), 524288(No Var Rates)
+        :param int [params.lev]: leverage for a derivative order, supported by derivative symbol orders only. The value should be between 1 and 100 inclusive.
+        :param str [params.price_aux_limit]: order price for stop limit orders
+        :param str [params.price_oco_stop]: OCO stop price
+        :param str [params.trailingAmount]: *swap only* the quote amount to trail away from the current market price
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = self.create_order_request(symbol, type, side, amount, price, params)
+        response = self.privatePostAuthWOrderSubmit(request)
         #
         #      [
         #          1653325121,   # Timestamp in milliseconds
@@ -1582,6 +1598,63 @@ class bitfinex2(Exchange, ImplicitAPI):
         orders = self.safe_list(response, 4, [])
         order = self.safe_list(orders, 0)
         return self.parse_order(order, market)
+
+    def create_orders(self, orders: List[OrderRequest], params={}):
+        """
+        create a list of trade orders
+        :see: https://docs.bitfinex.com/reference/rest-auth-order-multi
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        ordersRequests = []
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            symbol = self.safe_string(rawOrder, 'symbol')
+            type = self.safe_string(rawOrder, 'type')
+            side = self.safe_string(rawOrder, 'side')
+            amount = self.safe_number(rawOrder, 'amount')
+            price = self.safe_number(rawOrder, 'price')
+            orderParams = self.safe_dict(rawOrder, 'params', {})
+            orderRequest = self.create_order_request(symbol, type, side, amount, price, orderParams)
+            ordersRequests.append(['on', orderRequest])
+        request = {
+            'ops': ordersRequests,
+        }
+        response = self.privatePostAuthWOrderMulti(request)
+        #
+        #     [
+        #         1706762515553,
+        #         "ox_multi-req",
+        #         null,
+        #         null,
+        #         [
+        #             [
+        #                 1706762515,
+        #                 "on-req",
+        #                 null,
+        #                 null,
+        #                 [
+        #                     [139567428547,null,1706762515551,"tBTCUST",1706762515551,1706762515551,0.0001,0.0001,"EXCHANGE LIMIT",null,null,null,0,"ACTIVE",null,null,35000,0,0,0,null,null,null,0,0,null,null,null,"API>BFX",null,null,{}]
+        #                 ],
+        #                 null,
+        #                 "SUCCESS",
+        #                 "Submitting 1 orders."
+        #             ],
+        #         ],
+        #         null,
+        #         "SUCCESS",
+        #         "Submitting 2 order operations."
+        #     ]
+        #
+        results = []
+        data = self.safe_list(response, 4, [])
+        for i in range(0, len(data)):
+            entry = data[i]
+            individualOrder = entry[4]
+            results.append(individualOrder[0])
+        return self.parse_orders(results)
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """

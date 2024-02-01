@@ -1492,28 +1492,18 @@ class bitfinex2 extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
-         * create an $order on the exchange
-         * @see https://docs.bitfinex.com/reference/rest-auth-submit-$order
-         * @param {string} $symbol unified CCXT $market $symbol
-         * @param {string} $type 'limit' or 'market'
+         * @ignore
+         * helper function to build an order $request
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount the $amount of currency to trade
-         * @param {float} [$price] $price of the $order
+         * @param {float} $amount how much you want to trade in units of the base currency
+         * @param {float} [$price] the $price of the order, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->stopPrice] the $price that triggers a trigger $order
-         * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", or "PO"
-         * @param {boolean} [$params->postOnly] set to true if you want to make a post only $order
-         * @param {boolean} [$params->reduceOnly] indicates that the $order is to reduce the size of a position
-         * @param {int} [$params->flags] additional $order parameters => 4096 (Post Only), 1024 (Reduce Only), 16384 (OCO), 64 (Hidden), 512 (Close), 524288 (No Var Rates)
-         * @param {int} [$params->lev] leverage for a derivative $order, supported by derivative $symbol $orders only. The value should be between 1 and 100 inclusive.
-         * @param {string} [$params->price_aux_limit] $order $price for stop limit $orders
-         * @param {string} [$params->price_oco_stop] OCO stop $price
-         * @param {string} [$params->trailingAmount] *swap only* the quote $amount to trail away from the current $market $price
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+         * @return {array} $request to be sent to the exchange
          */
-        $this->load_markets();
         $market = $this->market($symbol);
         $amountString = $this->amount_to_precision($symbol, $amount);
         $amountString = ($side === 'buy') ? $amountString : Precise::string_neg($amountString);
@@ -1527,13 +1517,12 @@ class bitfinex2 extends Exchange {
         $postOnlyParam = $this->safe_bool($params, 'postOnly', false);
         $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
         $clientOrderId = $this->safe_value_2($params, 'cid', 'clientOrderId');
-        $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId' ));
         $orderType = strtoupper($type);
         if ($trailingAmount !== null) {
             $orderType = 'TRAILING STOP';
             $request['price_trailing'] = $trailingAmount;
         } elseif ($stopPrice !== null) {
-            // $request['price'] is taken for stop $orders
+            // $request['price'] is taken for stop orders
             $request['price'] = $this->price_to_precision($symbol, $stopPrice);
             if ($type === 'limit') {
                 $orderType = 'STOP LIMIT';
@@ -1580,7 +1569,35 @@ class bitfinex2 extends Exchange {
         if ($clientOrderId !== null) {
             $request['cid'] = $clientOrderId;
         }
-        $response = $this->privatePostAuthWOrderSubmit (array_merge($request, $params));
+        $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId' ));
+        return array_merge($request, $params);
+    }
+
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create an $order on the exchange
+         * @see https://docs.bitfinex.com/reference/rest-auth-submit-$order
+         * @param {string} $symbol unified CCXT $market $symbol
+         * @param {string} $type 'limit' or 'market'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount the $amount of currency to trade
+         * @param {float} [$price] $price of the $order
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->stopPrice] the $price that triggers a trigger $order
+         * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", or "PO"
+         * @param {boolean} [$params->postOnly] set to true if you want to make a post only $order
+         * @param {boolean} [$params->reduceOnly] indicates that the $order is to reduce the size of a position
+         * @param {int} [$params->flags] additional $order parameters => 4096 (Post Only), 1024 (Reduce Only), 16384 (OCO), 64 (Hidden), 512 (Close), 524288 (No Var Rates)
+         * @param {int} [$params->lev] leverage for a derivative $order, supported by derivative $symbol $orders only. The value should be between 1 and 100 inclusive.
+         * @param {string} [$params->price_aux_limit] $order $price for stop limit $orders
+         * @param {string} [$params->price_oco_stop] OCO stop $price
+         * @param {string} [$params->trailingAmount] *swap only* the quote $amount to trail away from the current $market $price
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+        $response = $this->privatePostAuthWOrderSubmit ($request);
         //
         //      array(
         //          1653325121,   // Timestamp in milliseconds
@@ -1637,6 +1654,66 @@ class bitfinex2 extends Exchange {
         $orders = $this->safe_list($response, 4, array());
         $order = $this->safe_list($orders, 0);
         return $this->parse_order($order, $market);
+    }
+
+    public function create_orders(array $orders, $params = array ()) {
+        /**
+         * create a list of trade $orders
+         * @see https://docs.bitfinex.com/reference/rest-auth-order-multi
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        $ordersRequests = array();
+        for ($i = 0; $i < count($orders); $i++) {
+            $rawOrder = $orders[$i];
+            $symbol = $this->safe_string($rawOrder, 'symbol');
+            $type = $this->safe_string($rawOrder, 'type');
+            $side = $this->safe_string($rawOrder, 'side');
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
+            $orderParams = $this->safe_dict($rawOrder, 'params', array());
+            $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $orderParams);
+            $ordersRequests[] = array( 'on', $orderRequest );
+        }
+        $request = array(
+            'ops' => $ordersRequests,
+        );
+        $response = $this->privatePostAuthWOrderMulti ($request);
+        //
+        //     [
+        //         1706762515553,
+        //         "ox_multi-req",
+        //         null,
+        //         null,
+        //         [
+        //             [
+        //                 1706762515,
+        //                 "on-req",
+        //                 null,
+        //                 null,
+        //                 [
+        //                     [139567428547,null,1706762515551,"tBTCUST",1706762515551,1706762515551,0.0001,0.0001,"EXCHANGE LIMIT",null,null,null,0,"ACTIVE",null,null,35000,0,0,0,null,null,null,0,0,null,null,null,"API>BFX",null,null,array()]
+        //                 ],
+        //                 null,
+        //                 "SUCCESS",
+        //                 "Submitting 1 $orders->"
+        //             ],
+        //         ],
+        //         null,
+        //         "SUCCESS",
+        //         "Submitting 2 order operations."
+        //     ]
+        //
+        $results = array();
+        $data = $this->safe_list($response, 4, array());
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $individualOrder = $entry[4];
+            $results[] = $individualOrder[0];
+        }
+        return $this->parse_orders($results);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
