@@ -51,7 +51,7 @@ If you found a security issue or a critical vulnerability and reporting it in pu
   - `/js/*` (these are compiled from the typescript version)
   - `/php/*` (except for base classes)
   - `/python/*` (except for base classes)
-  - `/c#/*` (except for base classes)
+  - `/cs/*` (except for base classes)
   - `/ccxt.js`
   - `/README.md` (exchange lists are generated automatically)
   - `/package.json`
@@ -208,7 +208,7 @@ The contents of the repository are structured as follows:
 /js/                       # the JS version of the library
 /ts/                       # the TypeScript version of the library
 /php/                      # PHP ccxt module/package folder
-/c#/                       # C#/dotnet package folder
+/cs/                       # C#/dotnet package folder
 /python/                   # Python ccxt module/package folder for PyPI
 /python/__init__.py        # entry point for the Python version of the ccxt.library
 /python/async_support/     # asynchronous version of the ccxt.library for Python 3.5.3+ asyncio

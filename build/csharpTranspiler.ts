@@ -46,7 +46,7 @@ const BASE_TESTS_FILE =  './cs/tests/Generated/TestMethods.cs';
 const EXCHANGE_BASE_FOLDER = './cs/tests/Generated/Exchange/Base/';
 const EXCHANGE_GENERATED_FOLDER = './cs/tests/Generated/Exchange/';
 const EXAMPLES_INPUT_FOLDER = './examples/ts/';
-const EXAMPLES_OUTPUT_FOLDER = './examples/c#/examples/';
+const EXAMPLES_OUTPUT_FOLDER = './examples/cs/examples/';
 const csharpComments ={};
 
 class NewTranspiler {
