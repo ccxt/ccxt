@@ -61,6 +61,7 @@ class lbank(Exchange, ImplicitAPI):
                 'fetchClosedOrders': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchDepositAddress': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,

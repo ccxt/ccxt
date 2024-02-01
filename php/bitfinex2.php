@@ -28,6 +28,7 @@ class bitfinex2 extends Exchange {
                 'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => true,
                 'createDepositAddress' => true,
                 'createLimitOrder' => true,
                 'createMarketOrder' => true,
@@ -1646,6 +1647,7 @@ class bitfinex2 extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
+        $this->load_markets();
         $request = array(
             'all' => 1,
         );
@@ -1663,6 +1665,7 @@ class bitfinex2 extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
+        $this->load_markets();
         $cid = $this->safe_value_2($params, 'cid', 'clientOrderId'); // client $order $id
         $request = null;
         if ($cid !== null) {
@@ -1683,6 +1686,81 @@ class bitfinex2 extends Exchange {
         $response = $this->privatePostAuthWOrderCancel (array_merge($request, $params));
         $order = $this->safe_value($response, 4);
         return $this->parse_order($order);
+    }
+
+    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+        /**
+         * cancel multiple $orders at the same time
+         * @see https://docs.bitfinex.com/reference/rest-auth-cancel-$orders-multiple
+         * @param {string[]} $ids order $ids
+         * @param {string} $symbol unified $market $symbol, default is null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
+        $this->load_markets();
+        for ($i = 0; $i < count($ids); $i++) {
+            $ids[$i] = $this->parse_to_numeric($ids[$i]);
+        }
+        $request = array(
+            'id' => $ids,
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $response = $this->privatePostAuthWOrderCancelMulti (array_merge($request, $params));
+        //
+        //     array(
+        //         1706740198811,
+        //         "oc_multi-req",
+        //         null,
+        //         null,
+        //         array(
+        //             array(
+        //                 139530205057,
+        //                 null,
+        //                 1706740132275,
+        //                 "tBTCF0:USTF0",
+        //                 1706740132276,
+        //                 1706740132276,
+        //                 0.0001,
+        //                 0.0001,
+        //                 "LIMIT",
+        //                 null,
+        //                 null,
+        //                 null,
+        //                 0,
+        //                 "ACTIVE",
+        //                 null,
+        //                 null,
+        //                 39000,
+        //                 0,
+        //                 0,
+        //                 0,
+        //                 null,
+        //                 null,
+        //                 null,
+        //                 0,
+        //                 0,
+        //                 null,
+        //                 null,
+        //                 null,
+        //                 "API>BFX",
+        //                 null,
+        //                 null,
+        //                 {
+        //                     "lev" => 10,
+        //                     "$F33" => 10
+        //                 }
+        //             ),
+        //         ),
+        //         null,
+        //         "SUCCESS",
+        //         "Submitting 2 order cancellations."
+        //     )
+        //
+        $orders = $this->safe_list($response, 4, array());
+        return $this->parse_orders($orders, $market);
     }
 
     public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {

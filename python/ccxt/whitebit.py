@@ -32,7 +32,7 @@ class whitebit(Exchange, ImplicitAPI):
             'name': 'WhiteBit',
             'version': 'v4',
             'countries': ['EE'],
-            'rateLimit': 500,
+            'rateLimit': 50,
             'pro': True,
             'has': {
                 'CORS': None,

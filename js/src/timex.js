@@ -98,7 +98,7 @@ export default class timex extends Exchange {
                     'rest': 'https://plasma-relay-backend.timex.io',
                 },
                 'www': 'https://timex.io',
-                'doc': 'https://docs.timex.io',
+                'doc': 'https://plasma-relay-backend.timex.io/swagger-ui/index.html',
                 'referral': 'https://timex.io/?refcode=1x27vNkTbP1uwkCck',
             },
             'api': {

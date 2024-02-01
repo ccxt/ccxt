@@ -50,6 +50,7 @@ class bitfinex2(Exchange, ImplicitAPI):
                 'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
                 'createDepositAddress': True,
                 'createLimitOrder': True,
                 'createMarketOrder': True,
@@ -1590,6 +1591,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
+        self.load_markets()
         request = {
             'all': 1,
         }
@@ -1606,6 +1608,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
+        self.load_markets()
         cid = self.safe_value_2(params, 'cid', 'clientOrderId')  # client order id
         request = None
         if cid is not None:
@@ -1624,6 +1627,78 @@ class bitfinex2(Exchange, ImplicitAPI):
         response = self.privatePostAuthWOrderCancel(self.extend(request, params))
         order = self.safe_value(response, 4)
         return self.parse_order(order)
+
+    def cancel_orders(self, ids, symbol: Str = None, params={}):
+        """
+        cancel multiple orders at the same time
+        :see: https://docs.bitfinex.com/reference/rest-auth-cancel-orders-multiple
+        :param str[] ids: order ids
+        :param str symbol: unified market symbol, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an array of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        for i in range(0, len(ids)):
+            ids[i] = self.parse_to_numeric(ids[i])
+        request = {
+            'id': ids,
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        response = self.privatePostAuthWOrderCancelMulti(self.extend(request, params))
+        #
+        #     [
+        #         1706740198811,
+        #         "oc_multi-req",
+        #         null,
+        #         null,
+        #         [
+        #             [
+        #                 139530205057,
+        #                 null,
+        #                 1706740132275,
+        #                 "tBTCF0:USTF0",
+        #                 1706740132276,
+        #                 1706740132276,
+        #                 0.0001,
+        #                 0.0001,
+        #                 "LIMIT",
+        #                 null,
+        #                 null,
+        #                 null,
+        #                 0,
+        #                 "ACTIVE",
+        #                 null,
+        #                 null,
+        #                 39000,
+        #                 0,
+        #                 0,
+        #                 0,
+        #                 null,
+        #                 null,
+        #                 null,
+        #                 0,
+        #                 0,
+        #                 null,
+        #                 null,
+        #                 null,
+        #                 "API>BFX",
+        #                 null,
+        #                 null,
+        #                 {
+        #                     "lev": 10,
+        #                     "$F33": 10
+        #                 }
+        #             ],
+        #         ],
+        #         null,
+        #         "SUCCESS",
+        #         "Submitting 2 order cancellations."
+        #     ]
+        #
+        orders = self.safe_list(response, 4, [])
+        return self.parse_orders(orders, market)
 
     def fetch_open_order(self, id: str, symbol: Str = None, params={}):
         """

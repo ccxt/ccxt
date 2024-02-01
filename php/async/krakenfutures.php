@@ -45,6 +45,9 @@ class krakenfutures extends Exchange {
                 'fetchClosedOrders' => null, // https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchDepositAddress' => false,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchFundingHistory' => null,
                 'fetchFundingRate' => 'emulated',
                 'fetchFundingRateHistory' => true,

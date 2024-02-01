@@ -61,6 +61,7 @@ export default class bitfinex2 extends Exchange {
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<Order[]>;
     fetchOpenOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     fetchClosedOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;

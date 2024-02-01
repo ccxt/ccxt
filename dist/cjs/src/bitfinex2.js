@@ -31,6 +31,7 @@ class bitfinex2 extends bitfinex2$1 {
                 'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'createDepositAddress': true,
                 'createLimitOrder': true,
                 'createMarketOrder': true,
@@ -39,9 +40,9 @@ class bitfinex2 extends bitfinex2$1 {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
-                'createTriggerOrder': true,
                 'createTrailingAmountOrder': true,
                 'createTrailingPercentOrder': false,
+                'createTriggerOrder': true,
                 'editOrder': false,
                 'fetchBalance': true,
                 'fetchClosedOrder': true,
@@ -1653,6 +1654,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        await this.loadMarkets();
         const request = {
             'all': 1,
         };
@@ -1671,6 +1673,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        await this.loadMarkets();
         const cid = this.safeValue2(params, 'cid', 'clientOrderId'); // client order id
         let request = undefined;
         if (cid !== undefined) {
@@ -1692,6 +1695,82 @@ class bitfinex2 extends bitfinex2$1 {
         const response = await this.privatePostAuthWOrderCancel(this.extend(request, params));
         const order = this.safeValue(response, 4);
         return this.parseOrder(order);
+    }
+    async cancelOrders(ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitfinex2#cancelOrders
+         * @description cancel multiple orders at the same time
+         * @see https://docs.bitfinex.com/reference/rest-auth-cancel-orders-multiple
+         * @param {string[]} ids order ids
+         * @param {string} symbol unified market symbol, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        for (let i = 0; i < ids.length; i++) {
+            ids[i] = this.parseToNumeric(ids[i]);
+        }
+        const request = {
+            'id': ids,
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        const response = await this.privatePostAuthWOrderCancelMulti(this.extend(request, params));
+        //
+        //     [
+        //         1706740198811,
+        //         "oc_multi-req",
+        //         null,
+        //         null,
+        //         [
+        //             [
+        //                 139530205057,
+        //                 null,
+        //                 1706740132275,
+        //                 "tBTCF0:USTF0",
+        //                 1706740132276,
+        //                 1706740132276,
+        //                 0.0001,
+        //                 0.0001,
+        //                 "LIMIT",
+        //                 null,
+        //                 null,
+        //                 null,
+        //                 0,
+        //                 "ACTIVE",
+        //                 null,
+        //                 null,
+        //                 39000,
+        //                 0,
+        //                 0,
+        //                 0,
+        //                 null,
+        //                 null,
+        //                 null,
+        //                 0,
+        //                 0,
+        //                 null,
+        //                 null,
+        //                 null,
+        //                 "API>BFX",
+        //                 null,
+        //                 null,
+        //                 {
+        //                     "lev": 10,
+        //                     "$F33": 10
+        //                 }
+        //             ],
+        //         ],
+        //         null,
+        //         "SUCCESS",
+        //         "Submitting 2 order cancellations."
+        //     ]
+        //
+        const orders = this.safeList(response, 4, []);
+        return this.parseOrders(orders, market);
     }
     async fetchOpenOrder(id, symbol = undefined, params = {}) {
         /**

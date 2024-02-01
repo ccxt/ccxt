@@ -49,6 +49,7 @@ class lbank extends lbank$1 {
                 'fetchClosedOrders': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchDepositAddress': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,

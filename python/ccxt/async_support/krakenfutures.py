@@ -57,6 +57,9 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'fetchClosedOrders': None,  # https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchDepositAddress': False,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchFundingHistory': None,
                 'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': True,

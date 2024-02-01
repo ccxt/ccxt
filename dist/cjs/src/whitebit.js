@@ -19,7 +19,7 @@ class whitebit extends whitebit$1 {
             'name': 'WhiteBit',
             'version': 'v4',
             'countries': ['EE'],
-            'rateLimit': 500,
+            'rateLimit': 50,
             'pro': true,
             'has': {
                 'CORS': undefined,
