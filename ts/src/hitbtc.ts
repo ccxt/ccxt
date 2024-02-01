@@ -2566,7 +2566,7 @@ export default class hitbtc extends Exchange {
         return this.safeValue (filteredMargin, 0) as MarginMode;
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name hitbtc#transfer
@@ -2656,7 +2656,7 @@ export default class hitbtc extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#withdraw
@@ -3390,7 +3390,7 @@ export default class hitbtc extends Exchange {
         return this.safeNumber (response, 'leverage');
     }
 
-    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#setLeverage

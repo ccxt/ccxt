@@ -3090,7 +3090,7 @@ export default class kucoin extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#withdraw
@@ -3598,7 +3598,7 @@ export default class kucoin extends Exchange {
         return returnType as Balances;
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name kucoin#transfer
