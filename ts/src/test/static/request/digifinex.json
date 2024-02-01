@@ -477,6 +477,26 @@
                         "type": "swap"
                     }
                 ]
+            },
+            {
+                "description": "Spot market fetch tickers",
+                "method": "fetchTickers",
+                "url": "https://openapi.digifinex.com/v3/ticker",
+                "input": [
+                  [
+                    "BTC/USDT"
+                  ]
+                ]
+            },
+            {
+                "description": "Swap market fetch tickers",
+                "method": "fetchTickers",
+                "url": "https://openapi.digifinex.com/swap/v2/public/tickers",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ]
+                ]
             }
         ],
         "fetchTicker": [

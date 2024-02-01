@@ -4730,7 +4730,7 @@ Returns
 The `cancelOrder()` is usually used on open orders only. However, it may happen that your order gets executed (filled and closed)
 before your cancel-request comes in, so a cancel-request might hit an already-closed order.
 
-A cancel-request might also throw a `NetworkError` indicating that the order might or might not have been canceled successfully and whether you need to retry or not. Consecutive calls to `cancelOrder()` may hit an already canceled order as well.
+A cancel-request might also throw a `OperationFailed` indicating that the order might or might not have been canceled successfully and whether you need to retry or not. Consecutive calls to `cancelOrder()` may hit an already canceled order as well.
 
 As such, `cancelOrder()` can throw an `OrderNotFound` exception in these cases:
 - canceling an already-closed order
@@ -6196,8 +6196,10 @@ So, in such cases you will need to communicate a "CORS" proxy, which would redir
 
 - [Exception Hierarchy](#exception-hierarchy)
 - [ExchangeError](#exchangeerror)
-- [NetworkError](#networkerror)
+- [OperationFailed](#operationfailed)
 - [DDoSProtection](#ddosprotection)
+- [RateLimitExceeded](#ratelimitexceeded)
+- [RequestTimeout](#requesttimeout)
 - [RequestTimeout](#requesttimeout)
 - [ExchangeNotAvailable](#exchangenotavailable)
 - [InvalidNonce](#invalidnonce)
@@ -6290,12 +6292,18 @@ class BaseError extends \Exception {}
 ```
 <!-- tabs:end -->
 
-Here is an outline of exception inheritance hierarchy: https://github.com/ccxt/ccxt/blob/master/ts/src/base/errorHierarchy.ts
+The exception inheritance hierarchy lives in this file: https://github.com/ccxt/ccxt/blob/master/ts/src/base/errorHierarchy.ts , and visually can be outlined like shown below:
 
 ```text
 + BaseError
 |
 +---+ ExchangeError
+|   |
+|   +---+ OperationRejected
+|   |
+|   +---+ BadRequest
+|   |   |
+|   |   +---+ BadSymbol
 |   |
 |   +---+ AuthenticationError
 |   |   |
@@ -6304,14 +6312,6 @@ Here is an outline of exception inheritance hierarchy: https://github.com/ccxt/c
 |   |   +---+ AccountSuspended
 |   |
 |   +---+ ArgumentsRequired
-|   |
-|   +---+ BadRequest
-|   |   |
-|   |   +---+ BadSymbol
-|   |   |
-|   |   +---+ OperationRejected
-|   |
-|   +---+ OperationFailed
 |   |
 |   +---+ BadResponse
 |   |   |
@@ -6339,35 +6339,40 @@ Here is an outline of exception inheritance hierarchy: https://github.com/ccxt/c
 |   |
 |   +---+ NotSupported
 |
-+---+ NetworkError (recoverable)
+|
++---+ OperationFailed (recoverable)
     |
-    +---+ InvalidNonce
-    |
-    +---+ RequestTimeout
-    |
-    +---+ ExchangeNotAvailable
-    |   |
-    |   +---+ OnMaintenance
-    |
-    +---+ DDoSProtection
+    +---+ NetworkError (recoverable)
+        |
+        +---+ InvalidNonce
+        |
+        +---+ RequestTimeout
+        |
+        +---+ ExchangeNotAvailable
+        |   |
+        |   +---+ OnMaintenance
         |
         +---+ RateLimitExceeded
+        |
+        +---+ DDoSProtection
 ```
 
 The `BaseError` class is a generic root error class for all sorts of errors, including accessibility and request/response mismatch. If you don't need to catch any specific subclass of exceptions, you can just use `BaseError`, where all exception types are being caught.
 
-From `BaseError` there are derived two different families of the error hierarchy:
+From `BaseError` derives two different families of errors: `OperationFailed` and `ExchangeError` (they also have their specific sub-types, as explained below).
 
-- `NetworkError`
-- `ExchangeError`
+### OperationFailed
+<a name="NetworkError" id="NetworkError"></a>
 
-They also have more specific sub-type exceptions, as explained below.
+An `OperationFailed` happens when user sends **correctly constructed & valid request** to exchange, but an non-deterministic problem occurred. In such cases, you might consider retrying after some time.
+- maintenance ongoing
+- internet/network connectivitiy issues
+- DDoS protections
+- "Server busy, try again"...
 
-### NetworkError
+Such network-related exceptions are time-dependent and re-trying the request later might be enough, but if the error still happens, then it may indicate some persistent problem with the exchange or with your connection.
 
-A `NetworkError` is mostly a temporary unavailability situation, that could be caused by any unexpected factor, including maintenance, internet connectivitiy issues, DDoS protections, and temporary bans. This error is a root of all exceptions sub-groups, that can reappear or disappear upon a later retry or upon a retry from a different location (without need to change parameters in the request). Such network-related exceptions are time-dependent and re-trying the request later might be enough, but if the error still happens, then it may indicate some persistent problem with the exchange or with your connection.
-
-`NetworkError` has the following sub-types: `DDoSProtection`, `RequestTimeout`, `ExchangeNotAvailable`, `InvalidNonce`.
+`OperationFailed` has the following sub-types: `RequestTimeout`,`DDoSProtection` (includes sub-type `RateLimitExceeded`),  `ExchangeNotAvailable`, `InvalidNonce`.
 
 #### DDoSProtection
 
@@ -6375,7 +6380,7 @@ This exception is thrown in cases when cloud/hosting services (Cloudflare, Incap
 
 #### RequestTimeout
 
-This exception is raised when the connection with the exchange fails or data is not fully received in a specified amount of time. This is controlled by the `timeout` option. When a `RequestTimeout` is raised, the user doesn't know the outcome of a request (whether it was accepted by the exchange server or not).
+This exception is raised when the connection with the exchange fails or data is not fully received in a specified amount of time. This is controlled by the exchange's `.timeout` property. When a `RequestTimeout` is raised, the user doesn't know the outcome of a request (whether it was accepted by the exchange server or not).
 
 Thus it's advised to handle this type of exception in the following manner:
 
@@ -6425,7 +6430,8 @@ Possible reasons for this exception:
 `ExchangeError` has the following sub-type exceptions:
 
   - `NotSupported`: when the endpoint/operation is not offered or supported by the exchange API.
-  - `BadRequest`: when user sends parameter(s) that is not compatible to the endpoint (i.e. invalid number, invalid parameter name, bad symbol, etc...). However, it also includes sub-type exception `OperationRejected` which means that request is technically correctly sent, but in your account (or on exchange) there might be happening something another issue that interferes your request to get succeeded. So, at first you might need to make another action or solve the mentioned, after that, your request might succeed.
+  - `BadRequest`: user sends an **incorrectly** constructed request/parameter/action that is invalid/unallowed (i.e.: "invalid number", "forbidden symbol", "size beyond min/max limits", "incorrect precision", etc). Retrying would not help in this case, the request needs to be fixed/adjusted first.
+  - `OperationRejected` - user sends a **correctly** constructed request (that should be accepted by the exchange), but your current account status does not allow it. (i.e. "please close existing positions before changing the leverage", "too many pending orders"). Please notice how this exception differs from [**OperationFailed**](#operationfailed)
   - `AuthenticationError`: when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need `apiKey` and `secret`, sometimes you also need `uid` and/or `password` if exchange API requires it.
   - `PermissionDenied`: when there's no access for specified action or insufficient permissions on the specified `apiKey`.
   - `InsufficientFunds`: when you don't have enough currency on your account balance to place an order.
