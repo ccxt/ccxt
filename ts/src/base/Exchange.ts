@@ -2006,8 +2006,6 @@ export default class Exchange {
                 if (fromStart) {
                     if (limit > arrayLength) {
                         limit = arrayLength;
-                    } else if (limit === arrayLength) {
-                        limit = arrayLength - 1;
                     }
                     array = ascending ? this.arraySlice (array, 0, limit) : this.arraySlice (array, -limit);
                 } else {
