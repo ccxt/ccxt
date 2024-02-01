@@ -1319,7 +1319,7 @@ export default class testMainClass extends baseMainTestClass {
                 if (isDisabled) {
                     continue;
                 }
-                const isDisabledCSharp = exchange.safeValue (result, 'disabledCSharp', false);
+                const isDisabledCSharp = exchange.safeValue (result, 'disabledCS', false);
                 if (isDisabledCSharp && (this.lang === 'C#')) {
                     continue;
                 }
