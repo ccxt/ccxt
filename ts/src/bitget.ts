@@ -56,8 +56,8 @@ export default class bitget extends Exchange {
                 'fetchBorrowInterest': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchCanceledOrders': true,
                 'fetchCanceledAndClosedOrders': true,
+                'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': true,
                 'fetchCrossBorrowRates': false,
@@ -2199,13 +2199,12 @@ export default class bitget extends Exchange {
             'coin': currency['code'],
             'address': address,
             'chain': networkId,
-            'size': amount,
-            'transferType': 'on_chain',
+            'amount': amount,
         };
         if (tag !== undefined) {
             request['tag'] = tag;
         }
-        const response = await this.privateSpotPostV2SpotWalletWithdrawal (this.extend (request, params));
+        const response = await this.privateSpotPostSpotV1WalletWithdrawalV2 (this.extend (request, params));
         //
         //     {
         //          "code":"00000",
@@ -2213,13 +2212,19 @@ export default class bitget extends Exchange {
         //          "requestTime":1696784219602,
         //          "data": {
         //              "orderId":"1094957867615789056",
-        //              "clientOid":"64f1e4ce842041d296b4517df1b5c2d7"
+        //              "clientOrderId":"64f1e4ce842041d296b4517df1b5c2d7"
         //          }
         //      }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeValue (response, 'data');
+        let id = undefined;
+        if (typeof data === 'string') {
+            id = data;
+        } else if (data !== undefined) {
+            id = this.safeString (data, 'orderId');
+        }
         const result = {
-            'id': this.safeString (data, 'orderId'),
+            'id': id,
             'info': response,
             'txid': undefined,
             'timestamp': undefined,
