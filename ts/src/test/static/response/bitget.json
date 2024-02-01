@@ -840,6 +840,70 @@
             ]
           ]
         }
+      ],
+      "fetchOrderBook": [
+        {
+          "description": "spot orderbook",
+          "method": "fetchOrderBook",
+          "input": [
+            "BTC/USDT",
+            2
+          ],
+          "httpResponse": {
+            "code": "00000",
+            "msg": "success",
+            "requestTime": "1706804094599",
+            "data": {
+              "asks": [
+                [
+                  "42604.37",
+                  "0.6010"
+                ],
+                [
+                  "42608.51",
+                  "0.0127"
+                ]
+              ],
+              "bids": [
+                [
+                  "42604.36",
+                  "0.6160"
+                ],
+                [
+                  "42604.3",
+                  "0.4400"
+                ]
+              ],
+              "ts": "1706804094602"
+            }
+          },
+          "parsedResponse": {
+            "symbol": "BTC/USDT",
+            "bids": [
+              [
+                42604.36,
+                0.616
+              ],
+              [
+                42604.3,
+                0.44
+              ]
+            ],
+            "asks": [
+              [
+                42604.37,
+                0.601
+              ],
+              [
+                42608.51,
+                0.0127
+              ]
+            ],
+            "timestamp": 1706804094602,
+            "datetime": "2024-02-01T16:14:54.602Z",
+            "nonce": null
+          }
+        }
       ]
     }
 }
