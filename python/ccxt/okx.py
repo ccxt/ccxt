@@ -363,9 +363,11 @@ class okx(Exchange, ImplicitAPI):
                         'tradingBot/grid/sub-orders': 1,
                         'tradingBot/grid/positions': 1,
                         'tradingBot/grid/ai-param': 1,
-                        'tradingBot/public/rsi-back-testing': 1,
+                        'tradingBot/signal/signals': 1,
                         'tradingBot/signal/orders-algo-details': 1,
+                        'tradingBot/signal/orders-algo-history': 1,
                         'tradingBot/signal/positions': 1,
+                        'tradingBot/signal/positions-history': 1,
                         'tradingBot/signal/sub-orders': 1,
                         'tradingBot/signal/event-history': 1,
                         'tradingBot/recurring/orders-algo-pending': 1,
@@ -485,6 +487,15 @@ class okx(Exchange, ImplicitAPI):
                         'tradingBot/grid/compute-margin-balance': 1,
                         'tradingBot/grid/margin-balance': 1,
                         'tradingBot/grid/min-investment': 1,
+                        'tradingBot/signal/create-signal': 1,
+                        'tradingBot/signal/order-algo': 1,
+                        'tradingBot/signal/stop-order-algo': 1,
+                        'tradingBot/signal/margin-balance': 1,
+                        'tradingBot/signal/amendTPSL': 1,
+                        'tradingBot/signal/set-instruments': 1,
+                        'tradingBot/signal/close-position': 1,
+                        'tradingBot/signal/sub-order': 1,
+                        'tradingBot/signal/cancel-sub-order': 1,
                         'tradingBot/recurring/order-algo': 1,
                         'tradingBot/recurring/amend-order-algo': 1,
                         'tradingBot/recurring/stop-order-algo': 1,
@@ -2093,7 +2104,8 @@ class okx(Exchange, ImplicitAPI):
             historyBorder = now - ((1440 - 1) * durationInMilliseconds)
             if since < historyBorder:
                 defaultType = 'HistoryCandles'
-            request['before'] = since
+            startTime = max(since - 1, 0)
+            request['before'] = startTime
             request['after'] = self.sum(since, durationInMilliseconds * limit)
         until = self.safe_integer(params, 'until')
         if until is not None:
@@ -2923,7 +2935,7 @@ class okx(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         stop = self.safe_value_2(params, 'stop', 'trigger')
-        trailing = self.safe_value(params, 'trailing', False)
+        trailing = self.safe_bool(params, 'trailing', False)
         if stop or trailing:
             orderInner = self.cancel_orders([id], symbol, params)
             return self.safe_value(orderInner, 0)
@@ -2981,7 +2993,7 @@ class okx(Exchange, ImplicitAPI):
         clientOrderIds = self.parse_ids(self.safe_value_2(params, 'clOrdId', 'clientOrderId'))
         algoIds = self.parse_ids(self.safe_value(params, 'algoId'))
         stop = self.safe_value_2(params, 'stop', 'trigger')
-        trailing = self.safe_value(params, 'trailing', False)
+        trailing = self.safe_bool(params, 'trailing', False)
         if stop or trailing:
             method = 'privatePostTradeCancelAlgos'
         if clientOrderIds is None:
@@ -3444,7 +3456,7 @@ class okx(Exchange, ImplicitAPI):
         method = self.safe_string(params, 'method', defaultMethod)
         ordType = self.safe_string(params, 'ordType')
         stop = self.safe_value_2(params, 'stop', 'trigger')
-        trailing = self.safe_value(params, 'trailing', False)
+        trailing = self.safe_bool(params, 'trailing', False)
         if trailing or stop or (ordType in algoOrderTypes):
             method = 'privateGetTradeOrdersAlgoPending'
         if trailing:
@@ -3602,7 +3614,7 @@ class okx(Exchange, ImplicitAPI):
         method = self.safe_string(params, 'method', defaultMethod)
         ordType = self.safe_string(params, 'ordType')
         stop = self.safe_value_2(params, 'stop', 'trigger')
-        trailing = self.safe_value(params, 'trailing', False)
+        trailing = self.safe_bool(params, 'trailing', False)
         if trailing:
             method = 'privateGetTradeOrdersAlgoHistory'
             request['ordType'] = 'move_order_stop'
@@ -3781,7 +3793,7 @@ class okx(Exchange, ImplicitAPI):
         method = self.safe_string(params, 'method', defaultMethod)
         ordType = self.safe_string(params, 'ordType')
         stop = self.safe_value_2(params, 'stop', 'trigger')
-        trailing = self.safe_value(params, 'trailing', False)
+        trailing = self.safe_bool(params, 'trailing', False)
         if trailing or stop or (ordType in algoOrderTypes):
             method = 'privateGetTradeOrdersAlgoHistory'
             request['state'] = 'effective'

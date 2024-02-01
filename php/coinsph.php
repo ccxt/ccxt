@@ -1532,7 +1532,7 @@ class coinsph extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         $options = $this->safe_value($this->options, 'withdraw');
-        $warning = $this->safe_value($options, 'warning', true);
+        $warning = $this->safe_bool($options, 'warning', true);
         if ($warning) {
             throw new InvalidAddress($this->id . " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }

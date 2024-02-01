@@ -10,9 +10,11 @@ error_hierarchy = {
             'ArgumentsRequired': {},
             'BadRequest': {
                 'BadSymbol': {},
-                'MarginModeAlreadySet': {},
-                'NoChange': {},
-                'OperationRejected': {},
+            },
+            'OperationRejected': {
+                'NoChange': {
+                    'MarginModeAlreadySet': {},
+                },
             },
             'BadResponse': {
                 'NullResponse': {},
@@ -35,9 +37,8 @@ error_hierarchy = {
         },
         'OperationFailed': {
             'NetworkError': {
-                'DDoSProtection': {
-                    'RateLimitExceeded': {},
-                },
+                'DDoSProtection': {},
+                'RateLimitExceeded': {},
                 'ExchangeNotAvailable': {
                     'OnMaintenance': {},
                 },
@@ -86,15 +87,15 @@ class BadSymbol(BadRequest):
     pass
 
 
-class MarginModeAlreadySet(BadRequest):
+class OperationRejected(ExchangeError):
     pass
 
 
-class NoChange(BadRequest):
+class NoChange(OperationRejected):
     pass
 
 
-class OperationRejected(BadRequest):
+class MarginModeAlreadySet(NoChange):
     pass
 
 
@@ -170,7 +171,7 @@ class DDoSProtection(NetworkError):
     pass
 
 
-class RateLimitExceeded(DDoSProtection):
+class RateLimitExceeded(NetworkError):
     pass
 
 
@@ -205,9 +206,9 @@ __all__ = [
     'ArgumentsRequired',
     'BadRequest',
     'BadSymbol',
-    'MarginModeAlreadySet',
-    'NoChange',
     'OperationRejected',
+    'NoChange',
+    'MarginModeAlreadySet',
     'BadResponse',
     'NullResponse',
     'InsufficientFunds',

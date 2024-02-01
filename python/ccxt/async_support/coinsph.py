@@ -1478,7 +1478,7 @@ class coinsph(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         options = self.safe_value(self.options, 'withdraw')
-        warning = self.safe_value(options, 'warning', True)
+        warning = self.safe_bool(options, 'warning', True)
         if warning:
             raise InvalidAddress(self.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = False to make a withdrawal to your coins_ph account")
         networkCode = self.safe_string(params, 'network')

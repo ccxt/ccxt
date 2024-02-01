@@ -353,7 +353,7 @@ class bitteam extends bitteam$1 {
         const created = this.parse8601(timeStart);
         let minCost = undefined;
         const currenciesValuedInUsd = this.safeValue(this.options, 'currenciesValuedInUsd', {});
-        const quoteInUsd = this.safeValue(currenciesValuedInUsd, quote, false);
+        const quoteInUsd = this.safeBool(currenciesValuedInUsd, quote, false);
         if (quoteInUsd) {
             const settings = this.safeValue(market, 'settings', {});
             minCost = this.safeNumber(settings, 'limit_usd');
@@ -540,7 +540,7 @@ class bitteam extends bitteam$1 {
             const id = this.safeString(currency, 'symbol');
             const numericId = this.safeInteger(currency, 'id');
             const code = this.safeCurrencyCode(id);
-            const active = this.safeValue(currency, 'active', false);
+            const active = this.safeBool(currency, 'active', false);
             const precision = this.safeInteger(currency, 'precision');
             const txLimits = this.safeValue(currency, 'txLimits', {});
             const minWithdraw = this.safeString(txLimits, 'minWithdraw');

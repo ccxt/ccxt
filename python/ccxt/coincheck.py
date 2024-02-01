@@ -784,7 +784,7 @@ class coincheck(Exchange, ImplicitAPI):
         #     {"success":false,"error":"disabled API Key"}'
         #     {"success":false,"error":"invalid authentication"}
         #
-        success = self.safe_value(response, 'success', True)
+        success = self.safe_bool(response, 'success', True)
         if not success:
             error = self.safe_string(response, 'error')
             feedback = self.id + ' ' + self.json(response)

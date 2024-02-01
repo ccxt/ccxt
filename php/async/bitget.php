@@ -73,6 +73,7 @@ class bitget extends Exchange {
                 'fetchCrossBorrowRate' => true,
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
+                'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDeposits' => true,
@@ -102,6 +103,7 @@ class bitget extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchOrderBooks' => false,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => false,
                 'fetchPosition' => true,
@@ -109,6 +111,7 @@ class bitget extends Exchange {
                 'fetchPositions' => true,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchStatus' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -125,6 +128,7 @@ class bitget extends Exchange {
                 'repayCrossMargin' => true,
                 'repayIsolatedMargin' => true,
                 'setLeverage' => true,
+                'setMargin' => false,
                 'setMarginMode' => true,
                 'setPositionMode' => true,
                 'signIn' => false,
@@ -2236,7 +2240,7 @@ class bitget extends Exchange {
                 'fee' => null,
             );
             $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
-            $fillResponseFromRequest = $this->safe_value($withdrawOptions, 'fillResponseFromRequest', true);
+            $fillResponseFromRequest = $this->safe_bool($withdrawOptions, 'fillResponseFromRequest', true);
             if ($fillResponseFromRequest) {
                 $result['currency'] = $code;
                 $result['timestamp'] = $this->milliseconds();
@@ -3118,7 +3122,7 @@ class bitget extends Exchange {
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchTradingFees', $params);
             list($marketType, $params) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
             if ($marketType === 'spot') {
-                $margin = $this->safe_value($params, 'margin', false);
+                $margin = $this->safe_bool($params, 'margin', false);
                 $params = $this->omit($params, 'margin');
                 if (($marginMode !== null) || $margin) {
                     $response = Async\await($this->publicMarginGetV2MarginCurrencies ($params));
@@ -4124,7 +4128,7 @@ class bitget extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $triggerType = $this->safe_string($params, 'triggerType', 'mark_price');
-        $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
+        $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
         $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
         $exchangeSpecificTifParam = $this->safe_string_2($params, 'force', 'timeInForce');
         $postOnly = null;
@@ -4213,7 +4217,7 @@ class bitget extends Exchange {
                 }
                 $marginModeRequest = ($marginMode === 'cross') ? 'crossed' : 'isolated';
                 $request['marginMode'] = $marginModeRequest;
-                $oneWayMode = $this->safe_value($params, 'oneWayMode', false);
+                $oneWayMode = $this->safe_bool($params, 'oneWayMode', false);
                 $params = $this->omit($params, 'oneWayMode');
                 $requestSide = $side;
                 if ($reduceOnly) {

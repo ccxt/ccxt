@@ -282,7 +282,7 @@ class probit extends Exchange {
         $quoteId = $this->safe_string($market, 'quote_currency_id');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $closed = $this->safe_value($market, 'closed', false);
+        $closed = $this->safe_bool($market, 'closed', false);
         $takerFeeRate = $this->safe_string($market, 'taker_fee_rate');
         $taker = Precise::string_div($takerFeeRate, '100');
         $makerFeeRate = $this->safe_string($market, 'maker_fee_rate');

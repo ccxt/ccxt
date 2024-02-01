@@ -2428,7 +2428,7 @@ class phemex extends Exchange {
     }
 
     public function parse_order($order, ?array $market = null): array {
-        $isSwap = $this->safe_value($market, 'swap', false);
+        $isSwap = $this->safe_bool($market, 'swap', false);
         $hasPnl = (is_array($order) && array_key_exists('closedPnl', $order));
         if ($isSwap || $hasPnl) {
             return $this->parse_swap_order($order, $market);
@@ -4313,7 +4313,7 @@ class phemex extends Exchange {
                 throw new BadRequest($this->id . ' setLeverage() $leverage should be between -100 and 100');
             }
             Async\await($this->load_markets());
-            $isHedged = $this->safe_value($params, 'hedged', false);
+            $isHedged = $this->safe_bool($params, 'hedged', false);
             $longLeverageRr = $this->safe_integer($params, 'longLeverageRr');
             $shortLeverageRr = $this->safe_integer($params, 'shortLeverageRr');
             $market = $this->market($symbol);
@@ -4406,7 +4406,7 @@ class phemex extends Exchange {
                 $transfer = $this->parse_transfer($response);
             }
             $transferOptions = $this->safe_value($this->options, 'transfer', array());
-            $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
+            $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
             if ($fillResponseFromRequest) {
                 if ($transfer['fromAccount'] === null) {
                     $transfer['fromAccount'] = $fromAccount;

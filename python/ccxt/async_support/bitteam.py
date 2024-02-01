@@ -360,7 +360,7 @@ class bitteam(Exchange, ImplicitAPI):
         created = self.parse8601(timeStart)
         minCost = None
         currenciesValuedInUsd = self.safe_value(self.options, 'currenciesValuedInUsd', {})
-        quoteInUsd = self.safe_value(currenciesValuedInUsd, quote, False)
+        quoteInUsd = self.safe_bool(currenciesValuedInUsd, quote, False)
         if quoteInUsd:
             settings = self.safe_value(market, 'settings', {})
             minCost = self.safe_number(settings, 'limit_usd')
@@ -544,7 +544,7 @@ class bitteam(Exchange, ImplicitAPI):
             id = self.safe_string(currency, 'symbol')
             numericId = self.safe_integer(currency, 'id')
             code = self.safe_currency_code(id)
-            active = self.safe_value(currency, 'active', False)
+            active = self.safe_bool(currency, 'active', False)
             precision = self.safe_integer(currency, 'precision')
             txLimits = self.safe_value(currency, 'txLimits', {})
             minWithdraw = self.safe_string(txLimits, 'minWithdraw')

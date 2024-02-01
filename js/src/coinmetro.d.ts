@@ -45,7 +45,7 @@ export default class coinmetro extends Exchange {
         after: number;
         status: string;
         fee: any;
-        info: any;
+        info: import("./base/types.js").Dictionary<any>;
     };
     parseLedgerEntryDescription(description: any): any[];
     parseLedgerEntryType(type: any): string;

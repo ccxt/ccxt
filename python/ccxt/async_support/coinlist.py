@@ -372,7 +372,7 @@ class coinlist(Exchange, ImplicitAPI):
             currency = currencies[i]
             id = self.safe_string(currency, 'asset')
             code = self.safe_currency_code(id)
-            isTransferable = self.safe_value(currency, 'is_transferable', False)
+            isTransferable = self.safe_bool(currency, 'is_transferable', False)
             withdrawEnabled = isTransferable
             depositEnabled = isTransferable
             active = isTransferable

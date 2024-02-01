@@ -894,7 +894,7 @@ class okx extends \ccxt\async\okx {
             // By default, receive order updates from any instrument $type
             $type = null;
             list($type, $params) = $this->handle_option_and_params($params, 'watchMyTrades', 'type', 'ANY');
-            $isStop = $this->safe_value($params, 'stop', false);
+            $isStop = $this->safe_bool($params, 'stop', false);
             $params = $this->omit($params, array( 'stop' ));
             Async\await($this->load_markets());
             Async\await($this->authenticate(array( 'access' => $isStop ? 'business' : 'private' )));

@@ -35,6 +35,9 @@ export default class poloniexfutures extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': false,
+                'fetchDepositAddress': false,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchL3OrderBook': true,
@@ -871,7 +874,7 @@ export default class poloniexfutures extends Exchange {
                 request['timeInForce'] = timeInForce;
             }
         }
-        const postOnly = this.safeValue (params, 'postOnly', false);
+        const postOnly = this.safeBool (params, 'postOnly', false);
         const hidden = this.safeValue (params, 'hidden');
         if (postOnly && (hidden !== undefined)) {
             throw new BadRequest (this.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter');
@@ -1566,8 +1569,8 @@ export default class poloniexfutures extends Exchange {
         // precision reported by their api is 8 d.p.
         // const average = Precise.stringDiv (rawCost, Precise.stringMul (filled, market['contractSize']));
         // bool
-        const isActive = this.safeValue (order, 'isActive', false);
-        const cancelExist = this.safeValue (order, 'cancelExist', false);
+        const isActive = this.safeBool (order, 'isActive', false);
+        const cancelExist = this.safeBool (order, 'cancelExist', false);
         const status = isActive ? 'open' : 'closed';
         let id = this.safeString (order, 'id');
         if ('cancelledOrderIds' in order) {

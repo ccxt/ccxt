@@ -204,6 +204,13 @@ class coinbase extends coinbase$1 {
                             'brokerage/best_bid_ask',
                             'brokerage/convert/trade/{trade_id}',
                             'brokerage/time',
+                            'brokerage/cfm/balance_summary',
+                            'brokerage/cfm/positions',
+                            'brokerage/cfm/positions/{product_id}',
+                            'brokerage/cfm/sweeps',
+                            'brokerage/intx/portfolio/{portfolio_uuid}',
+                            'brokerage/intx/positions/{portfolio_uuid}',
+                            'brokerage/intx/positions/{portfolio_uuid}/{symbol}',
                         ],
                         'post': [
                             'brokerage/orders',
@@ -214,12 +221,15 @@ class coinbase extends coinbase$1 {
                             'brokerage/portfolios/move_funds',
                             'brokerage/convert/quote',
                             'brokerage/convert/trade/{trade_id}',
+                            'brokerage/cfm/sweeps/schedule',
+                            'brokerage/intx/allocate',
                         ],
                         'put': [
                             'brokerage/portfolios/{portfolio_uuid}',
                         ],
                         'delete': [
                             'brokerage/portfolios/{portfolio_uuid}',
+                            'brokerage/cfm/sweeps',
                         ],
                     },
                 },
@@ -1361,7 +1371,11 @@ class coinbase extends coinbase$1 {
     async fetchTickersV3(symbols = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        const response = await this.v3PrivateGetBrokerageProducts(params);
+        const request = {};
+        if (symbols !== undefined) {
+            request['product_ids'] = this.marketIds(symbols);
+        }
+        const response = await this.v3PrivateGetBrokerageProducts(this.extend(request, params));
         //
         //     {
         //         "products": [
@@ -1679,7 +1693,7 @@ class coinbase extends coinbase$1 {
             'limit': 250,
         };
         let response = undefined;
-        const isV3 = this.safeValue(params, 'v3', false);
+        const isV3 = this.safeBool(params, 'v3', false);
         params = this.omit(params, 'v3');
         const method = this.safeString(this.options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts');
         if ((isV3) || (method === 'v3PrivateGetBrokerageAccounts')) {
@@ -3195,8 +3209,11 @@ class coinbase extends coinbase$1 {
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        // the 'product_ids' param isn't working properly and returns {"pricebooks":[]} when defined
-        const response = await this.v3PrivateGetBrokerageBestBidAsk(params);
+        const request = {};
+        if (symbols !== undefined) {
+            request['product_ids'] = this.marketIds(symbols);
+        }
+        const response = await this.v3PrivateGetBrokerageBestBidAsk(this.extend(request, params));
         //
         //     {
         //         "pricebooks": [
@@ -3325,7 +3342,7 @@ class coinbase extends coinbase$1 {
         const savedPath = fullPath;
         if (method === 'GET') {
             if (Object.keys(query).length) {
-                fullPath += '?' + this.urlencode(query);
+                fullPath += '?' + this.urlencodeWithArrayRepeat(query);
             }
         }
         const url = this.urls['api']['rest'] + fullPath;

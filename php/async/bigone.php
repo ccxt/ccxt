@@ -1476,7 +1476,7 @@ class bigone extends Exchange {
             $requestSide = $isBuy ? 'BID' : 'ASK';
             $uppercaseType = strtoupper($type);
             $isLimit = $uppercaseType === 'LIMIT';
-            $exchangeSpecificParam = $this->safe_value($params, 'post_only', false);
+            $exchangeSpecificParam = $this->safe_bool($params, 'post_only', false);
             $postOnly = null;
             list($postOnly, $params) = $this->handle_post_only(($uppercaseType === 'MARKET'), $exchangeSpecificParam, $params);
             $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
@@ -2117,7 +2117,7 @@ class bigone extends Exchange {
             //
             $transfer = $this->parse_transfer($response, $currency);
             $transferOptions = $this->safe_value($this->options, 'transfer', array());
-            $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
+            $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
             if ($fillResponseFromRequest) {
                 $transfer['fromAccount'] = $fromAccount;
                 $transfer['toAccount'] = $toAccount;

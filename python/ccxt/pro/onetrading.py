@@ -1020,7 +1020,7 @@ class onetrading(ccxt.async_support.onetrading):
             subscription = self.safe_value(client.subscriptions, subscriptionHash)
             if subscription is not None:
                 ohlcvMarket = self.safe_value(subscription, marketId, {})
-                marketSubscribed = self.safe_value(ohlcvMarket, timeframe, False)
+                marketSubscribed = self.safe_bool(ohlcvMarket, timeframe, False)
                 if not marketSubscribed:
                     type = 'UPDATE_SUBSCRIPTION'
                     client.subscriptions[subscriptionHash] = None
@@ -1245,7 +1245,7 @@ class onetrading(ccxt.async_support.onetrading):
             if subscription is not None:
                 for i in range(0, len(marketIds)):
                     marketId = marketIds[i]
-                    marketSubscribed = self.safe_value(subscription, marketId, False)
+                    marketSubscribed = self.safe_bool(subscription, marketId, False)
                     if not marketSubscribed:
                         type = 'UPDATE_SUBSCRIPTION'
                         client.subscriptions[subscriptionHash] = None

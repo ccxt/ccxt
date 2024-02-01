@@ -1072,7 +1072,7 @@ class bitfinex extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $postOnly = $this->safe_value($params, 'postOnly', false);
+            $postOnly = $this->safe_bool($params, 'postOnly', false);
             $type = strtolower($type);
             $params = $this->omit($params, array( 'postOnly' ));
             if ($market['spot']) {

@@ -1021,7 +1021,7 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        postOnly = self.safe_value(params, 'postOnly', False)
+        postOnly = self.safe_bool(params, 'postOnly', False)
         type = type.lower()
         params = self.omit(params, ['postOnly'])
         if market['spot']:

@@ -152,13 +152,13 @@ The CCXT library currently supports the following 94 cryptocurrency exchange mar
 | [![okcoin](https://user-images.githubusercontent.com/51840849/87295551-102fbf00-c50e-11ea-90a9-462eebba5829.jpg)](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)                  | okcoin             | [OKCoin](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)                   | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://www.okcoin.com/docs/en/)                                                    |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![okx](https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg)](https://www.okx.com/join/CCXT2023)                                                             | okx                | [OKX](https://www.okx.com/join/CCXT2023)                                                              | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://www.okx.com/docs-v5/en/)                                                    | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![onetrading](https://github.com/ccxt/ccxt/assets/43336371/bdbc26fd-02f2-4ca7-9f1e-17333690bb1c)](https://onetrading.com/)                                                                                   | onetrading         | [One Trading](https://onetrading.com/)                                                                | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.onetrading.com)                                                        |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![p2b](https://github.com/ccxt/ccxt/assets/43336371/8da13a80-1f0a-49be-bb90-ff8b25164755)](https://p2pb2b.com?referral=ee784c53)                                                                             | p2b                | [p2b](https://p2pb2b.com?referral=ee784c53)                                                           | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md)                    |                                                                                                                             |                                                                              |
+| [![p2b](https://github.com/ccxt/ccxt/assets/43336371/8da13a80-1f0a-49be-bb90-ff8b25164755)](https://p2pb2b.com?referral=ee784c53)                                                                             | p2b                | [p2b](https://p2pb2b.com?referral=ee784c53)                                                           | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md)                    |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![paymium](https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg)](https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj)                        | paymium            | [Paymium](https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj)                         | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/Paymium/api-documentation)                                       |                                                                                                                             |                                                                              |
 | [![phemex](https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg)](https://phemex.com/register?referralCode=EDNVJ)                                              | phemex             | [Phemex](https://phemex.com/register?referralCode=EDNVJ)                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/phemex/phemex-api-docs)                                          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![poloniex](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)](https://poloniex.com/signup?c=UBFZJRPJ)                                                    | poloniex           | [Poloniex](https://poloniex.com/signup?c=UBFZJRPJ)                                                    | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.poloniex.com)                                                          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![poloniexfutures](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)](https://poloniex.com/signup?c=UBFZJRPJ)                                             | poloniexfutures    | [Poloniex Futures](https://poloniex.com/signup?c=UBFZJRPJ)                                            | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://futures-docs.poloniex.com)                                                  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![probit](https://user-images.githubusercontent.com/51840849/79268032-c4379480-7ea2-11ea-80b3-dd96bb29fd0d.jpg)](https://www.probit.com/r/34608773)                                                          | probit             | [ProBit](https://www.probit.com/r/34608773)                                                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs-en.probit.com)                                                         |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![timex](https://user-images.githubusercontent.com/1294454/70423869-6839ab00-1a7f-11ea-8f94-13ae72c31115.jpg)](https://timex.io/?refcode=1x27vNkTbP1uwkCck)                                                  | timex              | [TimeX](https://timex.io/?refcode=1x27vNkTbP1uwkCck)                                                  | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.timex.io)                                                              |                                                                                                                             |                                                                              |
+| [![timex](https://user-images.githubusercontent.com/1294454/70423869-6839ab00-1a7f-11ea-8f94-13ae72c31115.jpg)](https://timex.io/?refcode=1x27vNkTbP1uwkCck)                                                  | timex              | [TimeX](https://timex.io/?refcode=1x27vNkTbP1uwkCck)                                                  | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://plasma-relay-backend.timex.io/swagger-ui/index.html)                        |                                                                                                                             |                                                                              |
 | [![tokocrypto](https://user-images.githubusercontent.com/1294454/183870484-d3398d0c-f6a1-4cce-91b8-d58792308716.jpg)](https://tokocrypto.com)                                                                 | tokocrypto         | [Tokocrypto](https://tokocrypto.com)                                                                  | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.tokocrypto.com/apidocs/)                                                |                                                                                                                             |                                                                              |
 | [![upbit](https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg)](https://upbit.com)                                                                            | upbit              | [Upbit](https://upbit.com)                                                                            | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C)        |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![wavesexchange](https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg)](https://wx.network)                                                                   | wavesexchange      | [Waves.Exchange](https://wx.network)                                                                  | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.wx.network)                                                            |                                                                                                                             |                                                                              |
@@ -4730,7 +4730,7 @@ Returns
 The `cancelOrder()` is usually used on open orders only. However, it may happen that your order gets executed (filled and closed)
 before your cancel-request comes in, so a cancel-request might hit an already-closed order.
 
-A cancel-request might also throw a `NetworkError` indicating that the order might or might not have been canceled successfully and whether you need to retry or not. Consecutive calls to `cancelOrder()` may hit an already canceled order as well.
+A cancel-request might also throw a `OperationFailed` indicating that the order might or might not have been canceled successfully and whether you need to retry or not. Consecutive calls to `cancelOrder()` may hit an already canceled order as well.
 
 As such, `cancelOrder()` can throw an `OrderNotFound` exception in these cases:
 - canceling an already-closed order
@@ -6196,8 +6196,10 @@ So, in such cases you will need to communicate a "CORS" proxy, which would redir
 
 - [Exception Hierarchy](#exception-hierarchy)
 - [ExchangeError](#exchangeerror)
-- [NetworkError](#networkerror)
+- [OperationFailed](#operationfailed)
 - [DDoSProtection](#ddosprotection)
+- [RateLimitExceeded](#ratelimitexceeded)
+- [RequestTimeout](#requesttimeout)
 - [RequestTimeout](#requesttimeout)
 - [ExchangeNotAvailable](#exchangenotavailable)
 - [InvalidNonce](#invalidnonce)
@@ -6290,12 +6292,18 @@ class BaseError extends \Exception {}
 ```
 <!-- tabs:end -->
 
-Here is an outline of exception inheritance hierarchy: https://github.com/ccxt/ccxt/blob/master/ts/src/base/errorHierarchy.ts
+The exception inheritance hierarchy lives in this file: https://github.com/ccxt/ccxt/blob/master/ts/src/base/errorHierarchy.ts , and visually can be outlined like shown below:
 
 ```text
 + BaseError
 |
 +---+ ExchangeError
+|   |
+|   +---+ OperationRejected
+|   |
+|   +---+ BadRequest
+|   |   |
+|   |   +---+ BadSymbol
 |   |
 |   +---+ AuthenticationError
 |   |   |
@@ -6304,14 +6312,6 @@ Here is an outline of exception inheritance hierarchy: https://github.com/ccxt/c
 |   |   +---+ AccountSuspended
 |   |
 |   +---+ ArgumentsRequired
-|   |
-|   +---+ BadRequest
-|   |   |
-|   |   +---+ BadSymbol
-|   |   |
-|   |   +---+ OperationRejected
-|   |
-|   +---+ OperationFailed
 |   |
 |   +---+ BadResponse
 |   |   |
@@ -6339,35 +6339,40 @@ Here is an outline of exception inheritance hierarchy: https://github.com/ccxt/c
 |   |
 |   +---+ NotSupported
 |
-+---+ NetworkError (recoverable)
+|
++---+ OperationFailed (recoverable)
     |
-    +---+ InvalidNonce
-    |
-    +---+ RequestTimeout
-    |
-    +---+ ExchangeNotAvailable
-    |   |
-    |   +---+ OnMaintenance
-    |
-    +---+ DDoSProtection
+    +---+ NetworkError (recoverable)
+        |
+        +---+ InvalidNonce
+        |
+        +---+ RequestTimeout
+        |
+        +---+ ExchangeNotAvailable
+        |   |
+        |   +---+ OnMaintenance
         |
         +---+ RateLimitExceeded
+        |
+        +---+ DDoSProtection
 ```
 
 The `BaseError` class is a generic root error class for all sorts of errors, including accessibility and request/response mismatch. If you don't need to catch any specific subclass of exceptions, you can just use `BaseError`, where all exception types are being caught.
 
-From `BaseError` there are derived two different families of the error hierarchy:
+From `BaseError` derives two different families of errors: `OperationFailed` and `ExchangeError` (they also have their specific sub-types, as explained below).
 
-- `NetworkError`
-- `ExchangeError`
+### OperationFailed
+<a name="NetworkError" id="NetworkError"></a>
 
-They also have more specific sub-type exceptions, as explained below.
+An `OperationFailed` happens when user sends **correctly constructed & valid request** to exchange, but an non-deterministic problem occurred. In such cases, you might consider retrying after some time.
+- maintenance ongoing
+- internet/network connectivitiy issues
+- DDoS protections
+- "Server busy, try again"...
 
-### NetworkError
+Such network-related exceptions are time-dependent and re-trying the request later might be enough, but if the error still happens, then it may indicate some persistent problem with the exchange or with your connection.
 
-A `NetworkError` is mostly a temporary unavailability situation, that could be caused by any unexpected factor, including maintenance, internet connectivitiy issues, DDoS protections, and temporary bans. This error is a root of all exceptions sub-groups, that can reappear or disappear upon a later retry or upon a retry from a different location (without need to change parameters in the request). Such network-related exceptions are time-dependent and re-trying the request later might be enough, but if the error still happens, then it may indicate some persistent problem with the exchange or with your connection.
-
-`NetworkError` has the following sub-types: `DDoSProtection`, `RequestTimeout`, `ExchangeNotAvailable`, `InvalidNonce`.
+`OperationFailed` has the following sub-types: `RequestTimeout`,`DDoSProtection` (includes sub-type `RateLimitExceeded`),  `ExchangeNotAvailable`, `InvalidNonce`.
 
 #### DDoSProtection
 
@@ -6375,7 +6380,7 @@ This exception is thrown in cases when cloud/hosting services (Cloudflare, Incap
 
 #### RequestTimeout
 
-This exception is raised when the connection with the exchange fails or data is not fully received in a specified amount of time. This is controlled by the `timeout` option. When a `RequestTimeout` is raised, the user doesn't know the outcome of a request (whether it was accepted by the exchange server or not).
+This exception is raised when the connection with the exchange fails or data is not fully received in a specified amount of time. This is controlled by the exchange's `.timeout` property. When a `RequestTimeout` is raised, the user doesn't know the outcome of a request (whether it was accepted by the exchange server or not).
 
 Thus it's advised to handle this type of exception in the following manner:
 
@@ -6425,7 +6430,8 @@ Possible reasons for this exception:
 `ExchangeError` has the following sub-type exceptions:
 
   - `NotSupported`: when the endpoint/operation is not offered or supported by the exchange API.
-  - `BadRequest`: when user sends parameter(s) that is not compatible to the endpoint (i.e. invalid number, invalid parameter name, bad symbol, etc...). However, it also includes sub-type exception `OperationRejected` which means that request is technically correctly sent, but in your account (or on exchange) there might be happening something another issue that interferes your request to get succeeded. So, at first you might need to make another action or solve the mentioned, after that, your request might succeed.
+  - `BadRequest`: user sends an **incorrectly** constructed request/parameter/action that is invalid/unallowed (i.e.: "invalid number", "forbidden symbol", "size beyond min/max limits", "incorrect precision", etc). Retrying would not help in this case, the request needs to be fixed/adjusted first.
+  - `OperationRejected` - user sends a **correctly** constructed request (that should be accepted by the exchange), but your current account status does not allow it. (i.e. "please close existing positions before changing the leverage", "too many pending orders"). Please notice how this exception differs from [**OperationFailed**](#operationfailed)
   - `AuthenticationError`: when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need `apiKey` and `secret`, sometimes you also need `uid` and/or `password` if exchange API requires it.
   - `PermissionDenied`: when there's no access for specified action or insufficient permissions on the specified `apiKey`.
   - `InsufficientFunds`: when you don't have enough currency on your account balance to place an order.
