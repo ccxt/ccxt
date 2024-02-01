@@ -5,6 +5,14 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchStatus": [
+            {
+                "description": "Fetch the API status",
+                "method": "fetchStatus",
+                "url": "https://api-pub.bitfinex.com/v2/platform/status",
+                "input": []
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Spot private trades",
