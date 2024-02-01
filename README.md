@@ -21,7 +21,6 @@ Current feature list:
 
 ## Sponsored Promotion
 
-[![CCXT_APP_basic_mode_banner](https://github.com/ccxt/ccxt/assets/43336371/c112c89d-567a-4b03-bb4d-1ca7a07ae2f7)](https://x.woo.org/en/ccxt-competition-1)
 
 ## See Also
 
