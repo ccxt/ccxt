@@ -968,7 +968,9 @@ class kraken extends Exchange {
             $request['interval'] = $timeframe;
         }
         if ($since !== null) {
-            $request['since'] = $this->parse_to_int(($since - 1) / 1000);
+            // contrary to kraken's api documentation, the $since parameter must be passed in nanoseconds
+            // the adding of '000000' is copied from the fetchTrades function
+            $request['since'] = $this->number_to_string($since) . '000000'; // expected to be in nanoseconds
         }
         $response = $this->publicGetOHLC (array_merge($request, $params));
         //
