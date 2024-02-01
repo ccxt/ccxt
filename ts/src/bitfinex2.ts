@@ -26,9 +26,10 @@ export default class bitfinex2 extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': undefined, // has but unimplemented
-                'swap': undefined, // has but unimplemented
+                'swap': true,
                 'future': undefined,
                 'option': undefined,
+                'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -50,13 +51,17 @@ export default class bitfinex2 extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositsWithdrawals': true,
+                'fetchFundingHistory': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchLiquidations': true,
                 'fetchMarginMode': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -66,7 +71,10 @@ export default class bitfinex2 extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderTrades': true,
+                'fetchPosition': false,
                 'fetchPositionMode': false,
+                'fetchPositions': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTickers': true,
                 'fetchTime': false,
@@ -74,7 +82,11 @@ export default class bitfinex2 extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactionFees': undefined,
                 'fetchTransactions': 'emulated',
+                'reduceMargin': false,
+                'setLeverage': false,
                 'setMargin': true,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -2893,7 +2905,6 @@ export default class bitfinex2 extends Exchange {
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
-        await this.loadMarkets ();
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
