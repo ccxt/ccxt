@@ -31,7 +31,7 @@ public partial class Exchange
 
     public dict transformedApi { get; set; } = new dict();
 
-    public bool reduceFees { get; set; } = false;
+    public bool reduceFees { get; set; } = true;
 
     public dict markets_by_id { get; set; } = null;
 
