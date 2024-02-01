@@ -2452,7 +2452,7 @@ class Exchange {
         return $result;
     }
 
-    public function filter_by_limit(mixed $array, ?int $limit = null, int|string $key = 'timestamp') {
+    public function filter_by_limit(mixed $array, ?int $limit = null, int|string $key = 'timestamp', bool $fromStart = false) {
         if ($this->valueIsDefined ($limit)) {
             $arrayLength = count($array);
             if ($arrayLength > 0) {
@@ -2464,7 +2464,11 @@ class Exchange {
                         $ascending = $first <= $last;  // true if $array is sorted in $ascending order based on 'timestamp'
                     }
                 }
-                $array = $ascending ? $this->arraySlice ($array, -$limit) : $this->arraySlice ($array, 0, $limit);
+                if ($fromStart) {
+                    $array = $ascending ? $this->arraySlice ($array, 0, $limit) : $this->arraySlice ($array, -$limit);
+                } else {
+                    $array = $ascending ? $this->arraySlice ($array, -$limit) : $this->arraySlice ($array, 0, $limit);
+                }
             }
         }
         return $array;
@@ -2487,7 +2491,10 @@ class Exchange {
         if ($tail && $limit !== null) {
             return $this->arraySlice ($result, -$limit);
         }
-        return $this->filter_by_limit($result, $limit, $key);
+        // if the user provided a 'since' argument
+        // we want to $limit the $result starting from the 'since'
+        $shouldFilterFromStart = !$tail && $sinceIsDefined;
+        return $this->filter_by_limit($result, $limit, $key, $shouldFilterFromStart);
     }
 
     public function filter_by_value_since_limit(mixed $array, int|string $field, $value = null, ?int $since = null, ?int $limit = null, $key = 'timestamp', $tail = false) {
@@ -2513,7 +2520,7 @@ class Exchange {
         if ($tail && $limit !== null) {
             return $this->arraySlice ($result, -$limit);
         }
-        return $this->filter_by_limit($result, $limit, $key);
+        return $this->filter_by_limit($result, $limit, $key, $sinceIsDefined);
     }
 
     public function set_sandbox_mode($enabled) {

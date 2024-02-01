@@ -3948,10 +3948,12 @@ class okx(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['instId'] = market['id']
+        if since is not None:
+            request['begin'] = since
         request, params = self.handle_until_option('end', request, params)
         type, query = self.handle_market_type_and_params('fetchMyTrades', market, params)
         request['instType'] = self.convert_to_instrument_type(type)
-        if limit is not None:
+        if (limit is not None) and (since is None):  # limit = n, okx will return the n most recent results, instead of the n results after limit, so limit should only be sent when since is None
             request['limit'] = limit  # default 100, max 100
         response = await self.privateGetTradeFillsHistory(self.extend(request, query))
         #

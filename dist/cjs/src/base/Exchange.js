@@ -1681,7 +1681,7 @@ class Exchange {
         }
         return result;
     }
-    filterByLimit(array, limit = undefined, key = 'timestamp') {
+    filterByLimit(array, limit = undefined, key = 'timestamp', fromStart = false) {
         if (this.valueIsDefined(limit)) {
             const arrayLength = array.length;
             if (arrayLength > 0) {
@@ -1693,7 +1693,12 @@ class Exchange {
                         ascending = first <= last; // true if array is sorted in ascending order based on 'timestamp'
                     }
                 }
-                array = ascending ? this.arraySlice(array, -limit) : this.arraySlice(array, 0, limit);
+                if (fromStart) {
+                    array = ascending ? this.arraySlice(array, 0, limit) : this.arraySlice(array, -limit);
+                }
+                else {
+                    array = ascending ? this.arraySlice(array, -limit) : this.arraySlice(array, 0, limit);
+                }
             }
         }
         return array;
@@ -1715,7 +1720,10 @@ class Exchange {
         if (tail && limit !== undefined) {
             return this.arraySlice(result, -limit);
         }
-        return this.filterByLimit(result, limit, key);
+        // if the user provided a 'since' argument
+        // we want to limit the result starting from the 'since'
+        const shouldFilterFromStart = !tail && sinceIsDefined;
+        return this.filterByLimit(result, limit, key, shouldFilterFromStart);
     }
     filterByValueSinceLimit(array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
         const valueIsDefined = this.valueIsDefined(value);
@@ -1740,7 +1748,7 @@ class Exchange {
         if (tail && limit !== undefined) {
             return this.arraySlice(result, -limit);
         }
-        return this.filterByLimit(result, limit, key);
+        return this.filterByLimit(result, limit, key, sinceIsDefined);
     }
     setSandboxMode(enabled) {
         if (enabled) {
