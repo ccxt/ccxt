@@ -104,6 +104,8 @@ public static class Program
             {
                 if (x.StartsWith("{"))
                     return (dict)JsonHelper.Deserialize(x);
+                if (x.StartsWith("["))
+                    return (IList<object>)JsonHelper.Deserialize(x);
                 if (x == "null")
                     return null;
                 if (x == "true")
