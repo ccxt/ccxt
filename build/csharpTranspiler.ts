@@ -237,7 +237,7 @@ class NewTranspiler {
             const [, type, name, description] = paramMatch;
             params.push({type, name, description});
         }
-        const returnRegex = /@returns\s{(\w+[?]?)}\s(.+)/;
+        const returnRegex = /@returns\s{(\w+\[?\]?\[?\]?)}\s(.+)/;
         const returnMatch = comment.match(returnRegex);
         const returnType = returnMatch ? returnMatch[1] : undefined;
         const returnDescription =  returnMatch && returnMatch.length > 1 ? returnMatch[2]: undefined;
