@@ -6868,7 +6868,7 @@ export default class bitget extends Exchange {
          * @name bitget#setLeverage
          * @description set the level of leverage for a market
          * @see https://www.bitget.com/api-doc/contract/account/Change-Leverage
-         * @param {float} leverage the rate of leverage
+         * @param {int} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.holdSide] *isolated only* position direction, 'long' or 'short'
@@ -6891,7 +6891,7 @@ export default class bitget extends Exchange {
         const request = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
-            'leverage': leverage,
+            'leverage': this.numberToString (leverage),
             'productType': productType,
             // 'holdSide': 'long',
         };
