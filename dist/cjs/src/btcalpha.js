@@ -677,7 +677,7 @@ class btcalpha extends btcalpha$1 {
         const marketId = this.safeString(order, 'pair');
         market = this.safeMarket(marketId, market, '_');
         const symbol = market['symbol'];
-        const success = this.safeValue(order, 'success', false);
+        const success = this.safeBool(order, 'success', false);
         let timestamp = undefined;
         if (success) {
             timestamp = this.safeTimestamp(order, 'date');

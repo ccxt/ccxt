@@ -1312,7 +1312,7 @@ class lbank extends lbank$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const clientOrderId = this.safeString2(params, 'custom_id', 'clientOrderId');
-        const postOnly = this.safeValue(params, 'postOnly', false);
+        const postOnly = this.safeBool(params, 'postOnly', false);
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
         params = this.omit(params, ['custom_id', 'clientOrderId', 'timeInForce', 'postOnly']);
         const request = {

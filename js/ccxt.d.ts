@@ -157,6 +157,7 @@ import ndaxPro from './src/pro/ndax.js';
 import okcoinPro from './src/pro/okcoin.js';
 import okxPro from './src/pro/okx.js';
 import onetradingPro from './src/pro/onetrading.js';
+import p2bPro from './src/pro/p2b.js';
 import phemexPro from './src/pro/phemex.js';
 import poloniexPro from './src/pro/poloniex.js';
 import poloniexfuturesPro from './src/pro/poloniexfutures.js';
@@ -320,6 +321,7 @@ declare const pro: {
     okcoin: typeof okcoinPro;
     okx: typeof okxPro;
     onetrading: typeof onetradingPro;
+    p2b: typeof p2bPro;
     phemex: typeof phemexPro;
     poloniex: typeof poloniexPro;
     poloniexfutures: typeof poloniexfuturesPro;
@@ -387,6 +389,7 @@ declare const ccxt: {
         okcoin: typeof okcoinPro;
         okx: typeof okxPro;
         onetrading: typeof onetradingPro;
+        p2b: typeof p2bPro;
         phemex: typeof phemexPro;
         poloniex: typeof poloniexPro;
         poloniexfutures: typeof poloniexfuturesPro;

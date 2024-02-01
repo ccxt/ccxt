@@ -3188,7 +3188,7 @@ class bitrue extends bitrue$1 {
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        const success = this.safeValue(response, 'success', true);
+        const success = this.safeBool(response, 'success', true);
         if (!success) {
             const messageInner = this.safeString(response, 'msg');
             let parsedMessage = undefined;

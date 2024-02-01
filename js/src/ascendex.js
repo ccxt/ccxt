@@ -622,7 +622,7 @@ export default class ascendex extends Exchange {
                 symbol = base + '/' + quote + ':' + settle;
             }
             const fee = this.safeNumber(market, 'commissionReserveRate');
-            const marginTradable = this.safeValue(market, 'marginTradable', false);
+            const marginTradable = this.safeBool(market, 'marginTradable', false);
             result.push({
                 'id': id,
                 'symbol': symbol,
@@ -817,7 +817,7 @@ export default class ascendex extends Exchange {
         let marginMode = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         [marginMode, params] = this.handleMarginModeAndParams('fetchBalance', params);
-        const isMargin = this.safeValue(params, 'margin', false);
+        const isMargin = this.safeBool(params, 'margin', false);
         const isCross = marginMode === 'cross';
         marketType = (isMargin || isCross) ? 'margin' : marketType;
         params = this.omit(params, 'margin');
@@ -1177,7 +1177,7 @@ export default class ascendex extends Exchange {
         const timestamp = this.safeInteger(trade, 'ts');
         const priceString = this.safeString2(trade, 'price', 'p');
         const amountString = this.safeString(trade, 'q');
-        const buyerIsMaker = this.safeValue(trade, 'bm', false);
+        const buyerIsMaker = this.safeBool(trade, 'bm', false);
         const side = buyerIsMaker ? 'sell' : 'buy';
         market = this.safeMarket(undefined, market);
         return this.safeTrade({
@@ -1521,7 +1521,7 @@ export default class ascendex extends Exchange {
         const isLimitOrder = ((type === 'limit') || (type === 'stop_limit'));
         const timeInForce = this.safeString(params, 'timeInForce');
         const postOnly = this.isPostOnly(isMarketOrder, false, params);
-        const reduceOnly = this.safeValue(params, 'reduceOnly', false);
+        const reduceOnly = this.safeBool(params, 'reduceOnly', false);
         const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
         if (isLimitOrder) {
             request['orderPrice'] = this.priceToPrecision(symbol, price);
@@ -3164,7 +3164,7 @@ export default class ascendex extends Exchange {
         //    { "code": "0" }
         //
         const transferOptions = this.safeValue(this.options, 'transfer', {});
-        const fillResponseFromRequest = this.safeValue(transferOptions, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
         const transfer = this.parseTransfer(response, currency);
         if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;

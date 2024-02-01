@@ -970,7 +970,7 @@ class Exchange extends \ccxt\Exchange {
             $fee['cost'] = $this->safe_number($fee, 'cost');
         }
         $timestamp = $this->safe_integer($entry, 'timestamp');
-        $info = $this->safe_value($entry, 'info', array());
+        $info = $this->safe_dict($entry, 'info', array());
         return array(
             'id' => $this->safe_string($entry, 'id'),
             'timestamp' => $timestamp,
@@ -1141,7 +1141,7 @@ class Exchange extends \ccxt\Exchange {
             for ($i = 0; $i < count($values); $i++) {
                 $market = $values[$i];
                 $defaultCurrencyPrecision = ($this->precisionMode === DECIMAL_PLACES) ? 8 : $this->parse_number('1e-8');
-                $marketPrecision = $this->safe_value($market, 'precision', array());
+                $marketPrecision = $this->safe_dict($market, 'precision', array());
                 if (is_array($market) && array_key_exists('base', $market)) {
                     $currency = $this->safe_currency_structure(array(
                         'id' => $this->safe_string_2($market, 'baseId', 'base'),
@@ -1171,7 +1171,7 @@ class Exchange extends \ccxt\Exchange {
             $resultingCurrencies = array();
             for ($i = 0; $i < count($codes); $i++) {
                 $code = $codes[$i];
-                $groupedCurrenciesCode = $this->safe_value($groupedCurrencies, $code, array());
+                $groupedCurrenciesCode = $this->safe_list($groupedCurrencies, $code, array());
                 $highestPrecisionCurrency = $this->safe_value($groupedCurrenciesCode, 0);
                 for ($j = 1; $j < count($groupedCurrenciesCode); $j++) {
                     $currentCurrency = $groupedCurrenciesCode[$j];
@@ -1255,7 +1255,7 @@ class Exchange extends \ccxt\Exchange {
         $parseSymbol = $symbol === null;
         $parseSide = $side === null;
         $shouldParseFees = $parseFee || $parseFees;
-        $fees = $this->safe_value($order, 'fees', array());
+        $fees = $this->safe_list($order, 'fees', array());
         $trades = array();
         if ($parseFilled || $parseCost || $shouldParseFees) {
             $rawTrades = $this->safe_value($order, 'trades', $trades);
@@ -1383,7 +1383,7 @@ class Exchange extends \ccxt\Exchange {
             }
         }
         // ensure that the $average field is calculated correctly
-        $inverse = $this->safe_value($market, 'inverse', false);
+        $inverse = $this->safe_bool($market, 'inverse', false);
         $contractSize = $this->number_to_string($this->safe_value($market, 'contractSize', 1));
         // $inverse
         // $price = $filled * contract size / $cost
@@ -1434,12 +1434,12 @@ class Exchange extends \ccxt\Exchange {
             $entry['amount'] = $this->safe_number($entry, 'amount');
             $entry['price'] = $this->safe_number($entry, 'price');
             $entry['cost'] = $this->safe_number($entry, 'cost');
-            $tradeFee = $this->safe_value($entry, 'fee', array());
+            $tradeFee = $this->safe_dict($entry, 'fee', array());
             $tradeFee['cost'] = $this->safe_number($tradeFee, 'cost');
             if (is_array($tradeFee) && array_key_exists('rate', $tradeFee)) {
                 $tradeFee['rate'] = $this->safe_number($tradeFee, 'rate');
             }
-            $entryFees = $this->safe_value($entry, 'fees', array());
+            $entryFees = $this->safe_list($entry, 'fees', array());
             for ($j = 0; $j < count($entryFees); $j++) {
                 $entryFees[$j]['cost'] = $this->safe_number($entryFees[$j], 'cost');
             }
@@ -1613,7 +1613,7 @@ class Exchange extends \ccxt\Exchange {
             $contractSize = $this->safe_string($market, 'contractSize');
             $multiplyPrice = $price;
             if ($contractSize !== null) {
-                $inverse = $this->safe_value($market, 'inverse', false);
+                $inverse = $this->safe_bool($market, 'inverse', false);
                 if ($inverse) {
                     $multiplyPrice = Precise::string_div('1', $price);
                 }
@@ -1868,12 +1868,12 @@ class Exchange extends \ccxt\Exchange {
 
     public function convert_trading_view_to_ohlcv($ohlcvs, $timestamp = 't', $open = 'o', $high = 'h', $low = 'l', $close = 'c', $volume = 'v', $ms = false) {
         $result = array();
-        $timestamps = $this->safe_value($ohlcvs, $timestamp, array());
-        $opens = $this->safe_value($ohlcvs, $open, array());
-        $highs = $this->safe_value($ohlcvs, $high, array());
-        $lows = $this->safe_value($ohlcvs, $low, array());
-        $closes = $this->safe_value($ohlcvs, $close, array());
-        $volumes = $this->safe_value($ohlcvs, $volume, array());
+        $timestamps = $this->safe_list($ohlcvs, $timestamp, array());
+        $opens = $this->safe_list($ohlcvs, $open, array());
+        $highs = $this->safe_list($ohlcvs, $high, array());
+        $lows = $this->safe_list($ohlcvs, $low, array());
+        $closes = $this->safe_list($ohlcvs, $close, array());
+        $volumes = $this->safe_list($ohlcvs, $volume, array());
         for ($i = 0; $i < count($timestamps); $i++) {
             $result[] = array(
                 $ms ? $this->safe_integer($timestamps, $i) : $this->safe_timestamp($timestamps, $i),
@@ -1911,10 +1911,10 @@ class Exchange extends \ccxt\Exchange {
         return Async\async(function () use ($method, $endpointMethod, $returnAsJson, $startRegex, $endRegex) {
             $errorMessage = '';
             $options = $this->safe_value($this->options, $method, array());
-            $muteOnFailure = $this->safe_value($options, 'webApiMuteFailure', true);
+            $muteOnFailure = $this->safe_bool($options, 'webApiMuteFailure', true);
             try {
                 // if it was not explicitly disabled, then don't fetch
-                if ($this->safe_value($options, 'webApiEnable', true) !== true) {
+                if ($this->safe_bool($options, 'webApiEnable', true) !== true) {
                     return null;
                 }
                 $maxRetries = $this->safe_value($options, 'webApiRetries', 10);
@@ -2127,7 +2127,7 @@ class Exchange extends \ccxt\Exchange {
         if ($currencyCode !== null) {
             $defaultNetworkCodeReplacements = $this->safe_value($this->options, 'defaultNetworkCodeReplacements', array());
             if (is_array($defaultNetworkCodeReplacements) && array_key_exists($currencyCode, $defaultNetworkCodeReplacements)) {
-                $replacementObject = $this->safe_value($defaultNetworkCodeReplacements, $currencyCode, array());
+                $replacementObject = $this->safe_dict($defaultNetworkCodeReplacements, $currencyCode, array());
                 $networkCode = $this->safe_string($replacementObject, $networkCode, $networkCode);
             }
         }
@@ -2233,7 +2233,7 @@ class Exchange extends \ccxt\Exchange {
             $id = $this->safe_string($item, $marketIdKey);
             $market = $this->safe_market($id, null, null, 'swap');
             $symbol = $market['symbol'];
-            $contract = $this->safe_value($market, 'contract', false);
+            $contract = $this->safe_bool($market, 'contract', false);
             if ($contract && (($symbols === null) || $this->in_array($symbol, $symbols))) {
                 $tiers[$symbol] = $this->parse_market_leverage_tiers($item, $market);
             }
@@ -3583,8 +3583,8 @@ class Exchange extends \ccxt\Exchange {
         $currency = $this->currencies[$code];
         $precision = $this->safe_value($currency, 'precision');
         if ($networkCode !== null) {
-            $networks = $this->safe_value($currency, 'networks', array());
-            $networkItem = $this->safe_value($networks, $networkCode, array());
+            $networks = $this->safe_dict($currency, 'networks', array());
+            $networkItem = $this->safe_dict($networks, $networkCode, array());
             $precision = $this->safe_value($networkItem, 'precision', $precision);
         }
         if ($precision === null) {
@@ -3920,7 +3920,7 @@ class Exchange extends \ccxt\Exchange {
          * @return {Array}
          */
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
-        $postOnly = $this->safe_value($params, 'postOnly', false);
+        $postOnly = $this->safe_bool($params, 'postOnly', false);
         $ioc = $timeInForce === 'IOC';
         $fok = $timeInForce === 'FOK';
         $po = $timeInForce === 'PO';

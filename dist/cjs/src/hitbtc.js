@@ -690,7 +690,7 @@ class hitbtc extends hitbtc$1 {
             const expiry = this.safeInteger(market, 'expiry');
             const contract = (marketType === 'futures');
             const spot = (marketType === 'spot');
-            const marginTrading = this.safeValue(market, 'margin_trading', false);
+            const marginTrading = this.safeBool(market, 'margin_trading', false);
             const margin = spot && marginTrading;
             const future = (expiry !== undefined);
             const swap = (contract && !future);
@@ -825,9 +825,9 @@ class hitbtc extends hitbtc$1 {
             const entry = response[currencyId];
             const name = this.safeString(entry, 'full_name');
             const precision = this.safeNumber(entry, 'precision_transfer');
-            const payinEnabled = this.safeValue(entry, 'payin_enabled', false);
-            const payoutEnabled = this.safeValue(entry, 'payout_enabled', false);
-            const transferEnabled = this.safeValue(entry, 'transfer_enabled', false);
+            const payinEnabled = this.safeBool(entry, 'payin_enabled', false);
+            const payoutEnabled = this.safeBool(entry, 'payout_enabled', false);
+            const transferEnabled = this.safeBool(entry, 'transfer_enabled', false);
             const active = payinEnabled && payoutEnabled && transferEnabled;
             const rawNetworks = this.safeValue(entry, 'networks', []);
             const networks = {};
@@ -840,8 +840,8 @@ class hitbtc extends hitbtc$1 {
                 const network = this.safeNetwork(networkId);
                 fee = this.safeNumber(rawNetwork, 'payout_fee');
                 const networkPrecision = this.safeNumber(rawNetwork, 'precision_payout');
-                const payinEnabledNetwork = this.safeValue(entry, 'payin_enabled', false);
-                const payoutEnabledNetwork = this.safeValue(entry, 'payout_enabled', false);
+                const payinEnabledNetwork = this.safeBool(entry, 'payin_enabled', false);
+                const payoutEnabledNetwork = this.safeBool(entry, 'payout_enabled', false);
                 const activeNetwork = payinEnabledNetwork && payoutEnabledNetwork;
                 if (payinEnabledNetwork && !depositEnabled) {
                     depositEnabled = true;
@@ -2705,7 +2705,7 @@ class hitbtc extends hitbtc$1 {
             params = this.omit(params, 'network');
         }
         const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
-        const includeFee = this.safeValue(withdrawOptions, 'includeFee', false);
+        const includeFee = this.safeBool(withdrawOptions, 'includeFee', false);
         if (includeFee) {
             request['include_fee'] = true;
         }
@@ -3227,7 +3227,7 @@ class hitbtc extends hitbtc$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const leverage = this.safeString(params, 'leverage');
-        if (market['type'] === 'swap') {
+        if (market['swap']) {
             if (leverage === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' modifyMarginHelper() requires a leverage parameter for swap markets');
             }
@@ -3251,21 +3251,15 @@ class hitbtc extends hitbtc$1 {
         let marginMode = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('modifyMarginHelper', market, params);
         [marginMode, params] = this.handleMarginModeAndParams('modifyMarginHelper', params);
-        params = this.omit(params, ['marginMode', 'margin']);
         let response = undefined;
-        if (marginMode !== undefined) {
+        if (marketType === 'swap') {
+            response = await this.privatePutFuturesAccountIsolatedSymbol(this.extend(request, params));
+        }
+        else if ((marketType === 'margin') || (marketType === 'spot') || (marginMode === 'isolated')) {
             response = await this.privatePutMarginAccountIsolatedSymbol(this.extend(request, params));
         }
         else {
-            if (marketType === 'swap') {
-                response = await this.privatePutFuturesAccountIsolatedSymbol(this.extend(request, params));
-            }
-            else if (marketType === 'margin') {
-                response = await this.privatePutMarginAccountIsolatedSymbol(this.extend(request, params));
-            }
-            else {
-                throw new errors.NotSupported(this.id + ' modifyMarginHelper() not support this market type');
-            }
+            throw new errors.NotSupported(this.id + ' modifyMarginHelper() not support this market type');
         }
         //
         //     {
@@ -3577,7 +3571,7 @@ class hitbtc extends hitbtc$1 {
          * @returns {Array} the marginMode in lowercase
          */
         const defaultType = this.safeString(this.options, 'defaultType');
-        const isMargin = this.safeValue(params, 'margin', false);
+        const isMargin = this.safeBool(params, 'margin', false);
         let marginMode = undefined;
         [marginMode, params] = super.handleMarginModeAndParams(methodName, params, defaultValue);
         if (marginMode === undefined) {

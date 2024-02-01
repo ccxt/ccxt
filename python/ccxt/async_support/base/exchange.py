@@ -690,10 +690,10 @@ class Exchange(BaseExchange):
     async def fetch_web_endpoint(self, method, endpointMethod, returnAsJson, startRegex=None, endRegex=None):
         errorMessage = ''
         options = self.safe_value(self.options, method, {})
-        muteOnFailure = self.safe_value(options, 'webApiMuteFailure', True)
+        muteOnFailure = self.safe_bool(options, 'webApiMuteFailure', True)
         try:
             # if it was not explicitly disabled, then don't fetch
-            if self.safe_value(options, 'webApiEnable', True) is not True:
+            if self.safe_bool(options, 'webApiEnable', True) is not True:
                 return None
             maxRetries = self.safe_value(options, 'webApiRetries', 10)
             response = None
