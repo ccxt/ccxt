@@ -116,7 +116,18 @@ public partial class Exchange
         var outList = new List<object>();
         foreach (string key in keys)
         {
-            outList.Add(key + "=" + paramaters[key]);
+            var value = paramaters[key];
+            if (value is IList<object>)
+            {
+                foreach (var item in (IList<object>)value)
+                {
+                    outList.Add(key + "=" + item);
+                }
+            }
+            else
+            {
+                outList.Add(key + "=" + value);
+            }
         }
         return string.Join("&", outList);
     }
