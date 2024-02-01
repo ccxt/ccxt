@@ -307,8 +307,14 @@ export default class gate extends gateRest {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', undefined, params);
         if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchTickers requires symbols');
+            if (marketType === undefined) {
+                throw new ArgumentsRequired (this.id + ' watchTickers requires symbols or defaultType (spot/swap/future) param');
+            }
+            const filteredMarkets = this.indexBy (this.markets, 'type');
+            debugger;
         }
         const market = this.market (symbols[0]);
         const messageType = this.getTypeByMarket (market);
