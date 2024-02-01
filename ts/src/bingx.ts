@@ -1775,7 +1775,7 @@ export default class bingx extends Exchange {
         return await this.createOrder (symbol, 'market', 'sell', cost, undefined, params);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @ignore
@@ -1894,6 +1894,7 @@ export default class bingx extends Exchange {
                 }
             }
             if (isStopLoss || isTakeProfit) {
+                const stringifiedAmount = this.numberToString (amount);
                 if (isStopLoss) {
                     const slTriggerPrice = this.safeString2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
                     const slWorkingType = this.safeString (stopLoss, 'workingType', 'MARK_PRICE');
@@ -1907,7 +1908,7 @@ export default class bingx extends Exchange {
                     if (slPrice !== undefined) {
                         slRequest['price'] = this.parseToNumeric (this.priceToPrecision (symbol, slPrice));
                     }
-                    const slQuantity = this.safeString (stopLoss, 'quantity', amount);
+                    const slQuantity = this.safeString (stopLoss, 'quantity', stringifiedAmount);
                     slRequest['quantity'] = this.parseToNumeric (this.amountToPrecision (symbol, slQuantity));
                     request['stopLoss'] = this.json (slRequest);
                 }
@@ -1924,7 +1925,7 @@ export default class bingx extends Exchange {
                     if (slPrice !== undefined) {
                         tpRequest['price'] = this.parseToNumeric (this.priceToPrecision (symbol, slPrice));
                     }
-                    const tkQuantity = this.safeString (takeProfit, 'quantity', amount);
+                    const tkQuantity = this.safeString (takeProfit, 'quantity', stringifiedAmount);
                     tpRequest['quantity'] = this.parseToNumeric (this.amountToPrecision (symbol, tkQuantity));
                     request['takeProfit'] = this.json (tpRequest);
                 }
@@ -1942,7 +1943,7 @@ export default class bingx extends Exchange {
         return this.extend (request, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price:number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name bingx#createOrder

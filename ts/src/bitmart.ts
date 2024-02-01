@@ -2366,7 +2366,7 @@ export default class bitmart extends Exchange {
         return order;
     }
 
-    createSwapOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    createSwapOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#createSwapOrderRequest
@@ -2474,7 +2474,7 @@ export default class bitmart extends Exchange {
         return this.extend (request, params);
     }
 
-    createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#createSpotOrderRequest

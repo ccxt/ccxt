@@ -4481,7 +4481,7 @@ export default class binance extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async editSpotOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+    async editSpotOrder (id: string, symbol, type, side, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name binance#editSpotOrder
@@ -4548,7 +4548,7 @@ export default class binance extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    editSpotOrderRequest (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+    editSpotOrderRequest (id: string, symbol, type, side, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @ignore
@@ -4675,7 +4675,7 @@ export default class binance extends Exchange {
         return this.extend (request, params);
     }
 
-    async editContractOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+    async editContractOrder (id: string, symbol, type, side, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name binance#editContractOrder
@@ -5181,7 +5181,7 @@ export default class binance extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @ignore
@@ -5209,7 +5209,7 @@ export default class binance extends Exchange {
         const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);  // fallback to stopLoss
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const trailingDelta = this.safeValue (params, 'trailingDelta');
-        const trailingTriggerPrice = this.safeString2 (params, 'trailingTriggerPrice', 'activationPrice', price);
+        const trailingTriggerPrice = this.safeString2 (params, 'trailingTriggerPrice', 'activationPrice', this.numberToString (price));
         const trailingPercent = this.safeString2 (params, 'trailingPercent', 'callbackRate');
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const isStopLoss = stopLossPrice !== undefined || trailingDelta !== undefined;
@@ -5223,6 +5223,7 @@ export default class binance extends Exchange {
         if (market['spot'] || marketType === 'margin') {
             // only supported for spot/margin api (all margin markets are spot markets)
             if (postOnly) {
+                s.n;
                 type = 'LIMIT_MAKER';
             }
         }

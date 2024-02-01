@@ -3560,7 +3560,7 @@ export default class bybit extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}, isUTA = true) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}, isUTA = true) {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const lowerCaseType = type.toLowerCase ();
@@ -3823,7 +3823,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (data);
     }
 
-    async createUsdcOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createUsdcOrder (symbol, type, side, amount: number, price: number = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (type === 'market') {

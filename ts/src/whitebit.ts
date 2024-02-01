@@ -1182,7 +1182,7 @@ export default class whitebit extends Exchange {
         return this.safeInteger (response, 'time');
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price:number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#createOrder

@@ -797,7 +797,7 @@ export default class bitforex extends Exchange {
         return this.parseOrders (response['data'], market, since, limit);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price:number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name bitforex#createOrder

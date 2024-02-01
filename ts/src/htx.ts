@@ -5045,7 +5045,7 @@ export default class htx extends Exchange {
         return await this.createOrder (symbol, type, side, amount, price, params);
     }
 
-    async createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @ignore
@@ -5163,7 +5163,7 @@ export default class htx extends Exchange {
         return this.extend (request, params);
     }
 
-    createContractOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    createContractOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @ignore

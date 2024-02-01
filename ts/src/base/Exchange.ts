@@ -3879,15 +3879,15 @@ export default class Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
-    async editLimitBuyOrder (id, symbol, amount, price = undefined, params = {}) {
+    async editLimitBuyOrder (id, symbol, amount: number, price: number = undefined, params = {}) {
         return await this.editLimitOrder (id, symbol, 'buy', amount, price, params);
     }
 
-    async editLimitSellOrder (id, symbol, amount, price = undefined, params = {}) {
+    async editLimitSellOrder (id, symbol, amount: number, price: number = undefined, params = {}) {
         return await this.editLimitOrder (id, symbol, 'sell', amount, price, params);
     }
 
-    async editLimitOrder (id, symbol, side, amount, price = undefined, params = {}) {
+    async editLimitOrder (id, symbol, side, amount: number, price: number = undefined, params = {}) {
         return await this.editOrder (id, symbol, 'limit', side, amount, price, params);
     }
 

@@ -4083,7 +4083,7 @@ export default class bitget extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    createOrderRequest (symbol, type, side, amount, price = undefined, params = {}) {
+    createOrderRequest (symbol, type, side, amount: number, price: number = undefined, params = {}) {
         const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
