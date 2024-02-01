@@ -5154,15 +5154,16 @@ export default class gate extends Exchange {
         const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode');
         const crossLeverageLimit = this.safeString (query, 'cross_leverage_limit');
         let marginMode = this.safeString (query, 'marginMode', defaultMarginMode);
+        let stringifiedMargin = this.numberToString (leverage);
         if (crossLeverageLimit !== undefined) {
             marginMode = 'cross';
-            leverage = crossLeverageLimit;
+            stringifiedMargin = crossLeverageLimit;
         }
         if (marginMode === 'cross' || marginMode === 'cross_margin') {
-            request['cross_leverage_limit'] = leverage.toString ();
+            request['cross_leverage_limit'] = stringifiedMargin;
             request['leverage'] = '0';
         } else {
-            request['leverage'] = leverage.toString ();
+            request['leverage'] = stringifiedMargin;
         }
         let response = undefined;
         if (market['swap']) {
