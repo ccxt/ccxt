@@ -63,6 +63,18 @@ namespace ccxt;
         public MarginModeAlreadySet(string message) : base(message) { }
         public MarginModeAlreadySet(string message, BadRequest inner) : base(message, inner) { }
     }
+   public class NoChange : BadRequest
+    {
+        public NoChange() : base() { }
+        public NoChange(string message) : base(message) { }
+        public NoChange(string message, BadRequest inner) : base(message, inner) { }
+    }
+   public class OperationRejected : BadRequest
+    {
+        public OperationRejected() : base() { }
+        public OperationRejected(string message) : base(message) { }
+        public OperationRejected(string message, BadRequest inner) : base(message, inner) { }
+    }
    public class BadResponse : ExchangeError
     {
         public BadResponse() : base() { }
@@ -147,11 +159,23 @@ namespace ccxt;
         public NotSupported(string message) : base(message) { }
         public NotSupported(string message, ExchangeError inner) : base(message, inner) { }
     }
-   public class NetworkError : BaseError
+   public class ProxyError : ExchangeError
+    {
+        public ProxyError() : base() { }
+        public ProxyError(string message) : base(message) { }
+        public ProxyError(string message, ExchangeError inner) : base(message, inner) { }
+    }
+   public class OperationFailed : BaseError
+    {
+        public OperationFailed() : base() { }
+        public OperationFailed(string message) : base(message) { }
+        public OperationFailed(string message, BaseError inner) : base(message, inner) { }
+    }
+   public class NetworkError : OperationFailed
     {
         public NetworkError() : base() { }
         public NetworkError(string message) : base(message) { }
-        public NetworkError(string message, BaseError inner) : base(message, inner) { }
+        public NetworkError(string message, OperationFailed inner) : base(message, inner) { }
     }
    public class DDoSProtection : NetworkError
     {
@@ -188,4 +212,10 @@ namespace ccxt;
         public RequestTimeout() : base() { }
         public RequestTimeout(string message) : base(message) { }
         public RequestTimeout(string message, NetworkError inner) : base(message, inner) { }
+    }
+   public class ExchangeClosedByUser : BaseError
+    {
+        public ExchangeClosedByUser() : base() { }
+        public ExchangeClosedByUser(string message) : base(message) { }
+        public ExchangeClosedByUser(string message, BaseError inner) : base(message, inner) { }
     }
