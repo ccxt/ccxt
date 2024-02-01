@@ -2420,7 +2420,7 @@ export default class phemex extends Exchange {
         });
     }
     parseOrder(order, market = undefined) {
-        const isSwap = this.safeValue(market, 'swap', false);
+        const isSwap = this.safeBool(market, 'swap', false);
         const hasPnl = ('closedPnl' in order);
         if (isSwap || hasPnl) {
             return this.parseSwapOrder(order, market);
@@ -3548,8 +3548,10 @@ export default class phemex extends Exchange {
          * @description fetch all open positions
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-trading-account-and-positions
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
-         * @param {string[]|undefined} symbols list of unified market symbols
+         * @see https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
+         * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [param.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
@@ -3584,7 +3586,14 @@ export default class phemex extends Exchange {
         };
         let response = undefined;
         if (isUSDTSettled) {
-            response = await this.privateGetGAccountsAccountPositions(this.extend(request, params));
+            let method = undefined;
+            [method, params] = this.handleOptionAndParams(params, 'fetchPositions', 'method', 'privateGetGAccountsAccountPositions');
+            if (method === 'privateGetGAccountsAccountPositions') {
+                response = await this.privateGetGAccountsAccountPositions(this.extend(request, params));
+            }
+            else {
+                response = await this.privateGetAccountsPositions(this.extend(request, params));
+            }
         }
         else {
             response = await this.privateGetAccountsAccountPositions(this.extend(request, params));
@@ -3760,7 +3769,7 @@ export default class phemex extends Exchange {
         const contracts = this.safeString(position, 'size');
         const contractSize = this.safeValue(market, 'contractSize');
         const contractSizeString = this.numberToString(contractSize);
-        const leverage = this.safeNumber2(position, 'leverage', 'leverageRr');
+        const leverage = this.parseNumber(Precise.stringAbs((this.safeString2(position, 'leverage', 'leverageRr'))));
         const entryPriceString = this.safeString2(position, 'avgEntryPrice', 'avgEntryPriceRp');
         const rawSide = this.safeString(position, 'side');
         let side = undefined;
@@ -4323,7 +4332,7 @@ export default class phemex extends Exchange {
             throw new BadRequest(this.id + ' setLeverage() leverage should be between -100 and 100');
         }
         await this.loadMarkets();
-        const isHedged = this.safeValue(params, 'hedged', false);
+        const isHedged = this.safeBool(params, 'hedged', false);
         const longLeverageRr = this.safeInteger(params, 'longLeverageRr');
         const shortLeverageRr = this.safeInteger(params, 'shortLeverageRr');
         const market = this.market(symbol);
@@ -4419,7 +4428,7 @@ export default class phemex extends Exchange {
             transfer = this.parseTransfer(response);
         }
         const transferOptions = this.safeValue(this.options, 'transfer', {});
-        const fillResponseFromRequest = this.safeValue(transferOptions, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             if (transfer['fromAccount'] === undefined) {
                 transfer['fromAccount'] = fromAccount;

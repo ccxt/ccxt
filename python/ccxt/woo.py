@@ -1065,7 +1065,7 @@ class woo(Exchange, ImplicitAPI):
         :param boolean [params.stop]: whether the order is a stop/algo order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        stop = self.safe_value(params, 'stop', False)
+        stop = self.safe_bool(params, 'stop', False)
         params = self.omit(params, 'stop')
         if not stop and (symbol is None):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
@@ -1214,7 +1214,7 @@ class woo(Exchange, ImplicitAPI):
         request = {}
         market: Market = None
         stop = self.safe_value(params, 'stop')
-        trailing = self.safe_value(params, 'trailing', False)
+        trailing = self.safe_bool(params, 'trailing', False)
         params = self.omit(params, ['stop', 'trailing'])
         if symbol is not None:
             market = self.market(symbol)
@@ -1947,7 +1947,7 @@ class woo(Exchange, ImplicitAPI):
         #
         transfer = self.parse_transfer(response, currency)
         transferOptions = self.safe_value(self.options, 'transfer', {})
-        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             transfer['amount'] = amount
             transfer['fromAccount'] = fromAccount

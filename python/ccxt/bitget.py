@@ -87,6 +87,7 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRate': True,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
+                'fetchDeposit': False,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDeposits': True,
@@ -116,6 +117,7 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchOrderBooks': False,
                 'fetchOrders': False,
                 'fetchOrderTrades': False,
                 'fetchPosition': True,
@@ -123,6 +125,7 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchPositions': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchStatus': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -139,6 +142,7 @@ class bitget(Exchange, ImplicitAPI):
                 'repayCrossMargin': True,
                 'repayIsolatedMargin': True,
                 'setLeverage': True,
+                'setMargin': False,
                 'setMarginMode': True,
                 'setPositionMode': True,
                 'signIn': False,
@@ -2188,7 +2192,7 @@ class bitget(Exchange, ImplicitAPI):
             'fee': None,
         }
         withdrawOptions = self.safe_value(self.options, 'withdraw', {})
-        fillResponseFromRequest = self.safe_value(withdrawOptions, 'fillResponseFromRequest', True)
+        fillResponseFromRequest = self.safe_bool(withdrawOptions, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             result['currency'] = code
             result['timestamp'] = self.milliseconds()
@@ -3015,7 +3019,7 @@ class bitget(Exchange, ImplicitAPI):
         marginMode, params = self.handle_margin_mode_and_params('fetchTradingFees', params)
         marketType, params = self.handle_market_type_and_params('fetchTradingFees', None, params)
         if marketType == 'spot':
-            margin = self.safe_value(params, 'margin', False)
+            margin = self.safe_bool(params, 'margin', False)
             params = self.omit(params, 'margin')
             if (marginMode is not None) or margin:
                 response = self.publicMarginGetV2MarginCurrencies(params)
@@ -3966,7 +3970,7 @@ class bitget(Exchange, ImplicitAPI):
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
         triggerType = self.safe_string(params, 'triggerType', 'mark_price')
-        reduceOnly = self.safe_value(params, 'reduceOnly', False)
+        reduceOnly = self.safe_bool(params, 'reduceOnly', False)
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
         exchangeSpecificTifParam = self.safe_string_2(params, 'force', 'timeInForce')
         postOnly = None
@@ -4041,7 +4045,7 @@ class bitget(Exchange, ImplicitAPI):
                     marginMode = 'cross'
                 marginModeRequest = 'crossed' if (marginMode == 'cross') else 'isolated'
                 request['marginMode'] = marginModeRequest
-                oneWayMode = self.safe_value(params, 'oneWayMode', False)
+                oneWayMode = self.safe_bool(params, 'oneWayMode', False)
                 params = self.omit(params, 'oneWayMode')
                 requestSide = side
                 if reduceOnly:

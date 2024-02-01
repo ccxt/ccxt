@@ -103,7 +103,7 @@ class probit(ccxt.async_support.probit):
         #         }
         #     }
         #
-        reset = self.safe_value(message, 'reset', False)
+        reset = self.safe_bool(message, 'reset', False)
         data = self.safe_value(message, 'data', {})
         currencyIds = list(data.keys())
         if reset:
@@ -202,7 +202,7 @@ class probit(ccxt.async_support.probit):
         symbol = self.safe_symbol(marketId)
         market = self.safe_market(marketId)
         trades = self.safe_value(message, 'recent_trades', [])
-        reset = self.safe_value(message, 'reset', False)
+        reset = self.safe_bool(message, 'reset', False)
         messageHash = 'trades:' + symbol
         stored = self.safe_value(self.trades, symbol)
         if stored is None or reset:
@@ -268,7 +268,7 @@ class probit(ccxt.async_support.probit):
         length = len(rawTrades)
         if length == 0:
             return
-        reset = self.safe_value(message, 'reset', False)
+        reset = self.safe_bool(message, 'reset', False)
         messageHash = 'myTrades'
         stored = self.myTrades
         if (stored is None) or reset:
@@ -348,7 +348,7 @@ class probit(ccxt.async_support.probit):
         if length == 0:
             return
         messageHash = 'orders'
-        reset = self.safe_value(message, 'reset', False)
+        reset = self.safe_bool(message, 'reset', False)
         stored = self.orders
         if stored is None or reset:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
@@ -432,7 +432,7 @@ class probit(ccxt.async_support.probit):
         if storedOrderBook is None:
             storedOrderBook = self.order_book({})
             self.orderbooks[symbol] = storedOrderBook
-        reset = self.safe_value(message, 'reset', False)
+        reset = self.safe_bool(message, 'reset', False)
         if reset:
             snapshot = self.parse_order_book(dataBySide, symbol, None, 'buy', 'sell', 'price', 'quantity')
             storedOrderBook.reset(snapshot)

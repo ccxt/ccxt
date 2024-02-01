@@ -958,8 +958,8 @@ class mexc(Exchange, ImplicitAPI):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'network')
                 network = self.safe_network(networkId)
-                isDepositEnabled = self.safe_value(chain, 'depositEnable', False)
-                isWithdrawEnabled = self.safe_value(chain, 'withdrawEnable', False)
+                isDepositEnabled = self.safe_bool(chain, 'depositEnable', False)
+                isWithdrawEnabled = self.safe_bool(chain, 'withdrawEnable', False)
                 active = (isDepositEnabled and isWithdrawEnabled)
                 currencyActive = active or currencyActive
                 withdrawMin = self.safe_string(chain, 'withdrawMin')
@@ -2116,7 +2116,7 @@ class mexc(Exchange, ImplicitAPI):
         await self.load_markets()
         symbol = market['symbol']
         unavailableContracts = self.safe_value(self.options, 'unavailableContracts', {})
-        isContractUnavaiable = self.safe_value(unavailableContracts, symbol, False)
+        isContractUnavaiable = self.safe_bool(unavailableContracts, symbol, False)
         if isContractUnavaiable:
             raise NotSupported(self.id + ' createSwapOrder() does not support yet self symbol:' + symbol)
         openType = None
@@ -2171,7 +2171,7 @@ class mexc(Exchange, ImplicitAPI):
             leverage = self.safe_integer(params, 'leverage')
             if leverage is None:
                 raise ArgumentsRequired(self.id + ' createSwapOrder() requires a leverage parameter for isolated margin orders')
-        reduceOnly = self.safe_value(params, 'reduceOnly', False)
+        reduceOnly = self.safe_bool(params, 'reduceOnly', False)
         if reduceOnly:
             request['side'] = 2 if (side == 'buy') else 4
         else:
@@ -3397,7 +3397,7 @@ class mexc(Exchange, ImplicitAPI):
         request = {}
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
         marginMode = self.safe_string(params, 'marginMode')
-        isMargin = self.safe_value(params, 'margin', False)
+        isMargin = self.safe_bool(params, 'margin', False)
         params = self.omit(params, ['margin', 'marginMode'])
         response = None
         if (marginMode is not None) or (isMargin) or (marketType == 'margin'):
@@ -4959,7 +4959,7 @@ class mexc(Exchange, ImplicitAPI):
         :returns Array: the marginMode in lowercase
         """
         defaultType = self.safe_string(self.options, 'defaultType')
-        isMargin = self.safe_value(params, 'margin', False)
+        isMargin = self.safe_bool(params, 'margin', False)
         marginMode = None
         marginMode, params = super(mexc, self).handle_margin_mode_and_params(methodName, params, defaultValue)
         if (defaultType == 'margin') or (isMargin is True):
@@ -5035,7 +5035,7 @@ class mexc(Exchange, ImplicitAPI):
         #     {"code":10216,"msg":"No available deposit address"}
         #     {"success":true, "code":0, "data":1634095541710}
         #
-        success = self.safe_value(response, 'success', False)  # v1
+        success = self.safe_bool(response, 'success', False)  # v1
         if success is True:
             return None
         responseCode = self.safe_string(response, 'code', None)

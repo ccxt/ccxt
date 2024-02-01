@@ -1034,7 +1034,7 @@ class huobijp extends Exchange {
             $depositEnabled = $this->safe_value($currency, 'deposit-enabled');
             $withdrawEnabled = $this->safe_value($currency, 'withdraw-enabled');
             $countryDisabled = $this->safe_value($currency, 'country-disabled');
-            $visible = $this->safe_value($currency, 'visible', false);
+            $visible = $this->safe_bool($currency, 'visible', false);
             $state = $this->safe_string($currency, 'state');
             $active = $visible && $depositEnabled && $withdrawEnabled && ($state === 'online') && !$countryDisabled;
             $name = $this->safe_string($currency, 'display-name');

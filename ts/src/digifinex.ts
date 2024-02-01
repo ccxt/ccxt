@@ -1160,9 +1160,11 @@ export default class digifinex extends Exchange {
         //         "timestamp": 1663221614998
         //     }
         //
+        const indexPrice = this.safeNumber (ticker, 'index_price');
+        const marketType = (indexPrice !== undefined) ? 'contract' : 'spot';
         const marketId = this.safeStringUpper2 (ticker, 'symbol', 'instrument_id');
-        const symbol = this.safeSymbol (marketId, market);
-        market = this.safeMarket (marketId);
+        const symbol = this.safeSymbol (marketId, market, undefined, marketType);
+        market = this.safeMarket (marketId, market, undefined, marketType);
         let timestamp = this.safeTimestamp (ticker, 'date');
         if (market['swap']) {
             timestamp = this.safeInteger (ticker, 'timestamp');
@@ -1741,7 +1743,7 @@ export default class digifinex extends Exchange {
         let postOnly = this.isPostOnly (isMarketOrder, false, params);
         let postOnlyParsed = undefined;
         if (swap) {
-            const reduceOnly = this.safeValue (params, 'reduceOnly', false);
+            const reduceOnly = this.safeBool (params, 'reduceOnly', false);
             const timeInForce = this.safeString (params, 'timeInForce');
             let orderType = undefined;
             if (side === 'buy') {
@@ -3930,7 +3932,7 @@ export default class digifinex extends Exchange {
          * @returns {Array} the marginMode in lowercase
          */
         const defaultType = this.safeString (this.options, 'defaultType');
-        const isMargin = this.safeValue (params, 'margin', false);
+        const isMargin = this.safeBool (params, 'margin', false);
         let marginMode = undefined;
         [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
         if (marginMode !== undefined) {

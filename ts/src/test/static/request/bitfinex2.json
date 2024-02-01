@@ -115,6 +115,56 @@
         ],
         "createOrder": [
             {
+                "description": "Spot market buy order",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT",
+                  "market",
+                  "buy",
+                  0.0001
+                ],
+                "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"type\":\"EXCHANGE MARKET\"}"
+            },
+            {
+                "description": "Spot market sell order",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT",
+                  "market",
+                  "sell",
+                  0.0001
+                ],
+                "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"-0.0001\",\"type\":\"EXCHANGE MARKET\"}"
+            },
+            {
+                "description": "Spot limit buy order",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  40000
+                ],
+                "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"price\":\"40000\",\"type\":\"EXCHANGE LIMIT\"}"
+            },
+            {
+                "description": "Spot limit sell order",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT",
+                  "limit",
+                  "sell",
+                  0.0001,
+                  40000
+                ],
+                "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"-0.0001\",\"price\":\"40000\",\"type\":\"EXCHANGE LIMIT\"}"
+            },
+            {
                 "description": "Swap limit buy",
                 "method": "createOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
@@ -126,7 +176,327 @@
                     50
                 ],
                 "output": "{\"type\":\"LIMIT\",\"symbol\":\"tLTCF0:USTF0\",\"amount\":\"0.1\",\"price\":\"50\"}"
+            },
+            {
+                "description": "Swap market buy order",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "buy",
+                  0.0001
+                ],
+                "output": "{\"type\":\"MARKET\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"0.0001\"}"
+            },
+            {
+                "description": "Swap market sell order with reduceOnly set to true",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.0001,
+                  null,
+                  {
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"type\":\"MARKET\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"flags\":1024}"
+            },
+            {
+                "description": "Swap market buy order with reduceOnly set to true",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "buy",
+                  0.0001,
+                  null,
+                  {
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"type\":\"MARKET\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"0.0001\",\"flags\":1024}"
+            },
+            {
+                "description": "Swap limit sell order",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "sell",
+                  0.0001,
+                  49000
+                ],
+                "output": "{\"type\":\"LIMIT\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"price\":\"49000\"}"
+            },
+            {
+                "description": "Swap market sell order",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.0001
+                ],
+                "output": "{\"type\":\"MARKET\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\"}"
+            },
+            {
+                "description": "Swap create a trailing amount order",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.0001,
+                  null,
+                  {
+                    "trailingAmount": "500"
+                  }
+                ],
+                "output": "{\"type\":\"TRAILING STOP\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"price_trailing\":\"500\"}"
+            },
+            {
+                "description": "Swap trigger limit buy order",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  40000,
+                  {
+                    "triggerPrice": "41000"
+                  }
+                ],
+                "output": "{\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"0.0001\",\"price\":\"41000\",\"price_aux_limit\":\"40000\",\"type\":\"STOP LIMIT\"}"
+            },
+            {
+                "description": "Swap trigger market buy order",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "buy",
+                  0.0001,
+                  null,
+                  {
+                    "triggerPrice": "47000"
+                  }
+                ],
+                "output": "{\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"0.0001\",\"price\":\"47000\",\"type\":\"STOP\"}"
+            },
+            {
+                "description": "Spot trigger limit buy order",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  40000,
+                  {
+                    "triggerPrice": "41000"
+                  }
+                ],
+                "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"price\":\"41000\",\"price_aux_limit\":\"40000\",\"type\":\"EXCHANGE STOP LIMIT\"}"
+            },
+            {
+                "description": "Spot trigger market buy order",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT",
+                  "market",
+                  "buy",
+                  0.0001,
+                  null,
+                  {
+                    "triggerPrice": "41000"
+                  }
+                ],
+                "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"price\":\"41000\",\"type\":\"EXCHANGE STOP\"}"
+            },
+            {
+                "description": "create order with clientOrderId",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  50,
+                  {
+                    "clientOrderId": 1003434
+                  }
+                ],
+                "output": "{\"symbol\":\"tLTCUST\",\"amount\":\"0.1\",\"price\":\"50\",\"type\":\"EXCHANGE LIMIT\",\"cid\":1003434}"
             }
-        ]
+        ],
+        "createReduceOnlyOrder": [
+            {
+                "description": "Swap create market sell reduce only order",
+                "method": "createReduceOnlyOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.0001,
+                  null
+                ],
+                "output": "{\"type\":\"MARKET\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"flags\":1024}"
+            }
+        ],
+        "createTrailingAmountOrder": [
+            {
+                "description": "Swap create a trailing amount order",
+                "method": "createTrailingAmountOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.0001,
+                  null,
+                  500
+                ],
+                "output": "{\"type\":\"TRAILING STOP\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"price_trailing\":\"500\"}"
+            }
+        ],
+        "createTriggerOrder": [
+            {
+                "description": "Swap limit buy trigger order",
+                "method": "createTriggerOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  40000,
+                  41000
+                ],
+                "output": "{\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"0.0001\",\"price\":\"41000\",\"price_aux_limit\":\"40000\",\"type\":\"STOP LIMIT\"}"
+            },
+            {
+                "description": "Spot limit buy trigger order",
+                "method": "createTriggerOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                  "BTC/USDT",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  40000,
+                  41000
+                ],
+                "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"price\":\"41000\",\"price_aux_limit\":\"40000\",\"type\":\"EXCHANGE STOP LIMIT\"}"
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "Fetch the open interest of a swap trading pair",
+                "method": "fetchOpenInterest",
+                "url": "https://api-pub.bitfinex.com/v2/status/deriv?keys=tBTCF0%3AUSTF0",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOpenInterestHistory": [
+            {
+                "description": "Fetch the open interest history of a swap trading pair",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://api-pub.bitfinex.com/v2/status/deriv/tBTCF0:USTF0/hist",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchLiquidations": [
+            {
+                "description": "Swap fetch public liquidations",
+                "method": "fetchLiquidations",
+                "url": "https://api-pub.bitfinex.com/v2/liquidations/hist",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "setMargin": [
+            {
+                "description": "Set the margin collateral for a swap position",
+                "method": "setMargin",
+                "url": "https://api.bitfinex.com/v2/auth/w/deriv/collateral/set",
+                "input": [
+                  "BTC/USDT:USDT",
+                  0.5
+                ],
+                "output": "{\"symbol\":\"tBTCF0:USTF0\",\"collateral\":0.5}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Swap cancel order",
+                "method": "cancelOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/cancel",
+                "input": [
+                  "139449164689",
+                  "BTC/USDT:USDT"
+                ],
+                "output": "{\"id\":139449164689}"
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "Cancel multiple orders at the same time",
+                "method": "cancelOrders",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/cancel/multi",
+                "input": [
+                  [
+                    139535430656,
+                    139533608984
+                  ]
+                ],
+                "output": "{\"id\":[139535430656,139533608984]}"
+            }
+        ],
+        "createOrders": [
+          {
+              "description": "Create multiple spot orders at once with different symbols",
+              "method": "createOrders",
+              "url": "https://api.bitfinex.com/v2/auth/w/order/multi",
+              "input": [
+                [
+                  {
+                    "symbol": "BTC/USDT",
+                    "type": "limit",
+                    "side": "buy",
+                    "amount": 0.0001,
+                    "price": 35000
+                  },
+                  {
+                    "symbol": "LTC/USDT",
+                    "type": "limit",
+                    "side": "buy",
+                    "amount": 0.25,
+                    "price": 50
+                  }
+                ]
+              ],
+              "output": "{\"ops\":[[\"on\",{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"price\":\"35000\",\"type\":\"EXCHANGE LIMIT\"}],[\"on\",{\"symbol\":\"tLTCUST\",\"amount\":\"0.25\",\"price\":\"50\",\"type\":\"EXCHANGE LIMIT\"}]]}"
+          }
+      ]
     }
 }

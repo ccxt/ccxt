@@ -21,6 +21,7 @@ class p2b extends Exchange {
             'countries' => array( 'LT' ),
             'rateLimit' => 100,
             'version' => 'v2',
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,

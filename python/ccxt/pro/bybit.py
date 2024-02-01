@@ -1259,8 +1259,8 @@ class bybit(ccxt.async_support.bybit):
         subType = None
         subType, params = self.handle_sub_type_and_params('watchBalance', None, params)
         unified = await self.isUnifiedEnabled()
-        isUnifiedMargin = self.safe_value(unified, 0, False)
-        isUnifiedAccount = self.safe_value(unified, 1, False)
+        isUnifiedMargin = self.safe_bool(unified, 0, False)
+        isUnifiedAccount = self.safe_bool(unified, 1, False)
         url = self.get_url_by_market_type(None, True, method, params)
         await self.authenticate(url)
         topicByMarket = {

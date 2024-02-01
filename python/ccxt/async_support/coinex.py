@@ -3107,7 +3107,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         depositAddress = self.parse_deposit_address(data, currency)
         options = self.safe_value(self.options, 'fetchDepositAddress', {})
-        fillResponseFromRequest = self.safe_value(options, 'fillResponseFromRequest', True)
+        fillResponseFromRequest = self.safe_bool(options, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             depositAddress['network'] = self.safe_network_code(network, currency)
         return depositAddress
@@ -3281,11 +3281,17 @@ class coinex(Exchange, ImplicitAPI):
         """
         fetch all open positions
         :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033_pending_position
-        :param str[]|None symbols: list of unified market symbols
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position
+        :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: the method to use 'perpetualPrivateGetPositionPending' or 'perpetualPrivateGetPositionFinished' default is 'perpetualPrivateGetPositionPending'
+        :param int [params.side]: *history endpoint only* 0: All, 1: Sell, 2: Buy, default is 0
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
+        defaultMethod = None
+        defaultMethod, params = self.handle_option_and_params(params, 'fetchPositions', 'method', 'perpetualPrivateGetPositionPending')
+        isHistory = (defaultMethod == 'perpetualPrivateGetPositionFinished')
         symbols = self.market_symbols(symbols)
         request = {}
         market = None
@@ -3300,7 +3306,17 @@ class coinex(Exchange, ImplicitAPI):
                 symbol = symbols
             market = self.market(symbol)
             request['market'] = market['id']
-        response = await self.perpetualPrivateGetPositionPending(self.extend(request, params))
+        else:
+            if isHistory:
+                raise ArgumentsRequired(self.id + ' fetchPositions() requires a symbol argument for closed positions')
+        if isHistory:
+            request['limit'] = 100
+            request['side'] = self.safe_integer(params, 'side', 0)  # 0: All, 1: Sell, 2: Buy
+        response = None
+        if defaultMethod == 'perpetualPrivateGetPositionPending':
+            response = await self.perpetualPrivateGetPositionPending(self.extend(request, params))
+        else:
+            response = await self.perpetualPrivateGetPositionFinished(self.extend(request, params))
         #
         #     {
         #         "code": 0,
@@ -4982,7 +4998,7 @@ class coinex(Exchange, ImplicitAPI):
         :returns Array: the marginMode in lowercase
         """
         defaultType = self.safe_string(self.options, 'defaultType')
-        isMargin = self.safe_value(params, 'margin', False)
+        isMargin = self.safe_bool(params, 'margin', False)
         marginMode = None
         marginMode, params = super(coinex, self).handle_margin_mode_and_params(methodName, params, defaultValue)
         if marginMode is None:

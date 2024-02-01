@@ -194,6 +194,7 @@ class okx(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
+                        'market/books-full': 2,
                         'market/tickers': 1,
                         'market/ticker': 1,
                         'market/index-tickers': 1,
@@ -362,9 +363,11 @@ class okx(Exchange, ImplicitAPI):
                         'tradingBot/grid/sub-orders': 1,
                         'tradingBot/grid/positions': 1,
                         'tradingBot/grid/ai-param': 1,
-                        'tradingBot/public/rsi-back-testing': 1,
+                        'tradingBot/signal/signals': 1,
                         'tradingBot/signal/orders-algo-details': 1,
+                        'tradingBot/signal/orders-algo-history': 1,
                         'tradingBot/signal/positions': 1,
+                        'tradingBot/signal/positions-history': 1,
                         'tradingBot/signal/sub-orders': 1,
                         'tradingBot/signal/event-history': 1,
                         'tradingBot/recurring/orders-algo-pending': 1,
@@ -484,6 +487,15 @@ class okx(Exchange, ImplicitAPI):
                         'tradingBot/grid/compute-margin-balance': 1,
                         'tradingBot/grid/margin-balance': 1,
                         'tradingBot/grid/min-investment': 1,
+                        'tradingBot/signal/create-signal': 1,
+                        'tradingBot/signal/order-algo': 1,
+                        'tradingBot/signal/stop-order-algo': 1,
+                        'tradingBot/signal/margin-balance': 1,
+                        'tradingBot/signal/amendTPSL': 1,
+                        'tradingBot/signal/set-instruments': 1,
+                        'tradingBot/signal/close-position': 1,
+                        'tradingBot/signal/sub-order': 1,
+                        'tradingBot/signal/cancel-sub-order': 1,
                         'tradingBot/recurring/order-algo': 1,
                         'tradingBot/recurring/amend-order-algo': 1,
                         'tradingBot/recurring/stop-order-algo': 1,
@@ -1654,6 +1666,7 @@ class okx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
@@ -1661,10 +1674,18 @@ class okx(Exchange, ImplicitAPI):
         request = {
             'instId': market['id'],
         }
-        limit = 20 if (limit is None) else limit
+        method = None
+        method, params = self.handle_option_and_params(params, 'fetchOrderBook', 'method', 'publicGetMarketBooks')
+        if method == 'publicGetMarketBooksFull' and limit is None:
+            limit = 5000
+        limit = 100 if (limit is None) else limit
         if limit is not None:
             request['sz'] = limit  # max 400
-        response = self.publicGetMarketBooks(self.extend(request, params))
+        response = None
+        if (method == 'publicGetMarketBooksFull') or (limit > 400):
+            response = self.publicGetMarketBooksFull(self.extend(request, params))
+        else:
+            response = self.publicGetMarketBooks(self.extend(request, params))
         #
         #     {
         #         "code": "0",
@@ -1718,7 +1739,7 @@ class okx(Exchange, ImplicitAPI):
         symbol = market['symbol']
         last = self.safe_string(ticker, 'last')
         open = self.safe_string(ticker, 'open24h')
-        spot = self.safe_value(market, 'spot', False)
+        spot = self.safe_bool(market, 'spot', False)
         quoteVolume = self.safe_string(ticker, 'volCcy24h') if spot else None
         baseVolume = self.safe_string(ticker, 'vol24h')
         high = self.safe_string(ticker, 'high24h')
@@ -2083,7 +2104,8 @@ class okx(Exchange, ImplicitAPI):
             historyBorder = now - ((1440 - 1) * durationInMilliseconds)
             if since < historyBorder:
                 defaultType = 'HistoryCandles'
-            request['before'] = since
+            startTime = max(since - 1, 0)
+            request['before'] = startTime
             request['after'] = self.sum(since, durationInMilliseconds * limit)
         until = self.safe_integer(params, 'until')
         if until is not None:
@@ -2509,7 +2531,7 @@ class okx(Exchange, ImplicitAPI):
             margin = True
         else:
             marginMode = defaultMarginMode
-            margin = self.safe_value(params, 'margin', False)
+            margin = self.safe_bool(params, 'margin', False)
         if spot:
             if margin:
                 defaultCurrency = market['quote'] if (side == 'buy') else market['base']
@@ -2766,11 +2788,20 @@ class okx(Exchange, ImplicitAPI):
         request = {
             'instId': market['id'],
         }
+        isAlgoOrder = None
+        if (type == 'trigger') or (type == 'conditional') or (type == 'move_order_stop') or (type == 'oco') or (type == 'iceberg') or (type == 'twap'):
+            isAlgoOrder = True
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
         if clientOrderId is not None:
-            request['clOrdId'] = clientOrderId
+            if isAlgoOrder:
+                request['algoClOrdId'] = clientOrderId
+            else:
+                request['clOrdId'] = clientOrderId
         else:
-            request['ordId'] = id
+            if isAlgoOrder:
+                request['algoId'] = id
+            else:
+                request['ordId'] = id
         stopLossTriggerPrice = self.safe_value_2(params, 'stopLossPrice', 'newSlTriggerPx')
         stopLossPrice = self.safe_value(params, 'newSlOrdPx')
         stopLossTriggerPriceType = self.safe_string(params, 'newSlTriggerPxType', 'last')
@@ -2781,39 +2812,57 @@ class okx(Exchange, ImplicitAPI):
         takeProfit = self.safe_value(params, 'takeProfit')
         stopLossDefined = (stopLoss is not None)
         takeProfitDefined = (takeProfit is not None)
-        if stopLossTriggerPrice is not None:
-            request['newSlTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
-            request['newSlOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, stopLossPrice)
-            request['newSlTriggerPxType'] = stopLossTriggerPriceType
-        if takeProfitTriggerPrice is not None:
-            request['newTpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
-            request['newTpOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, takeProfitPrice)
-            request['newTpTriggerPxType'] = takeProfitTriggerPriceType
-        if stopLossDefined:
-            stopLossTriggerPrice = self.safe_value(stopLoss, 'triggerPrice')
-            stopLossPrice = self.safe_value(stopLoss, 'price')
-            stopLossType = self.safe_string(stopLoss, 'type')
-            request['newSlTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
-            request['newSlOrdPx'] = '-1' if (stopLossType == 'market') else self.price_to_precision(symbol, stopLossPrice)
-            request['newSlTriggerPxType'] = stopLossTriggerPriceType
-        if takeProfitDefined:
-            takeProfitTriggerPrice = self.safe_value(takeProfit, 'triggerPrice')
-            takeProfitPrice = self.safe_value(takeProfit, 'price')
-            takeProfitType = self.safe_string(takeProfit, 'type')
-            request['newTpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
-            request['newTpOrdPx'] = '-1' if (takeProfitType == 'market') else self.price_to_precision(symbol, takeProfitPrice)
-            request['newTpTriggerPxType'] = takeProfitTriggerPriceType
+        if isAlgoOrder:
+            if (stopLossTriggerPrice is None) and (takeProfitTriggerPrice is None):
+                raise BadRequest(self.id + ' editOrder() requires a stopLossPrice or takeProfitPrice parameter for editing an algo order')
+            if stopLossTriggerPrice is not None:
+                if stopLossPrice is None:
+                    raise BadRequest(self.id + ' editOrder() requires a newSlOrdPx parameter for editing an algo order')
+                request['newSlTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                request['newSlOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, stopLossPrice)
+                request['newSlTriggerPxType'] = stopLossTriggerPriceType
+            if takeProfitTriggerPrice is not None:
+                if takeProfitPrice is None:
+                    raise BadRequest(self.id + ' editOrder() requires a newTpOrdPx parameter for editing an algo order')
+                request['newTpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                request['newTpOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, takeProfitPrice)
+                request['newTpTriggerPxType'] = takeProfitTriggerPriceType
+        else:
+            if stopLossTriggerPrice is not None:
+                request['newSlTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                request['newSlOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, stopLossPrice)
+                request['newSlTriggerPxType'] = stopLossTriggerPriceType
+            if takeProfitTriggerPrice is not None:
+                request['newTpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                request['newTpOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, takeProfitPrice)
+                request['newTpTriggerPxType'] = takeProfitTriggerPriceType
+            if stopLossDefined:
+                stopLossTriggerPrice = self.safe_value(stopLoss, 'triggerPrice')
+                stopLossPrice = self.safe_value(stopLoss, 'price')
+                stopLossType = self.safe_string(stopLoss, 'type')
+                request['newSlTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                request['newSlOrdPx'] = '-1' if (stopLossType == 'market') else self.price_to_precision(symbol, stopLossPrice)
+                request['newSlTriggerPxType'] = stopLossTriggerPriceType
+            if takeProfitDefined:
+                takeProfitTriggerPrice = self.safe_value(takeProfit, 'triggerPrice')
+                takeProfitPrice = self.safe_value(takeProfit, 'price')
+                takeProfitType = self.safe_string(takeProfit, 'type')
+                request['newTpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                request['newTpOrdPx'] = '-1' if (takeProfitType == 'market') else self.price_to_precision(symbol, takeProfitPrice)
+                request['newTpTriggerPxType'] = takeProfitTriggerPriceType
         if amount is not None:
             request['newSz'] = self.amount_to_precision(symbol, amount)
-        if price is not None:
-            request['newPx'] = self.price_to_precision(symbol, price)
+        if not isAlgoOrder:
+            if price is not None:
+                request['newPx'] = self.price_to_precision(symbol, price)
         params = self.omit(params, ['clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit'])
         return self.extend(request, params)
 
     def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
         edit a trade order
-        :see: https://www.okx.com/docs-v5/en/#rest-api-trade-amend-order
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-amend-order
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-amend-algo-order
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -2841,7 +2890,14 @@ class okx(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         request = self.edit_order_request(id, symbol, type, side, amount, price, params)
-        response = self.privatePostTradeAmendOrder(self.extend(request, params))
+        isAlgoOrder = None
+        if (type == 'trigger') or (type == 'conditional') or (type == 'move_order_stop') or (type == 'oco') or (type == 'iceberg') or (type == 'twap'):
+            isAlgoOrder = True
+        response = None
+        if isAlgoOrder:
+            response = self.privatePostTradeAmendAlgos(self.extend(request, params))
+        else:
+            response = self.privatePostTradeAmendOrder(self.extend(request, params))
         #
         #     {
         #        "code": "0",
@@ -2879,7 +2935,7 @@ class okx(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         stop = self.safe_value_2(params, 'stop', 'trigger')
-        trailing = self.safe_value(params, 'trailing', False)
+        trailing = self.safe_bool(params, 'trailing', False)
         if stop or trailing:
             orderInner = self.cancel_orders([id], symbol, params)
             return self.safe_value(orderInner, 0)
@@ -2937,7 +2993,7 @@ class okx(Exchange, ImplicitAPI):
         clientOrderIds = self.parse_ids(self.safe_value_2(params, 'clOrdId', 'clientOrderId'))
         algoIds = self.parse_ids(self.safe_value(params, 'algoId'))
         stop = self.safe_value_2(params, 'stop', 'trigger')
-        trailing = self.safe_value(params, 'trailing', False)
+        trailing = self.safe_bool(params, 'trailing', False)
         if stop or trailing:
             method = 'privatePostTradeCancelAlgos'
         if clientOrderIds is None:
@@ -3400,7 +3456,7 @@ class okx(Exchange, ImplicitAPI):
         method = self.safe_string(params, 'method', defaultMethod)
         ordType = self.safe_string(params, 'ordType')
         stop = self.safe_value_2(params, 'stop', 'trigger')
-        trailing = self.safe_value(params, 'trailing', False)
+        trailing = self.safe_bool(params, 'trailing', False)
         if trailing or stop or (ordType in algoOrderTypes):
             method = 'privateGetTradeOrdersAlgoPending'
         if trailing:
@@ -3558,7 +3614,7 @@ class okx(Exchange, ImplicitAPI):
         method = self.safe_string(params, 'method', defaultMethod)
         ordType = self.safe_string(params, 'ordType')
         stop = self.safe_value_2(params, 'stop', 'trigger')
-        trailing = self.safe_value(params, 'trailing', False)
+        trailing = self.safe_bool(params, 'trailing', False)
         if trailing:
             method = 'privateGetTradeOrdersAlgoHistory'
             request['ordType'] = 'move_order_stop'
@@ -3737,7 +3793,7 @@ class okx(Exchange, ImplicitAPI):
         method = self.safe_string(params, 'method', defaultMethod)
         ordType = self.safe_string(params, 'ordType')
         stop = self.safe_value_2(params, 'stop', 'trigger')
-        trailing = self.safe_value(params, 'trailing', False)
+        trailing = self.safe_bool(params, 'trailing', False)
         if trailing or stop or (ordType in algoOrderTypes):
             method = 'privateGetTradeOrdersAlgoHistory'
             request['state'] = 'effective'

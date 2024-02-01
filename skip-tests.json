@@ -338,6 +338,7 @@
         }
     },
     "bitopro": {
+        "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
                 "precision": "not provided",
@@ -379,16 +380,8 @@
             "fetchTrades": {
                 "side": "not set"
             },
-            "fetchTickers": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing",
-                "bid": "bid ask crossed",
-                "ask": "bid ask crossed"
-            },
-            "fetchTicker": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            }
+            "fetchTickers": "skip",
+            "fetchTicker": "skip"
         }
     },
     "bitso": {
@@ -675,6 +668,13 @@
             "fetchCurrencies": {
                 "withdraw": "not provided",
                 "deposit": "not provided"
+            }
+        }
+    },
+    "coinmetro": {
+        "skipMethods": {
+            "fetchTrades": {
+                "side":"side is undefined"
             }
         }
     },
@@ -1316,6 +1316,7 @@
     },
     "p2b": {
         "skip": "temp issues",
+        "skipWs": "flaky",
         "httpsProxy": "http://51.83.140.52:11230",
         "skipMethods": {
             "loadMarkets": "invalid URL",

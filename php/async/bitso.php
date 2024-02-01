@@ -1759,7 +1759,7 @@ class bitso extends Exchange {
             //
             //     array("success":false,"error":array("code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"))
             //
-            $success = $this->safe_value($response, 'success', false);
+            $success = $this->safe_bool($response, 'success', false);
             if (gettype($success) === 'string') {
                 if (($success === 'true') || ($success === '1')) {
                     $success = true;

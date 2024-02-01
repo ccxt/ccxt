@@ -94,7 +94,7 @@ export default class timex extends Exchange {
                     'rest': 'https://plasma-relay-backend.timex.io',
                 },
                 'www': 'https://timex.io',
-                'doc': 'https://docs.timex.io',
+                'doc': 'https://plasma-relay-backend.timex.io/swagger-ui/index.html',
                 'referral': 'https://timex.io/?refcode=1x27vNkTbP1uwkCck',
             },
             'api': {
@@ -733,7 +733,7 @@ export default class timex extends Exchange {
         const market = this.market (symbol);
         const uppercaseSide = side.toUpperCase ();
         let uppercaseType = type.toUpperCase ();
-        const postOnly = this.safeValue (params, 'postOnly', false);
+        const postOnly = this.safeBool (params, 'postOnly', false);
         if (postOnly) {
             uppercaseType = 'POST_ONLY';
             params = this.omit (params, [ 'postOnly' ]);

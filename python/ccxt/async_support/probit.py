@@ -297,7 +297,7 @@ class probit(Exchange, ImplicitAPI):
         quoteId = self.safe_string(market, 'quote_currency_id')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        closed = self.safe_value(market, 'closed', False)
+        closed = self.safe_bool(market, 'closed', False)
         takerFeeRate = self.safe_string(market, 'taker_fee_rate')
         taker = Precise.string_div(takerFeeRate, '100')
         makerFeeRate = self.safe_string(market, 'maker_fee_rate')

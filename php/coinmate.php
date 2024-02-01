@@ -535,7 +535,7 @@ class coinmate extends Exchange {
         //
         $data = $this->safe_value($response, 'data');
         $transaction = $this->parse_transaction($data, $currency);
-        $fillResponseFromRequest = $this->safe_value($withdrawOptions, 'fillResponseFromRequest', true);
+        $fillResponseFromRequest = $this->safe_bool($withdrawOptions, 'fillResponseFromRequest', true);
         if ($fillResponseFromRequest) {
             $transaction['amount'] = $amount;
             $transaction['currency'] = $code;

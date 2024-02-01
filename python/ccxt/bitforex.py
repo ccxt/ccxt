@@ -37,6 +37,7 @@ class bitforex(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': False,
+                'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
@@ -50,6 +51,9 @@ class bitforex(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchDepositAddress': False,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -660,6 +664,31 @@ class bitforex(Exchange, ImplicitAPI):
             'fee': fee,
             'trades': None,
         }, market)
+
+    def cancel_all_orders(self, symbol: Str = None, params={}):
+        """
+        :see: https://github.com/githubdev2020/API_Doc_en/wiki/Cancle-all-orders
+        cancel all open orders in a market
+        :param str symbol: unified market symbol of the market to cancel orders in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.privatePostApiV1TradeCancelAllOrder(self.extend(request, params))
+        #
+        #    {
+        #        'data': True,
+        #        'success': True,
+        #        'time': '1706542995252'
+        #    }
+        #
+        return response
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """

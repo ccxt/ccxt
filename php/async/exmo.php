@@ -253,7 +253,7 @@ class exmo extends Exchange {
             //
             $margin = $this->parse_margin_modification($response, $market);
             $options = $this->safe_value($this->options, 'margin', array());
-            $fillResponseFromRequest = $this->safe_value($options, 'fillResponseFromRequest', true);
+            $fillResponseFromRequest = $this->safe_bool($options, 'fillResponseFromRequest', true);
             if ($fillResponseFromRequest) {
                 $margin['type'] = $type;
                 $margin['amount'] = $amount;
@@ -2638,7 +2638,7 @@ class exmo extends Exchange {
             //     array("result":false,"error":"Error 50052 => Insufficient funds")
             //     array("s":"error","errmsg":"strconv.ParseInt => parsing \"\" => invalid syntax")
             //
-            $success = $this->safe_value($response, 'result', false);
+            $success = $this->safe_bool($response, 'result', false);
             if (gettype($success) === 'string') {
                 if (($success === 'true') || ($success === '1')) {
                     $success = true;

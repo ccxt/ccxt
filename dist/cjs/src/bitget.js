@@ -44,16 +44,16 @@ class bitget extends bitget$1 {
                 'createOrder': true,
                 'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': true,
-                'createReduceOnlyOrder': false,
-                'createStopLossOrder': true,
-                'createTakeProfitOrder': true,
                 'createPostOnlyOrder': true,
-                'createStopOrder': true,
+                'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
+                'createStopLossOrder': true,
                 'createStopMarketOrder': true,
+                'createStopOrder': true,
+                'createTakeProfitOrder': true,
+                'createTrailingAmountOrder': false,
                 'createTrailingPercentOrder': true,
                 'createTriggerOrder': true,
-                'signIn': false,
                 'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
@@ -66,15 +66,14 @@ class bitget extends bitget$1 {
                 'fetchCrossBorrowRate': true,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
+                'fetchDeposit': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
-                'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': true,
-                'fetchWithdrawAddresses': false,
-                'fetchTransactions': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
@@ -97,30 +96,35 @@ class bitget extends bitget$1 {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchOrderBooks': false,
                 'fetchOrders': false,
-                'createTrailingAmountOrder': false,
                 'fetchOrderTrades': false,
                 'fetchPosition': true,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchStatus': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
+                'fetchTransactions': false,
                 'fetchTransfer': false,
                 'fetchTransfers': true,
+                'fetchWithdrawAddresses': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'repayCrossMargin': true,
                 'repayIsolatedMargin': true,
                 'setLeverage': true,
+                'setMargin': false,
                 'setMarginMode': true,
                 'setPositionMode': true,
+                'signIn': false,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -2235,7 +2239,7 @@ class bitget extends bitget$1 {
             'fee': undefined,
         };
         const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
-        const fillResponseFromRequest = this.safeValue(withdrawOptions, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool(withdrawOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             result['currency'] = code;
             result['timestamp'] = this.milliseconds();
@@ -3120,7 +3124,7 @@ class bitget extends bitget$1 {
         [marginMode, params] = this.handleMarginModeAndParams('fetchTradingFees', params);
         [marketType, params] = this.handleMarketTypeAndParams('fetchTradingFees', undefined, params);
         if (marketType === 'spot') {
-            const margin = this.safeValue(params, 'margin', false);
+            const margin = this.safeBool(params, 'margin', false);
             params = this.omit(params, 'margin');
             if ((marginMode !== undefined) || margin) {
                 response = await this.publicMarginGetV2MarginCurrencies(params);
@@ -4141,7 +4145,7 @@ class bitget extends bitget$1 {
             request['price'] = this.priceToPrecision(symbol, price);
         }
         const triggerType = this.safeString(params, 'triggerType', 'mark_price');
-        const reduceOnly = this.safeValue(params, 'reduceOnly', false);
+        const reduceOnly = this.safeBool(params, 'reduceOnly', false);
         const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId');
         const exchangeSpecificTifParam = this.safeString2(params, 'force', 'timeInForce');
         let postOnly = undefined;
@@ -4237,7 +4241,7 @@ class bitget extends bitget$1 {
                 }
                 const marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
                 request['marginMode'] = marginModeRequest;
-                const oneWayMode = this.safeValue(params, 'oneWayMode', false);
+                const oneWayMode = this.safeBool(params, 'oneWayMode', false);
                 params = this.omit(params, 'oneWayMode');
                 let requestSide = side;
                 if (reduceOnly) {

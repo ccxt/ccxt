@@ -311,8 +311,6 @@ class bybit(Exchange, ImplicitAPI):
                         # account
                         'v5/account/wallet-balance': 1,
                         'v5/account/borrow-history': 1,
-                        'v5/account/set-collateral-switch': 5,
-                        'v5/account/set-collateral-switch-batch': 5,
                         'v5/account/collateral-info': 1,
                         'v5/asset/coin-greeks': 1,
                         'v5/account/fee-rate': 10,  # 5/s = 1000 / (20 * 10)
@@ -505,6 +503,8 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/lending/purchase': 5,
                         'v5/lending/redeem': 5,
                         'v5/lending/redeem-cancel': 5,
+                        'v5/account/set-collateral-switch': 5,
+                        'v5/account/set-collateral-switch-batch': 5,
                     },
                 },
             },
@@ -869,6 +869,7 @@ class bybit(Exchange, ImplicitAPI):
                     '181003': InvalidOrder,  # side is null.
                     '181004': InvalidOrder,  # side only support Buy or Sell.
                     '182000': InvalidOrder,  # symbol related quote price is null
+                    '181017': BadRequest,  # OrderStatus must be final status
                     '20001': OrderNotFound,  # Order not exists
                     '20003': InvalidOrder,  # missing parameter side
                     '20004': InvalidOrder,  # invalid parameter side
@@ -3198,14 +3199,23 @@ class bybit(Exchange, ImplicitAPI):
         fee = None
         feeCostString = self.safe_string(order, 'cumExecFee')
         if feeCostString is not None:
-            feeCurrency = None
+            feeCurrencyCode = None
             if market['spot']:
-                feeCurrency = market['quote'] if (side == 'buy') else market['base']
+                if Precise.string_gt(feeCostString, '0'):
+                    if side == 'buy':
+                        feeCurrencyCode = market['base']
+                    else:
+                        feeCurrencyCode = market['quote']
+                else:
+                    if side == 'buy':
+                        feeCurrencyCode = market['quote']
+                    else:
+                        feeCurrencyCode = market['base']
             else:
-                feeCurrency = market['settle']
+                feeCurrencyCode = market['base'] if market['inverse'] else market['settle']
             fee = {
                 'cost': feeCostString,
-                'currency': feeCurrency,
+                'currency': feeCurrencyCode,
             }
         clientOrderId = self.safe_string(order, 'orderLinkId')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
@@ -3282,7 +3292,7 @@ class bybit(Exchange, ImplicitAPI):
         result = await self.fetch_orders(symbol, None, None, self.extend(request, params))
         length = len(result)
         if length == 0:
-            isTrigger = self.safe_value_n(params, ['trigger', 'stop'], False)
+            isTrigger = self.safe_bool_n(params, ['trigger', 'stop'], False)
             extra = '' if isTrigger else 'If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
             raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
         if length > 1:
@@ -4214,7 +4224,7 @@ class bybit(Exchange, ImplicitAPI):
         if ((type == 'option') or isUsdcSettled) and not isUnifiedAccount:
             return await self.fetch_usdc_orders(symbol, since, limit, params)
         request['category'] = type
-        isStop = self.safe_value_n(params, ['trigger', 'stop'], False)
+        isStop = self.safe_bool_n(params, ['trigger', 'stop'], False)
         params = self.omit(params, ['trigger', 'stop'])
         if isStop:
             request['orderFilter'] = 'StopOrder'
@@ -5303,10 +5313,10 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672280219169
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        positions = self.safe_value_2(result, 'list', 'dataList', [])
+        result = self.safe_dict(response, 'result', {})
+        positions = self.safe_list_2(result, 'list', 'dataList', [])
         timestamp = self.safe_integer(response, 'time')
-        first = self.safe_value(positions, 0, {})
+        first = self.safe_dict(positions, 0, {})
         position = self.parse_position(first, market)
         position['timestamp'] = timestamp
         position['datetime'] = self.iso8601(timestamp)
@@ -5970,7 +5980,7 @@ class bybit(Exchange, ImplicitAPI):
         if timeframe == '1m':
             raise BadRequest(self.id + 'fetchOpenInterestHistory cannot use the 1m timeframe')
         await self.load_markets()
-        paginate = self.safe_value(params, 'paginate')
+        paginate = self.safe_bool(params, 'paginate')
         if paginate:
             params = self.omit(params, 'paginate')
             return await self.fetch_paginated_call_deterministic('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 500)

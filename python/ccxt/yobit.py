@@ -1224,7 +1224,7 @@ class yobit(Exchange, ImplicitAPI):
             #
             # To cover points 1, 2, 3 and 4 combined self handler should work like self:
             #
-            success = self.safe_value(response, 'success', False)
+            success = self.safe_bool(response, 'success', False)
             if isinstance(success, str):
                 if (success == 'true') or (success == '1'):
                     success = True

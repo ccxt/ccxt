@@ -2335,7 +2335,7 @@ class phemex(Exchange, ImplicitAPI):
         })
 
     def parse_order(self, order, market: Market = None) -> Order:
-        isSwap = self.safe_value(market, 'swap', False)
+        isSwap = self.safe_bool(market, 'swap', False)
         hasPnl = ('closedPnl' in order)
         if isSwap or hasPnl:
             return self.parse_swap_order(order, market)
@@ -3307,8 +3307,10 @@ class phemex(Exchange, ImplicitAPI):
         fetch all open positions
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-trading-account-and-positions
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
-        :param str[]|None symbols: list of unified market symbols
+        :see: https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
+        :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [param.method]: *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
@@ -3338,7 +3340,12 @@ class phemex(Exchange, ImplicitAPI):
         }
         response = None
         if isUSDTSettled:
-            response = self.privateGetGAccountsAccountPositions(self.extend(request, params))
+            method = None
+            method, params = self.handle_option_and_params(params, 'fetchPositions', 'method', 'privateGetGAccountsAccountPositions')
+            if method == 'privateGetGAccountsAccountPositions':
+                response = self.privateGetGAccountsAccountPositions(self.extend(request, params))
+            else:
+                response = self.privateGetAccountsPositions(self.extend(request, params))
         else:
             response = self.privateGetAccountsAccountPositions(self.extend(request, params))
         #
@@ -3511,7 +3518,7 @@ class phemex(Exchange, ImplicitAPI):
         contracts = self.safe_string(position, 'size')
         contractSize = self.safe_value(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
-        leverage = self.safe_number_2(position, 'leverage', 'leverageRr')
+        leverage = self.parse_number(Precise.string_abs((self.safe_string_2(position, 'leverage', 'leverageRr'))))
         entryPriceString = self.safe_string_2(position, 'avgEntryPrice', 'avgEntryPriceRp')
         rawSide = self.safe_string(position, 'side')
         side = None
@@ -4025,7 +4032,7 @@ class phemex(Exchange, ImplicitAPI):
         if (leverage < -100) or (leverage > 100):
             raise BadRequest(self.id + ' setLeverage() leverage should be between -100 and 100')
         self.load_markets()
-        isHedged = self.safe_value(params, 'hedged', False)
+        isHedged = self.safe_bool(params, 'hedged', False)
         longLeverageRr = self.safe_integer(params, 'longLeverageRr')
         shortLeverageRr = self.safe_integer(params, 'shortLeverageRr')
         market = self.market(symbol)
@@ -4111,7 +4118,7 @@ class phemex(Exchange, ImplicitAPI):
             #
             transfer = self.parse_transfer(response)
         transferOptions = self.safe_value(self.options, 'transfer', {})
-        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             if transfer['fromAccount'] is None:
                 transfer['fromAccount'] = fromAccount

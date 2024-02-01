@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitfinex2.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation } from './base/types.js';
 /**
  * @class bitfinex2
  * @augments Exchange
@@ -61,6 +61,7 @@ export default class bitfinex2 extends Exchange {
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<Order[]>;
     fetchOpenOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     fetchClosedOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -155,5 +156,26 @@ export default class bitfinex2 extends Exchange {
         previousFundingRate: any;
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
+    };
+    fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
+    fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OpenInterest[]>;
+    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    fetchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
+    parseLiquidation(liquidation: any, market?: Market): Liquidation;
+    setMargin(symbol: string, amount: any, params?: {}): Promise<{
+        info: any;
+        type: any;
+        amount: any;
+        code: any;
+        symbol: any;
+        status: string;
+    }>;
+    parseMarginModification(data: any, market?: any): {
+        info: any;
+        type: any;
+        amount: any;
+        code: any;
+        symbol: any;
+        status: string;
     };
 }

@@ -725,7 +725,7 @@ class zaif extends zaif$1 {
             this.throwBroadlyMatchedException(this.exceptions['broad'], error, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }
-        const success = this.safeValue(response, 'success', true);
+        const success = this.safeBool(response, 'success', true);
         if (!success) {
             throw new errors.ExchangeError(feedback);
         }

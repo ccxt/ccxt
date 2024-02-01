@@ -1519,14 +1519,12 @@ export default class Exchange {
                         client.throttle (cost).then (() => {
                             client.send (message);
                         }).catch ((e) => {
-                            delete client.subscriptions[subscribeHash];
-                            future.reject (e);
+                            client.onError (e);
                         });
                     } else {
                         client.send (message)
                         .catch ((e) => {
-                            delete client.subscriptions[subscribeHash];
-                            future.reject (e);
+                            client.onError (e);
                         });
                     }
                 }
@@ -1691,6 +1689,108 @@ export default class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    safeBoolN (dictionaryOrList, keys: IndexType[], defaultValue: boolean = undefined): boolean | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract boolean value from dictionary or list
+         * @returns {bool | undefined}
+         */
+        const value = this.safeValueN (dictionaryOrList, keys, defaultValue);
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        return defaultValue;
+    }
+
+    safeBool2 (dictionary, key1: IndexType, key2: IndexType, defaultValue: boolean = undefined): boolean | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract boolean value from dictionary or list
+         * @returns {bool | undefined}
+         */
+        return this.safeBoolN (dictionary, [ key1, key2 ], defaultValue);
+    }
+
+    safeBool (dictionary, key: IndexType, defaultValue: boolean = undefined): boolean | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract boolean value from dictionary or list
+         * @returns {bool | undefined}
+         */
+        return this.safeBoolN (dictionary, [ key ], defaultValue);
+    }
+
+    safeDictN (dictionaryOrList, keys: IndexType[], defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract a dictionary from dictionary or list
+         * @returns {object | undefined}
+         */
+        const value = this.safeValueN (dictionaryOrList, keys, defaultValue);
+        if (typeof value === 'object') {
+            return value;
+        }
+        return defaultValue;
+    }
+
+    safeDict (dictionary, key: IndexType, defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract a dictionary from dictionary or list
+         * @returns {object | undefined}
+         */
+        return this.safeDictN (dictionary, [ key ], defaultValue);
+    }
+
+    safeDict2 (dictionary, key1: IndexType, key2: string, defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract a dictionary from dictionary or list
+         * @returns {object | undefined}
+         */
+        return this.safeDictN (dictionary, [ key1, key2 ], defaultValue);
+    }
+
+    safeListN (dictionaryOrList, keys: IndexType[], defaultValue: any[] = undefined): any[] | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract an Array from dictionary or list
+         * @returns {Array | undefined}
+         */
+        const value = this.safeValueN (dictionaryOrList, keys, defaultValue);
+        if (Array.isArray (value)) {
+            return value;
+        }
+        return defaultValue;
+    }
+
+    safeList2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue: any[] = undefined): any[] | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract an Array from dictionary or list
+         * @returns {Array | undefined}
+         */
+        return this.safeListN (dictionaryOrList, [ key1, key2 ], defaultValue);
+    }
+
+    safeList (dictionaryOrList, key: IndexType, defaultValue: any[] = undefined): any[] | undefined {
+        /**
+         * @ignore
+         * @method
+         * @description safely extract an Array from dictionary or list
+         * @returns {Array | undefined}
+         */
+        return this.safeListN (dictionaryOrList, [ key ], defaultValue);
+    }
 
     handleDeltas (orderbook, deltas) {
         for (let i = 0; i < deltas.length; i++) {
@@ -2238,7 +2338,7 @@ export default class Exchange {
             fee['cost'] = this.safeNumber (fee, 'cost');
         }
         const timestamp = this.safeInteger (entry, 'timestamp');
-        const info = this.safeValue (entry, 'info', {});
+        const info = this.safeDict (entry, 'info', {});
         return {
             'id': this.safeString (entry, 'id'),
             'timestamp': timestamp,
@@ -2409,7 +2509,7 @@ export default class Exchange {
             for (let i = 0; i < values.length; i++) {
                 const market = values[i];
                 const defaultCurrencyPrecision = (this.precisionMode === DECIMAL_PLACES) ? 8 : this.parseNumber ('1e-8');
-                const marketPrecision = this.safeValue (market, 'precision', {});
+                const marketPrecision = this.safeDict (market, 'precision', {});
                 if ('base' in market) {
                     const currency = this.safeCurrencyStructure ({
                         'id': this.safeString2 (market, 'baseId', 'base'),
@@ -2439,7 +2539,7 @@ export default class Exchange {
             const resultingCurrencies = [];
             for (let i = 0; i < codes.length; i++) {
                 const code = codes[i];
-                const groupedCurrenciesCode = this.safeValue (groupedCurrencies, code, []);
+                const groupedCurrenciesCode = this.safeList (groupedCurrencies, code, []);
                 let highestPrecisionCurrency = this.safeValue (groupedCurrenciesCode, 0);
                 for (let j = 1; j < groupedCurrenciesCode.length; j++) {
                     const currentCurrency = groupedCurrenciesCode[j];
@@ -2523,7 +2623,7 @@ export default class Exchange {
         const parseSymbol = symbol === undefined;
         const parseSide = side === undefined;
         const shouldParseFees = parseFee || parseFees;
-        const fees = this.safeValue (order, 'fees', []);
+        const fees = this.safeList (order, 'fees', []);
         let trades = [];
         if (parseFilled || parseCost || shouldParseFees) {
             const rawTrades = this.safeValue (order, 'trades', trades);
@@ -2651,7 +2751,7 @@ export default class Exchange {
             }
         }
         // ensure that the average field is calculated correctly
-        const inverse = this.safeValue (market, 'inverse', false);
+        const inverse = this.safeBool (market, 'inverse', false);
         const contractSize = this.numberToString (this.safeValue (market, 'contractSize', 1));
         // inverse
         // price = filled * contract size / cost
@@ -2702,12 +2802,12 @@ export default class Exchange {
             entry['amount'] = this.safeNumber (entry, 'amount');
             entry['price'] = this.safeNumber (entry, 'price');
             entry['cost'] = this.safeNumber (entry, 'cost');
-            const tradeFee = this.safeValue (entry, 'fee', {});
+            const tradeFee = this.safeDict (entry, 'fee', {});
             tradeFee['cost'] = this.safeNumber (tradeFee, 'cost');
             if ('rate' in tradeFee) {
                 tradeFee['rate'] = this.safeNumber (tradeFee, 'rate');
             }
-            const entryFees = this.safeValue (entry, 'fees', []);
+            const entryFees = this.safeList (entry, 'fees', []);
             for (let j = 0; j < entryFees.length; j++) {
                 entryFees[j]['cost'] = this.safeNumber (entryFees[j], 'cost');
             }
@@ -2881,7 +2981,7 @@ export default class Exchange {
             const contractSize = this.safeString (market, 'contractSize');
             let multiplyPrice = price;
             if (contractSize !== undefined) {
-                const inverse = this.safeValue (market, 'inverse', false);
+                const inverse = this.safeBool (market, 'inverse', false);
                 if (inverse) {
                     multiplyPrice = Precise.stringDiv ('1', price);
                 }
@@ -3136,12 +3236,12 @@ export default class Exchange {
 
     convertTradingViewToOHLCV (ohlcvs, timestamp = 't', open = 'o', high = 'h', low = 'l', close = 'c', volume = 'v', ms = false) {
         const result = [];
-        const timestamps = this.safeValue (ohlcvs, timestamp, []);
-        const opens = this.safeValue (ohlcvs, open, []);
-        const highs = this.safeValue (ohlcvs, high, []);
-        const lows = this.safeValue (ohlcvs, low, []);
-        const closes = this.safeValue (ohlcvs, close, []);
-        const volumes = this.safeValue (ohlcvs, volume, []);
+        const timestamps = this.safeList (ohlcvs, timestamp, []);
+        const opens = this.safeList (ohlcvs, open, []);
+        const highs = this.safeList (ohlcvs, high, []);
+        const lows = this.safeList (ohlcvs, low, []);
+        const closes = this.safeList (ohlcvs, close, []);
+        const volumes = this.safeList (ohlcvs, volume, []);
         for (let i = 0; i < timestamps.length; i++) {
             result.push ([
                 ms ? this.safeInteger (timestamps, i) : this.safeTimestamp (timestamps, i),
@@ -3178,10 +3278,10 @@ export default class Exchange {
     async fetchWebEndpoint (method, endpointMethod, returnAsJson, startRegex = undefined, endRegex = undefined) {
         let errorMessage = '';
         const options = this.safeValue (this.options, method, {});
-        const muteOnFailure = this.safeValue (options, 'webApiMuteFailure', true);
+        const muteOnFailure = this.safeBool (options, 'webApiMuteFailure', true);
         try {
             // if it was not explicitly disabled, then don't fetch
-            if (this.safeValue (options, 'webApiEnable', true) !== true) {
+            if (this.safeBool (options, 'webApiEnable', true) !== true) {
                 return undefined;
             }
             const maxRetries = this.safeValue (options, 'webApiRetries', 10);
@@ -3395,7 +3495,7 @@ export default class Exchange {
         if (currencyCode !== undefined) {
             const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
             if (currencyCode in defaultNetworkCodeReplacements) {
-                const replacementObject = this.safeValue (defaultNetworkCodeReplacements, currencyCode, {});
+                const replacementObject = this.safeDict (defaultNetworkCodeReplacements, currencyCode, {});
                 networkCode = this.safeString (replacementObject, networkCode, networkCode);
             }
         }
@@ -3501,7 +3601,7 @@ export default class Exchange {
             const id = this.safeString (item, marketIdKey);
             const market = this.safeMarket (id, undefined, undefined, 'swap');
             const symbol = market['symbol'];
-            const contract = this.safeValue (market, 'contract', false);
+            const contract = this.safeBool (market, 'contract', false);
             if (contract && ((symbols === undefined) || this.inArray (symbol, symbols))) {
                 tiers[symbol] = this.parseMarketLeverageTiers (item, market);
             }
@@ -4513,6 +4613,9 @@ export default class Exchange {
     }
 
     async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (this.has['fetchOpenOrders'] && this.has['fetchClosedOrders']) {
+            throw new NotSupported (this.id + ' fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead');
+        }
         throw new NotSupported (this.id + ' fetchOrders() is not supported yet');
     }
 
@@ -4785,8 +4888,8 @@ export default class Exchange {
         const currency = this.currencies[code];
         let precision = this.safeValue (currency, 'precision');
         if (networkCode !== undefined) {
-            const networks = this.safeValue (currency, 'networks', {});
-            const networkItem = this.safeValue (networks, networkCode, {});
+            const networks = this.safeDict (currency, 'networks', {});
+            const networkItem = this.safeDict (networks, networkCode, {});
             precision = this.safeValue (networkItem, 'precision', precision);
         }
         if (precision === undefined) {
@@ -5111,7 +5214,7 @@ export default class Exchange {
          * @returns {Array}
          */
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
-        let postOnly = this.safeValue (params, 'postOnly', false);
+        let postOnly = this.safeBool (params, 'postOnly', false);
         const ioc = timeInForce === 'IOC';
         const fok = timeInForce === 'FOK';
         const po = timeInForce === 'PO';

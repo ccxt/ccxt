@@ -2,6 +2,60 @@
     "exchange": "bitget",
     "options": {},
     "methods": {
+      "createOrder": [
+        {
+          "description": "create spot order",
+          "method": "createOrder",
+          "input": [
+            "LTC/USDT",
+            "limit",
+            "buy",
+            0.11,
+            50
+          ],
+          "httpResponse": {
+            "code": "00000",
+            "msg": "success",
+            "requestTime": "1706653719498",
+            "data": {
+              "orderId": "1136353550487961603",
+              "clientOid": "a0fa8867-b90c-4c1c-ab32-45469dcdb53d"
+            }
+          },
+          "parsedResponse": {
+            "info": {
+              "orderId": "1136353550487961603",
+              "clientOid": "a0fa8867-b90c-4c1c-ab32-45469dcdb53d"
+            },
+            "id": "1136353550487961603",
+            "clientOrderId": "a0fa8867-b90c-4c1c-ab32-45469dcdb53d",
+            "timestamp": null,
+            "datetime": null,
+            "lastTradeTimestamp": null,
+            "lastUpdateTimestamp": null,
+            "symbol": "LTC/USDT",
+            "type": null,
+            "side": null,
+            "price": null,
+            "amount": null,
+            "cost": null,
+            "average": null,
+            "filled": null,
+            "remaining": null,
+            "timeInForce": null,
+            "postOnly": null,
+            "reduceOnly": null,
+            "stopPrice": null,
+            "triggerPrice": null,
+            "takeProfitPrice": null,
+            "stopLossPrice": null,
+            "status": null,
+            "fee": null,
+            "trades": [],
+            "fees": []
+          }
+        }
+      ],
       "fetchMyTrades": [
         {
           "description": "Spot trade",
@@ -355,6 +409,88 @@
                   "currency": "LTC"
                 }
               ]
+            }
+          ]
+        }
+      ],
+      "fetchOpenOrders": [
+        {
+          "description": "open spot orders",
+          "method": "fetchOpenOrders",
+          "input": [
+            "LTC/USDT"
+          ],
+          "httpResponse": {
+            "code": "00000",
+            "msg": "success",
+            "requestTime": "1706653761244",
+            "data": [
+              {
+                "userId": "7393346635",
+                "symbol": "LTCUSDT",
+                "orderId": "1136353550487961603",
+                "clientOid": "a0fa8867-b90c-4c1c-ab32-45469dcdb53d",
+                "priceAvg": "50",
+                "size": "0.11",
+                "orderType": "limit",
+                "side": "buy",
+                "status": "live",
+                "basePrice": "0",
+                "baseVolume": "0",
+                "quoteVolume": "0",
+                "enterPointSource": "API",
+                "orderSource": "normal",
+                "cTime": "1706653719541",
+                "uTime": "1706653719648"
+              }
+            ]
+          },
+          "parsedResponse": [
+            {
+              "info": {
+                "userId": "7393346635",
+                "symbol": "LTCUSDT",
+                "orderId": "1136353550487961603",
+                "clientOid": "a0fa8867-b90c-4c1c-ab32-45469dcdb53d",
+                "priceAvg": "50",
+                "size": "0.11",
+                "orderType": "limit",
+                "side": "buy",
+                "status": "live",
+                "basePrice": "0",
+                "baseVolume": "0",
+                "quoteVolume": "0",
+                "enterPointSource": "API",
+                "orderSource": "normal",
+                "cTime": "1706653719541",
+                "uTime": "1706653719648"
+              },
+              "id": "1136353550487961603",
+              "clientOrderId": "a0fa8867-b90c-4c1c-ab32-45469dcdb53d",
+              "timestamp": 1706653719541,
+              "datetime": "2024-01-30T22:28:39.541Z",
+              "lastTradeTimestamp": 1706653719648,
+              "lastUpdateTimestamp": 1706653719648,
+              "symbol": "LTC/USDT",
+              "type": "limit",
+              "side": "buy",
+              "price": 50,
+              "amount": 0.11,
+              "cost": 0,
+              "average": null,
+              "filled": 0,
+              "remaining": 0.11,
+              "timeInForce": null,
+              "postOnly": null,
+              "reduceOnly": null,
+              "stopPrice": null,
+              "triggerPrice": null,
+              "takeProfitPrice": null,
+              "stopLossPrice": null,
+              "status": "open",
+              "fee": null,
+              "trades": [],
+              "fees": []
             }
           ]
         }

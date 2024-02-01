@@ -1563,9 +1563,9 @@ class gate(Exchange, ImplicitAPI):
             networkId = self.safe_string(entry, 'chain')
             networkCode = self.network_id_to_code(networkId, code)
             delisted = self.safe_value(entry, 'delisted')
-            withdrawDisabled = self.safe_value(entry, 'withdraw_disabled', False)
-            depositDisabled = self.safe_value(entry, 'deposit_disabled', False)
-            tradeDisabled = self.safe_value(entry, 'trade_disabled', False)
+            withdrawDisabled = self.safe_bool(entry, 'withdraw_disabled', False)
+            depositDisabled = self.safe_bool(entry, 'deposit_disabled', False)
+            tradeDisabled = self.safe_bool(entry, 'trade_disabled', False)
             withdrawEnabled = not withdrawDisabled
             depositEnabled = not depositDisabled
             tradeEnabled = not tradeDisabled
@@ -3266,7 +3266,7 @@ class gate(Exchange, ImplicitAPI):
         #         "price": "333"
         #     }
         #
-        id = self.safe_string(trade, 'id')
+        id = self.safe_string_2(trade, 'id', 'trade_id')
         timestamp = self.safe_timestamp_2(trade, 'time', 'create_time')
         timestamp = self.safe_integer(trade, 'create_time_ms', timestamp)
         marketId = self.safe_string_2(trade, 'currency_pair', 'contract')
@@ -3806,7 +3806,7 @@ class gate(Exchange, ImplicitAPI):
                 if timeInForce is not None:
                     request['time_in_force'] = timeInForce
             clientOrderId = self.safe_string_2(params, 'text', 'clientOrderId')
-            textIsRequired = self.safe_value(params, 'textIsRequired', False)
+            textIsRequired = self.safe_bool(params, 'textIsRequired', False)
             if clientOrderId is not None:
                 # user-defined, must follow the rules if not empty
                 #     prefixed with t-
@@ -4147,7 +4147,7 @@ class gate(Exchange, ImplicitAPI):
         #        "message": "Not enough balance"
         #    }
         #
-        succeeded = self.safe_value(order, 'succeeded', True)
+        succeeded = self.safe_bool(order, 'succeeded', True)
         if not succeeded:
             # cancelOrders response
             return self.safe_order({

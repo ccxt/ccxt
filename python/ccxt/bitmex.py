@@ -113,7 +113,7 @@ class bitmex(Exchange, ImplicitAPI):
                     'public': 'https://testnet.bitmex.com',
                     'private': 'https://testnet.bitmex.com',
                 },
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
+                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/cea9cfe5-c57e-4b84-b2ac-77b960b04445',
                 'api': {
                     'public': 'https://www.bitmex.com',
                     'private': 'https://www.bitmex.com',
@@ -124,7 +124,10 @@ class bitmex(Exchange, ImplicitAPI):
                     'https://github.com/BitMEX/api-connectors/tree/master/official-http',
                 ],
                 'fees': 'https://www.bitmex.com/app/fees',
-                'referral': 'https://www.bitmex.com/register/upZpOX',
+                'referral': {
+                    'url': 'https://www.bitmex.com/app/register/NZTR1q',
+                    'discount': 0.1,
+                },
             },
             'api': {
                 'public': {
@@ -346,8 +349,8 @@ class bitmex(Exchange, ImplicitAPI):
                 network = self.network_id_to_code(networkId)
                 withdrawalFeeRaw = self.safe_string(chain, 'withdrawalFee')
                 withdrawalFee = self.parse_number(Precise.string_mul(withdrawalFeeRaw, precisionString))
-                isDepositEnabled = self.safe_value(chain, 'depositEnabled', False)
-                isWithdrawEnabled = self.safe_value(chain, 'withdrawalEnabled', False)
+                isDepositEnabled = self.safe_bool(chain, 'depositEnabled', False)
+                isWithdrawEnabled = self.safe_bool(chain, 'withdrawalEnabled', False)
                 active = (isDepositEnabled and isWithdrawEnabled)
                 if isDepositEnabled:
                     depositEnabled = True
@@ -1634,7 +1637,7 @@ class bitmex(Exchange, ImplicitAPI):
             defaultSubType = self.safe_string(self.options, 'defaultSubType', 'linear')
             isInverse = (defaultSubType == 'inverse')
         else:
-            isInverse = self.safe_value(market, 'inverse', False)
+            isInverse = self.safe_bool(market, 'inverse', False)
         if isInverse:
             cost = self.convert_from_raw_quantity(symbol, qty)
         else:
@@ -2274,7 +2277,7 @@ class bitmex(Exchange, ImplicitAPI):
             item = response[i]
             marketId = self.safe_string(item, 'symbol')
             market = self.safe_market(marketId)
-            swap = self.safe_value(market, 'swap', False)
+            swap = self.safe_bool(market, 'swap', False)
             if swap:
                 filteredResponse.append(item)
         symbols = self.market_symbols(symbols)

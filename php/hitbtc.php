@@ -689,7 +689,7 @@ class hitbtc extends Exchange {
             $expiry = $this->safe_integer($market, 'expiry');
             $contract = ($marketType === 'futures');
             $spot = ($marketType === 'spot');
-            $marginTrading = $this->safe_value($market, 'margin_trading', false);
+            $marginTrading = $this->safe_bool($market, 'margin_trading', false);
             $margin = $spot && $marginTrading;
             $future = ($expiry !== null);
             $swap = ($contract && !$future);
@@ -822,9 +822,9 @@ class hitbtc extends Exchange {
             $entry = $response[$currencyId];
             $name = $this->safe_string($entry, 'full_name');
             $precision = $this->safe_number($entry, 'precision_transfer');
-            $payinEnabled = $this->safe_value($entry, 'payin_enabled', false);
-            $payoutEnabled = $this->safe_value($entry, 'payout_enabled', false);
-            $transferEnabled = $this->safe_value($entry, 'transfer_enabled', false);
+            $payinEnabled = $this->safe_bool($entry, 'payin_enabled', false);
+            $payoutEnabled = $this->safe_bool($entry, 'payout_enabled', false);
+            $transferEnabled = $this->safe_bool($entry, 'transfer_enabled', false);
             $active = $payinEnabled && $payoutEnabled && $transferEnabled;
             $rawNetworks = $this->safe_value($entry, 'networks', array());
             $networks = array();
@@ -837,8 +837,8 @@ class hitbtc extends Exchange {
                 $network = $this->safe_network($networkId);
                 $fee = $this->safe_number($rawNetwork, 'payout_fee');
                 $networkPrecision = $this->safe_number($rawNetwork, 'precision_payout');
-                $payinEnabledNetwork = $this->safe_value($entry, 'payin_enabled', false);
-                $payoutEnabledNetwork = $this->safe_value($entry, 'payout_enabled', false);
+                $payinEnabledNetwork = $this->safe_bool($entry, 'payin_enabled', false);
+                $payoutEnabledNetwork = $this->safe_bool($entry, 'payout_enabled', false);
                 $activeNetwork = $payinEnabledNetwork && $payoutEnabledNetwork;
                 if ($payinEnabledNetwork && !$depositEnabled) {
                     $depositEnabled = true;
@@ -2635,7 +2635,7 @@ class hitbtc extends Exchange {
             $params = $this->omit($params, 'network');
         }
         $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
-        $includeFee = $this->safe_value($withdrawOptions, 'includeFee', false);
+        $includeFee = $this->safe_bool($withdrawOptions, 'includeFee', false);
         if ($includeFee) {
             $request['include_fee'] = true;
         }
@@ -3149,7 +3149,7 @@ class hitbtc extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $leverage = $this->safe_string($params, 'leverage');
-        if ($market['type'] === 'swap') {
+        if ($market['swap']) {
             if ($leverage === null) {
                 throw new ArgumentsRequired($this->id . ' modifyMarginHelper() requires a $leverage parameter for swap markets');
             }
@@ -3172,18 +3172,13 @@ class hitbtc extends Exchange {
         $marginMode = null;
         list($marketType, $params) = $this->handle_market_type_and_params('modifyMarginHelper', $market, $params);
         list($marginMode, $params) = $this->handle_margin_mode_and_params('modifyMarginHelper', $params);
-        $params = $this->omit($params, array( 'marginMode', 'margin' ));
         $response = null;
-        if ($marginMode !== null) {
+        if ($marketType === 'swap') {
+            $response = $this->privatePutFuturesAccountIsolatedSymbol (array_merge($request, $params));
+        } elseif (($marketType === 'margin') || ($marketType === 'spot') || ($marginMode === 'isolated')) {
             $response = $this->privatePutMarginAccountIsolatedSymbol (array_merge($request, $params));
         } else {
-            if ($marketType === 'swap') {
-                $response = $this->privatePutFuturesAccountIsolatedSymbol (array_merge($request, $params));
-            } elseif ($marketType === 'margin') {
-                $response = $this->privatePutMarginAccountIsolatedSymbol (array_merge($request, $params));
-            } else {
-                throw new NotSupported($this->id . ' modifyMarginHelper() not support this $market type');
-            }
+            throw new NotSupported($this->id . ' modifyMarginHelper() not support this $market type');
         }
         //
         //     {
@@ -3487,7 +3482,7 @@ class hitbtc extends Exchange {
          * @return {Array} the $marginMode in lowercase
          */
         $defaultType = $this->safe_string($this->options, 'defaultType');
-        $isMargin = $this->safe_value($params, 'margin', false);
+        $isMargin = $this->safe_bool($params, 'margin', false);
         $marginMode = null;
         list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
         if ($marginMode === null) {

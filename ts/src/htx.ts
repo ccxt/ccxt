@@ -3932,7 +3932,7 @@ export default class htx extends Exchange {
         let response = undefined;
         const stop = this.safeValue (params, 'stop');
         const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
-        const trailing = this.safeValue (params, 'trailing', false);
+        const trailing = this.safeBool (params, 'trailing', false);
         params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing' ]);
         if (stop || stopLossTakeProfit || trailing) {
             if (limit !== undefined) {
@@ -4292,7 +4292,7 @@ export default class htx extends Exchange {
             request['contract_code'] = market['id'];
             const stop = this.safeValue (params, 'stop');
             const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
-            const trailing = this.safeValue (params, 'trailing', false);
+            const trailing = this.safeBool (params, 'trailing', false);
             params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing' ]);
             if (market['linear']) {
                 let marginMode = undefined;
@@ -5616,7 +5616,7 @@ export default class htx extends Exchange {
             }
             const stop = this.safeValue (params, 'stop');
             const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
-            const trailing = this.safeValue (params, 'trailing', false);
+            const trailing = this.safeBool (params, 'trailing', false);
             params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing' ]);
             if (market['linear']) {
                 let marginMode = undefined;
@@ -5908,7 +5908,7 @@ export default class htx extends Exchange {
             request['contract_code'] = market['id'];
             const stop = this.safeValue (params, 'stop');
             const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
-            const trailing = this.safeValue (params, 'trailing', false);
+            const trailing = this.safeBool (params, 'trailing', false);
             params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing' ]);
             if (market['linear']) {
                 let marginMode = undefined;
@@ -6367,7 +6367,7 @@ export default class htx extends Exchange {
         }
         amount = parseFloat (this.currencyToPrecision (code, amount, networkCode));
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
-        if (this.safeValue (withdrawOptions, 'includeFee', false)) {
+        if (this.safeBool (withdrawOptions, 'includeFee', false)) {
             let fee = this.safeNumber (params, 'fee');
             if (fee === undefined) {
                 const currencies = await this.fetchCurrencies ();

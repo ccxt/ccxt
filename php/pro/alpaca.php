@@ -239,7 +239,7 @@ class alpaca extends \ccxt\async\alpaca {
         $symbol = $this->safe_symbol($marketId);
         $datetime = $this->safe_string($message, 't');
         $timestamp = $this->parse8601($datetime);
-        $isSnapshot = $this->safe_value($message, 'r', false);
+        $isSnapshot = $this->safe_bool($message, 'r', false);
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
             $orderbook = $this->order_book();
