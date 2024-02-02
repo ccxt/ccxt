@@ -23,7 +23,7 @@
         "maker": 0.0002,
         "contractSize": 1,
         "precision": {
-            "amount": 0.01,
+            "amount": 1,
             "price": 0.01
         },
         "limits": {
@@ -80,7 +80,7 @@
         "maker": 0.0002,
         "contractSize": 0.001,
         "precision": {
-            "amount": 0.1,
+            "amount": 1,
             "price": 0.1
         },
         "limits": {
@@ -137,7 +137,7 @@
         "maker": 0.0002,
         "contractSize": 100,
         "precision": {
-            "amount": 0.0001,
+            "amount": 1,
             "price": 0.0001
         },
         "limits": {
