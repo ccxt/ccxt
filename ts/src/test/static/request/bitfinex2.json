@@ -653,6 +653,19 @@
                 ],
                 "output": "{\"method\":\"bitcoin\",\"wallet\":\"exchange\",\"op_renew\":0}"
             }
+        ],
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "Fetch deposits and withdrawals with code since and limit arguments",
+                "method": "fetchDepositsWithdrawals",
+                "url": "https://api.bitfinex.com/v2/auth/r/movements/UST/hist",
+                "input": [
+                  "USDT",
+                  1670849733000,
+                  2
+                ],
+                "output": "{\"start\":1670849733000,\"limit\":2}"
+            }
         ]
     }
 }
