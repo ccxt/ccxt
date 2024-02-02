@@ -7,7 +7,7 @@
 import assert from 'assert';
 import Precise from '../../../base/Precise.js';
 import testSharedMethods from './test.sharedMethods.js';
-function testOrderBook(exchange, skippedProperties, method, entry, symbol) {
+function testOrderBook(exchange, skippedProperties, method, orderbook, symbol) {
     const format = {
         'symbol': 'ETH/BTC',
         'asks': [
@@ -24,15 +24,15 @@ function testOrderBook(exchange, skippedProperties, method, entry, symbol) {
         // 'info': {},
     };
     const emptyAllowedFor = ['symbol', 'nonce', 'datetime', 'timestamp']; // todo: make timestamp required
-    testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
-    testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry);
-    testSharedMethods.assertSymbol(exchange, skippedProperties, method, entry, 'symbol', symbol);
-    const logText = testSharedMethods.logTemplate(exchange, method, entry);
+    testSharedMethods.assertStructure(exchange, skippedProperties, method, orderbook, format, emptyAllowedFor);
+    testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, orderbook);
+    testSharedMethods.assertSymbol(exchange, skippedProperties, method, orderbook, 'symbol', symbol);
+    const logText = testSharedMethods.logTemplate(exchange, method, orderbook);
     //
     if (('bid' in skippedProperties) || ('ask' in skippedProperties)) {
         return;
     }
-    const bids = entry['bids'];
+    const bids = orderbook['bids'];
     const bidsLength = bids.length;
     for (let i = 0; i < bidsLength; i++) {
         const currentBidString = exchange.safeString(bids[i], 0);
@@ -45,7 +45,7 @@ function testOrderBook(exchange, skippedProperties, method, entry, symbol) {
         testSharedMethods.assertGreater(exchange, skippedProperties, method, bids[i], 0, '0');
         testSharedMethods.assertGreater(exchange, skippedProperties, method, bids[i], 1, '0');
     }
-    const asks = entry['asks'];
+    const asks = orderbook['asks'];
     const asksLength = asks.length;
     for (let i = 0; i < asksLength; i++) {
         const currentAskString = exchange.safeString(asks[i], 0);

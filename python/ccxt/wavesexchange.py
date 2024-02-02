@@ -1198,7 +1198,8 @@ class wavesexchange(Exchange, ImplicitAPI):
         # precise.decimals should be integer
         precise.decimals = self.parse_to_int(Precise.string_sub(self.number_to_string(precise.decimals), self.number_to_string(scale)))
         precise.reduce()
-        return precise
+        stringValue = str(precise)
+        return stringValue
 
     def currency_from_precision(self, currency, amount):
         scale = self.currencies[currency]['precision']
@@ -1223,7 +1224,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             return {'WAVES': 1}
         return rates
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -2288,7 +2289,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

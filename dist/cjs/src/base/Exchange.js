@@ -39,6 +39,7 @@ const { isNode, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sor
  */
 class Exchange {
     constructor(userConfig = {}) {
+        this.throttleProp = undefined;
         this.api = undefined;
         this.userAgent = undefined;
         this.user_agent = undefined;
@@ -120,6 +121,7 @@ class Exchange {
         this.clients = {};
         this.newUpdates = true;
         this.streaming = {};
+        this.alias = false;
         this.deepExtend = deepExtend;
         this.isNode = isNode;
         this.keys = generic.keys;
@@ -695,7 +697,7 @@ class Exchange {
                 // @ts-ignore
                 this.httpProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'https-proxy-agent')); });
             }
-            catch { }
+            catch (e) { }
         }
         if (this.socksProxyAgentModuleChecked === false) {
             this.socksProxyAgentModuleChecked = true;
@@ -957,7 +959,7 @@ class Exchange {
         const markets = await this.fetchMarkets(params);
         return this.setMarkets(markets, currencies);
     }
-    loadMarkets(reload = false, params = {}) {
+    async loadMarkets(reload = false, params = {}) {
         // this method is async, it returns a promise
         if ((reload && !this.reloadingMarkets) || !this.marketsLoading) {
             this.reloadingMarkets = true;
@@ -971,28 +973,28 @@ class Exchange {
         }
         return this.marketsLoading;
     }
-    fetchCurrencies(params = {}) {
+    async fetchCurrencies(params = {}) {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
         // and may be changed for consistency later
         return new Promise((resolve, reject) => resolve(this.currencies));
     }
-    fetchCurrenciesWs(params = {}) {
+    async fetchCurrenciesWs(params = {}) {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
         // and may be changed for consistency later
         return new Promise((resolve, reject) => resolve(this.currencies));
     }
-    fetchMarkets(params = {}) {
+    async fetchMarkets(params = {}) {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
         // and may be changed for consistency later
         return new Promise((resolve, reject) => resolve(Object.values(this.markets)));
     }
-    fetchMarketsWs(params = {}) {
+    async fetchMarketsWs(params = {}) {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
@@ -1067,6 +1069,9 @@ class Exchange {
     }
     handleMessage(client, message) { } // stub to override
     // ping (client) {} // stub to override
+    ping(client) {
+        return undefined;
+    }
     client(url) {
         this.clients = this.clients || {};
         if (!this.clients[url]) {
@@ -1694,6 +1699,9 @@ class Exchange {
                     }
                 }
                 if (fromStart) {
+                    if (limit > arrayLength) {
+                        limit = arrayLength;
+                    }
                     array = ascending ? this.arraySlice(array, 0, limit) : this.arraySlice(array, -limit);
                 }
                 else {
@@ -1921,6 +1929,18 @@ class Exchange {
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' setLeverage() is not supported yet');
+    }
+    async fetchOpenInterestHistory(symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOpenInterestHistory() is not supported yet');
+    }
+    async fetchOpenInterest(symbol, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
+    }
+    async signIn(params = {}) {
+        throw new errors.NotSupported(this.id + ' signIn() is not supported yet');
+    }
+    async fetchPaymentMethods(params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchPaymentMethods() is not supported yet');
     }
     parseToInt(number) {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
@@ -3532,6 +3552,15 @@ class Exchange {
     async fetchBidsAsks(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchBidsAsks() is not supported yet');
     }
+    async fetchBorrowInterest(code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchBorrowInterest() is not supported yet');
+    }
+    async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchLedger() is not supported yet');
+    }
+    async fetchLedgerEntry(id, code = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchLedgerEntry() is not supported yet');
+    }
     parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const price = this.safeNumber(bidask, priceKey);
         const amount = this.safeNumber(bidask, amountKey);
@@ -3832,6 +3861,9 @@ class Exchange {
         return this.handleOptionAndParams(params, methodName, 'marginMode', defaultValue);
     }
     throwExactlyMatchedException(exact, string, message) {
+        if (string === undefined) {
+            return;
+        }
         if (string in exact) {
             throw new exact[string](message);
         }
@@ -4255,20 +4287,17 @@ class Exchange {
          */
         throw new errors.NotSupported(this.id + ' fetchDepositsWithdrawals() is not supported yet');
     }
-    async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchDeposits() is not supported yet');
+    }
+    async fetchWithdrawals(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchWithdrawals() is not supported yet');
     }
     async fetchDepositsWs(code = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchDepositsWs() is not supported yet');
     }
-    async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchWithdrawals() is not supported yet');
-    }
     async fetchWithdrawalsWs(code = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchWithdrawalsWs() is not supported yet');
-    }
-    async fetchOpenInterest(symbol, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchFundingRateHistory() is not supported yet');
@@ -4357,7 +4386,7 @@ class Exchange {
         throw new errors.NotSupported(this.id + ' createExpiredOptionMarket () is not supported yet');
     }
     handleWithdrawTagAndParams(tag, params) {
-        if (typeof tag === 'object') {
+        if ((tag !== undefined) && (typeof tag === 'object')) {
             params = this.extend(tag, params);
             tag = undefined;
         }
@@ -4491,14 +4520,14 @@ class Exchange {
             throw new errors.NotSupported(this.id + ' fetchMarketLeverageTiers() is not supported yet');
         }
     }
-    async createPostOnlyOrder(symbol, type, side, amount, price, params = {}) {
+    async createPostOnlyOrder(symbol, type, side, amount, price = undefined, params = {}) {
         if (!this.has['createPostOnlyOrder']) {
             throw new errors.NotSupported(this.id + 'createPostOnlyOrder() is not supported yet');
         }
         const query = this.extend(params, { 'postOnly': true });
         return await this.createOrder(symbol, type, side, amount, price, query);
     }
-    async createReduceOnlyOrder(symbol, type, side, amount, price, params = {}) {
+    async createReduceOnlyOrder(symbol, type, side, amount, price = undefined, params = {}) {
         if (!this.has['createReduceOnlyOrder']) {
             throw new errors.NotSupported(this.id + 'createReduceOnlyOrder() is not supported yet');
         }
@@ -5121,7 +5150,8 @@ class Exchange {
                     const response = await this[method](symbol, undefined, maxEntriesPerRequest, params);
                     const responseLength = response.length;
                     if (this.verbose) {
-                        this.log('Dynamic pagination call', calls, 'method', method, 'response length', responseLength, 'timestamp', paginationTimestamp);
+                        const backwardMessage = 'Dynamic pagination call ' + calls + ' method ' + method + ' response length ' + responseLength + ' timestamp ' + paginationTimestamp;
+                        this.log(backwardMessage);
                     }
                     if (responseLength === 0) {
                         break;
@@ -5139,7 +5169,8 @@ class Exchange {
                     const response = await this[method](symbol, paginationTimestamp, maxEntriesPerRequest, params);
                     const responseLength = response.length;
                     if (this.verbose) {
-                        this.log('Dynamic pagination call', calls, 'method', method, 'response length', responseLength, 'timestamp', paginationTimestamp);
+                        const forwardMessage = 'Dynamic pagination call ' + calls + ' method ' + method + ' response length ' + responseLength + ' timestamp ' + paginationTimestamp;
+                        this.log(forwardMessage);
                     }
                     if (responseLength === 0) {
                         break;
@@ -5185,6 +5216,7 @@ class Exchange {
                 throw e;
             }
         }
+        return undefined;
     }
     async fetchPaginatedCallDeterministic(method, symbol = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}, maxEntriesPerRequest = undefined) {
         let maxCalls = undefined;
@@ -5249,7 +5281,8 @@ class Exchange {
                 errors = 0;
                 const responseLength = response.length;
                 if (this.verbose) {
-                    this.log('Cursor pagination call', i + 1, 'method', method, 'response length', responseLength, 'cursor', cursorValue);
+                    const cursorMessage = 'Cursor pagination call ' + i + 1 + ' method ' + method + ' response length ' + responseLength + ' cursor ' + cursorValue;
+                    this.log(cursorMessage);
                 }
                 if (responseLength === 0) {
                     break;
@@ -5293,7 +5326,8 @@ class Exchange {
                 errors = 0;
                 const responseLength = response.length;
                 if (this.verbose) {
-                    this.log('Incremental pagination call', i + 1, 'method', method, 'response length', responseLength);
+                    const incrementalMessage = 'Incremental pagination call ' + i + 1 + ' method ' + method + ' response length ' + responseLength;
+                    this.log(incrementalMessage);
                 }
                 if (responseLength === 0) {
                     break;

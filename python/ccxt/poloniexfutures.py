@@ -780,7 +780,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         Create an order on the exchange
         :see: https://futures-docs.poloniex.com/#place-an-order

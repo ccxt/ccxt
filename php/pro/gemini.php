@@ -608,7 +608,8 @@ class gemini extends \ccxt\async\gemini {
         //
         $isArray = gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message));
         if ($isArray) {
-            return $this->handle_order($client, $message);
+            $this->handle_order($client, $message);
+            return;
         }
         $reason = $this->safe_string($message, 'reason');
         if ($reason === 'error') {
@@ -622,7 +623,8 @@ class gemini extends \ccxt\async\gemini {
         );
         $type = $this->safe_string($message, 'type', '');
         if (mb_strpos($type, 'candles') !== false) {
-            return $this->handle_ohlcv($client, $message);
+            $this->handle_ohlcv($client, $message);
+            return;
         }
         $method = $this->safe_value($methods, $type);
         if ($method !== null) {

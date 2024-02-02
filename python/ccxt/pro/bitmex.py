@@ -1462,7 +1462,7 @@ class bitmex(ccxt.async_support.bitmex):
         #
         #     {"error": "Rate limit exceeded, retry in 29 seconds."}
         #
-        error = self.safe_value(message, 'error')
+        error = self.safe_string(message, 'error')
         if error is not None:
             request = self.safe_value(message, 'request', {})
             args = self.safe_value(request, 'args', [])
@@ -1473,7 +1473,7 @@ class bitmex(ccxt.async_support.bitmex):
                 broadKey = self.find_broadly_matched_key(broad, error)
                 exception = None
                 if broadKey is None:
-                    exception = ExchangeError(error)
+                    exception = ExchangeError(error)  # c# requirement for now
                 else:
                     exception = broad[broadKey](error)
                 client.reject(exception, messageHash)
@@ -1537,8 +1537,6 @@ class bitmex(ccxt.async_support.bitmex):
                 request = self.safe_value(message, 'request', {})
                 op = self.safe_value(request, 'op')
                 if op == 'authKeyExpires':
-                    return self.handle_authentication_message(client, message)
-                else:
-                    return message
+                    self.handle_authentication_message(client, message)
             else:
-                return method(client, message)
+                method(client, message)

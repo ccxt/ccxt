@@ -749,16 +749,16 @@ class lbank(ccxt.async_support.lbank):
         orderBook = self.safe_value(message, 'depth', message)
         datetime = self.safe_string(message, 'TS')
         timestamp = self.parse8601(datetime)
-        storedOrderBook = self.safe_value(self.orderbooks, symbol)
-        if storedOrderBook is None:
-            storedOrderBook = self.order_book({})
-            self.orderbooks[symbol] = storedOrderBook
+        orderbook = self.safe_value(self.orderbooks, symbol)
+        if orderbook is None:
+            orderbook = self.order_book({})
+            self.orderbooks[symbol] = orderbook
         snapshot = self.parse_order_book(orderBook, symbol, timestamp, 'bids', 'asks')
-        storedOrderBook.reset(snapshot)
+        orderbook.reset(snapshot)
         messageHash = 'orderbook:' + symbol
-        client.resolve(storedOrderBook, messageHash)
+        client.resolve(orderbook, messageHash)
         messageHash = 'fetchOrderbook:' + symbol
-        client.resolve(storedOrderBook, messageHash)
+        client.resolve(orderbook, messageHash)
 
     def handle_error_message(self, client, message):
         #
@@ -786,7 +786,8 @@ class lbank(ccxt.async_support.lbank):
     def handle_message(self, client, message):
         status = self.safe_string(message, 'status')
         if status == 'error':
-            return self.handle_error_message(client, message)
+            self.handle_error_message(client, message)
+            return
         type = self.safe_string_2(message, 'type', 'action')
         if type == 'ping':
             self.spawn(self.handle_ping, client, message)
@@ -800,8 +801,7 @@ class lbank(ccxt.async_support.lbank):
         }
         handler = self.safe_value(handlers, type)
         if handler is not None:
-            return handler(client, message)
-        return message
+            handler(client, message)
 
     async def authenticate(self, params={}):
         # when we implement more private streams, we need to refactor the authentication

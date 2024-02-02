@@ -1024,7 +1024,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
         const request = {
@@ -1071,16 +1071,16 @@ export default class cryptocom extends Exchange {
         const isTakeProfitTrigger = (takeProfitPrice !== undefined);
         if (isTrigger) {
             request['ref_price'] = this.priceToPrecision (symbol, triggerPrice);
-            price = price.toString ();
+            const priceString = this.numberToString (price);
             if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
                 if (side === 'buy') {
-                    if (Precise.stringLt (price, triggerPrice)) {
+                    if (Precise.stringLt (priceString, triggerPrice)) {
                         request['type'] = 'TAKE_PROFIT_LIMIT';
                     } else {
                         request['type'] = 'STOP_LIMIT';
                     }
                 } else {
-                    if (Precise.stringLt (price, triggerPrice)) {
+                    if (Precise.stringLt (priceString, triggerPrice)) {
                         request['type'] = 'STOP_LIMIT';
                     } else {
                         request['type'] = 'TAKE_PROFIT_LIMIT';
@@ -1088,13 +1088,13 @@ export default class cryptocom extends Exchange {
                 }
             } else {
                 if (side === 'buy') {
-                    if (Precise.stringLt (price, triggerPrice)) {
+                    if (Precise.stringLt (priceString, triggerPrice)) {
                         request['type'] = 'TAKE_PROFIT';
                     } else {
                         request['type'] = 'STOP_LOSS';
                     }
                 } else {
-                    if (Precise.stringLt (price, triggerPrice)) {
+                    if (Precise.stringLt (priceString, triggerPrice)) {
                         request['type'] = 'STOP_LOSS';
                     } else {
                         request['type'] = 'TAKE_PROFIT';
@@ -1122,7 +1122,7 @@ export default class cryptocom extends Exchange {
         return this.extend (request, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#createOrder
@@ -1239,7 +1239,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrders (result);
     }
 
-    createAdvancedOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    createAdvancedOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         // differs slightly from createOrderRequest
         // since the advanced order endpoint requires a different set of parameters
         // namely here we don't support ref_price or spot_margin
@@ -1279,16 +1279,16 @@ export default class cryptocom extends Exchange {
         const isStopLossTrigger = (stopLossPrice !== undefined);
         const isTakeProfitTrigger = (takeProfitPrice !== undefined);
         if (isTrigger) {
-            price = price.toString ();
+            const priceString = this.numberToString (price);
             if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
                 if (side === 'buy') {
-                    if (Precise.stringLt (price, triggerPrice)) {
+                    if (Precise.stringLt (priceString, triggerPrice)) {
                         request['type'] = 'TAKE_PROFIT_LIMIT';
                     } else {
                         request['type'] = 'STOP_LIMIT';
                     }
                 } else {
-                    if (Precise.stringLt (price, triggerPrice)) {
+                    if (Precise.stringLt (priceString, triggerPrice)) {
                         request['type'] = 'STOP_LIMIT';
                     } else {
                         request['type'] = 'TAKE_PROFIT_LIMIT';
@@ -1296,13 +1296,13 @@ export default class cryptocom extends Exchange {
                 }
             } else {
                 if (side === 'buy') {
-                    if (Precise.stringLt (price, triggerPrice)) {
+                    if (Precise.stringLt (priceString, triggerPrice)) {
                         request['type'] = 'TAKE_PROFIT';
                     } else {
                         request['type'] = 'STOP_LOSS';
                     }
                 } else {
-                    if (Precise.stringLt (price, triggerPrice)) {
+                    if (Precise.stringLt (priceString, triggerPrice)) {
                         request['type'] = 'STOP_LOSS';
                     } else {
                         request['type'] = 'TAKE_PROFIT';
@@ -1591,7 +1591,7 @@ export default class cryptocom extends Exchange {
         return [ address, tag ];
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#withdraw

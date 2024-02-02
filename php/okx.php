@@ -1516,8 +1516,8 @@ class okx extends Exchange {
         //         "msg" => ""
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_markets($data);
+        $dataResponse = $this->safe_value($response, 'data', array());
+        return $this->parse_markets($dataResponse);
     }
 
     public function safe_network($networkId) {
@@ -2541,7 +2541,7 @@ class okx extends Exchange {
         return $this->create_order($symbol, 'market', 'sell', $cost, null, $params);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
         $request = array(
             'instId' => $market['id'],
@@ -2781,7 +2781,7 @@ class okx extends Exchange {
         return array_merge($request, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-post-place-$order
@@ -3094,7 +3094,7 @@ class okx extends Exchange {
          * @param {string[]|string} $ids order $ids
          * @return {string[]} list of order $ids
          */
-        if (gettype($ids) === 'string') {
+        if (($ids !== null) && gettype($ids) === 'string') {
             return explode(',', $ids);
         } else {
             return $ids;
@@ -4591,7 +4591,7 @@ class okx extends Exchange {
         return $result;
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-withdrawal
@@ -5382,7 +5382,7 @@ class okx extends Exchange {
         ));
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-funds-transfer
@@ -5918,7 +5918,7 @@ class okx extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          * @see https://www.okx.com/docs-v5/en/#rest-api-account-set-$leverage
@@ -6523,7 +6523,7 @@ class okx extends Exchange {
         );
     }
 
-    public function borrow_cross_margin(string $code, $amount, $params = array ()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array ()) {
         /**
          * create a $loan to borrow margin (need to be VIP 5 and above)
          * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-vip-loans-borrow-and-repay
@@ -7113,6 +7113,7 @@ class okx extends Exchange {
                 return $this->parse_greeks($entry, $market);
             }
         }
+        return null;
     }
 
     public function parse_greeks($greeks, ?array $market = null) {

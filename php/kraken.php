@@ -1334,7 +1334,7 @@ class kraken extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
          * create a trade order
@@ -2580,7 +2580,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds
@@ -2702,7 +2702,7 @@ class kraken extends Exchange {
         return $this->transfer($code, $amount, 'spot', 'swap', $params);
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
         /**
          * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
          * transfers currencies between sub-accounts (only spot->swap direction is supported)

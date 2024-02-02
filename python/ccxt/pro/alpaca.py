@@ -591,11 +591,14 @@ class alpaca(ccxt.async_support.alpaca):
             T = self.safe_string(data, 'T')
             msg = self.safe_value(data, 'msg', {})
             if T == 'subscription':
-                return self.handle_subscription(client, data)
+                self.handle_subscription(client, data)
+                return
             if T == 'success' and msg == 'connected':
-                return self.handle_connected(client, data)
+                self.handle_connected(client, data)
+                return
             if T == 'success' and msg == 'authenticated':
-                return self.handle_authenticate(client, data)
+                self.handle_authenticate(client, data)
+                return
             methods = {
                 'error': self.handle_error_message,
                 'b': self.handle_ohlcv,
@@ -620,7 +623,8 @@ class alpaca(ccxt.async_support.alpaca):
 
     def handle_message(self, client: Client, message):
         if isinstance(message, list):
-            return self.handle_crypto_message(client, message)
+            self.handle_crypto_message(client, message)
+            return
         self.handle_trading_message(client, message)
 
     def handle_authenticate(self, client: Client, message):

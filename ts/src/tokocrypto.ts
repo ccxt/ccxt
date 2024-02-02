@@ -1370,10 +1370,10 @@ export default class tokocrypto extends Exchange {
         //         "timestamp":1659666786943
         //     }
         //
-        return this.parseBalance (response, type, marginMode);
+        return this.parseBalanceCustom (response, type, marginMode);
     }
 
-    parseBalance (response, type = undefined, marginMode = undefined) {
+    parseBalanceCustom (response, type = undefined, marginMode = undefined) {
         const timestamp = this.safeInteger (response, 'updateTime');
         const result = {
             'info': response,
@@ -1580,7 +1580,7 @@ export default class tokocrypto extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name tokocrypto#createOrder
@@ -2335,7 +2335,7 @@ export default class tokocrypto extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bybit#withdraw

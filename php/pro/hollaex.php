@@ -227,7 +227,7 @@ class hollaex extends \ccxt\async\hollaex {
         // when the user does not have any trades yet
         $dataLength = count($rawTrades);
         if ($dataLength === 0) {
-            return 0;
+            return;
         }
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -343,7 +343,7 @@ class hollaex extends \ccxt\async\hollaex {
         // usually the first $message is an empty array
         $dataLength = count($data);
         if ($dataLength === 0) {
-            return 0;
+            return;
         }
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);

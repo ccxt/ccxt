@@ -912,15 +912,15 @@ class cex(ccxt.async_support.cex):
         messageHash = 'orderbook:' + symbol
         timestamp = self.safe_integer_2(data, 'timestamp_ms', 'timestamp')
         incrementalId = self.safe_number(data, 'id')
-        storedOrderBook = self.order_book({})
+        orderbook = self.order_book({})
         snapshot = self.parse_order_book(data, symbol, timestamp, 'bids', 'asks')
         snapshot['nonce'] = incrementalId
-        storedOrderBook.reset(snapshot)
+        orderbook.reset(snapshot)
         self.options['orderbook'][symbol] = {
             'incrementalId': incrementalId,
         }
-        self.orderbooks[symbol] = storedOrderBook
-        client.resolve(storedOrderBook, messageHash)
+        self.orderbooks[symbol] = orderbook
+        client.resolve(orderbook, messageHash)
 
     def pair_to_symbol(self, pair):
         parts = pair.split(':')
@@ -1355,7 +1355,8 @@ class cex(ccxt.async_support.cex):
     def handle_message(self, client: Client, message):
         ok = self.safe_string(message, 'ok')
         if ok == 'error':
-            return self.handle_error_message(client, message)
+            self.handle_error_message(client, message)
+            return
         event = self.safe_string(message, 'e')
         handlers = {
             'auth': self.handle_authentication_message,
@@ -1382,8 +1383,7 @@ class cex(ccxt.async_support.cex):
         }
         handler = self.safe_value(handlers, event)
         if handler is not None:
-            return handler(client, message)
-        return message
+            handler(client, message)
 
     def handle_authentication_message(self, client: Client, message):
         #

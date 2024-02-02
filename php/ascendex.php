@@ -1462,7 +1462,7 @@ class ascendex extends Exchange {
         return $result;
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @ignore
          * helper function to build $request
@@ -1547,7 +1547,7 @@ class ascendex extends Exchange {
         return array_merge($request, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade $order on the exchange
          * @see https://ascendex.github.io/ascendex-pro-api/#place-$order
@@ -2864,7 +2864,7 @@ class ascendex extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-contract-$leverage
@@ -3085,10 +3085,10 @@ class ascendex extends Exchange {
         return $this->parse_deposit_withdraw_fees($data, $codes, 'assetCode');
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
         /**
          * $transfer $currency internally between wallets on the same $account
-         * @param {string} $code unified $currency $code
+         * @param {string} $code unified $currency $codeåå
          * @param {float} $amount amount to $transfer
          * @param {string} $fromAccount $account to $transfer from
          * @param {string} $toAccount $account to $transfer to

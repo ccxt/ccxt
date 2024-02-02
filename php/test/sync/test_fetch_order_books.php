@@ -17,7 +17,7 @@ function test_fetch_order_books($exchange, $skipped_properties) {
     $order_book_keys = is_array($order_books) ? array_keys($order_books) : array();
     assert(count($order_book_keys), $exchange->id . ' ' . $method . ' returned 0 length data');
     for ($i = 0; $i < count($order_book_keys); $i++) {
-        $symbol = $order_book_keys[$i];
-        test_order_book($exchange, $skipped_properties, $method, $order_books[$symbol], $symbol);
+        $symbol_inner = $order_book_keys[$i];
+        test_order_book($exchange, $skipped_properties, $method, $order_books[$symbol_inner], $symbol_inner);
     }
 }

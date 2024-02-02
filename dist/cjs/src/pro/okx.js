@@ -755,7 +755,7 @@ class okx extends okx$1 {
             const message = this.extend(request, params);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
     async watchBalance(params = {}) {
         /**
@@ -1561,7 +1561,8 @@ class okx extends okx$1 {
         //
         //
         if (message === 'pong') {
-            return this.handlePong(client, message);
+            this.handlePong(client, message);
+            return;
         }
         // const table = this.safeString (message, 'table');
         // if (table === undefined) {
@@ -1580,11 +1581,8 @@ class okx extends okx$1 {
                 'mass-cancel': this.handleCancelAllOrders,
             };
             const method = this.safeValue(methods, event);
-            if (method === undefined) {
-                return message;
-            }
-            else {
-                return method.call(this, client, message);
+            if (method !== undefined) {
+                method.call(this, client, message);
             }
         }
         else {
@@ -1612,12 +1610,9 @@ class okx extends okx$1 {
                 if (channel.indexOf('candle') === 0) {
                     this.handleOHLCV(client, message);
                 }
-                else {
-                    return message;
-                }
             }
             else {
-                return method.call(this, client, message);
+                method.call(this, client, message);
             }
         }
     }

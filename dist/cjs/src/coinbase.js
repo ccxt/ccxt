@@ -1622,7 +1622,7 @@ class coinbase extends coinbase$1 {
             'info': ticker,
         }, market);
     }
-    parseBalance(response, params = {}) {
+    parseCustomBalance(response, params = {}) {
         const balances = this.safeValue2(response, 'data', 'accounts', []);
         const accounts = this.safeValue(params, 'type', this.options['accounts']);
         const v3Accounts = this.safeValue(params, 'type', this.options['v3Accounts']);
@@ -1773,7 +1773,7 @@ class coinbase extends coinbase$1 {
         //         "size": 9
         //     }
         //
-        return this.parseBalance(response, params);
+        return this.parseCustomBalance(response, params);
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**

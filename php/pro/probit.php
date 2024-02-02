@@ -474,19 +474,19 @@ class probit extends \ccxt\async\probit {
         $symbol = $this->safe_symbol($marketId);
         $dataBySide = $this->group_by($orderBook, 'side');
         $messageHash = 'orderbook:' . $symbol;
-        $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
-        if ($storedOrderBook === null) {
-            $storedOrderBook = $this->order_book(array());
-            $this->orderbooks[$symbol] = $storedOrderBook;
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook === null) {
+            $orderbook = $this->order_book(array());
+            $this->orderbooks[$symbol] = $orderbook;
         }
         $reset = $this->safe_bool($message, 'reset', false);
         if ($reset) {
             $snapshot = $this->parse_order_book($dataBySide, $symbol, null, 'buy', 'sell', 'price', 'quantity');
-            $storedOrderBook->reset ($snapshot);
+            $orderbook->reset ($snapshot);
         } else {
-            $this->handle_delta($storedOrderBook, $dataBySide);
+            $this->handle_delta($orderbook, $dataBySide);
         }
-        $client->resolve ($storedOrderBook, $messageHash);
+        $client->resolve ($orderbook, $messageHash);
     }
 
     public function handle_bid_asks($bookSide, $bidAsks) {
@@ -564,11 +564,13 @@ class probit extends \ccxt\async\probit {
         //
         $errorCode = $this->safe_string($message, 'errorCode');
         if ($errorCode !== null) {
-            return $this->handle_error_message($client, $message);
+            $this->handle_error_message($client, $message);
+            return;
         }
         $type = $this->safe_string($message, 'type');
         if ($type === 'authorization') {
-            return $this->handle_authenticate($client, $message);
+            $this->handle_authenticate($client, $message);
+            return;
         }
         $handlers = array(
             'marketdata' => array($this, 'handle_market_data'),
@@ -580,7 +582,8 @@ class probit extends \ccxt\async\probit {
         $channel = $this->safe_string($message, 'channel');
         $handler = $this->safe_value($handlers, $channel);
         if ($handler !== null) {
-            return $handler($client, $message);
+            $handler($client, $message);
+            return;
         }
         $error = new NotSupported ($this->id . ' handleMessage => unknown $message => ' . $this->json($message));
         $client->reject ($error);
@@ -594,7 +597,7 @@ class probit extends \ccxt\async\probit {
             $expires = $this->safe_integer($this->options, 'expires', 0);
             $future = $this->safe_value($client->subscriptions, $messageHash);
             if (($future === null) || ($this->milliseconds() > $expires)) {
-                $response = Async\await($this->signIn ());
+                $response = Async\await($this->sign_in());
                 //
                 //     {
                 //         "access_token" => "0ttDv/2hTTn3bLi8GP1gKaneiEQ6+0hOBenPrxNQt2s=",
@@ -610,7 +613,7 @@ class probit extends \ccxt\async\probit {
                 $future = $this->watch($url, $messageHash, array_merge($request, $params));
                 $client->subscriptions[$messageHash] = $future;
             }
-            return Async\await($future);
+            return $future;
         }) ();
     }
 }

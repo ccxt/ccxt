@@ -82,7 +82,7 @@
                   "BTC/USDT",
                   "market",
                   "buy",
-                  null,
+                  0,
                   null,
                   {
                     "cost": 2
@@ -434,14 +434,6 @@
                 "description": "Fetch cross borrow rates",
                 "method": "fetchCrossBorrowRates",
                 "url": "https://openapi.digifinex.com/v3/margin/assets",
-                "input": []
-            }
-        ],
-        "fetchMarkets": [
-            {
-                "description": "Fetch markets",
-                "method": "fetchMarkets",
-                "url": "https://openapi.digifinex.com/swap/v2/public/instruments",
                 "input": []
             }
         ],

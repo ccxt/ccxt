@@ -1398,7 +1398,7 @@ export default class exmo extends Exchange {
         return this.filterBySinceLimit (result, since, limit) as Trade[];
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name exmo#createOrder
@@ -2134,7 +2134,7 @@ export default class exmo extends Exchange {
         return undefined;
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name exmo#withdraw

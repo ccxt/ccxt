@@ -481,10 +481,8 @@ class bitopro extends \ccxt\async\bitopro {
         );
         $event = $this->safe_string($message, 'event');
         $method = $this->safe_value($methods, $event);
-        if ($method === null) {
-            return $message;
-        } else {
-            return $method($client, $message);
+        if ($method !== null) {
+            $method($client, $message);
         }
     }
 }

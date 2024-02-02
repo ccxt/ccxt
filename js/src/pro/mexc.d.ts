@@ -35,8 +35,8 @@ export default class mexc extends mexcRest {
     authenticate(subscriptionHash: any, params?: {}): Promise<string>;
     keepAliveListenKey(listenKey: any, params?: {}): Promise<void>;
     handlePong(client: Client, message: any): any;
-    handleSubscriptionStatus(client: Client, message: any): any;
-    handleMessage(client: Client, message: any): any;
+    handleSubscriptionStatus(client: Client, message: any): void;
+    handleMessage(client: Client, message: any): void;
     ping(client: any): {
         method: string;
     };

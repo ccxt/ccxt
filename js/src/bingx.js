@@ -1888,6 +1888,7 @@ export default class bingx extends Exchange {
                 }
             }
             if (isStopLoss || isTakeProfit) {
+                const stringifiedAmount = this.numberToString(amount);
                 if (isStopLoss) {
                     const slTriggerPrice = this.safeString2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
                     const slWorkingType = this.safeString(stopLoss, 'workingType', 'MARK_PRICE');
@@ -1901,7 +1902,7 @@ export default class bingx extends Exchange {
                     if (slPrice !== undefined) {
                         slRequest['price'] = this.parseToNumeric(this.priceToPrecision(symbol, slPrice));
                     }
-                    const slQuantity = this.safeString(stopLoss, 'quantity', amount);
+                    const slQuantity = this.safeString(stopLoss, 'quantity', stringifiedAmount);
                     slRequest['quantity'] = this.parseToNumeric(this.amountToPrecision(symbol, slQuantity));
                     request['stopLoss'] = this.json(slRequest);
                 }
@@ -1918,7 +1919,7 @@ export default class bingx extends Exchange {
                     if (slPrice !== undefined) {
                         tpRequest['price'] = this.parseToNumeric(this.priceToPrecision(symbol, slPrice));
                     }
-                    const tkQuantity = this.safeString(takeProfit, 'quantity', amount);
+                    const tkQuantity = this.safeString(takeProfit, 'quantity', stringifiedAmount);
                     tpRequest['quantity'] = this.parseToNumeric(this.amountToPrecision(symbol, tkQuantity));
                     request['takeProfit'] = this.json(tpRequest);
                 }
@@ -3604,7 +3605,7 @@ export default class bingx extends Exchange {
         //           "id":"1197073063359000577"
         //        }
         //    }
-        this.parseTransaction(data);
+        return this.parseTransaction(data);
     }
     parseParams(params) {
         const sortedParams = this.keysort(params);

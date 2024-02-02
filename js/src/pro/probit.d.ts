@@ -22,6 +22,6 @@ export default class probit extends probitRest {
     handleErrorMessage(client: Client, message: any): void;
     handleAuthenticate(client: Client, message: any): void;
     handleMarketData(client: Client, message: any): void;
-    handleMessage(client: Client, message: any): any;
+    handleMessage(client: Client, message: any): void;
     authenticate(params?: {}): Promise<any>;
 }

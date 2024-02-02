@@ -525,7 +525,7 @@ class blockchaincom extends blockchaincom$1 {
             'remaining': remaining,
             'cost': undefined,
             'trades': [],
-            'fees': {},
+            'fees': [],
             'info': order,
         });
         return result;
