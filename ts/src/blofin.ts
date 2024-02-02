@@ -39,6 +39,7 @@ export default class blofin extends Exchange {
                 'createDepositAddress': false,
                 'createMarketBuyOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
+                'createOrderWithTakeProfitAndStopLoss': true,
                 'createOrder': true,
                 'createOrders': true,
                 'createPostOnlyOrder': false,
@@ -1587,6 +1588,25 @@ export default class blofin extends Exchange {
             return undefined;
         }
         return this.parsePosition (position, market);
+    }
+
+    async fetchPositions (symbols: string[], params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name blofin#fetchPosition
+         * @description fetch data on a single open contract trade position
+         * @see https://blofin.com/docs#get-positions
+         * @param {string[]} [symbols] list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.privateGetAccountPositions (params);
+        const data = this.safeValue (response, 'data', []);
+        const result = this.parsePositions (data);
+        return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
     parsePosition (position, market: Market = undefined) {
