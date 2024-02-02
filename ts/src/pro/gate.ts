@@ -17,7 +17,7 @@ export default class gate extends gateRest {
                 'ws': true,
                 'watchOrderBook': true,
                 'watchTicker': true,
-                'watchTickers': true, // for now
+                'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
                 'watchMyTrades': true,
@@ -311,10 +311,12 @@ export default class gate extends gateRest {
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', undefined, params);
         if (symbols === undefined) {
             if (marketType === undefined) {
-                throw new ArgumentsRequired (this.id + ' watchTickers requires symbols or defaultType (spot/swap/future) param');
+                throw new ArgumentsRequired (this.id + ' watchTickers requires symbols or params["defaultType"] = "spot"/"swap"/"future" param');
             }
-            const filteredMarkets = this.indexBy (this.markets, 'type');
-            debugger;
+            this.checkRequiredArgument ('watchTickers', marketType, 'defaultType', [ 'spot', 'swap', 'future' ]);
+            let filteredMarkets = this.filterBy (this.markets, 'type', marketType);
+            filteredMarkets = this.filterByArray (filteredMarkets, 'active', [ true ], false);
+            symbols = this.getArrayOfObjectsKey (filteredMarkets, 'symbol');
         }
         const market = this.market (symbols[0]);
         const messageType = this.getTypeByMarket (market);
@@ -323,14 +325,11 @@ export default class gate extends gateRest {
         const channel = messageType + '.' + topic;
         const messageHash = 'tickers';
         const url = this.getUrlByMarket (market);
-        const ticker = await this.subscribePublic (url, messageHash, marketIds, channel, query);
-        let result = {};
+        const tickers = await this.subscribePublic (url, messageHash, marketIds, channel, query);
         if (this.newUpdates) {
-            result[ticker['symbol']] = ticker;
-        } else {
-            result = this.tickers;
+            return tickers;
         }
-        return this.filterByArray (result, 'symbol', symbols, true);
+        return this.filterByArray (this.tickers, 'symbol', symbols, true);
     }
 
     handleTicker (client: Client, message) {
@@ -375,17 +374,19 @@ export default class gate extends gateRest {
         if (!Array.isArray (result)) {
             result = [ result ];
         }
+        const tickers = [];
         for (let i = 0; i < result.length; i++) {
             const ticker = result[i];
             const marketId = this.safeString (ticker, 's');
             const market = this.safeMarket (marketId, undefined, '_', marketType);
-            const parsed = this.parseTicker (ticker, market);
-            const symbol = parsed['symbol'];
-            this.tickers[symbol] = parsed;
+            const parsedTicker = this.parseTicker (ticker, market);
+            const symbol = parsedTicker['symbol'];
+            this.tickers[symbol] = parsedTicker;
             const messageHash = 'ticker:' + symbol;
-            client.resolve (parsed, messageHash);
-            client.resolve (parsed, 'tickers');
+            client.resolve (parsedTicker, messageHash);
+            tickers.push (parsedTicker);
         }
+        client.resolve (tickers, 'tickers');
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
