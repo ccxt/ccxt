@@ -39,6 +39,25 @@
                 "output": "{\"amount\":\"5\",\"currency\":\"UST\",\"currency_to\":\"UST\",\"from\":\"margin\",\"to\":\"exchange\"}"
             }
         ],
+        "fetchOrderBook": [
+            {
+                "description": "Spot fetch order book",
+                "method": "fetchOrderBook",
+                "url": "https://api-pub.bitfinex.com/v2/book/tBTCUST/R0",
+                "input": [
+                  "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch order book with a limit argument",
+                "method": "fetchOrderBook",
+                "url": "https://api-pub.bitfinex.com/v2/book/tBTCF0:USTF0/R0?len=25",
+                "input": [
+                  "BTC/USDT:USDT",
+                  25
+                ]
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Spot private trades",
