@@ -354,6 +354,7 @@ export default class bitfinex2 extends Exchange {
                     'margin': 'margin',
                     'derivatives': 'margin',
                     'future': 'margin',
+                    'swap': 'margin',
                 },
                 'withdraw': {
                     'includeFee': false,
