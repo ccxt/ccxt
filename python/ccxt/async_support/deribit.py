@@ -1301,6 +1301,7 @@ class deribit(Exchange, ImplicitAPI):
             request['start_timestamp'] = now - (limit - 1) * duration * 1000
             request['end_timestamp'] = now
         else:
+            since = max(since - 1, 0)
             request['start_timestamp'] = since
             if limit is None:
                 request['end_timestamp'] = now

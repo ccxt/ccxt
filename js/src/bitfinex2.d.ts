@@ -180,4 +180,6 @@ export default class bitfinex2 extends Exchange {
         symbol: any;
         status: string;
     };
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
 }

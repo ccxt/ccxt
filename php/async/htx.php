@@ -4960,7 +4960,7 @@ class htx extends Exchange {
         $marketId = $this->safe_string_2($order, 'contract_code', 'symbol');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer_n($order, array( 'created_at', 'created-at', 'create_date' ));
-        $clientOrderId = $this->safe_string_2($order, 'client_order_id', 'client-$order-id');
+        $clientOrderId = $this->safe_string_2($order, 'client_order_id', 'client-or' . 'der-id'); // transpiler regex trick for php issue
         $cost = null;
         $amount = null;
         if (($type !== null) && (mb_strpos($type, 'market') !== false)) {

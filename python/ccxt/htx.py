@@ -4691,7 +4691,7 @@ class htx(Exchange, ImplicitAPI):
         marketId = self.safe_string_2(order, 'contract_code', 'symbol')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer_n(order, ['created_at', 'created-at', 'create_date'])
-        clientOrderId = self.safe_string_2(order, 'client_order_id', 'client-order-id')
+        clientOrderId = self.safe_string_2(order, 'client_order_id', 'client-or' + 'der-id')  # transpiler regex trick for php issue
         cost = None
         amount = None
         if (type is not None) and (type.find('market') >= 0):

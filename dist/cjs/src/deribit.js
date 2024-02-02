@@ -1343,6 +1343,7 @@ class deribit extends deribit$1 {
             request['end_timestamp'] = now;
         }
         else {
+            since = Math.max(since - 1, 0);
             request['start_timestamp'] = since;
             if (limit === undefined) {
                 request['end_timestamp'] = now;
