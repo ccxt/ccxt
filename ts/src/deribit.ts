@@ -1348,6 +1348,7 @@ export default class deribit extends Exchange {
             request['start_timestamp'] = now - (limit - 1) * duration * 1000;
             request['end_timestamp'] = now;
         } else {
+            since = Math.max (since - 1, 0);
             request['start_timestamp'] = since;
             if (limit === undefined) {
                 request['end_timestamp'] = now;
