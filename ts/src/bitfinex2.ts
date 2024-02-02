@@ -1363,11 +1363,11 @@ export default class bitfinex2 extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch, default 100 max 10000
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          */
         await this.loadMarkets ();
         let paginate = false;
@@ -1377,7 +1377,7 @@ export default class bitfinex2 extends Exchange {
         }
         const market = this.market (symbol);
         if (limit === undefined) {
-            limit = 10000; // default 100, max 5000
+            limit = 10000;
         }
         let request = {
             'symbol': market['id'],

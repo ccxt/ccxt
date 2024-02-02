@@ -151,6 +151,29 @@
                 "output": "{\"end\":1699458293539,\"start\":1699457638000,\"limit\":5}"
             }
         ],
+        "fetchOHLCV": [
+            {
+                "description": "Spot fetch OHLCV with timeframe and since arguments",
+                "method": "fetchOHLCV",
+                "url": "https://api-pub.bitfinex.com/v2/candles/trade:1m:tBTCUST/hist?sort=1&start=1552298700000&limit=100",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1552298700000
+                ]
+            },
+            {
+                "description": "Swap fetch OHLCV with timeframe and limit arguments",
+                "method": "fetchOHLCV",
+                "url": "https://api-pub.bitfinex.com/v2/candles/trade:1m:tBTCF0:USTF0/hist?sort=1&limit=150",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1m",
+                  null,
+                  150
+                ]
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "Spot open orders",
