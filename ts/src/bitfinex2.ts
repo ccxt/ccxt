@@ -2953,7 +2953,7 @@ export default class bitfinex2 extends Exchange {
     async fetchFundingRate (symbol: string, params = {}) {
         /**
          * @method
-         * @name bitfine#fetchFundingRate
+         * @name bitfinex2#fetchFundingRate
          * @description fetch the current funding rate
          * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
          * @param {string} symbol unified market symbol
@@ -2966,7 +2966,7 @@ export default class bitfinex2 extends Exchange {
     async fetchFundingRates (symbols: Strings = undefined, params = {}) {
         /**
          * @method
-         * @name bitfine#fetchFundingRate
+         * @name bitfinex2#fetchFundingRate
          * @description fetch the current funding rate
          * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
          * @param {string[]} symbols list of unified market symbols
@@ -3018,13 +3018,15 @@ export default class bitfinex2 extends Exchange {
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name bitfine#fetchFundingRateHistory
+         * @name bitfinex2#fetchFundingRateHistory
          * @description fetches historical funding rate prices
          * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status-history
          * @param {string} symbol unified market symbol
+         * @param {int} [since] timestamp in ms of the earliest funding rate entry
+         * @param {int} [limit] max number of funding rate entrys to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest funding rate
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         if (symbol === undefined) {

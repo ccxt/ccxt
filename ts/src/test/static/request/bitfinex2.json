@@ -715,6 +715,16 @@
                   ]
                 ]
             }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "Swap fetch funding rate history",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api-pub.bitfinex.com/v2/status/deriv/tBTCF0:USTF0/hist",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }
