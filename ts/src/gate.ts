@@ -2615,6 +2615,7 @@ export default class gate extends Exchange {
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const [ request, requestParams ] = this.prepareRequest (undefined, type, query);
         let response = undefined;
+        request['timezone'] = 'utc0'; // default to utc
         if (type === 'spot' || type === 'margin') {
             response = await this.publicSpotGetTickers (this.extend (request, requestParams));
         } else if (type === 'swap') {
@@ -2628,7 +2629,7 @@ export default class gate extends Exchange {
             request['underlying'] = this.safeString (optionParts, 0);
             response = await this.publicOptionsGetTickers (this.extend (request, requestParams));
         } else {
-            throw new NotSupported (this.id + ' fetchTickers() not support this market type');
+            throw new NotSupported (this.id + ' fetchTickers() not support this market type, provide symbols or set params["defaultType"] to one from spot/margin/swap/future/option');
         }
         return this.parseTickers (response, symbols);
     }
