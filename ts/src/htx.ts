@@ -8335,7 +8335,7 @@ export default class htx extends Exchange {
         }, market);
     }
 
-    async borrowIsolatedMargin (symbol: string, code: string, amount, params = {}) {
+    async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
         /**
          * @method
          * @name huobi#borrowIsolatedMargin
@@ -8371,7 +8371,7 @@ export default class htx extends Exchange {
         });
     }
 
-    async borrowCrossMargin (code: string, amount, params = {}) {
+    async borrowCrossMargin (code: string, amount: number, params = {}) {
         /**
          * @method
          * @name huobi#borrowCrossMargin

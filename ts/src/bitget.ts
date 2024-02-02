@@ -7351,7 +7351,7 @@ export default class bitget extends Exchange {
         return this.parseDepositWithdrawFees (data, codes, 'coin');
     }
 
-    async borrowCrossMargin (code: string, amount, params = {}) {
+    async borrowCrossMargin (code: string, amount: number, params = {}) {
         /**
          * @method
          * @name bitget#borrowCrossMargin
@@ -7385,7 +7385,7 @@ export default class bitget extends Exchange {
         return this.parseMarginLoan (data, currency);
     }
 
-    async borrowIsolatedMargin (symbol: string, code: string, amount, params = {}) {
+    async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
         /**
          * @method
          * @name bitget#borrowIsolatedMargin

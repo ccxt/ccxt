@@ -3227,11 +3227,11 @@ export default class Exchange {
         throw new NotSupported (this.id + ' repayIsolatedMargin is not support yet');
     }
 
-    async borrowCrossMargin (code: string, amount, params = {}): Promise<{}> {
+    async borrowCrossMargin (code: string, amount: number, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' borrowCrossMargin is not support yet');
     }
 
-    async borrowIsolatedMargin (symbol: string, code: string, amount, params = {}): Promise<{}> {
+    async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' borrowIsolatedMargin is not support yet');
     }
 

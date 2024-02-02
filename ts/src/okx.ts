@@ -6637,7 +6637,7 @@ export default class okx extends Exchange {
         };
     }
 
-    async borrowCrossMargin (code: string, amount, params = {}) {
+    async borrowCrossMargin (code: string, amount: number, params = {}) {
         /**
          * @method
          * @name okx#borrowCrossMargin

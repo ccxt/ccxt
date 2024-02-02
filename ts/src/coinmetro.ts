@@ -1832,7 +1832,7 @@ export default class coinmetro extends Exchange {
         return this.safeValue (timeInForceTypes, timeInForce, timeInForce);
     }
 
-    async borrowCrossMargin (code: string, amount, params = {}) {
+    async borrowCrossMargin (code: string, amount: number, params = {}) {
         /**
          * @method
          * @name coinmetro#borrowCrossMargin

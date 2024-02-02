@@ -5145,7 +5145,7 @@ export default class coinex extends Exchange {
         };
     }
 
-    async borrowIsolatedMargin (symbol: string, code: string, amount, params = {}) {
+    async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
         /**
          * @method
          * @name coinex#borrowIsolatedMargin

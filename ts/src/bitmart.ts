@@ -3458,7 +3458,7 @@ export default class bitmart extends Exchange {
         });
     }
 
-    async borrowIsolatedMargin (symbol: string, code: string, amount, params = {}) {
+    async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
         /**
          * @method
          * @name bitmart#borrowIsolatedMargin
