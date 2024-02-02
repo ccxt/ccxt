@@ -1188,17 +1188,13 @@ export default class blofin extends Exchange {
          * @method
          * @name blofin#fetchOpenOrders
          * @description Fetch orders that are still open
-         * @description fetch all unfilled currently open orders
          * @see https://blofin.com/docs#get-active-orders
          * @see https://blofin.com/docs#get-active-tpsl-orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.till] Timestamp in ms of the latest time to retrieve orders for
          * @param {bool} [params.stop] True if fetching trigger or conditional orders
-         * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
-         * @param {string} [params.algoId] Algo ID "'433845797218942976'"
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1218,12 +1214,12 @@ export default class blofin extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        const options = this.safeValue (this.options, 'fetchOpenOrders', {});
-        const defaultMethod = this.safeString (options, 'method', 'privateGetTradeOrdersPending');
-        const method = this.safeString (params, 'method', defaultMethod);
-        const query = this.omit (params, [ 'method', 'stop' ]);
+        const isStop = this.safeValueN (params, [ 'stop', 'trigger', 'tpsl', 'TPSL' ], false);
+        let method: string = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
+        const query = this.omit (params, [ 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ]);
         let response = undefined;
-        if (method === 'TPSL') {
+        if (isStop || (method === 'privateGetTradeOrdersTpslPending')) {
             response = await this.privateGetTradeOrdersTpslPending (this.extend (request, query));
         } else {
             response = await this.privateGetTradeOrdersPending (this.extend (request, query));
@@ -1793,9 +1789,6 @@ export default class blofin extends Exchange {
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.stop] True if fetching trigger or conditional orders
-         * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
-         * @param {string} [params.algoId] Algo ID "'433845797218942976'"
-         * @param {int} [params.until] timestamp in ms to fetch orders for
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1815,15 +1808,15 @@ export default class blofin extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        const options = this.safeValue (this.options, 'fetchClosedOrders', {});
-        const defaultMethod = this.safeString (options, 'method', 'privateGetTradeOrdersHistory');
-        const method = this.safeString (params, 'method', defaultMethod);
         if (since !== undefined) {
             request['begin'] = since;
         }
-        const query = this.omit (params, [ 'method', 'stop' ]);
+        const isStop = this.safeValueN (params, [ 'stop', 'trigger', 'tpsl', 'TPSL' ], false);
+        let method: string = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory');
+        const query = this.omit (params, [ 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ]);
         let response = undefined;
-        if (method === 'TPSL') {
+        if ((isStop) || (method === 'privateGetTradeOrdersTpslHistory')) {
             response = await this.privateGetTradeOrdersTpslHistory (this.extend (request, query));
         } else {
             response = await this.privateGetTradeOrdersHistory (this.extend (request, query));
