@@ -5527,7 +5527,7 @@ export default class bybit extends Exchange {
             'coin': currency['id'],
             'amount': this.numberToString (amount),
             'address': address,
-            'timestamp': this.milliseconds (),
+            'timestamp': this.nonce (),
         };
         if (tag !== undefined) {
             request['tag'] = tag;
