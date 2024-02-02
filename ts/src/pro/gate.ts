@@ -374,17 +374,17 @@ export default class gate extends gateRest {
         if (!Array.isArray (result)) {
             result = [ result ];
         }
-        const tickers = [];
+        const tickers = {};
         for (let i = 0; i < result.length; i++) {
             const ticker = result[i];
             const marketId = this.safeString (ticker, 's');
             const market = this.safeMarket (marketId, undefined, '_', marketType);
             const parsedTicker = this.parseTicker (ticker, market);
             const symbol = parsedTicker['symbol'];
+            tickers[symbol] = parsedTicker;
             this.tickers[symbol] = parsedTicker;
             const messageHash = 'ticker:' + symbol;
             client.resolve (parsedTicker, messageHash);
-            tickers.push (parsedTicker);
         }
         client.resolve (tickers, 'tickers');
     }
