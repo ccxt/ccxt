@@ -107,7 +107,7 @@
                   "BTC/USDC",
                   "market",
                   "buy",
-                  null,
+                  0,
                   null,
                   {
                     "cost": 5

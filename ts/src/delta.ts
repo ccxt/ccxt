@@ -1798,7 +1798,7 @@ export default class delta extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name delta#createOrder
@@ -2864,7 +2864,7 @@ export default class delta extends Exchange {
         return await this.privateGetProductsProductIdOrdersLeverage (this.extend (request, params));
     }
 
-    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name delta#setLeverage

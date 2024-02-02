@@ -902,7 +902,6 @@ export default class ascendex extends ascendexRest {
                 this.handleBalance (client, message);
             }
         }
-        return message;
     }
 
     handleSubscriptionStatus (client: Client, message) {
@@ -946,7 +945,7 @@ export default class ascendex extends ascendexRest {
         this.spawn (this.pong, client, message);
     }
 
-    authenticate (url, params = {}) {
+    async authenticate (url, params = {}) {
         this.checkRequiredCredentials ();
         const messageHash = 'authenticated';
         const client = this.client (url);

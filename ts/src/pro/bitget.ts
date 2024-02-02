@@ -98,7 +98,9 @@ export default class bitget extends bitgetRest {
         } else {
             instType = 'SPOT';
         }
-        [ instType, params ] = this.handleOptionAndParams (params, 'getInstType', 'instType', instType);
+        let instypeAux = undefined;
+        [ instypeAux, params ] = this.handleOptionAndParams (params, 'getInstType', 'instType', instType);
+        instType = instypeAux;
         return [ instType, params ];
     }
 

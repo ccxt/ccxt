@@ -169,7 +169,7 @@
                 "BTC/USDT",
                 "market",
                 "buy",
-                null,
+                0,
                 null,
                 {
                   "cost": 8
@@ -739,7 +739,7 @@
                 "method": "setLeverage",
                 "url": "https://api.bitget.com/api/v2/mix/account/set-leverage",
                 "input": [
-                  "15",
+                  15,
                   "ADA/USDT:USDT"
                 ],
                 "output": "{\"symbol\":\"ADAUSDT\",\"marginCoin\":\"USDT\",\"leverage\":\"15\",\"productType\":\"USDT-FUTURES\"}"

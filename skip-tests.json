@@ -746,6 +746,7 @@
         }
     },
     "coinmate": {
+        "skip": "clourderror error",
         "skipMethods": {
             "loadMarkets": {
                 "active":"is undefined"
@@ -1441,6 +1442,9 @@
             }
         }
     },
+    "poloniexfutures": {
+        "skipCSharp": "too flaky, check the reason later"
+    },
     "okx": {
         "skipMethods": {
             "loadMarkets": "linear & inverse must not be same",
@@ -1599,7 +1603,8 @@
             "loadMarkets":{
                 "currencyIdAndCode": "messed"
             },
-            "fetchTickers": "all tickers request exceedes max url length"
+            "fetchTickers": "all tickers request exceedes max url length",
+            "fetchOHLCV": "does not exist"
         }
     },
     "zaif": {

@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import kucoin from './abstract/kucoinfutures.js';
-import type { Int, OrderSide, OrderType, OHLCV, Order, Trade, FundingHistory, Balances, Str, Ticker, OrderBook, Transaction, Strings, Market, Currency, OrderRequest } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, OrderBook, Transaction, Strings, Market, Currency } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1101,7 +1101,7 @@ export default class kucoinfutures extends kucoin {
         });
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name kucoinfutures#createOrder
@@ -1203,7 +1203,7 @@ export default class kucoinfutures extends kucoin {
         return this.parseOrders (data);
     }
 
-    createContractOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    createContractOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         const market = this.market (symbol);
         // required param, cannot be used twice
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId', this.uuid ());
@@ -1947,7 +1947,7 @@ export default class kucoinfutures extends kucoin {
         return this.parseBalance (response);
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name kucoinfutures#transfer
