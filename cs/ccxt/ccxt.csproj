@@ -31,7 +31,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="*" />
           </ItemGroup>
   <ItemGroup>
-    <None Include="img/ccxt2.png" Pack="true" PackagePath="" />
+    <None Include="img/ccxt3.png" Pack="true" PackagePath="" />
     <None Include="../../README.md" Pack="true" PackagePath="" />
 </ItemGroup>
 
