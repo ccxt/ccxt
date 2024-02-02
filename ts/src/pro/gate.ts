@@ -296,15 +296,7 @@ export default class gate extends gateRest {
         return await this.subscribePublic (url, messageHash, payload, channel, query);
     }
 
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        /**
-         * @method
-         * @name gate#watchTickers
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
+    async watchHelperForTickersBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         let marketType = undefined;
@@ -330,6 +322,36 @@ export default class gate extends gateRest {
             return tickers;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols, true);
+    }
+
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name gate#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        const request = {
+            'method': 'tickers',
+        };
+        return await this.watchHelperForTickersBidsAsks (symbols, this.extend (request, params));
+    }
+
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name gate#watchBidsAsks
+         * @description watches bids & asks for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        const request = {
+            'method': 'book_ticker',
+        };
+        return await this.watchHelperForTickersBidsAsks (symbols, this.extend (request, params));
     }
 
     handleTicker (client: Client, message) {
