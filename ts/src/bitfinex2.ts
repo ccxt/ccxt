@@ -1034,9 +1034,6 @@ export default class bitfinex2 extends Exchange {
             'symbol': market['id'],
             'precision': precision,
         };
-        if ((limit !== 1) && (limit !== 25) && (limit !== 100)) {
-            throw new BadRequest (this.id + ' fetchOrderBook() requires the limit argument to be either 1, 25 or 100');
-        }
         if (limit !== undefined) {
             request['len'] = limit;
         }
