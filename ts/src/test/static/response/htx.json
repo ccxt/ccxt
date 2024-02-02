@@ -8,7 +8,7 @@
       {
         "description": "fetch closed spot orders",
         "method": "fetchClosedOrders",
-        "disabledPHP": true,
+        "disabledPHP": false,
         "input": [
           "LTC/USDT",
           null,
@@ -306,7 +306,7 @@
     "fetchOrder": [
       {
         "description": "fetch spot order",
-        "disabledPHP": true,
+        "disabledPHP": false,
         "method": "fetchOrder",
         "input": [
           992699963541108,
