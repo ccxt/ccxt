@@ -163,13 +163,13 @@
                 ]
             },
             {
-                "description": "Swap fetch OHLCV with timeframe and limit arguments",
+                "description": "Swap fetch OHLCV with timeframe since and limit arguments",
                 "method": "fetchOHLCV",
-                "url": "https://api-pub.bitfinex.com/v2/candles/trade:1m:tBTCF0:USTF0/hist?sort=1&limit=150",
+                "url": "https://api-pub.bitfinex.com/v2/candles/trade:1m:tBTCF0:USTF0/hist?sort=1&start=1552298700000&limit=150",
                 "input": [
                   "BTC/USDT:USDT",
                   "1m",
-                  null,
+                  1552298700000,
                   150
                 ]
             }
@@ -691,16 +691,6 @@
                   3
                 ],
                 "output": "{\"start\":1699460471000,\"limit\":3}"
-            }
-        ],
-        "fetchFundingRate": [
-            {
-                "description": "Swap fetch funding rate",
-                "method": "fetchFundingRate",
-                "url": "https://api-pub.bitfinex.com/v2/status/deriv?keys=tBTCF0%3AUSTF0",
-                "input": [
-                  "BTC/USDT:USDT"
-                ]
             }
         ],
         "fetchFundingRates": [
