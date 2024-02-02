@@ -3241,7 +3241,8 @@ export default class bitfinex2 extends Exchange {
         //         ]
         //     ]
         //
-        return this.parseOpenInterest (response[0], market);
+        const oi = this.safeList (response, 0);
+        return this.parseOpenInterest (oi, market);
     }
 
     async fetchOpenInterestHistory (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -3582,7 +3583,8 @@ export default class bitfinex2 extends Exchange {
         //         ]
         //     ]
         //
-        return this.parseOrder (response[0], market);
+        const order = this.safeList (response, 0);
+        return this.parseOrder (order, market);
     }
 
     async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
