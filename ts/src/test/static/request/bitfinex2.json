@@ -666,6 +666,19 @@
                 ],
                 "output": "{\"start\":1670849733000,\"limit\":2}"
             }
+        ],
+        "fetchPositions": [
+            {
+                "description": "Fetch swap positions",
+                "method": "fetchPositions",
+                "url": "https://api.bitfinex.com/v2/auth/r/positions",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ]
+                ],
+                "output": "{}"
+            }
         ]
     }
 }
