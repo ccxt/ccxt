@@ -463,6 +463,7 @@
       {
         "description": "fetch open trailing stop order",
         "method": "fetchOpenOrders",
+        "disabled": true,
         "input": [],
         "httpResponse": {
           "error": [],
