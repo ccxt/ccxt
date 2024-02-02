@@ -58,6 +58,36 @@
                 ]
             }
         ],
+        "fetchTickers": [
+            {
+                "description": "Fetch all tickers",
+                "method": "fetchTickers",
+                "url": "https://api-pub.bitfinex.com/v2/tickers?symbols=ALL",
+                "input": []
+            },
+            {
+                "description": "Spot fetch tickers",
+                "method": "fetchTickers",
+                "url": "https://api-pub.bitfinex.com/v2/tickers?symbols=tBTCUST%2CtLTCUST",
+                "input": [
+                  [
+                    "BTC/USDT",
+                    "LTC/USDT"
+                  ]
+                ]
+            },
+            {
+                "description": "Swap fetch tickers",
+                "method": "fetchTickers",
+                "url": "https://api-pub.bitfinex.com/v2/tickers?symbols=tBTCF0%3AUSTF0%2CtLTCF0%3AUSTF0",
+                "input": [
+                  [
+                    "BTC/USDT:USDT",
+                    "LTC/USDT:USDT"
+                  ]
+                ]
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Spot private trades",
