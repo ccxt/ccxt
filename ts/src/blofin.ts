@@ -400,7 +400,7 @@ export default class blofin extends Exchange {
             'optionType': optionType,
             'created': this.safeInteger (market, 'listTime'),
             'precision': {
-                'amount': this.safeNumber (market, 'lotSize'),
+                'amount': this.safeNumber (market, 'tickSize'),
                 'price': this.parseNumber (tickSize),
             },
             'limits': {
