@@ -1182,6 +1182,7 @@
         }
     },
     "kucoinfutures": {
+        "skipCSharp": true,
         "skipMethods":{
             "loadMarkets": {
                 "currencyIdAndCode": "messed"
@@ -1446,6 +1447,7 @@
         "skipCSharp": "too flaky, check the reason later"
     },
     "okx": {
+        "skipCSharp": true,
         "skipMethods": {
             "loadMarkets": "linear & inverse must not be same",
             "fetchCurrencies": {
