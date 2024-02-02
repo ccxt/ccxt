@@ -2613,6 +2613,7 @@ export default class gate extends Exchange {
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const [ request, requestParams ] = this.prepareRequest (undefined, type, query);
         let response = undefined;
+        request['timezone'] = 'utc0'; // default to utc
         if (type === 'spot' || type === 'margin') {
             response = await this.publicSpotGetTickers (this.extend (request, requestParams));
         } else if (type === 'swap') {
