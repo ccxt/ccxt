@@ -702,6 +702,19 @@
                   "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "Swap fetch multiple funding rates at once",
+                "method": "fetchFundingRates",
+                "url": "https://api-pub.bitfinex.com/v2/status/deriv?keys=tBTCF0%3AUSTF0%2CtLTCF0%3AUSTF0",
+                "input": [
+                  [
+                    "BTC/USDT:USDT",
+                    "LTC/USDT:USDT"
+                  ]
+                ]
+            }
         ]
     }
 }
