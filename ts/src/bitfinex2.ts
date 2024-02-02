@@ -3602,7 +3602,7 @@ export default class bitfinex2 extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'id': id,
+            'id': this.parseToNumeric (id),
         };
         if (amount !== undefined) {
             let amountString = this.amountToPrecision (symbol, amount);
