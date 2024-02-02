@@ -3304,7 +3304,7 @@ export default class bitget extends Exchange {
                 limit = 100; // exchange default
             }
             const duration = this.parseTimeframe (timeframe) * 1000;
-            request['endTime'] = this.sum (since, duration * (limit + 1)) - 1;  //  (limit + 1)) - 1 is needed for when since is not the exact timestamp of a candle
+            request['endTime'] = this.sum (since, duration * (limit + 1)) - 1;  // limit + 1)) - 1 is needed for when since is not the exact timestamp of a candle
         } else if (until !== undefined) {
             request['endTime'] = until;
         } else {
