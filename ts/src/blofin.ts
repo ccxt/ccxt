@@ -890,7 +890,7 @@ export default class blofin extends Exchange {
         return this.parseBalanceByType (marketType, response);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         const market = this.market (symbol);
         const request = {
             'instId': market['id'],
@@ -904,14 +904,37 @@ export default class blofin extends Exchange {
         request['marginMode'] = marginMode;
         const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
         const isMarketOrder = type === 'market';
-        [ params ] = this.handlePostOnly (isMarketOrder, type === 'post_only', params);
-        params = this.omit (params, [ 'marginMode', 'timeInForce' ]);
+        params = this.omit (params, [ 'timeInForce' ]);
         const ioc = (timeInForce === 'IOC') || (type === 'ioc');
         const marketIOC = (isMarketOrder && ioc);
         if (isMarketOrder || marketIOC) {
             request['orderType'] = 'market';
         } else {
             request['price'] = this.priceToPrecision (symbol, price);
+        }
+        let postOnly = false;
+        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, type === 'post_only', params);
+        if (postOnly) {
+            request['type'] = 'post_only';
+        }
+        const stopLoss = this.safeValue (params, 'stopLoss');
+        const takeProfit = this.safeValue (params, 'takeProfit');
+        params = this.omit (params, [ 'stopLoss', 'takeProfit' ]);
+        const isStopLoss = stopLoss !== undefined;
+        const isTakeProfit = takeProfit !== undefined;
+        if (isStopLoss || isTakeProfit) {
+            if (isStopLoss) {
+                const slTriggerPrice = this.safeString2 (stopLoss, 'triggerPrice', 'stopPrice');
+                request['slTriggerPrice'] = this.priceToPrecision (symbol, slTriggerPrice);
+                const slOrderPrice = this.safeString (stopLoss, 'price', '-1');
+                request['slOrderPrice'] = this.priceToPrecision (symbol, slOrderPrice);
+            }
+            if (isTakeProfit) {
+                const tpTriggerPrice = this.safeString2 (takeProfit, 'triggerPrice', 'stopPrice');
+                request['tpTriggerPrice'] = this.priceToPrecision (symbol, tpTriggerPrice);
+                const tpPrice = this.safeString (takeProfit, 'price', '-1');
+                request['tpOrderPrice'] = this.priceToPrecision (symbol, tpPrice);
+            }
         }
         return this.extend (request, params);
     }
@@ -1018,7 +1041,7 @@ export default class blofin extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}): Promise<Order> {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name blofin#createOrder
@@ -1034,6 +1057,12 @@ export default class blofin extends Exchange {
          * @param {bool} [params.postOnly] true to place a post only order
          * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
          * @param {string} [params.clientOrderId] a unique id for the order
+         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+         * @param {float} [params.takeProfit.price] take profit order price (if not provided the order will be a market order)
+         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+         * @param {float} [params.stopLoss.price] stop loss order price (if not provided the order will be a market order)
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
