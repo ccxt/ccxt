@@ -106,6 +106,27 @@
                 ]
             }
         ],
+        "fetchTrades": [
+            {
+                "description": "Spot fetch trades with a since argument",
+                "method": "fetchTrades",
+                "url": "https://api-pub.bitfinex.com/v2/trades/tBTCUST/hist?start=1706837940723&sort=1",
+                "input": [
+                  "BTC/USDT",
+                  1706837940723
+                ]
+            },
+            {
+                "description": "Swap fetch trades with a limit argument",
+                "method": "fetchTrades",
+                "url": "https://api-pub.bitfinex.com/v2/trades/tBTCF0:USTF0/hist?limit=3&sort=-1",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  3
+                ]
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Spot private trades",
