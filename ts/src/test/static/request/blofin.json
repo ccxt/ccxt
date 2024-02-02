@@ -52,6 +52,22 @@
                   1
                 ],
                 "output": "{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"orderType\":\"market\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\"}"
+            },
+            {
+                "description": "reduce only market buy order",
+                "method": "createOrder",
+                "url": "https://openapi.blofin.com/api/v1/trade/order",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "market",
+                  "buy",
+                  1,
+                  null,
+                  {
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"orderType\":\"market\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\",\"reduceOnly\":true}"
             }
         ],
         "cancelOrder": [
@@ -82,6 +98,119 @@
                 "method": "fetchClosedOrders",
                 "url": "https://openapi.blofin.com/api/v1/trade/orders-history",
                 "input": []
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "set swap leverage",
+                "method": "setLeverage",
+                "url": "https://openapi.blofin.com/api/v1/account/set-leverage",
+                "input": [
+                  5,
+                  "BTC/USDT:USDT"
+                ],
+                "output": "{\"leverage\":5,\"marginMode\":\"cross\",\"instId\":\"BTC-USDT\"}"
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "fetch swap leverage",
+                "method": "fetchLeverage",
+                "url": "https://openapi.blofin.com/api/v1/account/leverage-info?instId=BTC-USDT&marginMode=cross",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "closePosition": [
+            {
+                "description": "close short position",
+                "method": "closePosition",
+                "url": "https://openapi.blofin.com/api/v1/trade/close-position",
+                "input": [
+                  "LTC/USDT:USDT"
+                ],
+                "output": "{\"instId\":\"LTC-USDT\",\"marginMode\":\"cross\"}"
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetch swap position",
+                "method": "fetchPosition",
+                "url": "https://openapi.blofin.com/api/v1/account/positions?0=s&1=w&2=a&3=p&instId=LTC-USDT",
+                "input": [
+                  "LTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetch linear positions",
+                "method": "fetchPositions",
+                "url": "https://openapi.blofin.com/api/v1/account/positions",
+                "input": [
+                  [
+                    "LTC/USDT:USDT"
+                  ]
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch trades",
+                "method": "fetchTrades",
+                "url": "https://openapi.blofin.com/api/v1/market/trades?instId=BTC-USDT&limit=5",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  5
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://openapi.blofin.com/api/v1/market/books?instId=BTC-USDT&size=5",
+                "input": [
+                  "BTC/USDT:USDT",
+                  5
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://openapi.blofin.com/api/v1/market/candles?instId=BTC-USDT&bar=1D&limit=5",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1d",
+                  null,
+                  5
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://openapi.blofin.com/api/v1/market/tickers?instId=BTC-USDT",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetch tickers",
+                "method": "fetchTickers",
+                "url": "https://openapi.blofin.com/api/v1/market/tickers",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ]
+                ]
             }
         ]
     }
