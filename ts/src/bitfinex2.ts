@@ -1023,7 +1023,7 @@ export default class bitfinex2 extends Exchange {
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://docs.bitfinex.com/reference/rest-public-book
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {int} [limit] the maximum amount of order book entries to return, bitfinex only allows 1, 25, or 100
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
@@ -1034,8 +1034,11 @@ export default class bitfinex2 extends Exchange {
             'symbol': market['id'],
             'precision': precision,
         };
+        if ((limit !== 1) && (limit !== 25) && (limit !== 100)) {
+            throw new BadRequest (this.id + ' fetchOrderBook() requires the limit argument to be either 1, 25 or 100');
+        }
         if (limit !== undefined) {
-            request['len'] = limit; // 25 or 100
+            request['len'] = limit;
         }
         const fullRequest = this.extend (request, params);
         const orderbook = await this.publicGetBookSymbolPrecision (fullRequest);
