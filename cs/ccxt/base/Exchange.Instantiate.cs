@@ -4,11 +4,14 @@ namespace ccxt;
 
 public partial class Exchange
 {
-    public static Exchange MagicallyCreateInstance(string className, object args = null)
+    public static Exchange DynamicallyCreateInstance(string className, object args = null, bool isWs = false)
     {
         var assembly = Assembly.GetExecutingAssembly();
 
-        // var filtered = assembly.GetTypes().Select(t => t.Name).Where(t => t.EndsWith("binance"));
+        if (isWs)
+        {
+            className = "ccxt.pro." + className;
+        }
 
         var type = assembly.GetTypes()
             .First(t => t.Name == className || t.FullName == className);

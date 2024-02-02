@@ -121,7 +121,7 @@ public static class Program
         var isWsMethod = methodName.StartsWith("watch") || methodName.StartsWith("Watch");
         var isWsCrudeMethod = methodName.EndsWith("Ws");
         var exchangeNameAdapted = (isWsMethod || isWsCrudeMethod) ? "ccxt.pro." + exchangeName : exchangeName;
-        var instance = Exchange.MagicallyCreateInstance(exchangeNameAdapted);
+        var instance = Exchange.DynamicallyCreateInstance(exchangeNameAdapted);
 
         InitOptions(instance, flags);
         SetCredentials(instance);

@@ -26,17 +26,17 @@ partial class Examples
         return null;
     }
 
-// start exchanges and fetch OHLCV loop
+    // start exchanges and fetch OHLCV loop
     async public Task initializeExchange(string exchangeName, object config)
     {
-        var ex = Exchange.MagicallyCreateInstance("ccxt.pro." + exchangeName, config);
+        var ex = Exchange.DynamicallyCreateInstance("ccxt.pro." + exchangeName, config);
         var promises = new List<Task<List<Position>>>() { };
         (promises).Add(watchPositionsContinuously(ex));
         await Task.WhenAll(promises);
         await ex.Close();
     }
 
-// main function
+    // main function
     async public Task watchPositionsManyExchangesContinuosly()
     {
         var exchanges = new Dictionary<string, object>()

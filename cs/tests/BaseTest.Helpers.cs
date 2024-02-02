@@ -59,7 +59,7 @@ public partial class testMainClass : BaseTest
             // var binance = new ccxt.binance();
             exchangeId = "ccxt.pro." + (string)exchangeId;// + "Ws";
         }
-        var exchange = Exchange.MagicallyCreateInstance((string)exchangeId, exchangeArgs);
+        var exchange = Exchange.DynamicallyCreateInstance((string)exchangeId, exchangeArgs);
         return exchange;
     }
 

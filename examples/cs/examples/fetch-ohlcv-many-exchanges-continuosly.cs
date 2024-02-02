@@ -24,10 +24,10 @@ partial class Examples
         }
     }
 
-// start exchanges and fetch OHLCV loop
+    // start exchanges and fetch OHLCV loop
     async public Task startExchange(string exchangeName, List<string> symbols)
     {
-        var ex = Exchange.MagicallyCreateInstance(exchangeName);
+        var ex = Exchange.DynamicallyCreateInstance(exchangeName);
         var promises = new List<Task>() { };
         for (var i = 0; i < symbols.Count; i++)
         {
@@ -39,7 +39,7 @@ partial class Examples
         await ex.close();
     }
 
-// main function
+    // main function
     async public Task fetchOhlcvManyExchangesContinuosly()
     {
         var exchanges = new List<string>() { "binance", "okx", "kraken" };
