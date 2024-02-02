@@ -725,6 +725,27 @@
                   "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Spot fetch an order using an id argument",
+                "method": "fetchOrder",
+                "url": "https://api.bitfinex.com/v2/auth/r/orders",
+                "input": [
+                  139658969116
+                ],
+                "output": "{\"id\":[139658969116]}"
+            },
+            {
+                "description": "Swap fetch an order using id and symbol arguments",
+                "method": "fetchOrder",
+                "url": "https://api.bitfinex.com/v2/auth/r/orders/tLTCF0:USTF0",
+                "input": [
+                  139663481232,
+                  "LTC/USDT:USDT"
+                ],
+                "output": "{\"id\":[139663481232]}"
+            }
         ]
     }
 }
