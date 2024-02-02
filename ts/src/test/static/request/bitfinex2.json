@@ -679,6 +679,19 @@
                 ],
                 "output": "{}"
             }
+        ],
+        "fetchLedger": [
+            {
+                "description": "Fetch ledger with code since and limit arguments",
+                "method": "fetchLedger",
+                "url": "https://api.bitfinex.com/v2/auth/r/ledgers/UST/hist",
+                "input": [
+                  "USDT",
+                  1699460471000,
+                  3
+                ],
+                "output": "{\"start\":1699460471000,\"limit\":3}"
+            }
         ]
     }
 }
