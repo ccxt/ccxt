@@ -642,6 +642,17 @@
               ],
               "output": "{\"ops\":[[\"on\",{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"price\":\"35000\",\"type\":\"EXCHANGE LIMIT\"}],[\"on\",{\"symbol\":\"tLTCUST\",\"amount\":\"0.25\",\"price\":\"50\",\"type\":\"EXCHANGE LIMIT\"}]]}"
           }
-      ]
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch a BTC deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.bitfinex.com/v2/auth/w/deposit/address",
+                "input": [
+                  "BTC"
+                ],
+                "output": "{\"method\":\"bitcoin\",\"wallet\":\"exchange\",\"op_renew\":0}"
+            }
+        ]
     }
 }
