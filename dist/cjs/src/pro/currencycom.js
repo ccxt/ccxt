@@ -532,10 +532,11 @@ class currencycom extends currencycom$1 {
                         };
                         const method = this.safeValue(methods, subscriptionDestination);
                         if (method === undefined) {
-                            return message;
+                            return;
                         }
                         else {
-                            return method.call(this, client, message, subscription);
+                            method.call(this, client, message, subscription);
+                            return;
                         }
                     }
                 }
@@ -550,11 +551,8 @@ class currencycom extends currencycom$1 {
                 'ping': this.handlePong,
             };
             const method = this.safeValue(methods, destination);
-            if (method === undefined) {
-                return message;
-            }
-            else {
-                return method.call(this, client, message);
+            if (method !== undefined) {
+                method.call(this, client, message);
             }
         }
     }

@@ -3461,7 +3461,7 @@ class bybit extends Exchange {
         return $this->create_order($symbol, 'market', 'sell', $cost, 1, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @see https://bybit-exchange.github.io/docs/v5/order/create-$order
@@ -3524,7 +3524,7 @@ class bybit extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array (), $isUTA = true) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array (), $isUTA = true) {
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
         $lowerCaseType = strtolower($type);
@@ -3630,7 +3630,7 @@ class bybit extends Exchange {
         $takeProfitTriggerPrice = $this->safe_value($params, 'takeProfitPrice');
         $stopLoss = $this->safe_value($params, 'stopLoss');
         $takeProfit = $this->safe_value($params, 'takeProfit');
-        $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activePrice', $price);
+        $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activePrice', $this->number_to_string($price));
         $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'trailingStop');
         $isTrailingAmountOrder = $trailingAmount !== null;
         $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
@@ -3785,7 +3785,7 @@ class bybit extends Exchange {
         return $this->parse_orders($data);
     }
 
-    public function create_usdc_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_usdc_order($symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         if ($type === 'market') {
@@ -5479,7 +5479,7 @@ class bybit extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://bybit-exchange.github.io/docs/v5/asset/withdraw
@@ -6087,7 +6087,7 @@ class bybit extends Exchange {
         return $response;
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          * @see https://bybit-exchange.github.io/docs/v5/position/leverage
@@ -6477,7 +6477,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
         /**
          * $transfer $currency internally between wallets on the same account
          * @see https://bybit-exchange.github.io/docs/v5/asset/create-inter-$transfer
@@ -6587,7 +6587,7 @@ class bybit extends Exchange {
         return $this->parse_transfers($data, $currency, $since, $limit);
     }
 
-    public function borrow_cross_margin(string $code, $amount, $params = array ()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array ()) {
         /**
          * create a loan to borrow margin
          * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/borrow

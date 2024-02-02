@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitfinex2 import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -45,9 +45,10 @@ class bitfinex2(Exchange, ImplicitAPI):
                 'CORS': None,
                 'spot': True,
                 'margin': None,  # has but unimplemented
-                'swap': None,  # has but unimplemented
+                'swap': True,
                 'future': None,
                 'option': None,
+                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
@@ -62,20 +63,24 @@ class bitfinex2(Exchange, ImplicitAPI):
                 'createTrailingAmountOrder': True,
                 'createTrailingPercentOrder': False,
                 'createTriggerOrder': True,
-                'editOrder': False,
+                'editOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrder': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositsWithdrawals': True,
+                'fetchFundingHistory': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
                 'fetchLedger': True,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchLiquidations': True,
                 'fetchMarginMode': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -85,7 +90,10 @@ class bitfinex2(Exchange, ImplicitAPI):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderTrades': True,
+                'fetchPosition': False,
                 'fetchPositionMode': False,
+                'fetchPositions': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTickers': True,
                 'fetchTime': False,
@@ -93,7 +101,11 @@ class bitfinex2(Exchange, ImplicitAPI):
                 'fetchTradingFees': True,
                 'fetchTransactionFees': None,
                 'fetchTransactions': 'emulated',
+                'reduceMargin': False,
+                'setLeverage': False,
                 'setMargin': True,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -361,6 +373,7 @@ class bitfinex2(Exchange, ImplicitAPI):
                     'margin': 'margin',
                     'derivatives': 'margin',
                     'future': 'margin',
+                    'swap': 'margin',
                 },
                 'withdraw': {
                     'includeFee': False,
@@ -840,7 +853,7 @@ class bitfinex2(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://docs.bitfinex.com/reference/rest-auth-transfer
@@ -982,7 +995,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://docs.bitfinex.com/reference/rest-public-book
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int [limit]: the maximum amount of order book entries to return
+        :param int [limit]: the maximum amount of order book entries to return, bitfinex only allows 1, 25, or 100
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
@@ -994,7 +1007,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'precision': precision,
         }
         if limit is not None:
-            request['len'] = limit  # 25 or 100
+            request['len'] = limit
         fullRequest = self.extend(request, params)
         orderbook = self.publicGetBookSymbolPrecision(fullRequest)
         timestamp = self.milliseconds()
@@ -1252,9 +1265,9 @@ class bitfinex2(Exchange, ImplicitAPI):
         :see: https://docs.bitfinex.com/reference/rest-public-trades
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
-        :param int [limit]: the maximum amount of trades to fetch
+        :param int [limit]: the maximum amount of trades to fetch, default 120, max 10000
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param int [params.until]: the latest time in ms to fetch entries for
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
@@ -1289,18 +1302,18 @@ class bitfinex2(Exchange, ImplicitAPI):
         trades = self.sort_by(response, 1)
         return self.parse_trades(trades, market, None, limit)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit=100, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = 100, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://docs.bitfinex.com/reference/rest-public-candles
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
-        :param int [limit]: the maximum amount of candles to fetch
+        :param int [limit]: the maximum amount of candles to fetch, default 100 max 10000
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         """
         self.load_markets()
         paginate = False
@@ -1309,7 +1322,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 10000)
         market = self.market(symbol)
         if limit is None:
-            limit = 10000  # default 100, max 5000
+            limit = 10000
         request = {
             'symbol': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
@@ -1449,7 +1462,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
          * @ignore
         helper function to build an order request
@@ -1518,7 +1531,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         params = self.omit(params, ['triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId'])
         return self.extend(request, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create an order on the exchange
         :see: https://docs.bitfinex.com/reference/rest-auth-submit-order
@@ -2379,7 +2392,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.bitfinex.com/reference/rest-auth-withdraw
@@ -2700,13 +2713,12 @@ class bitfinex2(Exchange, ImplicitAPI):
         :see: https://docs.bitfinex.com/reference/rest-auth-ledgers
         :param str code: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
-        :param int [limit]: max number of ledger entrys to return, default is None
+        :param int [limit]: max number of ledger entrys to return, default is None max is 2500
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest ledger entry
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
-        self.load_markets()
         self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
@@ -2717,7 +2729,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         if since is not None:
             request['start'] = since
         if limit is not None:
-            request['limit'] = limit  # max 2500
+            request['limit'] = limit
         request, params = self.handle_until_option('end', request, params)
         response = None
         if code is not None:
@@ -2806,9 +2818,11 @@ class bitfinex2(Exchange, ImplicitAPI):
         fetches historical funding rate prices
         :see: https://docs.bitfinex.com/reference/rest-public-derivatives-status-history
         :param str symbol: unified market symbol
+        :param int [since]: timestamp in ms of the earliest funding rate entry
+        :param int [limit]: max number of funding rate entrys to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest funding rate
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         if symbol is None:
@@ -2861,7 +2875,14 @@ class bitfinex2(Exchange, ImplicitAPI):
             fr = response[i]
             rate = self.parse_funding_rate_history(fr, market)
             rates.append(rate)
-        return self.filter_by_symbol_since_limit(rates, symbol, since, limit)
+        reversedArray = []
+        rawRates = self.filter_by_symbol_since_limit(rates, symbol, since, limit)
+        rawRatesLength = len(rawRates)
+        ratesLength = max(rawRatesLength - 1, 0)
+        for i in range(ratesLength, 0):
+            valueAtIndex = rawRates[i]
+            reversedArray.append(valueAtIndex)
+        return reversedArray
 
     def parse_funding_rate(self, contract, market: Market = None):
         #
@@ -3009,7 +3030,8 @@ class bitfinex2(Exchange, ImplicitAPI):
         #         ]
         #     ]
         #
-        return self.parse_open_interest(response[0], market)
+        oi = self.safe_list(response, 0)
+        return self.parse_open_interest(oi, market)
 
     def fetch_open_interest_history(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
@@ -3266,3 +3288,179 @@ class bitfinex2(Exchange, ImplicitAPI):
             'symbol': market['symbol'],
             'status': marginStatus,
         }
+
+    def fetch_order(self, id: str, symbol: str = None, params={}):
+        """
+        fetches information on an order made by the user
+        :see: https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
+        :see: https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-symbol
+        :param str id: the order id
+        :param str [symbol]: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        request = {
+            'id': [self.parse_to_numeric(id)],
+        }
+        market = None
+        response = None
+        if symbol is None:
+            response = self.privatePostAuthROrders(self.extend(request, params))
+        else:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+            response = self.privatePostAuthROrdersSymbol(self.extend(request, params))
+        #
+        #     [
+        #         [
+        #             139658969116,
+        #             null,
+        #             1706843908637,
+        #             "tBTCUST",
+        #             1706843908637,
+        #             1706843908638,
+        #             0.0001,
+        #             0.0001,
+        #             "EXCHANGE LIMIT",
+        #             null,
+        #             null,
+        #             null,
+        #             0,
+        #             "ACTIVE",
+        #             null,
+        #             null,
+        #             35000,
+        #             0,
+        #             0,
+        #             0,
+        #             null,
+        #             null,
+        #             null,
+        #             0,
+        #             0,
+        #             null,
+        #             null,
+        #             null,
+        #             "API>BFX",
+        #             null,
+        #             null,
+        #             {}
+        #         ]
+        #     ]
+        #
+        order = self.safe_list(response, 0)
+        return self.parse_order(order, market)
+
+    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+        """
+        edit a trade order
+        :see: https://docs.bitfinex.com/reference/rest-auth-update-order
+        :param str id: edit order id
+        :param str symbol: unified symbol of the market to edit an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much you want to trade in units of the base currency
+        :param float [price]: the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.stopPrice]: the price that triggers a trigger order
+        :param boolean [params.postOnly]: set to True if you want to make a post only order
+        :param boolean [params.reduceOnly]: indicates that the order is to reduce the size of a position
+        :param int [params.flags]: additional order parameters: 4096(Post Only), 1024(Reduce Only), 16384(OCO), 64(Hidden), 512(Close), 524288(No Var Rates)
+        :param int [params.leverage]: leverage for a derivative order, supported by derivative symbol orders only, the value should be between 1 and 100 inclusive
+        :param int [params.clientOrderId]: a unique client order id for the order
+        :param float [params.trailingAmount]: *swap only* the quote amount to trail away from the current market price
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'id': self.parse_to_numeric(id),
+        }
+        if amount is not None:
+            amountString = self.amount_to_precision(symbol, amount)
+            amountString = amountString if (side == 'buy') else Precise.string_neg(amountString)
+            request['amount'] = amountString
+        stopPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
+        trailingAmount = self.safe_string(params, 'trailingAmount')
+        timeInForce = self.safe_string(params, 'timeInForce')
+        postOnlyParam = self.safe_bool(params, 'postOnly', False)
+        reduceOnly = self.safe_bool(params, 'reduceOnly', False)
+        clientOrderId = self.safe_integer_2(params, 'cid', 'clientOrderId')
+        if trailingAmount is not None:
+            request['price_trailing'] = trailingAmount
+        elif stopPrice is not None:
+            # request['price'] is taken for stop orders
+            request['price'] = self.price_to_precision(symbol, stopPrice)
+            if type == 'limit':
+                request['price_aux_limit'] = self.price_to_precision(symbol, price)
+        postOnly = (postOnlyParam or (timeInForce == 'PO'))
+        if (type != 'market') and (stopPrice is None):
+            request['price'] = self.price_to_precision(symbol, price)
+        # flag values may be summed to combine flags
+        flags = 0
+        if postOnly:
+            flags = self.sum(flags, 4096)
+        if reduceOnly:
+            flags = self.sum(flags, 1024)
+        if flags != 0:
+            request['flags'] = flags
+        if clientOrderId is not None:
+            request['cid'] = clientOrderId
+        leverage = self.safe_integer_2(params, 'leverage', 'lev')
+        if leverage is not None:
+            request['lev'] = leverage
+        params = self.omit(params, ['triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId', 'leverage'])
+        response = self.privatePostAuthWOrderUpdate(self.extend(request, params))
+        #
+        #     [
+        #         1706845376402,
+        #         "ou-req",
+        #         null,
+        #         null,
+        #         [
+        #             139658969116,
+        #             null,
+        #             1706843908637,
+        #             "tBTCUST",
+        #             1706843908637,
+        #             1706843908638,
+        #             0.0002,
+        #             0.0002,
+        #             "EXCHANGE LIMIT",
+        #             null,
+        #             null,
+        #             null,
+        #             0,
+        #             "ACTIVE",
+        #             null,
+        #             null,
+        #             35000,
+        #             0,
+        #             0,
+        #             0,
+        #             null,
+        #             null,
+        #             null,
+        #             0,
+        #             0,
+        #             null,
+        #             null,
+        #             null,
+        #             "API>BFX",
+        #             null,
+        #             null,
+        #             {}
+        #         ],
+        #         null,
+        #         "SUCCESS",
+        #         "Submitting update to exchange limit buy order for 0.0002 BTC."
+        #     ]
+        #
+        status = self.safe_string(response, 6)
+        if status != 'SUCCESS':
+            errorCode = response[5]
+            errorText = response[7]
+            raise ExchangeError(self.id + ' ' + response[6] + ': ' + errorText + '(#' + errorCode + ')')
+        order = self.safe_list(response, 4, [])
+        return self.parse_order(order, market)

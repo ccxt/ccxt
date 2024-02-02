@@ -1521,8 +1521,8 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
-        return this.parseMarkets(data);
+        const dataResponse = this.safeValue(response, 'data', []);
+        return this.parseMarkets(dataResponse);
     }
     safeNetwork(networkId) {
         const networksById = {
@@ -3149,7 +3149,7 @@ class okx extends okx$1 {
          * @param {string[]|string} ids order ids
          * @returns {string[]} list of order ids
          */
-        if (typeof ids === 'string') {
+        if ((ids !== undefined) && typeof ids === 'string') {
             return ids.split(',');
         }
         else {
@@ -7228,6 +7228,7 @@ class okx extends okx$1 {
                 return this.parseGreeks(entry, market);
             }
         }
+        return undefined;
     }
     parseGreeks(greeks, market = undefined) {
         //

@@ -3136,7 +3136,7 @@ class binance extends binance$1 {
         account['debt'] = Precise["default"].stringAdd(debt, interest);
         return account;
     }
-    parseBalance(response, type = undefined, marginMode = undefined) {
+    parseBalanceCustom(response, type = undefined, marginMode = undefined) {
         const result = {
             'info': response,
         };
@@ -3479,7 +3479,7 @@ class binance extends binance$1 {
         //       }
         //     ]
         //
-        return this.parseBalance(response, type, marginMode);
+        return this.parseBalanceCustom(response, type, marginMode);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -5251,7 +5251,7 @@ class binance extends binance$1 {
         const stopLossPrice = this.safeValue(params, 'stopLossPrice', triggerPrice); // fallback to stopLoss
         const takeProfitPrice = this.safeValue(params, 'takeProfitPrice');
         const trailingDelta = this.safeValue(params, 'trailingDelta');
-        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activationPrice', price);
+        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activationPrice', this.numberToString(price));
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRate');
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const isStopLoss = stopLossPrice !== undefined || trailingDelta !== undefined;
@@ -9584,7 +9584,7 @@ class binance extends binance$1 {
         }
         return this.safeValue(config, 'cost', 1);
     }
-    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
+    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
         const response = await this.fetch2(path, api, method, params, headers, body, config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if (api === 'private') {
@@ -10217,6 +10217,7 @@ class binance extends binance$1 {
         else {
             return this.parseOpenInterest(response, market);
         }
+        return undefined;
     }
     parseOpenInterest(interest, market = undefined) {
         const timestamp = this.safeInteger2(interest, 'timestamp', 'time');

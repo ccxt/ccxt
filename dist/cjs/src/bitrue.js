@@ -1973,9 +1973,9 @@ class bitrue extends bitrue$1 {
                     const amountString = this.numberToString(amount);
                     const priceString = this.numberToString(price);
                     const quoteAmount = Precise["default"].stringMul(amountString, priceString);
-                    amount = (cost !== undefined) ? cost : quoteAmount;
-                    request['amount'] = this.costToPrecision(symbol, amount);
-                    request['volume'] = this.costToPrecision(symbol, amount);
+                    const requestAmount = (cost !== undefined) ? cost : quoteAmount;
+                    request['amount'] = this.costToPrecision(symbol, requestAmount);
+                    request['volume'] = this.costToPrecision(symbol, requestAmount);
                 }
             }
             else {

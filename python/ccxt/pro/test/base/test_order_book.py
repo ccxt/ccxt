@@ -272,12 +272,6 @@ negative_stored_incremetal_order_book_target = {
 }
 
 
-bids = None
-
-
-asks = None
-
-
 # --------------------------------------------------------------------------------------------------------------------
 order_book = OrderBook(order_book_input)
 
@@ -370,34 +364,34 @@ indexed_order_book.limit()
 assert equals(indexed_order_book, indexed_order_book_target)
 
 
-bids = indexed_order_book['bids']
+indexed_bids = indexed_order_book['bids']
 
 
-bids.store(1000, 0, '12345')
+indexed_bids.store(1000, 0, '12345')
 
 
 assert equals(indexed_order_book, indexed_order_book_target)
 
 
-bids.store(10, 0, '1234')
+indexed_bids.store(10, 0, '1234')
 
 
-bids.store(10, 2, '1231')
+indexed_bids.store(10, 2, '1231')
 
 
-bids.store(10, 1, '1232')
+indexed_bids.store(10, 1, '1232')
 
 
-bids.store(4, 2, '12399')
+indexed_bids.store(4, 2, '12399')
 
 
-bids.store(9, 2, '1231')
+indexed_bids.store(9, 2, '1231')
 
 
-bids.store(9, 3, '1231')
+indexed_bids.store(9, 3, '1231')
 
 
-bids.store(9, 1, '1232')
+indexed_bids.store(9, 1, '1232')
 
 
 indexed_order_book.limit()
@@ -409,10 +403,10 @@ assert equals(indexed_order_book, overwrite1234)
 indexed_order_book = IndexedOrderBook(indexed_order_book_input)
 
 
-asks = indexed_order_book['asks']
+indexed_asks = indexed_order_book['asks']
 
 
-asks.store(13.5, 13, '1244')
+indexed_asks.store(13.5, 13, '1244')
 
 
 indexed_order_book.limit()
@@ -446,10 +440,10 @@ counted_order_book.limit()
 assert equals(counted_order_book, counted_order_book_target)
 
 
-bids = counted_order_book['bids']
+counted_bids = counted_order_book['bids']
 
 
-bids.store(5, 0, 6)
+counted_bids.store(5, 0, 6)
 
 
 counted_order_book.limit()
@@ -458,7 +452,7 @@ counted_order_book.limit()
 assert equals(counted_order_book, counted_order_book_target)
 
 
-bids.store(1, 1, 6)
+counted_bids.store(1, 1, 6)
 
 
 counted_order_book.limit()

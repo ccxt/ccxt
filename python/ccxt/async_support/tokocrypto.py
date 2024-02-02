@@ -1335,9 +1335,9 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         "timestamp":1659666786943
         #     }
         #
-        return self.parse_balance(response, type, marginMode)
+        return self.parse_balance_custom(response, type, marginMode)
 
-    def parse_balance(self, response, type=None, marginMode=None):
+    def parse_balance_custom(self, response, type=None, marginMode=None):
         timestamp = self.safe_integer(response, 'updateTime')
         result = {
             'info': response,
@@ -1537,7 +1537,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://www.tokocrypto.com/apidocs/#new-order--signed
@@ -2217,7 +2217,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         :see: https://www.tokocrypto.com/apidocs/#withdraw-signed
         make a withdrawal

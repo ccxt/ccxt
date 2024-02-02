@@ -715,7 +715,7 @@ class coinbase extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fiat deposit
         //
@@ -1620,7 +1620,7 @@ class coinbase extends Exchange {
         ), $market);
     }
 
-    public function parse_balance($response, $params = array ()) {
+    public function parse_custom_balance($response, $params = array ()) {
         $balances = $this->safe_value_2($response, 'data', 'accounts', array());
         $accounts = $this->safe_value($params, 'type', $this->options['accounts']);
         $v3Accounts = $this->safe_value($params, 'type', $this->options['v3Accounts']);
@@ -1766,7 +1766,7 @@ class coinbase extends Exchange {
         //         "size" => 9
         //     }
         //
-        return $this->parse_balance($response, $params);
+        return $this->parse_custom_balance($response, $params);
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -2188,7 +2188,7 @@ class coinbase extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder
@@ -2713,7 +2713,7 @@ class coinbase extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()): array {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = 100, $params = array ()): array {
         /**
          * fetches information on multiple $orders made by the user
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
@@ -3214,7 +3214,7 @@ class coinbase extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#send-money

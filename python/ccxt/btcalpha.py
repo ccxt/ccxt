@@ -694,7 +694,7 @@ class btcalpha(Exchange, ImplicitAPI):
             'average': None,
         }, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         :see: https://btc-alpha.github.io/api-docs/#create-order
         create a trade order

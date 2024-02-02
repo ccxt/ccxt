@@ -788,7 +788,7 @@ class yobit extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * @see https://yobit.net/en/api
@@ -1195,16 +1195,34 @@ class yobit extends Exchange {
             $address = $this->safe_string($response['return'], 'address');
             $this->check_address($address);
             return array(
+                'id' => null,
                 'currency' => $code,
                 'address' => $address,
                 'tag' => null,
                 'network' => null,
                 'info' => $response,
+                'txid' => null,
+                'type' => null,
+                'amount' => null,
+                'status' => null,
+                'timestamp' => null,
+                'datetime' => null,
+                'addressFrom' => null,
+                'addressTo' => null,
+                'tagFrom' => null,
+                'tagTo' => null,
+                'updated' => null,
+                'comment' => null,
+                'fee' => array(
+                    'currency' => null,
+                    'cost' => null,
+                    'rate' => null,
+                ),
             );
         }) ();
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * @see https://yobit.net/en/api
@@ -1233,6 +1251,27 @@ class yobit extends Exchange {
             return array(
                 'info' => $response,
                 'id' => null,
+                'txid' => null,
+                'type' => null,
+                'currency' => null,
+                'network' => null,
+                'amount' => null,
+                'status' => null,
+                'timestamp' => null,
+                'datetime' => null,
+                'address' => null,
+                'addressFrom' => null,
+                'addressTo' => null,
+                'tag' => null,
+                'tagFrom' => null,
+                'tagTo' => null,
+                'updated' => null,
+                'comment' => null,
+                'fee' => array(
+                    'currency' => null,
+                    'cost' => null,
+                    'rate' => null,
+                ),
             );
         }) ();
     }

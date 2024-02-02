@@ -430,7 +430,7 @@ class zaif extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @see https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id23
          * create a trade order
@@ -574,7 +574,7 @@ class zaif extends Exchange {
         return $this->parse_orders($response['return'], $market, $since, $limit);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id41
          * make a withdrawal

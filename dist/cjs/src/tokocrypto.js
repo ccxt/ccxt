@@ -1362,9 +1362,9 @@ class tokocrypto extends tokocrypto$1 {
         //         "timestamp":1659666786943
         //     }
         //
-        return this.parseBalance(response, type, marginMode);
+        return this.parseBalanceCustom(response, type, marginMode);
     }
-    parseBalance(response, type = undefined, marginMode = undefined) {
+    parseBalanceCustom(response, type = undefined, marginMode = undefined) {
         const timestamp = this.safeInteger(response, 'updateTime');
         const result = {
             'info': response,

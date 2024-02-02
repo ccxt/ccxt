@@ -4422,7 +4422,7 @@ class kucoin extends kucoin$1 {
         let endpart = '';
         headers = (headers !== undefined) ? headers : {};
         let url = this.urls['api'][api];
-        if (Object.keys(query).length) {
+        if (!this.isEmpty(query)) {
             if ((method === 'GET') || (method === 'DELETE')) {
                 endpoint += '?' + this.rawencode(query);
             }

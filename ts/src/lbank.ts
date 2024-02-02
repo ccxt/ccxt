@@ -1308,7 +1308,7 @@ export default class lbank extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name lbank#createOrder
@@ -2030,7 +2030,7 @@ export default class lbank extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name lbank#withdraw
@@ -2089,7 +2089,7 @@ export default class lbank extends Exchange {
         return {
             'info': result,
             'id': this.safeString (result, 'withdrawId'),
-        };
+        } as Transaction;
     }
 
     parseTransactionStatus (status, type) {

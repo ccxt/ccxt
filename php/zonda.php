@@ -1321,7 +1321,7 @@ class zonda extends Exchange {
         return $this->parse_trades($items, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1569,7 +1569,7 @@ class zonda extends Exchange {
         return $this->parse_deposit_addresses($data, $codes);
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
         /**
          * @see https://docs.zondacrypto.exchange/reference/internal-$transfer
          * $transfer $currency internally between wallets on the same account
@@ -1682,7 +1682,7 @@ class zonda extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * @see https://docs.zondacrypto.exchange/reference/crypto-withdrawal-1
          * make a withdrawal

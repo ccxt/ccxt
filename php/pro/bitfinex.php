@@ -142,7 +142,6 @@ class bitfinex extends \ccxt\async\bitfinex {
             $stored->append ($trade);
         }
         $client->resolve ($stored, $messageHash);
-        return $message;
     }
 
     public function parse_trade($trade, $market = null): array {
@@ -335,8 +334,9 @@ class bitfinex extends \ccxt\async\bitfinex {
                     $delta = $deltas[$i];
                     $id = $this->safe_string($delta, 0);
                     $price = $this->safe_float($delta, 1);
-                    $size = ($delta[2] < 0) ? -$delta[2] : $delta[2];
-                    $side = ($delta[2] < 0) ? 'asks' : 'bids';
+                    $delta2Value = $delta[2];
+                    $size = ($delta2Value < 0) ? -$delta2Value : $delta2Value;
+                    $side = ($delta2Value < 0) ? 'asks' : 'bids';
                     $bookside = $orderbook[$side];
                     $bookside->store ($price, $size, $id);
                 }
@@ -344,10 +344,11 @@ class bitfinex extends \ccxt\async\bitfinex {
                 $deltas = $message[1];
                 for ($i = 0; $i < count($deltas); $i++) {
                     $delta = $deltas[$i];
-                    $size = ($delta[2] < 0) ? -$delta[2] : $delta[2];
-                    $side = ($delta[2] < 0) ? 'asks' : 'bids';
-                    $bookside = $orderbook[$side];
-                    $bookside->store ($delta[0], $size, $delta[1]);
+                    $delta2 = $delta[2];
+                    $size = ($delta2 < 0) ? -$delta2 : $delta2;
+                    $side = ($delta2 < 0) ? 'asks' : 'bids';
+                    $countedBookSide = $orderbook[$side];
+                    $countedBookSide->store ($delta[0], $size, $delta[1]);
                 }
             }
             $client->resolve ($orderbook, $messageHash);
@@ -356,17 +357,19 @@ class bitfinex extends \ccxt\async\bitfinex {
             if ($isRaw) {
                 $id = $this->safe_string($message, 1);
                 $price = $this->safe_string($message, 2);
-                $size = ($message[3] < 0) ? -$message[3] : $message[3];
-                $side = ($message[3] < 0) ? 'asks' : 'bids';
+                $message3 = $message[3];
+                $size = ($message3 < 0) ? -$message3 : $message3;
+                $side = ($message3 < 0) ? 'asks' : 'bids';
                 $bookside = $orderbook[$side];
                 // $price = 0 means that you have to remove the order from your book
                 $amount = Precise::string_gt($price, '0') ? $size : '0';
                 $bookside->store ($this->parse_number($price), $this->parse_number($amount), $id);
             } else {
-                $size = ($message[3] < 0) ? -$message[3] : $message[3];
-                $side = ($message[3] < 0) ? 'asks' : 'bids';
-                $bookside = $orderbook[$side];
-                $bookside->store ($message[1], $size, $message[2]);
+                $message3Value = $message[3];
+                $size = ($message3Value < 0) ? -$message3Value : $message3Value;
+                $side = ($message3Value < 0) ? 'asks' : 'bids';
+                $countedBookSide = $orderbook[$side];
+                $countedBookSide->store ($message[1], $size, $message[2]);
             }
             $client->resolve ($orderbook, $messageHash);
         }
@@ -639,7 +642,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             //     )
             //
             if ($message[1] === 'hb') {
-                return $message; // skip heartbeats within $subscription channels for now
+                return; // skip heartbeats within $subscription channels for now
             }
             $subscription = $this->safe_value($client->subscriptions, $channelId, array());
             $channel = $this->safe_string($subscription, 'channel');
@@ -654,10 +657,8 @@ class bitfinex extends \ccxt\async\bitfinex {
                 'oc' => array($this, 'handle_orders'),
             );
             $method = $this->safe_value_2($methods, $channel, $name);
-            if ($method === null) {
-                return $message;
-            } else {
-                return $method($client, $message, $subscription);
+            if ($method !== null) {
+                $method($client, $message, $subscription);
             }
         } else {
             // todo add bitfinex handleErrorMessage
@@ -678,10 +679,8 @@ class bitfinex extends \ccxt\async\bitfinex {
                     'auth' => array($this, 'handle_authentication_message'),
                 );
                 $method = $this->safe_value($methods, $event);
-                if ($method === null) {
-                    return $message;
-                } else {
-                    return $method($client, $message);
+                if ($method !== null) {
+                    $method($client, $message);
                 }
             }
         }

@@ -698,7 +698,8 @@ class wazirx(ccxt.async_support.wazirx):
     def handle_message(self, client: Client, message):
         status = self.safe_string(message, 'status')
         if status == 'error':
-            return self.handle_error(client, message)
+            self.handle_error(client, message)
+            return
         event = self.safe_string(message, 'event')
         eventHandlers = {
             'error': self.handle_error,
@@ -707,7 +708,8 @@ class wazirx(ccxt.async_support.wazirx):
         }
         eventHandler = self.safe_value(eventHandlers, event)
         if eventHandler is not None:
-            return eventHandler(client, message)
+            eventHandler(client, message)
+            return
         stream = self.safe_string(message, 'stream', '')
         streamHandlers = {
             'ticker@arr': self.handle_ticker,
@@ -722,7 +724,8 @@ class wazirx(ccxt.async_support.wazirx):
         for i in range(0, len(streams)):
             if self.in_array(streams[i], stream):
                 handler = streamHandlers[streams[i]]
-                return handler(client, message)
+                handler(client, message)
+                return
         raise NotSupported(self.id + ' self message type is not supported yet. Message: ' + self.json(message))
 
     async def authenticate(self, params={}):
