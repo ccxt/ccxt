@@ -525,7 +525,7 @@ class blockchaincom extends blockchaincom$1 {
             'remaining': remaining,
             'cost': undefined,
             'trades': [],
-            'fees': {},
+            'fees': [],
             'info': order,
         });
         return result;
@@ -814,8 +814,10 @@ class blockchaincom extends blockchaincom$1 {
         let tag = undefined;
         let address = undefined;
         if (rawAddress !== undefined) {
+            const addressParts = rawAddress.split(';');
             // if a tag or memo is used it is separated by a colon in the 'address' value
-            [address, tag] = rawAddress.split(':');
+            tag = this.safeString(addressParts, 0);
+            address = this.safeString(addressParts, 1);
         }
         const result = { 'info': response };
         result['currency'] = currency['code'];

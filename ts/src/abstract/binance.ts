@@ -16,6 +16,7 @@ interface Exchange {
     sapiGetMarginAllAssets (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginAllPairs (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginPriceIndex (params?: {}): Promise<implicitReturnType>;
+    sapiGetSpotDelistSchedule (params?: {}): Promise<implicitReturnType>;
     sapiGetAssetAssetDividend (params?: {}): Promise<implicitReturnType>;
     sapiGetAssetDribblet (params?: {}): Promise<implicitReturnType>;
     sapiGetAssetTransfer (params?: {}): Promise<implicitReturnType>;
@@ -100,6 +101,7 @@ interface Exchange {
     sapiGetConvertExchangeInfo (params?: {}): Promise<implicitReturnType>;
     sapiGetConvertAssetInfo (params?: {}): Promise<implicitReturnType>;
     sapiGetConvertOrderStatus (params?: {}): Promise<implicitReturnType>;
+    sapiGetConvertLimitQueryOpenOrders (params?: {}): Promise<implicitReturnType>;
     sapiGetAccountStatus (params?: {}): Promise<implicitReturnType>;
     sapiGetAccountApiTradingStatus (params?: {}): Promise<implicitReturnType>;
     sapiGetAccountApiRestrictionsIpRestriction (params?: {}): Promise<implicitReturnType>;
@@ -345,6 +347,8 @@ interface Exchange {
     sapiPostLoanVipRepay (params?: {}): Promise<implicitReturnType>;
     sapiPostConvertGetQuote (params?: {}): Promise<implicitReturnType>;
     sapiPostConvertAcceptQuote (params?: {}): Promise<implicitReturnType>;
+    sapiPostConvertLimitPlaceOrder (params?: {}): Promise<implicitReturnType>;
+    sapiPostConvertLimitCancelOrder (params?: {}): Promise<implicitReturnType>;
     sapiPostPortfolioAutoCollection (params?: {}): Promise<implicitReturnType>;
     sapiPostPortfolioAssetCollection (params?: {}): Promise<implicitReturnType>;
     sapiPostPortfolioBnbTransfer (params?: {}): Promise<implicitReturnType>;
@@ -607,6 +611,7 @@ interface Exchange {
     privateDeleteOpenOrders (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrderList (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrder (params?: {}): Promise<implicitReturnType>;
+    papiGetPing (params?: {}): Promise<implicitReturnType>;
     papiGetUmOrder (params?: {}): Promise<implicitReturnType>;
     papiGetUmOpenOrder (params?: {}): Promise<implicitReturnType>;
     papiGetUmOpenOrders (params?: {}): Promise<implicitReturnType>;

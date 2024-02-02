@@ -960,7 +960,7 @@ class coinbasepro extends coinbasepro$1 {
             }
         }
         else {
-            return method.call(this, client, message);
+            method.call(this, client, message);
         }
     }
 }

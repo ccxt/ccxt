@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, BadResponse } from './base/errors.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry } from './base/types.js';
 
 /**
  * @class gate
@@ -89,8 +89,11 @@ export default class gate extends Exchange {
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
+                'createStopLossOrder': true,
                 'createStopMarketOrder': false,
                 'createStopOrder': true,
+                'createTakeProfitOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRateHistories': false,
@@ -116,7 +119,7 @@ export default class gate extends Exchange {
                 'fetchLeverageTiers': true,
                 'fetchLiquidations': true,
                 'fetchMarginMode': false,
-                'fetchMarketLeverageTiers': 'emulated',
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyLiquidations': true,
@@ -413,6 +416,7 @@ export default class gate extends Exchange {
                             '{settle}/liquidates': 1,
                             '{settle}/auto_deleverages': 1,
                             '{settle}/fee': 1,
+                            '{settle}/risk_limit_tiers': 1,
                             '{settle}/price_orders': 1,
                             '{settle}/price_orders/{order_id}': 1,
                         },
@@ -525,6 +529,7 @@ export default class gate extends Exchange {
                             'multi_collateral/currency_quota': 20 / 15,
                             'multi_collateral/currencies': 20 / 15,
                             'multi_collateral/ltv': 20 / 15,
+                            'multi_collateral/fixed_rate': 20 / 15,
                         },
                         'post': {
                             'collateral/orders': 20 / 15,
@@ -930,30 +935,6 @@ export default class gate extends Exchange {
             },
             'info': undefined,
         } as MarketInterface;
-    }
-
-    market (symbol) {
-        if (this.markets === undefined) {
-            throw new ExchangeError (this.id + ' markets not loaded');
-        }
-        if (typeof symbol === 'string') {
-            if (symbol in this.markets) {
-                return this.markets[symbol];
-            } else if (symbol in this.markets_by_id) {
-                const markets = this.markets_by_id[symbol];
-                const defaultType = this.safeString2 (this.options, 'defaultType', 'defaultSubType', 'spot');
-                for (let i = 0; i < markets.length; i++) {
-                    const market = markets[i];
-                    if (market[defaultType]) {
-                        return market;
-                    }
-                }
-                return markets[0];
-            } else if ((symbol.indexOf ('-C') > -1) || (symbol.indexOf ('-P') > -1)) {
-                return this.createExpiredOptionMarket (symbol);
-            }
-        }
-        throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
     }
 
     safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
@@ -1617,9 +1598,9 @@ export default class gate extends Exchange {
             const networkId = this.safeString (entry, 'chain');
             const networkCode = this.networkIdToCode (networkId, code);
             const delisted = this.safeValue (entry, 'delisted');
-            const withdrawDisabled = this.safeValue (entry, 'withdraw_disabled', false);
-            const depositDisabled = this.safeValue (entry, 'deposit_disabled', false);
-            const tradeDisabled = this.safeValue (entry, 'trade_disabled', false);
+            const withdrawDisabled = this.safeBool (entry, 'withdraw_disabled', false);
+            const depositDisabled = this.safeBool (entry, 'deposit_disabled', false);
+            const tradeDisabled = this.safeBool (entry, 'trade_disabled', false);
             const withdrawEnabled = !withdrawDisabled;
             const depositEnabled = !depositDisabled;
             const tradeEnabled = !tradeDisabled;
@@ -1646,32 +1627,34 @@ export default class gate extends Exchange {
             let withdrawAvailable = this.safeValue (result[code], 'withdraw');
             withdrawAvailable = (withdrawEnabled) ? withdrawEnabled : withdrawAvailable;
             const networks = this.safeValue (result[code], 'networks', {});
-            networks[networkCode] = {
-                'info': entry,
-                'id': networkId,
-                'network': networkCode,
-                'currencyId': currencyId,
-                'lowerCaseCurrencyId': currencyIdLower,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'active': active,
-                'fee': undefined,
-                'precision': this.parseNumber ('1e-4'),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': entry,
+                    'id': networkId,
+                    'network': networkCode,
+                    'currencyId': currencyId,
+                    'lowerCaseCurrencyId': currencyIdLower,
+                    'deposit': depositEnabled,
+                    'withdraw': withdrawEnabled,
+                    'active': active,
+                    'fee': undefined,
+                    'precision': this.parseNumber ('1e-4'),
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
             result[code]['networks'] = networks;
             const info = this.safeValue (result[code], 'info', []);
             info.push (entry);
@@ -2632,6 +2615,7 @@ export default class gate extends Exchange {
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const [ request, requestParams ] = this.prepareRequest (undefined, type, query);
         let response = undefined;
+        request['timezone'] = 'utc0'; // default to utc
         if (type === 'spot' || type === 'margin') {
             response = await this.publicSpotGetTickers (this.extend (request, requestParams));
         } else if (type === 'swap') {
@@ -2645,7 +2629,7 @@ export default class gate extends Exchange {
             request['underlying'] = this.safeString (optionParts, 0);
             response = await this.publicOptionsGetTickers (this.extend (request, requestParams));
         } else {
-            throw new NotSupported (this.id + ' fetchTickers() not support this market type');
+            throw new NotSupported (this.id + ' fetchTickers() not support this market type, provide symbols or set params["defaultType"] to one from spot/margin/swap/future/option');
         }
         return this.parseTickers (response, symbols);
     }
@@ -3453,7 +3437,7 @@ export default class gate extends Exchange {
         //         "price": "333"
         //     }
         //
-        const id = this.safeString (trade, 'id');
+        const id = this.safeString2 (trade, 'id', 'trade_id');
         let timestamp = this.safeTimestamp2 (trade, 'time', 'create_time');
         timestamp = this.safeInteger (trade, 'create_time_ms', timestamp);
         const marketId = this.safeString2 (trade, 'currency_pair', 'contract');
@@ -3589,7 +3573,7 @@ export default class gate extends Exchange {
         return this.parseTransactions (response, currency);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name gate#withdraw
@@ -3747,7 +3731,7 @@ export default class gate extends Exchange {
         };
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name gate#createOrder
@@ -3767,6 +3751,8 @@ export default class gate extends Exchange {
          * @param {object} [params]  extra parameters specific to the exchange API endpoint
          * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
+         * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
+         * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
          * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
          * @param {int} [params.iceberg] Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
          * @param {string} [params.text] User defined information
@@ -3925,7 +3911,7 @@ export default class gate extends Exchange {
         return this.parseOrders (response);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         const market = this.market (symbol);
         const contract = market['contract'];
         const trigger = this.safeValue (params, 'trigger');
@@ -4054,7 +4040,7 @@ export default class gate extends Exchange {
                 }
             }
             let clientOrderId = this.safeString2 (params, 'text', 'clientOrderId');
-            const textIsRequired = this.safeValue (params, 'textIsRequired', false);
+            const textIsRequired = this.safeBool (params, 'textIsRequired', false);
             if (clientOrderId !== undefined) {
                 // user-defined, must follow the rules if not empty
                 //     prefixed with t-
@@ -4424,7 +4410,7 @@ export default class gate extends Exchange {
         //        "message": "Not enough balance"
         //    }
         //
-        const succeeded = this.safeValue (order, 'succeeded', true);
+        const succeeded = this.safeBool (order, 'succeeded', true);
         if (!succeeded) {
             // cancelOrders response
             return this.safeOrder ({
@@ -5058,7 +5044,7 @@ export default class gate extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name gate#transfer
@@ -5143,7 +5129,7 @@ export default class gate extends Exchange {
         };
     }
 
-    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name gate#setLeverage
@@ -5169,15 +5155,16 @@ export default class gate extends Exchange {
         const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode');
         const crossLeverageLimit = this.safeString (query, 'cross_leverage_limit');
         let marginMode = this.safeString (query, 'marginMode', defaultMarginMode);
+        let stringifiedMargin = this.numberToString (leverage);
         if (crossLeverageLimit !== undefined) {
             marginMode = 'cross';
-            leverage = crossLeverageLimit;
+            stringifiedMargin = crossLeverageLimit;
         }
         if (marginMode === 'cross' || marginMode === 'cross_margin') {
-            request['cross_leverage_limit'] = leverage.toString ();
+            request['cross_leverage_limit'] = stringifiedMargin;
             request['leverage'] = '0';
         } else {
-            request['leverage'] = leverage.toString ();
+            request['leverage'] = stringifiedMargin;
         }
         let response = undefined;
         if (market['swap']) {
@@ -5222,29 +5209,35 @@ export default class gate extends Exchange {
         // swap and future
         //
         //     {
-        //         "value": "12.475572",
+        //         "value": "4.60516",
         //         "leverage": "0",
         //         "mode": "single",
         //         "realised_point": "0",
         //         "contract": "BTC_USDT",
-        //         "entry_price": "62422.6",
-        //         "mark_price": "62377.86",
+        //         "entry_price": "46030.3",
+        //         "mark_price": "46051.6",
         //         "history_point": "0",
-        //         "realised_pnl": "-0.00624226",
-        //         "close_order":  null,
-        //         "size": "2",
-        //         "cross_leverage_limit": "25",
-        //         "pending_orders": "0",
-        //         "adl_ranking": "5",
-        //         "maintenance_rate": "0.005",
-        //         "unrealised_pnl": "-0.008948",
-        //         "user": "663337",
-        //         "leverage_max": "100",
-        //         "history_pnl": "14.98868396636",
+        //         "realised_pnl": "-0.002301515",
+        //         "close_order": null,
+        //         "size": 1,
+        //         "cross_leverage_limit": "0",
+        //         "pending_orders": 0,
+        //         "adl_ranking": 5,
+        //         "maintenance_rate": "0.004",
+        //         "unrealised_pnl": "0.00213",
+        //         "user": 5691076,
+        //         "leverage_max": "125",
+        //         "history_pnl": "0",
         //         "risk_limit": "1000000",
-        //         "margin": "0.740721495056",
-        //         "last_close_pnl": "-0.041996015",
-        //         "liq_price": "59058.58"
+        //         "margin": "8.997698485",
+        //         "last_close_pnl": "0",
+        //         "liq_price": "0",
+        //         "update_time": 1705034246,
+        //         "update_id": 1,
+        //         "initial_margin": "0",
+        //         "maintenance_margin": "0",
+        //         "open_time": 1705034246,
+        //         "trade_max_size": "0"
         //     }
         //
         // option
@@ -5293,14 +5286,14 @@ export default class gate extends Exchange {
         const takerFee = '0.00075';
         const feePaid = Precise.stringMul (takerFee, notional);
         const initialMarginString = Precise.stringAdd (Precise.stringDiv (notional, leverage), feePaid);
-        const timestamp = this.safeInteger (position, 'time_ms');
+        const timestamp = this.safeTimestamp (position, 'open_time');
         return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
-            'timestamp': undefined,
-            'datetime': undefined,
-            'lastUpdateTimestamp': timestamp,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastUpdateTimestamp': this.safeTimestamp (position, 'update_time'),
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notional)),
             'maintenanceMargin': this.parseNumber (Precise.stringMul (maintenanceRate, notional)),
@@ -5358,29 +5351,35 @@ export default class gate extends Exchange {
         // swap and future
         //
         //     {
-        //         "value": "12.475572",
+        //         "value": "4.60516",
         //         "leverage": "0",
         //         "mode": "single",
         //         "realised_point": "0",
         //         "contract": "BTC_USDT",
-        //         "entry_price": "62422.6",
-        //         "mark_price": "62377.86",
+        //         "entry_price": "46030.3",
+        //         "mark_price": "46051.6",
         //         "history_point": "0",
-        //         "realised_pnl": "-0.00624226",
-        //         "close_order":  null,
-        //         "size": "2",
-        //         "cross_leverage_limit": "25",
-        //         "pending_orders": "0",
-        //         "adl_ranking": "5",
-        //         "maintenance_rate": "0.005",
-        //         "unrealised_pnl": "-0.008948",
-        //         "user": "6693577",
-        //         "leverage_max": "100",
-        //         "history_pnl": "14.98868396636",
+        //         "realised_pnl": "-0.002301515",
+        //         "close_order": null,
+        //         "size": 1,
+        //         "cross_leverage_limit": "0",
+        //         "pending_orders": 0,
+        //         "adl_ranking": 5,
+        //         "maintenance_rate": "0.004",
+        //         "unrealised_pnl": "0.00213",
+        //         "user": 5691076,
+        //         "leverage_max": "125",
+        //         "history_pnl": "0",
         //         "risk_limit": "1000000",
-        //         "margin": "0.740721495056",
-        //         "last_close_pnl": "-0.041996015",
-        //         "liq_price": "59058.58"
+        //         "margin": "8.997698485",
+        //         "last_close_pnl": "0",
+        //         "liq_price": "0",
+        //         "update_time": 1705034246,
+        //         "update_id": 1,
+        //         "initial_margin": "0",
+        //         "maintenance_margin": "0",
+        //         "open_time": 1705034246,
+        //         "trade_max_size": "0"
         //     }
         //
         // option
@@ -5458,29 +5457,35 @@ export default class gate extends Exchange {
         //
         //     [
         //         {
-        //             "value": "12.475572",
+        //             "value": "4.602828",
         //             "leverage": "0",
         //             "mode": "single",
         //             "realised_point": "0",
         //             "contract": "BTC_USDT",
-        //             "entry_price": "62422.6",
-        //             "mark_price": "62377.86",
+        //             "entry_price": "46030.3",
+        //             "mark_price": "46028.28",
         //             "history_point": "0",
-        //             "realised_pnl": "-0.00624226",
-        //             "close_order":  null,
-        //             "size": "2",
-        //             "cross_leverage_limit": "25",
-        //             "pending_orders": "0",
-        //             "adl_ranking": "5",
-        //             "maintenance_rate": "0.005",
-        //             "unrealised_pnl": "-0.008948",
-        //             "user": "6693577",
-        //             "leverage_max": "100",
-        //             "history_pnl": "14.98868396636",
+        //             "realised_pnl": "-0.002301515",
+        //             "close_order": null,
+        //             "size": 1,
+        //             "cross_leverage_limit": "0",
+        //             "pending_orders": 0,
+        //             "adl_ranking": 5,
+        //             "maintenance_rate": "0.004",
+        //             "unrealised_pnl": "-0.000202",
+        //             "user": 5691076,
+        //             "leverage_max": "125",
+        //             "history_pnl": "0",
         //             "risk_limit": "1000000",
-        //             "margin": "0.740721495056",
-        //             "last_close_pnl": "-0.041996015",
-        //             "liq_price": "59058.58"
+        //             "margin": "8.997698485",
+        //             "last_close_pnl": "0",
+        //             "liq_price": "0",
+        //             "update_time": 1705034246,
+        //             "update_id": 1,
+        //             "initial_margin": "0",
+        //             "maintenance_margin": "0",
+        //             "open_time": 1705034246,
+        //             "trade_max_size": "0"
         //         }
         //     ]
         //
@@ -5517,7 +5522,7 @@ export default class gate extends Exchange {
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts-2
-         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
@@ -5630,102 +5635,39 @@ export default class gate extends Exchange {
         return this.parseLeverageTiers (response, symbols, 'name');
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined) {
+    async fetchMarketLeverageTiers (symbol: string, params = {}) {
         /**
-         * @ignore
          * @method
-         * @description https://www.gate.io/help/futures/perpetual/22162/instrctions-of-risk-limit
-         * @param {object} info Exchange market response for 1 market
-         * @param {object} market CCXT market
+         * @name gate#fetchMarketLeverageTiers
+         * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-risk-limit-tiers
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
          */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarketLeverageTiers', market, params);
+        const [ request, requestParams ] = this.prepareRequest (market, type, query);
+        if (type !== 'future' && type !== 'swap') {
+            throw new BadRequest (this.id + ' fetchMarketLeverageTiers only supports swap and future');
+        }
+        const response = await this.privateFuturesGetSettleRiskLimitTiers (this.extend (request, requestParams));
         //
-        // Perpetual swap
+        //     [
+        //         {
+        //             "maintenance_rate": "0.004",
+        //             "tier": 1,
+        //             "initial_rate": "0.008",
+        //             "leverage_max": "125",
+        //             "risk_limit": "1000000"
+        //         }
+        //     ]
         //
-        //    {
-        //        "name": "BTC_USDT",
-        //        "type": "direct",
-        //        "quanto_multiplier": "0.0001",
-        //        "ref_discount_rate": "0",
-        //        "order_price_deviate": "0.5",
-        //        "maintenance_rate": "0.005",
-        //        "mark_type": "index",
-        //        "last_price": "38026",
-        //        "mark_price": "37985.6",
-        //        "index_price": "37954.92",
-        //        "funding_rate_indicative": "0.000219",
-        //        "mark_price_round": "0.01",
-        //        "funding_offset": 0,
-        //        "in_delisting": false,
-        //        "risk_limit_base": "1000000",
-        //        "interest_rate": "0.0003",
-        //        "order_price_round": "0.1",
-        //        "order_size_min": 1,
-        //        "ref_rebate_rate": "0.2",
-        //        "funding_interval": 28800,
-        //        "risk_limit_step": "1000000",
-        //        "leverage_min": "1",
-        //        "leverage_max": "100",
-        //        "risk_limit_max": "8000000",
-        //        "maker_fee_rate": "-0.00025",
-        //        "taker_fee_rate": "0.00075",
-        //        "funding_rate": "0.002053",
-        //        "order_size_max": 1000000,
-        //        "funding_next_apply": 1610035200,
-        //        "short_users": 977,
-        //        "config_change_time": 1609899548,
-        //        "trade_size": 28530850594,
-        //        "position_size": 5223816,
-        //        "long_users": 455,
-        //        "funding_impact_value": "60000",
-        //        "orders_limit": 50,
-        //        "trade_id": 10851092,
-        //        "orderbook_id": 2129638396
-        //    }
-        //
-        // Delivery Futures
-        //
-        //    {
-        //        "name": "BTC_USDT_20200814",
-        //        "underlying": "BTC_USDT",
-        //        "cycle": "WEEKLY",
-        //        "type": "direct",
-        //        "quanto_multiplier": "0.0001",
-        //        "mark_type": "index",
-        //        "last_price": "9017",
-        //        "mark_price": "9019",
-        //        "index_price": "9005.3",
-        //        "basis_rate": "0.185095",
-        //        "basis_value": "13.7",
-        //        "basis_impact_value": "100000",
-        //        "settle_price": "0",
-        //        "settle_price_interval": 60,
-        //        "settle_price_duration": 1800,
-        //        "settle_fee_rate": "0.0015",
-        //        "expire_time": 1593763200,
-        //        "order_price_round": "0.1",
-        //        "mark_price_round": "0.1",
-        //        "leverage_min": "1",
-        //        "leverage_max": "100",
-        //        "maintenance_rate": "1000000",
-        //        "risk_limit_base": "140.726652109199",
-        //        "risk_limit_step": "1000000",
-        //        "risk_limit_max": "8000000",
-        //        "maker_fee_rate": "-0.00025",
-        //        "taker_fee_rate": "0.00075",
-        //        "ref_discount_rate": "0",
-        //        "ref_rebate_rate": "0.2",
-        //        "order_price_deviate": "0.5",
-        //        "order_size_min": 1,
-        //        "order_size_max": 1000000,
-        //        "orders_limit": 50,
-        //        "orderbook_id": 63,
-        //        "trade_id": 26,
-        //        "trade_size": 435,
-        //        "position_size": 130,
-        //        "config_change_time": 1593158867,
-        //        "in_delisting": false
-        //    }
-        //
+        return this.parseMarketLeverageTiers (response, market);
+    }
+
+    parseEmulatedLeverageTiers (info, market = undefined) {
         const maintenanceMarginUnit = this.safeString (info, 'maintenance_rate'); // '0.005',
         const leverageMax = this.safeString (info, 'leverage_max'); // '100',
         const riskLimitStep = this.safeString (info, 'risk_limit_step'); // '1000000',
@@ -5749,6 +5691,40 @@ export default class gate extends Exchange {
             maintenanceMarginRate = Precise.stringAdd (maintenanceMarginRate, maintenanceMarginUnit);
             initialMarginRatio = Precise.stringAdd (initialMarginRatio, initialMarginUnit);
             floor = cap;
+        }
+        return tiers;
+    }
+
+    parseMarketLeverageTiers (info, market: Market = undefined) {
+        //
+        //     [
+        //         {
+        //             "maintenance_rate": "0.004",
+        //             "tier": 1,
+        //             "initial_rate": "0.008",
+        //             "leverage_max": "125",
+        //             "risk_limit": "1000000"
+        //         }
+        //     ]
+        //
+        if (!Array.isArray (info)) {
+            return this.parseEmulatedLeverageTiers (info, market);
+        }
+        let minNotional = 0;
+        const tiers = [];
+        for (let i = 0; i < info.length; i++) {
+            const item = info[i];
+            const maxNotional = this.safeNumber (item, 'risk_limit');
+            tiers.push ({
+                'tier': this.sum (i, 1),
+                'currency': market['base'],
+                'minNotional': minNotional,
+                'maxNotional': maxNotional,
+                'maintenanceMarginRate': this.safeNumber (item, 'maintenance_rate'),
+                'maxLeverage': this.safeNumber (item, 'leverage_max'),
+                'info': item,
+            });
+            minNotional = maxNotional;
         }
         return tiers;
     }
@@ -5824,7 +5800,7 @@ export default class gate extends Exchange {
         return this.parseMarginLoan (response, currency);
     }
 
-    async borrowIsolatedMargin (symbol: string, code: string, amount, params = {}) {
+    async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
         /**
          * @method
          * @name gate#borrowMargin
@@ -5870,7 +5846,7 @@ export default class gate extends Exchange {
         return this.parseMarginLoan (response, currency);
     }
 
-    async borrowCrossMargin (code: string, amount, params = {}) {
+    async borrowCrossMargin (code: string, amount: number, params = {}) {
         /**
          * @method
          * @name gate#borrowMargin
@@ -6929,6 +6905,7 @@ export default class gate extends Exchange {
                 return this.parseGreeks (entry, market);
             }
         }
+        return undefined;
     }
 
     parseGreeks (greeks, market: Market = undefined) {

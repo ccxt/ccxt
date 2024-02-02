@@ -206,6 +206,9 @@ export default class Client {
             } else {
                 if (this.ping) {
                     this.send (this.ping (this))
+                        .catch ((error) => {
+                            this.onError (error);
+                        })
                 } else if (isNode) {
                     // can't do this inside browser
                     // https://stackoverflow.com/questions/10585355/sending-websocket-ping-pong-frame-from-browser

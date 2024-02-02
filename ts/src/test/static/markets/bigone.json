@@ -269,33 +269,43 @@
         "linear": true,
         "inverse": false,
         "subType": "linear",
-        "contractSize": 1,
-        "precision": {},
+        "contractSize": 0.001,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.1
+        },
         "limits": {
             "leverage": {},
             "amount": {},
-            "price": {},
-            "cost": {}
+            "price": {
+                "min": 0.5,
+                "max": 1000000
+            },
+            "cost": {
+                "min": 0.01
+            }
         },
         "info": {
-            "usdtPrice": "1.00059444",
+            "baseCurrency": "BTC",
+            "multiplier": "0.001",
+            "enable": true,
+            "priceStep": "0.5",
+            "maxRiskLimit": "1E+7",
+            "pricePrecision": "1",
+            "maintenanceMargin": "0.005000000",
             "symbol": "BTCUSDT",
-            "btcPrice": "46373.36",
-            "ethPrice": "2439.46",
-            "nextFundingRate": "0.00010",
-            "fundingRate": "0.00010",
-            "latestPrice": "46366.5",
-            "last24hPriceChange": "-0.0084",
-            "indexPrice": "46345.81",
-            "volume24h": "105253093",
-            "turnover24h": "4621735825.696",
-            "nextFundingTime": "1704909600000",
-            "markPrice": "46345.83919786",
-            "last24hMaxPrice": "48008.0",
-            "volume24hInUsd": "4624483170.340227",
-            "openValue": "950450.829789635",
-            "last24hMinPrice": "44336.5",
-            "openInterest": "24046.0"
+            "valuePrecision": "4",
+            "minRiskLimit": "1E+6",
+            "riskLimit": "1E+6",
+            "isInverse": false,
+            "riskStep": "1E+4",
+            "settleCurrency": "USDT",
+            "baseName": "Bitcoin",
+            "feePrecision": "8",
+            "priceMin": "0.5",
+            "priceMax": "1E+6",
+            "initialMargin": "0.010000000",
+            "quoteCurrency": "USDT"
         }
     },
     "XRP/USDT:USDT": {
@@ -318,33 +328,43 @@
         "linear": true,
         "inverse": false,
         "subType": "linear",
-        "contractSize": 1,
-        "precision": {},
+        "contractSize": 100,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.0001
+        },
         "limits": {
             "leverage": {},
             "amount": {},
-            "price": {},
-            "cost": {}
+            "price": {
+                "min": 0.0001,
+                "max": 100000000
+            },
+            "cost": {
+                "min": 0.02
+            }
         },
         "info": {
-            "usdtPrice": "1.00059444",
+            "baseCurrency": "XRP",
+            "multiplier": "1E+2",
+            "enable": true,
+            "priceStep": "0.0001",
+            "maxRiskLimit": "2.1E+6",
+            "pricePrecision": "4",
+            "maintenanceMargin": "0.010000000",
             "symbol": "XRPUSDT",
-            "btcPrice": "46373.36",
-            "ethPrice": "2439.46",
-            "nextFundingRate": "0.00010",
-            "fundingRate": "0.00010",
-            "latestPrice": "0.5695",
-            "last24hPriceChange": "0.0161",
-            "indexPrice": "0.56942",
-            "volume24h": "11391206",
-            "turnover24h": "689659238.97",
-            "nextFundingTime": "1704909600000",
-            "markPrice": "0.56942036",
-            "last24hMaxPrice": "0.5784",
-            "volume24hInUsd": "690069200.0080134",
-            "openValue": "0.0",
-            "last24hMinPrice": "0.5499",
-            "openInterest": "0.0"
+            "valuePrecision": "4",
+            "minRiskLimit": "3E+5",
+            "riskLimit": "3E+5",
+            "isInverse": false,
+            "riskStep": "500",
+            "settleCurrency": "USDT",
+            "baseName": "XRP",
+            "feePrecision": "8",
+            "priceMin": "0.0001",
+            "priceMax": "1E+8",
+            "initialMargin": "0.020000000",
+            "quoteCurrency": "USDT"
         }
     }
 }

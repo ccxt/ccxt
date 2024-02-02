@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.zonda import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1301,7 +1301,7 @@ class zonda(Exchange, ImplicitAPI):
         items = self.safe_value(response, 'items')
         return self.parse_trades(items, market, since, limit)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1399,7 +1399,7 @@ class zonda(Exchange, ImplicitAPI):
         #     }
         #
         id = self.safe_string_2(response, 'offerId', 'stopOfferId')
-        completed = self.safe_value(response, 'completed', False)
+        completed = self.safe_bool(response, 'completed', False)
         status = 'closed' if completed else 'open'
         transactions = self.safe_value(response, 'transactions')
         return self.safe_order({
@@ -1457,7 +1457,7 @@ class zonda(Exchange, ImplicitAPI):
             'EUR': True,
             'PLN': True,
         }
-        return self.safe_value(fiatCurrencies, currency, False)
+        return self.safe_bool(fiatCurrencies, currency, False)
 
     def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
@@ -1538,7 +1538,7 @@ class zonda(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_deposit_addresses(data, codes)
 
-    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
         """
         :see: https://docs.zondacrypto.exchange/reference/internal-transfer
         transfer currency internally between wallets on the same account
@@ -1588,7 +1588,7 @@ class zonda(Exchange, ImplicitAPI):
         #
         transfer = self.parse_transfer(response, currency)
         transferOptions = self.safe_value(self.options, 'transfer', {})
-        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             transfer['amount'] = amount
         return transfer
@@ -1647,7 +1647,7 @@ class zonda(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         :see: https://docs.zondacrypto.exchange/reference/crypto-withdrawal-1
         make a withdrawal

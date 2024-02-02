@@ -56,6 +56,7 @@ var coincheck = require('./src/coincheck.js');
 var coinex = require('./src/coinex.js');
 var coinlist = require('./src/coinlist.js');
 var coinmate = require('./src/coinmate.js');
+var coinmetro = require('./src/coinmetro.js');
 var coinone = require('./src/coinone.js');
 var coinsph = require('./src/coinsph.js');
 var coinspot = require('./src/coinspot.js');
@@ -94,6 +95,7 @@ var novadax = require('./src/novadax.js');
 var oceanex = require('./src/oceanex.js');
 var okcoin = require('./src/okcoin.js');
 var okx = require('./src/okx.js');
+var onetrading = require('./src/onetrading.js');
 var p2b = require('./src/p2b.js');
 var paymium = require('./src/paymium.js');
 var phemex = require('./src/phemex.js');
@@ -134,7 +136,9 @@ var bybit$1 = require('./src/pro/bybit.js');
 var cex$1 = require('./src/pro/cex.js');
 var coinbase$1 = require('./src/pro/coinbase.js');
 var coinbasepro$1 = require('./src/pro/coinbasepro.js');
+var coincheck$1 = require('./src/pro/coincheck.js');
 var coinex$1 = require('./src/pro/coinex.js');
+var coinone$1 = require('./src/pro/coinone.js');
 var cryptocom$1 = require('./src/pro/cryptocom.js');
 var currencycom$1 = require('./src/pro/currencycom.js');
 var deribit$1 = require('./src/pro/deribit.js');
@@ -153,11 +157,14 @@ var kraken$1 = require('./src/pro/kraken.js');
 var krakenfutures$1 = require('./src/pro/krakenfutures.js');
 var kucoin$1 = require('./src/pro/kucoin.js');
 var kucoinfutures$1 = require('./src/pro/kucoinfutures.js');
+var lbank$1 = require('./src/pro/lbank.js');
 var luno$1 = require('./src/pro/luno.js');
 var mexc$1 = require('./src/pro/mexc.js');
 var ndax$1 = require('./src/pro/ndax.js');
 var okcoin$1 = require('./src/pro/okcoin.js');
 var okx$1 = require('./src/pro/okx.js');
+var onetrading$1 = require('./src/pro/onetrading.js');
+var p2b$1 = require('./src/pro/p2b.js');
 var phemex$1 = require('./src/pro/phemex.js');
 var poloniex$1 = require('./src/pro/poloniex.js');
 var poloniexfutures$1 = require('./src/pro/poloniexfutures.js');
@@ -169,7 +176,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.2.12';
+const version = '4.2.31';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -216,6 +223,7 @@ const exchanges = {
     'coinex': coinex,
     'coinlist': coinlist,
     'coinmate': coinmate,
+    'coinmetro': coinmetro,
     'coinone': coinone,
     'coinsph': coinsph,
     'coinspot': coinspot,
@@ -254,6 +262,7 @@ const exchanges = {
     'oceanex': oceanex,
     'okcoin': okcoin,
     'okx': okx,
+    'onetrading': onetrading,
     'p2b': p2b,
     'paymium': paymium,
     'phemex': phemex,
@@ -296,7 +305,9 @@ const pro = {
     'cex': cex$1,
     'coinbase': coinbase$1,
     'coinbasepro': coinbasepro$1,
+    'coincheck': coincheck$1,
     'coinex': coinex$1,
+    'coinone': coinone$1,
     'cryptocom': cryptocom$1,
     'currencycom': currencycom$1,
     'deribit': deribit$1,
@@ -315,11 +326,14 @@ const pro = {
     'krakenfutures': krakenfutures$1,
     'kucoin': kucoin$1,
     'kucoinfutures': kucoinfutures$1,
+    'lbank': lbank$1,
     'luno': luno$1,
     'mexc': mexc$1,
     'ndax': ndax$1,
     'okcoin': okcoin$1,
     'okx': okx$1,
+    'onetrading': onetrading$1,
+    'p2b': p2b$1,
     'phemex': phemex$1,
     'poloniex': poloniex$1,
     'poloniexfutures': poloniexfutures$1,
@@ -414,6 +428,7 @@ exports.coincheck = coincheck;
 exports.coinex = coinex;
 exports.coinlist = coinlist;
 exports.coinmate = coinmate;
+exports.coinmetro = coinmetro;
 exports.coinone = coinone;
 exports.coinsph = coinsph;
 exports.coinspot = coinspot;
@@ -452,6 +467,7 @@ exports.novadax = novadax;
 exports.oceanex = oceanex;
 exports.okcoin = okcoin;
 exports.okx = okx;
+exports.onetrading = onetrading;
 exports.p2b = p2b;
 exports.paymium = paymium;
 exports.phemex = phemex;

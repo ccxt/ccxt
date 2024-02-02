@@ -514,12 +514,12 @@ class blockchaincom(Exchange, ImplicitAPI):
             'remaining': remaining,
             'cost': None,
             'trades': [],
-            'fees': {},
+            'fees': [],
             'info': order,
         })
         return result
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -770,8 +770,10 @@ class blockchaincom(Exchange, ImplicitAPI):
         tag = None
         address = None
         if rawAddress is not None:
+            addressParts = rawAddress.split(';')
             # if a tag or memo is used it is separated by a colon in the 'address' value
-            address, tag = rawAddress.split(':')
+            tag = self.safe_string(addressParts, 0)
+            address = self.safe_string(addressParts, 1)
         result = {'info': response}
         result['currency'] = currency['code']
         result['address'] = address
@@ -857,7 +859,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

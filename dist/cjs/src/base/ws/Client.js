@@ -145,7 +145,10 @@ class Client {
             }
             else {
                 if (this.ping) {
-                    this.send(this.ping(this));
+                    this.send(this.ping(this))
+                        .catch((error) => {
+                        this.onError(error);
+                    });
                 }
                 else if (platform.isNode) {
                     // can't do this inside browser

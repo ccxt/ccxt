@@ -98,7 +98,9 @@ class bitget extends \ccxt\async\bitget {
         } else {
             $instType = 'SPOT';
         }
-        list($instType, $params) = $this->handle_option_and_params($params, 'getInstType', 'instType', $instType);
+        $instypeAux = null;
+        list($instypeAux, $params) = $this->handle_option_and_params($params, 'getInstType', 'instType', $instType);
+        $instType = $instypeAux;
         return array( $instType, $params );
     }
 
@@ -457,7 +459,7 @@ class bitget extends \ccxt\async\bitget {
             $symbols = $this->market_symbols($symbols);
             $channel = 'books';
             $incrementalFeed = true;
-            if (($limit === 5) || ($limit === 15)) {
+            if (($limit === 1) || ($limit === 5) || ($limit === 15)) {
                 $channel .= (string) $limit;
                 $incrementalFeed = false;
             }
@@ -912,7 +914,7 @@ class bitget extends \ccxt\async\bitget {
             Async\await($this->load_markets());
             $market = null;
             $marketId = null;
-            $isStop = $this->safe_value($params, 'stop', false);
+            $isStop = $this->safe_bool($params, 'stop', false);
             $params = $this->omit($params, 'stop');
             $messageHash = ($isStop) ? 'triggerOrder' : 'order';
             $subscriptionHash = 'order:trades';
@@ -1265,7 +1267,7 @@ class bitget extends \ccxt\async\bitget {
             'price' => $this->safe_string($order, 'price'),
             'stopPrice' => $triggerPrice,
             'triggerPrice' => $triggerPrice,
-            'amount' => $this->safe_string_2($order, 'size', 'baseSize'),
+            'amount' => $this->safe_string($order, 'baseVolume'),
             'cost' => $this->safe_string_n($order, array( 'notional', 'notionalUsd', 'quoteSize' )),
             'average' => $this->omit_zero($this->safe_string_2($order, 'priceAvg', 'fillPrice')),
             'filled' => $this->safe_string_2($order, 'accBaseVolume', 'baseVolume'),

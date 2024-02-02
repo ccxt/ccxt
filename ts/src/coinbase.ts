@@ -104,7 +104,7 @@ export default class coinbase extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'withdraw': undefined,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
@@ -206,6 +206,13 @@ export default class coinbase extends Exchange {
                             'brokerage/best_bid_ask',
                             'brokerage/convert/trade/{trade_id}',
                             'brokerage/time',
+                            'brokerage/cfm/balance_summary',
+                            'brokerage/cfm/positions',
+                            'brokerage/cfm/positions/{product_id}',
+                            'brokerage/cfm/sweeps',
+                            'brokerage/intx/portfolio/{portfolio_uuid}',
+                            'brokerage/intx/positions/{portfolio_uuid}',
+                            'brokerage/intx/positions/{portfolio_uuid}/{symbol}',
                         ],
                         'post': [
                             'brokerage/orders',
@@ -216,12 +223,15 @@ export default class coinbase extends Exchange {
                             'brokerage/portfolios/move_funds',
                             'brokerage/convert/quote',
                             'brokerage/convert/trade/{trade_id}',
+                            'brokerage/cfm/sweeps/schedule',
+                            'brokerage/intx/allocate',
                         ],
                         'put': [
                             'brokerage/portfolios/{portfolio_uuid}',
                         ],
                         'delete': [
                             'brokerage/portfolios/{portfolio_uuid}',
+                            'brokerage/cfm/sweeps',
                         ],
                     },
                 },
@@ -724,7 +734,7 @@ export default class coinbase extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined) {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fiat deposit
         //
@@ -788,47 +798,102 @@ export default class coinbase extends Exchange {
         //         "next_step": null
         //     }
         //
-        const subtotalObject = this.safeValue (transaction, 'subtotal', {});
-        const feeObject = this.safeValue (transaction, 'fee', {});
-        const id = this.safeString (transaction, 'id');
-        const timestamp = this.parse8601 (this.safeValue (transaction, 'created_at'));
-        const updated = this.parse8601 (this.safeValue (transaction, 'updated_at'));
-        const type = this.safeString (transaction, 'resource');
-        const amount = this.safeNumber (subtotalObject, 'amount');
-        const currencyId = this.safeString (subtotalObject, 'currency');
-        const code = this.safeCurrencyCode (currencyId, currency);
-        const feeCost = this.safeNumber (feeObject, 'amount');
-        const feeCurrencyId = this.safeString (feeObject, 'currency');
-        const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
-        const fee = {
-            'cost': feeCost,
-            'currency': feeCurrency,
-        };
+        // withdraw
+        //
+        //     {
+        //         "id": "a1794ecf-5693-55fa-70cf-ef731748ed82",
+        //         "type": "send",
+        //         "status": "pending",
+        //         "amount": {
+        //             "amount": "-14.008308",
+        //             "currency": "USDC"
+        //         },
+        //         "native_amount": {
+        //             "amount": "-18.74",
+        //             "currency": "CAD"
+        //         },
+        //         "description": null,
+        //         "created_at": "2024-01-12T01:27:31Z",
+        //         "updated_at": "2024-01-12T01:27:31Z",
+        //         "resource": "transaction",
+        //         "resource_path": "/v2/accounts/a34bgfad-ed67-538b-bffc-730c98c10da0/transactions/a1794ecf-5693-55fa-70cf-ef731748ed82",
+        //         "instant_exchange": false,
+        //         "network": {
+        //             "status": "pending",
+        //             "status_description": "Pending (est. less than 10 minutes)",
+        //             "transaction_fee": {
+        //                 "amount": "4.008308",
+        //                 "currency": "USDC"
+        //             },
+        //             "transaction_amount": {
+        //                 "amount": "10.000000",
+        //                 "currency": "USDC"
+        //             },
+        //             "confirmations": 0
+        //         },
+        //         "to": {
+        //             "resource": "ethereum_address",
+        //             "address": "0x9...",
+        //             "currency": "USDC",
+        //             "address_info": {
+        //                 "address": "0x9..."
+        //             }
+        //         },
+        //         "idem": "748d8591-dg9a-7831-a45b-crd61dg78762",
+        //         "details": {
+        //             "title": "Sent USDC",
+        //             "subtitle": "To USDC address on Ethereum network",
+        //             "header": "Sent 14.008308 USDC ($18.74)",
+        //             "health": "warning"
+        //         },
+        //         "hide_native_amount": false
+        //     }
+        //
+        const transactionType = this.safeString (transaction, 'type');
+        let amountAndCurrencyObject = undefined;
+        let feeObject = undefined;
+        if (transactionType === 'send') {
+            const network = this.safeValue (transaction, 'network', {});
+            amountAndCurrencyObject = this.safeValue (network, 'transaction_amount', {});
+            feeObject = this.safeValue (network, 'transaction_fee', {});
+        } else {
+            amountAndCurrencyObject = this.safeValue (transaction, 'subtotal', {});
+            feeObject = this.safeValue (transaction, 'fee', {});
+        }
         let status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         if (status === undefined) {
             const committed = this.safeValue (transaction, 'committed');
             status = committed ? 'ok' : 'pending';
         }
+        const id = this.safeString (transaction, 'id');
+        const currencyId = this.safeString (amountAndCurrencyObject, 'currency');
+        const feeCurrencyId = this.safeString (feeObject, 'currency');
+        const datetime = this.safeValue (transaction, 'created_at');
+        const toObject = this.safeValue (transaction, 'to', {});
+        const toAddress = this.safeString (toObject, 'address');
         return {
             'info': transaction,
             'id': id,
             'txid': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
             'network': undefined,
-            'address': undefined,
-            'addressTo': undefined,
+            'address': toAddress,
+            'addressTo': toAddress,
             'addressFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,
             'tagFrom': undefined,
-            'type': type,
-            'amount': amount,
-            'currency': code,
+            'type': this.safeString (transaction, 'resource'),
+            'amount': this.safeNumber (amountAndCurrencyObject, 'amount'),
+            'currency': this.safeCurrencyCode (currencyId, currency),
             'status': status,
-            'updated': updated,
-            'fee': fee,
-        };
+            'updated': this.parse8601 (this.safeValue (transaction, 'updated_at')),
+            'fee': {
+                'cost': this.safeNumber (feeObject, 'amount'),
+                'currency': this.safeCurrencyCode (feeCurrencyId),
+            },
+        } as Transaction;
     }
 
     parseTrade (trade, market: Market = undefined): Trade {
@@ -1326,7 +1391,11 @@ export default class coinbase extends Exchange {
     async fetchTickersV3 (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.v3PrivateGetBrokerageProducts (params);
+        const request = {};
+        if (symbols !== undefined) {
+            request['product_ids'] = this.marketIds (symbols);
+        }
+        const response = await this.v3PrivateGetBrokerageProducts (this.extend (request, params));
         //
         //     {
         //         "products": [
@@ -1578,7 +1647,7 @@ export default class coinbase extends Exchange {
         }, market);
     }
 
-    parseBalance (response, params = {}) {
+    parseCustomBalance (response, params = {}) {
         const balances = this.safeValue2 (response, 'data', 'accounts', []);
         const accounts = this.safeValue (params, 'type', this.options['accounts']);
         const v3Accounts = this.safeValue (params, 'type', this.options['v3Accounts']);
@@ -1647,7 +1716,7 @@ export default class coinbase extends Exchange {
             'limit': 250,
         };
         let response = undefined;
-        const isV3 = this.safeValue (params, 'v3', false);
+        const isV3 = this.safeBool (params, 'v3', false);
         params = this.omit (params, 'v3');
         const method = this.safeString (this.options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts');
         if ((isV3) || (method === 'v3PrivateGetBrokerageAccounts')) {
@@ -1726,7 +1795,7 @@ export default class coinbase extends Exchange {
         //         "size": 9
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseCustomBalance (response, params);
     }
 
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2152,7 +2221,7 @@ export default class coinbase extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#createOrder
@@ -2687,7 +2756,7 @@ export default class coinbase extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit = 100, params = {}): Promise<Order[]> {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = 100, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinbase#fetchOrders
@@ -3175,8 +3244,11 @@ export default class coinbase extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        // the 'product_ids' param isn't working properly and returns {"pricebooks":[]} when defined
-        const response = await this.v3PrivateGetBrokerageBestBidAsk (params);
+        const request = {};
+        if (symbols !== undefined) {
+            request['product_ids'] = this.marketIds (symbols);
+        }
+        const response = await this.v3PrivateGetBrokerageBestBidAsk (this.extend (request, params));
         //
         //     {
         //         "pricebooks": [
@@ -3203,6 +3275,101 @@ export default class coinbase extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#withdraw
+         * @description make a withdrawal
+         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#send-money
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string} [tag] an optional tag for the withdrawal
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        let accountId = this.safeString2 (params, 'account_id', 'accountId');
+        params = this.omit (params, [ 'account_id', 'accountId' ]);
+        if (accountId === undefined) {
+            if (code === undefined) {
+                throw new ArgumentsRequired (this.id + ' withdraw() requires an account_id (or accountId) parameter OR a currency code argument');
+            }
+            accountId = await this.findAccountId (code);
+            if (accountId === undefined) {
+                throw new ExchangeError (this.id + ' withdraw() could not find account id for ' + code);
+            }
+        }
+        const request = {
+            'account_id': accountId,
+            'type': 'send',
+            'to': address,
+            'amount': amount,
+            'currency': currency['id'],
+        };
+        if (tag !== undefined) {
+            request['destination_tag'] = tag;
+        }
+        const response = await this.v2PrivatePostAccountsAccountIdTransactions (this.extend (request, params));
+        //
+        //     {
+        //         "data": {
+        //             "id": "a1794ecf-5693-55fa-70cf-ef731748ed82",
+        //             "type": "send",
+        //             "status": "pending",
+        //             "amount": {
+        //                 "amount": "-14.008308",
+        //                 "currency": "USDC"
+        //             },
+        //             "native_amount": {
+        //                 "amount": "-18.74",
+        //                 "currency": "CAD"
+        //             },
+        //             "description": null,
+        //             "created_at": "2024-01-12T01:27:31Z",
+        //             "updated_at": "2024-01-12T01:27:31Z",
+        //             "resource": "transaction",
+        //             "resource_path": "/v2/accounts/a34bgfad-ed67-538b-bffc-730c98c10da0/transactions/a1794ecf-5693-55fa-70cf-ef731748ed82",
+        //             "instant_exchange": false,
+        //             "network": {
+        //                 "status": "pending",
+        //                 "status_description": "Pending (est. less than 10 minutes)",
+        //                 "transaction_fee": {
+        //                     "amount": "4.008308",
+        //                     "currency": "USDC"
+        //                 },
+        //                 "transaction_amount": {
+        //                     "amount": "10.000000",
+        //                     "currency": "USDC"
+        //                 },
+        //                 "confirmations": 0
+        //             },
+        //             "to": {
+        //                 "resource": "ethereum_address",
+        //                 "address": "0x9...",
+        //                 "currency": "USDC",
+        //                 "address_info": {
+        //                     "address": "0x9..."
+        //                 }
+        //             },
+        //             "idem": "748d8591-dg9a-7831-a45b-crd61dg78762",
+        //             "details": {
+        //                 "title": "Sent USDC",
+        //                 "subtitle": "To USDC address on Ethereum network",
+        //                 "header": "Sent 14.008308 USDC ($18.74)",
+        //                 "health": "warning"
+        //             },
+        //             "hide_native_amount": false
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTransaction (data, currency);
+    }
+
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = api[0];
         const signed = api[1] === 'private';
@@ -3212,7 +3379,7 @@ export default class coinbase extends Exchange {
         const savedPath = fullPath;
         if (method === 'GET') {
             if (Object.keys (query).length) {
-                fullPath += '?' + this.urlencode (query);
+                fullPath += '?' + this.urlencodeWithArrayRepeat (query);
             }
         }
         const url = this.urls['api']['rest'] + fullPath;
@@ -3223,11 +3390,16 @@ export default class coinbase extends Exchange {
                     'Authorization': authorization,
                     'Content-Type': 'application/json',
                 };
-            } else if (this.token) {
+            } else if (this.token && !this.checkRequiredCredentials (false)) {
                 headers = {
                     'Authorization': 'Bearer ' + this.token,
                     'Content-Type': 'application/json',
                 };
+                if (method !== 'GET') {
+                    if (Object.keys (query).length) {
+                        body = this.json (query);
+                    }
+                }
             } else {
                 this.checkRequiredCredentials ();
                 const nonce = this.nonce ().toString ();

@@ -343,6 +343,14 @@ class bitstamp extends Exchange {
                         'earn/subscribe/' => 1,
                         'earn/subscriptions/setting/' => 1,
                         'earn/unsubscribe' => 1,
+                        'wecan_withdrawal/' => 1,
+                        'wecan_address/' => 1,
+                        'trac_withdrawal/' => 1,
+                        'trac_address/' => 1,
+                        'eurcv_withdrawal/' => 1,
+                        'eurcv_address/' => 1,
+                        'pyusd_withdrawal/' => 1,
+                        'pyusd_address/' => 1,
                     ),
                 ),
             ),
@@ -1350,7 +1358,7 @@ class bitstamp extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -2063,7 +2071,7 @@ class bitstamp extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

@@ -1043,7 +1043,7 @@ class huobijp extends huobijp$1 {
             const depositEnabled = this.safeValue(currency, 'deposit-enabled');
             const withdrawEnabled = this.safeValue(currency, 'withdraw-enabled');
             const countryDisabled = this.safeValue(currency, 'country-disabled');
-            const visible = this.safeValue(currency, 'visible', false);
+            const visible = this.safeBool(currency, 'visible', false);
             const state = this.safeString(currency, 'state');
             const active = visible && depositEnabled && withdrawEnabled && (state === 'online') && !countryDisabled;
             const name = this.safeString(currency, 'display-name');
@@ -1448,13 +1448,12 @@ class huobijp extends huobijp$1 {
         }
         const method = this.options['createOrderMethod'];
         const response = await this[method](this.extend(request, params));
-        const timestamp = this.milliseconds();
         const id = this.safeString(response, 'data');
         return this.safeOrder({
             'info': response,
             'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'lastTradeTimestamp': undefined,
             'status': undefined,
             'symbol': symbol,

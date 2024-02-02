@@ -526,7 +526,7 @@ class independentreserve extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, $limit = 50, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = 50, $params = array ()) {
         /**
          * fetch all trades made by the user
          * @param {string} $symbol unified $market $symbol
@@ -658,7 +658,7 @@ class independentreserve extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -671,20 +671,21 @@ class independentreserve extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $capitalizedOrderType = $this->capitalize($type);
-        $method = 'privatePostPlace' . $capitalizedOrderType . 'Order';
-        $orderType = $capitalizedOrderType;
+        $orderType = $this->capitalize($type);
         $orderType .= ($side === 'sell') ? 'Offer' : 'Bid';
         $request = $this->ordered(array(
             'primaryCurrencyCode' => $market['baseId'],
             'secondaryCurrencyCode' => $market['quoteId'],
             'orderType' => $orderType,
         ));
+        $response = null;
+        $request['volume'] = $amount;
         if ($type === 'limit') {
             $request['price'] = $price;
+            $response = $this->privatePostPlaceLimitOrder (array_merge($request, $params));
+        } else {
+            $response = $this->privatePostPlaceMarketOrder (array_merge($request, $params));
         }
-        $request['volume'] = $amount;
-        $response = $this->$method (array_merge($request, $params));
         return $this->safe_order(array(
             'info' => $response,
             'id' => $response['OrderGuid'],

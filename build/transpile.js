@@ -75,6 +75,15 @@ class Transpiler {
             [ /\.safeStringLowerN\s/g, '.safe_string_lower_n'],
             [ /\.safeStringUpperN\s/g, '.safe_string_upper_n'],
             [ /\.safeValueN\s/g, '.safe_value_n'],
+            [ /\.safeBoolN\s/g, '.safe_bool_n'],
+            [ /\.safeBool2\s/g, '.safe_bool_2'],
+            [ /\.safeBool\s/g, '.safe_bool'],
+            [ /\.safeDictN\s/g, '.safe_dict_n'],
+            [ /\.safeDict2\s/g, '.safe_dict_2'],
+            [ /\.safeDict\s/g, '.safe_dict'],
+            [ /\.safeListN\s/g, '.safe_list_n'],
+            [ /\.safeList2\s/g, '.safe_list_2'],
+            [ /\.safeList\s/g, '.safe_list'],
             [ /\.inArray\s/g, '.in_array'],
             [ /\.toArray\s/g, '.to_array'],
             [ /\.isEmpty\s/g, '.is_empty'],
@@ -351,7 +360,9 @@ class Transpiler {
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'number\'/g, "isinstance($1[$2], numbers.Real)" ],
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'number\'/g, "(not isinstance($1[$2], numbers.Real))" ],
             [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'number\'/g, "isinstance($1, numbers.Real)" ],
+            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'boolean\'/g, "isinstance($1, bool)" ],
             [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'number\'/g, "(not isinstance($1, numbers.Real))" ],
+            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'boolean\'/g, "(not isinstance($1, bool))" ],
 
             [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+undefined/g, '$1[$2] is None' ],
             [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+undefined/g, '$1[$2] is not None' ],
@@ -596,7 +607,9 @@ class Transpiler {
             [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'object\'/g, "gettype($1) === 'array'" ],
             [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'object\'/g, "gettype($1) !== 'array'" ],
             [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'function\'/g, "is_callable($1)" ],
+            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'boolean\'/g, "is_bool($1)" ],
             [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'function\'/g, "!is_callable($1)" ],
+            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'boolean\'/g, "!is_bool($1)" ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'number\'/g, "(is_float($1[$2]) || is_int($1[$2]))" ], // same as above but for number
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'number\'/g, "!(is_float($1[$2]) || is_int($1[$2]))" ],
@@ -957,6 +970,7 @@ class Transpiler {
             'MarketType': /: MarketType/,
             'Market': /(-> Market:|: Market)/,
             'Order': /-> Order:/,
+            'TransferEntry': /-> TransferEntry:/,
             'OrderBook': /-> OrderBook:/,
             'OrderRequest': /: (?:List\[)?OrderRequest/,
             'OrderSide': /: OrderSide/,
@@ -1394,7 +1408,7 @@ class Transpiler {
         // altogether in PHP, async PHP, Python sync and async
         const sync = false
         const async = true
-        return {
+        const result = {
             python2:      this.createPythonClass (className, baseClass, python2,  methodNames, sync),
             python3:      this.createPythonClass (className, baseClass, python3,  methodNames, async),
             php:          this.createPHPClass    (className, baseClass, php,      methodNames, sync),
@@ -1402,8 +1416,13 @@ class Transpiler {
             className,
             baseClass,
         }
+        return this.afterTranspileClass (result, contents);
     }
 
+    // for override
+    afterTranspileClass (result, contents) {
+        return result
+    }
     // ========================================================================
 
     transpileDerivedExchangeFile (tsFolder, filename, options, force = false) {
@@ -1614,6 +1633,7 @@ class Transpiler {
                 'Int': '?int',
                 'OrderType': 'string',
                 'OrderSide': 'string',
+                'Dictionary<any>': 'array',
             }
             const phpArrayRegex = /^(?:Market|Currency|Account|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
@@ -1675,6 +1695,7 @@ class Transpiler {
                 'boolean': 'bool',
                 'Int': 'Int',
                 'OHLCV': 'list',
+                'Dictionary<any>': 'dict'
             }
             const unwrapLists = (type) => {
                 const output = []
@@ -1966,7 +1987,7 @@ class Transpiler {
             "",
         ].join ("\n")
 
-        const python = this.getPythonPreamble (4) + pythonHeader + python2Body + "\n"
+        const python = this.getPythonPreamble (4) + pythonHeader + python2Body
         const php = this.getPHPPreamble (true, 3) + phpBody
 
         log.magenta ('→', pyFile.yellow)
@@ -2041,7 +2062,7 @@ class Transpiler {
             "",
         ].join ("\n")
 
-        const python = this.getPythonPreamble (4) + pythonHeader + python2Body + "\n"
+        const python = this.getPythonPreamble (4) + pythonHeader + python2Body
         const php = this.getPHPPreamble (true, 3) + phpHeader + phpBody
 
         log.magenta ('→', pyFile.yellow)
@@ -2131,7 +2152,7 @@ class Transpiler {
             "}",
         ].join ("\n")
 
-        const python = this.getPythonPreamble (4) + pythonHeader + python2Body + "\n"
+        const python = this.getPythonPreamble (4) + pythonHeader + python2Body + '\n'
         const php = this.getPHPPreamble (true, 3) + phpHeader + phpBody
 
         log.magenta ('→', pyFile.yellow)
@@ -2448,6 +2469,7 @@ class Transpiler {
             const usesNumber = pythonAsync.indexOf ('numbers.') >= 0;
             const usesTickSize = pythonAsync.indexOf ('TICK_SIZE') >= 0;
             const requiredSubTests  = imports.filter(x => x.name.includes('test')).map(x => x.name);
+            const usesAsyncio = pythonAsync.indexOf ('asyncio.') >= 0;
 
             let importedExceptionTypes = imports.filter(x => Object.keys(errors).includes(x.name)).map(x => x.name); // returns 'OnMaintenance,ExchangeNotAvailable', etc...
 
@@ -2490,6 +2512,9 @@ class Transpiler {
                 pythonHeaderSync.push ('from ccxt.base.precise import Precise  # noqa E402')
                 phpHeaderAsync.push ('use \\ccxt\\Precise;')
                 phpHeaderSync.push ('use \\ccxt\\Precise;')
+            }
+            if (usesAsyncio) {
+                pythonHeaderAsync.push ('import asyncio')
             }
             if (test.pyHeaders) {
                 pythonHeaderAsync = pythonHeaderAsync.concat (test.pyHeaders);

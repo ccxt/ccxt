@@ -452,6 +452,7 @@ class htx(ccxt.async_support.htx):
         except Exception as e:
             del client.subscriptions[messageHash]
             client.reject(e, messageHash)
+        return None
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)
@@ -880,11 +881,16 @@ class htx(ccxt.async_support.htx):
                 # inject trade in existing order by faking an order object
                 orderId = self.safe_string(parsedTrade, 'order')
                 trades = [parsedTrade]
+                status = self.parse_order_status(self.safe_string_2(data, 'orderStatus', 'status', 'closed'))
+                filled = self.safe_string(data, 'execAmt')
+                remaining = self.safe_string(data, 'remainAmt')
                 order = {
                     'id': orderId,
                     'trades': trades,
-                    'status': 'closed',
+                    'status': status,
                     'symbol': market['symbol'],
+                    'filled': self.parse_number(filled),
+                    'remaining': self.parse_number(remaining),
                 }
                 parsedOrder = order
             else:
@@ -1576,11 +1582,11 @@ class htx(ccxt.async_support.htx):
         if subscription is not None:
             method = self.safe_value(subscription, 'method')
             if method is not None:
-                return method(client, message, subscription)
+                method(client, message, subscription)
+                return
             # clean up
             if id in client.subscriptions:
                 del client.subscriptions[id]
-        return message
 
     def handle_system_status(self, client: Client, message):
         #
@@ -1689,10 +1695,9 @@ class htx(ccxt.async_support.htx):
                 'kline': self.handle_ohlcv,
             }
             method = self.safe_value(methods, methodName)
-            if method is None:
-                return message
-            else:
-                return method(client, message)
+            if method is not None:
+                method(client, message)
+                return
         # private spot subjects
         privateParts = ch.split('#')
         privateType = self.safe_string(privateParts, 0, '')

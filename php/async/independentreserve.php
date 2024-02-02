@@ -543,7 +543,7 @@ class independentreserve extends Exchange {
         }) ();
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, $limit = 50, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = 50, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
@@ -681,7 +681,7 @@ class independentreserve extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -695,20 +695,21 @@ class independentreserve extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $capitalizedOrderType = $this->capitalize($type);
-            $method = 'privatePostPlace' . $capitalizedOrderType . 'Order';
-            $orderType = $capitalizedOrderType;
+            $orderType = $this->capitalize($type);
             $orderType .= ($side === 'sell') ? 'Offer' : 'Bid';
             $request = $this->ordered(array(
                 'primaryCurrencyCode' => $market['baseId'],
                 'secondaryCurrencyCode' => $market['quoteId'],
                 'orderType' => $orderType,
             ));
+            $response = null;
+            $request['volume'] = $amount;
             if ($type === 'limit') {
                 $request['price'] = $price;
+                $response = Async\await($this->privatePostPlaceLimitOrder (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privatePostPlaceMarketOrder (array_merge($request, $params)));
             }
-            $request['volume'] = $amount;
-            $response = Async\await($this->$method (array_merge($request, $params)));
             return $this->safe_order(array(
                 'info' => $response,
                 'id' => $response['OrderGuid'],

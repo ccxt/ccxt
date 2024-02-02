@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.kraken import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, IndexType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, IndexType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -39,7 +39,7 @@ class kraken(Exchange, ImplicitAPI):
             'name': 'Kraken',
             'countries': ['US'],
             'version': '0',
-            'rateLimit': 1000,
+            'rateLimit': 3000,  # bucket fills max 15, but drains 1 every 3s
             'certified': False,
             'pro': True,
             'has': {
@@ -122,7 +122,7 @@ class kraken(Exchange, ImplicitAPI):
                     'zendesk': 'https://kraken.zendesk.com/api/v2/help_center/en-us/articles',  # use the public zendesk api to receive article bodies and bypass new anti-spam protections
                 },
                 'www': 'https://www.kraken.com',
-                'doc': 'https://www.kraken.com/features/api',
+                'doc': 'https://docs.kraken.com/rest/',
                 'fees': 'https://www.kraken.com/en-us/features/fee-schedule',
             },
             'fees': {
@@ -185,48 +185,48 @@ class kraken(Exchange, ImplicitAPI):
                     'post': {
                         'AddOrder': 0,
                         'AddOrderBatch': 0,
-                        'AddExport': 3,
-                        'Balance': 3,
-                        'CancelAll': 3,
-                        'CancelAllOrdersAfter': 3,
+                        'AddExport': 1,
+                        'Balance': 1,
+                        'CancelAll': 1,
+                        'CancelAllOrdersAfter': 1,
                         'CancelOrder': 0,
                         'CancelOrderBatch': 0,
-                        'ClosedOrders': 6,
-                        'DepositAddresses': 3,
-                        'DepositMethods': 3,
-                        'DepositStatus': 3,
+                        'ClosedOrders': 1,
+                        'DepositAddresses': 1,
+                        'DepositMethods': 1,
+                        'DepositStatus': 1,
                         'EditOrder': 0,
-                        'ExportStatus': 3,
-                        'GetWebSocketsToken': 3,
-                        'Ledgers': 6,
-                        'OpenOrders': 3,
-                        'OpenPositions': 3,
-                        'QueryLedgers': 3,
-                        'QueryOrders': 3,
-                        'QueryTrades': 3,
-                        'RetrieveExport': 3,
-                        'RemoveExport': 3,
-                        'BalanceEx': 3,
-                        'TradeBalance': 3,
-                        'TradesHistory': 6,
-                        'TradeVolume': 3,
-                        'Withdraw': 3,
-                        'WithdrawCancel': 3,
-                        'WithdrawInfo': 3,
-                        'WithdrawMethods': 3,
-                        'WithdrawAddresses': 3,
-                        'WithdrawStatus': 3,
-                        'WalletTransfer': 3,
+                        'ExportStatus': 1,
+                        'GetWebSocketsToken': 1,
+                        'Ledgers': 2,
+                        'OpenOrders': 1,
+                        'OpenPositions': 1,
+                        'QueryLedgers': 1,
+                        'QueryOrders': 1,
+                        'QueryTrades': 1,
+                        'RetrieveExport': 1,
+                        'RemoveExport': 1,
+                        'BalanceEx': 1,
+                        'TradeBalance': 1,
+                        'TradesHistory': 2,
+                        'TradeVolume': 1,
+                        'Withdraw': 1,
+                        'WithdrawCancel': 1,
+                        'WithdrawInfo': 1,
+                        'WithdrawMethods': 1,
+                        'WithdrawAddresses': 1,
+                        'WithdrawStatus': 1,
+                        'WalletTransfer': 1,
                         # sub accounts
-                        'CreateSubaccount': 3,
-                        'AccountTransfer': 3,
+                        'CreateSubaccount': 1,
+                        'AccountTransfer': 1,
                         # earn
-                        'Earn/Allocate': 3,
-                        'Earn/Deallocate': 3,
-                        'Earn/AllocateStatus': 3,
-                        'Earn/DeallocateStatus': 3,
-                        'Earn/Strategies': 3,
-                        'Earn/Allocations': 3,
+                        'Earn/Allocate': 1,
+                        'Earn/Deallocate': 1,
+                        'Earn/AllocateStatus': 1,
+                        'Earn/DeallocateStatus': 1,
+                        'Earn/Strategies': 1,
+                        'Earn/Allocations': 1,
                     },
                 },
             },
@@ -958,7 +958,9 @@ class kraken(Exchange, ImplicitAPI):
         else:
             request['interval'] = timeframe
         if since is not None:
-            request['since'] = self.parse_to_int((since - 1) / 1000)
+            # contrary to kraken's api documentation, the since parameter must be passed in nanoseconds
+            # the adding of '000000' is copied from the fetchTrades function
+            request['since'] = self.number_to_string(since) + '000000'  # expected to be in nanoseconds
         response = self.publicGetOHLC(self.extend(request, params))
         #
         #     {
@@ -1227,11 +1229,8 @@ class kraken(Exchange, ImplicitAPI):
             # therefore we use string concatenation here
             request['since'] = since * 1e6
             request['since'] = str(since) + '000000'  # expected to be in nanoseconds
-        # https://github.com/ccxt/ccxt/issues/5698
-        if limit is not None and limit != 1000:
-            fetchTradesWarning = self.safe_value(self.options, 'fetchTradesWarning', True)
-            if fetchTradesWarning:
-                raise ExchangeError(self.id + ' fetchTrades() cannot serve ' + str(limit) + " trades without breaking the pagination, see https://github.com/ccxt/ccxt/issues/5698 for more details. Set exchange.options['fetchTradesWarning'] to acknowledge self warning and silence it.")
+        if limit is not None:
+            request['count'] = limit
         response = self.publicGetTrades(self.extend(request, params))
         #
         #     {
@@ -1299,7 +1298,7 @@ class kraken(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         :see: https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
         create a trade order
@@ -1388,6 +1387,16 @@ class kraken(Exchange, ImplicitAPI):
             'closed': 'closed',
             'canceled': 'canceled',
             'expired': 'expired',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_order_type(self, status):
+        statuses = {
+            'take-profit': 'market',
+            'stop-loss-limit': 'limit',
+            'stop-loss': 'market',
+            'take-profit-limit': 'limit',
+            'trailing-stop-limit': 'limit',
         }
         return self.safe_string(statuses, status, status)
 
@@ -1518,7 +1527,15 @@ class kraken(Exchange, ImplicitAPI):
                 trades.append(self.safe_trade({'id': rawTrade, 'orderId': id, 'symbol': symbol, 'info': {}}))
             else:
                 trades.append(rawTrade)
-        stopPrice = self.safe_number(order, 'stopprice', stopPrice)
+        stopPrice = self.omit_zero(self.safe_string(order, 'stopprice', stopPrice))
+        stopLossPrice = None
+        takeProfitPrice = None
+        if type.startswith('take-profit'):
+            takeProfitPrice = self.safe_string(description, 'price')
+            price = self.omit_zero(self.safe_string(description, 'price2'))
+        elif type.startswith('stop-loss'):
+            stopLossPrice = self.safe_string(description, 'price')
+            price = self.omit_zero(self.safe_string(description, 'price2'))
         return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1528,13 +1545,15 @@ class kraken(Exchange, ImplicitAPI):
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
-            'type': type,
+            'type': self.parse_order_type(type),
             'timeInForce': None,
             'postOnly': isPostOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
             'cost': None,
             'amount': amount,
             'filled': filled,
@@ -1557,23 +1576,30 @@ class kraken(Exchange, ImplicitAPI):
         trailingAmount = self.safe_string(params, 'trailingAmount')
         trailingLimitAmount = self.safe_string(params, 'trailingLimitAmount')
         isTrailingAmountOrder = trailingAmount is not None
-        if (type == 'limit') and not isTrailingAmountOrder:
+        isLimitOrder = type.endswith('limit')  # supporting limit, stop-loss-limit, take-profit-limit, etc
+        if isLimitOrder and not isTrailingAmountOrder:
             request['price'] = self.price_to_precision(symbol, price)
         reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only')
         if isStopLossOrTakeProfitTrigger:
             if isStopLossTriggerOrder:
                 request['price'] = self.price_to_precision(symbol, stopLossTriggerPrice)
-                request['ordertype'] = 'stop-loss-limit'
+                if isLimitOrder:
+                    request['ordertype'] = 'stop-loss-limit'
+                else:
+                    request['ordertype'] = 'stop-loss'
             elif isTakeProfitTriggerOrder:
                 request['price'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
-                request['ordertype'] = 'take-profit-limit'
-            request['price2'] = self.price_to_precision(symbol, price)
-            reduceOnly = True
+                if isLimitOrder:
+                    request['ordertype'] = 'take-profit-limit'
+                else:
+                    request['ordertype'] = 'take-profit'
+            if isLimitOrder:
+                request['price2'] = self.price_to_precision(symbol, price)
         elif isTrailingAmountOrder:
             trailingActivationPriceType = self.safe_string(params, 'trigger', 'last')
             trailingAmountString = '+' + trailingAmount
             request['trigger'] = trailingActivationPriceType
-            if (type == 'limit') or (trailingLimitAmount is not None):
+            if isLimitOrder or (trailingLimitAmount is not None):
                 offset = self.safe_string(params, 'offset', '-')
                 trailingLimitAmountString = offset + self.number_to_string(trailingLimitAmount)
                 request['price'] = trailingAmountString
@@ -2416,7 +2442,7 @@ class kraken(Exchange, ImplicitAPI):
             'info': depositAddress,
         }
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds
@@ -2533,7 +2559,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         return self.transfer(code, amount, 'spot', 'swap', params)
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
         """
         :see: https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
         transfers currencies between sub-accounts(only spot->swap direction is supported)

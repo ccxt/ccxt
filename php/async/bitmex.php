@@ -108,7 +108,7 @@ class bitmex extends Exchange {
                     'public' => 'https://testnet.bitmex.com',
                     'private' => 'https://testnet.bitmex.com',
                 ),
-                'logo' => 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
+                'logo' => 'https://github.com/ccxt/ccxt/assets/43336371/cea9cfe5-c57e-4b84-b2ac-77b960b04445',
                 'api' => array(
                     'public' => 'https://www.bitmex.com',
                     'private' => 'https://www.bitmex.com',
@@ -119,7 +119,10 @@ class bitmex extends Exchange {
                     'https://github.com/BitMEX/api-connectors/tree/master/official-http',
                 ),
                 'fees' => 'https://www.bitmex.com/app/fees',
-                'referral' => 'https://www.bitmex.com/register/upZpOX',
+                'referral' => array(
+                    'url' => 'https://www.bitmex.com/app/register/NZTR1q',
+                    'discount' => 0.1,
+                ),
             ),
             'api' => array(
                 'public' => array(
@@ -343,8 +346,8 @@ class bitmex extends Exchange {
                     $network = $this->network_id_to_code($networkId);
                     $withdrawalFeeRaw = $this->safe_string($chain, 'withdrawalFee');
                     $withdrawalFee = $this->parse_number(Precise::string_mul($withdrawalFeeRaw, $precisionString));
-                    $isDepositEnabled = $this->safe_value($chain, 'depositEnabled', false);
-                    $isWithdrawEnabled = $this->safe_value($chain, 'withdrawalEnabled', false);
+                    $isDepositEnabled = $this->safe_bool($chain, 'depositEnabled', false);
+                    $isWithdrawEnabled = $this->safe_bool($chain, 'withdrawalEnabled', false);
                     $active = ($isDepositEnabled && $isWithdrawEnabled);
                     if ($isDepositEnabled) {
                         $depositEnabled = true;
@@ -1523,8 +1526,8 @@ class bitmex extends Exchange {
                 if ($fetchOHLCVOpenTimestamp) {
                     $timestamp = $this->sum($timestamp, $duration);
                 }
-                $ymdhms = $this->ymdhms($timestamp);
-                $request['startTime'] = $ymdhms; // starting date $filter for results
+                $startTime = $this->iso8601($timestamp);
+                $request['startTime'] = $startTime; // starting date $filter for results
             } else {
                 $request['reverse'] = true;
             }
@@ -1739,7 +1742,7 @@ class bitmex extends Exchange {
             $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'linear');
             $isInverse = ($defaultSubType === 'inverse');
         } else {
-            $isInverse = $this->safe_value($market, 'inverse', false);
+            $isInverse = $this->safe_bool($market, 'inverse', false);
         }
         if ($isInverse) {
             $cost = $this->convert_from_raw_quantity($symbol, $qty);
@@ -1857,7 +1860,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -2379,7 +2382,7 @@ class bitmex extends Exchange {
         ));
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2443,7 +2446,7 @@ class bitmex extends Exchange {
                 $item = $response[$i];
                 $marketId = $this->safe_string($item, 'symbol');
                 $market = $this->safe_market($marketId);
-                $swap = $this->safe_value($market, 'swap', false);
+                $swap = $this->safe_bool($market, 'swap', false);
                 if ($swap) {
                     $filteredResponse[] = $item;
                 }
@@ -2563,7 +2566,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -2638,12 +2641,9 @@ class bitmex extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchDepositAddress requires $params["network"]');
             }
             $currency = $this->currency($code);
-            $currencyId = $currency['id'];
-            $idLength = count($currencyId);
-            $currencyId = strtolower(mb_substr($currencyId, 0, $idLength - 1 - 0) . mb_substr($currencyId, $idLength - 1, $idLength - $idLength - 1));  // make the last letter lowercase
             $params = $this->omit($params, 'network');
             $request = array(
-                'currency' => $currencyId,
+                'currency' => $currency['id'],
                 'network' => $this->network_code_to_id($networkCode, $currency['code']),
             );
             $response = Async\await($this->privateGetUserDepositAddress (array_merge($request, $params)));

@@ -32,6 +32,12 @@ class hitbtc extends hitbtc$1 {
                         'private': 'wss://api.hitbtc.com/api/3/ws/trading',
                     },
                 },
+                'test': {
+                    'ws': {
+                        'public': 'wss://api.demo.hitbtc.com/api/3/ws/public',
+                        'private': 'wss://api.demo.hitbtc.com/api/3/ws/trading',
+                    },
+                },
             },
             'options': {
                 'tradesLimit': 1000,
@@ -109,7 +115,7 @@ class hitbtc extends hitbtc$1 {
         }
         return future;
     }
-    async subscribePublic(name, symbols = undefined, params = {}) {
+    async subscribePublic(name, messageHashPrefix, symbols = undefined, params = {}) {
         /**
          * @ignore
          * @method
@@ -119,7 +125,7 @@ class hitbtc extends hitbtc$1 {
          */
         await this.loadMarkets();
         const url = this.urls['api']['ws']['public'];
-        let messageHash = name;
+        let messageHash = messageHashPrefix;
         if (symbols !== undefined) {
             messageHash = messageHash + '::' + symbols.join(',');
         }
@@ -214,7 +220,7 @@ class hitbtc extends hitbtc$1 {
                 'symbols': [market['id']],
             },
         };
-        const orderbook = await this.subscribePublic(name, [symbol], this.deepExtend(request, params));
+        const orderbook = await this.subscribePublic(name, name, [symbol], this.deepExtend(request, params));
         return orderbook.limit();
     }
     handleOrderBook(client, message) {
@@ -307,7 +313,8 @@ class hitbtc extends hitbtc$1 {
                 'symbols': [market['id']],
             },
         };
-        return await this.subscribePublic(name, [symbol], this.deepExtend(request, params));
+        const result = await this.subscribePublic(name, 'ticker', [symbol], this.deepExtend(request, params));
+        return this.safeValue(result, symbol);
     }
     async watchTickers(symbols = undefined, params = {}) {
         /**
@@ -342,7 +349,7 @@ class hitbtc extends hitbtc$1 {
                 'symbols': marketIds,
             },
         };
-        const tickers = await this.subscribePublic(name, symbols, this.deepExtend(request, params));
+        const tickers = await this.subscribePublic(name, 'tickers', symbols, this.deepExtend(request, params));
         if (this.newUpdates) {
             return tickers;
         }
@@ -390,18 +397,18 @@ class hitbtc extends hitbtc$1 {
         const data = this.safeValue(message, 'data', {});
         const marketIds = Object.keys(data);
         const channel = this.safeString(message, 'ch');
-        const newTickers = [];
+        const newTickers = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket(marketId);
             const symbol = market['symbol'];
             const ticker = this.parseWsTicker(data[marketId], market);
             this.tickers[symbol] = ticker;
-            newTickers.push(ticker);
+            newTickers[symbol] = ticker;
             const messageHash = channel + '::' + symbol;
-            client.resolve(this.tickers[symbol], messageHash);
+            client.resolve(newTickers, messageHash);
         }
-        const messageHashes = this.findMessageHashes(client, channel + '::');
+        const messageHashes = this.findMessageHashes(client, 'tickers::');
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             const parts = messageHash.split('::');
@@ -494,7 +501,8 @@ class hitbtc extends hitbtc$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const trades = await this.subscribePublic('trades', [symbol], this.deepExtend(request, params));
+        const name = 'trades';
+        const trades = await this.subscribePublic(name, name, [symbol], this.deepExtend(request, params));
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
@@ -623,7 +631,7 @@ class hitbtc extends hitbtc$1 {
         if (limit !== undefined) {
             request['params']['limit'] = limit;
         }
-        const ohlcv = await this.subscribePublic(name, [symbol], this.deepExtend(request, params));
+        const ohlcv = await this.subscribePublic(name, name, [symbol], this.deepExtend(request, params));
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }

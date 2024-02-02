@@ -10,8 +10,8 @@ async function testFetchOrderBooks (exchange, skippedProperties) {
     const orderBookKeys = Object.keys (orderBooks);
     assert (orderBookKeys.length, exchange.id + ' ' + method + ' returned 0 length data');
     for (let i = 0; i < orderBookKeys.length; i++) {
-        const symbol = orderBookKeys[i];
-        testOrderBook (exchange, skippedProperties, method, orderBooks[symbol], symbol);
+        const symbolInner = orderBookKeys[i];
+        testOrderBook (exchange, skippedProperties, method, orderBooks[symbolInner], symbolInner);
     }
 }
 

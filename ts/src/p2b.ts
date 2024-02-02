@@ -22,6 +22,7 @@ export default class p2b extends Exchange {
             'countries': [ 'LT' ],
             'rateLimit': 100,
             'version': 'v2',
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -790,7 +791,7 @@ export default class p2b extends Exchange {
         return this.safeBalance (result);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name p2b#createOrder
