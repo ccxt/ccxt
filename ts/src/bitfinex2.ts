@@ -44,7 +44,7 @@ export default class bitfinex2 extends Exchange {
                 'createTrailingAmountOrder': true,
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': true,
-                'editOrder': false,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrder': true,
                 'fetchClosedOrders': true,
@@ -3578,5 +3578,131 @@ export default class bitfinex2 extends Exchange {
         //     ]
         //
         return this.parseOrder (response[0], market);
+    }
+
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitfinex2#editOrder
+         * @description edit a trade order
+         * @see https://docs.bitfinex.com/reference/rest-auth-update-order
+         * @param {string} id edit order id
+         * @param {string} symbol unified symbol of the market to edit an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.stopPrice] the price that triggers a trigger order
+         * @param {boolean} [params.postOnly] set to true if you want to make a post only order
+         * @param {boolean} [params.reduceOnly] indicates that the order is to reduce the size of a position
+         * @param {int} [params.flags] additional order parameters: 4096 (Post Only), 1024 (Reduce Only), 16384 (OCO), 64 (Hidden), 512 (Close), 524288 (No Var Rates)
+         * @param {int} [params.leverage] leverage for a derivative order, supported by derivative symbol orders only, the value should be between 1 and 100 inclusive
+         * @param {int} [params.clientOrderId] a unique client order id for the order
+         * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'id': id,
+        };
+        if (amount !== undefined) {
+            let amountString = this.amountToPrecision (symbol, amount);
+            amountString = (side === 'buy') ? amountString : Precise.stringNeg (amountString);
+            request['amount'] = amountString;
+        }
+        const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
+        const trailingAmount = this.safeString (params, 'trailingAmount');
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const postOnlyParam = this.safeBool (params, 'postOnly', false);
+        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        const clientOrderId = this.safeInteger2 (params, 'cid', 'clientOrderId');
+        if (trailingAmount !== undefined) {
+            request['price_trailing'] = trailingAmount;
+        } else if (stopPrice !== undefined) {
+            // request['price'] is taken as stopPrice for stop orders
+            request['price'] = this.priceToPrecision (symbol, stopPrice);
+            if (type === 'limit') {
+                request['price_aux_limit'] = this.priceToPrecision (symbol, price);
+            }
+        }
+        const postOnly = (postOnlyParam || (timeInForce === 'PO'));
+        if ((type !== 'market') && (stopPrice === undefined)) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        // flag values may be summed to combine flags
+        let flags = 0;
+        if (postOnly) {
+            flags = this.sum (flags, 4096);
+        }
+        if (reduceOnly) {
+            flags = this.sum (flags, 1024);
+        }
+        if (flags !== 0) {
+            request['flags'] = flags;
+        }
+        if (clientOrderId !== undefined) {
+            request['cid'] = clientOrderId;
+        }
+        const leverage = this.safeInteger2 (params, 'leverage', 'lev');
+        if (leverage !== undefined) {
+            request['lev'] = leverage;
+        }
+        params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId', 'leverage' ]);
+        const response = await this.privatePostAuthWOrderUpdate (this.extend (request, params));
+        //
+        //     [
+        //         1706845376402,
+        //         "ou-req",
+        //         null,
+        //         null,
+        //         [
+        //             139658969116,
+        //             null,
+        //             1706843908637,
+        //             "tBTCUST",
+        //             1706843908637,
+        //             1706843908638,
+        //             0.0002,
+        //             0.0002,
+        //             "EXCHANGE LIMIT",
+        //             null,
+        //             null,
+        //             null,
+        //             0,
+        //             "ACTIVE",
+        //             null,
+        //             null,
+        //             35000,
+        //             0,
+        //             0,
+        //             0,
+        //             null,
+        //             null,
+        //             null,
+        //             0,
+        //             0,
+        //             null,
+        //             null,
+        //             null,
+        //             "API>BFX",
+        //             null,
+        //             null,
+        //             {}
+        //         ],
+        //         null,
+        //         "SUCCESS",
+        //         "Submitting update to exchange limit buy order for 0.0002 BTC."
+        //     ]
+        //
+        const status = this.safeString (response, 6);
+        if (status !== 'SUCCESS') {
+            const errorCode = response[5];
+            const errorText = response[7];
+            throw new ExchangeError (this.id + ' ' + response[6] + ': ' + errorText + ' (#' + errorCode + ')');
+        }
+        const order = this.safeList (response, 4, []);
+        return this.parseOrder (order, market);
     }
 }
