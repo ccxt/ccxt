@@ -3130,7 +3130,7 @@ class ascendex extends ascendex$1 {
          * @method
          * @name ascendex#transfer
          * @description transfer currency internally between wallets on the same account
-         * @param {string} code unified currency code
+         * @param {string} code unified currency codeåå
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to

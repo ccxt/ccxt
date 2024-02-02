@@ -1039,7 +1039,7 @@ class coinsph(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://coins-docs.github.io/rest-api/#new-order--trade
@@ -1466,7 +1466,7 @@ class coinsph(Exchange, ImplicitAPI):
             'taker': self.safe_number(fee, 'takerCommission'),
         }
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal to coins_ph account
         :see: https://coins-docs.github.io/rest-api/#withdrawuser_data

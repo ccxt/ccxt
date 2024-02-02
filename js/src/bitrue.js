@@ -1976,9 +1976,9 @@ export default class bitrue extends Exchange {
                     const amountString = this.numberToString(amount);
                     const priceString = this.numberToString(price);
                     const quoteAmount = Precise.stringMul(amountString, priceString);
-                    amount = (cost !== undefined) ? cost : quoteAmount;
-                    request['amount'] = this.costToPrecision(symbol, amount);
-                    request['volume'] = this.costToPrecision(symbol, amount);
+                    const requestAmount = (cost !== undefined) ? cost : quoteAmount;
+                    request['amount'] = this.costToPrecision(symbol, requestAmount);
+                    request['volume'] = this.costToPrecision(symbol, requestAmount);
                 }
             }
             else {

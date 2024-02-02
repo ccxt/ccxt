@@ -1139,7 +1139,7 @@ class coinmetro(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#a4895a1d-3f50-40ae-8231-6962ef06c771
@@ -1721,7 +1721,7 @@ class coinmetro(Exchange, ImplicitAPI):
         ]
         return self.safe_value(timeInForceTypes, timeInForce, timeInForce)
 
-    def borrow_cross_margin(self, code: str, amount, params={}):
+    def borrow_cross_margin(self, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
         :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#5b90b3b9-e5db-4d07-ac9d-d680a06fd110

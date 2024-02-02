@@ -353,9 +353,10 @@ public partial class Exchange
         return result;
     }
 
-    public virtual object filterByLimit(object array, object limit = null, object key = null)
+    public virtual object filterByLimit(object array, object limit = null, object key = null, object fromStart = null)
     {
         key ??= "timestamp";
+        fromStart ??= false;
         if (isTrue(this.valueIsDefined(limit)))
         {
             object arrayLength = getArrayLength(array);
@@ -371,7 +372,17 @@ public partial class Exchange
                         ascending = isLessThanOrEqual(first, last); // true if array is sorted in ascending order based on 'timestamp'
                     }
                 }
-                array = ((bool) isTrue(ascending)) ? this.arraySlice(array, prefixUnaryNeg(ref limit)) : this.arraySlice(array, 0, limit);
+                if (isTrue(fromStart))
+                {
+                    if (isTrue(isGreaterThan(limit, arrayLength)))
+                    {
+                        limit = arrayLength;
+                    }
+                    array = ((bool) isTrue(ascending)) ? this.arraySlice(array, 0, limit) : this.arraySlice(array, prefixUnaryNeg(ref limit));
+                } else
+                {
+                    array = ((bool) isTrue(ascending)) ? this.arraySlice(array, prefixUnaryNeg(ref limit)) : this.arraySlice(array, 0, limit);
+                }
             }
         }
         return array;
@@ -401,7 +412,10 @@ public partial class Exchange
         {
             return this.arraySlice(result, prefixUnaryNeg(ref limit));
         }
-        return this.filterByLimit(result, limit, key);
+        // if the user provided a 'since' argument
+        // we want to limit the result starting from the 'since'
+        object shouldFilterFromStart = !isTrue(tail) && isTrue(sinceIsDefined);
+        return this.filterByLimit(result, limit, key, shouldFilterFromStart);
     }
 
     public virtual object filterByValueSinceLimit(object array, object field, object value = null, object since = null, object limit = null, object key = null, object tail = null)
@@ -434,7 +448,7 @@ public partial class Exchange
         {
             return this.arraySlice(result, prefixUnaryNeg(ref limit));
         }
-        return this.filterByLimit(result, limit, key);
+        return this.filterByLimit(result, limit, key, sinceIsDefined);
     }
 
     public virtual void setSandboxMode(object enabled)

@@ -40,7 +40,7 @@ def string_value(value):
 
 def assert_type(exchange, skipped_properties, entry, key, format):
     if key in skipped_properties:
-        return
+        return None
     # because "typeof" string is not transpilable without === 'name', we list them manually at this moment
     entry_key_val = exchange.safe_value(entry, key)
     format_key_val = exchange.safe_value(format, key)

@@ -8,7 +8,7 @@ public partial class BaseTest
 {
     public void DateTimeTests()
     {
-        var exchange = new Exchange(new Dictionary<string, object>() {
+        var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
             { "id", "regirock" },
         });
         // ----------------------------------------------------------------------------

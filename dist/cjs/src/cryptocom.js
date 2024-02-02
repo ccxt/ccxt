@@ -1067,10 +1067,10 @@ class cryptocom extends cryptocom$1 {
         const isTakeProfitTrigger = (takeProfitPrice !== undefined);
         if (isTrigger) {
             request['ref_price'] = this.priceToPrecision(symbol, triggerPrice);
-            price = price.toString();
+            const priceString = this.numberToString(price);
             if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
                 if (side === 'buy') {
-                    if (Precise["default"].stringLt(price, triggerPrice)) {
+                    if (Precise["default"].stringLt(priceString, triggerPrice)) {
                         request['type'] = 'TAKE_PROFIT_LIMIT';
                     }
                     else {
@@ -1078,7 +1078,7 @@ class cryptocom extends cryptocom$1 {
                     }
                 }
                 else {
-                    if (Precise["default"].stringLt(price, triggerPrice)) {
+                    if (Precise["default"].stringLt(priceString, triggerPrice)) {
                         request['type'] = 'STOP_LIMIT';
                     }
                     else {
@@ -1088,7 +1088,7 @@ class cryptocom extends cryptocom$1 {
             }
             else {
                 if (side === 'buy') {
-                    if (Precise["default"].stringLt(price, triggerPrice)) {
+                    if (Precise["default"].stringLt(priceString, triggerPrice)) {
                         request['type'] = 'TAKE_PROFIT';
                     }
                     else {
@@ -1096,7 +1096,7 @@ class cryptocom extends cryptocom$1 {
                     }
                 }
                 else {
-                    if (Precise["default"].stringLt(price, triggerPrice)) {
+                    if (Precise["default"].stringLt(priceString, triggerPrice)) {
                         request['type'] = 'STOP_LOSS';
                     }
                     else {
@@ -1287,10 +1287,10 @@ class cryptocom extends cryptocom$1 {
         const isStopLossTrigger = (stopLossPrice !== undefined);
         const isTakeProfitTrigger = (takeProfitPrice !== undefined);
         if (isTrigger) {
-            price = price.toString();
+            const priceString = this.numberToString(price);
             if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
                 if (side === 'buy') {
-                    if (Precise["default"].stringLt(price, triggerPrice)) {
+                    if (Precise["default"].stringLt(priceString, triggerPrice)) {
                         request['type'] = 'TAKE_PROFIT_LIMIT';
                     }
                     else {
@@ -1298,7 +1298,7 @@ class cryptocom extends cryptocom$1 {
                     }
                 }
                 else {
-                    if (Precise["default"].stringLt(price, triggerPrice)) {
+                    if (Precise["default"].stringLt(priceString, triggerPrice)) {
                         request['type'] = 'STOP_LIMIT';
                     }
                     else {
@@ -1308,7 +1308,7 @@ class cryptocom extends cryptocom$1 {
             }
             else {
                 if (side === 'buy') {
-                    if (Precise["default"].stringLt(price, triggerPrice)) {
+                    if (Precise["default"].stringLt(priceString, triggerPrice)) {
                         request['type'] = 'TAKE_PROFIT';
                     }
                     else {
@@ -1316,7 +1316,7 @@ class cryptocom extends cryptocom$1 {
                     }
                 }
                 else {
-                    if (Precise["default"].stringLt(price, triggerPrice)) {
+                    if (Precise["default"].stringLt(priceString, triggerPrice)) {
                         request['type'] = 'STOP_LOSS';
                     }
                     else {

@@ -293,11 +293,12 @@ class testMainClass(baseMainTestClass):
             await self.run_broker_id_tests()
             return
         symbol_str = symbol_argv if symbol_argv is not None else 'all'
-        dump(self.new_line + '' + self.new_line + '' + '[INFO] TESTING ', self.ext, {
+        exchange_object = {
             'exchange': exchange_id,
             'symbol': symbol_str,
             'isWs': self.ws_tests,
-        }, self.new_line)
+        }
+        dump(self.new_line + '' + self.new_line + '' + '[INFO] TESTING ', self.ext, json_stringify(exchange_object), self.new_line)
         exchange_args = {
             'verbose': self.verbose,
             'debug': self.debug,
@@ -710,7 +711,7 @@ class testMainClass(baseMainTestClass):
             dump('[INFO] Skipping private tests', 'Keys not found')
             return
         code = self.get_exchange_code(exchange)
-        # if (exchange.extendedTest) {
+        # if (exchange.deepExtendedTest) {
         #     await test ('InvalidNonce', exchange, symbol);
         #     await test ('OrderNotFound', exchange, symbol);
         #     await test ('InvalidOrder', exchange, symbol);
@@ -1103,7 +1104,7 @@ class testMainClass(baseMainTestClass):
                 skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
                 await self.test_method_statically(exchange, method, result, type, skip_keys)
                 # reset options
-                exchange.options = old_exchange_options
+                exchange.options = exchange.deep_extend(old_exchange_options, {})
         await close(exchange)
         return True   # in c# methods that will be used with promiseAll need to return something
 
@@ -1125,7 +1126,7 @@ class testMainClass(baseMainTestClass):
                 is_disabled = exchange.safe_value(result, 'disabled', False)
                 if is_disabled:
                     continue
-                is_disabled_c_sharp = exchange.safe_value(result, 'disabledCSharp', False)
+                is_disabled_c_sharp = exchange.safe_value(result, 'disabledCS', False)
                 if is_disabled_c_sharp and (self.lang == 'C#'):
                     continue
                 is_disabled_php = exchange.safe_value(result, 'disabledPHP', False)
@@ -1136,7 +1137,7 @@ class testMainClass(baseMainTestClass):
                 skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
                 await self.test_response_statically(exchange, method, skip_keys, result)
                 # reset options
-                exchange.options = old_exchange_options
+                exchange.options = exchange.deep_extend(old_exchange_options, {})
         await close(exchange)
         return True   # in c# methods that will be used with promiseAll need to return something
 

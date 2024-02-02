@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testAccount(Exchange exchange, object method, object entry)
+    public static void testAccount(Exchange exchange, object skippedProperties, object method, object entry)
     {
         object format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
@@ -15,9 +15,9 @@ public partial class testMainClass : BaseTest
             { "type", "spot" },
             { "id", "12345" },
         };
-        object emptyNotAllowedFor = new List<object>() {"type"};
-        testSharedMethods.assertStructure(exchange, method, entry, format, emptyNotAllowedFor);
-        testSharedMethods.assertCurrencyCode(exchange, method, entry, getValue(entry, "code"));
+        object emptyAllowedFor = new List<object>() {"code", "id"};
+        testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+        testSharedMethods.assertCurrencyCode(exchange, skippedProperties, method, entry, getValue(entry, "code"));
     }
 
 }

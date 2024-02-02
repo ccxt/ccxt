@@ -349,11 +349,12 @@ class testMainClass extends baseMainTestClass {
                 return;
             }
             $symbol_str = $symbol_argv !== null ? $symbol_argv : 'all';
-            dump($this->new_line . '' . $this->new_line . '' . '[INFO] TESTING ', $this->ext, array(
+            $exchange_object = array(
                 'exchange' => $exchange_id,
                 'symbol' => $symbol_str,
                 'isWs' => $this->ws_tests,
-            ), $this->new_line);
+            );
+            dump($this->new_line . '' . $this->new_line . '' . '[INFO] TESTING ', $this->ext, json_stringify($exchange_object), $this->new_line);
             $exchange_args = array(
                 'verbose' => $this->verbose,
                 'debug' => $this->debug,
@@ -883,7 +884,7 @@ class testMainClass extends baseMainTestClass {
                 return;
             }
             $code = $this->get_exchange_code($exchange);
-            // if (exchange.extendedTest) {
+            // if (exchange.deepExtendedTest) {
             //     await test ('InvalidNonce', exchange, symbol);
             //     await test ('OrderNotFound', exchange, symbol);
             //     await test ('InvalidOrder', exchange, symbol);
@@ -1354,7 +1355,7 @@ class testMainClass extends baseMainTestClass {
                     $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
                     Async\await($this->test_method_statically($exchange, $method, $result, $type, $skip_keys));
                     // reset options
-                    $exchange->options = $old_exchange_options;
+                    $exchange->options = $exchange->deep_extend($old_exchange_options, array());
                 }
             }
             Async\await(close($exchange));
@@ -1382,7 +1383,7 @@ class testMainClass extends baseMainTestClass {
                     if ($is_disabled) {
                         continue;
                     }
-                    $is_disabled_c_sharp = $exchange->safe_value($result, 'disabledCSharp', false);
+                    $is_disabled_c_sharp = $exchange->safe_value($result, 'disabledCS', false);
                     if ($is_disabled_c_sharp && ($this->lang === 'C#')) {
                         continue;
                     }
@@ -1396,7 +1397,7 @@ class testMainClass extends baseMainTestClass {
                     $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
                     Async\await($this->test_response_statically($exchange, $method, $skip_keys, $result));
                     // reset options
-                    $exchange->options = $old_exchange_options;
+                    $exchange->options = $exchange->deep_extend($old_exchange_options, array());
                 }
             }
             Async\await(close($exchange));

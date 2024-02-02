@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.kraken import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, IndexType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, IndexType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1298,7 +1298,7 @@ class kraken(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         :see: https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
         create a trade order
@@ -2442,7 +2442,7 @@ class kraken(Exchange, ImplicitAPI):
             'info': depositAddress,
         }
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds
@@ -2559,7 +2559,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         return self.transfer(code, amount, 'spot', 'swap', params)
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
         """
         :see: https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
         transfers currencies between sub-accounts(only spot->swap direction is supported)

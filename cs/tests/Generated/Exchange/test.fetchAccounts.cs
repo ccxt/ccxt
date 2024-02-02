@@ -7,15 +7,14 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testFetchAccounts(Exchange exchange)
+    async static public Task testFetchAccounts(Exchange exchange, object skippedProperties)
     {
         object method = "fetchAccounts";
         object accounts = await exchange.fetchAccounts();
-        assert(((accounts).GetType() == typeof(Dictionary<string, object>)), add(add(add(add(exchange.id, " "), method), " must return an object. "), exchange.json(accounts)));
-        object accountValues = new List<object>(((Dictionary<string,object>)accounts).Values);
-        for (object i = 0; isLessThan(i, getArrayLength(accountValues)); postFixIncrement(ref i))
+        assert(((accounts is IList<object>) || (accounts.GetType().IsGenericType && accounts.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must return an object. "), exchange.json(accounts)));
+        for (object i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
         {
-            testAccount(exchange, method, getValue(accounts, i));
+            testAccount(exchange, skippedProperties, method, getValue(accounts, i));
         }
     }
 

@@ -68,17 +68,20 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
             },
         })
 
-    def negotiate(self, privateChannel, params={}):
+    async def negotiate(self, privateChannel, params={}):
         connectId = 'private' if privateChannel else 'public'
         urls = self.safe_value(self.options, 'urls', {})
         if connectId in urls:
-            return urls[connectId]
+            # return urls[connectId]
+            storedFuture = urls[connectId]
+            return await storedFuture
         # we store an awaitable to the url
         # so that multiple calls don't asynchronously
         # fetch different urls and overwrite each other
         urls[connectId] = self.spawn(self.negotiate_helper, privateChannel, params)
         self.options['urls'] = urls
-        return urls[connectId]
+        future = urls[connectId]
+        return await future
 
     async def negotiate_helper(self, privateChannel, params={}):
         response = None
@@ -685,7 +688,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         messageHash = self.safe_string(message, 'topic')
         subject = self.safe_string(message, 'subject')
         if subject == 'received':
-            return message
+            return
         # At the time of writting self, there is no implementation to easily convert each order into the orderbook so raw messages are returned
         client.resolve(message, messageHash)
 
@@ -703,8 +706,9 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         topic = self.safe_string(message, 'topic')
         isSnapshot = topic.find('Depth') >= 0
         if isSnapshot:
-            return self.hande_l2_snapshot(client, message)
-        return self.handle_l2_order_book(client, message)
+            self.hande_l2_snapshot(client, message)
+            return
+        self.handle_l2_order_book(client, message)
 
     def handle_l2_order_book(self, client: Client, message):
         #
@@ -740,7 +744,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
             snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 5)
             if cacheLength == snapshotDelay:
                 limit = 0
-                self.spawn(self.load_order_book, client, messageHash, symbol, limit)
+                self.spawn(self.load_order_book, client, messageHash, symbol, limit, {})
             orderBook.cache.append(data)
             return
         try:
@@ -920,7 +924,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         }
         method = self.safe_value(methods, subject)
         if method is not None:
-            return method(client, message)
+            method(client, message)
 
     def ping(self, client: Client):
         id = str(self.request_id())
@@ -955,7 +959,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         }
         method = self.safe_value(methods, type)
         if method is not None:
-            return method(client, message)
+            method(client, message)
 
     def handle_authenticate(self, client, message):
         #

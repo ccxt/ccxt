@@ -2198,7 +2198,7 @@ class hitbtc extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://api.hitbtc.com/#create-new-spot-order
@@ -2514,7 +2514,7 @@ class hitbtc extends Exchange {
         return $this->safe_value($filteredMargin, 0);
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://api.hitbtc.com/#transfer-between-wallet-and-exchange
@@ -2602,7 +2602,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://api.hitbtc.com/#withdraw-crypto
@@ -3316,7 +3316,7 @@ class hitbtc extends Exchange {
         return $this->safe_number($response, 'leverage');
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          * @see https://api.hitbtc.com/#create-update-margin-account-2

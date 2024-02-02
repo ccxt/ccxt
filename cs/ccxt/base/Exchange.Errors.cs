@@ -57,23 +57,23 @@ namespace ccxt;
         public BadSymbol(string message) : base(message) { }
         public BadSymbol(string message, BadRequest inner) : base(message, inner) { }
     }
-   public class MarginModeAlreadySet : BadRequest
-    {
-        public MarginModeAlreadySet() : base() { }
-        public MarginModeAlreadySet(string message) : base(message) { }
-        public MarginModeAlreadySet(string message, BadRequest inner) : base(message, inner) { }
-    }
-   public class NoChange : BadRequest
-    {
-        public NoChange() : base() { }
-        public NoChange(string message) : base(message) { }
-        public NoChange(string message, BadRequest inner) : base(message, inner) { }
-    }
-   public class OperationRejected : BadRequest
+   public class OperationRejected : ExchangeError
     {
         public OperationRejected() : base() { }
         public OperationRejected(string message) : base(message) { }
-        public OperationRejected(string message, BadRequest inner) : base(message, inner) { }
+        public OperationRejected(string message, ExchangeError inner) : base(message, inner) { }
+    }
+   public class NoChange : OperationRejected
+    {
+        public NoChange() : base() { }
+        public NoChange(string message) : base(message) { }
+        public NoChange(string message, OperationRejected inner) : base(message, inner) { }
+    }
+   public class MarginModeAlreadySet : NoChange
+    {
+        public MarginModeAlreadySet() : base() { }
+        public MarginModeAlreadySet(string message) : base(message) { }
+        public MarginModeAlreadySet(string message, NoChange inner) : base(message, inner) { }
     }
    public class BadResponse : ExchangeError
     {
@@ -183,11 +183,11 @@ namespace ccxt;
         public DDoSProtection(string message) : base(message) { }
         public DDoSProtection(string message, NetworkError inner) : base(message, inner) { }
     }
-   public class RateLimitExceeded : DDoSProtection
+   public class RateLimitExceeded : NetworkError
     {
         public RateLimitExceeded() : base() { }
         public RateLimitExceeded(string message) : base(message) { }
-        public RateLimitExceeded(string message, DDoSProtection inner) : base(message, inner) { }
+        public RateLimitExceeded(string message, NetworkError inner) : base(message, inner) { }
     }
    public class ExchangeNotAvailable : NetworkError
     {

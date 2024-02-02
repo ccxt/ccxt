@@ -437,7 +437,8 @@ class coinbase(ccxt.async_support.coinbase):
             side = self.safe_string(self.options['sides'], sideId)
             price = self.safe_number(trade, 'price_level')
             amount = self.safe_number(trade, 'new_quantity')
-            orderbook[side].store(price, amount)
+            orderbookSide = orderbook[side]
+            orderbookSide.store(price, amount)
 
     def handle_order_book(self, client, message):
         #
@@ -525,4 +526,4 @@ class coinbase(ccxt.async_support.coinbase):
             errorMessage = self.safe_string(message, 'message')
             raise ExchangeError(errorMessage)
         method = self.safe_value(methods, channel)
-        return method(client, message)
+        method(client, message)

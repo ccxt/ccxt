@@ -431,8 +431,8 @@ class probit extends Exchange {
                 $networkList = array();
                 for ($j = 0; $j < count($platformsByPriority); $j++) {
                     $network = $platformsByPriority[$j];
-                    $networkId = $this->safe_string($network, 'id');
-                    $networkCode = $this->network_id_to_code($networkId);
+                    $idInner = $this->safe_string($network, 'id');
+                    $networkCode = $this->network_id_to_code($idInner);
                     $currentDepositSuspended = $this->safe_value($network, 'deposit_suspended');
                     $currentWithdrawalSuspended = $this->safe_value($network, 'withdrawal_suspended');
                     $currentDeposit = !$currentDepositSuspended;
@@ -453,7 +453,7 @@ class probit extends Exchange {
                         }
                     }
                     $networkList[$networkCode] = array(
-                        'id' => $networkId,
+                        'id' => $idInner,
                         'network' => $networkCode,
                         'active' => $currentActive,
                         'deposit' => $currentDeposit,
@@ -1213,7 +1213,7 @@ class probit extends Exchange {
         return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['cost'], $this->precisionMode);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -1430,7 +1430,7 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * @see https://docs-en.probit.com/reference/withdrawal

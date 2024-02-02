@@ -25,11 +25,11 @@ export default class bybit extends bybitRest {
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleMyTrades(client: Client, message: any): void;
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
-    setPositionsCache(client: Client, symbols?: Strings): any;
+    setPositionsCache(client: Client, symbols?: Strings): void;
     loadPositionsSnapshot(client: any, messageHash: any): Promise<void>;
     handlePositions(client: any, message: any): void;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrder(client: Client, message: any, subscription?: any): void;
+    handleOrder(client: Client, message: any): void;
     parseWsSpotOrder(order: any, market?: any): Order;
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;

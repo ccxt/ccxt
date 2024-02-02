@@ -1247,7 +1247,8 @@ class wavesexchange extends Exchange {
         // $precise->decimals should be integer
         $precise->decimals = $this->parse_to_int(Precise::string_sub($this->number_to_string($precise->decimals), $this->number_to_string($scale)));
         $precise->reduce ();
-        return $precise;
+        $stringValue = (string) $precise;
+        return $stringValue;
     }
 
     public function currency_from_precision($currency, $amount) {
@@ -1279,7 +1280,7 @@ class wavesexchange extends Exchange {
         return $rates;
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -2412,7 +2413,7 @@ class wavesexchange extends Exchange {
         return null;
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code

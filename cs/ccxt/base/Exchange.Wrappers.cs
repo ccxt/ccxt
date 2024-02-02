@@ -222,18 +222,21 @@ public partial class Exchange
         var res = await this.fetch2(path, api, method, parameters, headers, body, config);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Order> EditLimitBuyOrder(object id, object symbol, object amount, object price = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> EditLimitBuyOrder(object id, object symbol, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
+        var price = price2 == 0 ? null : (object)price2;
         var res = await this.editLimitBuyOrder(id, symbol, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> EditLimitSellOrder(object id, object symbol, object amount, object price = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> EditLimitSellOrder(object id, object symbol, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
+        var price = price2 == 0 ? null : (object)price2;
         var res = await this.editLimitSellOrder(id, symbol, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> EditLimitOrder(object id, object symbol, object side, object amount, object price = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> EditLimitOrder(object id, object symbol, object side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
+        var price = price2 == 0 ? null : (object)price2;
         var res = await this.editLimitOrder(id, symbol, side, amount, price, parameters);
         return new Order(res);
     }

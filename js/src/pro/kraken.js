@@ -659,7 +659,7 @@ export default class kraken extends krakenRest {
                 const side = sides[key];
                 const bookside = orderbook[side];
                 const deltas = this.safeValue(message[1], key, []);
-                timestamp = this.handleDeltas(bookside, deltas, timestamp);
+                timestamp = this.customHandleDeltas(bookside, deltas, timestamp);
             }
             orderbook['symbol'] = symbol;
             orderbook['timestamp'] = timestamp;
@@ -691,11 +691,11 @@ export default class kraken extends krakenRest {
             const storedBids = orderbook['bids'];
             let example = undefined;
             if (a !== undefined) {
-                timestamp = this.handleDeltas(storedAsks, a, timestamp);
+                timestamp = this.customHandleDeltas(storedAsks, a, timestamp);
                 example = this.safeValue(a, 0);
             }
             if (b !== undefined) {
-                timestamp = this.handleDeltas(storedBids, b, timestamp);
+                timestamp = this.customHandleDeltas(storedBids, b, timestamp);
                 example = this.safeValue(b, 0);
             }
             // don't remove this line or I will poop on your face
@@ -750,7 +750,7 @@ export default class kraken extends krakenRest {
             return joined;
         }
     }
-    handleDeltas(bookside, deltas, timestamp = undefined) {
+    customHandleDeltas(bookside, deltas, timestamp = undefined) {
         for (let j = 0; j < deltas.length; j++) {
             const delta = deltas[j];
             const price = this.parseNumber(delta[0]);
@@ -1295,7 +1295,7 @@ export default class kraken extends krakenRest {
         //         "subscription": { name: "ticker" }
         //     }
         //
-        const errorMessage = this.safeValue(message, 'errorMessage');
+        const errorMessage = this.safeString(message, 'errorMessage');
         if (errorMessage !== undefined) {
             const requestId = this.safeValue(message, 'reqid');
             if (requestId !== undefined) {
@@ -1303,7 +1303,7 @@ export default class kraken extends krakenRest {
                 const broadKey = this.findBroadlyMatchedKey(broad, errorMessage);
                 let exception = undefined;
                 if (broadKey === undefined) {
-                    exception = new ExchangeError(errorMessage);
+                    exception = new ExchangeError(errorMessage); // c# requirement to convert the errorMessage to string
                 }
                 else {
                     exception = new broad[broadKey](errorMessage);
@@ -1333,11 +1333,8 @@ export default class kraken extends krakenRest {
                 'ownTrades': this.handleMyTrades,
             };
             const method = this.safeValue2(methods, name, channelName);
-            if (method === undefined) {
-                return message;
-            }
-            else {
-                return method.call(this, client, message, subscription);
+            if (method !== undefined) {
+                method.call(this, client, message, subscription);
             }
         }
         else {
@@ -1353,11 +1350,8 @@ export default class kraken extends krakenRest {
                     'cancelAllStatus': this.handleCancelAllOrders,
                 };
                 const method = this.safeValue(methods, event);
-                if (method === undefined) {
-                    return message;
-                }
-                else {
-                    return method.call(this, client, message);
+                if (method !== undefined) {
+                    method.call(this, client, message);
                 }
             }
         }

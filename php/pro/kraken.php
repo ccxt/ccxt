@@ -688,7 +688,7 @@ class kraken extends \ccxt\async\kraken {
                 $side = $sides[$key];
                 $bookside = $orderbook[$side];
                 $deltas = $this->safe_value($message[1], $key, array());
-                $timestamp = $this->handle_deltas($bookside, $deltas, $timestamp);
+                $timestamp = $this->custom_handle_deltas($bookside, $deltas, $timestamp);
             }
             $orderbook['symbol'] = $symbol;
             $orderbook['timestamp'] = $timestamp;
@@ -717,11 +717,11 @@ class kraken extends \ccxt\async\kraken {
             $storedBids = $orderbook['bids'];
             $example = null;
             if ($a !== null) {
-                $timestamp = $this->handle_deltas($storedAsks, $a, $timestamp);
+                $timestamp = $this->custom_handle_deltas($storedAsks, $a, $timestamp);
                 $example = $this->safe_value($a, 0);
             }
             if ($b !== null) {
-                $timestamp = $this->handle_deltas($storedBids, $b, $timestamp);
+                $timestamp = $this->custom_handle_deltas($storedBids, $b, $timestamp);
                 $example = $this->safe_value($b, 0);
             }
             // don't remove this line or I will poop on your face
@@ -777,7 +777,7 @@ class kraken extends \ccxt\async\kraken {
         }
     }
 
-    public function handle_deltas($bookside, $deltas, $timestamp = null) {
+    public function custom_handle_deltas($bookside, $deltas, $timestamp = null) {
         for ($j = 0; $j < count($deltas); $j++) {
             $delta = $deltas[$j];
             $price = $this->parse_number($delta[0]);
@@ -1335,7 +1335,7 @@ class kraken extends \ccxt\async\kraken {
         //         "subscription" => array( name => "ticker" )
         //     }
         //
-        $errorMessage = $this->safe_value($message, 'errorMessage');
+        $errorMessage = $this->safe_string($message, 'errorMessage');
         if ($errorMessage !== null) {
             $requestId = $this->safe_value($message, 'reqid');
             if ($requestId !== null) {
@@ -1343,7 +1343,7 @@ class kraken extends \ccxt\async\kraken {
                 $broadKey = $this->find_broadly_matched_key($broad, $errorMessage);
                 $exception = null;
                 if ($broadKey === null) {
-                    $exception = new ExchangeError ($errorMessage);
+                    $exception = new ExchangeError ($errorMessage); // c# requirement to convert the $errorMessage to string
                 } else {
                     $exception = new $broad[$broadKey] ($errorMessage);
                 }
@@ -1373,10 +1373,8 @@ class kraken extends \ccxt\async\kraken {
                 'ownTrades' => array($this, 'handle_my_trades'),
             );
             $method = $this->safe_value_2($methods, $name, $channelName);
-            if ($method === null) {
-                return $message;
-            } else {
-                return $method($client, $message, $subscription);
+            if ($method !== null) {
+                $method($client, $message, $subscription);
             }
         } else {
             if ($this->handle_error_message($client, $message)) {
@@ -1391,10 +1389,8 @@ class kraken extends \ccxt\async\kraken {
                     'cancelAllStatus' => array($this, 'handle_cancel_all_orders'),
                 );
                 $method = $this->safe_value($methods, $event);
-                if ($method === null) {
-                    return $message;
-                } else {
-                    return $method($client, $message);
+                if ($method !== null) {
+                    $method($client, $message);
                 }
             }
         }

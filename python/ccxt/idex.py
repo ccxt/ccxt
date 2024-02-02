@@ -1084,7 +1084,7 @@ class idex(Exchange, ImplicitAPI):
         result = self.privatePostWallets(request)
         return result
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order, https://docs.idex.io/#create-order
         :param str symbol: unified symbol of the market to create an order in
@@ -1259,7 +1259,7 @@ class idex(Exchange, ImplicitAPI):
         response = self.privatePostOrders(request)
         return self.parse_order(response, market)
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
