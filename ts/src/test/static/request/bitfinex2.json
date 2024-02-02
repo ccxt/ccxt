@@ -692,6 +692,16 @@
                 ],
                 "output": "{\"start\":1699460471000,\"limit\":3}"
             }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "Swap fetch funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://api-pub.bitfinex.com/v2/status/deriv?keys=tBTCF0%3AUSTF0",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }
