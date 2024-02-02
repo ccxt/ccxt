@@ -746,6 +746,36 @@
                 ],
                 "output": "{\"id\":[139663481232]}"
             }
+        ],
+        "editOrder": [
+            {
+                "description": "Spot edit an order",
+                "method": "editOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/update",
+                "input": [
+                  139658969116,
+                  "BTC/USDT",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  35000
+                ],
+                "output": "{\"id\":139658969116,\"amount\":\"0.0001\",\"price\":\"35000\"}"
+            },
+            {
+                "description": "Swap edit an order",
+                "method": "editOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/update",
+                "input": [
+                  139663481232,
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.27,
+                  51
+                ],
+                "output": "{\"id\":139663481232,\"amount\":\"0.27\",\"price\":\"51\"}"
+            }
         ]
     }
 }
