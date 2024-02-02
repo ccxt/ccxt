@@ -13,6 +13,32 @@
                 "input": []
             }
         ],
+        "transfer": [
+            {
+                "description": "Transfer from spot to swap",
+                "method": "transfer",
+                "url": "https://api.bitfinex.com/v2/auth/w/transfer",
+                "input": [
+                  "USDT",
+                  5,
+                  "spot",
+                  "swap"
+                ],
+                "output": "{\"amount\":\"5\",\"currency\":\"UST\",\"currency_to\":\"UST\",\"from\":\"exchange\",\"to\":\"margin\"}"
+            },
+            {
+                "description": "Transfer from margin to spot",
+                "method": "transfer",
+                "url": "https://api.bitfinex.com/v2/auth/w/transfer",
+                "input": [
+                  "USDT",
+                  5,
+                  "margin",
+                  "spot"
+                ],
+                "output": "{\"amount\":\"5\",\"currency\":\"UST\",\"currency_to\":\"UST\",\"from\":\"margin\",\"to\":\"exchange\"}"
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Spot private trades",
