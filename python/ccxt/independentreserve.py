@@ -504,7 +504,7 @@ class independentreserve(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'Data', [])
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit=50, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = 50, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -625,7 +625,7 @@ class independentreserve(Exchange, ImplicitAPI):
             }
         return result
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in

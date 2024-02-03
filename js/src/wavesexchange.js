@@ -398,7 +398,7 @@ export default class wavesexchange extends Exchange {
         //        "matcherFee":"4077612"
         //     }
         //  }
-        const isDiscountFee = this.safeValue(params, 'isDiscountFee', false);
+        const isDiscountFee = this.safeBool(params, 'isDiscountFee', false);
         let mode = undefined;
         if (isDiscountFee) {
             mode = this.safeValue(response, 'discount');
@@ -1256,7 +1256,8 @@ export default class wavesexchange extends Exchange {
         // precise.decimals should be integer
         precise.decimals = this.parseToInt(Precise.stringSub(this.numberToString(precise.decimals), this.numberToString(scale)));
         precise.reduce();
-        return precise;
+        const stringValue = precise.toString();
+        return stringValue;
     }
     currencyFromPrecision(currency, amount) {
         const scale = this.currencies[currency]['precision'];
@@ -2415,7 +2416,7 @@ export default class wavesexchange extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const errorCode = this.safeString(response, 'error');
-        const success = this.safeValue(response, 'success', true);
+        const success = this.safeBool(response, 'success', true);
         const Exception = this.safeValue(this.exceptions, errorCode);
         if (Exception !== undefined) {
             const messageInner = this.safeString(response, 'message');

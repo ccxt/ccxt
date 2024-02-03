@@ -528,7 +528,7 @@ export default class blockchaincom extends Exchange {
             'remaining': remaining,
             'cost': undefined,
             'trades': [],
-            'fees': {},
+            'fees': [],
             'info': order,
         });
         return result;

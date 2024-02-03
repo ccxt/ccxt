@@ -755,7 +755,7 @@ class lykke(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1174,7 +1174,7 @@ class lykke(Exchange, ImplicitAPI):
             currency = self.currency(code)
         return self.parse_transactions(payload, currency, since, limit)
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

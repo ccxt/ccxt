@@ -65,6 +65,7 @@ class bingx extends Exchange {
                 'fetchLeverage' => true,
                 'fetchLiquidations' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => true,
                 'fetchMyLiquidations' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
@@ -169,6 +170,7 @@ class bingx extends Exchange {
                         'private' => array(
                             'get' => array(
                                 'positionSide/dual' => 1,
+                                'market/markPriceKlines' => 1,
                             ),
                             'post' => array(
                                 'positionSide/dual' => 1,
@@ -370,7 +372,7 @@ class bingx extends Exchange {
                     '100500' => '\\ccxt\\ExchangeError',
                     '100503' => '\\ccxt\\ExchangeError',
                     '80001' => '\\ccxt\\BadRequest',
-                    '80012' => '\\ccxt\\ExchangeNotAvailable',
+                    '80012' => '\\ccxt\\InsufficientFunds', // bingx array("code":80012,"msg":"array(\"Code\":101253,\"Msg\":\"margin is not enough\"))
                     '80014' => '\\ccxt\\BadRequest',
                     '80016' => '\\ccxt\\OrderNotFound',
                     '80017' => '\\ccxt\\OrderNotFound',
@@ -701,10 +703,11 @@ class bingx extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
-             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
              * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data
              * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
              * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data
+             * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#K-Line%20Data%20-%20Mark%20Price
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -740,7 +743,13 @@ class bingx extends Exchange {
             if ($market['spot']) {
                 $response = Async\await($this->spotV1PublicGetMarketKline (array_merge($request, $params)));
             } else {
-                $response = Async\await($this->swapV3PublicGetQuoteKlines (array_merge($request, $params)));
+                $price = $this->safe_string($params, 'price');
+                $params = $this->omit($params, 'price');
+                if ($price === 'mark') {
+                    $response = Async\await($this->swapV1PrivateGetMarketMarkPriceKlines (array_merge($request, $params)));
+                } else {
+                    $response = Async\await($this->swapV3PublicGetQuoteKlines (array_merge($request, $params)));
+                }
             }
             //
             //    {
@@ -756,6 +765,24 @@ class bingx extends Exchange {
             //            "time" => 1666583700000
             //          ),
             //          ...
+            //        )
+            //    }
+            //
+            // fetchMarkOHLCV
+            //
+            //    {
+            //        "code" => 0,
+            //        "msg" => "",
+            //        "data" => array(
+            //            {
+            //                "open" => "42191.7",
+            //                "close" => "42189.5",
+            //                "high" => "42196.5",
+            //                "low" => "42189.5",
+            //                "volume" => "0.00",
+            //                "openTime" => 1706508840000,
+            //                "closeTime" => 1706508840000
+            //            }
             //        )
             //    }
             //
@@ -776,6 +803,18 @@ class bingx extends Exchange {
         //        "low" => "19368.3",
         //        "volume" => "167.44",
         //        "time" => 1666584000000
+        //    }
+        //
+        // fetchMarkOHLCV
+        //
+        //    {
+        //        "open" => "42191.7",
+        //        "close" => "42189.5",
+        //        "high" => "42196.5",
+        //        "low" => "42189.5",
+        //        "volume" => "0.00",
+        //        "openTime" => 1706508840000,
+        //        "closeTime" => 1706508840000
         //    }
         // spot
         //    array(
@@ -800,7 +839,7 @@ class bingx extends Exchange {
             );
         }
         return array(
-            $this->safe_integer($ohlcv, 'time'),
+            $this->safe_integer_2($ohlcv, 'time', 'closeTime'),
             $this->safe_number($ohlcv, 'open'),
             $this->safe_number($ohlcv, 'high'),
             $this->safe_number($ohlcv, 'low'),
@@ -1744,7 +1783,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @ignore
          * helper function to build $request
@@ -1825,7 +1864,7 @@ class bingx extends Exchange {
             if ((($type === 'LIMIT') || ($type === 'TRIGGER_LIMIT') || ($type === 'STOP') || ($type === 'TAKE_PROFIT')) && !$isTrailing) {
                 $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
             }
-            $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
+            $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
             if ($isTriggerOrder) {
                 $request['stopPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $triggerPrice));
                 if ($isMarketOrder || ($type === 'TRIGGER_MARKET')) {
@@ -1861,6 +1900,7 @@ class bingx extends Exchange {
                 }
             }
             if ($isStopLoss || $isTakeProfit) {
+                $stringifiedAmount = $this->number_to_string($amount);
                 if ($isStopLoss) {
                     $slTriggerPrice = $this->safe_string_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
                     $slWorkingType = $this->safe_string($stopLoss, 'workingType', 'MARK_PRICE');
@@ -1874,7 +1914,7 @@ class bingx extends Exchange {
                     if ($slPrice !== null) {
                         $slRequest['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $slPrice));
                     }
-                    $slQuantity = $this->safe_string($stopLoss, 'quantity', $amount);
+                    $slQuantity = $this->safe_string($stopLoss, 'quantity', $stringifiedAmount);
                     $slRequest['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $slQuantity));
                     $request['stopLoss'] = $this->json($slRequest);
                 }
@@ -1891,7 +1931,7 @@ class bingx extends Exchange {
                     if ($slPrice !== null) {
                         $tpRequest['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $slPrice));
                     }
-                    $tkQuantity = $this->safe_string($takeProfit, 'quantity', $amount);
+                    $tkQuantity = $this->safe_string($takeProfit, 'quantity', $stringifiedAmount);
                     $tpRequest['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $tkQuantity));
                     $request['takeProfit'] = $this->json($tpRequest);
                 }
@@ -1909,7 +1949,7 @@ class bingx extends Exchange {
         return array_merge($request, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -2252,10 +2292,10 @@ class bingx extends Exchange {
         $clientOrderId = $this->safe_string_n($order, array( 'clientOrderID', 'origClientOrderId', 'c' ));
         $stopLoss = $this->safe_value($order, 'stopLoss');
         $stopLossPrice = null;
-        if ($stopLoss !== null) {
+        if (($stopLoss !== null) && ($stopLoss !== '')) {
             $stopLossPrice = $this->safe_number($stopLoss, 'stopLoss');
         }
-        if (($stopLoss !== null) && (!(is_float($stopLoss) || is_int($stopLoss)))) {
+        if (($stopLoss !== null) && (!(is_float($stopLoss) || is_int($stopLoss))) && ($stopLoss !== '')) {
             //  $stopLoss => 'array("stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1)',
             if (gettype($stopLoss) === 'string') {
                 $stopLoss = $this->parse_json($stopLoss);
@@ -2264,10 +2304,10 @@ class bingx extends Exchange {
         }
         $takeProfit = $this->safe_value($order, 'takeProfit');
         $takeProfitPrice = null;
-        if ($takeProfit !== null) {
+        if ($takeProfit !== null && ($takeProfit !== '')) {
             $takeProfitPrice = $this->safe_number($takeProfit, 'takeProfit');
         }
-        if (($takeProfit !== null) && (!(is_float($takeProfit) || is_int($takeProfit)))) {
+        if (($takeProfit !== null) && (!(is_float($takeProfit) || is_int($takeProfit))) && ($takeProfit !== '')) {
             //  $takeProfit => 'array("stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1)',
             if (gettype($takeProfit) === 'string') {
                 $takeProfit = $this->parse_json($takeProfit);
@@ -2827,7 +2867,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -3330,7 +3370,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -3544,7 +3584,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -3586,7 +3626,7 @@ class bingx extends Exchange {
             //           "id":"1197073063359000577"
             //        }
             //    }
-            $this->parse_transaction($data);
+            return $this->parse_transaction($data);
         }) ();
     }
 

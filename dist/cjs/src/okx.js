@@ -172,6 +172,7 @@ class okx extends okx$1 {
             'api': {
                 'public': {
                     'get': {
+                        'market/books-full': 2,
                         'market/tickers': 1,
                         'market/ticker': 1,
                         'market/index-tickers': 1,
@@ -340,9 +341,11 @@ class okx extends okx$1 {
                         'tradingBot/grid/sub-orders': 1,
                         'tradingBot/grid/positions': 1,
                         'tradingBot/grid/ai-param': 1,
-                        'tradingBot/public/rsi-back-testing': 1,
+                        'tradingBot/signal/signals': 1,
                         'tradingBot/signal/orders-algo-details': 1,
+                        'tradingBot/signal/orders-algo-history': 1,
                         'tradingBot/signal/positions': 1,
+                        'tradingBot/signal/positions-history': 1,
                         'tradingBot/signal/sub-orders': 1,
                         'tradingBot/signal/event-history': 1,
                         'tradingBot/recurring/orders-algo-pending': 1,
@@ -462,6 +465,15 @@ class okx extends okx$1 {
                         'tradingBot/grid/compute-margin-balance': 1,
                         'tradingBot/grid/margin-balance': 1,
                         'tradingBot/grid/min-investment': 1,
+                        'tradingBot/signal/create-signal': 1,
+                        'tradingBot/signal/order-algo': 1,
+                        'tradingBot/signal/stop-order-algo': 1,
+                        'tradingBot/signal/margin-balance': 1,
+                        'tradingBot/signal/amendTPSL': 1,
+                        'tradingBot/signal/set-instruments': 1,
+                        'tradingBot/signal/close-position': 1,
+                        'tradingBot/signal/sub-order': 1,
+                        'tradingBot/signal/cancel-sub-order': 1,
                         'tradingBot/recurring/order-algo': 1,
                         'tradingBot/recurring/amend-order-algo': 1,
                         'tradingBot/recurring/stop-order-algo': 1,
@@ -1509,8 +1521,8 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
-        return this.parseMarkets(data);
+        const dataResponse = this.safeValue(response, 'data', []);
+        return this.parseMarkets(dataResponse);
     }
     safeNetwork(networkId) {
         const networksById = {
@@ -1670,6 +1682,7 @@ class okx extends okx$1 {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.method] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -1677,11 +1690,22 @@ class okx extends okx$1 {
         const request = {
             'instId': market['id'],
         };
-        limit = (limit === undefined) ? 20 : limit;
+        let method = undefined;
+        [method, params] = this.handleOptionAndParams(params, 'fetchOrderBook', 'method', 'publicGetMarketBooks');
+        if (method === 'publicGetMarketBooksFull' && limit === undefined) {
+            limit = 5000;
+        }
+        limit = (limit === undefined) ? 100 : limit;
         if (limit !== undefined) {
             request['sz'] = limit; // max 400
         }
-        const response = await this.publicGetMarketBooks(this.extend(request, params));
+        let response = undefined;
+        if ((method === 'publicGetMarketBooksFull') || (limit > 400)) {
+            response = await this.publicGetMarketBooksFull(this.extend(request, params));
+        }
+        else {
+            response = await this.publicGetMarketBooks(this.extend(request, params));
+        }
         //
         //     {
         //         "code": "0",
@@ -1735,7 +1759,7 @@ class okx extends okx$1 {
         const symbol = market['symbol'];
         const last = this.safeString(ticker, 'last');
         const open = this.safeString(ticker, 'open24h');
-        const spot = this.safeValue(market, 'spot', false);
+        const spot = this.safeBool(market, 'spot', false);
         const quoteVolume = spot ? this.safeString(ticker, 'volCcy24h') : undefined;
         const baseVolume = this.safeString(ticker, 'vol24h');
         const high = this.safeString(ticker, 'high24h');
@@ -2125,7 +2149,8 @@ class okx extends okx$1 {
             if (since < historyBorder) {
                 defaultType = 'HistoryCandles';
             }
-            request['before'] = since;
+            const startTime = Math.max(since - 1, 0);
+            request['before'] = startTime;
             request['after'] = this.sum(since, durationInMilliseconds * limit);
         }
         const until = this.safeInteger(params, 'until');
@@ -2591,7 +2616,7 @@ class okx extends okx$1 {
         }
         else {
             marginMode = defaultMarginMode;
-            margin = this.safeValue(params, 'margin', false);
+            margin = this.safeBool(params, 'margin', false);
         }
         if (spot) {
             if (margin) {
@@ -3090,7 +3115,7 @@ class okx extends okx$1 {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         const stop = this.safeValue2(params, 'stop', 'trigger');
-        const trailing = this.safeValue(params, 'trailing', false);
+        const trailing = this.safeBool(params, 'trailing', false);
         if (stop || trailing) {
             const orderInner = await this.cancelOrders([id], symbol, params);
             return this.safeValue(orderInner, 0);
@@ -3124,7 +3149,7 @@ class okx extends okx$1 {
          * @param {string[]|string} ids order ids
          * @returns {string[]} list of order ids
          */
-        if (typeof ids === 'string') {
+        if ((ids !== undefined) && typeof ids === 'string') {
             return ids.split(',');
         }
         else {
@@ -3158,7 +3183,7 @@ class okx extends okx$1 {
         const clientOrderIds = this.parseIds(this.safeValue2(params, 'clOrdId', 'clientOrderId'));
         const algoIds = this.parseIds(this.safeValue(params, 'algoId'));
         const stop = this.safeValue2(params, 'stop', 'trigger');
-        const trailing = this.safeValue(params, 'trailing', false);
+        const trailing = this.safeBool(params, 'trailing', false);
         if (stop || trailing) {
             method = 'privatePostTradeCancelAlgos';
         }
@@ -3657,7 +3682,7 @@ class okx extends okx$1 {
         let method = this.safeString(params, 'method', defaultMethod);
         const ordType = this.safeString(params, 'ordType');
         const stop = this.safeValue2(params, 'stop', 'trigger');
-        const trailing = this.safeValue(params, 'trailing', false);
+        const trailing = this.safeBool(params, 'trailing', false);
         if (trailing || stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoPending';
         }
@@ -3826,7 +3851,7 @@ class okx extends okx$1 {
         let method = this.safeString(params, 'method', defaultMethod);
         const ordType = this.safeString(params, 'ordType');
         const stop = this.safeValue2(params, 'stop', 'trigger');
-        const trailing = this.safeValue(params, 'trailing', false);
+        const trailing = this.safeBool(params, 'trailing', false);
         if (trailing) {
             method = 'privateGetTradeOrdersAlgoHistory';
             request['ordType'] = 'move_order_stop';
@@ -4020,7 +4045,7 @@ class okx extends okx$1 {
         let method = this.safeString(params, 'method', defaultMethod);
         const ordType = this.safeString(params, 'ordType');
         const stop = this.safeValue2(params, 'stop', 'trigger');
-        const trailing = this.safeValue(params, 'trailing', false);
+        const trailing = this.safeBool(params, 'trailing', false);
         if (trailing || stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoHistory';
             request['state'] = 'effective';
@@ -4189,10 +4214,13 @@ class okx extends okx$1 {
             market = this.market(symbol);
             request['instId'] = market['id'];
         }
+        if (since !== undefined) {
+            request['begin'] = since;
+        }
         [request, params] = this.handleUntilOption('end', request, params);
         const [type, query] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
         request['instType'] = this.convertToInstrumentType(type);
-        if (limit !== undefined) {
+        if ((limit !== undefined) && (since === undefined)) { // let limit = n, okx will return the n most recent results, instead of the n results after limit, so limit should only be sent when since is undefined
             request['limit'] = limit; // default 100, max 100
         }
         const response = await this.privateGetTradeFillsHistory(this.extend(request, query));
@@ -7200,6 +7228,7 @@ class okx extends okx$1 {
                 return this.parseGreeks(entry, market);
             }
         }
+        return undefined;
     }
     parseGreeks(greeks, market = undefined) {
         //

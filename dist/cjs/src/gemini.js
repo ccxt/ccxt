@@ -512,7 +512,7 @@ class gemini extends gemini$1 {
             'post_only': true,
             'limit_only': true,
         };
-        return this.safeValue(statuses, status, true);
+        return this.safeBool(statuses, status, true);
     }
     async fetchUSDTMarkets(params = {}) {
         // these markets can't be scrapped and fetchMarketsFrom api does an extra call
@@ -551,7 +551,7 @@ class gemini extends gemini$1 {
             result[marketId] = this.parseMarket(market);
         }
         const options = this.safeValue(this.options, 'fetchMarketsFromAPI', {});
-        const fetchDetailsForAllSymbols = this.safeValue(options, 'fetchDetailsForAllSymbols', false);
+        const fetchDetailsForAllSymbols = this.safeBool(options, 'fetchDetailsForAllSymbols', false);
         const fetchDetailsForMarketIds = this.safeValue(options, 'fetchDetailsForMarketIds', []);
         let promises = [];
         let marketIds = [];
@@ -1368,7 +1368,7 @@ class gemini extends gemini$1 {
                     request['options'] = ['maker-or-cancel'];
                 }
             }
-            const postOnly = this.safeValue(params, 'postOnly', false);
+            const postOnly = this.safeBool(params, 'postOnly', false);
             params = this.omit(params, 'postOnly');
             if (postOnly) {
                 request['options'] = ['maker-or-cancel'];

@@ -54,6 +54,7 @@ class baseMainTestClass {
     debug = false;
     privateTest = false;
     privateTestOnly = false;
+    loadKeys = false;
     sandbox = false;
     skippedMethods = {};
     checkedPublicTests = {};
@@ -85,6 +86,10 @@ function jsonStringify (elem) {
     return JSON.stringify (elem,  (k, v) => (v === undefined ? null : v)); // preserve undefined values and convert them to null
 }
 
+function convertAscii (input)
+{
+    return input; // stub for c#
+}
 
 function getTestName (str) {
     return str;
@@ -201,6 +206,7 @@ export default class testMainClass extends baseMainTestClass {
         this.privateTest = getCliArgValue ('--private');
         this.privateTestOnly = getCliArgValue ('--privateOnly');
         this.sandbox = getCliArgValue ('--sandbox');
+        this.loadKeys = getCliArgValue ('--loadKeys');
         this.wsTests = getCliArgValue ('--ws');
     }
 
@@ -225,7 +231,8 @@ export default class testMainClass extends baseMainTestClass {
             return;
         }
         const symbolStr = symbolArgv !== undefined ? symbolArgv : 'all';
-        dump (this.newLine + '' + this.newLine + '' + '[INFO] TESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolStr, 'isWs': this.wsTests }, this.newLine);
+        const exchangeObject = { 'exchange': exchangeId, 'symbol': symbolStr, 'isWs': this.wsTests };
+        dump (this.newLine + '' + this.newLine + '' + '[INFO] TESTING ', this.ext, jsonStringify (exchangeObject), this.newLine);
         const exchangeArgs = {
             'verbose': this.verbose,
             'debug': this.debug,
@@ -233,6 +240,9 @@ export default class testMainClass extends baseMainTestClass {
             'timeout': 30000,
         };
         const exchange = initExchange (exchangeId, exchangeArgs, this.wsTests);
+        if (exchange.alias) {
+            exitScript (0);
+        }
         await this.importFiles (exchange);
         assert (Object.keys (this.testFiles).length > 0, 'Test files were not loaded'); // ensure test files are found & filled
         this.expandSettings (exchange);
@@ -323,7 +333,7 @@ export default class testMainClass extends baseMainTestClass {
         // others
         const timeout = exchange.safeValue (skippedSettingsForExchange, 'timeout');
         if (timeout !== undefined) {
-            exchange.timeout = timeout;
+            exchange.timeout = exchange.parseToInt (timeout);
         }
         if (getCliArgValue ('--useProxy')) {
             exchange.httpProxy = exchange.safeString (skippedSettingsForExchange, 'httpProxy');
@@ -413,6 +423,7 @@ export default class testMainClass extends baseMainTestClass {
         if (isPublic) {
             this.checkedPublicTests[methodName] = true;
         }
+        return;
     }
 
     async testSafe (methodName, exchange, args = [], isPublic = false) {
@@ -494,6 +505,7 @@ export default class testMainClass extends baseMainTestClass {
                 }
             }
         }
+        return true;
     }
 
     async runPublicTests (exchange, symbol) {
@@ -820,7 +832,7 @@ export default class testMainClass extends baseMainTestClass {
             return;
         }
         const code = this.getExchangeCode (exchange);
-        // if (exchange.extendedTest) {
+        // if (exchange.deepExtendedTest) {
         //     await test ('InvalidNonce', exchange, symbol);
         //     await test ('OrderNotFound', exchange, symbol);
         //     await test ('InvalidOrder', exchange, symbol);
@@ -920,7 +932,8 @@ export default class testMainClass extends baseMainTestClass {
         }
         // if exception was set, then throw it
         if (exception) {
-            throw new ExchangeError ('[TEST_FAILURE] Failed ' + proxyTestName + ' : ' + exceptionMessage (exception));
+            const errorMessage = '[TEST_FAILURE] Failed ' + proxyTestName + ' : ' + exceptionMessage (exception);
+            throw new ExchangeError (errorMessage.toString ()); // toString is a c# requirement for now
         }
     }
 
@@ -1048,10 +1061,12 @@ export default class testMainClass extends baseMainTestClass {
 
     assertNewAndStoredOutput (exchange: Exchange, skipKeys: string[], newOutput, storedOutput, strictTypeCheck = true, assertingKey = undefined) {
         if (isNullValue (newOutput) && isNullValue (storedOutput)) {
-            return;
+            return true;
+            // c# requirement
         }
         if (!newOutput && !storedOutput) {
-            return;
+            return true;
+            // c# requirement
         }
         if ((typeof storedOutput === 'object') && (typeof newOutput === 'object')) {
             const storedOutputKeys = Object.keys (storedOutput);
@@ -1088,7 +1103,7 @@ export default class testMainClass extends baseMainTestClass {
             const newOutputString = sanitizedNewOutput ? sanitizedNewOutput.toString () : "undefined";
             const storedOutputString = sanitizedStoredOutput ? sanitizedStoredOutput.toString () : "undefined";
             const messageError = 'output value mismatch:' + newOutputString + ' != ' + storedOutputString;
-            if (strictTypeCheck) {
+            if (strictTypeCheck && (this.lang !== 'C#')) { // in c# types are different, so we can't do strict type check
                 // upon building the request we want strict type check to make sure all the types are correct
                 // when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
                 this.assertStaticError (sanitizedNewOutput === sanitizedStoredOutput, messageError, storedOutput, newOutput, assertingKey);
@@ -1097,14 +1112,41 @@ export default class testMainClass extends baseMainTestClass {
                 const isString = (typeof sanitizedNewOutput === 'string') || (typeof sanitizedStoredOutput === 'string');
                 const isUndefined = (sanitizedNewOutput === undefined) || (sanitizedStoredOutput === undefined); // undefined is a perfetly valid value
                 if (isBoolean || isString || isUndefined)  {
-                    this.assertStaticError (newOutputString === storedOutputString, messageError, storedOutput, newOutput, assertingKey);
+                    if (this.lang === 'C#') {
+                        // tmp c# number comparsion
+                        let isNumber = false;
+                        try {
+                            exchange.parseToNumeric (sanitizedNewOutput);
+                            isNumber = true;
+                        } catch (e) {
+                            // if we can't parse it to number, then it's not a number
+                            isNumber = false;
+                        }
+                        if (isNumber) {
+                            this.assertStaticError (exchange.parseToNumeric (sanitizedNewOutput) === exchange.parseToNumeric (sanitizedStoredOutput), messageError, storedOutput, newOutput, assertingKey);
+                            return true;
+                        } else {
+                            this.assertStaticError (convertAscii (newOutputString) === convertAscii (storedOutputString), messageError, storedOutput, newOutput, assertingKey);
+                            return true;
+                        }
+                    } else {
+                        this.assertStaticError (convertAscii (newOutputString) === convertAscii (storedOutputString), messageError, storedOutput, newOutput, assertingKey);
+                        return true;
+                    }
                 } else {
-                    const numericNewOutput =  exchange.parseToNumeric (newOutputString);
-                    const numericStoredOutput = exchange.parseToNumeric (storedOutputString);
-                    this.assertStaticError (numericNewOutput === numericStoredOutput, messageError, storedOutput, newOutput, assertingKey);
+                    if (this.lang === "C#") { // tmp fix, stil failing with the "1.0" != "1" error
+                        const stringifiedNewOutput = exchange.numberToString (sanitizedNewOutput);
+                        const stringifiedStoredOutput = exchange.numberToString (sanitizedStoredOutput);
+                        this.assertStaticError (stringifiedNewOutput.toString () === stringifiedStoredOutput.toString (), messageError, storedOutput, newOutput, assertingKey);
+                    } else {
+                        const numericNewOutput =  exchange.parseToNumeric (newOutputString);
+                        const numericStoredOutput = exchange.parseToNumeric (storedOutputString);
+                        this.assertStaticError (numericNewOutput === numericStoredOutput, messageError, storedOutput, newOutput, assertingKey);
+                    }
                 }
             }
         }
+        return true; // c# requ
     }
 
     assertStaticRequestOutput (exchange, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput, newOutput) {
@@ -1134,14 +1176,14 @@ export default class testMainClass extends baseMainTestClass {
             }
         // body is defined
         }
-        if (type === 'json') {
+        if (type === 'json' && (storedOutput !== undefined) && (newOutput !== undefined)) {
             if (typeof storedOutput === 'string') {
                 storedOutput = jsonParse (storedOutput);
             }
             if (typeof newOutput === 'string') {
                 newOutput = jsonParse (newOutput);
             }
-        } else if (type === 'urlencoded') {
+        } else if (type === 'urlencoded' && (storedOutput !== undefined) && (newOutput !== undefined)) {
             storedOutput = this.urlencodedToDict (storedOutput);
             newOutput = this.urlencodedToDict (newOutput);
         } else if (type === 'both') {
@@ -1221,7 +1263,7 @@ export default class testMainClass extends baseMainTestClass {
     initOfflineExchange (exchangeName: string) {
         const markets = this.loadMarketsFromFile (exchangeName);
         const currencies = this.loadCurrenciesFromFile (exchangeName);
-        const exchange = initExchange (exchangeName, { 'markets': markets, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'uid': 'uid', 'accounts': [ { 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
+        const exchange = initExchange (exchangeName, { 'markets': markets, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'uid': 'uid', 'token': 'token', 'accounts': [ { 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
         exchange.currencies = currencies; // not working in python if assigned  in the config dict
         return exchange;
     }
@@ -1251,10 +1293,11 @@ export default class testMainClass extends baseMainTestClass {
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
                 await this.testMethodStatically (exchange, method, result, type, skipKeys);
                 // reset options
-                exchange.options = oldExchangeOptions;
+                exchange.options = exchange.deepExtend (oldExchangeOptions, {});
             }
         }
         await close (exchange);
+        return true; // in c# methods that will be used with promiseAll need to return something
     }
 
     async testExchangeResponseStatically (exchangeName: string, exchangeData: object, testName: string = undefined) {
@@ -1276,8 +1319,12 @@ export default class testMainClass extends baseMainTestClass {
                 if (isDisabled) {
                     continue;
                 }
+                const isDisabledCSharp = exchange.safeValue (result, 'disabledCS', false);
+                if (isDisabledCSharp && (this.lang === 'C#')) {
+                    continue;
+                }
                 const isDisabledPHP = exchange.safeValue (result, 'disabledPHP', false);
-                if (isDisabledPHP && (this.ext === 'php')) {
+                if (isDisabledPHP && (this.lang === 'PHP')) {
                     continue;
                 }
                 if ((testName !== undefined) && (testName !== description)) {
@@ -1286,10 +1333,11 @@ export default class testMainClass extends baseMainTestClass {
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
                 await this.testResponseStatically (exchange, method, skipKeys, result);
                 // reset options
-                exchange.options = oldExchangeOptions;
+                exchange.options = exchange.deepExtend (oldExchangeOptions, {});
             }
         }
         await close (exchange);
+        return true; // in c# methods that will be used with promiseAll need to return something
     }
 
     getNumberOfTestsFromExchange (exchange, exchangeData: object) {
@@ -1388,7 +1436,7 @@ export default class testMainClass extends baseMainTestClass {
             spotOrderRequest = this.urlencodedToDict (exchange.last_request_body);
         }
         const clientOrderId = spotOrderRequest['newClientOrderId'];
-        assert (clientOrderId.startsWith (spotId), 'spot clientOrderId does not start with spotId');
+        assert (clientOrderId.startsWith (spotId.toString ()), 'spot clientOrderId does not start with spotId');
         const swapId = 'x-xcKtGhcu';
         let swapOrderRequest = undefined;
         try {
@@ -1403,10 +1451,11 @@ export default class testMainClass extends baseMainTestClass {
             swapInverseOrderRequest = this.urlencodedToDict (exchange.last_request_body);
         }
         const clientOrderIdSpot = swapOrderRequest['newClientOrderId'];
-        assert (clientOrderIdSpot.startsWith (swapId), 'swap clientOrderId does not start with swapId');
+        assert (clientOrderIdSpot.startsWith (swapId.toString ()), 'swap clientOrderId does not start with swapId');
         const clientOrderIdInverse = swapInverseOrderRequest['newClientOrderId'];
-        assert (clientOrderIdInverse.startsWith (swapId), 'swap clientOrderIdInverse does not start with swapId');
+        assert (clientOrderIdInverse.startsWith (swapId.toString ()), 'swap clientOrderIdInverse does not start with swapId');
         await close (exchange);
+        return true;
     }
 
     async testOkx () {
@@ -1419,7 +1468,7 @@ export default class testMainClass extends baseMainTestClass {
             spotOrderRequest = jsonParse (exchange.last_request_body);
         }
         const clientOrderId = spotOrderRequest[0]['clOrdId']; // returns order inside array
-        assert (clientOrderId.startsWith (id), 'spot clientOrderId does not start with id');
+        assert (clientOrderId.startsWith (id.toString ()), 'spot clientOrderId does not start with id');
         assert (spotOrderRequest[0]['tag'] === id, 'id different from spot tag');
         let swapOrderRequest = undefined;
         try {
@@ -1428,9 +1477,10 @@ export default class testMainClass extends baseMainTestClass {
             swapOrderRequest = jsonParse (exchange.last_request_body);
         }
         const clientOrderIdSpot = swapOrderRequest[0]['clOrdId'];
-        assert (clientOrderIdSpot.startsWith (id), 'swap clientOrderId does not start with id');
+        assert (clientOrderIdSpot.startsWith (id.toString ()), 'swap clientOrderId does not start with id');
         assert (swapOrderRequest[0]['tag'] === id, 'id different from swap tag');
         await close (exchange);
+        return true;
     }
 
     async testCryptocom () {
@@ -1445,6 +1495,7 @@ export default class testMainClass extends baseMainTestClass {
         }
         assert (request['params']['broker_id'] === id, 'id different from  broker_id');
         await close (exchange);
+        return true;
     }
 
     async testBybit () {
@@ -1460,6 +1511,7 @@ export default class testMainClass extends baseMainTestClass {
         }
         assert (reqHeaders['Referer'] === id, 'id not in headers');
         await close (exchange);
+        return true;
     }
 
     async testKucoin () {
@@ -1476,21 +1528,23 @@ export default class testMainClass extends baseMainTestClass {
         const id = 'ccxt';
         assert (reqHeaders['KC-API-PARTNER'] === id, 'id not in headers');
         await close (exchange);
+        return true;
     }
 
     async testKucoinfutures () {
-        const kucoin = this.initOfflineExchange ('kucoinfutures');
+        const exchange = this.initOfflineExchange ('kucoinfutures');
         let reqHeaders = undefined;
         const id = 'ccxtfutures';
-        assert (kucoin.options['partner']['future']['id'] === id, 'id not in options');
-        assert (kucoin.options['partner']['future']['key'] === '1b327198-f30c-4f14-a0ac-918871282f15', 'key not in options');
+        assert (exchange.options['partner']['future']['id'] === id, 'id not in options');
+        assert (exchange.options['partner']['future']['key'] === '1b327198-f30c-4f14-a0ac-918871282f15', 'key not in options');
         try {
-            await kucoin.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
+            await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            reqHeaders = kucoin.last_request_headers;
+            reqHeaders = exchange.last_request_headers;
         }
         assert (reqHeaders['KC-API-PARTNER'] === id, 'id not in headers');
-        await close (kucoin);
+        await close (exchange);
+        return true;
     }
 
     async testBitget () {
@@ -1505,6 +1559,7 @@ export default class testMainClass extends baseMainTestClass {
         }
         assert (reqHeaders['X-CHANNEL-API-CODE'] === id, 'id not in headers');
         await close (exchange);
+        return true;
     }
 
     async testMexc () {
@@ -1520,6 +1575,7 @@ export default class testMainClass extends baseMainTestClass {
         }
         assert (reqHeaders['source'] === id, 'id not in headers');
         await close (exchange);
+        return true;
     }
 
     async testHtx () {
@@ -1533,7 +1589,7 @@ export default class testMainClass extends baseMainTestClass {
             spotOrderRequest = jsonParse (exchange.last_request_body);
         }
         const clientOrderId = spotOrderRequest['client-order-id'];
-        assert (clientOrderId.startsWith (id), 'spot clientOrderId does not start with id');
+        assert (clientOrderId.startsWith (id.toString ()), 'spot clientOrderId does not start with id');
         // swap test
         let swapOrderRequest = undefined;
         try {
@@ -1548,10 +1604,11 @@ export default class testMainClass extends baseMainTestClass {
             swapInverseOrderRequest = jsonParse (exchange.last_request_body);
         }
         const clientOrderIdSpot = swapOrderRequest['channel_code'];
-        assert (clientOrderIdSpot.startsWith (id), 'swap channel_code does not start with id');
+        assert (clientOrderIdSpot.startsWith (id.toString ()), 'swap channel_code does not start with id');
         const clientOrderIdInverse = swapInverseOrderRequest['channel_code'];
-        assert (clientOrderIdInverse.startsWith (id), 'swap inverse channel_code does not start with id');
+        assert (clientOrderIdInverse.startsWith (id.toString ()), 'swap inverse channel_code does not start with id');
         await close (exchange);
+        return true;
     }
 
     async testWoo () {
@@ -1565,7 +1622,7 @@ export default class testMainClass extends baseMainTestClass {
             spotOrderRequest = this.urlencodedToDict (exchange.last_request_body);
         }
         const brokerId = spotOrderRequest['broker_id'];
-        assert (brokerId.startsWith (id), 'broker_id does not start with id');
+        assert (brokerId.startsWith (id.toString ()), 'broker_id does not start with id');
         // swap test
         let stopOrderRequest = undefined;
         try {
@@ -1574,8 +1631,9 @@ export default class testMainClass extends baseMainTestClass {
             stopOrderRequest = jsonParse (exchange.last_request_body);
         }
         const clientOrderIdSpot = stopOrderRequest['brokerId'];
-        assert (clientOrderIdSpot.startsWith (id), 'brokerId does not start with id');
+        assert (clientOrderIdSpot.startsWith (id.toString ()), 'brokerId does not start with id');
         await close (exchange);
+        return true;
     }
 
     async testBitmart () {
@@ -1591,6 +1649,7 @@ export default class testMainClass extends baseMainTestClass {
         }
         assert (reqHeaders['X-BM-BROKER-ID'] === id, 'id not in headers');
         await close (exchange);
+        return true;
     }
 
     async testCoinex () {
@@ -1604,8 +1663,9 @@ export default class testMainClass extends baseMainTestClass {
             spotOrderRequest = jsonParse (exchange.last_request_body);
         }
         const clientOrderId = spotOrderRequest['client_id'];
-        assert (clientOrderId.startsWith (id), 'clientOrderId does not start with id');
+        assert (clientOrderId.startsWith (id.toString ()), 'clientOrderId does not start with id');
         await close (exchange);
+        return true;
     }
 
     async testBingx () {
@@ -1633,7 +1693,7 @@ export default class testMainClass extends baseMainTestClass {
             request = jsonParse (exchange.last_request_body);
         }
         const clientOrderId = request['clOrdID'];
-        assert (clientOrderId.startsWith (id), 'clOrdID does not start with id');
+        assert (clientOrderId.startsWith (id.toString ()), 'clOrdID does not start with id');
         await close (exchange);
     }
 }

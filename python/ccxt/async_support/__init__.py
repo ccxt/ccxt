@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.23'
+__version__ = '4.2.33'
 
 # -----------------------------------------------------------------------------
 
@@ -29,9 +29,9 @@ from ccxt.base.errors import AccountSuspended                         # noqa: F4
 from ccxt.base.errors import ArgumentsRequired                        # noqa: F401
 from ccxt.base.errors import BadRequest                               # noqa: F401
 from ccxt.base.errors import BadSymbol                                # noqa: F401
-from ccxt.base.errors import MarginModeAlreadySet                     # noqa: F401
-from ccxt.base.errors import NoChange                                 # noqa: F401
 from ccxt.base.errors import OperationRejected                        # noqa: F401
+from ccxt.base.errors import NoChange                                 # noqa: F401
+from ccxt.base.errors import MarginModeAlreadySet                     # noqa: F401
 from ccxt.base.errors import BadResponse                              # noqa: F401
 from ccxt.base.errors import NullResponse                             # noqa: F401
 from ccxt.base.errors import InsufficientFunds                        # noqa: F401
@@ -103,6 +103,7 @@ from ccxt.async_support.coincheck import coincheck                              
 from ccxt.async_support.coinex import coinex                                    # noqa: F401
 from ccxt.async_support.coinlist import coinlist                                # noqa: F401
 from ccxt.async_support.coinmate import coinmate                                # noqa: F401
+from ccxt.async_support.coinmetro import coinmetro                              # noqa: F401
 from ccxt.async_support.coinone import coinone                                  # noqa: F401
 from ccxt.async_support.coinsph import coinsph                                  # noqa: F401
 from ccxt.async_support.coinspot import coinspot                                # noqa: F401
@@ -204,6 +205,7 @@ exchanges = [
     'coinex',
     'coinlist',
     'coinmate',
+    'coinmetro',
     'coinone',
     'coinsph',
     'coinspot',

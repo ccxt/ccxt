@@ -1733,7 +1733,7 @@ class delta(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://docs.delta.exchange/#place-order
@@ -2725,7 +2725,7 @@ class delta(Exchange, ImplicitAPI):
         #
         return self.privateGetProductsProductIdOrdersLeverage(self.extend(request, params))
 
-    def set_leverage(self, leverage, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://docs.delta.exchange/#change-order-leverage

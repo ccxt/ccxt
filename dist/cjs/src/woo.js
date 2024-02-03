@@ -856,7 +856,7 @@ class woo extends woo$1 {
         const stopLoss = this.safeValue(params, 'stopLoss');
         const takeProfit = this.safeValue(params, 'takeProfit');
         const algoType = this.safeString(params, 'algoType');
-        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activatedPrice', price);
+        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activatedPrice', this.numberToString(price));
         const trailingAmount = this.safeString2(params, 'trailingAmount', 'callbackValue');
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRate');
         const isTrailingAmountOrder = trailingAmount !== undefined;
@@ -1133,7 +1133,7 @@ class woo extends woo$1 {
          * @param {boolean} [params.stop] whether the order is a stop/algo order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const stop = this.safeValue(params, 'stop', false);
+        const stop = this.safeBool(params, 'stop', false);
         params = this.omit(params, 'stop');
         if (!stop && (symbol === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
@@ -1301,7 +1301,7 @@ class woo extends woo$1 {
         const request = {};
         let market = undefined;
         const stop = this.safeValue(params, 'stop');
-        const trailing = this.safeValue(params, 'trailing', false);
+        const trailing = this.safeBool(params, 'trailing', false);
         params = this.omit(params, ['stop', 'trailing']);
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2083,7 +2083,7 @@ class woo extends woo$1 {
         //
         const transfer = this.parseTransfer(response, currency);
         const transferOptions = this.safeValue(this.options, 'transfer', {});
-        const fillResponseFromRequest = this.safeValue(transferOptions, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             transfer['amount'] = amount;
             transfer['fromAccount'] = fromAccount;

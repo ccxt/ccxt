@@ -8,7 +8,7 @@ from ccxt.abstract.bingx import ImplicitAPI
 import asyncio
 import hashlib
 import numbers
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -20,7 +20,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
-from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.precise import Precise
@@ -74,6 +73,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchLeverage': True,
                 'fetchLiquidations': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': True,
                 'fetchMyLiquidations': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
@@ -178,6 +178,7 @@ class bingx(Exchange, ImplicitAPI):
                         'private': {
                             'get': {
                                 'positionSide/dual': 1,
+                                'market/markPriceKlines': 1,
                             },
                             'post': {
                                 'positionSide/dual': 1,
@@ -379,7 +380,7 @@ class bingx(Exchange, ImplicitAPI):
                     '100500': ExchangeError,
                     '100503': ExchangeError,
                     '80001': BadRequest,
-                    '80012': ExchangeNotAvailable,
+                    '80012': InsufficientFunds,  # bingx {"code":80012,"msg":"{\"Code\":101253,\"Msg\":\"margin is not enough\"}}
                     '80014': BadRequest,
                     '80016': OrderNotFound,
                     '80017': OrderNotFound,
@@ -687,6 +688,7 @@ class bingx(Exchange, ImplicitAPI):
         :see: https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data
         :see: https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
         :see: https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data
+        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#K-Line%20Data%20-%20Mark%20Price
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -718,7 +720,12 @@ class bingx(Exchange, ImplicitAPI):
         if market['spot']:
             response = await self.spotV1PublicGetMarketKline(self.extend(request, params))
         else:
-            response = await self.swapV3PublicGetQuoteKlines(self.extend(request, params))
+            price = self.safe_string(params, 'price')
+            params = self.omit(params, 'price')
+            if price == 'mark':
+                response = await self.swapV1PrivateGetMarketMarkPriceKlines(self.extend(request, params))
+            else:
+                response = await self.swapV3PublicGetQuoteKlines(self.extend(request, params))
         #
         #    {
         #        "code": 0,
@@ -736,6 +743,24 @@ class bingx(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
+        # fetchMarkOHLCV
+        #
+        #    {
+        #        "code": 0,
+        #        "msg": "",
+        #        "data": [
+        #            {
+        #                "open": "42191.7",
+        #                "close": "42189.5",
+        #                "high": "42196.5",
+        #                "low": "42189.5",
+        #                "volume": "0.00",
+        #                "openTime": 1706508840000,
+        #                "closeTime": 1706508840000
+        #            }
+        #        ]
+        #    }
+        #
         ohlcvs = self.safe_value(response, 'data', [])
         if not isinstance(ohlcvs, list):
             ohlcvs = [ohlcvs]
@@ -750,6 +775,18 @@ class bingx(Exchange, ImplicitAPI):
         #        "low": "19368.3",
         #        "volume": "167.44",
         #        "time": 1666584000000
+        #    }
+        #
+        # fetchMarkOHLCV
+        #
+        #    {
+        #        "open": "42191.7",
+        #        "close": "42189.5",
+        #        "high": "42196.5",
+        #        "low": "42189.5",
+        #        "volume": "0.00",
+        #        "openTime": 1706508840000,
+        #        "closeTime": 1706508840000
         #    }
         # spot
         #    [
@@ -773,7 +810,7 @@ class bingx(Exchange, ImplicitAPI):
                 self.safe_number(ohlcv, 5),
             ]
         return [
-            self.safe_integer(ohlcv, 'time'),
+            self.safe_integer_2(ohlcv, 'time', 'closeTime'),
             self.safe_number(ohlcv, 'open'),
             self.safe_number(ohlcv, 'high'),
             self.safe_number(ohlcv, 'low'),
@@ -1643,7 +1680,7 @@ class bingx(Exchange, ImplicitAPI):
         params['quoteOrderQty'] = cost
         return await self.create_order(symbol, 'market', 'sell', cost, None, params)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
          * @ignore
         helper function to build request
@@ -1716,7 +1753,7 @@ class bingx(Exchange, ImplicitAPI):
             isTakeProfit = takeProfit is not None
             if ((type == 'LIMIT') or (type == 'TRIGGER_LIMIT') or (type == 'STOP') or (type == 'TAKE_PROFIT')) and not isTrailing:
                 request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
-            reduceOnly = self.safe_value(params, 'reduceOnly', False)
+            reduceOnly = self.safe_bool(params, 'reduceOnly', False)
             if isTriggerOrder:
                 request['stopPrice'] = self.parse_to_numeric(self.price_to_precision(symbol, triggerPrice))
                 if isMarketOrder or (type == 'TRIGGER_MARKET'):
@@ -1746,6 +1783,7 @@ class bingx(Exchange, ImplicitAPI):
                     requestTrailingPercent = Precise.string_div(trailingPercent, '100')
                     request['priceRate'] = self.parse_to_numeric(requestTrailingPercent)
             if isStopLoss or isTakeProfit:
+                stringifiedAmount = self.number_to_string(amount)
                 if isStopLoss:
                     slTriggerPrice = self.safe_string_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
                     slWorkingType = self.safe_string(stopLoss, 'workingType', 'MARK_PRICE')
@@ -1758,7 +1796,7 @@ class bingx(Exchange, ImplicitAPI):
                     slPrice = self.safe_string(stopLoss, 'price')
                     if slPrice is not None:
                         slRequest['price'] = self.parse_to_numeric(self.price_to_precision(symbol, slPrice))
-                    slQuantity = self.safe_string(stopLoss, 'quantity', amount)
+                    slQuantity = self.safe_string(stopLoss, 'quantity', stringifiedAmount)
                     slRequest['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, slQuantity))
                     request['stopLoss'] = self.json(slRequest)
                 if isTakeProfit:
@@ -1773,7 +1811,7 @@ class bingx(Exchange, ImplicitAPI):
                     slPrice = self.safe_string(takeProfit, 'price')
                     if slPrice is not None:
                         tpRequest['price'] = self.parse_to_numeric(self.price_to_precision(symbol, slPrice))
-                    tkQuantity = self.safe_string(takeProfit, 'quantity', amount)
+                    tkQuantity = self.safe_string(takeProfit, 'quantity', stringifiedAmount)
                     tpRequest['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, tkQuantity))
                     request['takeProfit'] = self.json(tpRequest)
             positionSide = None
@@ -1786,7 +1824,7 @@ class bingx(Exchange, ImplicitAPI):
             params = self.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'takeProfit', 'stopLoss', 'clientOrderId'])
         return self.extend(request, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
@@ -2112,18 +2150,18 @@ class bingx(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_n(order, ['clientOrderID', 'origClientOrderId', 'c'])
         stopLoss = self.safe_value(order, 'stopLoss')
         stopLossPrice = None
-        if stopLoss is not None:
+        if (stopLoss is not None) and (stopLoss != ''):
             stopLossPrice = self.safe_number(stopLoss, 'stopLoss')
-        if (stopLoss is not None) and ((not isinstance(stopLoss, numbers.Real))):
+        if (stopLoss is not None) and ((not isinstance(stopLoss, numbers.Real))) and (stopLoss != ''):
             #  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
             if isinstance(stopLoss, str):
                 stopLoss = self.parse_json(stopLoss)
             stopLossPrice = self.safe_number(stopLoss, 'stopPrice')
         takeProfit = self.safe_value(order, 'takeProfit')
         takeProfitPrice = None
-        if takeProfit is not None:
+        if takeProfit is not None and (takeProfit != ''):
             takeProfitPrice = self.safe_number(takeProfit, 'takeProfit')
-        if (takeProfit is not None) and ((not isinstance(takeProfit, numbers.Real))):
+        if (takeProfit is not None) and ((not isinstance(takeProfit, numbers.Real))) and (takeProfit != ''):
             #  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
             if isinstance(takeProfit, str):
                 takeProfit = self.parse_json(takeProfit)
@@ -2645,7 +2683,7 @@ class bingx(Exchange, ImplicitAPI):
         orders = self.safe_value(data, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://bingx-api.github.io/docs/#/spot/account-api.html#User%20Universal%20Transfer
@@ -3101,7 +3139,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         return response
 
-    async def set_leverage(self, leverage, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Leverage
@@ -3297,7 +3335,7 @@ class bingx(Exchange, ImplicitAPI):
         coins = self.safe_value(response, 'data')
         return self.parse_deposit_withdraw_fees(coins, codes, 'coin')
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :see: https://bingx-api.github.io/docs/#/common/account-api.html#Withdraw
@@ -3335,7 +3373,7 @@ class bingx(Exchange, ImplicitAPI):
         #           "id":"1197073063359000577"
         #        }
         #    }
-        self.parse_transaction(data)
+        return self.parse_transaction(data)
 
     def parse_params(self, params):
         sortedParams = self.keysort(params)

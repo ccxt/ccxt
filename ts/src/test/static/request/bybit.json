@@ -311,7 +311,7 @@
                   "LTC/USDT",
                   "market",
                   "sell",
-                  null,
+                  0,
                   null,
                   {
                     "cost": 3

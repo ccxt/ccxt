@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.phemex import ImplicitAPI
 import hashlib
 import numbers
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Num, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Num, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1123,7 +1123,7 @@ class phemex(Exchange, ImplicitAPI):
         return orderbook
 
     def to_en(self, n, scale):
-        stringN = str(n)
+        stringN = self.number_to_string(n)
         precise = Precise(stringN)
         precise.decimals = precise.decimals - scale
         precise.reduce()
@@ -2335,13 +2335,13 @@ class phemex(Exchange, ImplicitAPI):
         })
 
     def parse_order(self, order, market: Market = None) -> Order:
-        isSwap = self.safe_value(market, 'swap', False)
+        isSwap = self.safe_bool(market, 'swap', False)
         hasPnl = ('closedPnl' in order)
         if isSwap or hasPnl:
             return self.parse_swap_order(order, market)
         return self.parse_spot_order(order, market)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#place-order
@@ -2427,10 +2427,10 @@ class phemex(Exchange, ImplicitAPI):
                     elif cost is None:
                         raise ArgumentsRequired(self.id + ' createOrder() ' + qtyType + ' requires a price argument or a cost parameter')
                 cost = amount if (cost is None) else cost
-                costString = str(cost)
+                costString = self.number_to_string(cost)
                 request['quoteQtyEv'] = self.to_ev(costString, market)
             else:
-                amountString = str(amount)
+                amountString = self.number_to_string(amount)
                 request['baseQtyEv'] = self.to_ev(amountString, market)
         elif market['swap']:
             posSide = self.safe_string_lower(params, 'posSide')
@@ -2443,7 +2443,7 @@ class phemex(Exchange, ImplicitAPI):
             if market['settle'] == 'USDT':
                 request['orderQtyRq'] = amount
             else:
-                request['orderQty'] = int(amount)
+                request['orderQty'] = self.parse_to_int(amount)
             if stopPrice is not None:
                 triggerType = self.safe_string(params, 'triggerType', 'ByMarkPrice')
                 request['triggerType'] = triggerType
@@ -3518,7 +3518,7 @@ class phemex(Exchange, ImplicitAPI):
         contracts = self.safe_string(position, 'size')
         contractSize = self.safe_value(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
-        leverage = self.parse_number(Precise.string_abs((self.safe_string(position, 'leverage', 'leverageRr'))))
+        leverage = self.parse_number(Precise.string_abs((self.safe_string_2(position, 'leverage', 'leverageRr'))))
         entryPriceString = self.safe_string_2(position, 'avgEntryPrice', 'avgEntryPriceRp')
         rawSide = self.safe_string(position, 'side')
         side = None
@@ -4013,7 +4013,7 @@ class phemex(Exchange, ImplicitAPI):
         url = self.implode_hostname(self.urls['api'][api]) + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def set_leverage(self, leverage, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#set-leverage
@@ -4032,7 +4032,7 @@ class phemex(Exchange, ImplicitAPI):
         if (leverage < -100) or (leverage > 100):
             raise BadRequest(self.id + ' setLeverage() leverage should be between -100 and 100')
         await self.load_markets()
-        isHedged = self.safe_value(params, 'hedged', False)
+        isHedged = self.safe_bool(params, 'hedged', False)
         longLeverageRr = self.safe_integer(params, 'longLeverageRr')
         shortLeverageRr = self.safe_integer(params, 'shortLeverageRr')
         market = self.market(symbol)
@@ -4044,17 +4044,17 @@ class phemex(Exchange, ImplicitAPI):
             if not isHedged and longLeverageRr is None and shortLeverageRr is None:
                 request['leverageRr'] = leverage
             else:
-                long = longLeverageRr if (longLeverageRr is not None) else leverage
-                short = shortLeverageRr if (shortLeverageRr is not None) else leverage
-                request['longLeverageRr'] = long
-                request['shortLeverageRr'] = short
+                longVar = longLeverageRr if (longLeverageRr is not None) else leverage
+                shortVar = shortLeverageRr if (shortLeverageRr is not None) else leverage
+                request['longLeverageRr'] = longVar
+                request['shortLeverageRr'] = shortVar
             response = await self.privatePutGPositionsLeverage(self.extend(request, params))
         else:
             request['leverage'] = leverage
             response = await self.privatePutPositionsLeverage(self.extend(request, params))
         return response
 
-    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -4118,7 +4118,7 @@ class phemex(Exchange, ImplicitAPI):
             #
             transfer = self.parse_transfer(response)
         transferOptions = self.safe_value(self.options, 'transfer', {})
-        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             if transfer['fromAccount'] is None:
                 transfer['fromAccount'] = fromAccount
@@ -4311,7 +4311,7 @@ class phemex(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :see: https://phemex-docs.github.io/#create-withdraw-request

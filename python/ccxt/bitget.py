@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitget import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Int, Liquidation, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, FundingHistory, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Liquidation, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Position, FundingHistory, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -87,6 +87,7 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRate': True,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
+                'fetchDeposit': False,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDeposits': True,
@@ -116,6 +117,7 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchOrderBooks': False,
                 'fetchOrders': False,
                 'fetchOrderTrades': False,
                 'fetchPosition': True,
@@ -123,6 +125,7 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchPositions': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchStatus': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -139,6 +142,7 @@ class bitget(Exchange, ImplicitAPI):
                 'repayCrossMargin': True,
                 'repayIsolatedMargin': True,
                 'setLeverage': True,
+                'setMargin': False,
                 'setMarginMode': True,
                 'setPositionMode': True,
                 'signIn': False,
@@ -2124,7 +2128,7 @@ class bitget(Exchange, ImplicitAPI):
         rawTransactions = self.safe_value(response, 'data', [])
         return self.parse_transactions(rawTransactions, currency, since, limit)
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :see: https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal
@@ -2188,7 +2192,7 @@ class bitget(Exchange, ImplicitAPI):
             'fee': None,
         }
         withdrawOptions = self.safe_value(self.options, 'withdraw', {})
-        fillResponseFromRequest = self.safe_value(withdrawOptions, 'fillResponseFromRequest', True)
+        fillResponseFromRequest = self.safe_bool(withdrawOptions, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             result['currency'] = code
             result['timestamp'] = self.milliseconds()
@@ -3015,7 +3019,7 @@ class bitget(Exchange, ImplicitAPI):
         marginMode, params = self.handle_margin_mode_and_params('fetchTradingFees', params)
         marketType, params = self.handle_market_type_and_params('fetchTradingFees', None, params)
         if marketType == 'spot':
-            margin = self.safe_value(params, 'margin', False)
+            margin = self.safe_bool(params, 'margin', False)
             params = self.omit(params, 'margin')
             if (marginMode is not None) or margin:
                 response = self.publicMarginGetV2MarginCurrencies(params)
@@ -3846,7 +3850,7 @@ class bitget(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://www.bitget.com/api-doc/spot/trade/Place-Order
@@ -3929,7 +3933,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    def create_order_request(self, symbol, type, side, amount, price=None, params={}):
+    def create_order_request(self, symbol, type, side, amount: float, price: float = None, params={}):
         sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         market = None
         if sandboxMode:
@@ -3958,7 +3962,7 @@ class bitget(Exchange, ImplicitAPI):
         isTakeProfit = takeProfit is not None
         isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder or isTakeProfitTriggerOrder
         isStopLossOrTakeProfit = isStopLoss or isTakeProfit
-        trailingTriggerPrice = self.safe_string(params, 'trailingTriggerPrice', price)
+        trailingTriggerPrice = self.safe_string(params, 'trailingTriggerPrice', self.number_to_string(price))
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRatio')
         isTrailingPercentOrder = trailingPercent is not None
         if self.sum(isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder, isTrailingPercentOrder) > 1:
@@ -3966,7 +3970,7 @@ class bitget(Exchange, ImplicitAPI):
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
         triggerType = self.safe_string(params, 'triggerType', 'mark_price')
-        reduceOnly = self.safe_value(params, 'reduceOnly', False)
+        reduceOnly = self.safe_bool(params, 'reduceOnly', False)
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
         exchangeSpecificTifParam = self.safe_string_2(params, 'force', 'timeInForce')
         postOnly = None
@@ -4041,7 +4045,7 @@ class bitget(Exchange, ImplicitAPI):
                     marginMode = 'cross'
                 marginModeRequest = 'crossed' if (marginMode == 'cross') else 'isolated'
                 request['marginMode'] = marginModeRequest
-                oneWayMode = self.safe_value(params, 'oneWayMode', False)
+                oneWayMode = self.safe_bool(params, 'oneWayMode', False)
                 params = self.omit(params, 'oneWayMode')
                 requestSide = side
                 if reduceOnly:
@@ -6453,11 +6457,11 @@ class bitget(Exchange, ImplicitAPI):
         #
         return response
 
-    def set_leverage(self, leverage, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://www.bitget.com/api-doc/contract/account/Change-Leverage
-        :param float leverage: the rate of leverage
+        :param int leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.holdSide]: *isolated only* position direction, 'long' or 'short'
@@ -6478,7 +6482,7 @@ class bitget(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
-            'leverage': leverage,
+            'leverage': self.number_to_string(leverage),
             'productType': productType,
             # 'holdSide': 'long',
         }
@@ -6711,7 +6715,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_transfers(data, currency, since, limit)
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://www.bitget.com/api-doc/spot/account/Wallet-Transfer
@@ -6901,7 +6905,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'coin')
 
-    def borrow_cross_margin(self, code: str, amount, params={}):
+    def borrow_cross_margin(self, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
         :see: https://www.bitget.com/api-doc/margin/cross/account/Cross-Borrow
@@ -6932,7 +6936,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_margin_loan(data, currency)
 
-    def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
+    def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
         :see: https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Borrow

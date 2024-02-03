@@ -1936,7 +1936,7 @@ class bitmart extends bitmart$1 {
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         const marginMode = this.safeString(params, 'marginMode');
-        const isMargin = this.safeValue(params, 'margin', false);
+        const isMargin = this.safeBool(params, 'margin', false);
         params = this.omit(params, ['margin', 'marginMode']);
         if (marginMode !== undefined || isMargin) {
             marketType = 'margin';
@@ -2416,7 +2416,7 @@ class bitmart extends bitmart$1 {
         }
         const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'trigger_price']);
         const isTriggerOrder = triggerPrice !== undefined;
-        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activation_price', price);
+        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activation_price', this.numberToString(price));
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'callback_rate');
         const isTrailingPercentOrder = trailingPercent !== undefined;
         if (isLimitOrder) {
@@ -2810,7 +2810,7 @@ class bitmart extends bitmart$1 {
                 response = await this.privateGetContractPrivateCurrentPlanOrder(this.extend(request, params));
             }
             else {
-                const trailing = this.safeValue(params, 'trailing', false);
+                const trailing = this.safeBool(params, 'trailing', false);
                 let orderType = this.safeString(params, 'orderType');
                 params = this.omit(params, ['orderType', 'trailing']);
                 if (trailing) {
@@ -2990,7 +2990,7 @@ class bitmart extends bitmart$1 {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
             }
-            const trailing = this.safeValue(params, 'trailing', false);
+            const trailing = this.safeBool(params, 'trailing', false);
             let orderType = this.safeString(params, 'orderType');
             params = this.omit(params, ['orderType', 'trailing']);
             if (trailing) {

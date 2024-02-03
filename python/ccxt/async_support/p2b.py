@@ -25,6 +25,7 @@ class p2b(Exchange, ImplicitAPI):
             'countries': ['LT'],
             'rateLimit': 100,
             'version': 'v2',
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -759,7 +760,7 @@ class p2b(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#create-order

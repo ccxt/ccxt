@@ -296,8 +296,6 @@ class bybit extends bybit$1 {
                         // account
                         'v5/account/wallet-balance': 1,
                         'v5/account/borrow-history': 1,
-                        'v5/account/set-collateral-switch': 5,
-                        'v5/account/set-collateral-switch-batch': 5,
                         'v5/account/collateral-info': 1,
                         'v5/asset/coin-greeks': 1,
                         'v5/account/fee-rate': 10,
@@ -490,6 +488,8 @@ class bybit extends bybit$1 {
                         'v5/lending/purchase': 5,
                         'v5/lending/redeem': 5,
                         'v5/lending/redeem-cancel': 5,
+                        'v5/account/set-collateral-switch': 5,
+                        'v5/account/set-collateral-switch-batch': 5,
                     },
                 },
             },
@@ -854,6 +854,7 @@ class bybit extends bybit$1 {
                     '181003': errors.InvalidOrder,
                     '181004': errors.InvalidOrder,
                     '182000': errors.InvalidOrder,
+                    '181017': errors.BadRequest,
                     '20001': errors.OrderNotFound,
                     '20003': errors.InvalidOrder,
                     '20004': errors.InvalidOrder,
@@ -3346,16 +3347,31 @@ class bybit extends bybit$1 {
         let fee = undefined;
         const feeCostString = this.safeString(order, 'cumExecFee');
         if (feeCostString !== undefined) {
-            let feeCurrency = undefined;
+            let feeCurrencyCode = undefined;
             if (market['spot']) {
-                feeCurrency = (side === 'buy') ? market['quote'] : market['base'];
+                if (Precise["default"].stringGt(feeCostString, '0')) {
+                    if (side === 'buy') {
+                        feeCurrencyCode = market['base'];
+                    }
+                    else {
+                        feeCurrencyCode = market['quote'];
+                    }
+                }
+                else {
+                    if (side === 'buy') {
+                        feeCurrencyCode = market['quote'];
+                    }
+                    else {
+                        feeCurrencyCode = market['base'];
+                    }
+                }
             }
             else {
-                feeCurrency = market['settle'];
+                feeCurrencyCode = market['inverse'] ? market['base'] : market['settle'];
             }
             fee = {
                 'cost': feeCostString,
-                'currency': feeCurrency,
+                'currency': feeCurrencyCode,
             };
         }
         let clientOrderId = this.safeString(order, 'orderLinkId');
@@ -3443,7 +3459,7 @@ class bybit extends bybit$1 {
         const result = await this.fetchOrders(symbol, undefined, undefined, this.extend(request, params));
         const length = result.length;
         if (length === 0) {
-            const isTrigger = this.safeValueN(params, ['trigger', 'stop'], false);
+            const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
             const extra = isTrigger ? '' : 'If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new errors.OrderNotFound('Order ' + id.toString() + ' was not found.' + extra);
         }
@@ -3676,7 +3692,7 @@ class bybit extends bybit$1 {
         const takeProfitTriggerPrice = this.safeValue(params, 'takeProfitPrice');
         const stopLoss = this.safeValue(params, 'stopLoss');
         const takeProfit = this.safeValue(params, 'takeProfit');
-        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activePrice', price);
+        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activePrice', this.numberToString(price));
         const trailingAmount = this.safeString2(params, 'trailingAmount', 'trailingStop');
         const isTrailingAmountOrder = trailingAmount !== undefined;
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
@@ -4515,7 +4531,7 @@ class bybit extends bybit$1 {
             return await this.fetchUsdcOrders(symbol, since, limit, params);
         }
         request['category'] = type;
-        const isStop = this.safeValueN(params, ['trigger', 'stop'], false);
+        const isStop = this.safeBoolN(params, ['trigger', 'stop'], false);
         params = this.omit(params, ['trigger', 'stop']);
         if (isStop) {
             request['orderFilter'] = 'StopOrder';
@@ -5673,10 +5689,10 @@ class bybit extends bybit$1 {
         //         "time": 1672280219169
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const positions = this.safeValue2(result, 'list', 'dataList', []);
+        const result = this.safeDict(response, 'result', {});
+        const positions = this.safeList2(result, 'list', 'dataList', []);
         const timestamp = this.safeInteger(response, 'time');
-        const first = this.safeValue(positions, 0, {});
+        const first = this.safeDict(positions, 0, {});
         const position = this.parsePosition(first, market);
         position['timestamp'] = timestamp;
         position['datetime'] = this.iso8601(timestamp);
@@ -6422,7 +6438,7 @@ class bybit extends bybit$1 {
             throw new errors.BadRequest(this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
         }
         await this.loadMarkets();
-        const paginate = this.safeValue(params, 'paginate');
+        const paginate = this.safeBool(params, 'paginate');
         if (paginate) {
             params = this.omit(params, 'paginate');
             return await this.fetchPaginatedCallDeterministic('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 500);

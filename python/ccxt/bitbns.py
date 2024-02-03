@@ -36,6 +36,7 @@ class bitbns(Exchange, ImplicitAPI):
                 'swap': False,
                 'future': False,
                 'option': None,  # coming soon
+                'cancelAllOrders': False,
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
@@ -563,7 +564,7 @@ class bitbns(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/place-orders

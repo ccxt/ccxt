@@ -104,7 +104,7 @@ export default class bitmex extends Exchange {
                     'public': 'https://testnet.bitmex.com',
                     'private': 'https://testnet.bitmex.com',
                 },
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
+                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/cea9cfe5-c57e-4b84-b2ac-77b960b04445',
                 'api': {
                     'public': 'https://www.bitmex.com',
                     'private': 'https://www.bitmex.com',
@@ -115,7 +115,10 @@ export default class bitmex extends Exchange {
                     'https://github.com/BitMEX/api-connectors/tree/master/official-http',
                 ],
                 'fees': 'https://www.bitmex.com/app/fees',
-                'referral': 'https://www.bitmex.com/register/upZpOX',
+                'referral': {
+                    'url': 'https://www.bitmex.com/app/register/NZTR1q',
+                    'discount': 0.1,
+                },
             },
             'api': {
                 'public': {
@@ -339,8 +342,8 @@ export default class bitmex extends Exchange {
                 const network = this.networkIdToCode(networkId);
                 const withdrawalFeeRaw = this.safeString(chain, 'withdrawalFee');
                 const withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeRaw, precisionString));
-                const isDepositEnabled = this.safeValue(chain, 'depositEnabled', false);
-                const isWithdrawEnabled = this.safeValue(chain, 'withdrawalEnabled', false);
+                const isDepositEnabled = this.safeBool(chain, 'depositEnabled', false);
+                const isWithdrawEnabled = this.safeBool(chain, 'withdrawalEnabled', false);
                 const active = (isDepositEnabled && isWithdrawEnabled);
                 if (isDepositEnabled) {
                     depositEnabled = true;
@@ -1716,7 +1719,7 @@ export default class bitmex extends Exchange {
             isInverse = (defaultSubType === 'inverse');
         }
         else {
-            isInverse = this.safeValue(market, 'inverse', false);
+            isInverse = this.safeBool(market, 'inverse', false);
         }
         if (isInverse) {
             cost = this.convertFromRawQuantity(symbol, qty);
@@ -2423,7 +2426,7 @@ export default class bitmex extends Exchange {
             const item = response[i];
             const marketId = this.safeString(item, 'symbol');
             const market = this.safeMarket(marketId);
-            const swap = this.safeValue(market, 'swap', false);
+            const swap = this.safeBool(market, 'swap', false);
             if (swap) {
                 filteredResponse.push(item);
             }

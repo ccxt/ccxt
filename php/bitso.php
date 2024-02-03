@@ -897,7 +897,7 @@ class bitso extends Exchange {
         return $result;
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, $limit = 25, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = 25, $params = array ()) {
         /**
          * fetch all trades made by the user
          * @param {string} $symbol unified $market $symbol
@@ -933,7 +933,7 @@ class bitso extends Exchange {
         return $this->parse_trades($response['payload'], $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1097,7 +1097,7 @@ class bitso extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, $limit = 25, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = 25, $params = array ()): array {
         /**
          * fetch all unfilled currently open $orders
          * @param {string} $symbol unified $market $symbol
@@ -1517,7 +1517,7 @@ class bitso extends Exchange {
         return $result;
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -1708,7 +1708,7 @@ class bitso extends Exchange {
             //
             //     array("success":false,"error":array("code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"))
             //
-            $success = $this->safe_value($response, 'success', false);
+            $success = $this->safe_bool($response, 'success', false);
             if (gettype($success) === 'string') {
                 if (($success === 'true') || ($success === '1')) {
                     $success = true;

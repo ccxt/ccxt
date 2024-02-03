@@ -910,7 +910,6 @@ class ascendex extends \ccxt\async\ascendex {
                 $this->handle_balance($client, $message);
             }
         }
-        return $message;
     }
 
     public function handle_subscription_status(Client $client, $message) {

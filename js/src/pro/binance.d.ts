@@ -16,7 +16,7 @@ export default class binance extends binanceRest {
     handleSubscriptionStatus(client: Client, message: any): any;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: any): Trade;
     handleTrade(client: Client, message: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     handleOHLCV(client: Client, message: any): void;
@@ -28,7 +28,7 @@ export default class binance extends binanceRest {
     signParams(params?: {}): any;
     authenticate(params?: {}): Promise<void>;
     keepAliveListenKey(params?: {}): Promise<void>;
-    setBalanceCache(client: Client, type: any): any;
+    setBalanceCache(client: Client, type: any): void;
     loadBalanceSnapshot(client: any, messageHash: any, type: any): Promise<void>;
     fetchBalanceWs(params?: {}): Promise<Balances>;
     handleBalanceWs(client: Client, message: any): void;
@@ -60,5 +60,5 @@ export default class binance extends binanceRest {
     handleOrder(client: Client, message: any): void;
     handleAcountUpdate(client: any, message: any): void;
     handleWsError(client: Client, message: any): void;
-    handleMessage(client: Client, message: any): any;
+    handleMessage(client: Client, message: any): void;
 }

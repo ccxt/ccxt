@@ -649,14 +649,14 @@ class phemex extends \ccxt\async\phemex {
         }) ();
     }
 
-    public function handle_delta($bookside, $delta, $market = null) {
+    public function custom_handle_delta($bookside, $delta, $market = null) {
         $bidAsk = $this->custom_parse_bid_ask($delta, 0, 1, $market);
         $bookside->storeArray ($bidAsk);
     }
 
-    public function handle_deltas($bookside, $deltas, $market = null) {
+    public function custom_handle_deltas($bookside, $deltas, $market = null) {
         for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_delta($bookside, $deltas[$i], $market);
+            $this->custom_handle_delta($bookside, $deltas[$i], $market);
         }
     }
 
@@ -726,8 +726,8 @@ class phemex extends \ccxt\async\phemex {
                 $changes = $this->safe_value_2($message, 'book', 'orderbook_p', array());
                 $asks = $this->safe_value($changes, 'asks', array());
                 $bids = $this->safe_value($changes, 'bids', array());
-                $this->handle_deltas($orderbook['asks'], $asks, $market);
-                $this->handle_deltas($orderbook['bids'], $bids, $market);
+                $this->custom_handle_deltas($orderbook['asks'], $asks, $market);
+                $this->custom_handle_deltas($orderbook['bids'], $bids, $market);
                 $orderbook['nonce'] = $nonce;
                 $orderbook['timestamp'] = $timestamp;
                 $orderbook['datetime'] = $this->iso8601($timestamp);
@@ -1428,18 +1428,23 @@ class phemex extends \ccxt\async\phemex {
             $method = $client->subscriptions[$id];
             unset($client->subscriptions[$id]);
             if ($method !== true) {
-                return $method($client, $message);
+                $method($client, $message);
+                return;
             }
         }
         $methodName = $this->safe_string($message, 'method', '');
         if ((is_array($message) && array_key_exists('market24h', $message)) || (is_array($message) && array_key_exists('spot_market24h', $message)) || (mb_strpos($methodName, 'perp_market24h_pack_p') !== false)) {
-            return $this->handle_ticker($client, $message);
+            $this->handle_ticker($client, $message);
+            return;
         } elseif ((is_array($message) && array_key_exists('trades', $message)) || (is_array($message) && array_key_exists('trades_p', $message))) {
-            return $this->handle_trades($client, $message);
+            $this->handle_trades($client, $message);
+            return;
         } elseif ((is_array($message) && array_key_exists('kline', $message)) || (is_array($message) && array_key_exists('kline_p', $message))) {
-            return $this->handle_ohlcv($client, $message);
+            $this->handle_ohlcv($client, $message);
+            return;
         } elseif ((is_array($message) && array_key_exists('book', $message)) || (is_array($message) && array_key_exists('orderbook_p', $message))) {
-            return $this->handle_order_book($client, $message);
+            $this->handle_order_book($client, $message);
+            return;
         }
         if ((is_array($message) && array_key_exists('orders', $message)) || (is_array($message) && array_key_exists('orders_p', $message))) {
             $orders = $this->safe_value_2($message, 'orders', 'orders_p', array());
@@ -1505,33 +1510,31 @@ class phemex extends \ccxt\async\phemex {
     }
 
     public function authenticate($params = array ()) {
-        return Async\async(function () use ($params) {
-            $this->check_required_credentials();
-            $url = $this->urls['api']['ws'];
-            $client = $this->client($url);
-            $requestId = $this->request_id();
-            $messageHash = 'authenticated';
-            $future = $this->safe_value($client->subscriptions, $messageHash);
-            if ($future === null) {
-                $expiryDelta = $this->safe_integer($this->options, 'expires', 120);
-                $expiration = $this->seconds() . $expiryDelta;
-                $payload = $this->apiKey . (string) $expiration;
-                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
-                $method = 'user.auth';
-                $request = array(
-                    'method' => $method,
-                    'params' => array( 'API', $this->apiKey, $signature, $expiration ),
-                    'id' => $requestId,
-                );
-                $subscriptionHash = (string) $requestId;
-                $message = array_merge($request, $params);
-                if (!(is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions))) {
-                    $client->subscriptions[$subscriptionHash] = array($this, 'handle_authenticate');
-                }
-                $future = $this->watch($url, $messageHash, $message);
-                $client->subscriptions[$messageHash] = $future;
+        $this->check_required_credentials();
+        $url = $this->urls['api']['ws'];
+        $client = $this->client($url);
+        $requestId = $this->request_id();
+        $messageHash = 'authenticated';
+        $future = $this->safe_value($client->subscriptions, $messageHash);
+        if ($future === null) {
+            $expiryDelta = $this->safe_integer($this->options, 'expires', 120);
+            $expiration = $this->seconds() . $expiryDelta;
+            $payload = $this->apiKey . (string) $expiration;
+            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
+            $method = 'user.auth';
+            $request = array(
+                'method' => $method,
+                'params' => array( 'API', $this->apiKey, $signature, $expiration ),
+                'id' => $requestId,
+            );
+            $subscriptionHash = (string) $requestId;
+            $message = array_merge($request, $params);
+            if (!(is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions))) {
+                $client->subscriptions[$subscriptionHash] = array($this, 'handle_authenticate');
             }
-            return Async\await($future);
-        }) ();
+            $future = $this->watch($url, $messageHash, $message);
+            $client->subscriptions[$messageHash] = $future;
+        }
+        return $future;
     }
 }
