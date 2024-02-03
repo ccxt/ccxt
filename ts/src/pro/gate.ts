@@ -327,7 +327,7 @@ export default class gate extends gateRest {
         //        }
         //    }
         //
-        return this.helperForHandleTickerBidAsk ('ticker', client, message);
+        this.helperForHandleTickerBidAsk ('ticker', client, message);
     }
 
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -360,7 +360,7 @@ export default class gate extends gateRest {
         //        }
         //    }
         //
-        return this.helperForHandleTickerBidAsk ('bidask', client, message);
+        this.helperForHandleTickerBidAsk ('bidask', client, message);
     }
 
     async helperForWatchTickersBidsAsks (symbols: Strings = undefined, methdoName: Str = undefined, params = {}): Promise<Tickers> {
@@ -394,7 +394,7 @@ export default class gate extends gateRest {
         const url = this.getUrlByMarket (market);
         const channel = messageType + '.' + method;
         const isWatchTickers = (methdoName === 'watchTickers');
-        const prefix = isWatchTickers ? 'ticker' : 'bidsask';
+        const prefix = isWatchTickers ? 'ticker' : 'bidask';
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -415,27 +415,20 @@ export default class gate extends gateRest {
         const parts = channel.split ('.');
         const rawMarketType = this.safeString (parts, 0);
         const marketType = (rawMarketType === 'futures') ? 'contract' : 'spot';
-        let result = this.safeValue (message, 'result');
-        if (!Array.isArray (result)) {
-            result = [ result ];
-        }
+        const rawEntry = this.safeDict (message, 'result');
         const isTicker = (objectName === 'ticker');
-        const items = {};
-        for (let i = 0; i < result.length; i++) {
-            const ticker = result[i];
-            const marketId = this.safeString (ticker, 's');
-            const market = this.safeMarket (marketId, undefined, '_', marketType);
-            const parsedItem = this.parseTicker (ticker, market);
-            const symbol = parsedItem['symbol'];
-            items[symbol] = parsedItem;
-            if (isTicker) {
-                this.tickers[symbol] = parsedItem;
-            } else {
-                this.bidsasks[symbol] = parsedItem;
-            }
-            const messageHash = objectName + ':' + symbol;
-            client.resolve (parsedItem, messageHash);
+        const ticker = rawEntry;
+        const marketId = this.safeString (ticker, 's');
+        const market = this.safeMarket (marketId, undefined, '_', marketType);
+        const parsedItem = this.parseTicker (ticker, market);
+        const symbol = parsedItem['symbol'];
+        if (isTicker) {
+            this.tickers[symbol] = parsedItem;
+        } else {
+            this.bidsasks[symbol] = parsedItem;
         }
+        const messageHash = objectName + ':' + symbol;
+        client.resolve (parsedItem, messageHash);
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
