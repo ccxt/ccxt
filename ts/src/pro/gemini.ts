@@ -227,6 +227,33 @@ export default class gemini extends geminiRest {
         }
     }
 
+    handleTradesForMulti (client: Client, trades) {
+        if (trades !== undefined) {
+            const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            const storesForSymbols = {};
+            for (let i = 0; i < trades.length; i++) {
+                const marketId = trades[i]['symbol'];
+                const market = this.safeMarket (marketId);
+                const symbol = market['symbol'];
+                const trade = this.parseWsTrade (trades[i], market);
+                let stored = this.safeValue (this.trades, symbol);
+                if (stored === undefined) {
+                    stored = new ArrayCache (tradesLimit);
+                    this.trades[symbol] = stored;
+                }
+                stored.append (trade);
+                storesForSymbols[symbol] = stored;
+            }
+            const symbols = Object.keys (storesForSymbols);
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const stored = storesForSymbols[symbol];
+                const messageHash = 'trades:' + symbol;
+                client.resolve (stored, messageHash);
+            }
+        }
+    }
+
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
@@ -664,6 +691,21 @@ export default class gemini extends geminiRest {
         const method = this.safeValue (methods, type);
         if (method !== undefined) {
             method.call (this, client, message);
+        }
+        // handle multimarketdata
+        if (type === 'update') {
+            const events = this.safeList (message, 'events');
+            const collectedEventsOfTrades = [];
+            for (let i = 0; i < events.length; i++) {
+                const eventType = this.safeString (events[i], 'type');
+                if (eventType === 'trade') {
+                    collectedEventsOfTrades.push (events[i]);
+                }
+            }
+            const length = collectedEventsOfTrades.length;
+            if (length > 0) {
+                this.handleTradesForMulti (client, collectedEventsOfTrades);
+            }
         }
     }
 
