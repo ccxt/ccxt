@@ -1593,6 +1593,41 @@ public partial class kraken : Exchange
         //        "txid": "OTI672-HJFAO-XOIPPK"
         //    }
         //
+        //  {
+        //      "error": [],
+        //      "result": {
+        //          "open": {
+        //              "OXVPSU-Q726F-L3SDEP": {
+        //                  "refid": null,
+        //                  "userref": 0,
+        //                  "status": "open",
+        //                  "opentm": 1706893367.4656649,
+        //                  "starttm": 0,
+        //                  "expiretm": 0,
+        //                  "descr": {
+        //                      "pair": "XRPEUR",
+        //                      "type": "sell",
+        //                      "ordertype": "trailing-stop",
+        //                      "price": "+50.0000%",
+        //                      "price2": "0",
+        //                      "leverage": "none",
+        //                      "order": "sell 10.00000000 XRPEUR @ trailing stop +50.0000%",
+        //                      "close": ""
+        //                  },
+        //                  "vol": "10.00000000",
+        //                  "vol_exec": "0.00000000",
+        //                  "cost": "0.00000000",
+        //                  "fee": "0.00000000",
+        //                  "price": "0.00000000",
+        //                  "stopprice": "0.23424000",
+        //                  "limitprice": "0.46847000",
+        //                  "misc": "",
+        //                  "oflags": "fciq",
+        //                  "trigger": "index"
+        //              }
+        //      }
+        //  }
+        //
         object description = this.safeValue(order, "descr", new Dictionary<string, object>() {});
         object orderDescription = this.safeString(description, "order", description);
         object side = null;
@@ -1637,6 +1672,11 @@ public partial class kraken : Exchange
         // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
         // const cost = this.safeString (order, 'cost');
         price = this.safeString(description, "price", price);
+        // when type = trailling stop returns price = '+50.0000%'
+        if (isTrue(isTrue((!isEqual(price, null))) && isTrue(((string)price).EndsWith("%"))))
+        {
+            price = null; // this is not the price we want
+        }
         if (isTrue(isTrue((isEqual(price, null))) || isTrue(Precise.stringEquals(price, "0"))))
         {
             price = this.safeString(description, "price2");

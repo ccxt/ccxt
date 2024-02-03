@@ -493,6 +493,16 @@
                     "marginMode": "isolated"
                   }
                 ]
+            },
+            {
+                "description": "Fetch portfolio margin balance",
+                "method": "fetchBalance",
+                "url": "https://papi.binance.com/papi/v1/balance?timestamp=1706936519078&recvWindow=10000&signature=20a3d68b3de7861311b3374d162428361526523cb8bd7d79ceada4c2b02b0f4b",
+                "input": [
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
             }
         ],
         "fetchMyTrades": [

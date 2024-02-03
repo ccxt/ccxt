@@ -1458,6 +1458,41 @@ class kraken(Exchange, ImplicitAPI):
         #        "txid": "OTI672-HJFAO-XOIPPK"
         #    }
         #
+        #  {
+        #      "error": [],
+        #      "result": {
+        #          "open": {
+        #              "OXVPSU-Q726F-L3SDEP": {
+        #                  "refid": null,
+        #                  "userref": 0,
+        #                  "status": "open",
+        #                  "opentm": 1706893367.4656649,
+        #                  "starttm": 0,
+        #                  "expiretm": 0,
+        #                  "descr": {
+        #                      "pair": "XRPEUR",
+        #                      "type": "sell",
+        #                      "ordertype": "trailing-stop",
+        #                      "price": "+50.0000%",
+        #                      "price2": "0",
+        #                      "leverage": "none",
+        #                      "order": "sell 10.00000000 XRPEUR @ trailing stop +50.0000%",
+        #                      "close": ""
+        #                  },
+        #                  "vol": "10.00000000",
+        #                  "vol_exec": "0.00000000",
+        #                  "cost": "0.00000000",
+        #                  "fee": "0.00000000",
+        #                  "price": "0.00000000",
+        #                  "stopprice": "0.23424000",
+        #                  "limitprice": "0.46847000",
+        #                  "misc": "",
+        #                  "oflags": "fciq",
+        #                  "trigger": "index"
+        #              }
+        #      }
+        #  }
+        #
         description = self.safe_value(order, 'descr', {})
         orderDescription = self.safe_string(description, 'order', description)
         side = None
@@ -1494,6 +1529,9 @@ class kraken(Exchange, ImplicitAPI):
         # kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
         # cost = self.safe_string(order, 'cost')
         price = self.safe_string(description, 'price', price)
+        # when type = trailling stop returns price = '+50.0000%'
+        if (price is not None) and price.endswith('%'):
+            price = None  # self is not the price we want
         if (price is None) or Precise.string_equals(price, '0'):
             price = self.safe_string(description, 'price2')
         if (price is None) or Precise.string_equals(price, '0'):
