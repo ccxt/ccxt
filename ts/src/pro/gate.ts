@@ -296,8 +296,76 @@ export default class gate extends gateRest {
         return await this.subscribePublic (url, messageHash, payload, channel, query);
     }
 
-    async watchHelperForTickersBidsAsks (symbols: Strings = undefined, methdoName: Str = undefined, params = {}): Promise<Tickers> {
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name gate#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        return await this.helperForWatchTickersBidsAsks (symbols, 'watchTickers', this.extend ({ 'method': 'tickers' }, params));
+    }
+
+    handleTicker (client: Client, message) {
+        //
+        //    {
+        //        "time": 1649326221,
+        //        "channel": "spot.tickers",
+        //        "event": "update",
+        //        "result": {
+        //          "currency_pair": "BTC_USDT",
+        //          "last": "43444.82",
+        //          "lowest_ask": "43444.82",
+        //          "highest_bid": "43444.81",
+        //          "change_percentage": "-4.0036",
+        //          "base_volume": "5182.5412425462",
+        //          "quote_volume": "227267634.93123952",
+        //          "high_24h": "47698",
+        //          "low_24h": "42721.03"
+        //        }
+        //    }
+        //
+        return this.helperForHandleTickerBidAsk ('ticker', client, message);
+    }
+
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name gate#watchBidsAsks
+         * @description watches bids & asks for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        return await this.helperForWatchTickersBidsAsks (symbols, 'watchBidsAsks', this.extend ({ 'method': 'book_ticker' }, params));
+    }
+
+    handleBidAsk (client: Client, message) {
+        //
+        //    {
+        //        "time": 1671363004,
+        //        "time_ms": 1671363004235,
+        //        "channel": "spot.book_ticker",
+        //        "event": "update",
+        //        "result": {
+        //          "t": 1671363004228,
+        //          "u": 9793320464,
+        //          "s": "BTC_USDT",
+        //          "b": "16716.8",
+        //          "B": "0.0134",
+        //          "a": "16716.9",
+        //          "A": "0.0353"
+        //        }
+        //    }
+        //
+        return this.helperForHandleTickerBidAsk ('bidask', client, message);
+    }
+
+    async helperForWatchTickersBidsAsks (symbols: Strings = undefined, methdoName: Str = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
+        const isWatchTickers = (methdoName === 'watchTickers');
         symbols = this.marketSymbols (symbols);
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams (methdoName, undefined, params);
@@ -325,46 +393,17 @@ export default class gate extends gateRest {
         let method = undefined;
         [ method, params ] = this.handleOptionAndParams (params, methdoName, 'method');
         const channel = messageType + '.' + method;
-        const messageHash = (methdoName === 'watchTickers') ? 'tickers' : 'bidsasks';
+        const messageHash = isWatchTickers ? 'tickers' : 'bidsasks';
         const url = this.getUrlByMarket (market);
         const tickers = await this.subscribePublic (url, messageHash, marketIds, channel, params);
         if (this.newUpdates) {
             return tickers;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols, true);
+        const result = isWatchTickers ? this.tickers : this.bidsasks;
+        return this.filterByArray (result, 'symbol', symbols, true);
     }
 
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        /**
-         * @method
-         * @name gate#watchTickers
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
-        return await this.watchHelperForTickersBidsAsks (symbols, 'watchTickers', this.extend ({ 'method': 'tickers' }, params));
-    }
-
-    handleTicker (client: Client, message) {
-        //
-        //    {
-        //        "time": 1649326221,
-        //        "channel": "spot.tickers",
-        //        "event": "update",
-        //        "result": {
-        //          "currency_pair": "BTC_USDT",
-        //          "last": "43444.82",
-        //          "lowest_ask": "43444.82",
-        //          "highest_bid": "43444.81",
-        //          "change_percentage": "-4.0036",
-        //          "base_volume": "5182.5412425462",
-        //          "quote_volume": "227267634.93123952",
-        //          "high_24h": "47698",
-        //          "low_24h": "42721.03"
-        //        }
-        //    }
-        //
+    helperForHandleTickerBidAsk (objectName: string, client: Client, message) {
         const channel = this.safeString (message, 'channel');
         const parts = channel.split ('.');
         const rawMarketType = this.safeString (parts, 0);
@@ -373,6 +412,7 @@ export default class gate extends gateRest {
         if (!Array.isArray (result)) {
             result = [ result ];
         }
+        const isTicker = (objectName === 'ticker');
         const tickers = {};
         for (let i = 0; i < result.length; i++) {
             const ticker = result[i];
@@ -382,63 +422,10 @@ export default class gate extends gateRest {
             const symbol = parsedTicker['symbol'];
             tickers[symbol] = parsedTicker;
             this.tickers[symbol] = parsedTicker;
-            const messageHash = 'ticker:' + symbol;
+            const messageHash = objectName + ':' + symbol;
             client.resolve (parsedTicker, messageHash);
         }
-        client.resolve (tickers, 'tickers');
-    }
-
-    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        /**
-         * @method
-         * @name gate#watchBidsAsks
-         * @description watches bids & asks for symbols
-         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
-        if (!this.newUpdates) {
-            throw new NotSupported (this.id + ' watchBidsAsks requires the newUpdates option to be set to true');
-        }
-        return await this.watchHelperForTickersBidsAsks (symbols, 'watchBidsAsks', this.extend ({ 'method': 'book_ticker' }, params));
-    }
-
-    handleBidAsk (client: Client, message) {
-        //
-        //    {
-        //        "time": 1671363004,
-        //        "time_ms": 1671363004235,
-        //        "channel": "spot.book_ticker",
-        //        "event": "update",
-        //        "result": {
-        //          "t": 1671363004228,
-        //          "u": 9793320464,
-        //          "s": "BTC_USDT",
-        //          "b": "16716.8",
-        //          "B": "0.0134",
-        //          "a": "16716.9",
-        //          "A": "0.0353"
-        //        }
-        //    }
-        //
-        const channel = this.safeString (message, 'channel');
-        const parts = channel.split ('.');
-        const rawMarketType = this.safeString (parts, 0);
-        const marketType = (rawMarketType === 'futures') ? 'contract' : 'spot';
-        let result = this.safeValue (message, 'result');
-        if (!Array.isArray (result)) {
-            result = [ result ];
-        }
-        const tickers = {};
-        for (let i = 0; i < result.length; i++) {
-            const ticker = result[i];
-            const marketId = this.safeString (ticker, 's');
-            const market = this.safeMarket (marketId, undefined, '_', marketType);
-            const parsedTicker = this.parseTicker (ticker, market);
-            const symbol = parsedTicker['symbol'];
-            tickers[symbol] = parsedTicker;
-        }
-        client.resolve (tickers, 'bidsasks');
+        client.resolve (tickers, (isTicker ? 'tickers' : 'bidsasks'));
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
