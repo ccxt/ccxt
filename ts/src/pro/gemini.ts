@@ -110,6 +110,8 @@ export default class gemini extends geminiRest {
 
     parseWsTrade (trade, market = undefined) {
         //
+        // regular v2 trade
+        //
         //     {
         //         "type": "trade",
         //         "symbol": "BTCUSD",
@@ -120,11 +122,25 @@ export default class gemini extends geminiRest {
         //         "side": "buy"
         //     }
         //
-        const timestamp = this.safeInteger (trade, 'timestamp');
+        // multi data trade
+        //
+        //    {
+        //        "type": "trade",
+        //        "symbol": "ETHUSD",
+        //        "tid": "1683002242170204", // this does not seem trade/event id, but ts
+        //        "price": "2299.24",
+        //        "amount": "0.002662",
+        //        "makerSide": "bid"
+        //    }
+        //
+        let timestamp = this.safeInteger (trade, 'timestamp');
+        if (timestamp === undefined) {
+            timestamp = this.safeIntegerProduct (trade, 'tid', 0.001);
+        }
         const id = this.safeString (trade, 'event_id');
         const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'quantity');
-        const side = this.safeStringLower (trade, 'side');
+        const amountString = this.safeString (trade, 'quantity', 'amount');
+        const side = this.safeStringLower (trade, 'side', 'makerSide');
         const marketId = this.safeStringLower (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         return this.safeTrade ({
