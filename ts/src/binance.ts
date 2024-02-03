@@ -3138,9 +3138,23 @@ export default class binance extends Exchange {
         let timestamp = undefined;
         const isolated = marginMode === 'isolated';
         const cross = (type === 'margin') || (marginMode === 'cross');
-        if (!isolated && ((type === 'spot') || cross)) {
+        if (type === 'papi') {
+            for (let i = 0; i < response.length; i++) {
+                const entry = response[i];
+                const account = this.account ();
+                const currencyId = this.safeString (entry, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                const borrowed = this.safeString (entry, 'crossMarginBorrowed');
+                const interest = this.safeString (entry, 'crossMarginInterest');
+                account['free'] = this.safeString (entry, 'crossMarginFree');
+                account['used'] = this.safeString (entry, 'crossMarginLocked');
+                account['total'] = this.safeString (entry, 'crossMarginAsset');
+                account['debt'] = Precise.stringAdd (borrowed, interest);
+                result[code] = account;
+            }
+        } else if (!isolated && ((type === 'spot') || cross)) {
             timestamp = this.safeInteger (response, 'updateTime');
-            const balances = this.safeValue2 (response, 'balances', 'userAssets', []);
+            const balances = this.safeList2 (response, 'balances', 'userAssets', []);
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
                 const currencyId = this.safeString (balance, 'asset');
@@ -3156,13 +3170,13 @@ export default class binance extends Exchange {
                 result[code] = account;
             }
         } else if (isolated) {
-            const assets = this.safeValue (response, 'assets');
+            const assets = this.safeList (response, 'assets');
             for (let i = 0; i < assets.length; i++) {
                 const asset = assets[i];
-                const marketId = this.safeValue (asset, 'symbol');
+                const marketId = this.safeString (asset, 'symbol');
                 const symbol = this.safeSymbol (marketId, undefined, undefined, 'spot');
-                const base = this.safeValue (asset, 'baseAsset', {});
-                const quote = this.safeValue (asset, 'quoteAsset', {});
+                const base = this.safeDict (asset, 'baseAsset', {});
+                const quote = this.safeDict (asset, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'asset'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'asset'));
                 const subResult = {};
@@ -3171,7 +3185,7 @@ export default class binance extends Exchange {
                 result[symbol] = this.safeBalance (subResult);
             }
         } else if (type === 'savings') {
-            const positionAmountVos = this.safeValue (response, 'positionAmountVos', []);
+            const positionAmountVos = this.safeList (response, 'positionAmountVos', []);
             for (let i = 0; i < positionAmountVos.length; i++) {
                 const entry = positionAmountVos[i];
                 const currencyId = this.safeString (entry, 'asset');
@@ -3198,7 +3212,7 @@ export default class binance extends Exchange {
         } else {
             let balances = response;
             if (!Array.isArray (response)) {
-                balances = this.safeValue (response, 'assets', []);
+                balances = this.safeList (response, 'assets', []);
             }
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
@@ -3229,10 +3243,12 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data            // swap
          * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data              // future
          * @see https://binance-docs.github.io/apidocs/voptions/en/#option-account-information-trade           // option
+         * @see https://binance-docs.github.io/apidocs/pm/en/#account-balance-user_data                        // portfolio margin
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
          * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
          * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the balance for a portfolio margin account
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
@@ -3240,20 +3256,25 @@ export default class binance extends Exchange {
         let type = this.safeString (params, 'type', defaultType);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'papi', 'portfolioMargin', false);
         let marginMode = undefined;
         let query = undefined;
         [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
         query = this.omit (query, 'type');
         let response = undefined;
         const request = {};
-        if (this.isLinear (type, subType)) {
+        if (isPortfolioMargin) {
+            type = 'papi';
+            response = await this.papiGetBalance (this.extend (request, query));
+        } else if (this.isLinear (type, subType)) {
             type = 'linear';
             response = await this.fapiPrivateV2GetAccount (this.extend (request, query));
         } else if (this.isInverse (type, subType)) {
             type = 'inverse';
             response = await this.dapiPrivateGetAccount (this.extend (request, query));
         } else if (marginMode === 'isolated') {
-            const paramSymbols = this.safeValue (params, 'symbols');
+            const paramSymbols = this.safeList (params, 'symbols');
             query = this.omit (query, 'symbols');
             if (paramSymbols !== undefined) {
                 let symbols = '';
@@ -3462,6 +3483,26 @@ export default class binance extends Exchange {
         //         "freeze": "0",
         //         "withdrawing": "0"
         //       }
+        //     ]
+        //
+        // portfolio margin
+        //
+        //     [
+        //         {
+        //             "asset": "USDT",
+        //             "totalWalletBalance": "66.9923261",
+        //             "crossMarginAsset": "35.9697141",
+        //             "crossMarginBorrowed": "0.0",
+        //             "crossMarginFree": "35.9697141",
+        //             "crossMarginInterest": "0.0",
+        //             "crossMarginLocked": "0.0",
+        //             "umWalletBalance": "31.022612",
+        //             "umUnrealizedPNL": "0.0",
+        //             "cmWalletBalance": "0.0",
+        //             "cmUnrealizedPNL": "0.0",
+        //             "updateTime": 0,
+        //             "negativeBalance": "0.0"
+        //         },
         //     ]
         //
         return this.parseBalanceCustom (response, type, marginMode);
