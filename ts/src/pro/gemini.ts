@@ -92,7 +92,7 @@ export default class gemini extends geminiRest {
         const marketIds = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const messageHash = 'trades' + ':' + symbol;
+            const messageHash = 'trades:' + symbol;
             messageHashes.push (messageHash);
             const market = this.market (symbol);
             marketIds.push (market['id']);
@@ -227,13 +227,13 @@ export default class gemini extends geminiRest {
         }
     }
 
-    handleTradesForMulti (client: Client, trades) {
+    handleTradesForMultidata (client: Client, trades) {
         if (trades !== undefined) {
             const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const storesForSymbols = {};
             for (let i = 0; i < trades.length; i++) {
                 const marketId = trades[i]['symbol'];
-                const market = this.safeMarket (marketId);
+                const market = this.safeMarket (marketId.toLowerCase ());
                 const symbol = market['symbol'];
                 const trade = this.parseWsTrade (trades[i], market);
                 let stored = this.safeValue (this.trades, symbol);
@@ -704,7 +704,7 @@ export default class gemini extends geminiRest {
             }
             const length = collectedEventsOfTrades.length;
             if (length > 0) {
-                this.handleTradesForMulti (client, collectedEventsOfTrades);
+                this.handleTradesForMultidata (client, collectedEventsOfTrades);
             }
         }
     }
