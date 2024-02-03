@@ -5803,7 +5803,8 @@ export default class Exchange {
                 errors = 0;
                 const responseLength = response.length;
                 if (this.verbose) {
-                    const cursorMessage = 'Cursor pagination call ' + (i + 1) + ' method ' + method + ' response length ' + responseLength + ' cursor ' + cursorValue;
+                    const iteration = (i + 1).toString ();
+                    const cursorMessage = 'Cursor pagination call ' + iteration + ' method ' + method + ' response length ' + responseLength + ' cursor ' + cursorValue;
                     this.log (cursorMessage);
                 }
                 if (responseLength === 0) {
