@@ -152,10 +152,32 @@ export default class krakenfutures extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'tierBased': false,
+                    'tierBased': true,
                     'percentage': true,
-                    'maker': this.parseNumber ('-0.0002'),
-                    'taker': this.parseNumber ('0.00075'),
+                    'taker': this.parseNumber ('0.0005'),
+                    'maker': this.parseNumber ('0.0002'),
+                    'tiers': {
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0005') ],
+                            [ this.parseNumber ('100000'), this.parseNumber ('0.0004') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0003') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.00025') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0002') ],
+                            [ this.parseNumber ('20000000'), this.parseNumber ('0.00015') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.000125') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0.0001') ],
+                        ],
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0002') ],
+                            [ this.parseNumber ('100000'), this.parseNumber ('0.0015') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.000125') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0001') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.000075') ],
+                            [ this.parseNumber ('20000000'), this.parseNumber ('0.00005') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.000025') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0') ],
+                        ],
+                    },
                 },
             },
             'exceptions': {
