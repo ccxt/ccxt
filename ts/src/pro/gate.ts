@@ -365,7 +365,6 @@ export default class gate extends gateRest {
 
     async helperForWatchTickersBidsAsks (symbols: Strings = undefined, methdoName: Str = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        const isWatchTickers = (methdoName === 'watchTickers');
         symbols = this.marketSymbols (symbols);
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams (methdoName, undefined, params);
@@ -392,12 +391,20 @@ export default class gate extends gateRest {
         const marketIds = this.marketIds (symbols);
         let method = undefined;
         [ method, params ] = this.handleOptionAndParams (params, methdoName, 'method');
-        const channel = messageType + '.' + method;
-        const messageHash = isWatchTickers ? 'tickers' : 'bidsasks';
         const url = this.getUrlByMarket (market);
-        const tickers = await this.subscribePublic (url, messageHash, marketIds, channel, params);
+        const channel = messageType + '.' + method;
+        const isWatchTickers = (methdoName === 'watchTickers');
+        const prefix = isWatchTickers ? 'ticker' : 'bidsask';
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push (prefix + ':' + symbol);
+        }
+        const tickerOrBidAsk = await this.subscribePublicMultiple (url, messageHashes, marketIds, channel, params);
         if (this.newUpdates) {
-            return tickers;
+            const items = {};
+            items[tickerOrBidAsk['symbol']] = tickerOrBidAsk;
+            return items;
         }
         const result = isWatchTickers ? this.tickers : this.bidsasks;
         return this.filterByArray (result, 'symbol', symbols, true);
@@ -429,7 +436,6 @@ export default class gate extends gateRest {
             const messageHash = objectName + ':' + symbol;
             client.resolve (parsedItem, messageHash);
         }
-        client.resolve (items, (isTicker ? 'tickers' : 'bidsasks'));
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
