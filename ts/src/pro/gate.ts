@@ -413,19 +413,23 @@ export default class gate extends gateRest {
             result = [ result ];
         }
         const isTicker = (objectName === 'ticker');
-        const tickers = {};
+        const items = {};
         for (let i = 0; i < result.length; i++) {
             const ticker = result[i];
             const marketId = this.safeString (ticker, 's');
             const market = this.safeMarket (marketId, undefined, '_', marketType);
-            const parsedTicker = this.parseTicker (ticker, market);
-            const symbol = parsedTicker['symbol'];
-            tickers[symbol] = parsedTicker;
-            this.tickers[symbol] = parsedTicker;
+            const parsedItem = this.parseTicker (ticker, market);
+            const symbol = parsedItem['symbol'];
+            items[symbol] = parsedItem;
+            if (isTicker) {
+                this.tickers[symbol] = parsedItem;
+            } else {
+                this.bidsasks[symbol] = parsedItem;
+            }
             const messageHash = objectName + ':' + symbol;
-            client.resolve (parsedTicker, messageHash);
+            client.resolve (parsedItem, messageHash);
         }
-        client.resolve (tickers, (isTicker ? 'tickers' : 'bidsasks'));
+        client.resolve (items, (isTicker ? 'tickers' : 'bidsasks'));
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
