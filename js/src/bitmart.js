@@ -2419,7 +2419,7 @@ export default class bitmart extends Exchange {
         }
         const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'trigger_price']);
         const isTriggerOrder = triggerPrice !== undefined;
-        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activation_price', price);
+        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activation_price', this.numberToString(price));
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'callback_rate');
         const isTrailingPercentOrder = trailingPercent !== undefined;
         if (isLimitOrder) {

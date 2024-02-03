@@ -1348,10 +1348,10 @@ class tokocrypto extends Exchange {
         //         "timestamp":1659666786943
         //     }
         //
-        return $this->parse_balance($response, $type, $marginMode);
+        return $this->parse_balance_custom($response, $type, $marginMode);
     }
 
-    public function parse_balance($response, $type = null, $marginMode = null) {
+    public function parse_balance_custom($response, $type = null, $marginMode = null) {
         $timestamp = $this->safe_integer($response, 'updateTime');
         $result = array(
             'info' => $response,
@@ -1558,7 +1558,7 @@ class tokocrypto extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://www.tokocrypto.com/apidocs/#new-order--signed
@@ -2293,7 +2293,7 @@ class tokocrypto extends Exchange {
         );
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * @see https://www.tokocrypto.com/apidocs/#withdraw-signed
          * make a withdrawal

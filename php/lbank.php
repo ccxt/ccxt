@@ -332,7 +332,7 @@ class lbank extends Exchange {
 
     public function fetch_markets($params = array ()) {
         /**
-         * retrieves data on all markets for lbank2
+         * retrieves data on all markets for lbank
          * @see https://www.lbank.com/en-US/docs/index.html#trading-pairs
          * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-information-list
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1279,7 +1279,7 @@ class lbank extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://www.lbank.com/en-US/docs/index.html#place-order
@@ -1985,7 +1985,7 @@ class lbank extends Exchange {
         );
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://www.lbank.com/en-US/docs/index.html#withdrawal
@@ -2262,7 +2262,7 @@ class lbank extends Exchange {
         /**
          * @deprecated
          * please use fetchDepositWithdrawFees instead
-         * @param {string[]|null} $codes not used by lbank2 fetchTransactionFees ()
+         * @param {string[]|null} $codes not used by lbank fetchTransactionFees ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
          */

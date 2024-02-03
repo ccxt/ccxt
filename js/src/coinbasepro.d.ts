@@ -13,7 +13,7 @@ export default class coinbasepro extends Exchange {
         info: any;
         tag: string;
     }>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     deposit(code: string, amount: any, address: any, params?: {}): Promise<{
         id: any;
         info: any;
@@ -75,5 +75,5 @@ export default class coinbasepro extends Exchange {
         method: string;
         url: string;
     };
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
 }

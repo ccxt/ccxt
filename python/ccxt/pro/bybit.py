@@ -853,7 +853,7 @@ class bybit(ccxt.async_support.bybit):
         """
         :see: https://bybit-exchange.github.io/docs/v5/websocket/private/position
         watch all open positions
-        :param str[]|None symbols: list of unified market symbols
+        :param str[] [symbols]: list of unified market symbols
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
@@ -883,7 +883,7 @@ class bybit(ccxt.async_support.bybit):
 
     def set_positions_cache(self, client: Client, symbols: Strings = None):
         if self.positions is not None:
-            return self.positions
+            return
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
         if fetchPositionsSnapshot:
             messageHash = 'fetchPositionsSnapshot'
@@ -1002,7 +1002,7 @@ class bybit(ccxt.async_support.bybit):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client: Client, message, subscription=None):
+    def handle_order(self, client: Client, message):
         #
         #     spot
         #     {
@@ -1532,7 +1532,7 @@ class bybit(ccxt.async_support.bybit):
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             expiresInt = self.milliseconds() + 10000
-            expires = str(expiresInt)
+            expires = self.number_to_string(expiresInt)
             path = 'GET/realtime'
             auth = path + expires
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'hex')
@@ -1544,7 +1544,7 @@ class bybit(ccxt.async_support.bybit):
             }
             message = self.extend(request, params)
             self.watch(url, messageHash, message, messageHash)
-        return future
+        return await future
 
     def handle_error_message(self, client: Client, message):
         #

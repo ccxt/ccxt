@@ -1177,11 +1177,29 @@ class yobit extends yobit$1 {
         const address = this.safeString(response['return'], 'address');
         this.checkAddress(address);
         return {
+            'id': undefined,
             'currency': code,
             'address': address,
             'tag': undefined,
             'network': undefined,
             'info': response,
+            'txid': undefined,
+            'type': undefined,
+            'amount': undefined,
+            'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'addressFrom': undefined,
+            'addressTo': undefined,
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'updated': undefined,
+            'comment': undefined,
+            'fee': {
+                'currency': undefined,
+                'cost': undefined,
+                'rate': undefined,
+            },
         };
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
@@ -1214,6 +1232,27 @@ class yobit extends yobit$1 {
         return {
             'info': response,
             'id': undefined,
+            'txid': undefined,
+            'type': undefined,
+            'currency': undefined,
+            'network': undefined,
+            'amount': undefined,
+            'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'address': undefined,
+            'addressFrom': undefined,
+            'addressTo': undefined,
+            'tag': undefined,
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'updated': undefined,
+            'comment': undefined,
+            'fee': {
+                'currency': undefined,
+                'cost': undefined,
+                'rate': undefined,
+            },
         };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

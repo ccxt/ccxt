@@ -8,7 +8,7 @@ from ccxt.abstract.kucoin import ImplicitAPI
 import hashlib
 import math
 import json
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1823,7 +1823,7 @@ class kucoin(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice')
         return [triggerPrice, stopLossPrice, takeProfitPrice]
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         Create an order on the exchange
         :see: https://docs.kucoin.com/spot#place-a-new-order
@@ -2016,7 +2016,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_value(data, 'data', [])
         return self.parse_orders(data)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         market = self.market(symbol)
         # required param, cannot be used twice
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId', self.uuid())
@@ -2911,7 +2911,7 @@ class kucoin(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.kucoin.com/#apply-withdraw-2
@@ -3372,7 +3372,7 @@ class kucoin(Exchange, ImplicitAPI):
         returnType = result if isolated else self.safe_balance(result)
         return returnType
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://docs.kucoin.com/#inner-transfer
@@ -3944,7 +3944,7 @@ class kucoin(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def borrow_cross_margin(self, code: str, amount, params={}):
+    def borrow_cross_margin(self, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
         :see: https://docs.kucoin.com/#1-margin-borrowing
@@ -3977,7 +3977,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_margin_loan(data, currency)
 
-    def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
+    def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
         :see: https://docs.kucoin.com/#1-margin-borrowing
@@ -4149,7 +4149,7 @@ class kucoin(Exchange, ImplicitAPI):
         endpart = ''
         headers = headers if (headers is not None) else {}
         url = self.urls['api'][api]
-        if query:
+        if not self.is_empty(query):
             if (method == 'GET') or (method == 'DELETE'):
                 endpoint += '?' + self.rawencode(query)
             else:

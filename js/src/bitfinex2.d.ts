@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitfinex2.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest } from './base/types.js';
 /**
  * @class bitfinex2
  * @augments Exchange
@@ -22,17 +22,7 @@ export default class bitfinex2 extends Exchange {
     fetchCurrencies(params?: {}): Promise<{}>;
     safeNetwork(networkId: any): string;
     fetchBalance(params?: {}): Promise<Balances>;
-    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
-        id: any;
-        timestamp: number;
-        datetime: string;
-        status: string;
-        amount: number;
-        currency: string;
-        fromAccount: string;
-        toAccount: string;
-        info: any;
-    }>;
+    transfer(code: string, amount: number, fromAccount: any, toAccount: any, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: any, currency?: Currency): {
         id: any;
         timestamp: number;
@@ -52,13 +42,15 @@ export default class bitfinex2 extends Exchange {
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: number, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     parseOrderStatus(status: any): any;
     parseOrderFlags(flags: any): any;
     parseTimeInForce(orderType: any): string;
     parseOrder(order: any, market?: Market): Order;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): any;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<Order[]>;
@@ -86,7 +78,7 @@ export default class bitfinex2 extends Exchange {
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     fetchTradingFees(params?: {}): Promise<{}>;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
+    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<any>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: Market): import("./base/types.js").Position;
     nonce(): number;
@@ -116,7 +108,7 @@ export default class bitfinex2 extends Exchange {
         info: any;
     };
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchFundingRate(symbol: string, params?: {}): Promise<{}>;
+    fetchFundingRate(symbol: string, params?: {}): Promise<any>;
     fetchFundingRates(symbols?: Strings, params?: {}): Promise<{}>;
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     parseFundingRate(contract: any, market?: Market): {
@@ -178,4 +170,6 @@ export default class bitfinex2 extends Exchange {
         symbol: any;
         status: string;
     };
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
 }

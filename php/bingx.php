@@ -1736,7 +1736,7 @@ class bingx extends Exchange {
         return $this->create_order($symbol, 'market', 'sell', $cost, null, $params);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @ignore
          * helper function to build $request
@@ -1853,6 +1853,7 @@ class bingx extends Exchange {
                 }
             }
             if ($isStopLoss || $isTakeProfit) {
+                $stringifiedAmount = $this->number_to_string($amount);
                 if ($isStopLoss) {
                     $slTriggerPrice = $this->safe_string_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
                     $slWorkingType = $this->safe_string($stopLoss, 'workingType', 'MARK_PRICE');
@@ -1866,7 +1867,7 @@ class bingx extends Exchange {
                     if ($slPrice !== null) {
                         $slRequest['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $slPrice));
                     }
-                    $slQuantity = $this->safe_string($stopLoss, 'quantity', $amount);
+                    $slQuantity = $this->safe_string($stopLoss, 'quantity', $stringifiedAmount);
                     $slRequest['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $slQuantity));
                     $request['stopLoss'] = $this->json($slRequest);
                 }
@@ -1883,7 +1884,7 @@ class bingx extends Exchange {
                     if ($slPrice !== null) {
                         $tpRequest['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $slPrice));
                     }
-                    $tkQuantity = $this->safe_string($takeProfit, 'quantity', $amount);
+                    $tkQuantity = $this->safe_string($takeProfit, 'quantity', $stringifiedAmount);
                     $tpRequest['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $tkQuantity));
                     $request['takeProfit'] = $this->json($tpRequest);
                 }
@@ -1901,7 +1902,7 @@ class bingx extends Exchange {
         return array_merge($request, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
@@ -2803,7 +2804,7 @@ class bingx extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://bingx-api.github.io/docs/#/spot/account-api.html#User%20Universal%20Transfer
@@ -3290,7 +3291,7 @@ class bingx extends Exchange {
         return $response;
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Leverage
@@ -3498,7 +3499,7 @@ class bingx extends Exchange {
         return $this->parse_deposit_withdraw_fees($coins, $codes, 'coin');
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://bingx-api.github.io/docs/#/common/account-api.html#Withdraw
@@ -3539,7 +3540,7 @@ class bingx extends Exchange {
         //           "id":"1197073063359000577"
         //        }
         //    }
-        $this->parse_transaction($data);
+        return $this->parse_transaction($data);
     }
 
     public function parse_params($params) {

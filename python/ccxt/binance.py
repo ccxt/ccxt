@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.binance import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -3089,7 +3089,7 @@ class binance(Exchange, ImplicitAPI):
         account['debt'] = Precise.string_add(debt, interest)
         return account
 
-    def parse_balance(self, response, type=None, marginMode=None) -> Balances:
+    def parse_balance_custom(self, response, type=None, marginMode=None) -> Balances:
         result = {
             'info': response,
         }
@@ -3407,7 +3407,7 @@ class binance(Exchange, ImplicitAPI):
         #       }
         #     ]
         #
-        return self.parse_balance(response, type, marginMode)
+        return self.parse_balance_custom(response, type, marginMode)
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -4354,7 +4354,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def edit_spot_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+    def edit_spot_order(self, id: str, symbol, type, side, amount: float, price: float = None, params={}):
         """
          * @ignore
         edit a trade order
@@ -4417,7 +4417,7 @@ class binance(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'newOrderResponse')
         return self.parse_order(data, market)
 
-    def edit_spot_order_request(self, id: str, symbol, type, side, amount, price=None, params={}):
+    def edit_spot_order_request(self, id: str, symbol, type, side, amount: float, price: float = None, params={}):
         """
          * @ignore
         helper function to build request for editSpotOrder
@@ -4522,7 +4522,7 @@ class binance(Exchange, ImplicitAPI):
         params = self.omit(params, ['quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly'])
         return self.extend(request, params)
 
-    def edit_contract_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+    def edit_contract_order(self, id: str, symbol, type, side, amount: float, price: float = None, params={}):
         """
         edit a trade order
         :see: https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
@@ -4945,7 +4945,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://binance-docs.github.io/apidocs/spot/en/#new-order-trade
@@ -4994,7 +4994,7 @@ class binance(Exchange, ImplicitAPI):
         response = getattr(self, method)(request)
         return self.parse_order(response, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
          * @ignore
         helper function to build request
@@ -5020,7 +5020,7 @@ class binance(Exchange, ImplicitAPI):
         stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)  # fallback to stopLoss
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
         trailingDelta = self.safe_value(params, 'trailingDelta')
-        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activationPrice', price)
+        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activationPrice', self.number_to_string(price))
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRate')
         isTrailingPercentOrder = trailingPercent is not None
         isStopLoss = stopLossPrice is not None or trailingDelta is not None
@@ -5514,7 +5514,7 @@ class binance(Exchange, ImplicitAPI):
         params = self.omit(params, 'type')
         orders = self.fetch_orders(symbol, since, None, params)
         filteredOrders = self.filter_by(orders, 'status', 'canceled')
-        return self.filter_by_limit(filteredOrders, limit)
+        return self.filter_by_since_limit(filteredOrders, since, limit)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -6432,7 +6432,7 @@ class binance(Exchange, ImplicitAPI):
             'amount': amount,
         }
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
@@ -6882,7 +6882,7 @@ class binance(Exchange, ImplicitAPI):
             }
         return result
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :see: https://binance-docs.github.io/apidocs/spot/en/#withdraw-user_data
@@ -8207,7 +8207,7 @@ class binance(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchFundingHistory() supports linear and inverse contracts only')
         return self.parse_incomes(response, market, since, limit)
 
-    def set_leverage(self, leverage, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://binance-docs.github.io/apidocs/futures/en/#change-initial-leverage-trade
@@ -8847,7 +8847,7 @@ class binance(Exchange, ImplicitAPI):
                     return entry[1]
         return self.safe_value(config, 'cost', 1)
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}):
         response = self.fetch2(path, api, method, params, headers, body, config)
         # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if api == 'private':
@@ -9225,7 +9225,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_margin_loan(response, currency)
 
-    def borrow_cross_margin(self, code: str, amount, params={}):
+    def borrow_cross_margin(self, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
         :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
@@ -9251,7 +9251,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_margin_loan(response, currency)
 
-    def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
+    def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
         :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
@@ -9420,6 +9420,7 @@ class binance(Exchange, ImplicitAPI):
                     return item
         else:
             return self.parse_open_interest(response, market)
+        return None
 
     def parse_open_interest(self, interest, market: Market = None):
         timestamp = self.safe_integer_2(interest, 'timestamp', 'time')

@@ -1130,7 +1130,7 @@ class phemex extends phemex$1 {
         return orderbook;
     }
     toEn(n, scale) {
-        const stringN = n.toString();
+        const stringN = this.numberToString(n);
         const precise = new Precise["default"](stringN);
         precise.decimals = precise.decimals - scale;
         precise.reduce();
@@ -2523,11 +2523,11 @@ class phemex extends phemex$1 {
                     }
                 }
                 cost = (cost === undefined) ? amount : cost;
-                const costString = cost.toString();
+                const costString = this.numberToString(cost);
                 request['quoteQtyEv'] = this.toEv(costString, market);
             }
             else {
-                const amountString = amount.toString();
+                const amountString = this.numberToString(amount);
                 request['baseQtyEv'] = this.toEv(amountString, market);
             }
         }
@@ -2545,7 +2545,7 @@ class phemex extends phemex$1 {
                 request['orderQtyRq'] = amount;
             }
             else {
-                request['orderQty'] = parseInt(amount);
+                request['orderQty'] = this.parseToInt(amount);
             }
             if (stopPrice !== undefined) {
                 const triggerType = this.safeString(params, 'triggerType', 'ByMarkPrice');
@@ -4342,10 +4342,10 @@ class phemex extends phemex$1 {
                 request['leverageRr'] = leverage;
             }
             else {
-                const long = (longLeverageRr !== undefined) ? longLeverageRr : leverage;
-                const short = (shortLeverageRr !== undefined) ? shortLeverageRr : leverage;
-                request['longLeverageRr'] = long;
-                request['shortLeverageRr'] = short;
+                const longVar = (longLeverageRr !== undefined) ? longLeverageRr : leverage;
+                const shortVar = (shortLeverageRr !== undefined) ? shortLeverageRr : leverage;
+                request['longLeverageRr'] = longVar;
+                request['shortLeverageRr'] = shortVar;
             }
             response = await this.privatePutGPositionsLeverage(this.extend(request, params));
         }

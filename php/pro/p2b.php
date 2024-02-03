@@ -377,7 +377,8 @@ class p2b extends \ccxt\async\p2b {
                 $bid = $this->safe_value($bids, $i);
                 $price = $this->safe_number($bid, 0);
                 $amount = $this->safe_number($bid, 1);
-                $orderbook['bids'].store ($price, $amount);
+                $bookSide = $orderbook['bids'];
+                $bookSide->store ($price, $amount);
             }
         }
         if ($asks !== null) {
@@ -385,7 +386,8 @@ class p2b extends \ccxt\async\p2b {
                 $ask = $this->safe_value($asks, $i);
                 $price = $this->safe_number($ask, 0);
                 $amount = $this->safe_number($ask, 1);
-                $orderbook['asks'].store ($price, $amount);
+                $bookside = $orderbook['asks'];
+                $bookside->store ($price, $amount);
             }
         }
         $orderbook['symbol'] = $symbol;
@@ -411,7 +413,7 @@ class p2b extends \ccxt\async\p2b {
         );
         $endpoint = $this->safe_value($methods, $method);
         if ($endpoint !== null) {
-            return $endpoint($client, $message);
+            $endpoint($client, $message);
         }
     }
 

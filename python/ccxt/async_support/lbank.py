@@ -347,7 +347,7 @@ class lbank(Exchange, ImplicitAPI):
 
     async def fetch_markets(self, params={}):
         """
-        retrieves data on all markets for lbank2
+        retrieves data on all markets for lbank
         :see: https://www.lbank.com/en-US/docs/index.html#trading-pairs
         :see: https://www.lbank.com/en-US/docs/contract.html#query-contract-information-list
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1245,7 +1245,7 @@ class lbank(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://www.lbank.com/en-US/docs/index.html#place-order
@@ -1905,7 +1905,7 @@ class lbank(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://www.lbank.com/en-US/docs/index.html#withdrawal
@@ -2168,7 +2168,7 @@ class lbank(Exchange, ImplicitAPI):
         """
          * @deprecated
         please use fetchDepositWithdrawFees instead
-        :param str[]|None codes: not used by lbank2 fetchTransactionFees()
+        :param str[]|None codes: not used by lbank fetchTransactionFees()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """

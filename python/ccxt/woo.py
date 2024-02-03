@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, MarketType, Market, Order, OrderBook, OrderSide, OrderType, Num, Str, Bool, Strings, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, MarketType, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Num, Str, Bool, Strings, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -796,7 +796,7 @@ class woo(Exchange, ImplicitAPI):
         params['trailingTriggerPrice'] = trailingTriggerPrice
         return self.create_order(symbol, type, side, amount, price, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://docs.woo.org/#send-order
@@ -833,7 +833,7 @@ class woo(Exchange, ImplicitAPI):
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
         algoType = self.safe_string(params, 'algoType')
-        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activatedPrice', price)
+        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activatedPrice', self.number_to_string(price))
         trailingAmount = self.safe_string_2(params, 'trailingAmount', 'callbackValue')
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRate')
         isTrailingAmountOrder = trailingAmount is not None
@@ -1920,7 +1920,7 @@ class woo(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -2038,7 +2038,7 @@ class woo(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -2444,7 +2444,7 @@ class woo(Exchange, ImplicitAPI):
             'leverage': leverage,
         }
 
-    def set_leverage(self, leverage, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         self.load_markets()
         if (leverage < 1) or (leverage > 20):
             raise BadRequest(self.id + ' leverage should be between 1 and 20')

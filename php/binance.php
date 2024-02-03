@@ -3117,7 +3117,7 @@ class binance extends Exchange {
         return $account;
     }
 
-    public function parse_balance($response, $type = null, $marginMode = null): array {
+    public function parse_balance_custom($response, $type = null, $marginMode = null): array {
         $result = array(
             'info' => $response,
         );
@@ -3448,7 +3448,7 @@ class binance extends Exchange {
         //       }
         //     )
         //
-        return $this->parse_balance($response, $type, $marginMode);
+        return $this->parse_balance_custom($response, $type, $marginMode);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
@@ -4449,7 +4449,7 @@ class binance extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function edit_spot_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_spot_order(string $id, $symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @ignore
          * edit a trade order
@@ -4514,7 +4514,7 @@ class binance extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function edit_spot_order_request(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_spot_order_request(string $id, $symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @ignore
          * helper function to build $request for editSpotOrder
@@ -4639,7 +4639,7 @@ class binance extends Exchange {
         return array_merge($request, $params);
     }
 
-    public function edit_contract_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_contract_order(string $id, $symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * edit a trade order
          * @see https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
@@ -5083,7 +5083,7 @@ class binance extends Exchange {
         return $this->parse_orders($response);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://binance-docs.github.io/apidocs/spot/en/#new-order-trade
@@ -5137,7 +5137,7 @@ class binance extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @ignore
          * helper function to build $request
@@ -5163,7 +5163,7 @@ class binance extends Exchange {
         $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);  // fallback to stopLoss
         $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
         $trailingDelta = $this->safe_value($params, 'trailingDelta');
-        $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activationPrice', $price);
+        $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activationPrice', $this->number_to_string($price));
         $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRate');
         $isTrailingPercentOrder = $trailingPercent !== null;
         $isStopLoss = $stopLossPrice !== null || $trailingDelta !== null;
@@ -5721,7 +5721,7 @@ class binance extends Exchange {
         $params = $this->omit($params, 'type');
         $orders = $this->fetch_orders($symbol, $since, null, $params);
         $filteredOrders = $this->filter_by($orders, 'status', 'canceled');
-        return $this->filter_by_limit($filteredOrders, $limit);
+        return $this->filter_by_since_limit($filteredOrders, $since, $limit);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -6717,7 +6717,7 @@ class binance extends Exchange {
         );
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
@@ -7205,7 +7205,7 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://binance-docs.github.io/apidocs/spot/en/#withdraw-user_data
@@ -8626,7 +8626,7 @@ class binance extends Exchange {
         return $this->parse_incomes($response, $market, $since, $limit);
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          * @see https://binance-docs.github.io/apidocs/futures/en/#change-initial-$leverage-trade
@@ -9351,7 +9351,7 @@ class binance extends Exchange {
         return $this->safe_value($config, 'cost', 1);
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array ()) {
         $response = $this->fetch2($path, $api, $method, $params, $headers, $body, $config);
         // a workaround for array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
         if ($api === 'private') {
@@ -9756,7 +9756,7 @@ class binance extends Exchange {
         return $this->parse_margin_loan($response, $currency);
     }
 
-    public function borrow_cross_margin(string $code, $amount, $params = array ()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array ()) {
         /**
          * create a loan to borrow margin
          * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
@@ -9783,7 +9783,7 @@ class binance extends Exchange {
         return $this->parse_margin_loan($response, $currency);
     }
 
-    public function borrow_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
+    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array ()) {
         /**
          * create a loan to borrow margin
          * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
@@ -9968,6 +9968,7 @@ class binance extends Exchange {
         } else {
             return $this->parse_open_interest($response, $market);
         }
+        return null;
     }
 
     public function parse_open_interest($interest, ?array $market = null) {

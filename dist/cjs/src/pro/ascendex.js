@@ -886,7 +886,6 @@ class ascendex extends ascendex$1 {
                 this.handleBalance(client, message);
             }
         }
-        return message;
     }
     handleSubscriptionStatus(client, message) {
         //
@@ -926,7 +925,7 @@ class ascendex extends ascendex$1 {
     handlePing(client, message) {
         this.spawn(this.pong, client, message);
     }
-    authenticate(url, params = {}) {
+    async authenticate(url, params = {}) {
         this.checkRequiredCredentials();
         const messageHash = 'authenticated';
         const client = this.client(url);

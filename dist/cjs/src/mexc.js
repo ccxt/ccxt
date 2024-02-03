@@ -1355,7 +1355,8 @@ class mexc extends mexc$1 {
         }
         return orderbook;
     }
-    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countKey = 2) {
+    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+        const countKey = 2;
         const price = this.safeNumber(bidask, priceKey);
         const amount = this.safeNumber(bidask, amountKey);
         const count = this.safeNumber(bidask, countKey);

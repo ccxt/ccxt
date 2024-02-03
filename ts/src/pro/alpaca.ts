@@ -636,13 +636,16 @@ export default class alpaca extends alpacaRest {
             const T = this.safeString (data, 'T');
             const msg = this.safeValue (data, 'msg', {});
             if (T === 'subscription') {
-                return this.handleSubscription (client, data);
+                this.handleSubscription (client, data);
+                return;
             }
             if (T === 'success' && msg === 'connected') {
-                return this.handleConnected (client, data);
+                this.handleConnected (client, data);
+                return;
             }
             if (T === 'success' && msg === 'authenticated') {
-                return this.handleAuthenticate (client, data);
+                this.handleAuthenticate (client, data);
+                return;
             }
             const methods = {
                 'error': this.handleErrorMessage,
@@ -673,7 +676,8 @@ export default class alpaca extends alpacaRest {
 
     handleMessage (client: Client, message) {
         if (Array.isArray (message)) {
-            return this.handleCryptoMessage (client, message);
+            this.handleCryptoMessage (client, message);
+            return;
         }
         this.handleTradingMessage (client, message);
     }

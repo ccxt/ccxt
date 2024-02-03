@@ -1521,8 +1521,8 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
-        return this.parseMarkets(data);
+        const dataResponse = this.safeValue(response, 'data', []);
+        return this.parseMarkets(dataResponse);
     }
     safeNetwork(networkId) {
         const networksById = {
@@ -3149,7 +3149,7 @@ class okx extends okx$1 {
          * @param {string[]|string} ids order ids
          * @returns {string[]} list of order ids
          */
-        if (typeof ids === 'string') {
+        if ((ids !== undefined) && typeof ids === 'string') {
             return ids.split(',');
         }
         else {
@@ -4214,10 +4214,13 @@ class okx extends okx$1 {
             market = this.market(symbol);
             request['instId'] = market['id'];
         }
+        if (since !== undefined) {
+            request['begin'] = since;
+        }
         [request, params] = this.handleUntilOption('end', request, params);
         const [type, query] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
         request['instType'] = this.convertToInstrumentType(type);
-        if (limit !== undefined) {
+        if ((limit !== undefined) && (since === undefined)) { // let limit = n, okx will return the n most recent results, instead of the n results after limit, so limit should only be sent when since is undefined
             request['limit'] = limit; // default 100, max 100
         }
         const response = await this.privateGetTradeFillsHistory(this.extend(request, query));
@@ -7225,6 +7228,7 @@ class okx extends okx$1 {
                 return this.parseGreeks(entry, market);
             }
         }
+        return undefined;
     }
     parseGreeks(greeks, market = undefined) {
         //

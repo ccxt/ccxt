@@ -641,7 +641,7 @@ class kraken(ccxt.async_support.kraken):
                 side = sides[key]
                 bookside = orderbook[side]
                 deltas = self.safe_value(message[1], key, [])
-                timestamp = self.handle_deltas(bookside, deltas, timestamp)
+                timestamp = self.custom_handle_deltas(bookside, deltas, timestamp)
             orderbook['symbol'] = symbol
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
@@ -667,10 +667,10 @@ class kraken(ccxt.async_support.kraken):
             storedBids = orderbook['bids']
             example = None
             if a is not None:
-                timestamp = self.handle_deltas(storedAsks, a, timestamp)
+                timestamp = self.custom_handle_deltas(storedAsks, a, timestamp)
                 example = self.safe_value(a, 0)
             if b is not None:
-                timestamp = self.handle_deltas(storedBids, b, timestamp)
+                timestamp = self.custom_handle_deltas(storedBids, b, timestamp)
                 example = self.safe_value(b, 0)
             # don't remove self line or I will poop on your face
             orderbook.limit()
@@ -715,7 +715,7 @@ class kraken(ccxt.async_support.kraken):
         else:
             return joined
 
-    def handle_deltas(self, bookside, deltas, timestamp=None):
+    def custom_handle_deltas(self, bookside, deltas, timestamp=None):
         for j in range(0, len(deltas)):
             delta = deltas[j]
             price = self.parse_number(delta[0])
@@ -1222,7 +1222,7 @@ class kraken(ccxt.async_support.kraken):
         #         "subscription": {name: "ticker"}
         #     }
         #
-        errorMessage = self.safe_value(message, 'errorMessage')
+        errorMessage = self.safe_string(message, 'errorMessage')
         if errorMessage is not None:
             requestId = self.safe_value(message, 'reqid')
             if requestId is not None:
@@ -1230,7 +1230,7 @@ class kraken(ccxt.async_support.kraken):
                 broadKey = self.find_broadly_matched_key(broad, errorMessage)
                 exception = None
                 if broadKey is None:
-                    exception = ExchangeError(errorMessage)
+                    exception = ExchangeError(errorMessage)  # c# requirement to convert the errorMessage to string
                 else:
                     exception = broad[broadKey](errorMessage)
                 client.reject(exception, requestId)
@@ -1256,10 +1256,8 @@ class kraken(ccxt.async_support.kraken):
                 'ownTrades': self.handle_my_trades,
             }
             method = self.safe_value_2(methods, name, channelName)
-            if method is None:
-                return message
-            else:
-                return method(client, message, subscription)
+            if method is not None:
+                method(client, message, subscription)
         else:
             if self.handle_error_message(client, message):
                 event = self.safe_string(message, 'event')
@@ -1273,7 +1271,5 @@ class kraken(ccxt.async_support.kraken):
                     'cancelAllStatus': self.handle_cancel_all_orders,
                 }
                 method = self.safe_value(methods, event)
-                if method is None:
-                    return message
-                else:
-                    return method(client, message)
+                if method is not None:
+                    method(client, message)

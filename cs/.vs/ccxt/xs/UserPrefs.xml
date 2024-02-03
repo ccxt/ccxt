@@ -1,0 +1,34 @@
+﻿<Properties StartupConfiguration="{B34EC0E7-B9C9-4153-8F50-E38135E4705E}|Default">
+  <MonoDevelop.Ide.Workbench ActiveDocument="cli/Program.cs">
+    <Files>
+      <File FileName="cli/Program.cs" Line="123" Column="1" />
+      <File FileName="tests/Program.cs" />
+      <File FileName="src/base/Exchange.Types.cs" />
+    </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State name="__root__">
+          <Node name="ccxt" expanded="True" selected="True">
+            <Node name="cli" expanded="True" />
+            <Node name="src" expanded="True">
+              <Node name="base" expanded="True" />
+            </Node>
+            <Node name="tests" expanded="True" />
+          </Node>
+        </State>
+      </Pad>
+    </Pads>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.ItemProperties.cli PreferredExecutionTarget="MonoDevelop.Default" />
+  <MultiItemStartupConfigurations />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore>
+      <Breakpoint file="/Users/cjg/Git/ccxt7/ccxt/c#/cli/Program.cs" relfile="cli/Program.cs" line="68" column="1" />
+      <Breakpoint file="/Users/cjg/Git/ccxt7/ccxt/c#/tests/Program.cs" relfile="tests/Program.cs" line="80" column="1" />
+      <Breakpoint file="/Users/cjg/Git/ccxt7/ccxt/c#/cli/Program.cs" relfile="cli/Program.cs" line="115" column="1" />
+    </BreakpointStore>
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.ItemProperties.tests PreferredExecutionTarget="MonoDevelop.Default" />
+</Properties>

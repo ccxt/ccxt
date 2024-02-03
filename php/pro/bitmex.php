@@ -1548,7 +1548,7 @@ class bitmex extends \ccxt\async\bitmex {
         //
         //     array( "error" => "Rate limit exceeded, retry in 29 seconds." )
         //
-        $error = $this->safe_value($message, 'error');
+        $error = $this->safe_string($message, 'error');
         if ($error !== null) {
             $request = $this->safe_value($message, 'request', array());
             $args = $this->safe_value($request, 'args', array());
@@ -1559,7 +1559,7 @@ class bitmex extends \ccxt\async\bitmex {
                 $broadKey = $this->find_broadly_matched_key($broad, $error);
                 $exception = null;
                 if ($broadKey === null) {
-                    $exception = new ExchangeError ($error);
+                    $exception = new ExchangeError ($error); // c# requirement for now
                 } else {
                     $exception = new $broad[$broadKey] ($error);
                 }
@@ -1627,12 +1627,10 @@ class bitmex extends \ccxt\async\bitmex {
                 $request = $this->safe_value($message, 'request', array());
                 $op = $this->safe_value($request, 'op');
                 if ($op === 'authKeyExpires') {
-                    return $this->handle_authentication_message($client, $message);
-                } else {
-                    return $message;
+                    $this->handle_authentication_message($client, $message);
                 }
             } else {
-                return $method($client, $message);
+                $method($client, $message);
             }
         }
     }

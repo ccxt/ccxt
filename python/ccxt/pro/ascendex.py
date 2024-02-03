@@ -843,7 +843,6 @@ class ascendex(ccxt.async_support.ascendex):
             self.handle_order(client, message)
             if subject == 'order':
                 self.handle_balance(client, message)
-        return message
 
     def handle_subscription_status(self, client: Client, message):
         #
@@ -879,7 +878,7 @@ class ascendex(ccxt.async_support.ascendex):
     def handle_ping(self, client: Client, message):
         self.spawn(self.pong, client, message)
 
-    def authenticate(self, url, params={}):
+    async def authenticate(self, url, params={}):
         self.check_required_credentials()
         messageHash = 'authenticated'
         client = self.client(url)

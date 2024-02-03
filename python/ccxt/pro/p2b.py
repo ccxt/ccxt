@@ -349,13 +349,15 @@ class p2b(ccxt.async_support.p2b):
                 bid = self.safe_value(bids, i)
                 price = self.safe_number(bid, 0)
                 amount = self.safe_number(bid, 1)
-                orderbook['bids'].store(price, amount)
+                bookSide = orderbook['bids']
+                bookSide.store(price, amount)
         if asks is not None:
             for i in range(0, len(asks)):
                 ask = self.safe_value(asks, i)
                 price = self.safe_number(ask, 0)
                 amount = self.safe_number(ask, 1)
-                orderbook['asks'].store(price, amount)
+                bookside = orderbook['asks']
+                bookside.store(price, amount)
         orderbook['symbol'] = symbol
         client.resolve(orderbook, messageHash)
 
@@ -376,7 +378,7 @@ class p2b(ccxt.async_support.p2b):
         }
         endpoint = self.safe_value(methods, method)
         if endpoint is not None:
-            return endpoint(client, message)
+            endpoint(client, message)
 
     def handle_error_message(self, client: Client, message):
         error = self.safe_string(message, 'error')

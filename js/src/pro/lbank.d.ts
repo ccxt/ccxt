@@ -24,6 +24,6 @@ export default class lbank extends lbankRest {
     handleOrderBook(client: any, message: any): void;
     handleErrorMessage(client: any, message: any): void;
     handlePing(client: Client, message: any): Promise<void>;
-    handleMessage(client: any, message: any): any;
+    handleMessage(client: any, message: any): void;
     authenticate(params?: {}): Promise<any>;
 }

@@ -18,9 +18,9 @@ export default class exmo extends exmoRest {
     handleOrderBook(client: Client, message: any): void;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
-    handleMessage(client: Client, message: any): any;
+    handleMessage(client: Client, message: any): void;
     handleSubscribed(client: Client, message: any): any;
     handleInfo(client: Client, message: any): any;
     handleAuthenticationMessage(client: Client, message: any): void;
-    authenticate(params?: {}): any;
+    authenticate(params?: {}): Promise<any>;
 }

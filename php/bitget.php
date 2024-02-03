@@ -2151,7 +2151,7 @@ class bitget extends Exchange {
         return $this->parse_transactions($rawTransactions, $currency, $since, $limit);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal
@@ -3953,7 +3953,7 @@ class bitget extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://www.bitget.com/api-doc/spot/trade/Place-Order
@@ -4040,7 +4040,7 @@ class bitget extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function create_order_request($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order_request($symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
         $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
         $market = null;
         if ($sandboxMode) {
@@ -4070,7 +4070,7 @@ class bitget extends Exchange {
         $isTakeProfit = $takeProfit !== null;
         $isStopLossOrTakeProfitTrigger = $isStopLossTriggerOrder || $isTakeProfitTriggerOrder;
         $isStopLossOrTakeProfit = $isStopLoss || $isTakeProfit;
-        $trailingTriggerPrice = $this->safe_string($params, 'trailingTriggerPrice', $price);
+        $trailingTriggerPrice = $this->safe_string($params, 'trailingTriggerPrice', $this->number_to_string($price));
         $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRatio');
         $isTrailingPercentOrder = $trailingPercent !== null;
         if ($this->sum($isTriggerOrder, $isStopLossTriggerOrder, $isTakeProfitTriggerOrder, $isTrailingPercentOrder) > 1) {
@@ -6779,11 +6779,11 @@ class bitget extends Exchange {
         return $response;
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          * @see https://www.bitget.com/api-doc/contract/account/Change-Leverage
-         * @param {float} $leverage the rate of $leverage
+         * @param {int} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->holdSide] *isolated only* position direction, 'long' or 'short'
@@ -6806,7 +6806,7 @@ class bitget extends Exchange {
         $request = array(
             'symbol' => $market['id'],
             'marginCoin' => $market['settleId'],
-            'leverage' => $leverage,
+            'leverage' => $this->number_to_string($leverage),
             'productType' => $productType,
             // 'holdSide' => 'long',
         );
@@ -7056,7 +7056,7 @@ class bitget extends Exchange {
         return $this->parse_transfers($data, $currency, $since, $limit);
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://www.bitget.com/api-doc/spot/account/Wallet-Transfer
@@ -7254,7 +7254,7 @@ class bitget extends Exchange {
         return $this->parse_deposit_withdraw_fees($data, $codes, 'coin');
     }
 
-    public function borrow_cross_margin(string $code, $amount, $params = array ()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array ()) {
         /**
          * create a loan to borrow margin
          * @see https://www.bitget.com/api-doc/margin/cross/account/Cross-Borrow
@@ -7286,7 +7286,7 @@ class bitget extends Exchange {
         return $this->parse_margin_loan($data, $currency);
     }
 
-    public function borrow_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
+    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array ()) {
         /**
          * create a loan to borrow margin
          * @see https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Borrow
