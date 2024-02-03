@@ -127,20 +127,25 @@ export default class gemini extends geminiRest {
         //    {
         //        "type": "trade",
         //        "symbol": "ETHUSD",
-        //        "tid": "1683002242170204", // this does not seem trade/event id, but ts
+        //        "tid": "1683002242170204", // this is not TS, but somewhat ID
         //        "price": "2299.24",
         //        "amount": "0.002662",
         //        "makerSide": "bid"
         //    }
         //
-        let timestamp = this.safeInteger (trade, 'timestamp');
-        if (timestamp === undefined) {
-            timestamp = this.safeIntegerProduct (trade, 'tid', 0.001);
-        }
-        const id = this.safeString (trade, 'event_id');
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        const id = this.safeString2 (trade, 'event_id', 'tid');
         const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'quantity', 'amount');
-        const side = this.safeStringLower (trade, 'side', 'makerSide');
+        const amountString = this.safeString2 (trade, 'quantity', 'amount');
+        let side = this.safeStringLower (trade, 'side');
+        if (side === undefined) {
+            const marketSide = this.safeStringLower (trade, 'makerSide');
+            if (marketSide === 'bid') {
+                side = 'sell';
+            } else if (marketSide === 'ask') {
+                side = 'buy';
+            }
+        }
         const marketId = this.safeStringLower (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         return this.safeTrade ({
@@ -243,7 +248,7 @@ export default class gemini extends geminiRest {
         }
     }
 
-    handleTradesForMultidata (client: Client, trades) {
+    handleTradesForMultidata (client: Client, trades, timestamp: Int) {
         if (trades !== undefined) {
             const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const storesForSymbols = {};
@@ -252,6 +257,8 @@ export default class gemini extends geminiRest {
                 const market = this.safeMarket (marketId.toLowerCase ());
                 const symbol = market['symbol'];
                 const trade = this.parseWsTrade (trades[i], market);
+                trade['timestamp'] = timestamp;
+                trade['datetime'] = this.iso8601 (timestamp);
                 let stored = this.safeValue (this.trades, symbol);
                 if (stored === undefined) {
                     stored = new ArrayCache (tradesLimit);
@@ -720,7 +727,8 @@ export default class gemini extends geminiRest {
             }
             const length = collectedEventsOfTrades.length;
             if (length > 0) {
-                this.handleTradesForMultidata (client, collectedEventsOfTrades);
+                const ts = this.safeInteger (message, 'timestampms');
+                this.handleTradesForMultidata (client, collectedEventsOfTrades, ts);
             }
         }
     }
