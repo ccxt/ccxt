@@ -143,6 +143,7 @@ class Exchange {
     public $balance = array();
     public $orderbooks = array();
     public $tickers = array();
+    public $bidsasks = array();
     public $fees = array('trading' => array(), 'funding' => array());
     public $precision = array();
     public $orders = null;

@@ -241,6 +241,7 @@ export default class Exchange {
     balance      = {}
     orderbooks   = {}
     tickers      = {}
+    bidsasks     = {}
     orders       = undefined
     triggerOrders = undefined
     trades: any
