@@ -70,6 +70,44 @@ export default class gemini extends geminiRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name gemini#watchTradesForSymbols
+         * @see https://docs.gemini.com/websocket-api/#multi-market-data
+         * @description get the list of most recent trades for a list of symbols
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const firstMarket = this.market (symbols[0]);
+        if (firstMarket['type'] !== 'spot') {
+            throw new ExchangeError (this.id + ' watchTradesForSymbols supports only spot symbols');
+        }
+        const messageHashes = [];
+        const marketIds = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const messageHash = 'trades' + ':' + symbol;
+            messageHashes.push (messageHash);
+            const market = this.market (symbol);
+            marketIds.push (market['id']);
+        }
+        const queryStr = marketIds.join (',');
+        const url = this.urls['api']['ws'] + '/v1/multimarketdata?trades=true&bids=false&offers=false&symbols=' + queryStr;
+        const trades = await this.watchMultiple (url, messageHashes, undefined);
+        if (this.newUpdates) {
+            const first = this.safeList (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
     parseWsTrade (trade, market = undefined) {
         //
         //     {
