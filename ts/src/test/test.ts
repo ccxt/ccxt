@@ -1708,7 +1708,7 @@ export default class testMainClass extends baseMainTestClass {
             request = jsonParse (exchange.last_request_body);
         }
         const brokerId = request['brokerId'];
-        assert (brokerId.startsWith (id), 'brokerId does not start with id');
+        assert (brokerId.startsWith (id.toString ()), 'brokerId does not start with id');
         await close (exchange);
     }
 }
