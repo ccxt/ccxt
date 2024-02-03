@@ -584,7 +584,7 @@ export default class alpaca extends alpacaRest {
         this.checkRequiredCredentials ();
         const messageHash = 'authenticated';
         const client = this.client (url);
-        const future = client.future (messageHash);
+        let future = client.future (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             let request = {
@@ -602,7 +602,7 @@ export default class alpaca extends alpacaRest {
                     },
                 } as any;
             }
-            this.watch (url, messageHash, request, messageHash, future);
+            future = this.watch (url, messageHash, request, messageHash, future);
         }
         return future;
     }
