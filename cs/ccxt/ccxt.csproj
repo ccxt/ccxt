@@ -20,7 +20,7 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/ccxt/ccxt</RepositoryUrl>
     <PackageProjectUrl>https://github.com/ccxt/ccxt</PackageProjectUrl>
-    <PackageIcon>ccxt.png</PackageIcon>
+    <PackageIcon>ccxt4.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
