@@ -7,7 +7,6 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\ArgumentsRequired;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -117,7 +116,7 @@ class coinbase extends \ccxt\async\coinbase {
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             if ($symbols === null) {
-                throw new ArgumentsRequired($this->id . ' watchTickers requires a $symbols argument');
+                $symbols = $this->symbols;
             }
             $name = 'ticker_batch';
             $tickers = Async\await($this->subscribe($name, $symbols, $params));
@@ -478,7 +477,8 @@ class coinbase extends \ccxt\async\coinbase {
             $side = $this->safe_string($this->options['sides'], $sideId);
             $price = $this->safe_number($trade, 'price_level');
             $amount = $this->safe_number($trade, 'new_quantity');
-            $orderbook[$side].store ($price, $amount);
+            $orderbookSide = $orderbook[$side];
+            $orderbookSide->store ($price, $amount);
         }
     }
 
@@ -573,6 +573,6 @@ class coinbase extends \ccxt\async\coinbase {
             throw new ExchangeError($errorMessage);
         }
         $method = $this->safe_value($methods, $channel);
-        return $method($client, $message);
+        $method($client, $message);
     }
 }

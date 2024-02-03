@@ -368,7 +368,7 @@ class coinlist extends Exchange {
                 $currency = $currencies[$i];
                 $id = $this->safe_string($currency, 'asset');
                 $code = $this->safe_currency_code($id);
-                $isTransferable = $this->safe_value($currency, 'is_transferable', false);
+                $isTransferable = $this->safe_bool($currency, 'is_transferable', false);
                 $withdrawEnabled = $isTransferable;
                 $depositEnabled = $isTransferable;
                 $active = $isTransferable;
@@ -1482,7 +1482,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -1739,7 +1739,7 @@ class coinlist extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * $transfer $currency internally between wallets on the same account
@@ -1992,7 +1992,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * $request a withdrawal from CoinList wallet. (Disabled by default. Contact CoinList to apply for an exception.)

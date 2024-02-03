@@ -324,7 +324,6 @@ class bitfinex2(ccxt.async_support.bitfinex2):
             parsed = self.parse_ws_trade(trade, market)
             stored.append(parsed)
         client.resolve(stored, messageHash)
-        return message
 
     def parse_ws_trade(self, trade, market=None):
         #
@@ -563,8 +562,9 @@ class bitfinex2(ccxt.async_support.bitfinex2):
                 deltas = message[1]
                 for i in range(0, len(deltas)):
                     delta = deltas[i]
-                    size = -delta[2] if (delta[2] < 0) else delta[2]
-                    side = 'asks' if (delta[2] < 0) else 'bids'
+                    delta2 = delta[2]
+                    size = -delta2 if (delta2 < 0) else delta2
+                    side = 'asks' if (delta2 < 0) else 'bids'
                     bookside = orderbook[side]
                     idString = self.safe_string(delta, 0)
                     price = self.safe_float(delta, 1)
@@ -587,8 +587,9 @@ class bitfinex2(ccxt.async_support.bitfinex2):
             orderbookItem = self.orderbooks[symbol]
             if isRaw:
                 price = self.safe_string(deltas, 1)
-                size = -deltas[2] if (deltas[2] < 0) else deltas[2]
-                side = 'asks' if (deltas[2] < 0) else 'bids'
+                deltas2 = deltas[2]
+                size = -deltas2 if (deltas2 < 0) else deltas2
+                side = 'asks' if (deltas2 < 0) else 'bids'
                 bookside = orderbookItem[side]
                 # price = 0 means that you have to remove the order from your book
                 amount = size if Precise.string_gt(price, '0') else '0'
@@ -631,7 +632,8 @@ class bitfinex2(ccxt.async_support.bitfinex2):
                 stringArray.append(self.number_to_string(bids[i][1]))
             if ask is not None:
                 stringArray.append(self.number_to_string(asks[i][idToCheck]))
-                stringArray.append(self.number_to_string(-asks[i][1]))
+                aski1 = asks[i][1]
+                stringArray.append(self.number_to_string(-aski1))
         payload = ':'.join(stringArray)
         localChecksum = self.crc32(payload, True)
         responseChecksum = self.safe_integer(message, 2)
@@ -1036,7 +1038,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         #
         if isinstance(message, list):
             if message[1] == 'hb':
-                return message  # skip heartbeats within subscription channels for now
+                return  # skip heartbeats within subscription channels for now
             subscription = self.safe_value(client.subscriptions, channelId, {})
             channel = self.safe_string(subscription, 'channel')
             name = self.safe_string(message, 1)
@@ -1061,10 +1063,8 @@ class bitfinex2(ccxt.async_support.bitfinex2):
                 method = self.safe_value(privateMethods, name)
             else:
                 method = self.safe_value_2(publicMethods, name, channel)
-            if method is None:
-                return message
-            else:
-                return method(client, message, subscription)
+            if method is not None:
+                method(client, message, subscription)
         else:
             event = self.safe_string(message, 'event')
             if event is not None:
@@ -1074,7 +1074,5 @@ class bitfinex2(ccxt.async_support.bitfinex2):
                     'auth': self.handle_authentication_message,
                 }
                 method = self.safe_value(methods, event)
-                if method is None:
-                    return message
-                else:
-                    return method(client, message)
+                if method is not None:
+                    method(client, message)

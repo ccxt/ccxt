@@ -35,7 +35,7 @@ export default class delta extends Exchange {
     parsePosition(position: any, market?: Market): Position;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: Market): Order;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
@@ -154,7 +154,7 @@ export default class delta extends Exchange {
     fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
     parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
     fetchLeverage(symbol: string, params?: {}): Promise<any>;
-    setLeverage(leverage: any, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseSettlement(settlement: any, market: any): {
         info: any;

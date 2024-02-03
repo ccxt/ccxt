@@ -34,5 +34,5 @@ export default class coinbasepro extends coinbaseproRest {
     handleOrderBook(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleErrorMessage(client: Client, message: any): boolean;
-    handleMessage(client: Client, message: any): any;
+    handleMessage(client: Client, message: any): void;
 }

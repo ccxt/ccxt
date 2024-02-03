@@ -1275,7 +1275,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 result[code]['info'][id] = dictValue
         return result
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://www.bitstamp.net/api/#tag/Orders/operation/OpenInstantBuyOrder
@@ -1915,7 +1915,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

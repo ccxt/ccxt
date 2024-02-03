@@ -666,7 +666,7 @@ class alpaca extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @see https://docs.alpaca.markets/reference/postorder

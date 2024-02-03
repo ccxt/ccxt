@@ -650,7 +650,7 @@ class bithumb(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -909,7 +909,7 @@ class bithumb(Exchange, ImplicitAPI):
         }
         return self.cancel_order(order['id'], order['symbol'], self.extend(request, params))
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

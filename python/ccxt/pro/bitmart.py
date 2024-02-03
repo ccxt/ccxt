@@ -144,7 +144,7 @@ class bitmart(ccxt.async_support.bitmart):
         if subscribeHash in client.subscriptions:
             return
         options = self.safe_value(self.options, 'watchBalance')
-        snapshot = self.safe_value(options, 'fetchBalanceSnapshot', True)
+        snapshot = self.safe_bool(options, 'fetchBalanceSnapshot', True)
         if snapshot:
             messageHash = type + ':' + 'fetchBalanceSnapshot'
             if not (messageHash in client.futures):
@@ -766,7 +766,6 @@ class bitmart(ccxt.async_support.bitmart):
         if isSpot:
             messageHash += ':' + self.safe_string(data[0], 'symbol')
         client.resolve(stored, messageHash)
-        return message
 
     def parse_ws_trade(self, trade, market: Market = None):
         # spot
@@ -864,7 +863,6 @@ class bitmart(ccxt.async_support.bitmart):
             self.tickers[symbol] = ticker
             client.resolve(ticker, 'tickers::swap')
             self.resolve_message_hashes_for_symbol(client, symbol, ticker, 'tickers::')
-        return message
 
     def resolve_message_hashes_for_symbol(self, client, symbol, result, prexif):
         prefixSeparator = '::'
@@ -1357,10 +1355,8 @@ class bitmart(ccxt.async_support.bitmart):
                     'subscribe': self.handle_subscription_status,
                 }
                 method = self.safe_value(methods, event)
-                if method is None:
-                    return message
-                else:
-                    return method(client, message)
+                if method is not None:
+                    method(client, message)
         else:
             methods = {
                 'depth': self.handle_order_book,
@@ -1377,4 +1373,4 @@ class bitmart(ccxt.async_support.bitmart):
                 key = keys[i]
                 if channel.find(key) >= 0:
                     method = self.safe_value(methods, key)
-                    return method(client, message)
+                    method(client, message)

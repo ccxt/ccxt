@@ -98,7 +98,9 @@ class bitget extends \ccxt\async\bitget {
         } else {
             $instType = 'SPOT';
         }
-        list($instType, $params) = $this->handle_option_and_params($params, 'getInstType', 'instType', $instType);
+        $instypeAux = null;
+        list($instypeAux, $params) = $this->handle_option_and_params($params, 'getInstType', 'instType', $instType);
+        $instType = $instypeAux;
         return array( $instType, $params );
     }
 
@@ -912,7 +914,7 @@ class bitget extends \ccxt\async\bitget {
             Async\await($this->load_markets());
             $market = null;
             $marketId = null;
-            $isStop = $this->safe_value($params, 'stop', false);
+            $isStop = $this->safe_bool($params, 'stop', false);
             $params = $this->omit($params, 'stop');
             $messageHash = ($isStop) ? 'triggerOrder' : 'order';
             $subscriptionHash = 'order:trades';

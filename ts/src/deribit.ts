@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import totp from './base/functions/totp.js';
-import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarketInterface } from './base/types.js';
+import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1348,6 +1348,7 @@ export default class deribit extends Exchange {
             request['start_timestamp'] = now - (limit - 1) * duration * 1000;
             request['end_timestamp'] = now;
         } else {
+            since = Math.max (since - 1, 0);
             request['start_timestamp'] = since;
             if (limit === undefined) {
                 request['end_timestamp'] = now;
@@ -1892,7 +1893,7 @@ export default class deribit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name deribit#createOrder
@@ -2828,7 +2829,7 @@ export default class deribit extends Exchange {
         return this.parseTransfers (transfers, currency, since, limit, params);
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name deribit#transfer
@@ -2922,7 +2923,7 @@ export default class deribit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name deribit#withdraw

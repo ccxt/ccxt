@@ -207,7 +207,7 @@ class gate extends gate$1 {
                 // max limit is 100
                 const subscription = client.subscriptions[messageHash];
                 const limit = this.safeInteger(subscription, 'limit');
-                this.spawn(this.loadOrderBook, client, messageHash, symbol, limit);
+                this.spawn(this.loadOrderBook, client, messageHash, symbol, limit, {}); // needed for c#, number of args needs to match
             }
             storedOrderBook.cache.push(delta);
             return;

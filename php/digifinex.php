@@ -1143,9 +1143,11 @@ class digifinex extends Exchange {
         //         "timestamp" => 1663221614998
         //     }
         //
+        $indexPrice = $this->safe_number($ticker, 'index_price');
+        $marketType = ($indexPrice !== null) ? 'contract' : 'spot';
         $marketId = $this->safe_string_upper_2($ticker, 'symbol', 'instrument_id');
-        $symbol = $this->safe_symbol($marketId, $market);
-        $market = $this->safe_market($marketId);
+        $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
+        $market = $this->safe_market($marketId, $market, null, $marketType);
         $timestamp = $this->safe_timestamp($ticker, 'date');
         if ($market['swap']) {
             $timestamp = $this->safe_integer($ticker, 'timestamp');
@@ -1531,7 +1533,7 @@ class digifinex extends Exchange {
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-new-$order
@@ -1681,7 +1683,7 @@ class digifinex extends Exchange {
         return $this->parse_orders($result, $market);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @ignore
          * helper function to build $request
@@ -1710,7 +1712,7 @@ class digifinex extends Exchange {
         $postOnly = $this->is_post_only($isMarketOrder, false, $params);
         $postOnlyParsed = null;
         if ($swap) {
-            $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
+            $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
             $timeInForce = $this->safe_string($params, 'timeInForce');
             $orderType = null;
             if ($side === 'buy') {
@@ -2856,7 +2858,7 @@ class digifinex extends Exchange {
         );
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code
@@ -2886,7 +2888,7 @@ class digifinex extends Exchange {
         return $this->parse_transfer($response, $currency);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -3558,7 +3560,7 @@ class digifinex extends Exchange {
         ));
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#setleverage
@@ -3850,7 +3852,7 @@ class digifinex extends Exchange {
          * @return {Array} the $marginMode in lowercase
          */
         $defaultType = $this->safe_string($this->options, 'defaultType');
-        $isMargin = $this->safe_value($params, 'margin', false);
+        $isMargin = $this->safe_bool($params, 'margin', false);
         $marginMode = null;
         list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
         if ($marginMode !== null) {

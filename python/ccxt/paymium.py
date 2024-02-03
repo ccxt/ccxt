@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.paymium import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade
+from ccxt.base.types import Balances, Currency, Int, Market, TransferEntry, OrderBook, OrderSide, OrderType, Str, Ticker, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -366,7 +366,7 @@ class paymium(Exchange, ImplicitAPI):
             'network': None,
         }
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders/post
@@ -409,7 +409,7 @@ class paymium(Exchange, ImplicitAPI):
         }
         return self.privateDeleteUserOrdersUuidCancel(self.extend(request, params))
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://paymium.github.io/api-documentation/#tag/Transfer/paths/~1user~1email_transfers/post

@@ -1783,7 +1783,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @ignore
          * helper function to build $request
@@ -1864,7 +1864,7 @@ class bingx extends Exchange {
             if ((($type === 'LIMIT') || ($type === 'TRIGGER_LIMIT') || ($type === 'STOP') || ($type === 'TAKE_PROFIT')) && !$isTrailing) {
                 $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
             }
-            $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
+            $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
             if ($isTriggerOrder) {
                 $request['stopPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $triggerPrice));
                 if ($isMarketOrder || ($type === 'TRIGGER_MARKET')) {
@@ -1900,6 +1900,7 @@ class bingx extends Exchange {
                 }
             }
             if ($isStopLoss || $isTakeProfit) {
+                $stringifiedAmount = $this->number_to_string($amount);
                 if ($isStopLoss) {
                     $slTriggerPrice = $this->safe_string_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
                     $slWorkingType = $this->safe_string($stopLoss, 'workingType', 'MARK_PRICE');
@@ -1913,7 +1914,7 @@ class bingx extends Exchange {
                     if ($slPrice !== null) {
                         $slRequest['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $slPrice));
                     }
-                    $slQuantity = $this->safe_string($stopLoss, 'quantity', $amount);
+                    $slQuantity = $this->safe_string($stopLoss, 'quantity', $stringifiedAmount);
                     $slRequest['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $slQuantity));
                     $request['stopLoss'] = $this->json($slRequest);
                 }
@@ -1930,7 +1931,7 @@ class bingx extends Exchange {
                     if ($slPrice !== null) {
                         $tpRequest['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $slPrice));
                     }
-                    $tkQuantity = $this->safe_string($takeProfit, 'quantity', $amount);
+                    $tkQuantity = $this->safe_string($takeProfit, 'quantity', $stringifiedAmount);
                     $tpRequest['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $tkQuantity));
                     $request['takeProfit'] = $this->json($tpRequest);
                 }
@@ -1948,7 +1949,7 @@ class bingx extends Exchange {
         return array_merge($request, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -2866,7 +2867,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -3369,7 +3370,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -3583,7 +3584,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -3625,7 +3626,7 @@ class bingx extends Exchange {
             //           "id":"1197073063359000577"
             //        }
             //    }
-            $this->parse_transaction($data);
+            return $this->parse_transaction($data);
         }) ();
     }
 

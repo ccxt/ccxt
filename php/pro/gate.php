@@ -215,7 +215,7 @@ class gate extends \ccxt\async\gate {
                 // max $limit is 100
                 $subscription = $client->subscriptions[$messageHash];
                 $limit = $this->safe_integer($subscription, 'limit');
-                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit);
+                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit, array()); // needed for c#, number of args needs to match
             }
             $storedOrderBook->cache[] = $delta;
             return;

@@ -440,7 +440,7 @@ class bitrue extends \ccxt\async\bitrue {
                 } catch (Exception $error) {
                     $this->options['listenKey'] = null;
                     $this->options['listenKeyUrl'] = null;
-                    return;
+                    return null;
                 }
                 //
                 //     {

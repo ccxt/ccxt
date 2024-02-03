@@ -375,7 +375,7 @@ class paymium extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://paymium.github.io/api-documentation/#tag/Order/paths/{1user}1orders/post
@@ -421,7 +421,7 @@ class paymium extends Exchange {
         return $this->privateDeleteUserOrdersUuidCancel (array_merge($request, $params));
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://paymium.github.io/api-documentation/#tag/Transfer/paths/{1user}1email_transfers/post

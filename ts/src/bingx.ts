@@ -6,7 +6,7 @@ import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError,
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import type { Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1775,7 +1775,7 @@ export default class bingx extends Exchange {
         return await this.createOrder (symbol, 'market', 'sell', cost, undefined, params);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @ignore
@@ -1858,7 +1858,7 @@ export default class bingx extends Exchange {
             if (((type === 'LIMIT') || (type === 'TRIGGER_LIMIT') || (type === 'STOP') || (type === 'TAKE_PROFIT')) && !isTrailing) {
                 request['price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
             }
-            let reduceOnly = this.safeValue (params, 'reduceOnly', false);
+            let reduceOnly = this.safeBool (params, 'reduceOnly', false);
             if (isTriggerOrder) {
                 request['stopPrice'] = this.parseToNumeric (this.priceToPrecision (symbol, triggerPrice));
                 if (isMarketOrder || (type === 'TRIGGER_MARKET')) {
@@ -1894,6 +1894,7 @@ export default class bingx extends Exchange {
                 }
             }
             if (isStopLoss || isTakeProfit) {
+                const stringifiedAmount = this.numberToString (amount);
                 if (isStopLoss) {
                     const slTriggerPrice = this.safeString2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
                     const slWorkingType = this.safeString (stopLoss, 'workingType', 'MARK_PRICE');
@@ -1907,7 +1908,7 @@ export default class bingx extends Exchange {
                     if (slPrice !== undefined) {
                         slRequest['price'] = this.parseToNumeric (this.priceToPrecision (symbol, slPrice));
                     }
-                    const slQuantity = this.safeString (stopLoss, 'quantity', amount);
+                    const slQuantity = this.safeString (stopLoss, 'quantity', stringifiedAmount);
                     slRequest['quantity'] = this.parseToNumeric (this.amountToPrecision (symbol, slQuantity));
                     request['stopLoss'] = this.json (slRequest);
                 }
@@ -1924,7 +1925,7 @@ export default class bingx extends Exchange {
                     if (slPrice !== undefined) {
                         tpRequest['price'] = this.parseToNumeric (this.priceToPrecision (symbol, slPrice));
                     }
-                    const tkQuantity = this.safeString (takeProfit, 'quantity', amount);
+                    const tkQuantity = this.safeString (takeProfit, 'quantity', stringifiedAmount);
                     tpRequest['quantity'] = this.parseToNumeric (this.amountToPrecision (symbol, tkQuantity));
                     request['takeProfit'] = this.json (tpRequest);
                 }
@@ -1942,7 +1943,7 @@ export default class bingx extends Exchange {
         return this.extend (request, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name bingx#createOrder
@@ -2861,7 +2862,7 @@ export default class bingx extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name bingx#transfer
@@ -3364,7 +3365,7 @@ export default class bingx extends Exchange {
         return response;
     }
 
-    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bingx#setLeverage
@@ -3578,7 +3579,7 @@ export default class bingx extends Exchange {
         return this.parseDepositWithdrawFees (coins, codes, 'coin');
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bingx#withdraw
@@ -3621,7 +3622,7 @@ export default class bingx extends Exchange {
         //           "id":"1197073063359000577"
         //        }
         //    }
-        this.parseTransaction (data);
+        return this.parseTransaction (data);
     }
 
     parseParams (params) {

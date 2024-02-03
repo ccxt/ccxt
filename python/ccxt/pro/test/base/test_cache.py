@@ -24,34 +24,34 @@ def equals(a, b):
 
 
 # ----------------------------------------------------------------------------
-cache = ArrayCache(3)
+array_cache = ArrayCache(3)
 
 
-cache.append({
+array_cache.append({
     'symbol': 'BTC/USDT',
     'data': 1,
 })
 
 
-cache.append({
+array_cache.append({
     'symbol': 'BTC/USDT',
     'data': 2,
 })
 
 
-cache.append({
+array_cache.append({
     'symbol': 'BTC/USDT',
     'data': 3,
 })
 
 
-cache.append({
+array_cache.append({
     'symbol': 'BTC/USDT',
     'data': 4,
 })
 
 
-assert(equals(cache, [{
+assert(equals(array_cache, [{
     'symbol': 'BTC/USDT',
     'data': 2,
 }, {
@@ -63,31 +63,31 @@ assert(equals(cache, [{
 }]))
 
 
-cache.append({
+array_cache.append({
     'symbol': 'BTC/USDT',
     'data': 5,
 })
 
 
-cache.append({
+array_cache.append({
     'symbol': 'BTC/USDT',
     'data': 6,
 })
 
 
-cache.append({
+array_cache.append({
     'symbol': 'BTC/USDT',
     'data': 7,
 })
 
 
-cache.append({
+array_cache.append({
     'symbol': 'BTC/USDT',
     'data': 8,
 })
 
 
-assert(equals(cache, [{
+assert(equals(array_cache, [{
     'symbol': 'BTC/USDT',
     'data': 6,
 }, {
@@ -99,45 +99,45 @@ assert(equals(cache, [{
 }]))
 
 
-cache.clear()
+array_cache.clear()
 
 
-cache.append({
+array_cache.append({
     'symbol': 'BTC/USDT',
     'data': 1,
 })
 
 
-assert(equals(cache, [{
+assert(equals(array_cache, [{
     'symbol': 'BTC/USDT',
     'data': 1,
 }]))
 
 
 # ----------------------------------------------------------------------------
-cache = ArrayCache(1)
+arraycache2 = ArrayCache(1)
 
 
-cache.append({
+arraycache2.append({
     'symbol': 'BTC/USDT',
     'data': 1,
 })
 
 
-cache.append({
+arraycache2.append({
     'symbol': 'BTC/USDT',
     'data': 2,
 })
 
 
-assert(equals(cache, [{
+assert(equals(arraycache2, [{
     'symbol': 'BTC/USDT',
     'data': 2,
 }]))
 
 
 # ----------------------------------------------------------------------------
-cache = ArrayCacheByTimestamp()
+timestamp_cache = ArrayCacheByTimestamp()
 
 
 ohlcv1 = [100, 1, 2, 3]
@@ -146,26 +146,26 @@ ohlcv1 = [100, 1, 2, 3]
 ohlcv2 = [200, 5, 6, 7]
 
 
-cache.append(ohlcv1)
+timestamp_cache.append(ohlcv1)
 
 
-cache.append(ohlcv2)
+timestamp_cache.append(ohlcv2)
 
 
-assert equals(cache, [ohlcv1, ohlcv2])
+assert equals(timestamp_cache, [ohlcv1, ohlcv2])
 
 
 modify2 = [200, 10, 11, 12]
 
 
-cache.append(modify2)
+timestamp_cache.append(modify2)
 
 
-assert equals(cache, [ohlcv1, modify2])
+assert equals(timestamp_cache, [ohlcv1, modify2])
 
 
 # ----------------------------------------------------------------------------
-cache = ArrayCacheBySymbolById()
+cache_symbol_id = ArrayCacheBySymbolById()
 
 
 object1 = {
@@ -189,30 +189,31 @@ object3 = {
 }
 
 
-cache.append(object1)
+cache_symbol_id.append(object1)
 
 
-cache.append(object2)
+cache_symbol_id.append(object2)
 
 
-cache.append(object3)  # should update index 0
+cache_symbol_id.append(object3)  # should update index 0
 
 
-assert equals(cache, [object2, object3])
+assert equals(cache_symbol_id, [object2, object3])
 
 
-cache = ArrayCacheBySymbolById(5)
+# ----------------------------------------------------------------------------
+cache_symbol_id_5 = ArrayCacheBySymbolById(5)
 
 
 for i in range(1, 11):
-    cache.append({
+    cache_symbol_id_5.append({
         'symbol': 'BTC/USDT',
         'id': str(i),
         'i': i,
     })
 
 
-assert(equals(cache, [{
+assert(equals(cache_symbol_id_5, [{
     'symbol': 'BTC/USDT',
     'id': '6',
     'i': 6,
@@ -236,14 +237,14 @@ assert(equals(cache, [{
 
 
 for i in range(1, 11):
-    cache.append({
+    cache_symbol_id_5.append({
         'symbol': 'BTC/USDT',
         'id': str(i),
         'i': i + 10,
     })
 
 
-assert(equals(cache, [{
+assert(equals(cache_symbol_id_5, [{
     'symbol': 'BTC/USDT',
     'id': '6',
     'i': 16,
@@ -273,10 +274,10 @@ middle = {
 }
 
 
-cache.append(middle)
+cache_symbol_id_5.append(middle)
 
 
-assert(equals(cache, [{
+assert(equals(cache_symbol_id_5, [{
     'symbol': 'BTC/USDT',
     'id': '6',
     'i': 16,
@@ -306,10 +307,10 @@ other_middle = {
 }
 
 
-cache.append(other_middle)
+cache_symbol_id_5.append(other_middle)
 
 
-assert(equals(cache, [{
+assert(equals(cache_symbol_id_5, [{
     'symbol': 'BTC/USDT',
     'id': '6',
     'i': 16,
@@ -333,14 +334,14 @@ assert(equals(cache, [{
 
 
 for i in range(30, 33):
-    cache.append({
+    cache_symbol_id_5.append({
         'symbol': 'BTC/USDT',
         'id': str(i),
         'i': i + 10,
     })
 
 
-assert(equals(cache, [{
+assert(equals(cache_symbol_id_5, [{
     'symbol': 'BTC/USDT',
     'id': '8',
     'i': 28,
@@ -370,10 +371,10 @@ first = {
 }
 
 
-cache.append(first)
+cache_symbol_id_5.append(first)
 
 
-assert(equals(cache, [{
+assert(equals(cache_symbol_id_5, [{
     'symbol': 'BTC/USDT',
     'id': '7',
     'i': 27,
@@ -403,10 +404,10 @@ another = {
 }
 
 
-cache.append(another)
+cache_symbol_id_5.append(another)
 
 
-assert(equals(cache, [{
+assert(equals(cache_symbol_id_5, [{
     'symbol': 'BTC/USDT',
     'id': '7',
     'i': 27,
@@ -434,34 +435,35 @@ assert(equals(cache, [{
 symbol = 'BTC/USDT'
 
 
-cache = ArrayCacheBySymbolById()
+cache_symbol_id_2 = ArrayCacheBySymbolById()
 
 
 initial_length = 5
 
 
 for i in range(0, initial_length):
-    cache.append({
+    cache_symbol_id_2.append({
         'symbol': symbol,
         'id': str(i),
         'i': i,
     })
 
 
-limited = cache.get_limit(symbol, None)
+limited = cache_symbol_id_2.get_limit(symbol, None)
 
 
 assert initial_length == limited
 
 
-cache = ArrayCacheBySymbolById()
+# ----------------------------------------------------------------------------
+cache_symbol_id_3 = ArrayCacheBySymbolById()
 
 
 append_items_length = 3
 
 
 for i in range(0, append_items_length):
-    cache.append({
+    cache_symbol_id_3.append({
         'symbol': symbol,
         'id': str(i),
         'i': i,
@@ -471,7 +473,7 @@ for i in range(0, append_items_length):
 outside_limit = 5
 
 
-limited = cache.get_limit(symbol, outside_limit)
+limited = cache_symbol_id_3.get_limit(symbol, outside_limit)
 
 
 assert append_items_length == limited
@@ -480,7 +482,7 @@ assert append_items_length == limited
 outside_limit = 2  # if limit < newsUpdate that should be returned
 
 
-limited = cache.get_limit(symbol, outside_limit)
+limited = cache_symbol_id_3.get_limit(symbol, outside_limit)
 
 
 assert outside_limit == limited
@@ -491,34 +493,35 @@ assert outside_limit == limited
 symbol = 'BTC/USDT'
 
 
-cache = ArrayCacheBySymbolById()
+cache_symbol_id_4 = ArrayCacheBySymbolById()
 
 
 initial_length = 5
 
 
 for i in range(0, initial_length):
-    cache.append({
+    cache_symbol_id_4.append({
         'symbol': symbol,
         'id': str(i),
         'i': i,
     })
 
 
-limited = cache.get_limit(None, None)
+limited = cache_symbol_id_4.get_limit(None, None)
 
 
 assert initial_length == limited
 
 
-cache = ArrayCacheBySymbolById()
+# ----------------------------------------------------------------------------
+cache_symbol_id_6 = ArrayCacheBySymbolById()
 
 
 append_items_length = 3
 
 
 for i in range(0, append_items_length):
-    cache.append({
+    cache_symbol_id_6.append({
         'symbol': symbol,
         'id': str(i),
         'i': i,
@@ -528,7 +531,7 @@ for i in range(0, append_items_length):
 outside_limit = 5
 
 
-limited = cache.get_limit(symbol, outside_limit)
+limited = cache_symbol_id_6.get_limit(symbol, outside_limit)
 
 
 assert append_items_length == limited
@@ -537,7 +540,7 @@ assert append_items_length == limited
 outside_limit = 2  # if limit < newsUpdate that should be returned
 
 
-limited = cache.get_limit(symbol, outside_limit)
+limited = cache_symbol_id_6.get_limit(symbol, outside_limit)
 
 
 assert outside_limit == limited
@@ -545,7 +548,7 @@ assert outside_limit == limited
 
 # ----------------------------------------------------------------------------
 # test ArrayCacheBySymbolById, same order should not increase the limit
-cache = ArrayCacheBySymbolById()
+cache_symbol_id_7 = ArrayCacheBySymbolById()
 
 
 symbol = 'BTC/USDT'
@@ -554,21 +557,21 @@ symbol = 'BTC/USDT'
 other_symbol = 'ETH/USDT'
 
 
-cache.append({
+cache_symbol_id_7.append({
     'symbol': symbol,
     'id': 'singleId',
     'i': 3,
 })
 
 
-cache.append({
+cache_symbol_id_7.append({
     'symbol': symbol,
     'id': 'singleId',
     'i': 3,
 })
 
 
-cache.append({
+cache_symbol_id_7.append({
     'symbol': other_symbol,
     'id': 'singleId',
     'i': 3,
@@ -578,10 +581,10 @@ cache.append({
 outside_limit = 5
 
 
-limited = cache.get_limit(symbol, outside_limit)
+limited = cache_symbol_id_7.get_limit(symbol, outside_limit)
 
 
-limited2 = cache.get_limit(None, outside_limit)
+limited2 = cache_symbol_id_7.get_limit(None, outside_limit)
 
 
 assert limited == 1
@@ -592,17 +595,17 @@ assert limited2 == 2
 
 # ----------------------------------------------------------------------------
 # test testLimitArrayCacheByTimestamp limit
-cache = ArrayCacheByTimestamp()
+timestamp_cache_2 = ArrayCacheByTimestamp()
 
 
 initial_length = 5
 
 
 for i in range(0, initial_length):
-    cache.append([i * 10, i * 10, i * 10, i * 10])
+    timestamp_cache_2.append([i * 10, i * 10, i * 10, i * 10])
 
 
-limited = cache.get_limit(None, None)
+limited = timestamp_cache_2.get_limit(None, None)
 
 
 assert initial_length == limited
@@ -612,13 +615,13 @@ append_items_length = 3
 
 
 for i in range(0, append_items_length):
-    cache.append([i * 4, i * 4, i * 4, i * 4])
+    timestamp_cache_2.append([i * 4, i * 4, i * 4, i * 4])
 
 
 outside_limit = 5
 
 
-limited = cache.get_limit(None, outside_limit)
+limited = timestamp_cache_2.get_limit(None, outside_limit)
 
 
 assert append_items_length == limited
@@ -627,7 +630,7 @@ assert append_items_length == limited
 outside_limit = 2  # if limit < newsUpdate that should be returned
 
 
-limited = cache.get_limit(None, outside_limit)
+limited = timestamp_cache_2.get_limit(None, outside_limit)
 
 
 assert outside_limit == limited
@@ -635,7 +638,7 @@ assert outside_limit == limited
 
 # ----------------------------------------------------------------------------
 # test ArrayCacheBySymbolById, watch all orders, same symbol and order id gets updated
-cache = ArrayCacheBySymbolById()
+cache_symbol_id_8 = ArrayCacheBySymbolById()
 
 
 symbol = 'BTC/USDT'
@@ -644,44 +647,44 @@ symbol = 'BTC/USDT'
 outside_limit = 5
 
 
-cache.append({
+cache_symbol_id_8.append({
     'symbol': symbol,
     'id': 'oneId',
     'i': 3,
 })  # create first order
 
 
-cache.get_limit(None, outside_limit)  # watch all orders
+cache_symbol_id_8.get_limit(None, outside_limit)  # watch all orders
 
 
-cache.append({
+cache_symbol_id_8.append({
     'symbol': symbol,
     'id': 'oneId',
     'i': 4,
 })  # first order is closed
 
 
-cache.get_limit(None, outside_limit)  # watch all orders
+cache_symbol_id_8.get_limit(None, outside_limit)  # watch all orders
 
 
-cache.append({
+cache_symbol_id_8.append({
     'symbol': symbol,
     'id': 'twoId',
     'i': 5,
 })  # create second order
 
 
-cache.get_limit(None, outside_limit)  # watch all orders
+cache_symbol_id_8.get_limit(None, outside_limit)  # watch all orders
 
 
-cache.append({
+cache_symbol_id_8.append({
     'symbol': symbol,
     'id': 'twoId',
     'i': 6,
 })  # second order is closed
 
 
-limited = cache.get_limit(None, outside_limit)  # watch all orders
+limited = cache_symbol_id_8.get_limit(None, outside_limit)  # watch all orders
 
 
 assert limited == 1  # one new update
@@ -689,7 +692,7 @@ assert limited == 1  # one new update
 
 # ----------------------------------------------------------------------------
 # test ArrayCacheBySymbolById, watch all orders, and watchOrders (symbol) work independently
-cache = ArrayCacheBySymbolById()
+cache_symbol_id_9 = ArrayCacheBySymbolById()
 
 
 symbol = 'BTC/USDT'
@@ -701,66 +704,66 @@ symbol2 = 'ETH/USDT'
 outside_limit = 5
 
 
-cache.append({
+cache_symbol_id_9.append({
     'symbol': symbol,
     'id': 'one',
     'i': 1,
 })  # create first order
 
 
-cache.append({
+cache_symbol_id_9.append({
     'symbol': symbol2,
     'id': 'two',
     'i': 1,
 })  # create second order
 
 
-assert cache.get_limit(None, outside_limit) == 2  # watch all orders
+assert cache_symbol_id_9.get_limit(None, outside_limit) == 2  # watch all orders
 
 
-assert cache.get_limit(symbol, outside_limit) == 1  # watch by symbol
+assert cache_symbol_id_9.get_limit(symbol, outside_limit) == 1  # watch by symbol
 
 
-cache.append({
+cache_symbol_id_9.append({
     'symbol': symbol,
     'id': 'one',
     'i': 2,
 })  # update first order
 
 
-cache.append({
+cache_symbol_id_9.append({
     'symbol': symbol2,
     'id': 'two',
     'i': 2,
 })  # update second order
 
 
-assert cache.get_limit(symbol, outside_limit) == 1  # watch by symbol
+assert cache_symbol_id_9.get_limit(symbol, outside_limit) == 1  # watch by symbol
 
 
-assert cache.get_limit(None, outside_limit) == 2  # watch all orders
+assert cache_symbol_id_9.get_limit(None, outside_limit) == 2  # watch all orders
 
 
-cache.append({
+cache_symbol_id_9.append({
     'symbol': symbol2,
     'id': 'two',
     'i': 3,
 })  # update second order
 
 
-cache.append({
+cache_symbol_id_9.append({
     'symbol': symbol2,
     'id': 'three',
     'i': 3,
 })  # create third order
 
 
-assert cache.get_limit(None, outside_limit) == 2  # watch all orders
+assert cache_symbol_id_9.get_limit(None, outside_limit) == 2  # watch all orders
 
 
 # ----------------------------------------------------------------------------
 # test ArrayCacheBySymbolBySide, watch all positions, same symbol and side id gets updated
-cache = ArrayCacheBySymbolBySide()
+cache_symbol_side = ArrayCacheBySymbolBySide()
 
 
 symbol = 'BTC/USDT'
@@ -769,36 +772,36 @@ symbol = 'BTC/USDT'
 outside_limit = 5
 
 
-cache.append({
+cache_symbol_side.append({
     'symbol': symbol,
     'side': 'short',
     'contracts': 1,
 })  # create first position
 
 
-cache.append({
+cache_symbol_side.append({
     'symbol': symbol,
     'side': 'short',
     'contracts': 0,
 })  # first position is closed
 
 
-assert cache.get_limit(symbol, outside_limit) == 1  # limit position
+assert cache_symbol_side.get_limit(symbol, outside_limit) == 1  # limit position
 
 
-cache.append({
+cache_symbol_side.append({
     'symbol': symbol,
     'side': 'short',
     'contracts': 1,
 })  # create first position
 
 
-assert cache.get_limit(symbol, outside_limit) == 1  # watch all positions
+assert cache_symbol_side.get_limit(symbol, outside_limit) == 1  # watch all positions
 
 
 # ----------------------------------------------------------------------------
 # test ArrayCacheBySymbolBySide, watch all positions, same symbol and side id gets updated
-cache = ArrayCacheBySymbolBySide()
+cache_symbol_side_2 = ArrayCacheBySymbolBySide()
 
 
 symbol = 'BTC/USDT'
@@ -807,56 +810,56 @@ symbol = 'BTC/USDT'
 outside_limit = 5
 
 
-cache.append({
+cache_symbol_side_2.append({
     'symbol': symbol,
     'side': 'short',
     'contracts': 1,
 })  # create first position
 
 
-assert cache.get_limit(None, outside_limit) == 1  # watch all positions
+assert cache_symbol_side_2.get_limit(None, outside_limit) == 1  # watch all positions
 
 
-cache.append({
+cache_symbol_side_2.append({
     'symbol': symbol,
     'side': 'short',
     'contracts': 0,
 })  # first position is closed
 
 
-assert cache.get_limit(None, outside_limit) == 1  # watch all positions
+assert cache_symbol_side_2.get_limit(None, outside_limit) == 1  # watch all positions
 
 
-cache.append({
+cache_symbol_side_2.append({
     'symbol': symbol,
     'side': 'long',
     'contracts': 3,
 })  # create second position
 
 
-assert cache.get_limit(None, outside_limit) == 1  # watch all positions
+assert cache_symbol_side_2.get_limit(None, outside_limit) == 1  # watch all positions
 
 
-cache.append({
+cache_symbol_side_2.append({
     'symbol': symbol,
     'side': 'long',
     'contracts': 2,
 })  # second position is reduced
 
 
-cache.append({
+cache_symbol_side_2.append({
     'symbol': symbol,
     'side': 'long',
     'contracts': 1,
 })  # second position is reduced
 
 
-assert cache.get_limit(None, outside_limit) == 1  # watch all orders
+assert cache_symbol_side_2.get_limit(None, outside_limit) == 1  # watch all orders
 
 
 # ----------------------------------------------------------------------------
 # test ArrayCacheBySymbolBySide, watchPositions, and watchPosition (symbol) work independently
-cache = ArrayCacheBySymbolBySide()
+cache_symbol_side_3 = ArrayCacheBySymbolBySide()
 
 
 symbol = 'BTC/USDT'
@@ -865,51 +868,51 @@ symbol = 'BTC/USDT'
 symbol2 = 'ETH/USDT'
 
 
-cache.append({
+cache_symbol_side_3.append({
     'symbol': symbol,
     'side': 'short',
     'contracts': 1,
 })  # create first position
 
 
-cache.append({
+cache_symbol_side_3.append({
     'symbol': symbol2,
     'side': 'long',
     'contracts': 1,
 })  # create second position
 
 
-assert cache.get_limit(None, outside_limit) == 2  # watch all positions
+assert cache_symbol_side_3.get_limit(None, outside_limit) == 2  # watch all positions
 
 
-assert cache.get_limit(symbol, outside_limit) == 1  # watch by symbol
+assert cache_symbol_side_3.get_limit(symbol, outside_limit) == 1  # watch by symbol
 
 
-cache.append({
+cache_symbol_side_3.append({
     'symbol': symbol,
     'side': 'short',
     'contracts': 2,
 })  # update first position
 
 
-cache.append({
+cache_symbol_side_3.append({
     'symbol': symbol2,
     'side': 'long',
     'contracts': 2,
 })  # update second position
 
 
-assert cache.get_limit(symbol, outside_limit) == 1  # watch by symbol
+assert cache_symbol_side_3.get_limit(symbol, outside_limit) == 1  # watch by symbol
 
 
-assert cache.get_limit(None, outside_limit) == 2  # watch all positions
+assert cache_symbol_side_3.get_limit(None, outside_limit) == 2  # watch all positions
 
 
-cache.append({
+cache_symbol_side_3.append({
     'symbol': symbol2,
     'side': 'long',
     'contracts': 3,
 })  # update second position
 
 
-assert cache.get_limit(None, outside_limit) == 1  # watch all positions
+assert cache_symbol_side_3.get_limit(None, outside_limit) == 1  # watch all positions

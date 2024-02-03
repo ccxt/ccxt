@@ -211,7 +211,7 @@ class gate(ccxt.async_support.gate):
                 # max limit is 100
                 subscription = client.subscriptions[messageHash]
                 limit = self.safe_integer(subscription, 'limit')
-                self.spawn(self.load_order_book, client, messageHash, symbol, limit)
+                self.spawn(self.load_order_book, client, messageHash, symbol, limit, {})  # needed for c#, number of args needs to match
             storedOrderBook.cache.append(delta)
             return
         elif nonce >= deltaEnd:

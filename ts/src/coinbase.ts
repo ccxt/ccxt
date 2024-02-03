@@ -206,6 +206,13 @@ export default class coinbase extends Exchange {
                             'brokerage/best_bid_ask',
                             'brokerage/convert/trade/{trade_id}',
                             'brokerage/time',
+                            'brokerage/cfm/balance_summary',
+                            'brokerage/cfm/positions',
+                            'brokerage/cfm/positions/{product_id}',
+                            'brokerage/cfm/sweeps',
+                            'brokerage/intx/portfolio/{portfolio_uuid}',
+                            'brokerage/intx/positions/{portfolio_uuid}',
+                            'brokerage/intx/positions/{portfolio_uuid}/{symbol}',
                         ],
                         'post': [
                             'brokerage/orders',
@@ -216,12 +223,15 @@ export default class coinbase extends Exchange {
                             'brokerage/portfolios/move_funds',
                             'brokerage/convert/quote',
                             'brokerage/convert/trade/{trade_id}',
+                            'brokerage/cfm/sweeps/schedule',
+                            'brokerage/intx/allocate',
                         ],
                         'put': [
                             'brokerage/portfolios/{portfolio_uuid}',
                         ],
                         'delete': [
                             'brokerage/portfolios/{portfolio_uuid}',
+                            'brokerage/cfm/sweeps',
                         ],
                     },
                 },
@@ -724,7 +734,7 @@ export default class coinbase extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined) {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fiat deposit
         //
@@ -883,7 +893,7 @@ export default class coinbase extends Exchange {
                 'cost': this.safeNumber (feeObject, 'amount'),
                 'currency': this.safeCurrencyCode (feeCurrencyId),
             },
-        };
+        } as Transaction;
     }
 
     parseTrade (trade, market: Market = undefined): Trade {
@@ -1381,7 +1391,11 @@ export default class coinbase extends Exchange {
     async fetchTickersV3 (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.v3PrivateGetBrokerageProducts (params);
+        const request = {};
+        if (symbols !== undefined) {
+            request['product_ids'] = this.marketIds (symbols);
+        }
+        const response = await this.v3PrivateGetBrokerageProducts (this.extend (request, params));
         //
         //     {
         //         "products": [
@@ -1633,7 +1647,7 @@ export default class coinbase extends Exchange {
         }, market);
     }
 
-    parseBalance (response, params = {}) {
+    parseCustomBalance (response, params = {}) {
         const balances = this.safeValue2 (response, 'data', 'accounts', []);
         const accounts = this.safeValue (params, 'type', this.options['accounts']);
         const v3Accounts = this.safeValue (params, 'type', this.options['v3Accounts']);
@@ -1702,7 +1716,7 @@ export default class coinbase extends Exchange {
             'limit': 250,
         };
         let response = undefined;
-        const isV3 = this.safeValue (params, 'v3', false);
+        const isV3 = this.safeBool (params, 'v3', false);
         params = this.omit (params, 'v3');
         const method = this.safeString (this.options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts');
         if ((isV3) || (method === 'v3PrivateGetBrokerageAccounts')) {
@@ -1781,7 +1795,7 @@ export default class coinbase extends Exchange {
         //         "size": 9
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseCustomBalance (response, params);
     }
 
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2207,7 +2221,7 @@ export default class coinbase extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#createOrder
@@ -2742,7 +2756,7 @@ export default class coinbase extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit = 100, params = {}): Promise<Order[]> {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = 100, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinbase#fetchOrders
@@ -3230,8 +3244,11 @@ export default class coinbase extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        // the 'product_ids' param isn't working properly and returns {"pricebooks":[]} when defined
-        const response = await this.v3PrivateGetBrokerageBestBidAsk (params);
+        const request = {};
+        if (symbols !== undefined) {
+            request['product_ids'] = this.marketIds (symbols);
+        }
+        const response = await this.v3PrivateGetBrokerageBestBidAsk (this.extend (request, params));
         //
         //     {
         //         "pricebooks": [
@@ -3258,7 +3275,7 @@ export default class coinbase extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#withdraw
@@ -3362,7 +3379,7 @@ export default class coinbase extends Exchange {
         const savedPath = fullPath;
         if (method === 'GET') {
             if (Object.keys (query).length) {
-                fullPath += '?' + this.urlencode (query);
+                fullPath += '?' + this.urlencodeWithArrayRepeat (query);
             }
         }
         const url = this.urls['api']['rest'] + fullPath;
