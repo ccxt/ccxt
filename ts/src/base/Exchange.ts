@@ -5855,7 +5855,8 @@ export default class Exchange {
                 errors = 0;
                 const responseLength = response.length;
                 if (this.verbose) {
-                    const incrementalMessage = 'Incremental pagination call ' + (i + 1) + ' method ' + method + ' response length ' + responseLength;
+                    const iteration = (i + 1).toString ();
+                    const incrementalMessage = 'Incremental pagination call ' + iteration + ' method ' + method + ' response length ' + responseLength;
                     this.log (incrementalMessage);
                 }
                 if (responseLength === 0) {
