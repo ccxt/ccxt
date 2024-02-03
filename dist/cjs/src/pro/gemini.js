@@ -588,7 +588,8 @@ class gemini extends gemini$1 {
         //
         const isArray = Array.isArray(message);
         if (isArray) {
-            return this.handleOrder(client, message);
+            this.handleOrder(client, message);
+            return;
         }
         const reason = this.safeString(message, 'reason');
         if (reason === 'error') {
@@ -602,7 +603,8 @@ class gemini extends gemini$1 {
         };
         const type = this.safeString(message, 'type', '');
         if (type.indexOf('candles') >= 0) {
-            return this.handleOHLCV(client, message);
+            this.handleOHLCV(client, message);
+            return;
         }
         const method = this.safeValue(methods, type);
         if (method !== undefined) {

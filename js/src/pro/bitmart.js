@@ -146,7 +146,7 @@ export default class bitmart extends bitmartRest {
             return;
         }
         const options = this.safeValue(this.options, 'watchBalance');
-        const snapshot = this.safeValue(options, 'fetchBalanceSnapshot', true);
+        const snapshot = this.safeBool(options, 'fetchBalanceSnapshot', true);
         if (snapshot) {
             const messageHash = type + ':' + 'fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
@@ -819,7 +819,6 @@ export default class bitmart extends bitmartRest {
             messageHash += ':' + this.safeString(data[0], 'symbol');
         }
         client.resolve(stored, messageHash);
-        return message;
     }
     parseWsTrade(trade, market = undefined) {
         // spot
@@ -921,7 +920,6 @@ export default class bitmart extends bitmartRest {
             client.resolve(ticker, 'tickers::swap');
             this.resolveMessageHashesForSymbol(client, symbol, ticker, 'tickers::');
         }
-        return message;
     }
     resolveMessageHashesForSymbol(client, symbol, result, prexif) {
         const prefixSeparator = '::';
@@ -1455,11 +1453,8 @@ export default class bitmart extends bitmartRest {
                     'subscribe': this.handleSubscriptionStatus,
                 };
                 const method = this.safeValue(methods, event);
-                if (method === undefined) {
-                    return message;
-                }
-                else {
-                    return method.call(this, client, message);
+                if (method !== undefined) {
+                    method.call(this, client, message);
                 }
             }
         }
@@ -1479,7 +1474,7 @@ export default class bitmart extends bitmartRest {
                 const key = keys[i];
                 if (channel.indexOf(key) >= 0) {
                     const method = this.safeValue(methods, key);
-                    return method.call(this, client, message);
+                    method.call(this, client, message);
                 }
             }
         }

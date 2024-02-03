@@ -246,7 +246,7 @@ class exmo extends Exchange {
         //
         $margin = $this->parse_margin_modification($response, $market);
         $options = $this->safe_value($this->options, 'margin', array());
-        $fillResponseFromRequest = $this->safe_value($options, 'fillResponseFromRequest', true);
+        $fillResponseFromRequest = $this->safe_bool($options, 'fillResponseFromRequest', true);
         if ($fillResponseFromRequest) {
             $margin['type'] = $type;
             $margin['amount'] = $amount;
@@ -1363,7 +1363,7 @@ class exmo extends Exchange {
         return $this->filter_by_since_limit($result, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
@@ -2083,7 +2083,7 @@ class exmo extends Exchange {
         return null;
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -2568,7 +2568,7 @@ class exmo extends Exchange {
             //     array("result":false,"error":"Error 50052 => Insufficient funds")
             //     array("s":"error","errmsg":"strconv.ParseInt => parsing \"\" => invalid syntax")
             //
-            $success = $this->safe_value($response, 'result', false);
+            $success = $this->safe_bool($response, 'result', false);
             if (gettype($success) === 'string') {
                 if (($success === 'true') || ($success === '1')) {
                     $success = true;

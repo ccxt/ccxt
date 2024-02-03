@@ -355,22 +355,22 @@ class onetrading(ccxt.async_support.onetrading):
         dateTime = self.safe_string(message, 'time')
         timestamp = self.parse8601(dateTime)
         channel = 'book:' + symbol
-        storedOrderBook = self.safe_value(self.orderbooks, symbol)
-        if storedOrderBook is None:
-            storedOrderBook = self.order_book({})
+        orderbook = self.safe_value(self.orderbooks, symbol)
+        if orderbook is None:
+            orderbook = self.order_book({})
         if type == 'ORDER_BOOK_SNAPSHOT':
             snapshot = self.parse_order_book(message, symbol, timestamp, 'bids', 'asks')
-            storedOrderBook.reset(snapshot)
+            orderbook.reset(snapshot)
         elif type == 'ORDER_BOOK_UPDATE':
             changes = self.safe_value(message, 'changes', [])
-            self.handle_deltas(storedOrderBook, changes)
+            self.handle_deltas(orderbook, changes)
         else:
             raise NotSupported(self.id + ' watchOrderBook() did not recognize message type ' + type)
-        storedOrderBook['nonce'] = timestamp
-        storedOrderBook['timestamp'] = timestamp
-        storedOrderBook['datetime'] = self.iso8601(timestamp)
-        self.orderbooks[symbol] = storedOrderBook
-        client.resolve(storedOrderBook, channel)
+        orderbook['nonce'] = timestamp
+        orderbook['timestamp'] = timestamp
+        orderbook['datetime'] = self.iso8601(timestamp)
+        self.orderbooks[symbol] = orderbook
+        client.resolve(orderbook, channel)
 
     def handle_delta(self, orderbook, delta):
         #
@@ -938,13 +938,14 @@ class onetrading(ccxt.async_support.onetrading):
             status = self.parse_ws_order_status(updateType)
             if updateType == 'ORDER_CLOSED' and filled == 0:
                 status = 'canceled'
-            orders.append({
+            orderObject = {
                 'id': orderId,
                 'symbol': symbol,
                 'status': status,
                 'timestamp': self.parse8601(datetime),
                 'datetime': datetime,
-            })
+            }
+            orders.append(orderObject)
         else:
             parsed = self.parse_order(update)
             symbol = self.safe_string(parsed, 'symbol', '')
@@ -1020,7 +1021,7 @@ class onetrading(ccxt.async_support.onetrading):
             subscription = self.safe_value(client.subscriptions, subscriptionHash)
             if subscription is not None:
                 ohlcvMarket = self.safe_value(subscription, marketId, {})
-                marketSubscribed = self.safe_value(ohlcvMarket, timeframe, False)
+                marketSubscribed = self.safe_bool(ohlcvMarket, timeframe, False)
                 if not marketSubscribed:
                     type = 'UPDATE_SUBSCRIPTION'
                     client.subscriptions[subscriptionHash] = None
@@ -1162,7 +1163,8 @@ class onetrading(ccxt.async_support.onetrading):
     def handle_message(self, client: Client, message):
         error = self.safe_value(message, 'error')
         if error is not None:
-            return self.handle_error_message(client, message)
+            self.handle_error_message(client, message)
+            return
         type = self.safe_value(message, 'type')
         handlers = {
             'ORDER_BOOK_UPDATE': self.handle_order_book,
@@ -1192,8 +1194,7 @@ class onetrading(ccxt.async_support.onetrading):
         }
         handler = self.safe_value(handlers, type)
         if handler is not None:
-            return handler(client, message)
-        raise NotSupported(self.id + ' no handler found for self message ' + self.json(message))
+            handler(client, message)
 
     def handle_price_point_updates(self, client: Client, message):
         #
@@ -1245,7 +1246,7 @@ class onetrading(ccxt.async_support.onetrading):
             if subscription is not None:
                 for i in range(0, len(marketIds)):
                     marketId = marketIds[i]
-                    marketSubscribed = self.safe_value(subscription, marketId, False)
+                    marketSubscribed = self.safe_bool(subscription, marketId, False)
                     if not marketSubscribed:
                         type = 'UPDATE_SUBSCRIPTION'
                         client.subscriptions[subscriptionHash] = None

@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitrue import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1817,7 +1817,7 @@ class bitrue(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
@@ -1881,9 +1881,9 @@ class bitrue(Exchange, ImplicitAPI):
                     amountString = self.number_to_string(amount)
                     priceString = self.number_to_string(price)
                     quoteAmount = Precise.string_mul(amountString, priceString)
-                    amount = cost if (cost is not None) else quoteAmount
-                    request['amount'] = self.cost_to_precision(symbol, amount)
-                    request['volume'] = self.cost_to_precision(symbol, amount)
+                    requestAmount = cost if (cost is not None) else quoteAmount
+                    request['amount'] = self.cost_to_precision(symbol, requestAmount)
+                    request['volume'] = self.cost_to_precision(symbol, requestAmount)
             else:
                 request['amount'] = self.parse_to_numeric(amount)
                 request['volume'] = self.parse_to_numeric(amount)
@@ -2586,7 +2586,7 @@ class bitrue(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-commit--withdraw_data
@@ -2778,7 +2778,7 @@ class bitrue(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_transfers(data, currency, since, limit)
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://www.bitrue.com/api-docs#new-future-account-transfer-user_data-hmac-sha256
@@ -2811,7 +2811,7 @@ class bitrue(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_transfer(data, currency)
 
-    def set_leverage(self, leverage, symbol: str = None, params={}):
+    def set_leverage(self, leverage: Int, symbol: str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://www.bitrue.com/api-docs#change-initial-leverage-trade-hmac-sha256
@@ -2963,7 +2963,7 @@ class bitrue(Exchange, ImplicitAPI):
             return None  # fallback to default error handler
         # check success value for wapi endpoints
         # response in format {'msg': 'The coin does not exist.', 'success': True/false}
-        success = self.safe_value(response, 'success', True)
+        success = self.safe_bool(response, 'success', True)
         if not success:
             messageInner = self.safe_string(response, 'msg')
             parsedMessage = None

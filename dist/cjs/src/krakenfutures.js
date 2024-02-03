@@ -42,6 +42,9 @@ class krakenfutures extends krakenfutures$1 {
                 'fetchClosedOrders': undefined,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchDepositAddress': false,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': undefined,
                 'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': true,
@@ -545,7 +548,7 @@ class krakenfutures extends krakenfutures$1 {
         const volume = this.safeString(ticker, 'vol24h');
         let baseVolume = undefined;
         let quoteVolume = undefined;
-        const isIndex = this.safeValue(market, 'index', false);
+        const isIndex = this.safeBool(market, 'index', false);
         if (!isIndex) {
             if (market['linear']) {
                 baseVolume = volume;

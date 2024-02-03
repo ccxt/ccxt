@@ -23,6 +23,7 @@ interface Exchange {
     spotV3PrivateGetCapitalWithdrawHistory(params?: {}): Promise<implicitReturnType>;
     spotV3PrivatePostPostAssetTransfer(params?: {}): Promise<implicitReturnType>;
     swapV1PrivateGetPositionSideDual(params?: {}): Promise<implicitReturnType>;
+    swapV1PrivateGetMarketMarkPriceKlines(params?: {}): Promise<implicitReturnType>;
     swapV1PrivatePostPositionSideDual(params?: {}): Promise<implicitReturnType>;
     swapV2PublicGetServerTime(params?: {}): Promise<implicitReturnType>;
     swapV2PublicGetQuoteContracts(params?: {}): Promise<implicitReturnType>;

@@ -9,7 +9,6 @@ import hashlib
 from ccxt.base.types import Int, Order, OrderBook, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import ArgumentsRequired
 
 
 class coinbase(ccxt.async_support.coinbase):
@@ -109,7 +108,7 @@ class coinbase(ccxt.async_support.coinbase):
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         if symbols is None:
-            raise ArgumentsRequired(self.id + ' watchTickers requires a symbols argument')
+            symbols = self.symbols
         name = 'ticker_batch'
         tickers = await self.subscribe(name, symbols, params)
         if self.newUpdates:
@@ -438,7 +437,8 @@ class coinbase(ccxt.async_support.coinbase):
             side = self.safe_string(self.options['sides'], sideId)
             price = self.safe_number(trade, 'price_level')
             amount = self.safe_number(trade, 'new_quantity')
-            orderbook[side].store(price, amount)
+            orderbookSide = orderbook[side]
+            orderbookSide.store(price, amount)
 
     def handle_order_book(self, client, message):
         #
@@ -526,4 +526,4 @@ class coinbase(ccxt.async_support.coinbase):
             errorMessage = self.safe_string(message, 'message')
             raise ExchangeError(errorMessage)
         method = self.safe_value(methods, channel)
-        return method(client, message)
+        method(client, message)

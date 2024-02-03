@@ -1057,7 +1057,7 @@ export default class bitfinex extends Exchange {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const postOnly = this.safeValue(params, 'postOnly', false);
+        const postOnly = this.safeBool(params, 'postOnly', false);
         type = type.toLowerCase();
         params = this.omit(params, ['postOnly']);
         if (market['spot']) {
