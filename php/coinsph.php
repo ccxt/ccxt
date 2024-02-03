@@ -978,10 +978,10 @@ class coinsph extends Exchange {
                 'currency' => $this->safe_currency_code($feeCurrencyId),
             );
         }
-        $isBuyer = $this->safe_string_2($trade, 'isBuyer', 'isBuyerMaker', null);
+        $isBuyer = $this->safe_value_2($trade, 'isBuyer', 'isBuyerMaker', null);
         $side = null;
         if ($isBuyer !== null) {
-            $side = ($isBuyer === 'true') ? 'buy' : 'sell';
+            $side = ($isBuyer === true) ? 'buy' : 'sell';
         }
         $isMaker = $this->safe_string_2($trade, 'isMaker', null);
         $takerOrMaker = null;
@@ -1060,7 +1060,7 @@ class coinsph extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://coins-docs.github.io/rest-api/#new-order--trade
@@ -1520,7 +1520,7 @@ class coinsph extends Exchange {
         );
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal to coins_ph account
          * @see https://coins-docs.github.io/rest-api/#withdrawuser_data
@@ -1532,7 +1532,7 @@ class coinsph extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         $options = $this->safe_value($this->options, 'withdraw');
-        $warning = $this->safe_value($options, 'warning', true);
+        $warning = $this->safe_bool($options, 'warning', true);
         if ($warning) {
             throw new InvalidAddress($this->id . " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }

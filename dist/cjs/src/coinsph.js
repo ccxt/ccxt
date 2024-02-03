@@ -996,10 +996,10 @@ class coinsph extends coinsph$1 {
                 'currency': this.safeCurrencyCode(feeCurrencyId),
             };
         }
-        const isBuyer = this.safeString2(trade, 'isBuyer', 'isBuyerMaker', undefined);
+        const isBuyer = this.safeValue2(trade, 'isBuyer', 'isBuyerMaker', undefined);
         let side = undefined;
         if (isBuyer !== undefined) {
-            side = (isBuyer === 'true') ? 'buy' : 'sell';
+            side = (isBuyer === true) ? 'buy' : 'sell';
         }
         const isMaker = this.safeString2(trade, 'isMaker', undefined);
         let takerOrMaker = undefined;
@@ -1061,11 +1061,10 @@ class coinsph extends coinsph$1 {
     }
     parseBalance(response) {
         const balances = this.safeValue(response, 'balances', []);
-        const timestamp = this.milliseconds();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -1560,7 +1559,7 @@ class coinsph extends coinsph$1 {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         const options = this.safeValue(this.options, 'withdraw');
-        const warning = this.safeValue(options, 'warning', true);
+        const warning = this.safeBool(options, 'warning', true);
         if (warning) {
             throw new errors.InvalidAddress(this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }

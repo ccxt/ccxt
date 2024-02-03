@@ -19,6 +19,7 @@ class lbank extends Exchange {
             // 50 per second for making and cancelling orders 1000ms / 50 = 20
             // 20 per second for all other requests, cost = 50 / 20 = 2.5
             'rateLimit' => 20,
+            'pro' => true,
             'has' => array(
                 'CORS' => false,
                 'spot' => true,
@@ -43,6 +44,7 @@ class lbank extends Exchange {
                 'fetchClosedOrders' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchDepositAddress' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
@@ -330,7 +332,7 @@ class lbank extends Exchange {
 
     public function fetch_markets($params = array ()) {
         /**
-         * retrieves data on all markets for lbank2
+         * retrieves data on all markets for lbank
          * @see https://www.lbank.com/en-US/docs/index.html#trading-pairs
          * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-information-list
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1277,7 +1279,7 @@ class lbank extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://www.lbank.com/en-US/docs/index.html#place-order
@@ -1293,7 +1295,7 @@ class lbank extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $clientOrderId = $this->safe_string_2($params, 'custom_id', 'clientOrderId');
-        $postOnly = $this->safe_value($params, 'postOnly', false);
+        $postOnly = $this->safe_bool($params, 'postOnly', false);
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $params = $this->omit($params, array( 'custom_id', 'clientOrderId', 'timeInForce', 'postOnly' ));
         $request = array(
@@ -1983,7 +1985,7 @@ class lbank extends Exchange {
         );
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://www.lbank.com/en-US/docs/index.html#withdrawal
@@ -2260,7 +2262,7 @@ class lbank extends Exchange {
         /**
          * @deprecated
          * please use fetchDepositWithdrawFees instead
-         * @param {string[]|null} $codes not used by lbank2 fetchTransactionFees ()
+         * @param {string[]|null} $codes not used by lbank fetchTransactionFees ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
          */

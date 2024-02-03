@@ -136,8 +136,7 @@ class mexc extends mexc$1 {
                 },
                 'www': 'https://www.mexc.com/',
                 'doc': [
-                    'https://mexcdevelop.github.io/apidocs/spot_v3_en/',
-                    'https://mexcdevelop.github.io/APIDoc/', // v1 & v2 : soon to be deprecated
+                    'https://mexcdevelop.github.io/apidocs/',
                 ],
                 'fees': [
                     'https://www.mexc.com/fee',
@@ -956,8 +955,8 @@ class mexc extends mexc$1 {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'network');
                 const network = this.safeNetwork(networkId);
-                const isDepositEnabled = this.safeValue(chain, 'depositEnable', false);
-                const isWithdrawEnabled = this.safeValue(chain, 'withdrawEnable', false);
+                const isDepositEnabled = this.safeBool(chain, 'depositEnable', false);
+                const isWithdrawEnabled = this.safeBool(chain, 'withdrawEnable', false);
                 const active = (isDepositEnabled && isWithdrawEnabled);
                 currencyActive = active || currencyActive;
                 const withdrawMin = this.safeString(chain, 'withdrawMin');
@@ -1325,7 +1324,8 @@ class mexc extends mexc$1 {
             //         ]
             //     }
             //
-            orderbook = this.parseOrderBook(response, symbol);
+            const spotTimestamp = this.safeInteger(response, 'timestamp');
+            orderbook = this.parseOrderBook(response, symbol, spotTimestamp);
             orderbook['nonce'] = this.safeInteger(response, 'lastUpdateId');
         }
         else if (market['swap']) {
@@ -1355,7 +1355,8 @@ class mexc extends mexc$1 {
         }
         return orderbook;
     }
-    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countKey = 2) {
+    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+        const countKey = 2;
         const price = this.safeNumber(bidask, priceKey);
         const amount = this.safeNumber(bidask, amountKey);
         const count = this.safeNumber(bidask, countKey);
@@ -2215,7 +2216,7 @@ class mexc extends mexc$1 {
         await this.loadMarkets();
         const symbol = market['symbol'];
         const unavailableContracts = this.safeValue(this.options, 'unavailableContracts', {});
-        const isContractUnavaiable = this.safeValue(unavailableContracts, symbol, false);
+        const isContractUnavaiable = this.safeBool(unavailableContracts, symbol, false);
         if (isContractUnavaiable) {
             throw new errors.NotSupported(this.id + ' createSwapOrder() does not support yet this symbol:' + symbol);
         }
@@ -2283,7 +2284,7 @@ class mexc extends mexc$1 {
                 throw new errors.ArgumentsRequired(this.id + ' createSwapOrder() requires a leverage parameter for isolated margin orders');
             }
         }
-        const reduceOnly = this.safeValue(params, 'reduceOnly', false);
+        const reduceOnly = this.safeBool(params, 'reduceOnly', false);
         if (reduceOnly) {
             request['side'] = (side === 'buy') ? 2 : 4;
         }
@@ -3618,7 +3619,7 @@ class mexc extends mexc$1 {
         const request = {};
         [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         const marginMode = this.safeString(params, 'marginMode');
-        const isMargin = this.safeValue(params, 'margin', false);
+        const isMargin = this.safeBool(params, 'margin', false);
         params = this.omit(params, ['margin', 'marginMode']);
         let response = undefined;
         if ((marginMode !== undefined) || (isMargin) || (marketType === 'margin')) {
@@ -5296,7 +5297,7 @@ class mexc extends mexc$1 {
          * @returns {Array} the marginMode in lowercase
          */
         const defaultType = this.safeString(this.options, 'defaultType');
-        const isMargin = this.safeValue(params, 'margin', false);
+        const isMargin = this.safeBool(params, 'margin', false);
         let marginMode = undefined;
         [marginMode, params] = super.handleMarginModeAndParams(methodName, params, defaultValue);
         if ((defaultType === 'margin') || (isMargin === true)) {
@@ -5388,7 +5389,7 @@ class mexc extends mexc$1 {
         //     {"code":10216,"msg":"No available deposit address"}
         //     {"success":true, "code":0, "data":1634095541710}
         //
-        const success = this.safeValue(response, 'success', false); // v1
+        const success = this.safeBool(response, 'success', false); // v1
         if (success === true) {
             return undefined;
         }

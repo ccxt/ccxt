@@ -52,6 +52,7 @@ class bitrue extends bitrue$1 {
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
+                'fetchFundingRate': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchMarginMode': false,
@@ -1972,9 +1973,9 @@ class bitrue extends bitrue$1 {
                     const amountString = this.numberToString(amount);
                     const priceString = this.numberToString(price);
                     const quoteAmount = Precise["default"].stringMul(amountString, priceString);
-                    amount = (cost !== undefined) ? cost : quoteAmount;
-                    request['amount'] = this.costToPrecision(symbol, amount);
-                    request['volume'] = this.costToPrecision(symbol, amount);
+                    const requestAmount = (cost !== undefined) ? cost : quoteAmount;
+                    request['amount'] = this.costToPrecision(symbol, requestAmount);
+                    request['volume'] = this.costToPrecision(symbol, requestAmount);
                 }
             }
             else {
@@ -3187,7 +3188,7 @@ class bitrue extends bitrue$1 {
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        const success = this.safeValue(response, 'success', true);
+        const success = this.safeBool(response, 'success', true);
         if (!success) {
             const messageInner = this.safeString(response, 'msg');
             let parsedMessage = undefined;

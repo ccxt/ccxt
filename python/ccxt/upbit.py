@@ -984,7 +984,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
@@ -1555,22 +1555,24 @@ class upbit(Exchange, ImplicitAPI):
 
     def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
-        #     {
-        #         "currency": "BTC",
-        #         "deposit_address": "3EusRwybuZUhVDeHL7gh3HSLmbhLcy7NqD",
-        #         "secondary_address": null
-        #     }
+        #    {
+        #        currency: 'XRP',
+        #        net_type: 'XRP',
+        #        deposit_address: 'raQwCVAJVqjrVm1Nj5SFRcX8i22BhdC9WA',
+        #        secondary_address: '167029435'
+        #    }
         #
         address = self.safe_string(depositAddress, 'deposit_address')
         tag = self.safe_string(depositAddress, 'secondary_address')
         currencyId = self.safe_string(depositAddress, 'currency')
         code = self.safe_currency_code(currencyId)
+        networkId = self.safe_string(depositAddress, 'net_type')
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': None,
+            'network': self.network_id_to_code(networkId),
             'info': depositAddress,
         }
 
@@ -1580,19 +1582,26 @@ class upbit(Exchange, ImplicitAPI):
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str params['network']: deposit chain, can view all chains via self.publicGetWalletAssets, default is eth, unless the currency has a default chain within self.options['networks']
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is None:
+            raise ArgumentsRequired(self.id + ' fetchDepositAddress requires params["network"]')
         response = self.privateGetDepositsCoinAddress(self.extend({
             'currency': currency['id'],
+            'net_type': self.network_code_to_id(networkCode, currency['code']),
         }, params))
         #
-        #     {
-        #         "currency": "BTC",
-        #         "deposit_address": "3EusRwybuZUhVDeHL7gh3HSLmbhLcy7NqD",
-        #         "secondary_address": null
-        #     }
+        #    {
+        #        currency: 'XRP',
+        #        net_type: 'XRP',
+        #        deposit_address: 'raQwCVAJVqjrVm1Nj5SFRcX8i22BhdC9WA',
+        #        secondary_address: '167029435'
+        #    }
         #
         return self.parse_deposit_address(response)
 
@@ -1631,7 +1640,7 @@ class upbit(Exchange, ImplicitAPI):
             raise AddressPending(self.id + ' is generating ' + code + ' deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address')
         return self.parse_deposit_address(response)
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         :see: https://docs.upbit.com/reference/디지털자산-출금하기
         :see: https://docs.upbit.com/reference/%EC%9B%90%ED%99%94-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0

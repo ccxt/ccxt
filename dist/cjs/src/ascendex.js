@@ -64,6 +64,8 @@ class ascendex extends ascendex$1 {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -617,7 +619,7 @@ class ascendex extends ascendex$1 {
                 symbol = base + '/' + quote + ':' + settle;
             }
             const fee = this.safeNumber(market, 'commissionReserveRate');
-            const marginTradable = this.safeValue(market, 'marginTradable', false);
+            const marginTradable = this.safeBool(market, 'marginTradable', false);
             result.push({
                 'id': id,
                 'symbol': symbol,
@@ -808,12 +810,14 @@ class ascendex extends ascendex$1 {
          */
         await this.loadMarkets();
         await this.loadAccounts();
-        let query = undefined;
         let marketType = undefined;
-        [marketType, query] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
-        const isMargin = this.safeValue(params, 'margin', false);
-        marketType = isMargin ? 'margin' : marketType;
-        query = this.omit(query, 'margin');
+        let marginMode = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
+        [marginMode, params] = this.handleMarginModeAndParams('fetchBalance', params);
+        const isMargin = this.safeBool(params, 'margin', false);
+        const isCross = marginMode === 'cross';
+        marketType = (isMargin || isCross) ? 'margin' : marketType;
+        params = this.omit(params, 'margin');
         const accountsByType = this.safeValue(this.options, 'accountsByType', {});
         const accountCategory = this.safeString(accountsByType, marketType, 'cash');
         const account = this.safeValue(this.accounts, 0, {});
@@ -821,15 +825,18 @@ class ascendex extends ascendex$1 {
         const request = {
             'account-group': accountGroup,
         };
+        if ((marginMode === 'isolated') && (marketType !== 'swap')) {
+            throw new errors.BadRequest(this.id + ' does not supported isolated margin trading');
+        }
         if ((accountCategory === 'cash') || (accountCategory === 'margin')) {
             request['account-category'] = accountCategory;
         }
         let response = undefined;
         if ((marketType === 'spot') || (marketType === 'margin')) {
-            response = await this.v1PrivateAccountCategoryGetBalance(this.extend(request, query));
+            response = await this.v1PrivateAccountCategoryGetBalance(this.extend(request, params));
         }
         else if (marketType === 'swap') {
-            response = await this.v2PrivateAccountGroupGetFuturesPosition(this.extend(request, query));
+            response = await this.v2PrivateAccountGroupGetFuturesPosition(this.extend(request, params));
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchBalance() is not currently supported for ' + marketType + ' markets');
@@ -1167,7 +1174,7 @@ class ascendex extends ascendex$1 {
         const timestamp = this.safeInteger(trade, 'ts');
         const priceString = this.safeString2(trade, 'price', 'p');
         const amountString = this.safeString(trade, 'q');
-        const buyerIsMaker = this.safeValue(trade, 'bm', false);
+        const buyerIsMaker = this.safeBool(trade, 'bm', false);
         const side = buyerIsMaker ? 'sell' : 'buy';
         market = this.safeMarket(undefined, market);
         return this.safeTrade({
@@ -1511,7 +1518,7 @@ class ascendex extends ascendex$1 {
         const isLimitOrder = ((type === 'limit') || (type === 'stop_limit'));
         const timeInForce = this.safeString(params, 'timeInForce');
         const postOnly = this.isPostOnly(isMarketOrder, false, params);
-        const reduceOnly = this.safeValue(params, 'reduceOnly', false);
+        const reduceOnly = this.safeBool(params, 'reduceOnly', false);
         const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
         if (isLimitOrder) {
             request['orderPrice'] = this.priceToPrecision(symbol, price);
@@ -3123,7 +3130,7 @@ class ascendex extends ascendex$1 {
          * @method
          * @name ascendex#transfer
          * @description transfer currency internally between wallets on the same account
-         * @param {string} code unified currency code
+         * @param {string} code unified currency codeåå
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
@@ -3154,7 +3161,7 @@ class ascendex extends ascendex$1 {
         //    { "code": "0" }
         //
         const transferOptions = this.safeValue(this.options, 'transfer', {});
-        const fillResponseFromRequest = this.safeValue(transferOptions, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
         const transfer = this.parseTransfer(response, currency);
         if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;

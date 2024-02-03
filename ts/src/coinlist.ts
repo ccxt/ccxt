@@ -3,7 +3,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, Exchange
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 
 /**
  * @class coinlist
@@ -147,6 +147,9 @@ export default class coinlist extends Exchange {
                         'v1/symbols/{symbol}/auctions/{auction_code}': 1, // not unified
                         'v1/time': 1,
                         'v1/assets': 1,
+                        'v1/leaderboard': 1,
+                        'v1/affiliate/{competition_code}': 1,
+                        'v1/competition/{competition_id}': 1,
                     },
                 },
                 'private': {
@@ -154,6 +157,7 @@ export default class coinlist extends Exchange {
                         'v1/fees': 1,
                         'v1/accounts': 1,
                         'v1/accounts/{trader_id}': 1, // not unified
+                        'v1/accounts/{trader_id}/alias': 1,
                         'v1/accounts/{trader_id}/ledger': 1,
                         'v1/accounts/{trader_id}/wallets': 1, // not unified
                         'v1/accounts/{trader_id}/wallet-ledger': 1,
@@ -167,6 +171,8 @@ export default class coinlist extends Exchange {
                         'v1/transfers': 1,
                         'v1/user': 1, // not unified
                         'v1/credits': 1, // not unified
+                        'v1/positions': 1,
+                        'v1/accounts/{trader_id}/competitions': 1,
                     },
                     'post': {
                         'v1/keys': 1, // not unified
@@ -178,6 +184,8 @@ export default class coinlist extends Exchange {
                         'v1/transfers/internal-transfer': 1,
                         'v1/transfers/withdrawal-request': 1,
                         'v1/orders/bulk': 1, // not unified
+                        'v1/accounts/{trader_id}/competitions': 1,
+                        'v1/accounts/{trader_id}/create-competition': 1,
                     },
                     'patch': {
                         'v1/orders/{order_id}': 1,
@@ -355,7 +363,7 @@ export default class coinlist extends Exchange {
             const currency = currencies[i];
             const id = this.safeString (currency, 'asset');
             const code = this.safeCurrencyCode (id);
-            const isTransferable = this.safeValue (currency, 'is_transferable', false);
+            const isTransferable = this.safeBool (currency, 'is_transferable', false);
             const withdrawEnabled = isTransferable;
             const depositEnabled = isTransferable;
             const active = isTransferable;
@@ -1468,7 +1476,7 @@ export default class coinlist extends Exchange {
         return response;
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name coinlist#createOrder
@@ -1725,7 +1733,7 @@ export default class coinlist extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name coinlist#transfer
@@ -1978,7 +1986,7 @@ export default class coinlist extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name coinlist#withdraw

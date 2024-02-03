@@ -27,6 +27,7 @@ class bitbank extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'closeAllPositions' => false,
                 'closePosition' => false,
@@ -648,7 +649,7 @@ class bitbank extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -811,7 +812,7 @@ class bitbank extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

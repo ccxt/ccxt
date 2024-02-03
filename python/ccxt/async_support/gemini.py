@@ -513,7 +513,7 @@ class gemini(Exchange, ImplicitAPI):
             'post_only': True,
             'limit_only': True,
         }
-        return self.safe_value(statuses, status, True)
+        return self.safe_bool(statuses, status, True)
 
     async def fetch_usdt_markets(self, params={}):
         # these markets can't be scrapped and fetchMarketsFrom api does an extra call
@@ -549,7 +549,7 @@ class gemini(Exchange, ImplicitAPI):
             }
             result[marketId] = self.parse_market(market)
         options = self.safe_value(self.options, 'fetchMarketsFromAPI', {})
-        fetchDetailsForAllSymbols = self.safe_value(options, 'fetchDetailsForAllSymbols', False)
+        fetchDetailsForAllSymbols = self.safe_bool(options, 'fetchDetailsForAllSymbols', False)
         fetchDetailsForMarketIds = self.safe_value(options, 'fetchDetailsForMarketIds', [])
         promises = []
         marketIds = []
@@ -1263,7 +1263,7 @@ class gemini(Exchange, ImplicitAPI):
             market = self.market(symbol)  # throws on non-existent symbol
         return self.parse_orders(response, market, since, limit)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://docs.gemini.com/rest-api/#new-order
@@ -1314,7 +1314,7 @@ class gemini(Exchange, ImplicitAPI):
                     request['options'] = ['fill-or-kill']
                 elif timeInForce == 'PO':
                     request['options'] = ['maker-or-cancel']
-            postOnly = self.safe_value(params, 'postOnly', False)
+            postOnly = self.safe_bool(params, 'postOnly', False)
             params = self.omit(params, 'postOnly')
             if postOnly:
                 request['options'] = ['maker-or-cancel']
@@ -1410,7 +1410,7 @@ class gemini(Exchange, ImplicitAPI):
         response = await self.privatePostV1Mytrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

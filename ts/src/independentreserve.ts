@@ -544,7 +544,7 @@ export default class independentreserve extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit = 50, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = 50, params = {}) {
         /**
          * @method
          * @name independentreserve#fetchMyTrades
@@ -682,7 +682,7 @@ export default class independentreserve extends Exchange {
         return result;
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#createOrder

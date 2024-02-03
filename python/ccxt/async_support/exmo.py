@@ -259,7 +259,7 @@ class exmo(Exchange, ImplicitAPI):
         #
         margin = self.parse_margin_modification(response, market)
         options = self.safe_value(self.options, 'margin', {})
-        fillResponseFromRequest = self.safe_value(options, 'fillResponseFromRequest', True)
+        fillResponseFromRequest = self.safe_bool(options, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             margin['type'] = type
             margin['amount'] = amount
@@ -1298,7 +1298,7 @@ class exmo(Exchange, ImplicitAPI):
             result = self.array_concat(result, trades)
         return self.filter_by_since_limit(result, since, limit)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
@@ -1963,7 +1963,7 @@ class exmo(Exchange, ImplicitAPI):
             return self.markets[symbols[0]]
         return None
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -2412,7 +2412,7 @@ class exmo(Exchange, ImplicitAPI):
             #     {"result":false,"error":"Error 50052: Insufficient funds"}
             #     {"s":"error","errmsg":"strconv.ParseInt: parsing \"\": invalid syntax"}
             #
-            success = self.safe_value(response, 'result', False)
+            success = self.safe_bool(response, 'result', False)
             if isinstance(success, str):
                 if (success == 'true') or (success == '1'):
                     success = True

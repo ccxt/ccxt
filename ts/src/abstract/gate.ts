@@ -173,6 +173,7 @@ interface Exchange {
     privateFuturesGetSettleLiquidates (params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettleAutoDeleverages (params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettleFee (params?: {}): Promise<implicitReturnType>;
+    privateFuturesGetSettleRiskLimitTiers (params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettlePriceOrders (params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettlePriceOrdersOrderId (params?: {}): Promise<implicitReturnType>;
     privateFuturesPostSettlePositionsContractMargin (params?: {}): Promise<implicitReturnType>;
@@ -249,6 +250,7 @@ interface Exchange {
     privateLoanGetMultiCollateralCurrencyQuota (params?: {}): Promise<implicitReturnType>;
     privateLoanGetMultiCollateralCurrencies (params?: {}): Promise<implicitReturnType>;
     privateLoanGetMultiCollateralLtv (params?: {}): Promise<implicitReturnType>;
+    privateLoanGetMultiCollateralFixedRate (params?: {}): Promise<implicitReturnType>;
     privateLoanPostCollateralOrders (params?: {}): Promise<implicitReturnType>;
     privateLoanPostCollateralRepay (params?: {}): Promise<implicitReturnType>;
     privateLoanPostCollateralCollaterals (params?: {}): Promise<implicitReturnType>;

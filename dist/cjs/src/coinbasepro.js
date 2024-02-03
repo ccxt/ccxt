@@ -42,6 +42,7 @@ class coinbasepro extends coinbasepro$1 {
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
+                'fetchFundingRate': false,
                 'fetchLedger': true,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,

@@ -100,7 +100,9 @@ class bitget(ccxt.async_support.bitget):
             instType, params = self.handleProductTypeAndParams(market, params)
         else:
             instType = 'SPOT'
-        instType, params = self.handle_option_and_params(params, 'getInstType', 'instType', instType)
+        instypeAux = None
+        instypeAux, params = self.handle_option_and_params(params, 'getInstType', 'instType', instType)
+        instType = instypeAux
         return [instType, params]
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -436,7 +438,7 @@ class bitget(ccxt.async_support.bitget):
         symbols = self.market_symbols(symbols)
         channel = 'books'
         incrementalFeed = True
-        if (limit == 5) or (limit == 15):
+        if (limit == 1) or (limit == 5) or (limit == 15):
             channel += str(limit)
             incrementalFeed = False
         topics = []
@@ -847,7 +849,7 @@ class bitget(ccxt.async_support.bitget):
         await self.load_markets()
         market = None
         marketId = None
-        isStop = self.safe_value(params, 'stop', False)
+        isStop = self.safe_bool(params, 'stop', False)
         params = self.omit(params, 'stop')
         messageHash = 'triggerOrder' if (isStop) else 'order'
         subscriptionHash = 'order:trades'
@@ -1184,7 +1186,7 @@ class bitget(ccxt.async_support.bitget):
             'price': self.safe_string(order, 'price'),
             'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
-            'amount': self.safe_string_2(order, 'size', 'baseSize'),
+            'amount': self.safe_string(order, 'baseVolume'),
             'cost': self.safe_string_n(order, ['notional', 'notionalUsd', 'quoteSize']),
             'average': self.omit_zero(self.safe_string_2(order, 'priceAvg', 'fillPrice')),
             'filled': self.safe_string_2(order, 'accBaseVolume', 'baseVolume'),

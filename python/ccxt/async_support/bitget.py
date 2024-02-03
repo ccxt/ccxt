@@ -8,7 +8,7 @@ from ccxt.abstract.bitget import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Int, Liquidation, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, FundingHistory, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Liquidation, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Position, FundingHistory, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -59,15 +59,21 @@ class bitget(Exchange, ImplicitAPI):
                 'cancelOrders': True,
                 'closeAllPositions': True,
                 'closePosition': True,
+                'createDepositAddress': False,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketOrderWithCost': False,
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createOrders': True,
                 'createOrderWithTakeProfitAndStopLoss': True,
+                'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': True,
                 'createStopLossOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'createTakeProfitOrder': True,
+                'createTrailingAmountOrder': False,
                 'createTrailingPercentOrder': True,
                 'createTriggerOrder': True,
                 'editOrder': True,
@@ -76,14 +82,17 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchBorrowInterest': True,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchCanceledAndClosedOrders': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': True,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
+                'fetchDeposit': False,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDeposits': True,
+                'fetchDepositsWithdrawals': False,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
@@ -97,7 +106,7 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchLeverage': True,
                 'fetchLeverageTiers': False,
                 'fetchLiquidations': False,
-                'fetchMarginMode': None,
+                'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -109,6 +118,7 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchOrderBooks': False,
                 'fetchOrders': False,
                 'fetchOrderTrades': False,
                 'fetchPosition': True,
@@ -116,22 +126,27 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchPositions': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchStatus': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
+                'fetchTransactions': False,
                 'fetchTransfer': False,
                 'fetchTransfers': True,
+                'fetchWithdrawAddresses': False,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
                 'repayCrossMargin': True,
                 'repayIsolatedMargin': True,
                 'setLeverage': True,
+                'setMargin': False,
                 'setMarginMode': True,
                 'setPositionMode': True,
+                'signIn': False,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -2114,7 +2129,7 @@ class bitget(Exchange, ImplicitAPI):
         rawTransactions = self.safe_value(response, 'data', [])
         return self.parse_transactions(rawTransactions, currency, since, limit)
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :see: https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal
@@ -2178,7 +2193,7 @@ class bitget(Exchange, ImplicitAPI):
             'fee': None,
         }
         withdrawOptions = self.safe_value(self.options, 'withdraw', {})
-        fillResponseFromRequest = self.safe_value(withdrawOptions, 'fillResponseFromRequest', True)
+        fillResponseFromRequest = self.safe_bool(withdrawOptions, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             result['currency'] = code
             result['timestamp'] = self.milliseconds()
@@ -3005,7 +3020,7 @@ class bitget(Exchange, ImplicitAPI):
         marginMode, params = self.handle_margin_mode_and_params('fetchTradingFees', params)
         marketType, params = self.handle_market_type_and_params('fetchTradingFees', None, params)
         if marketType == 'spot':
-            margin = self.safe_value(params, 'margin', False)
+            margin = self.safe_bool(params, 'margin', False)
             params = self.omit(params, 'margin')
             if (marginMode is not None) or margin:
                 response = await self.publicMarginGetV2MarginCurrencies(params)
@@ -3836,7 +3851,7 @@ class bitget(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://www.bitget.com/api-doc/spot/trade/Place-Order
@@ -3919,7 +3934,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    def create_order_request(self, symbol, type, side, amount, price=None, params={}):
+    def create_order_request(self, symbol, type, side, amount: float, price: float = None, params={}):
         sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         market = None
         if sandboxMode:
@@ -3948,7 +3963,7 @@ class bitget(Exchange, ImplicitAPI):
         isTakeProfit = takeProfit is not None
         isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder or isTakeProfitTriggerOrder
         isStopLossOrTakeProfit = isStopLoss or isTakeProfit
-        trailingTriggerPrice = self.safe_string(params, 'trailingTriggerPrice', price)
+        trailingTriggerPrice = self.safe_string(params, 'trailingTriggerPrice', self.number_to_string(price))
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRatio')
         isTrailingPercentOrder = trailingPercent is not None
         if self.sum(isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder, isTrailingPercentOrder) > 1:
@@ -3956,7 +3971,7 @@ class bitget(Exchange, ImplicitAPI):
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
         triggerType = self.safe_string(params, 'triggerType', 'mark_price')
-        reduceOnly = self.safe_value(params, 'reduceOnly', False)
+        reduceOnly = self.safe_bool(params, 'reduceOnly', False)
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
         exchangeSpecificTifParam = self.safe_string_2(params, 'force', 'timeInForce')
         postOnly = None
@@ -4031,7 +4046,7 @@ class bitget(Exchange, ImplicitAPI):
                     marginMode = 'cross'
                 marginModeRequest = 'crossed' if (marginMode == 'cross') else 'isolated'
                 request['marginMode'] = marginModeRequest
-                oneWayMode = self.safe_value(params, 'oneWayMode', False)
+                oneWayMode = self.safe_bool(params, 'oneWayMode', False)
                 params = self.omit(params, 'oneWayMode')
                 requestSide = side
                 if reduceOnly:
@@ -5039,17 +5054,8 @@ class bitget(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-        response = await self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
-        result = []
-        for i in range(0, len(response)):
-            entry = response[i]
-            status = self.parse_order_status(self.safe_string_n(entry, ['state', 'status', 'planStatus']))
-            if status == 'closed':
-                result.append(entry)
-        return self.parse_orders(result, market, since, limit)
+        orders = await self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
+        return self.filter_by(orders, 'status', 'closed')
 
     async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -5072,19 +5078,24 @@ class bitget(Exchange, ImplicitAPI):
         :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-        response = await self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
-        result = []
-        for i in range(0, len(response)):
-            entry = response[i]
-            status = self.parse_order_status(self.safe_string_n(entry, ['state', 'status', 'planStatus']))
-            if status == 'canceled':
-                result.append(entry)
-        return self.parse_orders(result, market, since, limit)
+        orders = await self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
+        return self.filter_by(orders, 'status', 'canceled')
 
     async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        :see: https://www.bitget.com/api-doc/spot/trade/Get-History-Orders
+        :see: https://www.bitget.com/api-doc/spot/plan/Get-History-Plan-Order
+        :see: https://www.bitget.com/api-doc/contract/trade/Get-Orders-History
+        :see: https://www.bitget.com/api-doc/contract/plan/orders-plan-history
+        :see: https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
+        :see: https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
+        fetches information on multiple canceled and closed orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         await self.load_markets()
         sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         market = None
@@ -5343,12 +5354,13 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         if marketType == 'spot':
             if (marginMode is not None) or stop:
-                return self.safe_value(data, 'orderList', [])
+                return self.parse_orders(self.safe_value(data, 'orderList', []), market, since, limit)
         else:
-            return self.safe_value(data, 'entrustedList', [])
+            return self.parse_orders(self.safe_value(data, 'entrustedList', []), market, since, limit)
         if isinstance(response, str):
             response = json.loads(response)
-        return self.safe_value(response, 'data', [])
+        orders = self.safe_value(response, 'data', [])
+        return self.parse_orders(orders, market, since, limit)
 
     async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -5790,6 +5802,7 @@ class bitget(Exchange, ImplicitAPI):
         :see: https://www.bitget.com/api-doc/contract/position/Get-History-Position
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginCoin]: the settle currency of the positions, needs to match the productType
         :param str [params.productType]: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -5818,9 +5831,21 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         isHistory = False
         if method == 'privateMixGetV2MixPositionAllPosition':
-            if symbols is None:
-                raise ArgumentsRequired(self.id + ' fetchPositions() requires a symbols argument')
-            request['marginCoin'] = market['settleId']
+            marginCoin = self.safe_string(params, 'marginCoin', 'USDT')
+            if symbols is not None:
+                marginCoin = market['settleId']
+            elif productType == 'USDT-FUTURES':
+                marginCoin = 'USDT'
+            elif productType == 'USDC-FUTURES':
+                marginCoin = 'USDC'
+            elif productType == 'SUSDT-FUTURES':
+                marginCoin = 'SUSDT'
+            elif productType == 'SUSDC-FUTURES':
+                marginCoin = 'SUSDC'
+            elif (productType == 'SCOIN-FUTURES') or (productType == 'COIN-FUTURES'):
+                if marginCoin is None:
+                    raise ArgumentsRequired(self.id + ' fetchPositions() requires a marginCoin parameter that matches the productType')
+            request['marginCoin'] = marginCoin
             response = await self.privateMixGetV2MixPositionAllPosition(self.extend(request, params))
         else:
             isHistory = True
@@ -6433,11 +6458,11 @@ class bitget(Exchange, ImplicitAPI):
         #
         return response
 
-    async def set_leverage(self, leverage, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://www.bitget.com/api-doc/contract/account/Change-Leverage
-        :param float leverage: the rate of leverage
+        :param int leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.holdSide]: *isolated only* position direction, 'long' or 'short'
@@ -6458,7 +6483,7 @@ class bitget(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
-            'leverage': leverage,
+            'leverage': self.number_to_string(leverage),
             'productType': productType,
             # 'holdSide': 'long',
         }
@@ -6691,7 +6716,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_transfers(data, currency, since, limit)
 
-    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://www.bitget.com/api-doc/spot/account/Wallet-Transfer
@@ -6881,7 +6906,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'coin')
 
-    async def borrow_cross_margin(self, code: str, amount, params={}):
+    async def borrow_cross_margin(self, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
         :see: https://www.bitget.com/api-doc/margin/cross/account/Cross-Borrow
@@ -6912,7 +6937,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_margin_loan(data, currency)
 
-    async def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
+    async def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
         :see: https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Borrow

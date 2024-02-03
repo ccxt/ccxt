@@ -698,7 +698,7 @@ export default class btcalpha extends Exchange {
         const marketId = this.safeString (order, 'pair');
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
-        const success = this.safeValue (order, 'success', false);
+        const success = this.safeBool (order, 'success', false);
         let timestamp = undefined;
         if (success) {
             timestamp = this.safeTimestamp (order, 'date');
@@ -739,7 +739,7 @@ export default class btcalpha extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#createOrder

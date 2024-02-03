@@ -54,7 +54,7 @@
                   "BTC/USDT",
                   "market",
                   "buy",
-                  null,
+                  0,
                   null,
                   {
                     "cost": 5
@@ -603,7 +603,7 @@
             {
                 "description": "Fetch Tickers - spot",
                 "method": "fetchTickers",
-                "url": "https://api.gateio.ws/api/v4/spot/tickers",
+                "url": "https://api.gateio.ws/api/v4/spot/tickers?timezone=utc0",
                 "input": [
                     null,
                     {
@@ -614,7 +614,7 @@
             {
                 "description": "Fetch Tickers - swap",
                 "method": "fetchTickers",
-                "url": "https://api.gateio.ws/api/v4/futures/usdt/tickers",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/tickers?timezone=utc0",
                 "input": [
                     null,
                     {
@@ -625,7 +625,7 @@
             {
                 "description": "Fetch Tickers - future",
                 "method": "fetchTickers",
-                "url": "https://api.gateio.ws/api/v4/delivery/btc/tickers",
+                "url": "https://api.gateio.ws/api/v4/delivery/btc/tickers?timezone=utc0",
                 "input": [
                     null,
                     {
@@ -636,7 +636,7 @@
             {
                 "description": "Fetch Tickers - option",
                 "method": "fetchTickers",
-                "url": "https://api.gateio.ws/api/v4/options/tickers?underlying=BTC_USDT",
+                "url": "https://api.gateio.ws/api/v4/options/tickers?underlying=BTC_USDT&timezone=utc0",
                 "input": [
                     [
                         "BTC/USDT:USDT-240126-20000-C"
@@ -986,6 +986,16 @@
                 ],
                 "output": "{\"contract\":\"XRP_USDT\",\"size\":0,\"price\":0,\"tif\":\"ioc\",\"close\":true}"
               }
+        ],
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "fetchMarketLeverageTiers",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/risk_limit_tiers?contract=BTC_USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }

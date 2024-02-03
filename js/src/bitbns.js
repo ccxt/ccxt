@@ -32,6 +32,7 @@ export default class bitbns extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': undefined,
+                'cancelAllOrders': false,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,

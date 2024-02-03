@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinlist import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -164,6 +164,9 @@ class coinlist(Exchange, ImplicitAPI):
                         'v1/symbols/{symbol}/auctions/{auction_code}': 1,  # not unified
                         'v1/time': 1,
                         'v1/assets': 1,
+                        'v1/leaderboard': 1,
+                        'v1/affiliate/{competition_code}': 1,
+                        'v1/competition/{competition_id}': 1,
                     },
                 },
                 'private': {
@@ -171,6 +174,7 @@ class coinlist(Exchange, ImplicitAPI):
                         'v1/fees': 1,
                         'v1/accounts': 1,
                         'v1/accounts/{trader_id}': 1,  # not unified
+                        'v1/accounts/{trader_id}/alias': 1,
                         'v1/accounts/{trader_id}/ledger': 1,
                         'v1/accounts/{trader_id}/wallets': 1,  # not unified
                         'v1/accounts/{trader_id}/wallet-ledger': 1,
@@ -184,6 +188,8 @@ class coinlist(Exchange, ImplicitAPI):
                         'v1/transfers': 1,
                         'v1/user': 1,  # not unified
                         'v1/credits': 1,  # not unified
+                        'v1/positions': 1,
+                        'v1/accounts/{trader_id}/competitions': 1,
                     },
                     'post': {
                         'v1/keys': 1,  # not unified
@@ -195,6 +201,8 @@ class coinlist(Exchange, ImplicitAPI):
                         'v1/transfers/internal-transfer': 1,
                         'v1/transfers/withdrawal-request': 1,
                         'v1/orders/bulk': 1,  # not unified
+                        'v1/accounts/{trader_id}/competitions': 1,
+                        'v1/accounts/{trader_id}/create-competition': 1,
                     },
                     'patch': {
                         'v1/orders/{order_id}': 1,
@@ -364,7 +372,7 @@ class coinlist(Exchange, ImplicitAPI):
             currency = currencies[i]
             id = self.safe_string(currency, 'asset')
             code = self.safe_currency_code(id)
-            isTransferable = self.safe_value(currency, 'is_transferable', False)
+            isTransferable = self.safe_bool(currency, 'is_transferable', False)
             withdrawEnabled = isTransferable
             depositEnabled = isTransferable
             active = isTransferable
@@ -1385,7 +1393,7 @@ class coinlist(Exchange, ImplicitAPI):
         response = self.privateDeleteV1OrdersBulk(params)
         return response
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#create-new-order
@@ -1623,7 +1631,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#transfer-funds-between-entities
@@ -1855,7 +1863,7 @@ class coinlist(Exchange, ImplicitAPI):
         # coinlist returns both internal transfers and blockchain transactions
         return self.parse_transactions(response, currency, since, limit)
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         request a withdrawal from CoinList wallet.(Disabled by default. Contact CoinList to apply for an exception.)
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#request-withdrawal-from-wallet

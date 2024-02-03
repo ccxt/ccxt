@@ -133,8 +133,7 @@ class mexc extends Exchange {
                 ),
                 'www' => 'https://www.mexc.com/',
                 'doc' => array(
-                    'https://mexcdevelop.github.io/apidocs/spot_v3_en/',
-                    'https://mexcdevelop.github.io/APIDoc/', // v1 & v2 : soon to be deprecated
+                    'https://mexcdevelop.github.io/apidocs/',
                 ),
                 'fees' => array(
                     'https://www.mexc.com/fee',
@@ -948,8 +947,8 @@ class mexc extends Exchange {
                 $chain = $chains[$j];
                 $networkId = $this->safe_string($chain, 'network');
                 $network = $this->safe_network($networkId);
-                $isDepositEnabled = $this->safe_value($chain, 'depositEnable', false);
-                $isWithdrawEnabled = $this->safe_value($chain, 'withdrawEnable', false);
+                $isDepositEnabled = $this->safe_bool($chain, 'depositEnable', false);
+                $isWithdrawEnabled = $this->safe_bool($chain, 'withdrawEnable', false);
                 $active = ($isDepositEnabled && $isWithdrawEnabled);
                 $currencyActive = $active || $currencyActive;
                 $withdrawMin = $this->safe_string($chain, 'withdrawMin');
@@ -1349,7 +1348,8 @@ class mexc extends Exchange {
         return $orderbook;
     }
 
-    public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countKey = 2) {
+    public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
+        $countKey = 2;
         $price = $this->safe_number($bidask, $priceKey);
         $amount = $this->safe_number($bidask, $amountKey);
         $count = $this->safe_number($bidask, $countKey);
@@ -2080,7 +2080,7 @@ class mexc extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
@@ -2191,7 +2191,7 @@ class mexc extends Exchange {
         $this->load_markets();
         $symbol = $market['symbol'];
         $unavailableContracts = $this->safe_value($this->options, 'unavailableContracts', array());
-        $isContractUnavaiable = $this->safe_value($unavailableContracts, $symbol, false);
+        $isContractUnavaiable = $this->safe_bool($unavailableContracts, $symbol, false);
         if ($isContractUnavaiable) {
             throw new NotSupported($this->id . ' createSwapOrder() does not support yet this $symbol:' . $symbol);
         }
@@ -2254,7 +2254,7 @@ class mexc extends Exchange {
                 throw new ArgumentsRequired($this->id . ' createSwapOrder() requires a $leverage parameter for isolated margin orders');
             }
         }
-        $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
+        $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
         if ($reduceOnly) {
             $request['side'] = ($side === 'buy') ? 2 : 4;
         } else {
@@ -3560,7 +3560,7 @@ class mexc extends Exchange {
         $request = array();
         list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $marginMode = $this->safe_string($params, 'marginMode');
-        $isMargin = $this->safe_value($params, 'margin', false);
+        $isMargin = $this->safe_bool($params, 'margin', false);
         $params = $this->omit($params, array( 'margin', 'marginMode' ));
         $response = null;
         if (($marginMode !== null) || ($isMargin) || ($marketType === 'margin')) {
@@ -3881,7 +3881,7 @@ class mexc extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'ADD', $params);
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          * @param {float} $leverage the rate of $leverage
@@ -4822,7 +4822,7 @@ class mexc extends Exchange {
         return $this->parse_transfers($resultList, $currency, $since, $limit);
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
@@ -4956,7 +4956,7 @@ class mexc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw
@@ -5222,7 +5222,7 @@ class mexc extends Exchange {
          * @return {Array} the $marginMode in lowercase
          */
         $defaultType = $this->safe_string($this->options, 'defaultType');
-        $isMargin = $this->safe_value($params, 'margin', false);
+        $isMargin = $this->safe_bool($params, 'margin', false);
         $marginMode = null;
         list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
         if (($defaultType === 'margin') || ($isMargin === true)) {
@@ -5312,7 +5312,7 @@ class mexc extends Exchange {
         //     array("code":10216,"msg":"No available deposit address")
         //     array("success":true, "code":0, "data":1634095541710)
         //
-        $success = $this->safe_value($response, 'success', false); // v1
+        $success = $this->safe_bool($response, 'success', false); // v1
         if ($success === true) {
             return null;
         }

@@ -46,7 +46,7 @@ export default class cex extends cexRest {
     resolveData(client: Client, message: any): void;
     handleConnected(client: Client, message: any): any;
     handleErrorMessage(client: Client, message: any): void;
-    handleMessage(client: Client, message: any): any;
+    handleMessage(client: Client, message: any): void;
     handleAuthenticationMessage(client: Client, message: any): void;
     authenticate(params?: {}): Promise<any>;
 }

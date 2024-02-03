@@ -499,6 +499,9 @@ abstract class gate extends \ccxt\async\Exchange {
     public function private_futures_get_settle_fee($params = array()) {
         return $this->request('{settle}/fee', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_futures_get_settle_risk_limit_tiers($params = array()) {
+        return $this->request('{settle}/risk_limit_tiers', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_futures_get_settle_price_orders($params = array()) {
         return $this->request('{settle}/price_orders', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -726,6 +729,9 @@ abstract class gate extends \ccxt\async\Exchange {
     }
     public function private_loan_get_multi_collateral_ltv($params = array()) {
         return $this->request('multi_collateral/ltv', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_loan_get_multi_collateral_fixed_rate($params = array()) {
+        return $this->request('multi_collateral/fixed_rate', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function private_loan_post_collateral_orders($params = array()) {
         return $this->request('collateral/orders', array('private', 'loan'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
@@ -1261,6 +1267,9 @@ abstract class gate extends \ccxt\async\Exchange {
     public function privateFuturesGetSettleFee($params = array()) {
         return $this->request('{settle}/fee', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateFuturesGetSettleRiskLimitTiers($params = array()) {
+        return $this->request('{settle}/risk_limit_tiers', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateFuturesGetSettlePriceOrders($params = array()) {
         return $this->request('{settle}/price_orders', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1488,6 +1497,9 @@ abstract class gate extends \ccxt\async\Exchange {
     }
     public function privateLoanGetMultiCollateralLtv($params = array()) {
         return $this->request('multi_collateral/ltv', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateLoanGetMultiCollateralFixedRate($params = array()) {
+        return $this->request('multi_collateral/fixed_rate', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function privateLoanPostCollateralOrders($params = array()) {
         return $this->request('collateral/orders', array('private', 'loan'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));

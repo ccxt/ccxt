@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFun
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -54,6 +54,7 @@ export default class bitrue extends Exchange {
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
+                'fetchFundingRate': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchMarginMode': false,
@@ -1897,7 +1898,7 @@ export default class bitrue extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#createOrder
@@ -1966,9 +1967,9 @@ export default class bitrue extends Exchange {
                     const amountString = this.numberToString (amount);
                     const priceString = this.numberToString (price);
                     const quoteAmount = Precise.stringMul (amountString, priceString);
-                    amount = (cost !== undefined) ? cost : quoteAmount;
-                    request['amount'] = this.costToPrecision (symbol, amount);
-                    request['volume'] = this.costToPrecision (symbol, amount);
+                    const requestAmount = (cost !== undefined) ? cost : quoteAmount;
+                    request['amount'] = this.costToPrecision (symbol, requestAmount);
+                    request['volume'] = this.costToPrecision (symbol, requestAmount);
                 }
             } else {
                 request['amount'] = this.parseToNumeric (amount);
@@ -2742,7 +2743,7 @@ export default class bitrue extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#withdraw
@@ -2957,7 +2958,7 @@ export default class bitrue extends Exchange {
         return this.parseTransfers (data, currency, since, limit);
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name bitrue#transfer
@@ -2993,7 +2994,7 @@ export default class bitrue extends Exchange {
         return this.parseTransfer (data, currency);
     }
 
-    async setLeverage (leverage, symbol: string = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#setLeverage
@@ -3172,7 +3173,7 @@ export default class bitrue extends Exchange {
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        const success = this.safeValue (response, 'success', true);
+        const success = this.safeBool (response, 'success', true);
         if (!success) {
             const messageInner = this.safeString (response, 'msg');
             let parsedMessage = undefined;

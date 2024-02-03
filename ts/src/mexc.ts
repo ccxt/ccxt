@@ -6,7 +6,7 @@ import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, Exch
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -138,8 +138,7 @@ export default class mexc extends Exchange {
                 },
                 'www': 'https://www.mexc.com/',
                 'doc': [
-                    'https://mexcdevelop.github.io/apidocs/spot_v3_en/',
-                    'https://mexcdevelop.github.io/APIDoc/', // v1 & v2 : soon to be deprecated
+                    'https://mexcdevelop.github.io/apidocs/',
                 ],
                 'fees': [
                     'https://www.mexc.com/fee',
@@ -959,8 +958,8 @@ export default class mexc extends Exchange {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'network');
                 const network = this.safeNetwork (networkId);
-                const isDepositEnabled = this.safeValue (chain, 'depositEnable', false);
-                const isWithdrawEnabled = this.safeValue (chain, 'withdrawEnable', false);
+                const isDepositEnabled = this.safeBool (chain, 'depositEnable', false);
+                const isWithdrawEnabled = this.safeBool (chain, 'withdrawEnable', false);
                 const active = (isDepositEnabled && isWithdrawEnabled);
                 currencyActive = active || currencyActive;
                 const withdrawMin = this.safeString (chain, 'withdrawMin');
@@ -1364,7 +1363,8 @@ export default class mexc extends Exchange {
         return orderbook as OrderBook;
     }
 
-    parseBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countKey: IndexType = 2) {
+    parseBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
+        const countKey = 2;
         const price = this.safeNumber (bidask, priceKey);
         const amount = this.safeNumber (bidask, amountKey);
         const count = this.safeNumber (bidask, countKey);
@@ -2107,7 +2107,7 @@ export default class mexc extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#createOrder
@@ -2220,7 +2220,7 @@ export default class mexc extends Exchange {
         await this.loadMarkets ();
         const symbol = market['symbol'];
         const unavailableContracts = this.safeValue (this.options, 'unavailableContracts', {});
-        const isContractUnavaiable = this.safeValue (unavailableContracts, symbol, false);
+        const isContractUnavaiable = this.safeBool (unavailableContracts, symbol, false);
         if (isContractUnavaiable) {
             throw new NotSupported (this.id + ' createSwapOrder() does not support yet this symbol:' + symbol);
         }
@@ -2283,7 +2283,7 @@ export default class mexc extends Exchange {
                 throw new ArgumentsRequired (this.id + ' createSwapOrder() requires a leverage parameter for isolated margin orders');
             }
         }
-        const reduceOnly = this.safeValue (params, 'reduceOnly', false);
+        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
         if (reduceOnly) {
             request['side'] = (side === 'buy') ? 2 : 4;
         } else {
@@ -3613,7 +3613,7 @@ export default class mexc extends Exchange {
         const request = {};
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const marginMode = this.safeString (params, 'marginMode');
-        const isMargin = this.safeValue (params, 'margin', false);
+        const isMargin = this.safeBool (params, 'margin', false);
         params = this.omit (params, [ 'margin', 'marginMode' ]);
         let response = undefined;
         if ((marginMode !== undefined) || (isMargin) || (marketType === 'margin')) {
@@ -3942,7 +3942,7 @@ export default class mexc extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'ADD', params);
     }
 
-    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#setLeverage
@@ -4909,7 +4909,7 @@ export default class mexc extends Exchange {
         return this.parseTransfers (resultList, currency, since, limit);
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name mexc3#transfer
@@ -5045,7 +5045,7 @@ export default class mexc extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#withdraw
@@ -5318,7 +5318,7 @@ export default class mexc extends Exchange {
          * @returns {Array} the marginMode in lowercase
          */
         const defaultType = this.safeString (this.options, 'defaultType');
-        const isMargin = this.safeValue (params, 'margin', false);
+        const isMargin = this.safeBool (params, 'margin', false);
         let marginMode = undefined;
         [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
         if ((defaultType === 'margin') || (isMargin === true)) {
@@ -5408,7 +5408,7 @@ export default class mexc extends Exchange {
         //     {"code":10216,"msg":"No available deposit address"}
         //     {"success":true, "code":0, "data":1634095541710}
         //
-        const success = this.safeValue (response, 'success', false); // v1
+        const success = this.safeBool (response, 'success', false); // v1
         if (success === true) {
             return undefined;
         }

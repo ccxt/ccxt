@@ -50,60 +50,69 @@ export default class kucoin extends kucoinRest {
             },
         });
     }
-    negotiate(privateChannel, params = {}) {
+    async negotiate(privateChannel, params = {}) {
         const connectId = privateChannel ? 'private' : 'public';
         const urls = this.safeValue(this.options, 'urls', {});
         const spawaned = this.safeValue(urls, connectId);
         if (spawaned !== undefined) {
-            return spawaned;
+            return await spawaned;
         }
         // we store an awaitable to the url
         // so that multiple calls don't asynchronously
         // fetch different urls and overwrite each other
         urls[connectId] = this.spawn(this.negotiateHelper, privateChannel, params);
         this.options['urls'] = urls;
-        return urls[connectId];
+        const future = urls[connectId];
+        return await future;
     }
     async negotiateHelper(privateChannel, params = {}) {
         let response = undefined;
         const connectId = privateChannel ? 'private' : 'public';
-        if (privateChannel) {
-            response = await this.privatePostBulletPrivate(params);
-            //
-            //     {
-            //         "code": "200000",
-            //         "data": {
-            //             "instanceServers": [
-            //                 {
-            //                     "pingInterval":  50000,
-            //                     "endpoint": "wss://push-private.kucoin.com/endpoint",
-            //                     "protocol": "websocket",
-            //                     "encrypt": true,
-            //                     "pingTimeout": 10000
-            //                 }
-            //             ],
-            //             "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
-            //         }
-            //     }
-            //
+        try {
+            if (privateChannel) {
+                response = await this.privatePostBulletPrivate(params);
+                //
+                //     {
+                //         "code": "200000",
+                //         "data": {
+                //             "instanceServers": [
+                //                 {
+                //                     "pingInterval":  50000,
+                //                     "endpoint": "wss://push-private.kucoin.com/endpoint",
+                //                     "protocol": "websocket",
+                //                     "encrypt": true,
+                //                     "pingTimeout": 10000
+                //                 }
+                //             ],
+                //             "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+                //         }
+                //     }
+                //
+            }
+            else {
+                response = await this.publicPostBulletPublic(params);
+            }
+            const data = this.safeValue(response, 'data', {});
+            const instanceServers = this.safeValue(data, 'instanceServers', []);
+            const firstInstanceServer = this.safeValue(instanceServers, 0);
+            const pingInterval = this.safeInteger(firstInstanceServer, 'pingInterval');
+            const endpoint = this.safeString(firstInstanceServer, 'endpoint');
+            const token = this.safeString(data, 'token');
+            const result = endpoint + '?' + this.urlencode({
+                'token': token,
+                'privateChannel': privateChannel,
+                'connectId': connectId,
+            });
+            const client = this.client(result);
+            client.keepAlive = pingInterval;
+            return result;
         }
-        else {
-            response = await this.publicPostBulletPublic(params);
+        catch (e) {
+            const future = this.safeValue(this.options['urls'], connectId);
+            future.reject(e);
+            delete this.options['urls'][connectId];
         }
-        const data = this.safeValue(response, 'data', {});
-        const instanceServers = this.safeValue(data, 'instanceServers', []);
-        const firstInstanceServer = this.safeValue(instanceServers, 0);
-        const pingInterval = this.safeInteger(firstInstanceServer, 'pingInterval');
-        const endpoint = this.safeString(firstInstanceServer, 'endpoint');
-        const token = this.safeString(data, 'token');
-        const result = endpoint + '?' + this.urlencode({
-            'token': token,
-            'privateChannel': privateChannel,
-            'connectId': connectId,
-        });
-        const client = this.client(result);
-        client.keepAlive = pingInterval;
-        return result;
+        return undefined;
     }
     requestId() {
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
@@ -261,7 +270,9 @@ export default class kucoin extends kucoinRest {
         const messageHash = 'ticker:' + symbol;
         client.resolve(ticker, messageHash);
         // watchTickers
-        client.resolve(ticker, 'tickers');
+        const allTickers = {};
+        allTickers[symbol] = ticker;
+        client.resolve(allTickers, 'tickers');
         const messageHashes = this.findMessageHashes(client, 'tickers::');
         for (let i = 0; i < messageHashes.length; i++) {
             const currentMessageHash = messageHashes[i];
@@ -538,7 +549,7 @@ export default class kucoin extends kucoinRest {
             const limit = this.safeInteger(subscription, 'limit');
             const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 5);
             if (cacheLength === snapshotDelay) {
-                this.spawn(this.loadOrderBook, client, messageHash, symbol, limit);
+                this.spawn(this.loadOrderBook, client, messageHash, symbol, limit, {});
             }
             storedOrderBook.cache.push(data);
             return;
@@ -980,7 +991,8 @@ export default class kucoin extends kucoinRest {
         //
         const topic = this.safeString(message, 'topic');
         if (topic === '/market/ticker:all') {
-            return this.handleTicker(client, message);
+            this.handleTicker(client, message);
+            return;
         }
         const subject = this.safeString(message, 'subject');
         const methods = {
@@ -995,11 +1007,8 @@ export default class kucoin extends kucoinRest {
             'stopOrder': this.handleOrder,
         };
         const method = this.safeValue(methods, subject);
-        if (method === undefined) {
-            return message;
-        }
-        else {
-            return method.call(this, client, message);
+        if (method !== undefined) {
+            method.call(this, client, message);
         }
     }
     ping(client) {
@@ -1047,7 +1056,7 @@ export default class kucoin extends kucoinRest {
         };
         const method = this.safeValue(methods, type);
         if (method !== undefined) {
-            return method.call(this, client, message);
+            method.call(this, client, message);
         }
     }
 }

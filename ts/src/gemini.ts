@@ -519,7 +519,7 @@ export default class gemini extends Exchange {
             'post_only': true,
             'limit_only': true,
         };
-        return this.safeValue (statuses, status, true);
+        return this.safeBool (statuses, status, true);
     }
 
     async fetchUSDTMarkets (params = {}) {
@@ -560,7 +560,7 @@ export default class gemini extends Exchange {
             result[marketId] = this.parseMarket (market);
         }
         const options = this.safeValue (this.options, 'fetchMarketsFromAPI', {});
-        const fetchDetailsForAllSymbols = this.safeValue (options, 'fetchDetailsForAllSymbols', false);
+        const fetchDetailsForAllSymbols = this.safeBool (options, 'fetchDetailsForAllSymbols', false);
         const fetchDetailsForMarketIds = this.safeValue (options, 'fetchDetailsForMarketIds', []);
         let promises = [];
         let marketIds = [];
@@ -1327,7 +1327,7 @@ export default class gemini extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name gemini#createOrder
@@ -1385,7 +1385,7 @@ export default class gemini extends Exchange {
                     request['options'] = [ 'maker-or-cancel' ];
                 }
             }
-            const postOnly = this.safeValue (params, 'postOnly', false);
+            const postOnly = this.safeBool (params, 'postOnly', false);
             params = this.omit (params, 'postOnly');
             if (postOnly) {
                 request['options'] = [ 'maker-or-cancel' ];
@@ -1494,7 +1494,7 @@ export default class gemini extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name gemini#withdraw
