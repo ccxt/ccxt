@@ -508,6 +508,7 @@ export default class gemini extends geminiRest {
         //         "socket_sequence": 7
         //     }
         //
+        client.lastPong = this.milliseconds ();
         return message;
     }
 
