@@ -2772,6 +2772,7 @@ export default class binance extends binanceRest {
 
     handleMessage (client: Client, message) {
         // handle WebSocketAPI
+        this.streamProduce ('raw', message);
         const status = this.safeString (message, 'status');
         const error = this.safeValue (message, 'error');
         if ((error !== undefined) || (status !== undefined && status !== '200')) {
