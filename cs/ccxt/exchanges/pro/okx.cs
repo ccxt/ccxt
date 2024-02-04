@@ -1639,7 +1639,7 @@ public partial class okx : ccxt.okx
         (future as Future).resolve(true);
     }
 
-    public override object ping(WebSocketClient client)
+    public virtual object ping(WebSocketClient client)
     {
         // okex does not support built-in ws protocol-level ping-pong
         // instead it requires custom text-based ping-pong

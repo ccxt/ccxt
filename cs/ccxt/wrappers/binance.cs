@@ -68,6 +68,7 @@ public partial class binance
     /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data"/>  <br/>
     /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data"/>  <br/>
     /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#option-account-information-trade"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#account-balance-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -78,13 +79,19 @@ public partial class binance
     /// <item>
     /// <term>params.type</term>
     /// <description>
-    /// string : 'future', 'delivery', 'savings', 'funding', or 'spot'
+    /// string : 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.marginMode</term>
     /// <description>
     /// string : 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolioMargin</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch the balance for a portfolio margin account
     /// </description>
     /// </item>
     /// </list>
