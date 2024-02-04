@@ -734,7 +734,7 @@ export default class coinbase extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined) {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fiat deposit
         //
@@ -893,7 +893,7 @@ export default class coinbase extends Exchange {
                 'cost': this.safeNumber (feeObject, 'amount'),
                 'currency': this.safeCurrencyCode (feeCurrencyId),
             },
-        };
+        } as Transaction;
     }
 
     parseTrade (trade, market: Market = undefined): Trade {
@@ -1647,7 +1647,7 @@ export default class coinbase extends Exchange {
         }, market);
     }
 
-    parseBalance (response, params = {}) {
+    parseCustomBalance (response, params = {}) {
         const balances = this.safeValue2 (response, 'data', 'accounts', []);
         const accounts = this.safeValue (params, 'type', this.options['accounts']);
         const v3Accounts = this.safeValue (params, 'type', this.options['v3Accounts']);
@@ -1795,7 +1795,7 @@ export default class coinbase extends Exchange {
         //         "size": 9
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseCustomBalance (response, params);
     }
 
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2221,7 +2221,7 @@ export default class coinbase extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#createOrder
@@ -2756,7 +2756,7 @@ export default class coinbase extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit = 100, params = {}): Promise<Order[]> {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = 100, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinbase#fetchOrders
@@ -3275,7 +3275,7 @@ export default class coinbase extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#withdraw

@@ -6,7 +6,7 @@ import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, Exch
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1363,7 +1363,8 @@ export default class mexc extends Exchange {
         return orderbook as OrderBook;
     }
 
-    parseBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countKey: IndexType = 2) {
+    parseBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
+        const countKey = 2;
         const price = this.safeNumber (bidask, priceKey);
         const amount = this.safeNumber (bidask, amountKey);
         const count = this.safeNumber (bidask, countKey);
@@ -2106,7 +2107,7 @@ export default class mexc extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#createOrder
@@ -3941,7 +3942,7 @@ export default class mexc extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'ADD', params);
     }
 
-    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#setLeverage
@@ -4908,7 +4909,7 @@ export default class mexc extends Exchange {
         return this.parseTransfers (resultList, currency, since, limit);
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name mexc3#transfer
@@ -5044,7 +5045,7 @@ export default class mexc extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#withdraw

@@ -918,7 +918,7 @@ export default class bitso extends Exchange {
         return result;
     }
 
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit = 25, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = 25, params = {}) {
         /**
          * @method
          * @name bitso#fetchMyTrades
@@ -956,7 +956,7 @@ export default class bitso extends Exchange {
         return this.parseTrades (response['payload'], market, since, limit);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name bitso#createOrder
@@ -1128,7 +1128,7 @@ export default class bitso extends Exchange {
         }, market);
     }
 
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit = 25, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = 25, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitso#fetchOpenOrders
@@ -1564,7 +1564,7 @@ export default class bitso extends Exchange {
         return result;
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitso#withdraw

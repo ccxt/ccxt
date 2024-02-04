@@ -594,7 +594,7 @@ class oceanex(Exchange, ImplicitAPI):
         response = await self.privateGetMembersMe(params)
         return self.parse_balance(response)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://api.oceanex.pro/doc/v1/#new-order-post

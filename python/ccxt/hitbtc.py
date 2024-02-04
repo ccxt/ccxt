@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hitbtc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, MarginMode, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, MarginMode, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -2107,7 +2107,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 raise NotSupported(self.id + ' editOrder() not support self market type')
         return self.parse_order(response, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://api.hitbtc.com/#create-new-spot-order
@@ -2400,7 +2400,7 @@ class hitbtc(Exchange, ImplicitAPI):
         filteredMargin = self.filter_by_symbol(marginModes, symbol)
         return self.safe_value(filteredMargin, 0)
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://api.hitbtc.com/#transfer-between-wallet-and-exchange
@@ -2481,7 +2481,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :see: https://api.hitbtc.com/#withdraw-crypto
@@ -3149,7 +3149,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.safe_number(response, 'leverage')
 
-    def set_leverage(self, leverage, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://api.hitbtc.com/#create-update-margin-account-2

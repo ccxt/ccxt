@@ -1263,7 +1263,7 @@ class gemini(Exchange, ImplicitAPI):
             market = self.market(symbol)  # throws on non-existent symbol
         return self.parse_orders(response, market, since, limit)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://docs.gemini.com/rest-api/#new-order
@@ -1410,7 +1410,7 @@ class gemini(Exchange, ImplicitAPI):
         response = await self.privatePostV1Mytrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

@@ -1568,5 +1568,235 @@
         "wsId": "XDG/USDT",
         "darkpool": false,
         "altname": "XDGUSDT"
+    },
+    "XRP/USD": {
+        "id": "XXRPZUSD",
+        "symbol": "XRP/USD",
+        "base": "XRP",
+        "quote": "USD",
+        "baseId": "XXRP",
+        "quoteId": "ZUSD",
+        "type": "spot",
+        "spot": true,
+        "margin": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.0026,
+        "maker": 0.0016,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.00001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 5
+            },
+            "amount": {
+                "min": 10
+            },
+            "price": {
+                "min": 0.00001
+            },
+            "cost": {
+                "min": 0.5
+            }
+        },
+        "info": {
+            "altname": "XRPUSD",
+            "wsname": "XRP/USD",
+            "aclass_base": "currency",
+            "base": "XXRP",
+            "aclass_quote": "currency",
+            "quote": "ZUSD",
+            "lot": "unit",
+            "cost_decimals": "8",
+            "pair_decimals": "5",
+            "lot_decimals": "8",
+            "lot_multiplier": "1",
+            "leverage_buy": [
+                2,
+                3,
+                4,
+                5
+            ],
+            "leverage_sell": [
+                2,
+                3,
+                4,
+                5
+            ],
+            "fees": [
+                [
+                    0,
+                    0.26
+                ],
+                [
+                    50000,
+                    0.24
+                ],
+                [
+                    100000,
+                    0.22
+                ],
+                [
+                    250000,
+                    0.2
+                ],
+                [
+                    500000,
+                    0.18
+                ],
+                [
+                    1000000,
+                    0.16
+                ],
+                [
+                    2500000,
+                    0.14
+                ],
+                [
+                    5000000,
+                    0.12
+                ],
+                [
+                    10000000,
+                    0.1
+                ]
+            ],
+            "fees_maker": [
+                [
+                    0,
+                    0.16
+                ],
+                [
+                    50000,
+                    0.14
+                ],
+                [
+                    100000,
+                    0.12
+                ],
+                [
+                    250000,
+                    0.1
+                ],
+                [
+                    500000,
+                    0.08
+                ],
+                [
+                    1000000,
+                    0.06
+                ],
+                [
+                    2500000,
+                    0.04
+                ],
+                [
+                    5000000,
+                    0.02
+                ],
+                [
+                    10000000,
+                    0
+                ]
+            ],
+            "fee_volume_currency": "ZUSD",
+            "margin_call": "80",
+            "margin_stop": "40",
+            "ordermin": "10",
+            "costmin": "0.5",
+            "tick_size": "0.00001",
+            "status": "online",
+            "long_position_limit": "2000000",
+            "short_position_limit": "1200000"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.0026
+                ],
+                [
+                    50000,
+                    0.0024
+                ],
+                [
+                    100000,
+                    0.0022
+                ],
+                [
+                    250000,
+                    0.002
+                ],
+                [
+                    500000,
+                    0.0018
+                ],
+                [
+                    1000000,
+                    0.0016
+                ],
+                [
+                    2500000,
+                    0.0014
+                ],
+                [
+                    5000000,
+                    0.0012
+                ],
+                [
+                    10000000,
+                    0.0001
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.0016
+                ],
+                [
+                    50000,
+                    0.0014
+                ],
+                [
+                    100000,
+                    0.0012
+                ],
+                [
+                    250000,
+                    0.001
+                ],
+                [
+                    500000,
+                    0.0008
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0004
+                ],
+                [
+                    5000000,
+                    0.0002
+                ],
+                [
+                    10000000,
+                    0
+                ]
+            ]
+        },
+        "wsId": "XRP/USD",
+        "darkpool": false,
+        "altname": "XRPUSD"
     }
 }

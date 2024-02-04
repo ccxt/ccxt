@@ -434,6 +434,23 @@ require_once 'vendor/autoload.php';
 
 $exchange = new \ccxt\pro\kucoin(array( 'newUpdates' => false ));
 ```
+
+#### **C#/Dotnet**
+
+```c#
+using ccxt.pro;
+
+    public async static Task Watch()
+    {
+        var exchange = new binance();
+        while (true)
+        {
+            var trades = await exchange.WatchTrades("BTC/USDT");
+            Console.WriteLine("Trades: " + JsonConvert.SerializeObject(trades, Formatting.Indented));
+        }
+    }
+```
+
 <!-- tabs:end -->
 
 ## Exchange Properties
@@ -1010,6 +1027,12 @@ watch_orders(symbol=None, since=None, limit=None, params={})
 ```php
 watch_orders($symbol = null, $since = null, $lmit = null, $params = array());
 ```
+
+#### **C#/.NET**
+
+```c#
+public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+```
 <!-- tabs:end -->
 
 ### watchMyTrades
@@ -1025,6 +1048,13 @@ watch_my_trades(symbol=None, since=None, limit=None, params={})
 #### **PHP**
 ```php
 watch_my_trades($symbol = null, $since = null, $lmit = null, $params = array());
+```
+
+#### **C#/.NET**
+
+```c#
+public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+
 ```
 <!-- tabs:end -->
 
@@ -1044,6 +1074,12 @@ watch_positions(symbols=None, since=None, limit=None, params={})
 ```php
 watch_positions($symbols = null, $since = null, $lmit = null, $params = array());
 ```
+
+#### **C#/.NET**
+
+```c#
+public async Task<List<Position>> WatchPositions(List<string> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+```
 <!-- tabs:end -->
 
 ### createOrderWs
@@ -1060,6 +1096,12 @@ create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: flo
 #### **PHP**
 ```php
 create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ())
+```
+
+#### **C#/.NET**
+
+```c#
+    public async Task<Order> CreateOrderWs(string symbol, string type, string side, float amount, float? price2 = 0, Dictionary<string, object> parameters = null)
 ```
 <!-- tabs:end -->
 ### editOrderWs

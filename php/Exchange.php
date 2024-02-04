@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.2.30';
+$version = '4.2.35';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.30';
+    const VERSION = '4.2.35';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2208,6 +2208,9 @@ class Exchange {
          * @return array(object | null)
          */
         $value = $this->safe_value_n($dictionaryOrList, $keys, $defaultValue);
+        if ($value === null) {
+            return $defaultValue;
+        }
         if (gettype($value) === 'array') {
             return $value;
         }
@@ -2239,6 +2242,9 @@ class Exchange {
          * @return array(Array | null)
          */
         $value = $this->safe_value_n($dictionaryOrList, $keys, $defaultValue);
+        if ($value === null) {
+            return $defaultValue;
+        }
         if (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
             return $value;
         }
@@ -2465,6 +2471,9 @@ class Exchange {
                     }
                 }
                 if ($fromStart) {
+                    if ($limit > $arrayLength) {
+                        $limit = $arrayLength;
+                    }
                     $array = $ascending ? $this->arraySlice ($array, 0, $limit) : $this->arraySlice ($array, -$limit);
                 } else {
                     $array = $ascending ? $this->arraySlice ($array, -$limit) : $this->arraySlice ($array, 0, $limit);
@@ -2718,11 +2727,11 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchFundingRates() is not supported yet');
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()) {
         throw new NotSupported($this->id . ' transfer() is not supported yet');
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         throw new NotSupported($this->id . ' withdraw() is not supported yet');
     }
 
@@ -2730,8 +2739,24 @@ class Exchange {
         throw new NotSupported($this->id . ' createDepositAddress() is not supported yet');
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' setLeverage() is not supported yet');
+    }
+
+    public function fetch_open_interest_history(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOpenInterestHistory() is not supported yet');
+    }
+
+    public function fetch_open_interest(string $symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOpenInterest() is not supported yet');
+    }
+
+    public function sign_in($params = array ()) {
+        throw new NotSupported($this->id . ' signIn() is not supported yet');
+    }
+
+    public function fetch_payment_methods($params = array ()) {
+        throw new NotSupported($this->id . ' fetchPaymentMethods() is not supported yet');
     }
 
     public function parse_to_int($number) {
@@ -3669,11 +3694,11 @@ class Exchange {
         throw new NotSupported($this->id . ' repayIsolatedMargin is not support yet');
     }
 
-    public function borrow_cross_margin(string $code, $amount, $params = array ()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array ()) {
         throw new NotSupported($this->id . ' borrowCrossMargin is not support yet');
     }
 
-    public function borrow_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
+    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array ()) {
         throw new NotSupported($this->id . ' borrowIsolatedMargin is not support yet');
     }
 
@@ -4320,19 +4345,19 @@ class Exchange {
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
-    public function edit_limit_buy_order($id, $symbol, $amount, $price = null, $params = array ()) {
+    public function edit_limit_buy_order($id, $symbol, float $amount, ?float $price = null, $params = array ()) {
         return $this->edit_limit_order($id, $symbol, 'buy', $amount, $price, $params);
     }
 
-    public function edit_limit_sell_order($id, $symbol, $amount, $price = null, $params = array ()) {
+    public function edit_limit_sell_order($id, $symbol, float $amount, ?float $price = null, $params = array ()) {
         return $this->edit_limit_order($id, $symbol, 'sell', $amount, $price, $params);
     }
 
-    public function edit_limit_order($id, $symbol, $side, $amount, $price = null, $params = array ()) {
+    public function edit_limit_order($id, $symbol, $side, float $amount, ?float $price = null, $params = array ()) {
         return $this->edit_order($id, $symbol, 'limit', $side, $amount, $price, $params);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         $this->cancelOrder ($id, $symbol);
         return $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
@@ -4382,6 +4407,18 @@ class Exchange {
 
     public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchBidsAsks() is not supported yet');
+    }
+
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchBorrowInterest() is not supported yet');
+    }
+
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchLedger() is not supported yet');
+    }
+
+    public function fetch_ledger_entry(string $id, ?string $code = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchLedgerEntry() is not supported yet');
     }
 
     public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
@@ -4700,6 +4737,9 @@ class Exchange {
     }
 
     public function throw_exactly_matched_exception($exact, $string, $message) {
+        if ($string === null) {
+            return;
+        }
         if (is_array($exact) && array_key_exists($string, $exact)) {
             throw new $exact[$string]($message);
         }
@@ -4788,7 +4828,7 @@ class Exchange {
         return $this->fetch_order($this->safe_value($order, 'id'), $this->safe_value($order, 'symbol'), $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         throw new NotSupported($this->id . ' createOrder() is not supported yet');
     }
 
@@ -4844,7 +4884,7 @@ class Exchange {
         throw new NotSupported($this->id . ' createTrailingPercentOrder() is not supported yet');
     }
 
-    public function create_market_order_with_cost(string $symbol, string $side, $cost, $params = array ()) {
+    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array ()) {
         /**
          * create a market order by providing the $symbol, $side and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
@@ -4859,7 +4899,7 @@ class Exchange {
         throw new NotSupported($this->id . ' createMarketOrderWithCost() is not supported yet');
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * create a market buy order by providing the $symbol and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
@@ -4873,7 +4913,7 @@ class Exchange {
         throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() is not supported yet');
     }
 
-    public function create_market_sell_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * create a market sell order by providing the $symbol and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
@@ -4909,7 +4949,7 @@ class Exchange {
         throw new NotSupported($this->id . ' createTriggerOrder() is not supported yet');
     }
 
-    public function create_stop_loss_order(string $symbol, string $type, string $side, $amount, $price = null, $stopLossPrice = null, $params = array ()) {
+    public function create_stop_loss_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $stopLossPrice = null, $params = array ()) {
         /**
          * create a trigger stop loss order ($type 2)
          * @param {string} $symbol unified $symbol of the market to create an order in
@@ -4931,7 +4971,7 @@ class Exchange {
         throw new NotSupported($this->id . ' createStopLossOrder() is not supported yet');
     }
 
-    public function create_take_profit_order(string $symbol, string $type, string $side, $amount, $price = null, $takeProfitPrice = null, $params = array ()) {
+    public function create_take_profit_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $takeProfitPrice = null, $params = array ()) {
         /**
          * create a trigger take profit order ($type 2)
          * @param {string} $symbol unified $symbol of the market to create an order in
@@ -4953,7 +4993,7 @@ class Exchange {
         throw new NotSupported($this->id . ' createTakeProfitOrder() is not supported yet');
     }
 
-    public function create_order_with_take_profit_and_stop_loss(string $symbol, string $type, string $side, $amount, $price = null, $takeProfit = null, $stopLoss = null, $params = array ()) {
+    public function create_order_with_take_profit_and_stop_loss(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $takeProfit = null, ?float $stopLoss = null, $params = array ()) {
         /**
          * create an order with a stop loss or take profit attached ($type 3)
          * @param {string} $symbol unified $symbol of the market to create an order in
@@ -5149,24 +5189,20 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchDepositsWithdrawals() is not supported yet');
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchDeposits() is not supported yet');
+    }
+
+    public function fetch_withdrawals(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchWithdrawals() is not supported yet');
     }
 
     public function fetch_deposits_ws(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchDepositsWs() is not supported yet');
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchWithdrawals() is not supported yet');
-    }
-
     public function fetch_withdrawals_ws(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchWithdrawalsWs() is not supported yet');
-    }
-
-    public function fetch_open_interest(string $symbol, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchOpenInterest() is not supported yet');
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -5263,7 +5299,7 @@ class Exchange {
     }
 
     public function handle_withdraw_tag_and_params($tag, $params) {
-        if (gettype($tag) === 'array') {
+        if (($tag !== null) && (gettype($tag) === 'array')) {
             $params = array_merge($tag, $params);
             $tag = null;
         }
@@ -5276,27 +5312,27 @@ class Exchange {
         return array( $tag, $params );
     }
 
-    public function create_limit_order(string $symbol, string $side, $amount, $price, $params = array ()) {
+    public function create_limit_order(string $symbol, string $side, float $amount, float $price, $params = array ()) {
         return $this->create_order($symbol, 'limit', $side, $amount, $price, $params);
     }
 
-    public function create_market_order(string $symbol, string $side, $amount, $price = null, $params = array ()) {
+    public function create_market_order(string $symbol, string $side, float $amount, ?float $price = null, $params = array ()) {
         return $this->create_order($symbol, 'market', $side, $amount, $price, $params);
     }
 
-    public function create_limit_buy_order(string $symbol, $amount, $price, $params = array ()) {
+    public function create_limit_buy_order(string $symbol, float $amount, float $price, $params = array ()) {
         return $this->create_order($symbol, 'limit', 'buy', $amount, $price, $params);
     }
 
-    public function create_limit_sell_order(string $symbol, $amount, $price, $params = array ()) {
+    public function create_limit_sell_order(string $symbol, float $amount, float $price, $params = array ()) {
         return $this->create_order($symbol, 'limit', 'sell', $amount, $price, $params);
     }
 
-    public function create_market_buy_order(string $symbol, $amount, $params = array ()) {
+    public function create_market_buy_order(string $symbol, float $amount, $params = array ()) {
         return $this->create_order($symbol, 'market', 'buy', $amount, null, $params);
     }
 
-    public function create_market_sell_order(string $symbol, $amount, $params = array ()) {
+    public function create_market_sell_order(string $symbol, float $amount, $params = array ()) {
         return $this->create_order($symbol, 'market', 'sell', $amount, null, $params);
     }
 
@@ -5416,7 +5452,7 @@ class Exchange {
         }
     }
 
-    public function create_post_only_order(string $symbol, string $type, string $side, $amount, $price, $params = array ()) {
+    public function create_post_only_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         if (!$this->has['createPostOnlyOrder']) {
             throw new NotSupported($this->id . 'createPostOnlyOrder() is not supported yet');
         }
@@ -5424,7 +5460,7 @@ class Exchange {
         return $this->create_order($symbol, $type, $side, $amount, $price, $query);
     }
 
-    public function create_reduce_only_order(string $symbol, string $type, string $side, $amount, $price, $params = array ()) {
+    public function create_reduce_only_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         if (!$this->has['createReduceOnlyOrder']) {
             throw new NotSupported($this->id . 'createReduceOnlyOrder() is not supported yet');
         }
@@ -5432,7 +5468,7 @@ class Exchange {
         return $this->create_order($symbol, $type, $side, $amount, $price, $query);
     }
 
-    public function create_stop_order(string $symbol, string $type, string $side, $amount, $price = null, $stopPrice = null, $params = array ()) {
+    public function create_stop_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $stopPrice = null, $params = array ()) {
         if (!$this->has['createStopOrder']) {
             throw new NotSupported($this->id . ' createStopOrder() is not supported yet');
         }
@@ -5443,7 +5479,7 @@ class Exchange {
         return $this->create_order($symbol, $type, $side, $amount, $price, $query);
     }
 
-    public function create_stop_limit_order(string $symbol, string $side, $amount, $price, $stopPrice, $params = array ()) {
+    public function create_stop_limit_order(string $symbol, string $side, float $amount, float $price, float $stopPrice, $params = array ()) {
         if (!$this->has['createStopLimitOrder']) {
             throw new NotSupported($this->id . ' createStopLimitOrder() is not supported yet');
         }
@@ -5451,7 +5487,7 @@ class Exchange {
         return $this->create_order($symbol, 'limit', $side, $amount, $price, $query);
     }
 
-    public function create_stop_market_order(string $symbol, string $side, $amount, $stopPrice, $params = array ()) {
+    public function create_stop_market_order(string $symbol, string $side, float $amount, float $stopPrice, $params = array ()) {
         if (!$this->has['createStopMarketOrder']) {
             throw new NotSupported($this->id . ' createStopMarketOrder() is not supported yet');
         }
@@ -6058,7 +6094,8 @@ class Exchange {
                     $response = $this->$method ($symbol, null, $maxEntriesPerRequest, $params);
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $this->log ('Dynamic pagination call', $calls, 'method', $method, 'response length', $responseLength, 'timestamp', $paginationTimestamp);
+                        $backwardMessage = 'Dynamic pagination call ' . $calls . ' $method ' . $method . ' $response length ' . $responseLength . ' timestamp ' . $paginationTimestamp;
+                        $this->log ($backwardMessage);
                     }
                     if ($responseLength === 0) {
                         break;
@@ -6075,7 +6112,8 @@ class Exchange {
                     $response = $this->$method ($symbol, $paginationTimestamp, $maxEntriesPerRequest, $params);
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $this->log ('Dynamic pagination call', $calls, 'method', $method, 'response length', $responseLength, 'timestamp', $paginationTimestamp);
+                        $forwardMessage = 'Dynamic pagination call ' . $calls . ' $method ' . $method . ' $response length ' . $responseLength . ' timestamp ' . $paginationTimestamp;
+                        $this->log ($forwardMessage);
                     }
                     if ($responseLength === 0) {
                         break;
@@ -6119,6 +6157,7 @@ class Exchange {
                 throw $e;
             }
         }
+        return null;
     }
 
     public function fetch_paginated_call_deterministic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, ?string $timeframe = null, $params = array (), $maxEntriesPerRequest = null) {
@@ -6184,7 +6223,9 @@ class Exchange {
                 $errors = 0;
                 $responseLength = count($response);
                 if ($this->verbose) {
-                    $this->log ('Cursor pagination call', $i + 1, 'method', $method, 'response length', $responseLength, 'cursor', $cursorValue);
+                    $iteration = ($i . (string) 1);
+                    $cursorMessage = 'Cursor pagination call ' . $iteration . ' $method ' . $method . ' $response length ' . (string) $responseLength . ' cursor ' . $cursorValue;
+                    $this->log ($cursorMessage);
                 }
                 if ($responseLength === 0) {
                     break;
@@ -6228,7 +6269,9 @@ class Exchange {
                 $errors = 0;
                 $responseLength = count($response);
                 if ($this->verbose) {
-                    $this->log ('Incremental pagination call', $i + 1, 'method', $method, 'response length', $responseLength);
+                    $iteration = ($i . (string) 1);
+                    $incrementalMessage = 'Incremental pagination call ' . $iteration . ' $method ' . $method . ' $response length ' . (string) $responseLength;
+                    $this->log ($incrementalMessage);
                 }
                 if ($responseLength === 0) {
                     break;

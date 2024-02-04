@@ -8,7 +8,7 @@ from ccxt.abstract.binance import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -3090,16 +3090,29 @@ class binance(Exchange, ImplicitAPI):
         account['debt'] = Precise.string_add(debt, interest)
         return account
 
-    def parse_balance(self, response, type=None, marginMode=None) -> Balances:
+    def parse_balance_custom(self, response, type=None, marginMode=None) -> Balances:
         result = {
             'info': response,
         }
         timestamp = None
         isolated = marginMode == 'isolated'
         cross = (type == 'margin') or (marginMode == 'cross')
-        if not isolated and ((type == 'spot') or cross):
+        if type == 'papi':
+            for i in range(0, len(response)):
+                entry = response[i]
+                account = self.account()
+                currencyId = self.safe_string(entry, 'asset')
+                code = self.safe_currency_code(currencyId)
+                borrowed = self.safe_string(entry, 'crossMarginBorrowed')
+                interest = self.safe_string(entry, 'crossMarginInterest')
+                account['free'] = self.safe_string(entry, 'crossMarginFree')
+                account['used'] = self.safe_string(entry, 'crossMarginLocked')
+                account['total'] = self.safe_string(entry, 'crossMarginAsset')
+                account['debt'] = Precise.string_add(borrowed, interest)
+                result[code] = account
+        elif not isolated and ((type == 'spot') or cross):
             timestamp = self.safe_integer(response, 'updateTime')
-            balances = self.safe_value_2(response, 'balances', 'userAssets', [])
+            balances = self.safe_list_2(response, 'balances', 'userAssets', [])
             for i in range(0, len(balances)):
                 balance = balances[i]
                 currencyId = self.safe_string(balance, 'asset')
@@ -3113,13 +3126,13 @@ class binance(Exchange, ImplicitAPI):
                     account['debt'] = Precise.string_add(debt, interest)
                 result[code] = account
         elif isolated:
-            assets = self.safe_value(response, 'assets')
+            assets = self.safe_list(response, 'assets')
             for i in range(0, len(assets)):
                 asset = assets[i]
-                marketId = self.safe_value(asset, 'symbol')
+                marketId = self.safe_string(asset, 'symbol')
                 symbol = self.safe_symbol(marketId, None, None, 'spot')
-                base = self.safe_value(asset, 'baseAsset', {})
-                quote = self.safe_value(asset, 'quoteAsset', {})
+                base = self.safe_dict(asset, 'baseAsset', {})
+                quote = self.safe_dict(asset, 'quoteAsset', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'asset'))
                 quoteCode = self.safe_currency_code(self.safe_string(quote, 'asset'))
                 subResult = {}
@@ -3127,7 +3140,7 @@ class binance(Exchange, ImplicitAPI):
                 subResult[quoteCode] = self.parse_balance_helper(quote)
                 result[symbol] = self.safe_balance(subResult)
         elif type == 'savings':
-            positionAmountVos = self.safe_value(response, 'positionAmountVos', [])
+            positionAmountVos = self.safe_list(response, 'positionAmountVos', [])
             for i in range(0, len(positionAmountVos)):
                 entry = positionAmountVos[i]
                 currencyId = self.safe_string(entry, 'asset')
@@ -3152,7 +3165,7 @@ class binance(Exchange, ImplicitAPI):
         else:
             balances = response
             if not isinstance(response, list):
-                balances = self.safe_value(response, 'assets', [])
+                balances = self.safe_list(response, 'assets', [])
             for i in range(0, len(balances)):
                 balance = balances[i]
                 currencyId = self.safe_string(balance, 'asset')
@@ -3177,10 +3190,12 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data            # swap
         :see: https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data              # future
         :see: https://binance-docs.github.io/apidocs/voptions/en/#option-account-information-trade           # option
+        :see: https://binance-docs.github.io/apidocs/pm/en/#account-balance-user_data                        # portfolio margin
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.type]: 'future', 'delivery', 'savings', 'funding', or 'spot'
+        :param str [params.type]: 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
         :param str [params.marginMode]: 'cross' or 'isolated', for margin trading, uses self.options.defaultMarginMode if not passed, defaults to None/None/None
         :param str[]|None [params.symbols]: unified market symbols, only used in isolated margin mode
+        :param boolean [params.portfolioMargin]: set to True if you would like to fetch the balance for a portfolio margin account
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
@@ -3188,20 +3203,25 @@ class binance(Exchange, ImplicitAPI):
         type = self.safe_string(params, 'type', defaultType)
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchBalance', None, params)
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchBalance', 'papi', 'portfolioMargin', False)
         marginMode = None
         query = None
         marginMode, query = self.handle_margin_mode_and_params('fetchBalance', params)
         query = self.omit(query, 'type')
         response = None
         request = {}
-        if self.is_linear(type, subType):
+        if isPortfolioMargin or (type == 'papi'):
+            type = 'papi'
+            response = await self.papiGetBalance(self.extend(request, query))
+        elif self.is_linear(type, subType):
             type = 'linear'
             response = await self.fapiPrivateV2GetAccount(self.extend(request, query))
         elif self.is_inverse(type, subType):
             type = 'inverse'
             response = await self.dapiPrivateGetAccount(self.extend(request, query))
         elif marginMode == 'isolated':
-            paramSymbols = self.safe_value(params, 'symbols')
+            paramSymbols = self.safe_list(params, 'symbols')
             query = self.omit(query, 'symbols')
             if paramSymbols is not None:
                 symbols = ''
@@ -3408,7 +3428,27 @@ class binance(Exchange, ImplicitAPI):
         #       }
         #     ]
         #
-        return self.parse_balance(response, type, marginMode)
+        # portfolio margin
+        #
+        #     [
+        #         {
+        #             "asset": "USDT",
+        #             "totalWalletBalance": "66.9923261",
+        #             "crossMarginAsset": "35.9697141",
+        #             "crossMarginBorrowed": "0.0",
+        #             "crossMarginFree": "35.9697141",
+        #             "crossMarginInterest": "0.0",
+        #             "crossMarginLocked": "0.0",
+        #             "umWalletBalance": "31.022612",
+        #             "umUnrealizedPNL": "0.0",
+        #             "cmWalletBalance": "0.0",
+        #             "cmUnrealizedPNL": "0.0",
+        #             "updateTime": 0,
+        #             "negativeBalance": "0.0"
+        #         },
+        #     ]
+        #
+        return self.parse_balance_custom(response, type, marginMode)
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -4355,7 +4395,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def edit_spot_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+    async def edit_spot_order(self, id: str, symbol, type, side, amount: float, price: float = None, params={}):
         """
          * @ignore
         edit a trade order
@@ -4418,7 +4458,7 @@ class binance(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'newOrderResponse')
         return self.parse_order(data, market)
 
-    def edit_spot_order_request(self, id: str, symbol, type, side, amount, price=None, params={}):
+    def edit_spot_order_request(self, id: str, symbol, type, side, amount: float, price: float = None, params={}):
         """
          * @ignore
         helper function to build request for editSpotOrder
@@ -4523,7 +4563,7 @@ class binance(Exchange, ImplicitAPI):
         params = self.omit(params, ['quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly'])
         return self.extend(request, params)
 
-    async def edit_contract_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+    async def edit_contract_order(self, id: str, symbol, type, side, amount: float, price: float = None, params={}):
         """
         edit a trade order
         :see: https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
@@ -4946,7 +4986,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://binance-docs.github.io/apidocs/spot/en/#new-order-trade
@@ -4995,7 +5035,7 @@ class binance(Exchange, ImplicitAPI):
         response = await getattr(self, method)(request)
         return self.parse_order(response, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
          * @ignore
         helper function to build request
@@ -5021,7 +5061,7 @@ class binance(Exchange, ImplicitAPI):
         stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)  # fallback to stopLoss
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
         trailingDelta = self.safe_value(params, 'trailingDelta')
-        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activationPrice', price)
+        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activationPrice', self.number_to_string(price))
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRate')
         isTrailingPercentOrder = trailingPercent is not None
         isStopLoss = stopLossPrice is not None or trailingDelta is not None
@@ -6433,7 +6473,7 @@ class binance(Exchange, ImplicitAPI):
             'amount': amount,
         }
 
-    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
@@ -6883,7 +6923,7 @@ class binance(Exchange, ImplicitAPI):
             }
         return result
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :see: https://binance-docs.github.io/apidocs/spot/en/#withdraw-user_data
@@ -8208,7 +8248,7 @@ class binance(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchFundingHistory() supports linear and inverse contracts only')
         return self.parse_incomes(response, market, since, limit)
 
-    async def set_leverage(self, leverage, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://binance-docs.github.io/apidocs/futures/en/#change-initial-leverage-trade
@@ -8848,7 +8888,7 @@ class binance(Exchange, ImplicitAPI):
                     return entry[1]
         return self.safe_value(config, 'cost', 1)
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}):
         response = await self.fetch2(path, api, method, params, headers, body, config)
         # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if api == 'private':
@@ -9226,7 +9266,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_margin_loan(response, currency)
 
-    async def borrow_cross_margin(self, code: str, amount, params={}):
+    async def borrow_cross_margin(self, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
         :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
@@ -9252,7 +9292,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_margin_loan(response, currency)
 
-    async def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
+    async def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
         :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
@@ -9421,6 +9461,7 @@ class binance(Exchange, ImplicitAPI):
                     return item
         else:
             return self.parse_open_interest(response, market)
+        return None
 
     def parse_open_interest(self, interest, market: Market = None):
         timestamp = self.safe_integer_2(interest, 'timestamp', 'time')

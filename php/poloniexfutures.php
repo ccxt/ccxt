@@ -792,7 +792,7 @@ class poloniexfutures extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * Create an order on the exchange
          * @see https://futures-docs.poloniex.com/#place-an-order

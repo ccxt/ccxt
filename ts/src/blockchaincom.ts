@@ -532,13 +532,13 @@ export default class blockchaincom extends Exchange {
             'remaining': remaining,
             'cost': undefined,
             'trades': [],
-            'fees': {},
+            'fees': [],
             'info': order,
         });
         return result;
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name blockchaincom#createOrder
@@ -927,7 +927,7 @@ export default class blockchaincom extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name blockchaincom#withdraw

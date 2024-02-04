@@ -1869,7 +1869,7 @@ class bitrue extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
@@ -1936,9 +1936,9 @@ class bitrue extends Exchange {
                     $amountString = $this->number_to_string($amount);
                     $priceString = $this->number_to_string($price);
                     $quoteAmount = Precise::string_mul($amountString, $priceString);
-                    $amount = ($cost !== null) ? $cost : $quoteAmount;
-                    $request['amount'] = $this->cost_to_precision($symbol, $amount);
-                    $request['volume'] = $this->cost_to_precision($symbol, $amount);
+                    $requestAmount = ($cost !== null) ? $cost : $quoteAmount;
+                    $request['amount'] = $this->cost_to_precision($symbol, $requestAmount);
+                    $request['volume'] = $this->cost_to_precision($symbol, $requestAmount);
                 }
             } else {
                 $request['amount'] = $this->parse_to_numeric($amount);
@@ -2696,7 +2696,7 @@ class bitrue extends Exchange {
         );
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-commit--withdraw_data
@@ -2905,7 +2905,7 @@ class bitrue extends Exchange {
         return $this->parse_transfers($data, $currency, $since, $limit);
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://www.bitrue.com/api-docs#new-future-account-transfer-user_data-hmac-sha256
@@ -2939,7 +2939,7 @@ class bitrue extends Exchange {
         return $this->parse_transfer($data, $currency);
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          * @see https://www.bitrue.com/api-docs#change-initial-$leverage-trade-hmac-sha256

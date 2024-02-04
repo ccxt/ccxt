@@ -484,6 +484,7 @@ class htx extends \ccxt\async\htx {
                 unset($client->subscriptions[$messageHash]);
                 $client->reject ($e, $messageHash);
             }
+            return null;
         }) ();
     }
 
@@ -1695,14 +1696,14 @@ class htx extends \ccxt\async\htx {
         if ($subscription !== null) {
             $method = $this->safe_value($subscription, 'method');
             if ($method !== null) {
-                return $method($client, $message, $subscription);
+                $method($client, $message, $subscription);
+                return;
             }
             // clean up
             if (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions)) {
                 unset($client->subscriptions[$id]);
             }
         }
-        return $message;
     }
 
     public function handle_system_status(Client $client, $message) {
@@ -1813,10 +1814,9 @@ class htx extends \ccxt\async\htx {
                 'kline' => array($this, 'handle_ohlcv'),
             );
             $method = $this->safe_value($methods, $methodName);
-            if ($method === null) {
-                return $message;
-            } else {
-                return $method($client, $message);
+            if ($method !== null) {
+                $method($client, $message);
+                return;
             }
         }
         // private spot subjects

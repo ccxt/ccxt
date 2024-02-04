@@ -407,7 +407,7 @@ class woo(ccxt.async_support.woo):
                 return False
         return True
 
-    def authenticate(self, params={}):
+    async def authenticate(self, params={}):
         self.check_required_credentials()
         url = self.urls['api']['ws']['private'] + '/' + self.uid
         client = self.client(url)
@@ -786,28 +786,30 @@ class woo(ccxt.async_support.woo):
         event = self.safe_string(message, 'event')
         method = self.safe_value(methods, event)
         if method is not None:
-            return method(client, message)
+            method(client, message)
+            return
         topic = self.safe_string(message, 'topic')
         if topic is not None:
             method = self.safe_value(methods, topic)
             if method is not None:
-                return method(client, message)
+                method(client, message)
+                return
             splitTopic = topic.split('@')
             splitLength = len(splitTopic)
             if splitLength == 2:
                 name = self.safe_string(splitTopic, 1)
                 method = self.safe_value(methods, name)
                 if method is not None:
-                    return method(client, message)
+                    method(client, message)
+                    return
                 splitName = name.split('_')
                 splitNameLength = len(splitTopic)
                 if splitNameLength == 2:
                     method = self.safe_value(methods, self.safe_string(splitName, 0))
                     if method is not None:
-                        return method(client, message)
-        return message
+                        method(client, message)
 
-    def ping(self, client):
+    def ping(self, client: Client):
         return {'event': 'ping'}
 
     def handle_ping(self, client: Client, message):

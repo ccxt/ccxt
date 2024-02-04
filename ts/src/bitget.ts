@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, Argum
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2166,7 +2166,7 @@ export default class bitget extends Exchange {
         return this.parseTransactions (rawTransactions, currency, since, limit);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitget#withdraw
@@ -2245,7 +2245,7 @@ export default class bitget extends Exchange {
             result['addressTo'] = address;
             result['network'] = chain;
         }
-        return result;
+        return result as Transaction;
     }
 
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -3983,7 +3983,7 @@ export default class bitget extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name bitget#createOrder
@@ -4072,7 +4072,7 @@ export default class bitget extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    createOrderRequest (symbol, type, side, amount, price = undefined, params = {}) {
+    createOrderRequest (symbol, type, side, amount: number, price: number = undefined, params = {}) {
         const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
@@ -4102,7 +4102,7 @@ export default class bitget extends Exchange {
         const isTakeProfit = takeProfit !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         const isStopLossOrTakeProfit = isStopLoss || isTakeProfit;
-        const trailingTriggerPrice = this.safeString (params, 'trailingTriggerPrice', price);
+        const trailingTriggerPrice = this.safeString (params, 'trailingTriggerPrice', this.numberToString (price));
         const trailingPercent = this.safeString2 (params, 'trailingPercent', 'callbackRatio');
         const isTrailingPercentOrder = trailingPercent !== undefined;
         if (this.sum (isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder, isTrailingPercentOrder) > 1) {
@@ -6851,13 +6851,13 @@ export default class bitget extends Exchange {
         return response;
     }
 
-    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitget#setLeverage
          * @description set the level of leverage for a market
          * @see https://www.bitget.com/api-doc/contract/account/Change-Leverage
-         * @param {float} leverage the rate of leverage
+         * @param {int} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.holdSide] *isolated only* position direction, 'long' or 'short'
@@ -6880,7 +6880,7 @@ export default class bitget extends Exchange {
         const request = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
-            'leverage': leverage,
+            'leverage': this.numberToString (leverage),
             'productType': productType,
             // 'holdSide': 'long',
         };
@@ -7138,7 +7138,7 @@ export default class bitget extends Exchange {
         return this.parseTransfers (data, currency, since, limit);
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name bitget#transfer
@@ -7340,7 +7340,7 @@ export default class bitget extends Exchange {
         return this.parseDepositWithdrawFees (data, codes, 'coin');
     }
 
-    async borrowCrossMargin (code: string, amount, params = {}) {
+    async borrowCrossMargin (code: string, amount: number, params = {}) {
         /**
          * @method
          * @name bitget#borrowCrossMargin
@@ -7374,7 +7374,7 @@ export default class bitget extends Exchange {
         return this.parseMarginLoan (data, currency);
     }
 
-    async borrowIsolatedMargin (symbol: string, code: string, amount, params = {}) {
+    async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
         /**
          * @method
          * @name bitget#borrowIsolatedMargin

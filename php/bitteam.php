@@ -960,7 +960,7 @@ class bitteam extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @see https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtOrdercreate

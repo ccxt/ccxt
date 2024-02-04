@@ -1082,7 +1082,7 @@ export default class coinsph extends Exchange {
         return this.safeBalance (result);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#createOrder
@@ -1558,7 +1558,7 @@ export default class coinsph extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#withdraw

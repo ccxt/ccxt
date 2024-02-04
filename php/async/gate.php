@@ -1635,32 +1635,34 @@ class gate extends Exchange {
                 $withdrawAvailable = $this->safe_value($result[$code], 'withdraw');
                 $withdrawAvailable = ($withdrawEnabled) ? $withdrawEnabled : $withdrawAvailable;
                 $networks = $this->safe_value($result[$code], 'networks', array());
-                $networks[$networkCode] = array(
-                    'info' => $entry,
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'currencyId' => $currencyId,
-                    'lowerCaseCurrencyId' => $currencyIdLower,
-                    'deposit' => $depositEnabled,
-                    'withdraw' => $withdrawEnabled,
-                    'active' => $active,
-                    'fee' => null,
-                    'precision' => $this->parse_number('1e-4'),
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
+                if ($networkCode !== null) {
+                    $networks[$networkCode] = array(
+                        'info' => $entry,
+                        'id' => $networkId,
+                        'network' => $networkCode,
+                        'currencyId' => $currencyId,
+                        'lowerCaseCurrencyId' => $currencyIdLower,
+                        'deposit' => $depositEnabled,
+                        'withdraw' => $withdrawEnabled,
+                        'active' => $active,
+                        'fee' => null,
+                        'precision' => $this->parse_number('1e-4'),
+                        'limits' => array(
+                            'amount' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'withdraw' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'deposit' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
                         ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                );
+                    );
+                }
                 $result[$code]['networks'] = $networks;
                 $info = $this->safe_value($result[$code], 'info', array());
                 $info[] = $entry;
@@ -2623,6 +2625,7 @@ class gate extends Exchange {
             list($type, $query) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
             list($request, $requestParams) = $this->prepare_request(null, $type, $query);
             $response = null;
+            $request['timezone'] = 'utc0'; // default to utc
             if ($type === 'spot' || $type === 'margin') {
                 $response = Async\await($this->publicSpotGetTickers (array_merge($request, $requestParams)));
             } elseif ($type === 'swap') {
@@ -2636,7 +2639,7 @@ class gate extends Exchange {
                 $request['underlying'] = $this->safe_string($optionParts, 0);
                 $response = Async\await($this->publicOptionsGetTickers (array_merge($request, $requestParams)));
             } else {
-                throw new NotSupported($this->id . ' fetchTickers() not support this $market type');
+                throw new NotSupported($this->id . ' fetchTickers() not support this $market $type, provide $symbols or set $params["defaultType"] to one from spot/margin/swap/future/option');
             }
             return $this->parse_tickers($response, $symbols);
         }) ();
@@ -3585,7 +3588,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -3743,7 +3746,7 @@ class gate extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * Create an order on the exchange
@@ -3923,7 +3926,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
         $contract = $market['contract'];
         $trigger = $this->safe_value($params, 'trigger');
@@ -5058,7 +5061,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -5143,7 +5146,7 @@ class gate extends Exchange {
         );
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -5168,15 +5171,16 @@ class gate extends Exchange {
             $defaultMarginMode = $this->safe_string_2($this->options, 'marginMode', 'defaultMarginMode');
             $crossLeverageLimit = $this->safe_string($query, 'cross_leverage_limit');
             $marginMode = $this->safe_string($query, 'marginMode', $defaultMarginMode);
+            $stringifiedMargin = $this->number_to_string($leverage);
             if ($crossLeverageLimit !== null) {
                 $marginMode = 'cross';
-                $leverage = $crossLeverageLimit;
+                $stringifiedMargin = $crossLeverageLimit;
             }
             if ($marginMode === 'cross' || $marginMode === 'cross_margin') {
-                $request['cross_leverage_limit'] = (string) $leverage;
+                $request['cross_leverage_limit'] = $stringifiedMargin;
                 $request['leverage'] = '0';
             } else {
-                $request['leverage'] = (string) $leverage;
+                $request['leverage'] = $stringifiedMargin;
             }
             $response = null;
             if ($market['swap']) {
@@ -5813,7 +5817,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function borrow_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
+    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array ()) {
         return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * create a loan to borrow margin
@@ -5859,7 +5863,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function borrow_cross_margin(string $code, $amount, $params = array ()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * create a loan to borrow margin
@@ -6919,6 +6923,7 @@ class gate extends Exchange {
                     return $this->parse_greeks($entry, $market);
                 }
             }
+            return null;
         }) ();
     }
 

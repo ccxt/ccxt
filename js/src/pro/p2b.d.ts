@@ -12,7 +12,7 @@ export default class p2b extends p2bRest {
     handleTrade(client: Client, message: any): any;
     handleTicker(client: Client, message: any): any;
     handleOrderBook(client: Client, message: any): void;
-    handleMessage(client: Client, message: any): any;
+    handleMessage(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): boolean;
     ping(client: any): {
         method: string;

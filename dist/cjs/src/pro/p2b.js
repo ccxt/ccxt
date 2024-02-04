@@ -362,7 +362,8 @@ class p2b extends p2b$1 {
                 const bid = this.safeValue(bids, i);
                 const price = this.safeNumber(bid, 0);
                 const amount = this.safeNumber(bid, 1);
-                orderbook['bids'].store(price, amount);
+                const bookSide = orderbook['bids'];
+                bookSide.store(price, amount);
             }
         }
         if (asks !== undefined) {
@@ -370,7 +371,8 @@ class p2b extends p2b$1 {
                 const ask = this.safeValue(asks, i);
                 const price = this.safeNumber(ask, 0);
                 const amount = this.safeNumber(ask, 1);
-                orderbook['asks'].store(price, amount);
+                const bookside = orderbook['asks'];
+                bookside.store(price, amount);
             }
         }
         orderbook['symbol'] = symbol;
@@ -395,7 +397,7 @@ class p2b extends p2b$1 {
         };
         const endpoint = this.safeValue(methods, method);
         if (endpoint !== undefined) {
-            return endpoint.call(this, client, message);
+            endpoint.call(this, client, message);
         }
     }
     handleErrorMessage(client, message) {

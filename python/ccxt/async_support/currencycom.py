@@ -1219,7 +1219,7 @@ class currencycom(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in

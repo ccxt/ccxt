@@ -1201,7 +1201,7 @@ export default class coinmetro extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name coinmetro#createOrder
@@ -1832,7 +1832,7 @@ export default class coinmetro extends Exchange {
         return this.safeValue (timeInForceTypes, timeInForce, timeInForce);
     }
 
-    async borrowCrossMargin (code: string, amount, params = {}) {
+    async borrowCrossMargin (code: string, amount: number, params = {}) {
         /**
          * @method
          * @name coinmetro#borrowCrossMargin

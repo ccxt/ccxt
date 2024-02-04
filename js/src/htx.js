@@ -5012,7 +5012,7 @@ export default class htx extends Exchange {
         const marketId = this.safeString2(order, 'contract_code', 'symbol');
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeIntegerN(order, ['created_at', 'created-at', 'create_date']);
-        const clientOrderId = this.safeString2(order, 'client_order_id', 'client-order-id');
+        const clientOrderId = this.safeString2(order, 'client_order_id', 'client-or' + 'der-id'); // transpiler regex trick for php issue
         let cost = undefined;
         let amount = undefined;
         if ((type !== undefined) && (type.indexOf('market') >= 0)) {

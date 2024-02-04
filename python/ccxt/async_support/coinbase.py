@@ -706,7 +706,7 @@ class coinbase(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None):
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # fiat deposit
         #
@@ -1577,7 +1577,7 @@ class coinbase(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def parse_balance(self, response, params={}):
+    def parse_custom_balance(self, response, params={}):
         balances = self.safe_value_2(response, 'data', 'accounts', [])
         accounts = self.safe_value(params, 'type', self.options['accounts'])
         v3Accounts = self.safe_value(params, 'type', self.options['v3Accounts'])
@@ -1715,7 +1715,7 @@ class coinbase(Exchange, ImplicitAPI):
         #         "size": 9
         #     }
         #
-        return self.parse_balance(response, params)
+        return self.parse_custom_balance(response, params)
 
     async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -2114,7 +2114,7 @@ class coinbase(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder
@@ -2603,7 +2603,7 @@ class coinbase(Exchange, ImplicitAPI):
         order = self.safe_value(response, 'order', {})
         return self.parse_order(order, market)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit=100, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
@@ -3065,7 +3065,7 @@ class coinbase(Exchange, ImplicitAPI):
         tickers = self.safe_value(response, 'pricebooks', [])
         return self.parse_tickers(tickers, symbols)
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#send-money

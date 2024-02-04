@@ -3,7 +3,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency } from './base/types.js';
 
 /**
  * @class hitbtc
@@ -2246,7 +2246,7 @@ export default class hitbtc extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#createOrder
@@ -2566,7 +2566,7 @@ export default class hitbtc extends Exchange {
         return this.safeValue (filteredMargin, 0) as MarginMode;
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name hitbtc#transfer
@@ -2656,7 +2656,7 @@ export default class hitbtc extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#withdraw
@@ -3390,7 +3390,7 @@ export default class hitbtc extends Exchange {
         return this.safeNumber (response, 'leverage');
     }
 
-    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#setLeverage

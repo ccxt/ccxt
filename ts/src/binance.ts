@@ -4,7 +4,7 @@
 import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, OperationFailed, OperationRejected, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface } from './base/types.js';
 import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -3131,16 +3131,30 @@ export default class binance extends Exchange {
         return account;
     }
 
-    parseBalance (response, type = undefined, marginMode = undefined): Balances {
+    parseBalanceCustom (response, type = undefined, marginMode = undefined): Balances {
         const result = {
             'info': response,
         };
         let timestamp = undefined;
         const isolated = marginMode === 'isolated';
         const cross = (type === 'margin') || (marginMode === 'cross');
-        if (!isolated && ((type === 'spot') || cross)) {
+        if (type === 'papi') {
+            for (let i = 0; i < response.length; i++) {
+                const entry = response[i];
+                const account = this.account ();
+                const currencyId = this.safeString (entry, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                const borrowed = this.safeString (entry, 'crossMarginBorrowed');
+                const interest = this.safeString (entry, 'crossMarginInterest');
+                account['free'] = this.safeString (entry, 'crossMarginFree');
+                account['used'] = this.safeString (entry, 'crossMarginLocked');
+                account['total'] = this.safeString (entry, 'crossMarginAsset');
+                account['debt'] = Precise.stringAdd (borrowed, interest);
+                result[code] = account;
+            }
+        } else if (!isolated && ((type === 'spot') || cross)) {
             timestamp = this.safeInteger (response, 'updateTime');
-            const balances = this.safeValue2 (response, 'balances', 'userAssets', []);
+            const balances = this.safeList2 (response, 'balances', 'userAssets', []);
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
                 const currencyId = this.safeString (balance, 'asset');
@@ -3156,13 +3170,13 @@ export default class binance extends Exchange {
                 result[code] = account;
             }
         } else if (isolated) {
-            const assets = this.safeValue (response, 'assets');
+            const assets = this.safeList (response, 'assets');
             for (let i = 0; i < assets.length; i++) {
                 const asset = assets[i];
-                const marketId = this.safeValue (asset, 'symbol');
+                const marketId = this.safeString (asset, 'symbol');
                 const symbol = this.safeSymbol (marketId, undefined, undefined, 'spot');
-                const base = this.safeValue (asset, 'baseAsset', {});
-                const quote = this.safeValue (asset, 'quoteAsset', {});
+                const base = this.safeDict (asset, 'baseAsset', {});
+                const quote = this.safeDict (asset, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'asset'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'asset'));
                 const subResult = {};
@@ -3171,7 +3185,7 @@ export default class binance extends Exchange {
                 result[symbol] = this.safeBalance (subResult);
             }
         } else if (type === 'savings') {
-            const positionAmountVos = this.safeValue (response, 'positionAmountVos', []);
+            const positionAmountVos = this.safeList (response, 'positionAmountVos', []);
             for (let i = 0; i < positionAmountVos.length; i++) {
                 const entry = positionAmountVos[i];
                 const currencyId = this.safeString (entry, 'asset');
@@ -3198,7 +3212,7 @@ export default class binance extends Exchange {
         } else {
             let balances = response;
             if (!Array.isArray (response)) {
-                balances = this.safeValue (response, 'assets', []);
+                balances = this.safeList (response, 'assets', []);
             }
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
@@ -3229,10 +3243,12 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data            // swap
          * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data              // future
          * @see https://binance-docs.github.io/apidocs/voptions/en/#option-account-information-trade           // option
+         * @see https://binance-docs.github.io/apidocs/pm/en/#account-balance-user_data                        // portfolio margin
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+         * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
          * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
          * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the balance for a portfolio margin account
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
@@ -3240,20 +3256,25 @@ export default class binance extends Exchange {
         let type = this.safeString (params, 'type', defaultType);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'papi', 'portfolioMargin', false);
         let marginMode = undefined;
         let query = undefined;
         [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
         query = this.omit (query, 'type');
         let response = undefined;
         const request = {};
-        if (this.isLinear (type, subType)) {
+        if (isPortfolioMargin || (type === 'papi')) {
+            type = 'papi';
+            response = await this.papiGetBalance (this.extend (request, query));
+        } else if (this.isLinear (type, subType)) {
             type = 'linear';
             response = await this.fapiPrivateV2GetAccount (this.extend (request, query));
         } else if (this.isInverse (type, subType)) {
             type = 'inverse';
             response = await this.dapiPrivateGetAccount (this.extend (request, query));
         } else if (marginMode === 'isolated') {
-            const paramSymbols = this.safeValue (params, 'symbols');
+            const paramSymbols = this.safeList (params, 'symbols');
             query = this.omit (query, 'symbols');
             if (paramSymbols !== undefined) {
                 let symbols = '';
@@ -3464,7 +3485,27 @@ export default class binance extends Exchange {
         //       }
         //     ]
         //
-        return this.parseBalance (response, type, marginMode);
+        // portfolio margin
+        //
+        //     [
+        //         {
+        //             "asset": "USDT",
+        //             "totalWalletBalance": "66.9923261",
+        //             "crossMarginAsset": "35.9697141",
+        //             "crossMarginBorrowed": "0.0",
+        //             "crossMarginFree": "35.9697141",
+        //             "crossMarginInterest": "0.0",
+        //             "crossMarginLocked": "0.0",
+        //             "umWalletBalance": "31.022612",
+        //             "umUnrealizedPNL": "0.0",
+        //             "cmWalletBalance": "0.0",
+        //             "cmUnrealizedPNL": "0.0",
+        //             "updateTime": 0,
+        //             "negativeBalance": "0.0"
+        //         },
+        //     ]
+        //
+        return this.parseBalanceCustom (response, type, marginMode);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -4481,7 +4522,7 @@ export default class binance extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async editSpotOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+    async editSpotOrder (id: string, symbol, type, side, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name binance#editSpotOrder
@@ -4548,7 +4589,7 @@ export default class binance extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    editSpotOrderRequest (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+    editSpotOrderRequest (id: string, symbol, type, side, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @ignore
@@ -4675,7 +4716,7 @@ export default class binance extends Exchange {
         return this.extend (request, params);
     }
 
-    async editContractOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+    async editContractOrder (id: string, symbol, type, side, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name binance#editContractOrder
@@ -5125,7 +5166,7 @@ export default class binance extends Exchange {
         return this.parseOrders (response);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name binance#createOrder
@@ -5181,7 +5222,7 @@ export default class binance extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @ignore
@@ -5209,7 +5250,7 @@ export default class binance extends Exchange {
         const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);  // fallback to stopLoss
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const trailingDelta = this.safeValue (params, 'trailingDelta');
-        const trailingTriggerPrice = this.safeString2 (params, 'trailingTriggerPrice', 'activationPrice', price);
+        const trailingTriggerPrice = this.safeString2 (params, 'trailingTriggerPrice', 'activationPrice', this.numberToString (price));
         const trailingPercent = this.safeString2 (params, 'trailingPercent', 'callbackRate');
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const isStopLoss = stopLossPrice !== undefined || trailingDelta !== undefined;
@@ -6795,7 +6836,7 @@ export default class binance extends Exchange {
         };
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name binance#transfer
@@ -7293,7 +7334,7 @@ export default class binance extends Exchange {
         return result;
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name binance#withdraw
@@ -8743,7 +8784,7 @@ export default class binance extends Exchange {
         return this.parseIncomes (response, market, since, limit);
     }
 
-    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name binance#setLeverage
@@ -9480,7 +9521,7 @@ export default class binance extends Exchange {
         return this.safeValue (config, 'cost', 1);
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
         const response = await this.fetch2 (path, api, method, params, headers, body, config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if (api === 'private') {
@@ -9905,7 +9946,7 @@ export default class binance extends Exchange {
         return this.parseMarginLoan (response, currency);
     }
 
-    async borrowCrossMargin (code: string, amount, params = {}) {
+    async borrowCrossMargin (code: string, amount: number, params = {}) {
         /**
          * @method
          * @name binance#borrowCrossMargin
@@ -9934,7 +9975,7 @@ export default class binance extends Exchange {
         return this.parseMarginLoan (response, currency);
     }
 
-    async borrowIsolatedMargin (symbol: string, code: string, amount, params = {}) {
+    async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
         /**
          * @method
          * @name binance#borrowIsolatedMargin
@@ -10125,6 +10166,7 @@ export default class binance extends Exchange {
         } else {
             return this.parseOpenInterest (response, market);
         }
+        return undefined;
     }
 
     parseOpenInterest (interest, market: Market = undefined) {

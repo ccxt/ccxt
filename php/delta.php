@@ -1769,7 +1769,7 @@ class delta extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://docs.delta.exchange/#place-order
@@ -2805,7 +2805,7 @@ class delta extends Exchange {
         return $this->privateGetProductsProductIdOrdersLeverage (array_merge($request, $params));
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          * @see https://docs.delta.exchange/#change-order-$leverage

@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinlist import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1393,7 +1393,7 @@ class coinlist(Exchange, ImplicitAPI):
         response = self.privateDeleteV1OrdersBulk(params)
         return response
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#create-new-order
@@ -1631,7 +1631,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#transfer-funds-between-entities
@@ -1863,7 +1863,7 @@ class coinlist(Exchange, ImplicitAPI):
         # coinlist returns both internal transfers and blockchain transactions
         return self.parse_transactions(response, currency, since, limit)
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         request a withdrawal from CoinList wallet.(Disabled by default. Contact CoinList to apply for an exception.)
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#request-withdrawal-from-wallet

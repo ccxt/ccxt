@@ -877,7 +877,7 @@ class bitso(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit=25, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = 25, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -910,7 +910,7 @@ class bitso(Exchange, ImplicitAPI):
         response = self.privateGetUserTrades(self.extend(request, params))
         return self.parse_trades(response['payload'], market, since, limit)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1061,7 +1061,7 @@ class bitso(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit=25, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = 25, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1457,7 +1457,7 @@ class bitso(Exchange, ImplicitAPI):
                 result[code]['info'][code] = withdrawFee
         return result
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

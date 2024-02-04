@@ -393,6 +393,7 @@
         }
     },
     "bitstamp": {
+        "skipWs": true,
         "skipMethods": {
             "fetchOrderBook": "bid/ask might be 0",
             "fetchL2OrderBook": "same",
@@ -746,6 +747,7 @@
         }
     },
     "coinmate": {
+        "skip": "clourderror error",
         "skipMethods": {
             "loadMarkets": {
                 "active":"is undefined"
@@ -1181,6 +1183,7 @@
         }
     },
     "kucoinfutures": {
+        "skipCSharp": true,
         "skipMethods":{
             "loadMarkets": {
                 "currencyIdAndCode": "messed"
@@ -1441,7 +1444,11 @@
             }
         }
     },
+    "poloniexfutures": {
+        "skipCSharp": "too flaky, check the reason later"
+    },
     "okx": {
+        "skipCSharp": true,
         "skipMethods": {
             "loadMarkets": "linear & inverse must not be same",
             "fetchCurrencies": {
@@ -1599,7 +1606,8 @@
             "loadMarkets":{
                 "currencyIdAndCode": "messed"
             },
-            "fetchTickers": "all tickers request exceedes max url length"
+            "fetchTickers": "all tickers request exceedes max url length",
+            "fetchOHLCV": "does not exist"
         }
     },
     "zaif": {

@@ -3136,16 +3136,30 @@ class binance extends Exchange {
         return $account;
     }
 
-    public function parse_balance($response, $type = null, $marginMode = null): array {
+    public function parse_balance_custom($response, $type = null, $marginMode = null): array {
         $result = array(
             'info' => $response,
         );
         $timestamp = null;
         $isolated = $marginMode === 'isolated';
         $cross = ($type === 'margin') || ($marginMode === 'cross');
-        if (!$isolated && (($type === 'spot') || $cross)) {
+        if ($type === 'papi') {
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $account = $this->account();
+                $currencyId = $this->safe_string($entry, 'asset');
+                $code = $this->safe_currency_code($currencyId);
+                $borrowed = $this->safe_string($entry, 'crossMarginBorrowed');
+                $interest = $this->safe_string($entry, 'crossMarginInterest');
+                $account['free'] = $this->safe_string($entry, 'crossMarginFree');
+                $account['used'] = $this->safe_string($entry, 'crossMarginLocked');
+                $account['total'] = $this->safe_string($entry, 'crossMarginAsset');
+                $account['debt'] = Precise::string_add($borrowed, $interest);
+                $result[$code] = $account;
+            }
+        } elseif (!$isolated && (($type === 'spot') || $cross)) {
             $timestamp = $this->safe_integer($response, 'updateTime');
-            $balances = $this->safe_value_2($response, 'balances', 'userAssets', array());
+            $balances = $this->safe_list_2($response, 'balances', 'userAssets', array());
             for ($i = 0; $i < count($balances); $i++) {
                 $balance = $balances[$i];
                 $currencyId = $this->safe_string($balance, 'asset');
@@ -3161,13 +3175,13 @@ class binance extends Exchange {
                 $result[$code] = $account;
             }
         } elseif ($isolated) {
-            $assets = $this->safe_value($response, 'assets');
+            $assets = $this->safe_list($response, 'assets');
             for ($i = 0; $i < count($assets); $i++) {
                 $asset = $assets[$i];
-                $marketId = $this->safe_value($asset, 'symbol');
+                $marketId = $this->safe_string($asset, 'symbol');
                 $symbol = $this->safe_symbol($marketId, null, null, 'spot');
-                $base = $this->safe_value($asset, 'baseAsset', array());
-                $quote = $this->safe_value($asset, 'quoteAsset', array());
+                $base = $this->safe_dict($asset, 'baseAsset', array());
+                $quote = $this->safe_dict($asset, 'quoteAsset', array());
                 $baseCode = $this->safe_currency_code($this->safe_string($base, 'asset'));
                 $quoteCode = $this->safe_currency_code($this->safe_string($quote, 'asset'));
                 $subResult = array();
@@ -3176,7 +3190,7 @@ class binance extends Exchange {
                 $result[$symbol] = $this->safe_balance($subResult);
             }
         } elseif ($type === 'savings') {
-            $positionAmountVos = $this->safe_value($response, 'positionAmountVos', array());
+            $positionAmountVos = $this->safe_list($response, 'positionAmountVos', array());
             for ($i = 0; $i < count($positionAmountVos); $i++) {
                 $entry = $positionAmountVos[$i];
                 $currencyId = $this->safe_string($entry, 'asset');
@@ -3203,7 +3217,7 @@ class binance extends Exchange {
         } else {
             $balances = $response;
             if (gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response))) {
-                $balances = $this->safe_value($response, 'assets', array());
+                $balances = $this->safe_list($response, 'assets', array());
             }
             for ($i = 0; $i < count($balances); $i++) {
                 $balance = $balances[$i];
@@ -3233,10 +3247,12 @@ class binance extends Exchange {
              * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data            // swap
              * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data              // future
              * @see https://binance-docs.github.io/apidocs/voptions/en/#option-account-information-trade           // option
+             * @see https://binance-docs.github.io/apidocs/pm/en/#account-balance-user_data                        // portfolio margin
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+             * @param {string} [$params->type] 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
              * @param {string[]|null} [$params->symbols] unified market $symbols, only used in isolated margin mode
+             * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch the balance for a portfolio margin account
              * @return {array} a ~@link https://docs.ccxt.com/#/?$id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
@@ -3244,20 +3260,25 @@ class binance extends Exchange {
             $type = $this->safe_string($params, 'type', $defaultType);
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchBalance', null, $params);
+            $isPortfolioMargin = null;
+            list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchBalance', 'papi', 'portfolioMargin', false);
             $marginMode = null;
             $query = null;
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchBalance', $params);
             $query = $this->omit($query, 'type');
             $response = null;
             $request = array();
-            if ($this->is_linear($type, $subType)) {
+            if ($isPortfolioMargin || ($type === 'papi')) {
+                $type = 'papi';
+                $response = Async\await($this->papiGetBalance (array_merge($request, $query)));
+            } elseif ($this->is_linear($type, $subType)) {
                 $type = 'linear';
                 $response = Async\await($this->fapiPrivateV2GetAccount (array_merge($request, $query)));
             } elseif ($this->is_inverse($type, $subType)) {
                 $type = 'inverse';
                 $response = Async\await($this->dapiPrivateGetAccount (array_merge($request, $query)));
             } elseif ($marginMode === 'isolated') {
-                $paramSymbols = $this->safe_value($params, 'symbols');
+                $paramSymbols = $this->safe_list($params, 'symbols');
                 $query = $this->omit($query, 'symbols');
                 if ($paramSymbols !== null) {
                     $symbols = '';
@@ -3468,7 +3489,27 @@ class binance extends Exchange {
             //       }
             //     )
             //
-            return $this->parse_balance($response, $type, $marginMode);
+            // portfolio margin
+            //
+            //     array(
+            //         array(
+            //             "asset" => "USDT",
+            //             "totalWalletBalance" => "66.9923261",
+            //             "crossMarginAsset" => "35.9697141",
+            //             "crossMarginBorrowed" => "0.0",
+            //             "crossMarginFree" => "35.9697141",
+            //             "crossMarginInterest" => "0.0",
+            //             "crossMarginLocked" => "0.0",
+            //             "umWalletBalance" => "31.022612",
+            //             "umUnrealizedPNL" => "0.0",
+            //             "cmWalletBalance" => "0.0",
+            //             "cmUnrealizedPNL" => "0.0",
+            //             "updateTime" => 0,
+            //             "negativeBalance" => "0.0"
+            //         ),
+            //     )
+            //
+            return $this->parse_balance_custom($response, $type, $marginMode);
         }) ();
     }
 
@@ -4486,7 +4527,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function edit_spot_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_spot_order(string $id, $symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * @ignore
@@ -4553,7 +4594,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function edit_spot_order_request(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_spot_order_request(string $id, $symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @ignore
          * helper function to build $request for editSpotOrder
@@ -4678,7 +4719,7 @@ class binance extends Exchange {
         return array_merge($request, $params);
     }
 
-    public function edit_contract_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_contract_order(string $id, $symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -5128,7 +5169,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -5184,7 +5225,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @ignore
          * helper function to build $request
@@ -5210,7 +5251,7 @@ class binance extends Exchange {
         $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);  // fallback to stopLoss
         $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
         $trailingDelta = $this->safe_value($params, 'trailingDelta');
-        $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activationPrice', $price);
+        $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activationPrice', $this->number_to_string($price));
         $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRate');
         $isTrailingPercentOrder = $trailingPercent !== null;
         $isStopLoss = $stopLossPrice !== null || $trailingDelta !== null;
@@ -6796,7 +6837,7 @@ class binance extends Exchange {
         );
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -7294,7 +7335,7 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -8745,7 +8786,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -9482,8 +9523,8 @@ class binance extends Exchange {
         return $this->safe_value($config, 'cost', 1);
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
-        return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config, $context) {
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array ()) {
+        return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config) {
             $response = Async\await($this->fetch2($path, $api, $method, $params, $headers, $body, $config));
             // a workaround for array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
             if ($api === 'private') {
@@ -9911,7 +9952,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function borrow_cross_margin(string $code, $amount, $params = array ()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * create a loan to borrow margin
@@ -9940,7 +9981,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function borrow_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
+    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array ()) {
         return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * create a loan to borrow margin
@@ -10130,6 +10171,7 @@ class binance extends Exchange {
             } else {
                 return $this->parse_open_interest($response, $market);
             }
+            return null;
         }) ();
     }
 

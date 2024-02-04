@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.com/ccxt/ccxt.svg?branch=master)](https://travis-ci.com/ccxt/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dy/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Discord](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/ccxt) [![Supported Exchanges](https://img.shields.io/badge/exchanges-100-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) [![Twitter Follow](https://img.shields.io/twitter/follow/ccxt_official.svg?style=social&label=CCXT)](https://twitter.com/ccxt_official)
 
-A JavaScript / Python / PHP / C#  library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
+A JavaScript / Python / PHP / C# library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
 ### [Install](#install) · [Usage](#usage) · [Manual](https://github.com/ccxt/ccxt/wiki) · [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) · [Examples](https://github.com/ccxt/ccxt/tree/master/examples) · [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) · [Social](#social)
 
@@ -209,13 +209,13 @@ console.log(version, Object.keys(exchanges));
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.2.30/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@4.2.30/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.2.35/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@4.2.35/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.2.30/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.2.35/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -262,9 +262,9 @@ var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange
 
 The library supports concurrent asynchronous mode using tools from [RecoilPHP](https://github.com/recoilphp/recoil) and [ReactPHP](https://reactphp.org/) in PHP 7.1+. Read the [Manual](https://github.com/ccxt/ccxt/wiki/) for more details.
 
-### Dotnet/C# [Beta]
+### .net/C#
 
-[ccxt in C# with **Nugget**](https://www.nuget.org/packages/ccxt) (netstandard 2.0)
+[ccxt in C# with **Nugget**](https://www.nuget.org/packages/ccxt) (netstandard 2.0 and netstandard 2.1)
 ```c#
 using ccxt;
 Console.WriteLine(ccxt.Exchanges) // check this later
@@ -486,7 +486,7 @@ var_dump ($zaif->id, $zaif->create_limit_buy_order ('BTC/JPY', 1, 285000));
 $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId' => '123'));
 ```
 
-### C# [Beta]
+### .net/C#
 
 ```C#
 using ccxt; // importing ccxt
@@ -496,6 +496,7 @@ class Project {
         var exchange = new Binance();
         exchange.apiKey = "my api key";
         exchange.secret = "my secret";
+        // always use the capitalized method (CreateOrder instead of createOrder)
         var order = await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 50);
         Console.WriteLine("Placed Order, order id: " + order.id);
     }

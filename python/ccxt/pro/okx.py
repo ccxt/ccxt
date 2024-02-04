@@ -710,7 +710,7 @@ class okx(ccxt.async_support.okx):
             }
             message = self.extend(request, params)
             self.watch(url, messageHash, message, messageHash)
-        return future
+        return await future
 
     async def watch_balance(self, params={}) -> Balances:
         """
@@ -1453,7 +1453,8 @@ class okx(ccxt.async_support.okx):
         #
         #
         if message == 'pong':
-            return self.handle_pong(client, message)
+            self.handle_pong(client, message)
+            return
         # table = self.safe_string(message, 'table')
         # if table is None:
         event = self.safe_string_2(message, 'event', 'op')
@@ -1471,10 +1472,8 @@ class okx(ccxt.async_support.okx):
                 'mass-cancel': self.handle_cancel_all_orders,
             }
             method = self.safe_value(methods, event)
-            if method is None:
-                return message
-            else:
-                return method(client, message)
+            if method is not None:
+                method(client, message)
         else:
             arg = self.safe_value(message, 'arg', {})
             channel = self.safe_string(arg, 'channel')
@@ -1499,7 +1498,5 @@ class okx(ccxt.async_support.okx):
             if method is None:
                 if channel.find('candle') == 0:
                     self.handle_ohlcv(client, message)
-                else:
-                    return message
             else:
-                return method(client, message)
+                method(client, message)

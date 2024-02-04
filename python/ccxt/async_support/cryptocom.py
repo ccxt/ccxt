@@ -988,7 +988,7 @@ class cryptocom(Exchange, ImplicitAPI):
         order = self.safe_value(response, 'result', {})
         return self.parse_order(order, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         market = self.market(symbol)
         uppercaseType = type.upper()
         request = {
@@ -1030,26 +1030,26 @@ class cryptocom(Exchange, ImplicitAPI):
         isTakeProfitTrigger = (takeProfitPrice is not None)
         if isTrigger:
             request['ref_price'] = self.price_to_precision(symbol, triggerPrice)
-            price = str(price)
+            priceString = self.number_to_string(price)
             if (uppercaseType == 'LIMIT') or (uppercaseType == 'STOP_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
                 if side == 'buy':
-                    if Precise.string_lt(price, triggerPrice):
+                    if Precise.string_lt(priceString, triggerPrice):
                         request['type'] = 'TAKE_PROFIT_LIMIT'
                     else:
                         request['type'] = 'STOP_LIMIT'
                 else:
-                    if Precise.string_lt(price, triggerPrice):
+                    if Precise.string_lt(priceString, triggerPrice):
                         request['type'] = 'STOP_LIMIT'
                     else:
                         request['type'] = 'TAKE_PROFIT_LIMIT'
             else:
                 if side == 'buy':
-                    if Precise.string_lt(price, triggerPrice):
+                    if Precise.string_lt(priceString, triggerPrice):
                         request['type'] = 'TAKE_PROFIT'
                     else:
                         request['type'] = 'STOP_LOSS'
                 else:
-                    if Precise.string_lt(price, triggerPrice):
+                    if Precise.string_lt(priceString, triggerPrice):
                         request['type'] = 'STOP_LOSS'
                     else:
                         request['type'] = 'TAKE_PROFIT'
@@ -1070,7 +1070,7 @@ class cryptocom(Exchange, ImplicitAPI):
         params = self.omit(params, ['postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
         return self.extend(request, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
@@ -1179,7 +1179,7 @@ class cryptocom(Exchange, ImplicitAPI):
             return self.parse_orders(ocoOrders)
         return self.parse_orders(result)
 
-    def create_advanced_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_advanced_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         # differs slightly from createOrderRequest
         # since the advanced order endpoint requires a different set of parameters
         # namely here we don't support ref_price or spot_margin
@@ -1215,26 +1215,26 @@ class cryptocom(Exchange, ImplicitAPI):
         isStopLossTrigger = (stopLossPrice is not None)
         isTakeProfitTrigger = (takeProfitPrice is not None)
         if isTrigger:
-            price = str(price)
+            priceString = self.number_to_string(price)
             if (uppercaseType == 'LIMIT') or (uppercaseType == 'STOP_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
                 if side == 'buy':
-                    if Precise.string_lt(price, triggerPrice):
+                    if Precise.string_lt(priceString, triggerPrice):
                         request['type'] = 'TAKE_PROFIT_LIMIT'
                     else:
                         request['type'] = 'STOP_LIMIT'
                 else:
-                    if Precise.string_lt(price, triggerPrice):
+                    if Precise.string_lt(priceString, triggerPrice):
                         request['type'] = 'STOP_LIMIT'
                     else:
                         request['type'] = 'TAKE_PROFIT_LIMIT'
             else:
                 if side == 'buy':
-                    if Precise.string_lt(price, triggerPrice):
+                    if Precise.string_lt(priceString, triggerPrice):
                         request['type'] = 'TAKE_PROFIT'
                     else:
                         request['type'] = 'STOP_LOSS'
                 else:
-                    if Precise.string_lt(price, triggerPrice):
+                    if Precise.string_lt(priceString, triggerPrice):
                         request['type'] = 'STOP_LOSS'
                     else:
                         request['type'] = 'TAKE_PROFIT'
@@ -1486,7 +1486,7 @@ class cryptocom(Exchange, ImplicitAPI):
             address = addressString
         return [address, tag]
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-withdrawal
