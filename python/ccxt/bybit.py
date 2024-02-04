@@ -3164,10 +3164,16 @@ class bybit(Exchange):
             'orderId': id,
         }
         params, isStop = self.has_stop_params(params, should_omit=False)
-        result = self.fetch_orders(symbol, None, None, self.extend(request, params))
+        original_params = copy(params)
+        result = self.fetch_closed_orders(symbol, None, None, self.extend(request, params))
         length = len(result)
         if length == 0:
-            raise OrderNotFound('Order ' + id + ' does not exist.')
+            result = self.fetch_open_orders(symbol, None, None, self.extend(request, original_params))
+            length = len(result)
+            if length == 0:
+                raise OrderNotFound('Order ' + id + ' does not exist.')
+            if length > 1:
+                raise InvalidOrder(self.id + ' returned more than one order')
         if length > 1:
             raise InvalidOrder(self.id + ' returned more than one order')
         result = self.safe_value(result, 0)
@@ -3864,7 +3870,7 @@ class bybit(Exchange):
         data = self.safe_value(result, 'dataList', [])
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
         see https://bybit-exchange.github.io/docs/v5/order/order-list
@@ -3980,7 +3986,7 @@ class bybit(Exchange):
             return parsed_orders + parsed_open_orders
         return parsed_orders
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_filled_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         see https://bybit-exchange.github.io/docs/v5/order/order-list
@@ -3994,7 +4000,7 @@ class bybit(Exchange):
         request = {
             'orderStatus': 'Filled',
         }
-        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
+        return self.fetch_closed_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_canceled_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -4013,7 +4019,7 @@ class bybit(Exchange):
         request = {
             'orderStatus': 'Cancelled',
         }
-        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
+        return self.fetch_closed_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_usdc_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.load_markets()
@@ -6302,10 +6308,7 @@ class bybit(Exchange):
         if errorCode != '0':
             return_message = self.safe_value_2(response, "ret_msg", "retMsg")
             return_message = return_message.lower() if return_message else return_message
-            if errorCode == '10005' and url.find('order') < 0:
-                feedback = self.id + ' private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: "Account Transfer", "Subaccount Transfer", "Withdrawal" ' + body
-            else:
-                feedback = self.id + ' ' + body
+            feedback = self.id + ' ' + body
             if any(error in return_message for error in ["order not exists", "order does not exist"]):
                 raise OrderNotFound(feedback)
             if "unknown order_status" in return_message:
