@@ -2722,7 +2722,7 @@ public partial class binance : ccxt.binance
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
-            { "symbol", this.safeSymbol(marketId, null, null, "future") },
+            { "symbol", this.safeSymbol(marketId, null, null, "contract") },
             { "notional", null },
             { "marginMode", this.safeString(position, "mt") },
             { "liquidationPrice", null },
@@ -2905,9 +2905,9 @@ public partial class binance : ccxt.binance
         object executionType = this.safeString(message, "x");
         if (isTrue(isEqual(executionType, "TRADE")))
         {
-            object trade = this.parseTrade(message);
+            object trade = this.parseWsTrade(message);
             object orderId = this.safeString(trade, "order");
-            object tradeFee = this.safeValue(trade, "fee");
+            object tradeFee = this.safeValue(trade, "fee", new Dictionary<string, object>() {});
             tradeFee = this.extend(new Dictionary<string, object>() {}, tradeFee);
             object symbol = this.safeString(trade, "symbol");
             if (isTrue(isTrue(isTrue(!isEqual(orderId, null)) && isTrue(!isEqual(tradeFee, null))) && isTrue(!isEqual(symbol, null))))

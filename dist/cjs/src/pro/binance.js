@@ -2439,7 +2439,7 @@ class binance extends binance$1 {
         return this.safePosition({
             'info': position,
             'id': undefined,
-            'symbol': this.safeSymbol(marketId, undefined, undefined, 'future'),
+            'symbol': this.safeSymbol(marketId, undefined, undefined, 'contract'),
             'notional': undefined,
             'marginMode': this.safeString(position, 'mt'),
             'liquidationPrice': undefined,
@@ -2593,9 +2593,9 @@ class binance extends binance$1 {
         const messageHash = 'myTrades';
         const executionType = this.safeString(message, 'x');
         if (executionType === 'TRADE') {
-            const trade = this.parseTrade(message);
+            const trade = this.parseWsTrade(message);
             const orderId = this.safeString(trade, 'order');
-            let tradeFee = this.safeValue(trade, 'fee');
+            let tradeFee = this.safeValue(trade, 'fee', {});
             tradeFee = this.extend({}, tradeFee);
             const symbol = this.safeString(trade, 'symbol');
             if (orderId !== undefined && tradeFee !== undefined && symbol !== undefined) {

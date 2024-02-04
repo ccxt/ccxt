@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.34'
+__version__ = '4.2.35'
 
 # -----------------------------------------------------------------------------
 
@@ -1585,7 +1585,8 @@ class Exchange(BaseExchange):
                 errors = 0
                 responseLength = len(response)
                 if self.verbose:
-                    cursorMessage = 'Cursor pagination call ' + i + 1 + ' method ' + method + ' response length ' + responseLength + ' cursor ' + cursorValue
+                    iteration = (i + str(1))
+                    cursorMessage = 'Cursor pagination call ' + iteration + ' method ' + method + ' response length ' + str(responseLength) + ' cursor ' + cursorValue
                     self.log(cursorMessage)
                 if responseLength == 0:
                     break
@@ -1622,7 +1623,8 @@ class Exchange(BaseExchange):
                 errors = 0
                 responseLength = len(response)
                 if self.verbose:
-                    incrementalMessage = 'Incremental pagination call ' + i + 1 + ' method ' + method + ' response length ' + responseLength
+                    iteration = (i + str(1))
+                    incrementalMessage = 'Incremental pagination call ' + iteration + ' method ' + method + ' response length ' + str(responseLength)
                     self.log(incrementalMessage)
                 if responseLength == 0:
                     break

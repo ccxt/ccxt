@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.2.34';
+$version = '4.2.35';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.2.34';
+    const VERSION = '4.2.35';
 
     public $browser;
     public $marketsLoading = null;
@@ -374,6 +374,9 @@ class Exchange extends \ccxt\Exchange {
          * @return array(object | null)
          */
         $value = $this->safe_value_n($dictionaryOrList, $keys, $defaultValue);
+        if ($value === null) {
+            return $defaultValue;
+        }
         if (gettype($value) === 'array') {
             return $value;
         }
@@ -405,6 +408,9 @@ class Exchange extends \ccxt\Exchange {
          * @return array(Array | null)
          */
         $value = $this->safe_value_n($dictionaryOrList, $keys, $defaultValue);
+        if ($value === null) {
+            return $defaultValue;
+        }
         if (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
             return $value;
         }
@@ -4508,7 +4514,8 @@ class Exchange extends \ccxt\Exchange {
                     $errors = 0;
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $cursorMessage = 'Cursor pagination call ' . $i + 1 . ' $method ' . $method . ' $response length ' . $responseLength . ' cursor ' . $cursorValue;
+                        $iteration = ($i . (string) 1);
+                        $cursorMessage = 'Cursor pagination call ' . $iteration . ' $method ' . $method . ' $response length ' . (string) $responseLength . ' cursor ' . $cursorValue;
                         $this->log ($cursorMessage);
                     }
                     if ($responseLength === 0) {
@@ -4555,7 +4562,8 @@ class Exchange extends \ccxt\Exchange {
                     $errors = 0;
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $incrementalMessage = 'Incremental pagination call ' . $i + 1 . ' $method ' . $method . ' $response length ' . $responseLength;
+                        $iteration = ($i . (string) 1);
+                        $incrementalMessage = 'Incremental pagination call ' . $iteration . ' $method ' . $method . ' $response length ' . (string) $responseLength;
                         $this->log ($incrementalMessage);
                     }
                     if ($responseLength === 0) {

@@ -1029,7 +1029,7 @@ public partial class whitebit : ccxt.whitebit
         return message;
     }
 
-    public override object ping(WebSocketClient client)
+    public virtual object ping(WebSocketClient client)
     {
         return new Dictionary<string, object>() {
             { "id", 0 },

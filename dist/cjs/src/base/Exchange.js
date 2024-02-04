@@ -1074,9 +1074,9 @@ class Exchange {
     handleMessage(client, message) {
     } // stub to override
     // ping (client) {} // stub to override
-    ping(client) {
-        return undefined;
-    }
+    // ping (client) {
+    //     return undefined;
+    // }
     client(url) {
         this.clients = this.clients || {};
         if (!this.clients[url]) {
@@ -1456,6 +1456,9 @@ class Exchange {
          * @returns {object | undefined}
          */
         const value = this.safeValueN(dictionaryOrList, keys, defaultValue);
+        if (value === undefined) {
+            return defaultValue;
+        }
         if (typeof value === 'object') {
             return value;
         }
@@ -1487,6 +1490,9 @@ class Exchange {
          * @returns {Array | undefined}
          */
         const value = this.safeValueN(dictionaryOrList, keys, defaultValue);
+        if (value === undefined) {
+            return defaultValue;
+        }
         if (Array.isArray(value)) {
             return value;
         }
@@ -5285,7 +5291,8 @@ class Exchange {
                 errors = 0;
                 const responseLength = response.length;
                 if (this.verbose) {
-                    const cursorMessage = 'Cursor pagination call ' + i + 1 + ' method ' + method + ' response length ' + responseLength + ' cursor ' + cursorValue;
+                    const iteration = (i + 1).toString();
+                    const cursorMessage = 'Cursor pagination call ' + iteration + ' method ' + method + ' response length ' + responseLength.toString() + ' cursor ' + cursorValue;
                     this.log(cursorMessage);
                 }
                 if (responseLength === 0) {
@@ -5330,7 +5337,8 @@ class Exchange {
                 errors = 0;
                 const responseLength = response.length;
                 if (this.verbose) {
-                    const incrementalMessage = 'Incremental pagination call ' + i + 1 + ' method ' + method + ' response length ' + responseLength;
+                    const iteration = (i + 1).toString();
+                    const incrementalMessage = 'Incremental pagination call ' + iteration + ' method ' + method + ' response length ' + responseLength.toString();
                     this.log(incrementalMessage);
                 }
                 if (responseLength === 0) {

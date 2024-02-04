@@ -430,7 +430,7 @@ public partial class coinone : ccxt.coinone
         }
     }
 
-    public override object ping(WebSocketClient client)
+    public virtual object ping(WebSocketClient client)
     {
         return new Dictionary<string, object>() {
             { "request_type", "PING" },
