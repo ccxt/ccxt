@@ -98,7 +98,7 @@ export default class gemini extends geminiRest {
             marketIds.push (market['id']);
         }
         const queryStr = marketIds.join (',');
-        const url = this.urls['api']['ws'] + '/v1/multimarketdata?trades=true&bids=false&offers=false&symbols=' + queryStr;
+        const url = this.urls['api']['ws'] + '/v1/multimarketdata?trades=true&bids=false&offers=false&heartbeat=true&symbols=' + queryStr;
         const trades = await this.watchMultiple (url, messageHashes, undefined);
         if (this.newUpdates) {
             const first = this.safeList (trades, 0);
