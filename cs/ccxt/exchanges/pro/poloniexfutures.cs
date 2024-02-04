@@ -1051,7 +1051,7 @@ public partial class poloniexfutures : ccxt.poloniexfutures
         }
     }
 
-    public override object ping(WebSocketClient client)
+    public virtual object ping(WebSocketClient client)
     {
         object id = ((object)this.requestId()).ToString();
         return new Dictionary<string, object>() {

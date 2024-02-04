@@ -3201,10 +3201,26 @@ public partial class binance : Exchange
         object timestamp = null;
         object isolated = isEqual(marginMode, "isolated");
         object cross = isTrue((isEqual(type, "margin"))) || isTrue((isEqual(marginMode, "cross")));
-        if (isTrue(!isTrue(isolated) && isTrue((isTrue((isEqual(type, "spot"))) || isTrue(cross)))))
+        if (isTrue(isEqual(type, "papi")))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+            {
+                object entry = getValue(response, i);
+                object account = this.account();
+                object currencyId = this.safeString(entry, "asset");
+                object code = this.safeCurrencyCode(currencyId);
+                object borrowed = this.safeString(entry, "crossMarginBorrowed");
+                object interest = this.safeString(entry, "crossMarginInterest");
+                ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "crossMarginFree");
+                ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "crossMarginLocked");
+                ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "crossMarginAsset");
+                ((IDictionary<string,object>)account)["debt"] = Precise.stringAdd(borrowed, interest);
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
+        } else if (isTrue(!isTrue(isolated) && isTrue((isTrue((isEqual(type, "spot"))) || isTrue(cross)))))
         {
             timestamp = this.safeInteger(response, "updateTime");
-            object balances = this.safeValue2(response, "balances", "userAssets", new List<object>() {});
+            object balances = this.safeList2(response, "balances", "userAssets", new List<object>() {});
             for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
             {
                 object balance = getValue(balances, i);
@@ -3223,14 +3239,14 @@ public partial class binance : Exchange
             }
         } else if (isTrue(isolated))
         {
-            object assets = this.safeValue(response, "assets");
+            object assets = this.safeList(response, "assets");
             for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
             {
                 object asset = getValue(assets, i);
-                object marketId = this.safeValue(asset, "symbol");
+                object marketId = this.safeString(asset, "symbol");
                 object symbol = this.safeSymbol(marketId, null, null, "spot");
-                object bs = this.safeValue(asset, "baseAsset", new Dictionary<string, object>() {});
-                object quote = this.safeValue(asset, "quoteAsset", new Dictionary<string, object>() {});
+                object bs = this.safeDict(asset, "baseAsset", new Dictionary<string, object>() {});
+                object quote = this.safeDict(asset, "quoteAsset", new Dictionary<string, object>() {});
                 object baseCode = this.safeCurrencyCode(this.safeString(bs, "asset"));
                 object quoteCode = this.safeCurrencyCode(this.safeString(quote, "asset"));
                 object subResult = new Dictionary<string, object>() {};
@@ -3240,7 +3256,7 @@ public partial class binance : Exchange
             }
         } else if (isTrue(isEqual(type, "savings")))
         {
-            object positionAmountVos = this.safeValue(response, "positionAmountVos", new List<object>() {});
+            object positionAmountVos = this.safeList(response, "positionAmountVos", new List<object>() {});
             for (object i = 0; isLessThan(i, getArrayLength(positionAmountVos)); postFixIncrement(ref i))
             {
                 object entry = getValue(positionAmountVos, i);
@@ -3272,7 +3288,7 @@ public partial class binance : Exchange
             object balances = response;
             if (!isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
-                balances = this.safeValue(response, "assets", new List<object>() {});
+                balances = this.safeList(response, "assets", new List<object>() {});
             }
             for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
             {
@@ -3305,10 +3321,12 @@ public partial class binance : Exchange
         * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data            // swap
         * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data              // future
         * @see https://binance-docs.github.io/apidocs/voptions/en/#option-account-information-trade           // option
+        * @see https://binance-docs.github.io/apidocs/pm/en/#account-balance-user_data                        // portfolio margin
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+        * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
         * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
         * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
+        * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the balance for a portfolio margin account
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -3319,6 +3337,10 @@ public partial class binance : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchBalance", null, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object isPortfolioMargin = null;
+        var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "fetchBalance", "papi", "portfolioMargin", false);
+        isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
+        parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
         object marginMode = null;
         object query = null;
         var marginModequeryVariable = this.handleMarginModeAndParams("fetchBalance", parameters);
@@ -3327,7 +3349,11 @@ public partial class binance : Exchange
         query = this.omit(query, "type");
         object response = null;
         object request = new Dictionary<string, object>() {};
-        if (isTrue(this.isLinear(type, subType)))
+        if (isTrue(isTrue(isPortfolioMargin) || isTrue((isEqual(type, "papi")))))
+        {
+            type = "papi";
+            response = await this.papiGetBalance(this.extend(request, query));
+        } else if (isTrue(this.isLinear(type, subType)))
         {
             type = "linear";
             response = await this.fapiPrivateV2GetAccount(this.extend(request, query));
@@ -3337,7 +3363,7 @@ public partial class binance : Exchange
             response = await this.dapiPrivateGetAccount(this.extend(request, query));
         } else if (isTrue(isEqual(marginMode, "isolated")))
         {
-            object paramSymbols = this.safeValue(parameters, "symbols");
+            object paramSymbols = this.safeList(parameters, "symbols");
             query = this.omit(query, "symbols");
             if (isTrue(!isEqual(paramSymbols, null)))
             {
@@ -3554,6 +3580,26 @@ public partial class binance : Exchange
         //         "freeze": "0",
         //         "withdrawing": "0"
         //       }
+        //     ]
+        //
+        // portfolio margin
+        //
+        //     [
+        //         {
+        //             "asset": "USDT",
+        //             "totalWalletBalance": "66.9923261",
+        //             "crossMarginAsset": "35.9697141",
+        //             "crossMarginBorrowed": "0.0",
+        //             "crossMarginFree": "35.9697141",
+        //             "crossMarginInterest": "0.0",
+        //             "crossMarginLocked": "0.0",
+        //             "umWalletBalance": "31.022612",
+        //             "umUnrealizedPNL": "0.0",
+        //             "cmWalletBalance": "0.0",
+        //             "cmUnrealizedPNL": "0.0",
+        //             "updateTime": 0,
+        //             "negativeBalance": "0.0"
+        //         },
         //     ]
         //
         return this.parseBalanceCustom(response, type, marginMode);

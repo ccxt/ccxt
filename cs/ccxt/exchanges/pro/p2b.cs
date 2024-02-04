@@ -445,7 +445,7 @@ public partial class p2b : ccxt.p2b
         return false;
     }
 
-    public override object ping(WebSocketClient client)
+    public virtual object ping(WebSocketClient client)
     {
         /**
          * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#ping

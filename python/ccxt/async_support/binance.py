@@ -3097,9 +3097,22 @@ class binance(Exchange, ImplicitAPI):
         timestamp = None
         isolated = marginMode == 'isolated'
         cross = (type == 'margin') or (marginMode == 'cross')
-        if not isolated and ((type == 'spot') or cross):
+        if type == 'papi':
+            for i in range(0, len(response)):
+                entry = response[i]
+                account = self.account()
+                currencyId = self.safe_string(entry, 'asset')
+                code = self.safe_currency_code(currencyId)
+                borrowed = self.safe_string(entry, 'crossMarginBorrowed')
+                interest = self.safe_string(entry, 'crossMarginInterest')
+                account['free'] = self.safe_string(entry, 'crossMarginFree')
+                account['used'] = self.safe_string(entry, 'crossMarginLocked')
+                account['total'] = self.safe_string(entry, 'crossMarginAsset')
+                account['debt'] = Precise.string_add(borrowed, interest)
+                result[code] = account
+        elif not isolated and ((type == 'spot') or cross):
             timestamp = self.safe_integer(response, 'updateTime')
-            balances = self.safe_value_2(response, 'balances', 'userAssets', [])
+            balances = self.safe_list_2(response, 'balances', 'userAssets', [])
             for i in range(0, len(balances)):
                 balance = balances[i]
                 currencyId = self.safe_string(balance, 'asset')
@@ -3113,13 +3126,13 @@ class binance(Exchange, ImplicitAPI):
                     account['debt'] = Precise.string_add(debt, interest)
                 result[code] = account
         elif isolated:
-            assets = self.safe_value(response, 'assets')
+            assets = self.safe_list(response, 'assets')
             for i in range(0, len(assets)):
                 asset = assets[i]
-                marketId = self.safe_value(asset, 'symbol')
+                marketId = self.safe_string(asset, 'symbol')
                 symbol = self.safe_symbol(marketId, None, None, 'spot')
-                base = self.safe_value(asset, 'baseAsset', {})
-                quote = self.safe_value(asset, 'quoteAsset', {})
+                base = self.safe_dict(asset, 'baseAsset', {})
+                quote = self.safe_dict(asset, 'quoteAsset', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'asset'))
                 quoteCode = self.safe_currency_code(self.safe_string(quote, 'asset'))
                 subResult = {}
@@ -3127,7 +3140,7 @@ class binance(Exchange, ImplicitAPI):
                 subResult[quoteCode] = self.parse_balance_helper(quote)
                 result[symbol] = self.safe_balance(subResult)
         elif type == 'savings':
-            positionAmountVos = self.safe_value(response, 'positionAmountVos', [])
+            positionAmountVos = self.safe_list(response, 'positionAmountVos', [])
             for i in range(0, len(positionAmountVos)):
                 entry = positionAmountVos[i]
                 currencyId = self.safe_string(entry, 'asset')
@@ -3152,7 +3165,7 @@ class binance(Exchange, ImplicitAPI):
         else:
             balances = response
             if not isinstance(response, list):
-                balances = self.safe_value(response, 'assets', [])
+                balances = self.safe_list(response, 'assets', [])
             for i in range(0, len(balances)):
                 balance = balances[i]
                 currencyId = self.safe_string(balance, 'asset')
@@ -3177,10 +3190,12 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data            # swap
         :see: https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data              # future
         :see: https://binance-docs.github.io/apidocs/voptions/en/#option-account-information-trade           # option
+        :see: https://binance-docs.github.io/apidocs/pm/en/#account-balance-user_data                        # portfolio margin
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.type]: 'future', 'delivery', 'savings', 'funding', or 'spot'
+        :param str [params.type]: 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
         :param str [params.marginMode]: 'cross' or 'isolated', for margin trading, uses self.options.defaultMarginMode if not passed, defaults to None/None/None
         :param str[]|None [params.symbols]: unified market symbols, only used in isolated margin mode
+        :param boolean [params.portfolioMargin]: set to True if you would like to fetch the balance for a portfolio margin account
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
@@ -3188,20 +3203,25 @@ class binance(Exchange, ImplicitAPI):
         type = self.safe_string(params, 'type', defaultType)
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchBalance', None, params)
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchBalance', 'papi', 'portfolioMargin', False)
         marginMode = None
         query = None
         marginMode, query = self.handle_margin_mode_and_params('fetchBalance', params)
         query = self.omit(query, 'type')
         response = None
         request = {}
-        if self.is_linear(type, subType):
+        if isPortfolioMargin or (type == 'papi'):
+            type = 'papi'
+            response = await self.papiGetBalance(self.extend(request, query))
+        elif self.is_linear(type, subType):
             type = 'linear'
             response = await self.fapiPrivateV2GetAccount(self.extend(request, query))
         elif self.is_inverse(type, subType):
             type = 'inverse'
             response = await self.dapiPrivateGetAccount(self.extend(request, query))
         elif marginMode == 'isolated':
-            paramSymbols = self.safe_value(params, 'symbols')
+            paramSymbols = self.safe_list(params, 'symbols')
             query = self.omit(query, 'symbols')
             if paramSymbols is not None:
                 symbols = ''
@@ -3406,6 +3426,26 @@ class binance(Exchange, ImplicitAPI):
         #         "freeze": "0",
         #         "withdrawing": "0"
         #       }
+        #     ]
+        #
+        # portfolio margin
+        #
+        #     [
+        #         {
+        #             "asset": "USDT",
+        #             "totalWalletBalance": "66.9923261",
+        #             "crossMarginAsset": "35.9697141",
+        #             "crossMarginBorrowed": "0.0",
+        #             "crossMarginFree": "35.9697141",
+        #             "crossMarginInterest": "0.0",
+        #             "crossMarginLocked": "0.0",
+        #             "umWalletBalance": "31.022612",
+        #             "umUnrealizedPNL": "0.0",
+        #             "cmWalletBalance": "0.0",
+        #             "cmUnrealizedPNL": "0.0",
+        #             "updateTime": 0,
+        #             "negativeBalance": "0.0"
+        #         },
         #     ]
         #
         return self.parse_balance_custom(response, type, marginMode)

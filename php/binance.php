@@ -3124,9 +3124,23 @@ class binance extends Exchange {
         $timestamp = null;
         $isolated = $marginMode === 'isolated';
         $cross = ($type === 'margin') || ($marginMode === 'cross');
-        if (!$isolated && (($type === 'spot') || $cross)) {
+        if ($type === 'papi') {
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $account = $this->account();
+                $currencyId = $this->safe_string($entry, 'asset');
+                $code = $this->safe_currency_code($currencyId);
+                $borrowed = $this->safe_string($entry, 'crossMarginBorrowed');
+                $interest = $this->safe_string($entry, 'crossMarginInterest');
+                $account['free'] = $this->safe_string($entry, 'crossMarginFree');
+                $account['used'] = $this->safe_string($entry, 'crossMarginLocked');
+                $account['total'] = $this->safe_string($entry, 'crossMarginAsset');
+                $account['debt'] = Precise::string_add($borrowed, $interest);
+                $result[$code] = $account;
+            }
+        } elseif (!$isolated && (($type === 'spot') || $cross)) {
             $timestamp = $this->safe_integer($response, 'updateTime');
-            $balances = $this->safe_value_2($response, 'balances', 'userAssets', array());
+            $balances = $this->safe_list_2($response, 'balances', 'userAssets', array());
             for ($i = 0; $i < count($balances); $i++) {
                 $balance = $balances[$i];
                 $currencyId = $this->safe_string($balance, 'asset');
@@ -3142,13 +3156,13 @@ class binance extends Exchange {
                 $result[$code] = $account;
             }
         } elseif ($isolated) {
-            $assets = $this->safe_value($response, 'assets');
+            $assets = $this->safe_list($response, 'assets');
             for ($i = 0; $i < count($assets); $i++) {
                 $asset = $assets[$i];
-                $marketId = $this->safe_value($asset, 'symbol');
+                $marketId = $this->safe_string($asset, 'symbol');
                 $symbol = $this->safe_symbol($marketId, null, null, 'spot');
-                $base = $this->safe_value($asset, 'baseAsset', array());
-                $quote = $this->safe_value($asset, 'quoteAsset', array());
+                $base = $this->safe_dict($asset, 'baseAsset', array());
+                $quote = $this->safe_dict($asset, 'quoteAsset', array());
                 $baseCode = $this->safe_currency_code($this->safe_string($base, 'asset'));
                 $quoteCode = $this->safe_currency_code($this->safe_string($quote, 'asset'));
                 $subResult = array();
@@ -3157,7 +3171,7 @@ class binance extends Exchange {
                 $result[$symbol] = $this->safe_balance($subResult);
             }
         } elseif ($type === 'savings') {
-            $positionAmountVos = $this->safe_value($response, 'positionAmountVos', array());
+            $positionAmountVos = $this->safe_list($response, 'positionAmountVos', array());
             for ($i = 0; $i < count($positionAmountVos); $i++) {
                 $entry = $positionAmountVos[$i];
                 $currencyId = $this->safe_string($entry, 'asset');
@@ -3184,7 +3198,7 @@ class binance extends Exchange {
         } else {
             $balances = $response;
             if (gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response))) {
-                $balances = $this->safe_value($response, 'assets', array());
+                $balances = $this->safe_list($response, 'assets', array());
             }
             for ($i = 0; $i < count($balances); $i++) {
                 $balance = $balances[$i];
@@ -3213,10 +3227,12 @@ class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data            // swap
          * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data              // future
          * @see https://binance-docs.github.io/apidocs/voptions/en/#option-account-information-trade           // option
+         * @see https://binance-docs.github.io/apidocs/pm/en/#account-balance-user_data                        // portfolio margin
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+         * @param {string} [$params->type] 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
          * @param {string} [$params->marginMode] 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
          * @param {string[]|null} [$params->symbols] unified market $symbols, only used in isolated margin mode
+         * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch the balance for a portfolio margin account
          * @return {array} a ~@link https://docs.ccxt.com/#/?$id=balance-structure balance structure~
          */
         $this->load_markets();
@@ -3224,20 +3240,25 @@ class binance extends Exchange {
         $type = $this->safe_string($params, 'type', $defaultType);
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchBalance', null, $params);
+        $isPortfolioMargin = null;
+        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchBalance', 'papi', 'portfolioMargin', false);
         $marginMode = null;
         $query = null;
         list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchBalance', $params);
         $query = $this->omit($query, 'type');
         $response = null;
         $request = array();
-        if ($this->is_linear($type, $subType)) {
+        if ($isPortfolioMargin || ($type === 'papi')) {
+            $type = 'papi';
+            $response = $this->papiGetBalance (array_merge($request, $query));
+        } elseif ($this->is_linear($type, $subType)) {
             $type = 'linear';
             $response = $this->fapiPrivateV2GetAccount (array_merge($request, $query));
         } elseif ($this->is_inverse($type, $subType)) {
             $type = 'inverse';
             $response = $this->dapiPrivateGetAccount (array_merge($request, $query));
         } elseif ($marginMode === 'isolated') {
-            $paramSymbols = $this->safe_value($params, 'symbols');
+            $paramSymbols = $this->safe_list($params, 'symbols');
             $query = $this->omit($query, 'symbols');
             if ($paramSymbols !== null) {
                 $symbols = '';
@@ -3446,6 +3467,26 @@ class binance extends Exchange {
         //         "freeze" => "0",
         //         "withdrawing" => "0"
         //       }
+        //     )
+        //
+        // portfolio margin
+        //
+        //     array(
+        //         array(
+        //             "asset" => "USDT",
+        //             "totalWalletBalance" => "66.9923261",
+        //             "crossMarginAsset" => "35.9697141",
+        //             "crossMarginBorrowed" => "0.0",
+        //             "crossMarginFree" => "35.9697141",
+        //             "crossMarginInterest" => "0.0",
+        //             "crossMarginLocked" => "0.0",
+        //             "umWalletBalance" => "31.022612",
+        //             "umUnrealizedPNL" => "0.0",
+        //             "cmWalletBalance" => "0.0",
+        //             "cmUnrealizedPNL" => "0.0",
+        //             "updateTime" => 0,
+        //             "negativeBalance" => "0.0"
+        //         ),
         //     )
         //
         return $this->parse_balance_custom($response, $type, $marginMode);

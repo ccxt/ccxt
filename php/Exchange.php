@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.2.34';
+$version = '4.2.35';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.34';
+    const VERSION = '4.2.35';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2208,6 +2208,9 @@ class Exchange {
          * @return array(object | null)
          */
         $value = $this->safe_value_n($dictionaryOrList, $keys, $defaultValue);
+        if ($value === null) {
+            return $defaultValue;
+        }
         if (gettype($value) === 'array') {
             return $value;
         }
@@ -2239,6 +2242,9 @@ class Exchange {
          * @return array(Array | null)
          */
         $value = $this->safe_value_n($dictionaryOrList, $keys, $defaultValue);
+        if ($value === null) {
+            return $defaultValue;
+        }
         if (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
             return $value;
         }
@@ -6217,7 +6223,8 @@ class Exchange {
                 $errors = 0;
                 $responseLength = count($response);
                 if ($this->verbose) {
-                    $cursorMessage = 'Cursor pagination call ' . $i + 1 . ' $method ' . $method . ' $response length ' . $responseLength . ' cursor ' . $cursorValue;
+                    $iteration = ($i . (string) 1);
+                    $cursorMessage = 'Cursor pagination call ' . $iteration . ' $method ' . $method . ' $response length ' . (string) $responseLength . ' cursor ' . $cursorValue;
                     $this->log ($cursorMessage);
                 }
                 if ($responseLength === 0) {
@@ -6262,7 +6269,8 @@ class Exchange {
                 $errors = 0;
                 $responseLength = count($response);
                 if ($this->verbose) {
-                    $incrementalMessage = 'Incremental pagination call ' . $i + 1 . ' $method ' . $method . ' $response length ' . $responseLength;
+                    $iteration = ($i . (string) 1);
+                    $incrementalMessage = 'Incremental pagination call ' . $iteration . ' $method ' . $method . ' $response length ' . (string) $responseLength;
                     $this->log ($incrementalMessage);
                 }
                 if ($responseLength === 0) {

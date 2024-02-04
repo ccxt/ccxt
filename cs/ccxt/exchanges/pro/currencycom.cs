@@ -46,7 +46,7 @@ public partial class currencycom : ccxt.currencycom
         });
     }
 
-    public override object ping(WebSocketClient client)
+    public virtual object ping(WebSocketClient client)
     {
         // custom ping-pong
         object requestId = ((object)this.requestId()).ToString();

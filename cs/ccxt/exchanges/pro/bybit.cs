@@ -1956,7 +1956,7 @@ public partial class bybit : ccxt.bybit
         }
     }
 
-    public override object ping(WebSocketClient client)
+    public virtual object ping(WebSocketClient client)
     {
         return new Dictionary<string, object>() {
             { "req_id", this.requestId() },

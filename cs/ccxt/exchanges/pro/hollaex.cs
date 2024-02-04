@@ -633,7 +633,7 @@ public partial class hollaex : ccxt.hollaex
         }
     }
 
-    public override object ping(WebSocketClient client)
+    public virtual object ping(WebSocketClient client)
     {
         // hollaex does not support built-in ws protocol-level ping-pong
         return new Dictionary<string, object>() {

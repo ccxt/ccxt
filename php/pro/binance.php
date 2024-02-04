@@ -2465,7 +2465,7 @@ class binance extends \ccxt\async\binance {
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
-            'symbol' => $this->safe_symbol($marketId, null, null, 'future'),
+            'symbol' => $this->safe_symbol($marketId, null, null, 'contract'),
             'notional' => null,
             'marginMode' => $this->safe_string($position, 'mt'),
             'liquidationPrice' => null,
@@ -2622,9 +2622,9 @@ class binance extends \ccxt\async\binance {
         $messageHash = 'myTrades';
         $executionType = $this->safe_string($message, 'x');
         if ($executionType === 'TRADE') {
-            $trade = $this->parse_trade($message);
+            $trade = $this->parse_ws_trade($message);
             $orderId = $this->safe_string($trade, 'order');
-            $tradeFee = $this->safe_value($trade, 'fee');
+            $tradeFee = $this->safe_value($trade, 'fee', array());
             $tradeFee = array_merge(array(), $tradeFee);
             $symbol = $this->safe_string($trade, 'symbol');
             if ($orderId !== null && $tradeFee !== null && $symbol !== null) {
