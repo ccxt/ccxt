@@ -234,6 +234,7 @@ trait ClientTrait {
             $url = $client->url;
             unset($this->clients[$url]);
         }
+        $this->stream = new Stream();
     }
 
     public function __destruct() {

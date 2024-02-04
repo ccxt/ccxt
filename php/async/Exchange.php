@@ -28,6 +28,7 @@ use ccxt\NotSupported;
 use ccxt\BadSymbol;
 use ccxt\ArgumentsRequired;
 use ccxt\pro\ClientTrait;
+use ccxt\pro\Stream;
 use ccxt\RateLimitExceeded;
 use ccxt\NullResponse;
 use ccxt\InvalidAddress;
@@ -335,6 +336,23 @@ class Exchange extends \ccxt\Exchange {
     // ########################################################################
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function setup_stream() {
+        $this->stream = new Stream ();
+        $stream = $this->stream;
+        $stream->subscribe('tickers', $this->stream_to_symbol('tickers'), true);
+        $stream->subscribe('ohlcv', $this->stream_to_symbol('ohlcv'), true);
+        $stream->subscribe('orderbooks', $this->stream_to_symbol('orderbooks'), true);
+        $stream->subscribe('orders', $this->stream_to_symbol('orders'), true);
+        $stream->subscribe('positions', $this->stream_to_symbol('positions'), true);
+        $stream->subscribe('trades', $this->stream_to_symbol('trades'), true);
+        $stream->subscribe('myTrades', $this->stream_to_symbol('myTrades'), true);
+    }
+
+    public function stream_produce($topic, mixed $payload = null, mixed $error = null) {
+        $stream = $this->stream;
+        $stream->produce ($topic, $payload, $error);
+    }
 
     public function safe_bool_n($dictionaryOrList, array $keys, ?bool $defaultValue = null) {
         /**
@@ -950,6 +968,7 @@ class Exchange extends \ccxt\Exchange {
 
     public function after_construct() {
         $this->create_networks_by_id_object();
+        $this->setup_stream();
     }
 
     public function create_networks_by_id_object() {

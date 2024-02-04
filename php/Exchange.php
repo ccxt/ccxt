@@ -34,7 +34,10 @@ use kornrunner\Keccak;
 use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
+use ccxt\pro\Message;
 use Exception;
+use ccxt\pro\Stream;
+
 
 $version = '4.2.33';
 
@@ -220,6 +223,8 @@ class Exchange {
     public $reduceFees = true;
 
     public $timeframes = null;
+
+    public \ccxt\pro\Stream $stream;
 
     public $requiredCredentials = array(
         'apiKey' => true,
@@ -2131,6 +2136,17 @@ class Exchange {
         return $modifiedContent;
     }
 
+    public function stream_to_symbol($topic) {
+        return function(Message $message) use ($topic) {
+            $payload = $message->payload;
+            $symbol = isset($payload['symbol']) ? $payload['symbol'] : null;
+            if ($symbol) {
+                $newTopic = "{$topic}.{$symbol}";
+                $this->stream->produce($newTopic, $payload);
+            }
+        };
+    }
+
     // ########################################################################
     // ########################################################################
     // ########################################################################
@@ -2169,6 +2185,23 @@ class Exchange {
     // ########################################################################
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function setup_stream() {
+        $this->stream = new Stream ();
+        $stream = $this->stream;
+        $stream->subscribe('tickers', $this->stream_to_symbol('tickers'), true);
+        $stream->subscribe('ohlcv', $this->stream_to_symbol('ohlcv'), true);
+        $stream->subscribe('orderbooks', $this->stream_to_symbol('orderbooks'), true);
+        $stream->subscribe('orders', $this->stream_to_symbol('orders'), true);
+        $stream->subscribe('positions', $this->stream_to_symbol('positions'), true);
+        $stream->subscribe('trades', $this->stream_to_symbol('trades'), true);
+        $stream->subscribe('myTrades', $this->stream_to_symbol('myTrades'), true);
+    }
+
+    public function stream_produce($topic, mixed $payload = null, mixed $error = null) {
+        $stream = $this->stream;
+        $stream->produce ($topic, $payload, $error);
+    }
 
     public function safe_bool_n($dictionaryOrList, array $keys, ?bool $defaultValue = null) {
         /**
@@ -2782,6 +2815,7 @@ class Exchange {
 
     public function after_construct() {
         $this->create_networks_by_id_object();
+        $this->setup_stream();
     }
 
     public function create_networks_by_id_object() {

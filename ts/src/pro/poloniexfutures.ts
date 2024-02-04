@@ -153,7 +153,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             name += ':' + marketId;
         }
         const messageHash = name;
-        const tunnelId = await this.stream (url, messageHash);
+        const tunnelId = await this.streamId (url, messageHash);
         const requestId = this.requestId ();
         const subscribe = {
             'id': requestId,
@@ -180,7 +180,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         super.onClose (client, error);
     }
 
-    async stream (url, subscriptionHash) {
+    async streamId (url, subscriptionHash) {
         const streamBySubscriptionsHash = this.safeValue (this.options, 'streamBySubscriptionsHash', {});
         let stream = this.safeString (streamBySubscriptionsHash, subscriptionHash);
         if (stream === undefined) {

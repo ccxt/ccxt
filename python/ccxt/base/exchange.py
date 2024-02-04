@@ -94,6 +94,7 @@ from wsgiref.handlers import format_date_time
 import urllib.parse as _urlencode
 from typing import Any, List
 from ccxt.base.types import Int
+from ccxt.base.stream import Stream, Topic
 
 # -----------------------------------------------------------------------------
 
@@ -1703,6 +1704,15 @@ class Exchange(object):
         modifiedContent = modifiedContent.replace('}"', '}')
         return modifiedContent
 
+    def stream_to_symbol(self, topic):
+        def callback(message):
+            payload = message.payload
+            symbol = payload.get('symbol')
+            if symbol:
+                new_topic = f"{topic}.{symbol}"
+                self.stream.produce(new_topic, payload)
+        return callback
+
     # ########################################################################
     # ########################################################################
     # ########################################################################
@@ -1741,6 +1751,21 @@ class Exchange(object):
     # ########################################################################
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def setup_stream(self):
+        self.stream = Stream()
+        stream = self.stream
+        stream.subscribe('tickers', self.stream_to_symbol('tickers'), True)
+        stream.subscribe('ohlcv', self.stream_to_symbol('ohlcv'), True)
+        stream.subscribe('orderbooks', self.stream_to_symbol('orderbooks'), True)
+        stream.subscribe('orders', self.stream_to_symbol('orders'), True)
+        stream.subscribe('positions', self.stream_to_symbol('positions'), True)
+        stream.subscribe('trades', self.stream_to_symbol('trades'), True)
+        stream.subscribe('myTrades', self.stream_to_symbol('myTrades'), True)
+
+    def stream_produce(self, topic: Topic, payload: Any = None, error: Any = None):
+        stream = self.stream
+        stream.produce(topic, payload, error)
 
     def safe_bool_n(self, dictionaryOrList, keys: List[IndexType], defaultValue: bool = None):
         """
@@ -2222,6 +2247,7 @@ class Exchange(object):
 
     def after_construct(self):
         self.create_networks_by_id_object()
+        self.setup_stream()
 
     def create_networks_by_id_object(self):
         # automatically generate network-id-to-code mappings

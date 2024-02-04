@@ -154,7 +154,8 @@ export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balan
 // move this elsewhere
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from './ws/Cache.js'
 import totp from './functions/totp.js';
-import { Message, Stream } from './ws/Stream.js'
+import { Message, Stream, Topic } from './ws/Stream.js'
+import { sleep } from './functions.js'
 
 // ----------------------------------------------------------------------------
 /**
@@ -451,6 +452,7 @@ export default class Exchange {
     ymd = ymd
     base64ToString = base64ToString
     crc32 = crc32
+    sleep = sleep
     stream: Stream = new Stream ();
 
     describe () {
@@ -801,16 +803,7 @@ export default class Exchange {
         }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
 
-        this.stream = new Stream ();
-        this.stream.subscribe('tickers', this.tickersConsumer.bind(this), true);
-
         this.afterConstruct ();
-    }
-
-    tickersConsumer (message: Message) {
-        const ticker = message.payload;
-        const symbol = safeString (ticker, 'symbol');
-        this.stream.produce ('tickers.' + symbol, ticker);
     }
 
     encodeURIComponent (...args) {
@@ -1592,7 +1585,7 @@ export default class Exchange {
             const client = clients[i] as WsClient;
             delete this.clients[client.url];
         }
-        return;
+        this.stream.close ();
     }
 
     async loadOrderBook (client, messageHash, symbol, limit = undefined, params = {}) {
@@ -1668,6 +1661,15 @@ export default class Exchange {
         return modifiedContent;
     }
 
+    streamToSymbol (topic: Topic) {
+        const callback = (message: Message) => {
+            const payload = message.payload;
+            const symbol = safeString (payload, 'symbol');
+            this.stream.produce (topic + '.' + symbol, payload);
+        }
+        return callback.bind (this);
+    }
+
     /* eslint-enable */
     // ------------------------------------------------------------------------
 
@@ -1710,6 +1712,23 @@ export default class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+    
+    setupStream () {
+        this.stream = new Stream ();
+        const stream = this.stream;
+        stream.subscribe('tickers', this.streamToSymbol ('tickers'), true);
+        stream.subscribe('ohlcv', this.streamToSymbol ('ohlcv'), true);
+        stream.subscribe('orderbooks', this.streamToSymbol ('orderbooks'), true);
+        stream.subscribe('orders', this.streamToSymbol ('orders'), true);
+        stream.subscribe('positions', this.streamToSymbol ('positions'), true);
+        stream.subscribe('trades', this.streamToSymbol ('trades'), true);
+        stream.subscribe('myTrades', this.streamToSymbol ('myTrades'), true);
+    }
+
+    streamProduce (topic: Topic, payload: any = undefined, error: any = undefined) {
+        const stream = this.stream;
+        stream.produce (topic, payload, error);
+    }
 
     safeBoolN (dictionaryOrList, keys: IndexType[], defaultValue: boolean = undefined): boolean | undefined {
         /**
@@ -2332,6 +2351,7 @@ export default class Exchange {
 
     afterConstruct () {
         this.createNetworksByIdObject ();
+        this.setupStream ();
     }
 
     createNetworksByIdObject () {
