@@ -986,10 +986,10 @@ class testMainClass extends baseMainTestClass {
         //  --- Init of static tests functions------------------------------------------
         //  -----------------------------------------------------------------------------
         $calculated_string = json_stringify($calculated_output);
-        $output_string = json_stringify($stored_output);
-        $error_message = $message . ' expected ' . $output_string . ' received: ' . $calculated_string;
+        $stored_string = json_stringify($stored_output);
+        $error_message = $message . ' computed ' . $stored_string . ' stored: ' . $calculated_string;
         if ($key !== null) {
-            $error_message = ' | ' . $key . ' | ' . 'computed value: ' . $output_string . ' stored value: ' . $calculated_string;
+            $error_message = ' | ' . $key . ' | ' . 'computed value: ' . $stored_string . ' stored value: ' . $calculated_string;
         }
         assert($cond, $error_message);
     }
@@ -1375,7 +1375,10 @@ class testMainClass extends baseMainTestClass {
         return true;  // in c# methods that will be used with promiseAll need to return something
     }
 
-    public function get_number_of_tests_from_exchange($exchange, $exchange_data) {
+    public function get_number_of_tests_from_exchange($exchange, $exchange_data, $test_name = null) {
+        if ($test_name !== null) {
+            return 1;
+        }
         $sum = 0;
         $methods = $exchange_data['methods'];
         $methods_names = is_array($methods) ? array_keys($methods) : array();
@@ -1411,7 +1414,7 @@ class testMainClass extends baseMainTestClass {
         for ($i = 0; $i < count($exchanges); $i++) {
             $exchange_name = $exchanges[$i];
             $exchange_data = $static_data[$exchange_name];
-            $number_of_tests = $this->get_number_of_tests_from_exchange($exchange, $exchange_data);
+            $number_of_tests = $this->get_number_of_tests_from_exchange($exchange, $exchange_data, $test_name);
             $sum = $exchange->sum($sum, $number_of_tests);
             if ($type === 'request') {
                 $promises[] = $this->test_exchange_request_statically($exchange_name, $exchange_data, $test_name);

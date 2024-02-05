@@ -1289,7 +1289,7 @@ public partial class mexc : ccxt.mexc
         }
     }
 
-    public virtual object ping(WebSocketClient client)
+    public override object ping(WebSocketClient client)
     {
         return new Dictionary<string, object>() {
             { "method", "ping" },

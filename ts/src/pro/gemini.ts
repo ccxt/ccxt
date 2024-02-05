@@ -17,6 +17,7 @@ export default class gemini extends geminiRest {
                 'watchTicker': false,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
                 'watchMyTrades': false,
                 'watchOrders': true,
                 'watchOrderBook': true,
@@ -71,7 +72,47 @@ export default class gemini extends geminiRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name gemini#watchTradesForSymbols
+         * @see https://docs.gemini.com/websocket-api/#multi-market-data
+         * @description get the list of most recent trades for a list of symbols
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const firstMarket = this.market (symbols[0]);
+        if (!firstMarket['spot'] && !firstMarket['linear']) {
+            throw new NotSupported (this.id + ' watchTradesForSymbols() supports only spot or linear-swap symbols');
+        }
+        const messageHashes = [];
+        const marketIds = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const messageHash = 'trades:' + symbol;
+            messageHashes.push (messageHash);
+            const market = this.market (symbol);
+            marketIds.push (market['id']);
+        }
+        const queryStr = marketIds.join (',');
+        const url = this.urls['api']['ws'] + '/v1/multimarketdata?trades=true&bids=false&offers=false&heartbeat=true&symbols=' + queryStr;
+        const trades = await this.watchMultiple (url, messageHashes, undefined);
+        if (this.newUpdates) {
+            const first = this.safeList (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    parseWsTrade (trade, market = undefined): Trade {
+        //
+        // regular v2 trade
         //
         //     {
         //         "type": "trade",
@@ -83,11 +124,30 @@ export default class gemini extends geminiRest {
         //         "side": "buy"
         //     }
         //
+        // multi data trade
+        //
+        //    {
+        //        "type": "trade",
+        //        "symbol": "ETHUSD",
+        //        "tid": "1683002242170204", // this is not TS, but somewhat ID
+        //        "price": "2299.24",
+        //        "amount": "0.002662",
+        //        "makerSide": "bid"
+        //    }
+        //
         const timestamp = this.safeInteger (trade, 'timestamp');
-        const id = this.safeString (trade, 'event_id');
+        const id = this.safeString2 (trade, 'event_id', 'tid');
         const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'quantity');
-        const side = this.safeStringLower (trade, 'side');
+        const amountString = this.safeString2 (trade, 'quantity', 'amount');
+        let side = this.safeStringLower (trade, 'side');
+        if (side === undefined) {
+            const marketSide = this.safeStringLower (trade, 'makerSide');
+            if (marketSide === 'bid') {
+                side = 'sell';
+            } else if (marketSide === 'ask') {
+                side = 'buy';
+            }
+        }
         const marketId = this.safeStringLower (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         return this.safeTrade ({
@@ -187,6 +247,35 @@ export default class gemini extends geminiRest {
             }
             const messageHash = 'trades:' + symbol;
             client.resolve (stored, messageHash);
+        }
+    }
+
+    handleTradesForMultidata (client: Client, trades, timestamp: Int) {
+        if (trades !== undefined) {
+            const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            const storesForSymbols = {};
+            for (let i = 0; i < trades.length; i++) {
+                const marketId = trades[i]['symbol'];
+                const market = this.safeMarket (marketId.toLowerCase ());
+                const symbol = market['symbol'];
+                const trade = this.parseWsTrade (trades[i], market);
+                trade['timestamp'] = timestamp;
+                trade['datetime'] = this.iso8601 (timestamp);
+                let stored = this.safeValue (this.trades, symbol);
+                if (stored === undefined) {
+                    stored = new ArrayCache (tradesLimit);
+                    this.trades[symbol] = stored;
+                }
+                stored.append (trade);
+                storesForSymbols[symbol] = stored;
+            }
+            const symbols = Object.keys (storesForSymbols);
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const stored = storesForSymbols[symbol];
+                const messageHash = 'trades:' + symbol;
+                client.resolve (stored, messageHash);
+            }
         }
     }
 
@@ -510,6 +599,7 @@ export default class gemini extends geminiRest {
         //         "socket_sequence": 7
         //     }
         //
+        client.lastPong = this.milliseconds ();
         return message;
     }
 
@@ -719,6 +809,7 @@ export default class gemini extends geminiRest {
         }
         // handle multimarketdata
         if (type === 'update') {
+<<<<<<< HEAD
             const ts = this.safeInteger (message, 'timestampms', this.milliseconds ());
             const eventId = this.safeInteger (message, 'eventId');
             const events = this.safeList (message, 'events');
@@ -733,6 +824,20 @@ export default class gemini extends geminiRest {
             const lengthOb = orderBookItems.length;
             if (lengthOb > 0) {
                 this.handleOrderBookForMultidata (client, orderBookItems, ts, eventId);
+=======
+            const events = this.safeList (message, 'events');
+            const collectedEventsOfTrades = [];
+            for (let i = 0; i < events.length; i++) {
+                const eventType = this.safeString (events[i], 'type');
+                if (eventType === 'trade') {
+                    collectedEventsOfTrades.push (events[i]);
+                }
+            }
+            const length = collectedEventsOfTrades.length;
+            if (length > 0) {
+                const ts = this.safeInteger (message, 'timestampms');
+                this.handleTradesForMultidata (client, collectedEventsOfTrades, ts);
+>>>>>>> a21ca158ad6fe5760560c343389c5e1ec0ece4e8
             }
         }
     }

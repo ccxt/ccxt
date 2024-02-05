@@ -4,7 +4,8 @@
         "signature",
         "timestamp",
         "recvWindow",
-        "newClientOrderId"
+        "newClientOrderId",
+        "newClientStrategyId"
     ],
     "outputType": "urlencoded",
     "methods": {
@@ -138,7 +139,7 @@
                         "marginMode": "cross"
                     }
                 ],
-                "output": "timestamp=1699113838137&symbol=LTCUSDT&side=BUY&newClientOrderId=x-R4BD3S8277d937b569914d1bb5f784&newOrderRespType=FULL&type=LIMIT&quantity=0.2&price=50&timeInForce=GTC&marginMode=cross&recvWindow=10000&signature=0e12b57b83c758aceb6d88c4950c1259f41cc0b86d7e6259fcdb3202cd3d3c32"
+                "output": "timestamp=1699113838137&symbol=LTCUSDT&side=BUY&newClientOrderId=x-R4BD3S8277d937b569914d1bb5f784&newOrderRespType=FULL&type=LIMIT&quantity=0.2&price=50&timeInForce=GTC&recvWindow=10000&signature=0e12b57b83c758aceb6d88c4950c1259f41cc0b86d7e6259fcdb3202cd3d3c32"
             },
             {
                 "description": "Swap limit sell",
@@ -233,6 +234,89 @@
                   }
                 ],
                 "output": "timestamp=1704512493514&symbol=BTCUSDT&side=SELL&callbackRate=5&newClientOrderId=x-xcKtGhcufdcb378c830d451392c9a2&newOrderRespType=RESULT&type=TRAILING_STOP_MARKET&quantity=0.1&reduceOnly=true&recvWindow=10000&signature=381024e31ce5868d69dd3e12668b9b47514c1211e7d0021a7939cb26d07f679a"
+            },
+            {
+                "description": "Linear swap portfolio margin limit buy order",
+                "method": "createOrder",
+                "url": "https://papi.binance.com/papi/v1/um/order",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.01,
+                  35000,
+                  {
+                    "portfolioMargin": true
+                  }
+                ],
+                "output": "timestamp=1707112464420&symbol=BTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu0b020e257d4943d49c0ffe&type=LIMIT&quantity=0.01&price=35000&timeInForce=GTC&recvWindow=10000&signature=6d8b1ae407634704c7d7d26cbb62f0f438a09e9863b81a8a89a24461c4997808"
+            },
+            {
+                "description": "Inverse swap portfolio margin limit buy order",
+                "method": "createOrder",
+                "url": "https://papi.binance.com/papi/v1/cm/order",
+                "input": [
+                  "ETH/USD:ETH",
+                  "limit",
+                  "buy",
+                  1,
+                  2000,
+                  {
+                    "portfolioMargin": true
+                  }
+                ],
+                "output": "timestamp=1707112388003&symbol=ETHUSD_PERP&side=BUY&newClientOrderId=x-xcKtGhcu69273341d6114bd8b800aa&type=LIMIT&quantity=1&price=2000&timeInForce=GTC&recvWindow=10000&signature=4e4f549a6358aa1731060e825069022389780706305a60eaa58fbbf0c4a7d03f"
+            },
+            {
+                "description": "Linear swap portfolio margin conditional limit buy order",
+                "method": "createOrder",
+                "url": "https://papi.binance.com/papi/v1/um/conditional/order",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.01,
+                  35000,
+                  {
+                    "portfolioMargin": true,
+                    "triggerPrice": 45000
+                  }
+                ],
+                "output": "timestamp=1707112624772&symbol=BTCUSDT&side=BUY&newClientStrategyId=x-xcKtGhcu27f109953d6e4dc0974006&strategyType=STOP&quantity=0.01&price=35000&stopPrice=45000&recvWindow=10000&signature=2cacd678b9199f4f75ed8f7eb48cc35afc648346fc436c3808983baf983323ab"
+            },
+            {
+                "description": "Inverse swap portfolio margin conditional limit buy order",
+                "method": "createOrder",
+                "url": "https://papi.binance.com/papi/v1/cm/conditional/order",
+                "input": [
+                  "ETH/USD:ETH",
+                  "limit",
+                  "buy",
+                  1,
+                  2000,
+                  {
+                    "portfolioMargin": true,
+                    "triggerPrice": 3000
+                  }
+                ],
+                "output": "timestamp=1707113097689&symbol=ETHUSD_PERP&side=BUY&newClientStrategyId=x-xcKtGhcuc6b86f054bb34933850739&strategyType=STOP&quantity=1&price=2000&stopPrice=3000&recvWindow=10000&signature=aa5ec5fa5eb51372fa68597242bc2ddc31a32e9be5c084f00c2f6999b31cad2b"
+            },
+            {
+                "description": "Spot margin portfolio margin limit buy order",
+                "method": "createOrder",
+                "url": "https://papi.binance.com/papi/v1/margin/order",
+                "input": [
+                  "BTC/USDT",
+                  "limit",
+                  "buy",
+                  0.001,
+                  35000,
+                  {
+                    "portfolioMargin": true,
+                    "marginMode": "cross"
+                  }
+                ],
+                "output": "timestamp=1707113537828&symbol=BTCUSDT&side=BUY&newOrderRespType=FULL&newClientOrderId=x-R4BD3S82e9ef29d8346440f0b28b86&type=LIMIT&quantity=0.001&price=35000&timeInForce=GTC&recvWindow=10000&signature=08d71bf9a60d5184cc256964f1175179c813d11e038718c0d64d5cc5b982f2f5"
             }
         ],
         "createOrders": [
