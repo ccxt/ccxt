@@ -166,10 +166,32 @@ class krakenfutures(Exchange, ImplicitAPI):
             },
             'fees': {
                 'trading': {
-                    'tierBased': False,
+                    'tierBased': True,
                     'percentage': True,
-                    'maker': self.parse_number('-0.0002'),
-                    'taker': self.parse_number('0.00075'),
+                    'taker': self.parse_number('0.0005'),
+                    'maker': self.parse_number('0.0002'),
+                    'tiers': {
+                        'taker': [
+                            [self.parse_number('0'), self.parse_number('0.0005')],
+                            [self.parse_number('100000'), self.parse_number('0.0004')],
+                            [self.parse_number('1000000'), self.parse_number('0.0003')],
+                            [self.parse_number('5000000'), self.parse_number('0.00025')],
+                            [self.parse_number('10000000'), self.parse_number('0.0002')],
+                            [self.parse_number('20000000'), self.parse_number('0.00015')],
+                            [self.parse_number('50000000'), self.parse_number('0.000125')],
+                            [self.parse_number('100000000'), self.parse_number('0.0001')],
+                        ],
+                        'maker': [
+                            [self.parse_number('0'), self.parse_number('0.0002')],
+                            [self.parse_number('100000'), self.parse_number('0.0015')],
+                            [self.parse_number('1000000'), self.parse_number('0.000125')],
+                            [self.parse_number('5000000'), self.parse_number('0.0001')],
+                            [self.parse_number('10000000'), self.parse_number('0.000075')],
+                            [self.parse_number('20000000'), self.parse_number('0.00005')],
+                            [self.parse_number('50000000'), self.parse_number('0.000025')],
+                            [self.parse_number('100000000'), self.parse_number('0')],
+                        ],
+                    },
                 },
             },
             'exceptions': {

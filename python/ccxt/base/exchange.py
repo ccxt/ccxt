@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.33'
+__version__ = '4.2.35'
 
 # -----------------------------------------------------------------------------
 
@@ -1776,6 +1776,8 @@ class Exchange(object):
         :returns dict | None:
         """
         value = self.safe_value_n(dictionaryOrList, keys, defaultValue)
+        if value is None:
+            return defaultValue
         if isinstance(value, dict):
             return value
         return defaultValue
@@ -1803,6 +1805,8 @@ class Exchange(object):
         :returns Array | None:
         """
         value = self.safe_value_n(dictionaryOrList, keys, defaultValue)
+        if value is None:
+            return defaultValue
         if isinstance(value, list):
             return value
         return defaultValue
@@ -5039,7 +5043,8 @@ class Exchange(object):
                 errors = 0
                 responseLength = len(response)
                 if self.verbose:
-                    cursorMessage = 'Cursor pagination call ' + i + 1 + ' method ' + method + ' response length ' + responseLength + ' cursor ' + cursorValue
+                    iteration = (i + str(1))
+                    cursorMessage = 'Cursor pagination call ' + iteration + ' method ' + method + ' response length ' + str(responseLength) + ' cursor ' + cursorValue
                     self.log(cursorMessage)
                 if responseLength == 0:
                     break
@@ -5076,7 +5081,8 @@ class Exchange(object):
                 errors = 0
                 responseLength = len(response)
                 if self.verbose:
-                    incrementalMessage = 'Incremental pagination call ' + i + 1 + ' method ' + method + ' response length ' + responseLength
+                    iteration = (i + str(1))
+                    incrementalMessage = 'Incremental pagination call ' + iteration + ' method ' + method + ' response length ' + str(responseLength)
                     self.log(incrementalMessage)
                 if responseLength == 0:
                     break

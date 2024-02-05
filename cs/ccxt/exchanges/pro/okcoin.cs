@@ -686,7 +686,7 @@ public partial class okcoin : ccxt.okcoin
         return message;
     }
 
-    public override object ping(WebSocketClient client)
+    public virtual object ping(WebSocketClient client)
     {
         // okex does not support built-in ws protocol-level ping-pong
         // instead it requires custom text-based ping-pong
