@@ -5404,21 +5404,6 @@ export default class binance extends Exchange {
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'papi', 'portfolioMargin', false);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
-        if (!isPortfolioMargin) {
-            const postOnly = this.isPostOnly (isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', params);
-            if (market['spot'] || marketType === 'margin') {
-                // only supported for spot/margin api (all margin markets are spot markets)
-                if (postOnly) {
-                    type = 'LIMIT_MAKER';
-                }
-                if (marginMode === 'isolated') {
-                    request['isIsolated'] = true;
-                }
-            }
-            if (market['contract'] && postOnly) {
-                request['timeInForce'] = 'GTX';
-            }
-        }
         if ((marketType === 'margin') || (marginMode !== undefined) || market['option']) {
             // for swap and future reduceOnly is a string that cant be sent with close position set to true or in hedge mode
             const reduceOnly = this.safeBool (params, 'reduceOnly', false);
@@ -5612,6 +5597,21 @@ export default class binance extends Exchange {
             }
             if (stopPrice !== undefined) {
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            }
+        }
+        if (!isPortfolioMargin) {
+            const postOnly = this.isPostOnly (isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', params);
+            if (market['spot'] || marketType === 'margin') {
+                // only supported for spot/margin api (all margin markets are spot markets)
+                if (postOnly) {
+                    type = 'LIMIT_MAKER';
+                }
+                if (marginMode === 'isolated') {
+                    request['isIsolated'] = true;
+                }
+            }
+            if (market['contract'] && postOnly) {
+                request['timeInForce'] = 'GTX';
             }
         }
         // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance

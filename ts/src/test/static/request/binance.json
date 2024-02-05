@@ -4,7 +4,8 @@
         "signature",
         "timestamp",
         "recvWindow",
-        "newClientOrderId"
+        "newClientOrderId",
+        "newClientStrategyId"
     ],
     "outputType": "urlencoded",
     "methods": {
@@ -138,7 +139,7 @@
                         "marginMode": "cross"
                     }
                 ],
-                "output": "timestamp=1699113838137&symbol=LTCUSDT&side=BUY&newClientOrderId=x-R4BD3S8277d937b569914d1bb5f784&newOrderRespType=FULL&type=LIMIT&quantity=0.2&price=50&timeInForce=GTC&marginMode=cross&recvWindow=10000&signature=0e12b57b83c758aceb6d88c4950c1259f41cc0b86d7e6259fcdb3202cd3d3c32"
+                "output": "timestamp=1699113838137&symbol=LTCUSDT&side=BUY&newClientOrderId=x-R4BD3S8277d937b569914d1bb5f784&newOrderRespType=FULL&type=LIMIT&quantity=0.2&price=50&timeInForce=GTC&recvWindow=10000&signature=0e12b57b83c758aceb6d88c4950c1259f41cc0b86d7e6259fcdb3202cd3d3c32"
             },
             {
                 "description": "Swap limit sell",
