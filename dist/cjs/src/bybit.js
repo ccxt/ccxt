@@ -3738,10 +3738,22 @@ class bybit extends bybit$1 {
             if (isStopLoss) {
                 const slTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
                 request['stopLoss'] = this.priceToPrecision(symbol, slTriggerPrice);
+                const slLimitPrice = this.safeValue(stopLoss, 'price');
+                if (slLimitPrice !== undefined) {
+                    request['tpslMode'] = 'Partial';
+                    request['slOrderType'] = 'Limit';
+                    request['slLimitPrice'] = this.priceToPrecision(symbol, slLimitPrice);
+                }
             }
             if (isTakeProfit) {
                 const tpTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
                 request['takeProfit'] = this.priceToPrecision(symbol, tpTriggerPrice);
+                const tpLimitPrice = this.safeValue(takeProfit, 'price');
+                if (tpLimitPrice !== undefined) {
+                    request['tpslMode'] = 'Partial';
+                    request['tpOrderType'] = 'Limit';
+                    request['tpLimitPrice'] = this.priceToPrecision(symbol, tpLimitPrice);
+                }
             }
         }
         if (market['spot']) {
@@ -6023,9 +6035,6 @@ class bybit extends bybit$1 {
         if (timestamp === undefined) {
             timestamp = this.safeIntegerN(position, ['updatedTime', 'updatedAt']);
         }
-        // default to cross of USDC margined positions
-        const tradeMode = this.safeInteger(position, 'tradeMode', 0);
-        const marginMode = tradeMode ? 'isolated' : 'cross';
         let collateralString = this.safeString(position, 'positionBalance');
         const entryPrice = this.omitZero(this.safeString2(position, 'entryPrice', 'avgPrice'));
         const liquidationPrice = this.omitZero(this.safeString(position, 'liqPrice'));
@@ -6089,7 +6098,7 @@ class bybit extends bybit$1 {
             'markPrice': this.safeNumber(position, 'markPrice'),
             'lastPrice': undefined,
             'collateral': this.parseNumber(collateralString),
-            'marginMode': marginMode,
+            'marginMode': undefined,
             'side': side,
             'percentage': undefined,
             'stopLossPrice': this.safeNumber2(position, 'stop_loss', 'stopLoss'),
