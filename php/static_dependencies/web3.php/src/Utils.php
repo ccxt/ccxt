@@ -15,7 +15,7 @@ use RuntimeException;
 use InvalidArgumentException;
 use stdClass;
 use kornrunner\Keccak;
-use BI\BigInteger as BigNumber;
+use phpseclib\Math\BigInteger as BigNumber;
 
 class Utils
 {
