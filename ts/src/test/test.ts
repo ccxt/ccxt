@@ -32,7 +32,7 @@ const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
 
 const [ processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
-const sanitizedSymnol = exchangeSymbol !== undefined && exchangeSymbol.includes ('/') ? exchangeSymbol : undefined;
+// const sanitizedSymnol = exchangeSymbol !== undefined && exchangeSymbol.includes ('/') ? exchangeSymbol : undefined;
 // non-transpiled part, but shared names among langs
 function getCliArgValue (arg) {
     return process.argv.includes (arg) || false;
@@ -1340,7 +1340,10 @@ export default class testMainClass extends baseMainTestClass {
         return true; // in c# methods that will be used with promiseAll need to return something
     }
 
-    getNumberOfTestsFromExchange (exchange, exchangeData: object) {
+    getNumberOfTestsFromExchange (exchange, exchangeData: object, testName: string = undefined) {
+        if (testName !== undefined) {
+            return 1;
+        }
         let sum = 0;
         const methods = exchangeData['methods'];
         const methodsNames = Object.keys (methods);
@@ -1376,7 +1379,7 @@ export default class testMainClass extends baseMainTestClass {
         for (let i = 0; i < exchanges.length; i++) {
             const exchangeName = exchanges[i];
             const exchangeData = staticData[exchangeName];
-            const numberOfTests = this.getNumberOfTestsFromExchange (exchange, exchangeData);
+            const numberOfTests = this.getNumberOfTestsFromExchange (exchange, exchangeData, testName);
             sum = exchange.sum (sum, numberOfTests);
             if (type === 'request') {
                 promises.push (this.testExchangeRequestStatically (exchangeName, exchangeData, testName));
@@ -1699,4 +1702,4 @@ export default class testMainClass extends baseMainTestClass {
 }
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-(new testMainClass ()).init (exchangeIdFromArgv, sanitizedSymnol);
+(new testMainClass ()).init (exchangeIdFromArgv, exchangeSymbol);
