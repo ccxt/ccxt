@@ -4693,7 +4693,7 @@ export default class binance extends Exchange {
             }
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        if (timeInForceIsRequired) {
+        if (timeInForceIsRequired && (this.safeString (params, 'timeInForce') === undefined)) {
             request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (stopPriceIsRequired) {
@@ -5414,6 +5414,21 @@ export default class binance extends Exchange {
                 if (reduceOnly) {
                     request['sideEffectType'] = 'AUTO_REPAY';
                 }
+            }
+        }
+        if (!isPortfolioMargin) {
+            const postOnly = this.isPostOnly (isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', params);
+            if (market['spot'] || marketType === 'margin') {
+                // only supported for spot/margin api (all margin markets are spot markets)
+                if (postOnly) {
+                    type = 'LIMIT_MAKER';
+                }
+                if (marginMode === 'isolated') {
+                    request['isIsolated'] = true;
+                }
+            }
+            if (market['contract'] && postOnly) {
+                request['timeInForce'] = 'GTX';
             }
         }
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
