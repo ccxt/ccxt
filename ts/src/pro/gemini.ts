@@ -2,7 +2,7 @@
 
 import geminiRest from '../gemini.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { ExchangeError } from '../base/errors.js';
+import { ExchangeError, NotSupported } from '../base/errors.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 import type { Int, Str, OrderBook, Order, Trade, OHLCV } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -86,7 +86,7 @@ export default class gemini extends geminiRest {
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (symbols[0]);
         if (!firstMarket['spot'] && !firstMarket['linear']) {
-            throw new ExchangeError (this.id + ' watchTradesForSymbols supports only spot or linear-swap symbols');
+            throw new NotSupported (this.id + ' watchTradesForSymbols() supports only spot or linear-swap symbols');
         }
         const messageHashes = [];
         const marketIds = [];
