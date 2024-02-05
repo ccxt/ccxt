@@ -809,35 +809,28 @@ export default class gemini extends geminiRest {
         }
         // handle multimarketdata
         if (type === 'update') {
-<<<<<<< HEAD
             const ts = this.safeInteger (message, 'timestampms', this.milliseconds ());
             const eventId = this.safeInteger (message, 'eventId');
             const events = this.safeList (message, 'events');
             const orderBookItems = [];
+            const collectedEventsOfTrades = [];
             for (let i = 0; i < events.length; i++) {
                 const event = events[i];
                 const eventType = this.safeString (event, 'type');
-                if (eventType === 'change' && ('side' in event) && this.inArray (event['side'], [ 'ask', 'bid' ])) {
+                const isOrderBook = (eventType === 'change') && ('side' in event) && this.inArray (event['side'], [ 'ask', 'bid' ]);
+                if (isOrderBook) {
                     orderBookItems.push (event);
+                } else if (eventType === 'trade') {
+                    collectedEventsOfTrades.push (events[i]);
                 }
             }
             const lengthOb = orderBookItems.length;
             if (lengthOb > 0) {
                 this.handleOrderBookForMultidata (client, orderBookItems, ts, eventId);
-=======
-            const events = this.safeList (message, 'events');
-            const collectedEventsOfTrades = [];
-            for (let i = 0; i < events.length; i++) {
-                const eventType = this.safeString (events[i], 'type');
-                if (eventType === 'trade') {
-                    collectedEventsOfTrades.push (events[i]);
-                }
             }
-            const length = collectedEventsOfTrades.length;
-            if (length > 0) {
-                const ts = this.safeInteger (message, 'timestampms');
+            const lengthTrades = collectedEventsOfTrades.length;
+            if (lengthTrades > 0) {
                 this.handleTradesForMultidata (client, collectedEventsOfTrades, ts);
->>>>>>> a21ca158ad6fe5760560c343389c5e1ec0ece4e8
             }
         }
     }
