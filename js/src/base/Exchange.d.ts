@@ -556,6 +556,7 @@ export default class Exchange {
     indexedOrderBook(snapshot?: {}, depth?: number): IndexedOrderBook;
     countedOrderBook(snapshot?: {}, depth?: number): CountedOrderBook;
     handleMessage(client: any, message: any): void;
+    ping(client: any): any;
     client(url: any): WsClient;
     watchMultiple(url: any, messageHashes: any, message?: any, subscribeHashes?: any, subscription?: any): import("./ws/Future.js").FutureInterface;
     watch(url: any, messageHash: any, message?: any, subscribeHash?: any, subscription?: any): any;

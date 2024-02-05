@@ -1378,7 +1378,7 @@ public partial class poloniex : ccxt.poloniex
         return message;
     }
 
-    public virtual object ping(WebSocketClient client)
+    public override object ping(WebSocketClient client)
     {
         return new Dictionary<string, object>() {
             { "event", "ping" },

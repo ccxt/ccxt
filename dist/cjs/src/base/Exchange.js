@@ -1069,9 +1069,9 @@ class Exchange {
     }
     handleMessage(client, message) { } // stub to override
     // ping (client) {} // stub to override
-    // ping (client) {
-    //     return undefined;
-    // }
+    ping(client) {
+        return undefined;
+    }
     client(url) {
         this.clients = this.clients || {};
         if (!this.clients[url]) {
