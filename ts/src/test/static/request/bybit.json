@@ -318,6 +318,29 @@
                   }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"spot\",\"marketUnit\":\"quoteCoin\",\"qty\":\"3\"}"
+            },
+            {
+                "description": "Create swap limit order with tp+sl limit orders attached",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  1,
+                  50,
+                  {
+                    "takeProfit": {
+                      "stopPrice": 100,
+                      "price": 90
+                    },
+                    "stopLoss": {
+                      "stopPrice": 50,
+                      "price": 49
+                    }
+                  }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"1\",\"price\":\"50\",\"stopLoss\":\"50\",\"tpslMode\":\"Partial\",\"slOrderType\":\"Limit\",\"slLimitPrice\":\"49\",\"takeProfit\":\"100\",\"tpOrderType\":\"Limit\",\"tpLimitPrice\":\"90\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
