@@ -381,7 +381,7 @@ export default class gemini extends geminiRest {
         return [ url, messageHashes ];
     }
 
-    handleOrderBookForMultidata (client: Client, rawOrderBookChanges, timestamp: Int, nonce: Str = undefined) {
+    handleOrderBookForMultidata (client: Client, rawOrderBookChanges, timestamp: Int, nonce: Int) {
         //
         // rawOrderBookChanges
         //
@@ -720,7 +720,7 @@ export default class gemini extends geminiRest {
         // handle multimarketdata
         if (type === 'update') {
             const ts = this.safeInteger (message, 'timestampms', this.milliseconds ());
-            const eventId = this.safeString (message, 'eventId');
+            const eventId = this.safeInteger (message, 'eventId');
             const events = this.safeList (message, 'events');
             const orderBookItems = [];
             for (let i = 0; i < events.length; i++) {
