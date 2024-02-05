@@ -17,6 +17,7 @@ export default class gemini extends geminiRest {
                 'watchTicker': false,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
                 'watchMyTrades': false,
                 'watchOrders': true,
                 'watchOrderBook': true,
