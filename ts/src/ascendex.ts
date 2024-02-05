@@ -276,7 +276,7 @@ export default class ascendex extends Exchange {
                     'fillResponseFromRequest': true,
                 },
                 'networks': {
-                    'BSC': 'BEP20 (BSC)',
+                    'BSC': 'BEP20 ' + '(BSC)',
                     'ARB': 'arbitrum',
                     'SOL': 'Solana',
                     'AVAX': 'avalanche C chain',
