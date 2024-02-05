@@ -258,6 +258,7 @@ export interface Position {
     notional?: number;
     leverage?: number;
     unrealizedPnl?: number;
+    realizedPnl?: number;
     collateral?: number;
     entryPrice?: number;
     markPrice?: number;
