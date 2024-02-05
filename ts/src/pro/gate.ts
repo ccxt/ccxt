@@ -334,7 +334,8 @@ export default class gate extends gateRest {
         /**
          * @method
          * @name gate#watchBidsAsks
-         * @description watches bids & asks for symbols
+         * @see https://www.gate.io/docs/developers/apiv4/ws/en/#order-book-channel
+         * @description watches best bid & ask for symbols
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
