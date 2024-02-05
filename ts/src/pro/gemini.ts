@@ -85,8 +85,8 @@ export default class gemini extends geminiRest {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (symbols[0]);
-        if (firstMarket['type'] !== 'spot') {
-            throw new ExchangeError (this.id + ' watchTradesForSymbols supports only spot symbols');
+        if (!firstMarket['spot'] && !firstMarket['linear']) {
+            throw new ExchangeError (this.id + ' watchTradesForSymbols supports only spot or linear-swap symbols');
         }
         const messageHashes = [];
         const marketIds = [];
