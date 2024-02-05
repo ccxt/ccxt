@@ -969,10 +969,10 @@ export default class testMainClass extends baseMainTestClass {
         //  --- Init of static tests functions------------------------------------------
         //  -----------------------------------------------------------------------------
         const calculatedString = jsonStringify (calculatedOutput);
-        const outputString = jsonStringify (storedOutput);
-        let errorMessage = message + ' expected ' + outputString + ' received: ' + calculatedString;
+        const storedString = jsonStringify (storedOutput);
+        let errorMessage = message + ' computed ' + storedString + ' stored: ' + calculatedString;
         if (key !== undefined) {
-            errorMessage = ' | ' + key + ' | ' + 'computed value: ' + outputString + ' stored value: ' + calculatedString;
+            errorMessage = ' | ' + key + ' | ' + 'computed value: ' + storedString + ' stored value: ' + calculatedString;
         }
         assert (cond, errorMessage);
     }
