@@ -1444,5 +1444,5 @@ class testMainClass(baseMainTestClass):
 
 
 if __name__ == '__main__':
-    symbol = argv.symbol if argv.symbol and '/' in argv.symbol else None
+    symbol = argv.symbol if argv.symbol else None
     asyncio.run(testMainClass().init(argv.exchange, symbol))
