@@ -2,7 +2,7 @@
 
 import geminiRest from '../gemini.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { ExchangeError } from '../base/errors.js';
+import { ExchangeError, NotSupported } from '../base/errors.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 import type { Int, Str, OrderBook, Order, Trade, OHLCV } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -20,6 +20,7 @@ export default class gemini extends geminiRest {
                 'watchMyTrades': false,
                 'watchOrders': true,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
             },
             'hostname': 'api.gemini.com',
@@ -311,6 +312,38 @@ export default class gemini extends geminiRest {
         const subscribeHash = 'l2:' + market['symbol'];
         const url = this.urls['api']['ws'] + '/v2/marketdata';
         const orderbook = await this.watch (url, messageHash, request, subscribeHash);
+        return orderbook.limit ();
+    }
+
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name gemini#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.gemini.com/websocket-api/#multi-market-data
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const firstMarket = this.market (symbols[0]);
+        if (!firstMarket['spot'] && !firstMarket['linear']) {
+            throw new NotSupported (this.id + ' watchTradesForSymbols supports only spot or linear-swap symbols');
+        }
+        const messageHashes = [];
+        const marketIds = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const messageHash = 'trades:' + symbol;
+            messageHashes.push (messageHash);
+            const market = this.market (symbol);
+            marketIds.push (market['id']);
+        }
+        const queryStr = marketIds.join (',');
+        const url = this.urls['api']['ws'] + '/v1/multimarketdata?trades=true&bids=false&offers=false&heartbeat=true&symbols=' + queryStr;
+        const orderbook = await this.watchMultiple (url, messageHashes, undefined);
         return orderbook.limit ();
     }
 
@@ -626,6 +659,22 @@ export default class gemini extends geminiRest {
         const method = this.safeValue (methods, type);
         if (method !== undefined) {
             method.call (this, client, message);
+        }
+        // handle multimarketdata
+        if (type === 'update') {
+            const events = this.safeList (message, 'events');
+            const collectedEventsOfTrades = [];
+            for (let i = 0; i < events.length; i++) {
+                const eventType = this.safeString (events[i], 'type');
+                if (eventType === 'trade') {
+                    collectedEventsOfTrades.push (events[i]);
+                }
+            }
+            const length = collectedEventsOfTrades.length;
+            if (length > 0) {
+                const ts = this.safeInteger (message, 'timestampms');
+                this.handleTradesForMultidata (client, collectedEventsOfTrades, ts);
+            }
         }
     }
 
