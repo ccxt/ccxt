@@ -30,7 +30,7 @@ export default class hyperliquid extends Exchange {
                 'swap': true,
                 'future': true,
                 'option': false,
-                'addMargin': false,
+                'addMargin': true,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
                 'cancelAllOrders': false,
@@ -100,7 +100,7 @@ export default class hyperliquid extends Exchange {
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': false,
-                'reduceMargin': false,
+                'reduceMargin': true,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
                 'setLeverage': true,
@@ -1722,6 +1722,79 @@ export default class hyperliquid extends Exchange {
         //     }
         //
         return response;
+    }
+
+    async addMargin (symbol: string, amount, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#addMargin
+         * @description add margin
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin
+         * @param {string} symbol unified market symbol
+         * @param {float} amount amount of margin to add
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+         */
+        return await this.modifyMarginHelper (symbol, amount, 'add', params);
+    }
+
+    async reduceMargin (symbol: string, amount, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#reduceMargin
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin
+         * @description remove margin from a position
+         * @param {string} symbol unified market symbol
+         * @param {float} amount the amount of margin to remove
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+         */
+        return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
+    }
+
+    async modifyMarginHelper (symbol: string, amount, type, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const asset = this.parseToInt (market['baseId']);
+        const vaultAddress = this.safeString (params, 'vaultAddress');
+        const zeroAddress = this.safeString (this.options, 'zeroAddress');
+        let sz = this.parseToInt (Precise.stringMul (this.amountToPrecision (symbol, amount), '1000000'));
+        if (type === 'reduce') {
+            sz = -sz;
+        }
+        const nonce = this.milliseconds ();
+        const signatureTypes = [ 'uint32', 'bool', 'int64', 'address', 'uint256' ];
+        const signatureData = [
+            asset,
+            true,
+            sz,
+            (vaultAddress) ? vaultAddress : zeroAddress,
+            nonce,
+        ];
+        const sig = this.buildActionSig (signatureTypes, signatureData);
+        const request = {
+            'action': {
+                'type': 'updateIsolatedMargin',
+                'asset': asset,
+                'isBuy': true,
+                'ntli': sz,
+            },
+            'nonce': nonce,
+            'signature': sig,
+        };
+        const response = await this.privatePostExchange (request);
+        //
+        //     {
+        //         'response': {
+        //             'type': 'default'
+        //         },
+        //         'status': 'ok'
+        //     }
+        //
+        return response;
+        // return this.extend (this.parseMarginModification (response, market), {
+        //     'code': code,
+        // });
     }
 
     async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
