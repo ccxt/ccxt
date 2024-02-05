@@ -315,38 +315,6 @@ export default class gemini extends geminiRest {
         return orderbook.limit ();
     }
 
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name gemini#watchOrderBookForSymbols
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.gemini.com/websocket-api/#multi-market-data
-         * @param {string[]} symbols unified array of symbols
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
-        const firstMarket = this.market (symbols[0]);
-        if (!firstMarket['spot'] && !firstMarket['linear']) {
-            throw new NotSupported (this.id + ' watchTradesForSymbols supports only spot or linear-swap symbols');
-        }
-        const messageHashes = [];
-        const marketIds = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            const messageHash = 'trades:' + symbol;
-            messageHashes.push (messageHash);
-            const market = this.market (symbol);
-            marketIds.push (market['id']);
-        }
-        const queryStr = marketIds.join (',');
-        const url = this.urls['api']['ws'] + '/v1/multimarketdata?trades=true&bids=false&offers=false&heartbeat=true&symbols=' + queryStr;
-        const orderbook = await this.watchMultiple (url, messageHashes, undefined);
-        return orderbook.limit ();
-    }
-
     handleOrderBook (client: Client, message) {
         const changes = this.safeValue (message, 'changes', []);
         const marketId = this.safeStringLower (message, 'symbol');
@@ -369,6 +337,58 @@ export default class gemini extends geminiRest {
         orderbook['symbol'] = symbol;
         this.orderbooks[symbol] = orderbook;
         client.resolve (orderbook, messageHash);
+    }
+
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name gemini#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.gemini.com/websocket-api/#multi-market-data
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const firstMarket = this.market (symbols[0]);
+        if (!firstMarket['spot'] && !firstMarket['linear']) {
+            throw new NotSupported (this.id + ' watchOrderBookForSymbols supports only spot or linear-swap symbols');
+        }
+        const messageHashes = [];
+        const marketIds = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const messageHash = 'trades:' + symbol;
+            messageHashes.push (messageHash);
+            const market = this.market (symbol);
+            marketIds.push (market['id']);
+        }
+        const queryStr = marketIds.join (',');
+        const url = this.urls['api']['ws'] + '/v1/multimarketdata?trades=false&bids=true&offers=true&heartbeat=true&symbols=' + queryStr;
+        const orderbook = await this.watchMultiple (url, messageHashes, undefined);
+        return orderbook.limit ();
+    }
+
+    handleOrderBooksForMultidata (client: Client, orderbooks, timestamp: Int = undefined) {
+        if (orderbooks !== undefined) {
+            const storesForSymbols = {};
+            for (let i = 0; i < orderbooks.length; i++) {
+                const marketId = orderbooks[i]['symbol'];
+                const market = this.safeMarket (marketId.toLowerCase ());
+                const symbol = market['symbol'];
+                const orderBook = this.parseOrderBook (orderbooks[i], symbol);
+                console.log (orderBook, timestamp);
+            }
+            const symbols = Object.keys (storesForSymbols);
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const stored = storesForSymbols[symbol];
+                const messageHash = 'orderbook:' + symbol;
+                client.resolve (stored, messageHash);
+            }
+        }
     }
 
     handleL2Updates (client: Client, message) {
@@ -664,16 +684,20 @@ export default class gemini extends geminiRest {
         if (type === 'update') {
             const events = this.safeList (message, 'events');
             const collectedEventsOfTrades = [];
+            const collectedEventsOfOrderBooks = [];
             for (let i = 0; i < events.length; i++) {
                 const eventType = this.safeString (events[i], 'type');
                 if (eventType === 'trade') {
                     collectedEventsOfTrades.push (events[i]);
                 }
+                if (eventType === 'change' && ('side' in events[i]) && this.inArray (events[i]['side'], [ 'ask', 'bid' ])) {
+                    collectedEventsOfOrderBooks.push (events[i]);
+                }
             }
-            const length = collectedEventsOfTrades.length;
-            if (length > 0) {
-                const ts = this.safeInteger (message, 'timestampms');
-                this.handleTradesForMultidata (client, collectedEventsOfTrades, ts);
+            const lengthOb = collectedEventsOfOrderBooks.length;
+            if (lengthOb > 0) {
+                const ts = this.safeInteger (message, 'timestampms', this.milliseconds ());
+                this.handleOrderBooksForMultidata (client, collectedEventsOfOrderBooks, ts);
             }
         }
     }
