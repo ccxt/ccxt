@@ -142,6 +142,7 @@ export default class bingx extends Exchange {
                                 'trade/order': 3,
                                 'trade/cancel': 3,
                                 'trade/batchOrders': 3,
+                                'trade/order/cancelReplace': 3,
                                 'trade/cancelOrders': 3,
                                 'trade/cancelOpenOrders': 3,
                             },
@@ -163,10 +164,17 @@ export default class bingx extends Exchange {
                 },
                 'swap': {
                     'v1': {
+                        'public': {
+                            'get': {
+                                'ticker/price': 1,
+                            },
+                        },
                         'private': {
                             'get': {
                                 'positionSide/dual': 1,
                                 'market/markPriceKlines': 1,
+                                'trade/cancelReplace': 1,
+                                'trade/batchCancelReplace': 1,
                             },
                             'post': {
                                 'positionSide/dual': 1,
