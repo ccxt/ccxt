@@ -183,6 +183,12 @@ public struct Order
     public double? average;
     public double? amount;
     public double? filled;
+
+    public double? triggerPrice;
+
+    public double? stopLossPrice;
+
+    public double? takeProfitPrice;
     public double? remaining;
     public string? status;
     public Fee? fee;
@@ -208,6 +214,9 @@ public struct Order
         status = Exchange.SafeString(order, "status");
         fee = order.ContainsKey("fee") ? new Fee(order["fee"]) : null;
         trades = order.ContainsKey("trades") ? ((IEnumerable<object>)order["trades"]).Select(x => new Trade(x)) : null;
+        triggerPrice = Exchange.SafeFloat(order, "triggerPrice");
+        stopLossPrice = Exchange.SafeFloat(order, "stopLossPrice");
+        takeProfitPrice = Exchange.SafeFloat(order, "takeProfitPrice");
         info = order.ContainsKey("info") ? (Dictionary<string, object>)order["info"] : null;
     }
 }

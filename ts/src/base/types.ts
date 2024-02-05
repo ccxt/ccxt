@@ -112,6 +112,7 @@ export interface Order {
     filled: number;
     remaining: number;
     stopPrice?: number;
+    triggerPrice?: number;
     takeProfitPrice?: number;
     stopLossPrice?: number;
     cost: number;
