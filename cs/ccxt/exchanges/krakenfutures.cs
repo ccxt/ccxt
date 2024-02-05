@@ -102,10 +102,14 @@ public partial class krakenfutures : Exchange
             } },
             { "fees", new Dictionary<string, object>() {
                 { "trading", new Dictionary<string, object>() {
-                    { "tierBased", false },
+                    { "tierBased", true },
                     { "percentage", true },
-                    { "maker", this.parseNumber("-0.0002") },
-                    { "taker", this.parseNumber("0.00075") },
+                    { "taker", this.parseNumber("0.0005") },
+                    { "maker", this.parseNumber("0.0002") },
+                    { "tiers", new Dictionary<string, object>() {
+                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0003")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.00025")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.0002")}, new List<object> {this.parseNumber("20000000"), this.parseNumber("0.00015")}, new List<object> {this.parseNumber("50000000"), this.parseNumber("0.000125")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.0001")}} },
+                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0002")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.000125")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0001")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.000075")}, new List<object> {this.parseNumber("20000000"), this.parseNumber("0.00005")}, new List<object> {this.parseNumber("50000000"), this.parseNumber("0.000025")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0")}} },
+                    } },
                 } },
             } },
             { "exceptions", new Dictionary<string, object>() {

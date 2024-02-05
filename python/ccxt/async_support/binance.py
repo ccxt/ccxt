@@ -3097,9 +3097,22 @@ class binance(Exchange, ImplicitAPI):
         timestamp = None
         isolated = marginMode == 'isolated'
         cross = (type == 'margin') or (marginMode == 'cross')
-        if not isolated and ((type == 'spot') or cross):
+        if type == 'papi':
+            for i in range(0, len(response)):
+                entry = response[i]
+                account = self.account()
+                currencyId = self.safe_string(entry, 'asset')
+                code = self.safe_currency_code(currencyId)
+                borrowed = self.safe_string(entry, 'crossMarginBorrowed')
+                interest = self.safe_string(entry, 'crossMarginInterest')
+                account['free'] = self.safe_string(entry, 'crossMarginFree')
+                account['used'] = self.safe_string(entry, 'crossMarginLocked')
+                account['total'] = self.safe_string(entry, 'crossMarginAsset')
+                account['debt'] = Precise.string_add(borrowed, interest)
+                result[code] = account
+        elif not isolated and ((type == 'spot') or cross):
             timestamp = self.safe_integer(response, 'updateTime')
-            balances = self.safe_value_2(response, 'balances', 'userAssets', [])
+            balances = self.safe_list_2(response, 'balances', 'userAssets', [])
             for i in range(0, len(balances)):
                 balance = balances[i]
                 currencyId = self.safe_string(balance, 'asset')
@@ -3113,13 +3126,13 @@ class binance(Exchange, ImplicitAPI):
                     account['debt'] = Precise.string_add(debt, interest)
                 result[code] = account
         elif isolated:
-            assets = self.safe_value(response, 'assets')
+            assets = self.safe_list(response, 'assets')
             for i in range(0, len(assets)):
                 asset = assets[i]
-                marketId = self.safe_value(asset, 'symbol')
+                marketId = self.safe_string(asset, 'symbol')
                 symbol = self.safe_symbol(marketId, None, None, 'spot')
-                base = self.safe_value(asset, 'baseAsset', {})
-                quote = self.safe_value(asset, 'quoteAsset', {})
+                base = self.safe_dict(asset, 'baseAsset', {})
+                quote = self.safe_dict(asset, 'quoteAsset', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'asset'))
                 quoteCode = self.safe_currency_code(self.safe_string(quote, 'asset'))
                 subResult = {}
@@ -3127,7 +3140,7 @@ class binance(Exchange, ImplicitAPI):
                 subResult[quoteCode] = self.parse_balance_helper(quote)
                 result[symbol] = self.safe_balance(subResult)
         elif type == 'savings':
-            positionAmountVos = self.safe_value(response, 'positionAmountVos', [])
+            positionAmountVos = self.safe_list(response, 'positionAmountVos', [])
             for i in range(0, len(positionAmountVos)):
                 entry = positionAmountVos[i]
                 currencyId = self.safe_string(entry, 'asset')
@@ -3152,7 +3165,7 @@ class binance(Exchange, ImplicitAPI):
         else:
             balances = response
             if not isinstance(response, list):
-                balances = self.safe_value(response, 'assets', [])
+                balances = self.safe_list(response, 'assets', [])
             for i in range(0, len(balances)):
                 balance = balances[i]
                 currencyId = self.safe_string(balance, 'asset')
@@ -3177,10 +3190,12 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data            # swap
         :see: https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data              # future
         :see: https://binance-docs.github.io/apidocs/voptions/en/#option-account-information-trade           # option
+        :see: https://binance-docs.github.io/apidocs/pm/en/#account-balance-user_data                        # portfolio margin
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.type]: 'future', 'delivery', 'savings', 'funding', or 'spot'
+        :param str [params.type]: 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
         :param str [params.marginMode]: 'cross' or 'isolated', for margin trading, uses self.options.defaultMarginMode if not passed, defaults to None/None/None
         :param str[]|None [params.symbols]: unified market symbols, only used in isolated margin mode
+        :param boolean [params.portfolioMargin]: set to True if you would like to fetch the balance for a portfolio margin account
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
@@ -3188,20 +3203,25 @@ class binance(Exchange, ImplicitAPI):
         type = self.safe_string(params, 'type', defaultType)
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchBalance', None, params)
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchBalance', 'papi', 'portfolioMargin', False)
         marginMode = None
         query = None
         marginMode, query = self.handle_margin_mode_and_params('fetchBalance', params)
         query = self.omit(query, 'type')
         response = None
         request = {}
-        if self.is_linear(type, subType):
+        if isPortfolioMargin or (type == 'papi'):
+            type = 'papi'
+            response = await self.papiGetBalance(self.extend(request, query))
+        elif self.is_linear(type, subType):
             type = 'linear'
             response = await self.fapiPrivateV2GetAccount(self.extend(request, query))
         elif self.is_inverse(type, subType):
             type = 'inverse'
             response = await self.dapiPrivateGetAccount(self.extend(request, query))
         elif marginMode == 'isolated':
-            paramSymbols = self.safe_value(params, 'symbols')
+            paramSymbols = self.safe_list(params, 'symbols')
             query = self.omit(query, 'symbols')
             if paramSymbols is not None:
                 symbols = ''
@@ -3406,6 +3426,26 @@ class binance(Exchange, ImplicitAPI):
         #         "freeze": "0",
         #         "withdrawing": "0"
         #       }
+        #     ]
+        #
+        # portfolio margin
+        #
+        #     [
+        #         {
+        #             "asset": "USDT",
+        #             "totalWalletBalance": "66.9923261",
+        #             "crossMarginAsset": "35.9697141",
+        #             "crossMarginBorrowed": "0.0",
+        #             "crossMarginFree": "35.9697141",
+        #             "crossMarginInterest": "0.0",
+        #             "crossMarginLocked": "0.0",
+        #             "umWalletBalance": "31.022612",
+        #             "umUnrealizedPNL": "0.0",
+        #             "cmWalletBalance": "0.0",
+        #             "cmUnrealizedPNL": "0.0",
+        #             "updateTime": 0,
+        #             "negativeBalance": "0.0"
+        #         },
         #     ]
         #
         return self.parse_balance_custom(response, type, marginMode)
@@ -4506,7 +4546,7 @@ class binance(Exchange, ImplicitAPI):
             if price is None:
                 raise InvalidOrder(self.id + ' editOrder() requires a price argument for a ' + type + ' order')
             request['price'] = self.price_to_precision(symbol, price)
-        if timeInForceIsRequired:
+        if timeInForceIsRequired and (self.safe_string(params, 'timeInForce') is None):
             request['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
         if stopPriceIsRequired:
             if stopPrice is None:
@@ -4793,17 +4833,127 @@ class binance(Exchange, ImplicitAPI):
         #         "lastTrade": {"id":"69","time":"1676084430567","price":"24.9","qty":"1.00"},
         #         "mmp": False
         #     }
-        #     {
+        #
         # cancelOrders/createOrders
-        #          "code": -4005,
-        #          "msg": "Quantity greater than max quantity."
-        #       },
+        #
+        #     {
+        #         "code": -4005,
+        #         "msg": "Quantity greater than max quantity."
+        #     }
+        #
+        # createOrder: portfolio margin linear swap and future
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "side": "BUY",
+        #         "executedQty": "0.000",
+        #         "orderId": 258649539704,
+        #         "goodTillDate": 0,
+        #         "avgPrice": "0",
+        #         "origQty": "0.010",
+        #         "clientOrderId": "x-xcKtGhcu02573c6f15e544e990057b",
+        #         "positionSide": "BOTH",
+        #         "cumQty": "0.000",
+        #         "updateTime": 1707110415436,
+        #         "type": "LIMIT",
+        #         "reduceOnly": False,
+        #         "price": "35000.00",
+        #         "cumQuote": "0.00000",
+        #         "selfTradePreventionMode": "NONE",
+        #         "timeInForce": "GTC",
+        #         "status": "NEW"
+        #     }
+        #
+        # createOrder: portfolio margin inverse swap and future
+        #
+        #     {
+        #         "symbol": "ETHUSD_PERP",
+        #         "side": "BUY",
+        #         "cumBase": "0",
+        #         "executedQty": "0",
+        #         "orderId": 71275227732,
+        #         "avgPrice": "0.00",
+        #         "origQty": "1",
+        #         "clientOrderId": "x-xcKtGhcuca5af3acfb5044198c5398",
+        #         "positionSide": "BOTH",
+        #         "cumQty": "0",
+        #         "updateTime": 1707110994334,
+        #         "type": "LIMIT",
+        #         "pair": "ETHUSD",
+        #         "reduceOnly": False,
+        #         "price": "2000",
+        #         "timeInForce": "GTC",
+        #         "status": "NEW"
+        #     }
+        #
+        # createOrder: portfolio margin linear swap and future conditional
+        #
+        #     {
+        #         "newClientStrategyId": "x-xcKtGhcu27f109953d6e4dc0974006",
+        #         "strategyId": 3645916,
+        #         "strategyStatus": "NEW",
+        #         "strategyType": "STOP",
+        #         "origQty": "0.010",
+        #         "price": "35000.00",
+        #         "reduceOnly": False,
+        #         "side": "BUY",
+        #         "positionSide": "BOTH",
+        #         "stopPrice": "45000.00",
+        #         "symbol": "BTCUSDT",
+        #         "timeInForce": "GTC",
+        #         "bookTime": 1707112625879,
+        #         "updateTime": 1707112625879,
+        #         "workingType": "CONTRACT_PRICE",
+        #         "priceProtect": False,
+        #         "goodTillDate": 0,
+        #         "selfTradePreventionMode": "NONE"
+        #     }
+        #
+        # createOrder: portfolio margin inverse swap and future conditional
+        #
+        #     {
+        #         "newClientStrategyId": "x-xcKtGhcuc6b86f053bb34933850739",
+        #         "strategyId": 1423462,
+        #         "strategyStatus": "NEW",
+        #         "strategyType": "STOP",
+        #         "origQty": "1",
+        #         "price": "2000",
+        #         "reduceOnly": False,
+        #         "side": "BUY",
+        #         "positionSide": "BOTH",
+        #         "stopPrice": "3000",
+        #         "symbol": "ETHUSD_PERP",
+        #         "timeInForce": "GTC",
+        #         "bookTime": 1707113098840,
+        #         "updateTime": 1707113098840,
+        #         "workingType": "CONTRACT_PRICE",
+        #         "priceProtect": False
+        #     }
+        #
+        # createOrder: portfolio margin spot margin
+        #
+        #     {
+        #         "clientOrderId": "x-R4BD3S82e9ef29d8346440f0b28b86",
+        #         "cummulativeQuoteQty": "0.00000000",
+        #         "executedQty": "0.00000000",
+        #         "fills": [],
+        #         "orderId": 24684460474,
+        #         "origQty": "0.00100000",
+        #         "price": "35000.00000000",
+        #         "selfTradePreventionMode": "EXPIRE_MAKER",
+        #         "side": "BUY",
+        #         "status": "NEW",
+        #         "symbol": "BTCUSDT",
+        #         "timeInForce": "GTC",
+        #         "transactTime": 1707113538870,
+        #         "type": "LIMIT"
+        #     }
         #
         code = self.safe_string(order, 'code')
         if code is not None:
             # cancelOrders/createOrders might have a partial success
             return self.safe_order({'info': order, 'status': 'rejected'}, market)
-        status = self.parse_order_status(self.safe_string(order, 'status'))
+        status = self.parse_order_status(self.safe_string_2(order, 'status', 'strategyStatus'))
         marketId = self.safe_string(order, 'symbol')
         marketType = 'contract' if ('closePosition' in order) else 'spot'
         symbol = self.safe_symbol(marketId, market, None, marketType)
@@ -4826,11 +4976,9 @@ class binance(Exchange, ImplicitAPI):
         #   Note self is not the actual cost, since Binance futures uses leverage to calculate margins.
         cost = self.safe_string_2(order, 'cummulativeQuoteQty', 'cumQuote')
         cost = self.safe_string(order, 'cumBase', cost)
-        id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
         fills = self.safe_value(order, 'fills', [])
-        clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
         if timeInForce == 'GTX':
             # GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
@@ -4850,8 +4998,8 @@ class binance(Exchange, ImplicitAPI):
             }
         return self.safe_order({
             'info': order,
-            'id': id,
-            'clientOrderId': clientOrderId,
+            'id': self.safe_string_2(order, 'orderId', 'strategyId'),
+            'clientOrderId': self.safe_string_2(order, 'clientOrderId', 'newClientStrategyId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -4956,58 +5104,96 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/voptions/en/#new-order-trade
         :see: https://binance-docs.github.io/apidocs/spot/en/#new-order-using-sor-trade
         :see: https://binance-docs.github.io/apidocs/spot/en/#test-new-order-using-sor-trade
+        :see: https://binance-docs.github.io/apidocs/pm/en/#new-um-order-trade
+        :see: https://binance-docs.github.io/apidocs/pm/en/#new-cm-order-trade
+        :see: https://binance-docs.github.io/apidocs/pm/en/#new-margin-order-trade
+        :see: https://binance-docs.github.io/apidocs/pm/en/#new-um-conditional-order-trade
+        :see: https://binance-docs.github.io/apidocs/pm/en/#new-cm-conditional-order-trade
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
         :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float amount: how much of you want to trade in units of the base currency
+        :param float [price]: the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.reduceOnly]: for swap and future reduceOnly is a string 'true' or 'false' that cant be sent with close position set to True or in hedge mode. For spot margin and option reduceOnly is a boolean.
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
         :param boolean [params.sor]: *spot only* whether to use SOR(Smart Order Routing) or not, default is False
         :param boolean [params.test]: *spot only* whether to use the test endpoint or not, default is False
         :param float [params.trailingPercent]: the percent to trail away from the current market price
         :param float [params.trailingTriggerPrice]: the price to trigger a trailing order, default uses the price argument
+        :param float [params.triggerPrice]: the price that a trigger order is triggered at
+        :param float [params.stopLossPrice]: the price that a stop loss order is triggered at
+        :param float [params.takeProfitPrice]: the price that a take profit order is triggered at
+        :param boolean [params.portfolioMargin]: set to True if you would like to create an order in a portfolio margin account
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
         marketType = self.safe_string(params, 'type', market['type'])
-        marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
-        sor = self.safe_value_2(params, 'sor', 'SOR', False)
-        params = self.omit(params, 'sor', 'SOR')
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'createOrder', 'papi', 'portfolioMargin', False)
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        stopLossPrice = self.safe_string(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
+        trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRate')
+        isTrailingPercentOrder = trailingPercent is not None
+        isStopLoss = stopLossPrice is not None
+        isTakeProfit = takeProfitPrice is not None
+        isConditional = (triggerPrice is not None) or isTrailingPercentOrder or isStopLoss or isTakeProfit
+        sor = self.safe_bool_2(params, 'sor', 'SOR', False)
+        test = self.safe_bool(params, 'test', False)
+        params = self.omit(params, ['sor', 'SOR', 'test'])
+        if isPortfolioMargin:
+            params['portfolioMargin'] = isPortfolioMargin
         request = self.create_order_request(symbol, type, side, amount, price, params)
-        method = 'privatePostOrder'
-        if sor:
-            method = 'privatePostSorOrder'
-        elif market['linear']:
-            method = 'fapiPrivatePostOrder'
-        elif market['inverse']:
-            method = 'dapiPrivatePostOrder'
-        elif marketType == 'margin' or marginMode is not None:
-            method = 'sapiPostMarginOrder'
+        response = None
         if market['option']:
-            method = 'eapiPrivatePostOrder'
-        # support for testing orders
-        if market['spot'] or marketType == 'margin':
-            test = self.safe_bool(query, 'test', False)
+            response = await self.eapiPrivatePostOrder(request)
+        elif sor:
             if test:
-                method += 'Test'
-        response = await getattr(self, method)(request)
+                response = await self.privatePostSorOrderTest(request)
+            else:
+                response = await self.privatePostSorOrder(request)
+        elif market['linear']:
+            if isPortfolioMargin:
+                if isConditional:
+                    response = await self.papiPostUmConditionalOrder(request)
+                else:
+                    response = await self.papiPostUmOrder(request)
+            else:
+                response = await self.fapiPrivatePostOrder(request)
+        elif market['inverse']:
+            if isPortfolioMargin:
+                if isConditional:
+                    response = await self.papiPostCmConditionalOrder(request)
+                else:
+                    response = await self.papiPostCmOrder(request)
+            else:
+                response = await self.dapiPrivatePostOrder(request)
+        elif marketType == 'margin' or marginMode is not None:
+            if isPortfolioMargin:
+                response = await self.papiPostMarginOrder(request)
+            else:
+                response = await self.sapiPostMarginOrder(request)
+        else:
+            if test:
+                response = await self.privatePostOrderTest(request)
+            else:
+                response = await self.privatePostOrder(request)
         return self.parse_order(response, market)
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
          * @ignore
-        helper function to build request
+        helper function to build the request
         :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
+        :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the exchange API endpoint
-        :param str|None params['marginMode']: 'cross' or 'isolated', for spot margin trading
-        :param float [params.trailingPercent]: the percent to trail away from the current market price
-        :param float [params.trailingTriggerPrice]: the price to trigger a trailing order, default uses the price argument
+        :param float amount: how much you want to trade in units of the base currency
+        :param float [price]: the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: request to be sent to the exchange
         """
         market = self.market(symbol)
@@ -5016,31 +5202,45 @@ class binance(Exchange, ImplicitAPI):
         initialUppercaseType = type.upper()
         isMarketOrder = initialUppercaseType == 'MARKET'
         isLimitOrder = initialUppercaseType == 'LIMIT'
-        postOnly = self.is_post_only(isMarketOrder, initialUppercaseType == 'LIMIT_MAKER', params)
-        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
-        stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)  # fallback to stopLoss
-        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
-        trailingDelta = self.safe_value(params, 'trailingDelta')
+        request = {
+            'symbol': market['id'],
+            'side': side.upper(),
+        }
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'createOrder', 'papi', 'portfolioMargin', False)
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
+        if (marketType == 'margin') or (marginMode is not None) or market['option']:
+            # for swap and future reduceOnly is a string that cant be sent with close position set to True or in hedge mode
+            reduceOnly = self.safe_bool(params, 'reduceOnly', False)
+            params = self.omit(params, 'reduceOnly')
+            if market['option']:
+                request['reduceOnly'] = reduceOnly
+            else:
+                if reduceOnly:
+                    request['sideEffectType'] = 'AUTO_REPAY'
+        if not isPortfolioMargin:
+            postOnly = self.is_post_only(isMarketOrder, initialUppercaseType == 'LIMIT_MAKER', params)
+            if market['spot'] or marketType == 'margin':
+                # only supported for spot/margin api(all margin markets are spot markets)
+                if postOnly:
+                    type = 'LIMIT_MAKER'
+                if marginMode == 'isolated':
+                    request['isIsolated'] = True
+            if market['contract'] and postOnly:
+                request['timeInForce'] = 'GTX'
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        stopLossPrice = self.safe_string(params, 'stopLossPrice', triggerPrice)  # fallback to stopLoss
+        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
+        trailingDelta = self.safe_string(params, 'trailingDelta')
         trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activationPrice', self.number_to_string(price))
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRate')
         isTrailingPercentOrder = trailingPercent is not None
         isStopLoss = stopLossPrice is not None or trailingDelta is not None
         isTakeProfit = takeProfitPrice is not None
-        params = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent'])
-        marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
-        request = {
-            'symbol': market['id'],
-            'side': side.upper(),
-        }
-        if market['spot'] or marketType == 'margin':
-            # only supported for spot/margin api(all margin markets are spot markets)
-            if postOnly:
-                type = 'LIMIT_MAKER'
-        if marketType == 'margin' or marginMode is not None:
-            reduceOnly = self.safe_value(params, 'reduceOnly')
-            if reduceOnly:
-                request['sideEffectType'] = 'AUTO_REPAY'
-                params = self.omit(params, 'reduceOnly')
+        isTriggerOrder = triggerPrice is not None
+        isConditional = isTriggerOrder or isTrailingPercentOrder or isStopLoss or isTakeProfit
+        isPortfolioMarginConditional = (isPortfolioMargin and isConditional)
         uppercaseType = type.upper()
         stopPrice = None
         if isTrailingPercentOrder:
@@ -5062,31 +5262,32 @@ class binance(Exchange, ImplicitAPI):
                 uppercaseType = 'TAKE_PROFIT_MARKET' if market['contract'] else 'TAKE_PROFIT'
             elif isLimitOrder:
                 uppercaseType = 'TAKE_PROFIT' if market['contract'] else 'TAKE_PROFIT_LIMIT'
-        if marginMode == 'isolated':
-            request['isIsolated'] = True
-        if clientOrderId is None:
-            broker = self.safe_value(self.options, 'broker', {})
-            defaultId = 'x-xcKtGhcu' if (market['contract']) else 'x-R4BD3S82'
-            brokerId = self.safe_string(broker, marketType, defaultId)
-            request['newClientOrderId'] = brokerId + self.uuid22()
-        else:
-            request['newClientOrderId'] = clientOrderId
         if (marketType == 'spot') or (marketType == 'margin'):
-            request['newOrderRespType'] = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+            request['newOrderRespType'] = self.safe_string(self.options['newOrderRespType'], type, 'RESULT')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         else:
             # swap, futures and options
-            request['newOrderRespType'] = 'RESULT'  # "ACK", "RESULT", default "ACK"
+            if not isPortfolioMargin:
+                request['newOrderRespType'] = 'RESULT'  # "ACK", "RESULT", default "ACK"
         if market['option']:
             if type == 'market':
                 raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
         else:
-            validOrderTypes = self.safe_value(market['info'], 'orderTypes')
+            validOrderTypes = self.safe_list(market['info'], 'orderTypes')
             if not self.in_array(uppercaseType, validOrderTypes):
                 if initialUppercaseType != uppercaseType:
                     raise InvalidOrder(self.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
                 else:
                     raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
-        request['type'] = uppercaseType
+        clientOrderIdRequest = 'newClientStrategyId' if isPortfolioMarginConditional else 'newClientOrderId'
+        if clientOrderId is None:
+            broker = self.safe_dict(self.options, 'broker', {})
+            defaultId = 'x-xcKtGhcu' if (market['contract']) else 'x-R4BD3S82'
+            brokerId = self.safe_string(broker, marketType, defaultId)
+            request[clientOrderIdRequest] = brokerId + self.uuid22()
+        else:
+            request[clientOrderIdRequest] = clientOrderId
+        typeRequest = 'strategyType' if isPortfolioMarginConditional else 'type'
+        request[typeRequest] = uppercaseType
         # additional required fields depending on the order type
         timeInForceIsRequired = False
         priceIsRequired = False
@@ -5114,9 +5315,9 @@ class binance(Exchange, ImplicitAPI):
         #
         if uppercaseType == 'MARKET':
             if market['spot']:
-                quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', True)
+                quoteOrderQty = self.safe_bool(self.options, 'quoteOrderQty', True)
                 if quoteOrderQty:
-                    quoteOrderQtyNew = self.safe_value_2(query, 'quoteOrderQty', 'cost')
+                    quoteOrderQtyNew = self.safe_string_2(params, 'quoteOrderQty', 'cost')
                     precision = market['precision']['price']
                     if quoteOrderQtyNew is not None:
                         request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQtyNew, TRUNCATE, precision, self.precisionMode)
@@ -5153,7 +5354,7 @@ class binance(Exchange, ImplicitAPI):
             stopPriceIsRequired = True
             priceIsRequired = True
         elif (uppercaseType == 'STOP_MARKET') or (uppercaseType == 'TAKE_PROFIT_MARKET'):
-            closePosition = self.safe_value(query, 'closePosition')
+            closePosition = self.safe_bool(params, 'closePosition')
             if closePosition is None:
                 quantityIsRequired = True
             stopPriceIsRequired = True
@@ -5162,15 +5363,17 @@ class binance(Exchange, ImplicitAPI):
             if trailingPercent is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a trailingPercent param for a ' + type + ' order')
         if quantityIsRequired:
-            request['quantity'] = self.amount_to_precision(symbol, amount)
+            # portfolio margin has a different amount precision
+            if isPortfolioMargin:
+                request['quantity'] = self.parse_to_numeric(amount)
+            else:
+                request['quantity'] = self.amount_to_precision(symbol, amount)
         if priceIsRequired:
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
             request['price'] = self.price_to_precision(symbol, price)
         if timeInForceIsRequired:
             request['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
-        if market['contract'] and postOnly:
-            request['timeInForce'] = 'GTX'
         if stopPriceIsRequired:
             if market['contract']:
                 if stopPrice is None:
@@ -5181,10 +5384,20 @@ class binance(Exchange, ImplicitAPI):
                     raise InvalidOrder(self.id + ' createOrder() requires a stopPrice or trailingDelta param for a ' + type + ' order')
             if stopPrice is not None:
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+        if not isPortfolioMargin:
+            postOnly = self.is_post_only(isMarketOrder, initialUppercaseType == 'LIMIT_MAKER', params)
+            if market['spot'] or marketType == 'margin':
+                # only supported for spot/margin api(all margin markets are spot markets)
+                if postOnly:
+                    type = 'LIMIT_MAKER'
+                if marginMode == 'isolated':
+                    request['isIsolated'] = True
+            if market['contract'] and postOnly:
+                request['timeInForce'] = 'GTX'
         # remove timeInForce from params because PO is only used by self.is_post_onlyand it's not a valid value for Binance
         if self.safe_string(params, 'timeInForce') == 'PO':
-            params = self.omit(params, ['timeInForce'])
-        requestParams = self.omit(params, ['quoteOrderQty', 'cost', 'stopPrice', 'test', 'type', 'newClientOrderId', 'clientOrderId', 'postOnly'])
+            params = self.omit(params, 'timeInForce')
+        requestParams = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test'])
         return self.extend(request, requestParams)
 
     async def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost, params={}):

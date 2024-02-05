@@ -468,6 +468,12 @@ public partial class bitget
     /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.price</term>
+    /// <description>
+    /// string : *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>

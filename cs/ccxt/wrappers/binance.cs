@@ -68,6 +68,7 @@ public partial class binance
     /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data"/>  <br/>
     /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data"/>  <br/>
     /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#option-account-information-trade"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#account-balance-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -78,13 +79,19 @@ public partial class binance
     /// <item>
     /// <term>params.type</term>
     /// <description>
-    /// string : 'future', 'delivery', 'savings', 'funding', or 'spot'
+    /// string : 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.marginMode</term>
     /// <description>
     /// string : 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolioMargin</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch the balance for a portfolio margin account
     /// </description>
     /// </item>
     /// </list>
@@ -509,17 +516,28 @@ public partial class binance
     /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#new-order-trade"/>  <br/>
     /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#new-order-using-sor-trade"/>  <br/>
     /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#test-new-order-using-sor-trade"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#new-um-order-trade"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#new-cm-order-trade"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#new-margin-order-trade"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#new-um-conditional-order-trade"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#new-cm-conditional-order-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.reduceOnly</term>
+    /// <description>
+    /// string : for swap and future reduceOnly is a string 'true' or 'false' that cant be sent with close position set to true or in hedge mode. For spot margin and option reduceOnly is a boolean.
     /// </description>
     /// </item>
     /// <item>
@@ -552,6 +570,30 @@ public partial class binance
     /// float : the price to trigger a trailing order, default uses the price argument
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.triggerPrice</term>
+    /// <description>
+    /// float : the price that a trigger order is triggered at
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLossPrice</term>
+    /// <description>
+    /// float : the price that a stop loss order is triggered at
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.takeProfitPrice</term>
+    /// <description>
+    /// float : the price that a take profit order is triggered at
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolioMargin</term>
+    /// <description>
+    /// boolean : set to true if you would like to create an order in a portfolio margin account
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -562,20 +604,20 @@ public partial class binance
         return new Order(res);
     }
     /// <summary>
-    /// helper function to build request
+    /// helper function to build the request
     /// </summary>
     /// <remarks>
     /// <list type="table">
     /// <item>
-    /// <term>params.trailingPercent</term>
+    /// <term>price</term>
     /// <description>
-    /// float : the percent to trail away from the current market price
+    /// float : the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.trailingTriggerPrice</term>
+    /// <term>params</term>
     /// <description>
-    /// float : the price to trigger a trailing order, default uses the price argument
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>

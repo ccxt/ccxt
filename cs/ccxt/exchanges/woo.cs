@@ -1641,11 +1641,12 @@ public partial class woo : Exchange
         * @method
         * @name woo#fetchOHLCV
         * @see https://docs.woo.org/#kline-public
+        * @see https://docs.woo.org/#kline-historical-data-public
         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
         * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
+        * @param {int} [limit] max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms)))
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
         */
@@ -1657,43 +1658,31 @@ public partial class woo : Exchange
             { "symbol", getValue(market, "id") },
             { "type", this.safeString(this.timeframes, timeframe, timeframe) },
         };
-        if (isTrue(!isEqual(limit, null)))
+        object useHistEndpoint = !isEqual(since, null);
+        if (isTrue(isTrue((!isEqual(limit, null))) && isTrue((!isEqual(since, null)))))
+        {
+            object oneThousandCandles = multiply(multiply(this.parseTimeframe(timeframe), 1000), 999); // 999 because there will be delay between this and the request, causing the latest candle to be excluded sometimes
+            object startWithLimit = subtract(this.milliseconds(), oneThousandCandles);
+            useHistEndpoint = isLessThan(since, startWithLimit);
+        }
+        if (isTrue(useHistEndpoint))
+        {
+            ((IDictionary<string,object>)request)["start_time"] = since;
+        } else if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
-        object response = await this.v1PublicGetKline(this.extend(request, parameters));
-        // {
-        //     "success": true,
-        //     "rows": [
-        //       {
-        //         "open": "0.94238",
-        //         "close": "0.94271",
-        //         "low": "0.94238",
-        //         "high": "0.94296",
-        //         "volume": "73.55",
-        //         "amount": "69.32040520",
-        //         "symbol": "SPOT_WOO_USDT",
-        //         "type": "1m",
-        //         "start_timestamp": "1641584700000",
-        //         "end_timestamp": "1641584760000"
-        //       },
-        //       {
-        //         "open": "0.94186",
-        //         "close": "0.94186",
-        //         "low": "0.94186",
-        //         "high": "0.94186",
-        //         "volume": "64.00",
-        //         "amount": "60.27904000",
-        //         "symbol": "SPOT_WOO_USDT",
-        //         "type": "1m",
-        //         "start_timestamp": "1641584640000",
-        //         "end_timestamp": "1641584700000"
-        //       },
-        //       ...
-        //     ]
-        // }
-        object data = this.safeValue(response, "rows", new List<object>() {});
-        return this.parseOHLCVs(data, market, timeframe, since, limit);
+        object response = null;
+        if (!isTrue(useHistEndpoint))
+        {
+            response = await this.v1PublicGetKline(this.extend(request, parameters));
+        } else
+        {
+            response = await this.v1PubGetHistKline(this.extend(request, parameters));
+            response = this.safeDict(response, "data");
+        }
+        object rows = this.safeValue(response, "rows", new List<object>() {});
+        return this.parseOHLCVs(rows, market, timeframe, since, limit);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)

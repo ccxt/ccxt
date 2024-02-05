@@ -825,11 +825,11 @@ public partial class testMainClass : BaseTest
         //  --- Init of static tests functions------------------------------------------
         //  -----------------------------------------------------------------------------
         object calculatedString = jsonStringify(calculatedOutput);
-        object outputString = jsonStringify(storedOutput);
-        object errorMessage = add(add(add(add(message, " expected "), outputString), " received: "), calculatedString);
+        object storedString = jsonStringify(storedOutput);
+        object errorMessage = add(add(add(add(message, " computed "), storedString), " stored: "), calculatedString);
         if (isTrue(!isEqual(key, null)))
         {
-            errorMessage = add(add(add(add(add(add(" | ", key), " | "), "computed value: "), outputString), " stored value: "), calculatedString);
+            errorMessage = add(add(add(add(add(add(" | ", key), " | "), "computed value: "), storedString), " stored value: "), calculatedString);
         }
         assert(cond, errorMessage);
     }
@@ -1293,8 +1293,12 @@ public partial class testMainClass : BaseTest
         return true;  // in c# methods that will be used with promiseAll need to return something
     }
 
-    public virtual object getNumberOfTestsFromExchange(Exchange exchange, object exchangeData)
+    public virtual object getNumberOfTestsFromExchange(Exchange exchange, object exchangeData, object testName = null)
     {
+        if (isTrue(!isEqual(testName, null)))
+        {
+            return 1;
+        }
         object sum = 0;
         object methods = getValue(exchangeData, "methods");
         object methodsNames = new List<object>(((IDictionary<string,object>)methods).Keys);
@@ -1337,7 +1341,7 @@ public partial class testMainClass : BaseTest
         {
             object exchangeName = getValue(exchanges, i);
             object exchangeData = getValue(staticData, exchangeName);
-            object numberOfTests = this.getNumberOfTestsFromExchange(exchange, exchangeData);
+            object numberOfTests = this.getNumberOfTestsFromExchange(exchange, exchangeData, testName);
             sum = exchange.sum(sum, numberOfTests);
             if (isTrue(isEqual(type, "request")))
             {

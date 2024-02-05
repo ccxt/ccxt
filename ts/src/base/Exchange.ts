@@ -1742,7 +1742,7 @@ export default class Exchange {
          * @returns {object | undefined}
          */
         const value = this.safeValueN (dictionaryOrList, keys, defaultValue);
-        if (value === null) {
+        if (value === undefined) {
             return defaultValue;
         }
         if (typeof value === 'object') {
@@ -1779,7 +1779,7 @@ export default class Exchange {
          * @returns {Array | undefined}
          */
         const value = this.safeValueN (dictionaryOrList, keys, defaultValue);
-        if (value === null) {
+        if (value === undefined) {
             return defaultValue;
         }
         if (Array.isArray (value)) {
