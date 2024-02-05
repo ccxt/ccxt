@@ -829,7 +829,7 @@ class coincheck extends coincheck$1 {
         //     {"success":false,"error":"disabled API Key"}'
         //     {"success":false,"error":"invalid authentication"}
         //
-        const success = this.safeValue(response, 'success', true);
+        const success = this.safeBool(response, 'success', true);
         if (!success) {
             const error = this.safeString(response, 'error');
             const feedback = this.id + ' ' + this.json(response);

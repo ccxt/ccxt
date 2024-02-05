@@ -809,7 +809,7 @@ class woo extends Exchange {
         return $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @see https://docs.woo.org/#send-$order
@@ -846,7 +846,7 @@ class woo extends Exchange {
         $stopLoss = $this->safe_value($params, 'stopLoss');
         $takeProfit = $this->safe_value($params, 'takeProfit');
         $algoType = $this->safe_string($params, 'algoType');
-        $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activatedPrice', $price);
+        $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activatedPrice', $this->number_to_string($price));
         $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'callbackValue');
         $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRate');
         $isTrailingAmountOrder = $trailingAmount !== null;
@@ -1106,7 +1106,7 @@ class woo extends Exchange {
          * @param {boolean} [$params->stop] whether the order is a stop/algo order
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
-        $stop = $this->safe_value($params, 'stop', false);
+        $stop = $this->safe_bool($params, 'stop', false);
         $params = $this->omit($params, 'stop');
         if (!$stop && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
@@ -1266,7 +1266,7 @@ class woo extends Exchange {
         $request = array();
         $market = null;
         $stop = $this->safe_value($params, 'stop');
-        $trailing = $this->safe_value($params, 'trailing', false);
+        $trailing = $this->safe_bool($params, 'trailing', false);
         $params = $this->omit($params, array( 'stop', 'trailing' ));
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -2017,7 +2017,7 @@ class woo extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
         /**
          * $transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code
@@ -2044,7 +2044,7 @@ class woo extends Exchange {
         //
         $transfer = $this->parse_transfer($response, $currency);
         $transferOptions = $this->safe_value($this->options, 'transfer', array());
-        $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
+        $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
         if ($fillResponseFromRequest) {
             $transfer['amount'] = $amount;
             $transfer['fromAccount'] = $fromAccount;
@@ -2143,7 +2143,7 @@ class woo extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -2582,7 +2582,7 @@ class woo extends Exchange {
         );
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         $this->load_markets();
         if (($leverage < 1) || ($leverage > 20)) {
             throw new BadRequest($this->id . ' $leverage should be between 1 and 20');

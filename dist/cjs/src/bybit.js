@@ -296,8 +296,6 @@ class bybit extends bybit$1 {
                         // account
                         'v5/account/wallet-balance': 1,
                         'v5/account/borrow-history': 1,
-                        'v5/account/set-collateral-switch': 5,
-                        'v5/account/set-collateral-switch-batch': 5,
                         'v5/account/collateral-info': 1,
                         'v5/asset/coin-greeks': 1,
                         'v5/account/fee-rate': 10,
@@ -490,6 +488,8 @@ class bybit extends bybit$1 {
                         'v5/lending/purchase': 5,
                         'v5/lending/redeem': 5,
                         'v5/lending/redeem-cancel': 5,
+                        'v5/account/set-collateral-switch': 5,
+                        'v5/account/set-collateral-switch-batch': 5,
                     },
                 },
             },
@@ -3459,7 +3459,7 @@ class bybit extends bybit$1 {
         const result = await this.fetchOrders(symbol, undefined, undefined, this.extend(request, params));
         const length = result.length;
         if (length === 0) {
-            const isTrigger = this.safeValueN(params, ['trigger', 'stop'], false);
+            const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
             const extra = isTrigger ? '' : 'If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new errors.OrderNotFound('Order ' + id.toString() + ' was not found.' + extra);
         }
@@ -3692,7 +3692,7 @@ class bybit extends bybit$1 {
         const takeProfitTriggerPrice = this.safeValue(params, 'takeProfitPrice');
         const stopLoss = this.safeValue(params, 'stopLoss');
         const takeProfit = this.safeValue(params, 'takeProfit');
-        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activePrice', price);
+        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activePrice', this.numberToString(price));
         const trailingAmount = this.safeString2(params, 'trailingAmount', 'trailingStop');
         const isTrailingAmountOrder = trailingAmount !== undefined;
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;

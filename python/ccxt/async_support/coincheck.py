@@ -540,7 +540,7 @@ class coincheck(Exchange, ImplicitAPI):
             }
         return result
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -784,7 +784,7 @@ class coincheck(Exchange, ImplicitAPI):
         #     {"success":false,"error":"disabled API Key"}'
         #     {"success":false,"error":"invalid authentication"}
         #
-        success = self.safe_value(response, 'success', True)
+        success = self.safe_bool(response, 'success', True)
         if not success:
             error = self.safe_string(response, 'error')
             feedback = self.id + ' ' + self.json(response)

@@ -30,6 +30,6 @@ export default class krakenfutures extends krakenfuturesRest {
     handleMyTrades(client: Client, message: any): void;
     parseWsMyTrade(trade: any, market?: any): Trade;
     handleErrorMessage(client: Client, message: any): void;
-    handleMessage(client: any, message: any): any;
+    handleMessage(client: any, message: any): void;
     handleAuthenticate(client: Client, message: any): any;
 }

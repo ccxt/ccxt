@@ -342,8 +342,8 @@ export default class bitmex extends Exchange {
                 const network = this.networkIdToCode (networkId);
                 const withdrawalFeeRaw = this.safeString (chain, 'withdrawalFee');
                 const withdrawalFee = this.parseNumber (Precise.stringMul (withdrawalFeeRaw, precisionString));
-                const isDepositEnabled = this.safeValue (chain, 'depositEnabled', false);
-                const isWithdrawEnabled = this.safeValue (chain, 'withdrawalEnabled', false);
+                const isDepositEnabled = this.safeBool (chain, 'depositEnabled', false);
+                const isWithdrawEnabled = this.safeBool (chain, 'withdrawalEnabled', false);
                 const active = (isDepositEnabled && isWithdrawEnabled);
                 if (isDepositEnabled) {
                     depositEnabled = true;
@@ -1738,7 +1738,7 @@ export default class bitmex extends Exchange {
             const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
             isInverse = (defaultSubType === 'inverse');
         } else {
-            isInverse = this.safeValue (market, 'inverse', false);
+            isInverse = this.safeBool (market, 'inverse', false);
         }
         if (isInverse) {
             cost = this.convertFromRawQuantity (symbol, qty);
@@ -1856,7 +1856,7 @@ export default class bitmex extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#createOrder
@@ -2376,7 +2376,7 @@ export default class bitmex extends Exchange {
         });
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#withdraw
@@ -2441,7 +2441,7 @@ export default class bitmex extends Exchange {
             const item = response[i];
             const marketId = this.safeString (item, 'symbol');
             const market = this.safeMarket (marketId);
-            const swap = this.safeValue (market, 'swap', false);
+            const swap = this.safeBool (market, 'swap', false);
             if (swap) {
                 filteredResponse.push (item);
             }
@@ -2560,7 +2560,7 @@ export default class bitmex extends Exchange {
         };
     }
 
-    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#setLeverage

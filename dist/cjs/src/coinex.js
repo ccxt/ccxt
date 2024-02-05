@@ -3324,7 +3324,7 @@ class coinex extends coinex$1 {
         const data = this.safeValue(response, 'data', {});
         const depositAddress = this.parseDepositAddress(data, currency);
         const options = this.safeValue(this.options, 'fetchDepositAddress', {});
-        const fillResponseFromRequest = this.safeValue(options, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool(options, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             depositAddress['network'] = this.safeNetworkCode(network, currency);
         }
@@ -4370,7 +4370,7 @@ class coinex extends coinex$1 {
         const request = {
             'coin_type': currency['id'],
             'coin_address': address,
-            'actual_amount': parseFloat(amount),
+            'actual_amount': parseFloat(this.numberToString(amount)),
             'transfer_method': 'onchain', // onchain, local
         };
         if (networkCode !== undefined) {
@@ -5351,7 +5351,7 @@ class coinex extends coinex$1 {
          * @returns {Array} the marginMode in lowercase
          */
         const defaultType = this.safeString(this.options, 'defaultType');
-        const isMargin = this.safeValue(params, 'margin', false);
+        const isMargin = this.safeBool(params, 'margin', false);
         let marginMode = undefined;
         [marginMode, params] = super.handleMarginModeAndParams(methodName, params, defaultValue);
         if (marginMode === undefined) {

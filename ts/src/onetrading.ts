@@ -1243,7 +1243,7 @@ export default class onetrading extends Exchange {
         return this.parseTransactions (withdrawalHistory, currency, since, limit, { 'type': 'withdrawal' });
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name onetrading#withdraw
@@ -1518,7 +1518,7 @@ export default class onetrading extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name onetrading#createOrder

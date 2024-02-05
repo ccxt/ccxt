@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.krakenfutures import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -57,6 +57,9 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'fetchClosedOrders': None,  # https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchDepositAddress': False,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchFundingHistory': None,
                 'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': True,
@@ -546,7 +549,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         volume = self.safe_string(ticker, 'vol24h')
         baseVolume = None
         quoteVolume = None
-        isIndex = self.safe_value(market, 'index', False)
+        isIndex = self.safe_bool(market, 'index', False)
         if not isIndex:
             if market['linear']:
                 baseVolume = volume
@@ -814,7 +817,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'fee': None,
         })
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         market = self.market(symbol)
         type = self.safe_string(params, 'orderType', type)
         timeInForce = self.safe_string(params, 'timeInForce')
@@ -866,7 +869,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         params = self.omit(params, ['clientOrderId', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
         return self.extend(request, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         Create an order on the exchange
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-send-order
@@ -2112,7 +2115,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         return await self.transfer(code, amount, 'future', 'spot', params)
 
-    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
         """
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-wallet-transfer
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-withdrawal-to-spot-wallet
@@ -2155,7 +2158,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'toAccount': toAccount,
         })
 
-    async def set_leverage(self, leverage, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-set-the-leverage-setting-for-a-market

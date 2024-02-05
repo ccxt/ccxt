@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -310,8 +310,6 @@ class bybit(Exchange, ImplicitAPI):
                         # account
                         'v5/account/wallet-balance': 1,
                         'v5/account/borrow-history': 1,
-                        'v5/account/set-collateral-switch': 5,
-                        'v5/account/set-collateral-switch-batch': 5,
                         'v5/account/collateral-info': 1,
                         'v5/asset/coin-greeks': 1,
                         'v5/account/fee-rate': 10,  # 5/s = 1000 / (20 * 10)
@@ -504,6 +502,8 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/lending/purchase': 5,
                         'v5/lending/redeem': 5,
                         'v5/lending/redeem-cancel': 5,
+                        'v5/account/set-collateral-switch': 5,
+                        'v5/account/set-collateral-switch-batch': 5,
                     },
                 },
             },
@@ -3291,7 +3291,7 @@ class bybit(Exchange, ImplicitAPI):
         result = self.fetch_orders(symbol, None, None, self.extend(request, params))
         length = len(result)
         if length == 0:
-            isTrigger = self.safe_value_n(params, ['trigger', 'stop'], False)
+            isTrigger = self.safe_bool_n(params, ['trigger', 'stop'], False)
             extra = '' if isTrigger else 'If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
             raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
         if length > 1:
@@ -3332,7 +3332,7 @@ class bybit(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports spot orders only')
         return self.create_order(symbol, 'market', 'sell', cost, 1, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://bybit-exchange.github.io/docs/v5/order/create-order
@@ -3392,7 +3392,7 @@ class bybit(Exchange, ImplicitAPI):
         order = self.safe_value(response, 'result', {})
         return self.parse_order(order, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}, isUTA=True):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}, isUTA=True):
         market = self.market(symbol)
         symbol = market['symbol']
         lowerCaseType = type.lower()
@@ -3489,7 +3489,7 @@ class bybit(Exchange, ImplicitAPI):
         takeProfitTriggerPrice = self.safe_value(params, 'takeProfitPrice')
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
-        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activePrice', price)
+        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activePrice', self.number_to_string(price))
         trailingAmount = self.safe_string_2(params, 'trailingAmount', 'trailingStop')
         isTrailingAmountOrder = trailingAmount is not None
         isStopLossTriggerOrder = stopLossTriggerPrice is not None
@@ -3626,7 +3626,7 @@ class bybit(Exchange, ImplicitAPI):
         #
         return self.parse_orders(data)
 
-    def create_usdc_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_usdc_order(self, symbol, type, side, amount: float, price: float = None, params={}):
         self.load_markets()
         market = self.market(symbol)
         if type == 'market':
@@ -5203,7 +5203,7 @@ class bybit(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :see: https://bybit-exchange.github.io/docs/v5/asset/withdraw
@@ -5769,7 +5769,7 @@ class bybit(Exchange, ImplicitAPI):
                 response = self.privatePostV5PositionSwitchIsolated(self.extend(request, params))
         return response
 
-    def set_leverage(self, leverage, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://bybit-exchange.github.io/docs/v5/position/leverage
@@ -6132,7 +6132,7 @@ class bybit(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://bybit-exchange.github.io/docs/v5/asset/create-inter-transfer
@@ -6236,7 +6236,7 @@ class bybit(Exchange, ImplicitAPI):
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_transfers(data, currency, since, limit)
 
-    def borrow_cross_margin(self, code: str, amount, params={}):
+    def borrow_cross_margin(self, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
         :see: https://bybit-exchange.github.io/docs/v5/spot-margin-normal/borrow

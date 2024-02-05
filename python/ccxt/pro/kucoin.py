@@ -54,18 +54,19 @@ class kucoin(ccxt.async_support.kucoin):
             },
         })
 
-    def negotiate(self, privateChannel, params={}):
+    async def negotiate(self, privateChannel, params={}):
         connectId = 'private' if privateChannel else 'public'
         urls = self.safe_value(self.options, 'urls', {})
         spawaned = self.safe_value(urls, connectId)
         if spawaned is not None:
-            return spawaned
+            return await spawaned
         # we store an awaitable to the url
         # so that multiple calls don't asynchronously
         # fetch different urls and overwrite each other
         urls[connectId] = self.spawn(self.negotiate_helper, privateChannel, params)
         self.options['urls'] = urls
-        return urls[connectId]
+        future = urls[connectId]
+        return await future
 
     async def negotiate_helper(self, privateChannel, params={}):
         response = None
@@ -511,7 +512,7 @@ class kucoin(ccxt.async_support.kucoin):
             limit = self.safe_integer(subscription, 'limit')
             snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 5)
             if cacheLength == snapshotDelay:
-                self.spawn(self.load_order_book, client, messageHash, symbol, limit)
+                self.spawn(self.load_order_book, client, messageHash, symbol, limit, {})
             storedOrderBook.cache.append(data)
             return
         elif nonce >= deltaEnd:
@@ -924,7 +925,8 @@ class kucoin(ccxt.async_support.kucoin):
         #
         topic = self.safe_string(message, 'topic')
         if topic == '/market/ticker:all':
-            return self.handle_ticker(client, message)
+            self.handle_ticker(client, message)
+            return
         subject = self.safe_string(message, 'subject')
         methods = {
             'trade.l2update': self.handle_order_book,
@@ -938,10 +940,8 @@ class kucoin(ccxt.async_support.kucoin):
             'stopOrder': self.handle_order,
         }
         method = self.safe_value(methods, subject)
-        if method is None:
-            return message
-        else:
-            return method(client, message)
+        if method is not None:
+            method(client, message)
 
     def ping(self, client):
         # kucoin does not support built-in ws protocol-level ping-pong
@@ -986,4 +986,4 @@ class kucoin(ccxt.async_support.kucoin):
         }
         method = self.safe_value(methods, type)
         if method is not None:
-            return method(client, message)
+            method(client, message)

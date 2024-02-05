@@ -475,7 +475,7 @@ class okcoin extends okcoin$1 {
             };
             this.spawn(this.watch, url, messageHash, request, messageHash, future);
         }
-        return await future;
+        return future;
     }
     async watchBalance(params = {}) {
         /**
@@ -708,7 +708,8 @@ class okcoin extends okcoin$1 {
         // }
         //
         if (message === 'pong') {
-            return this.handlePong(client, message);
+            this.handlePong(client, message);
+            return;
         }
         const table = this.safeString(message, 'table');
         if (table === undefined) {
@@ -721,11 +722,8 @@ class okcoin extends okcoin$1 {
                     'subscribe': this.handleSubscriptionStatus,
                 };
                 const method = this.safeValue(methods, event);
-                if (method === undefined) {
-                    return message;
-                }
-                else {
-                    return method.call(this, client, message);
+                if (method !== undefined) {
+                    method.call(this, client, message);
                 }
             }
         }
@@ -747,11 +745,8 @@ class okcoin extends okcoin$1 {
             if (name.indexOf('candle') >= 0) {
                 method = this.handleOHLCV;
             }
-            if (method === undefined) {
-                return message;
-            }
-            else {
-                return method.call(this, client, message);
+            if (method !== undefined) {
+                method.call(this, client, message);
             }
         }
     }

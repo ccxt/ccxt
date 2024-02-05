@@ -1069,7 +1069,7 @@ export default class bitvavo extends Exchange {
         };
     }
 
-    createOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
@@ -1132,7 +1132,7 @@ export default class bitvavo extends Exchange {
         return this.extend (request, params);
     }
 
-    async createOrder (symbol: Str, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: Str, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#createOrder
@@ -1733,7 +1733,7 @@ export default class bitvavo extends Exchange {
         return this.extend (request, params);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#withdraw

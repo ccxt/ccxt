@@ -762,16 +762,16 @@ export default class deribit extends deribitRest {
             };
             const handler = this.safeValue(handlers, channelId);
             if (handler !== undefined) {
-                return handler.call(this, client, message);
+                handler.call(this, client, message);
+                return;
             }
             throw new NotSupported(this.id + ' no handler found for this message ' + this.json(message));
         }
         const result = this.safeValue(message, 'result', {});
         const accessToken = this.safeString(result, 'access_token');
         if (accessToken !== undefined) {
-            return this.handleAuthenticationMessage(client, message);
+            this.handleAuthenticationMessage(client, message);
         }
-        return message;
     }
     handleAuthenticationMessage(client, message) {
         //
@@ -795,7 +795,7 @@ export default class deribit extends deribitRest {
         client.resolve(message, messageHash);
         return message;
     }
-    authenticate(params = {}) {
+    async authenticate(params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const time = this.milliseconds();

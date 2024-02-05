@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -298,8 +298,6 @@ export default class bybit extends Exchange {
                         // account
                         'v5/account/wallet-balance': 1,
                         'v5/account/borrow-history': 1,
-                        'v5/account/set-collateral-switch': 5,
-                        'v5/account/set-collateral-switch-batch': 5,
                         'v5/account/collateral-info': 1,
                         'v5/asset/coin-greeks': 1,
                         'v5/account/fee-rate': 10, // 5/s = 1000 / (20 * 10)
@@ -492,6 +490,8 @@ export default class bybit extends Exchange {
                         'v5/lending/purchase': 5,
                         'v5/lending/redeem': 5,
                         'v5/lending/redeem-cancel': 5,
+                        'v5/account/set-collateral-switch': 5,
+                        'v5/account/set-collateral-switch-batch': 5,
                     },
                 },
             },
@@ -3442,7 +3442,7 @@ export default class bybit extends Exchange {
         const result = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
         const length = result.length;
         if (length === 0) {
-            const isTrigger = this.safeValueN (params, [ 'trigger', 'stop' ], false);
+            const isTrigger = this.safeBoolN (params, [ 'trigger', 'stop' ], false);
             const extra = isTrigger ? '' : 'If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound ('Order ' + id.toString () + ' was not found.' + extra);
         }
@@ -3495,7 +3495,7 @@ export default class bybit extends Exchange {
         return await this.createOrder (symbol, 'market', 'sell', cost, 1, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name bybit#createOrder
@@ -3560,7 +3560,7 @@ export default class bybit extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}, isUTA = true) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}, isUTA = true) {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const lowerCaseType = type.toLowerCase ();
@@ -3666,7 +3666,7 @@ export default class bybit extends Exchange {
         const takeProfitTriggerPrice = this.safeValue (params, 'takeProfitPrice');
         const stopLoss = this.safeValue (params, 'stopLoss');
         const takeProfit = this.safeValue (params, 'takeProfit');
-        const trailingTriggerPrice = this.safeString2 (params, 'trailingTriggerPrice', 'activePrice', price);
+        const trailingTriggerPrice = this.safeString2 (params, 'trailingTriggerPrice', 'activePrice', this.numberToString (price));
         const trailingAmount = this.safeString2 (params, 'trailingAmount', 'trailingStop');
         const isTrailingAmountOrder = trailingAmount !== undefined;
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
@@ -3823,7 +3823,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (data);
     }
 
-    async createUsdcOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createUsdcOrder (symbol, type, side, amount: number, price: number = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (type === 'market') {
@@ -5545,7 +5545,7 @@ export default class bybit extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bybit#withdraw
@@ -6161,7 +6161,7 @@ export default class bybit extends Exchange {
         return response;
     }
 
-    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bybit#setLeverage
@@ -6563,7 +6563,7 @@ export default class bybit extends Exchange {
         };
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name bybit#transfer
@@ -6677,7 +6677,7 @@ export default class bybit extends Exchange {
         return this.parseTransfers (data, currency, since, limit);
     }
 
-    async borrowCrossMargin (code: string, amount, params = {}) {
+    async borrowCrossMargin (code: string, amount: number, params = {}) {
         /**
          * @method
          * @name bybit#borrowCrossMargin

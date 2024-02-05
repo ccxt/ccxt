@@ -1562,7 +1562,7 @@ export default class coinsph extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         const options = this.safeValue(this.options, 'withdraw');
-        const warning = this.safeValue(options, 'warning', true);
+        const warning = this.safeBool(options, 'warning', true);
         if (warning) {
             throw new InvalidAddress(this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }

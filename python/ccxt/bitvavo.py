@@ -1025,7 +1025,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def create_order_request(self, symbol: Str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order_request(self, symbol: Str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -1078,7 +1078,7 @@ class bitvavo(Exchange, ImplicitAPI):
             request['postOnly'] = True
         return self.extend(request, params)
 
-    def create_order(self, symbol: Str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: Str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
@@ -1625,7 +1625,7 @@ class bitvavo(Exchange, ImplicitAPI):
             request['paymentId'] = tag
         return self.extend(request, params)
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

@@ -302,8 +302,6 @@ class bybit extends Exchange {
                         // account
                         'v5/account/wallet-balance' => 1,
                         'v5/account/borrow-history' => 1,
-                        'v5/account/set-collateral-switch' => 5,
-                        'v5/account/set-collateral-switch-batch' => 5,
                         'v5/account/collateral-info' => 1,
                         'v5/asset/coin-greeks' => 1,
                         'v5/account/fee-rate' => 10, // 5/s = 1000 / (20 * 10)
@@ -496,6 +494,8 @@ class bybit extends Exchange {
                         'v5/lending/purchase' => 5,
                         'v5/lending/redeem' => 5,
                         'v5/lending/redeem-cancel' => 5,
+                        'v5/account/set-collateral-switch' => 5,
+                        'v5/account/set-collateral-switch-batch' => 5,
                     ),
                 ),
             ),
@@ -3455,7 +3455,7 @@ class bybit extends Exchange {
             $result = Async\await($this->fetch_orders($symbol, null, null, array_merge($request, $params)));
             $length = count($result);
             if ($length === 0) {
-                $isTrigger = $this->safe_value_n($params, array( 'trigger', 'stop' ), false);
+                $isTrigger = $this->safe_bool_n($params, array( 'trigger', 'stop' ), false);
                 $extra = $isTrigger ? '' : 'If you are trying to fetch SL/TP conditional order, you might try setting $params["trigger"] = true';
                 throw new OrderNotFound('Order ' . (string) $id . ' was not found.' . $extra);
             }
@@ -3509,7 +3509,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -3574,7 +3574,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array (), $isUTA = true) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array (), $isUTA = true) {
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
         $lowerCaseType = strtolower($type);
@@ -3680,7 +3680,7 @@ class bybit extends Exchange {
         $takeProfitTriggerPrice = $this->safe_value($params, 'takeProfitPrice');
         $stopLoss = $this->safe_value($params, 'stopLoss');
         $takeProfit = $this->safe_value($params, 'takeProfit');
-        $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activePrice', $price);
+        $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activePrice', $this->number_to_string($price));
         $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'trailingStop');
         $isTrailingAmountOrder = $trailingAmount !== null;
         $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
@@ -3837,7 +3837,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function create_usdc_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_usdc_order($symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -5573,7 +5573,7 @@ class bybit extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -6191,7 +6191,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -6595,7 +6595,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * $transfer $currency internally between wallets on the same account
@@ -6709,7 +6709,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function borrow_cross_margin(string $code, $amount, $params = array ()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * create a loan to borrow margin

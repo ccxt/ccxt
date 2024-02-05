@@ -47,19 +47,20 @@ class kucoin extends kucoin$1 {
             },
         });
     }
-    negotiate(privateChannel, params = {}) {
+    async negotiate(privateChannel, params = {}) {
         const connectId = privateChannel ? 'private' : 'public';
         const urls = this.safeValue(this.options, 'urls', {});
         const spawaned = this.safeValue(urls, connectId);
         if (spawaned !== undefined) {
-            return spawaned;
+            return await spawaned;
         }
         // we store an awaitable to the url
         // so that multiple calls don't asynchronously
         // fetch different urls and overwrite each other
         urls[connectId] = this.spawn(this.negotiateHelper, privateChannel, params);
         this.options['urls'] = urls;
-        return urls[connectId];
+        const future = urls[connectId];
+        return await future;
     }
     async negotiateHelper(privateChannel, params = {}) {
         let response = undefined;
@@ -545,7 +546,7 @@ class kucoin extends kucoin$1 {
             const limit = this.safeInteger(subscription, 'limit');
             const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 5);
             if (cacheLength === snapshotDelay) {
-                this.spawn(this.loadOrderBook, client, messageHash, symbol, limit);
+                this.spawn(this.loadOrderBook, client, messageHash, symbol, limit, {});
             }
             storedOrderBook.cache.push(data);
             return;
@@ -987,7 +988,8 @@ class kucoin extends kucoin$1 {
         //
         const topic = this.safeString(message, 'topic');
         if (topic === '/market/ticker:all') {
-            return this.handleTicker(client, message);
+            this.handleTicker(client, message);
+            return;
         }
         const subject = this.safeString(message, 'subject');
         const methods = {
@@ -1002,11 +1004,8 @@ class kucoin extends kucoin$1 {
             'stopOrder': this.handleOrder,
         };
         const method = this.safeValue(methods, subject);
-        if (method === undefined) {
-            return message;
-        }
-        else {
-            return method.call(this, client, message);
+        if (method !== undefined) {
+            method.call(this, client, message);
         }
     }
     ping(client) {
@@ -1054,7 +1053,7 @@ class kucoin extends kucoin$1 {
         };
         const method = this.safeValue(methods, type);
         if (method !== undefined) {
-            return method.call(this, client, message);
+            method.call(this, client, message);
         }
     }
 }

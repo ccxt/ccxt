@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -343,9 +343,11 @@ export default class okx extends Exchange {
                         'tradingBot/grid/sub-orders': 1,
                         'tradingBot/grid/positions': 1,
                         'tradingBot/grid/ai-param': 1,
-                        'tradingBot/public/rsi-back-testing': 1,
+                        'tradingBot/signal/signals': 1,
                         'tradingBot/signal/orders-algo-details': 1,
+                        'tradingBot/signal/orders-algo-history': 1,
                         'tradingBot/signal/positions': 1,
+                        'tradingBot/signal/positions-history': 1,
                         'tradingBot/signal/sub-orders': 1,
                         'tradingBot/signal/event-history': 1,
                         'tradingBot/recurring/orders-algo-pending': 1,
@@ -465,6 +467,15 @@ export default class okx extends Exchange {
                         'tradingBot/grid/compute-margin-balance': 1,
                         'tradingBot/grid/margin-balance': 1,
                         'tradingBot/grid/min-investment': 1,
+                        'tradingBot/signal/create-signal': 1,
+                        'tradingBot/signal/order-algo': 1,
+                        'tradingBot/signal/stop-order-algo': 1,
+                        'tradingBot/signal/margin-balance': 1,
+                        'tradingBot/signal/amendTPSL': 1,
+                        'tradingBot/signal/set-instruments': 1,
+                        'tradingBot/signal/close-position': 1,
+                        'tradingBot/signal/sub-order': 1,
+                        'tradingBot/signal/cancel-sub-order': 1,
                         'tradingBot/recurring/order-algo': 1,
                         'tradingBot/recurring/amend-order-algo': 1,
                         'tradingBot/recurring/stop-order-algo': 1,
@@ -1518,8 +1529,8 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        return this.parseMarkets (data);
+        const dataResponse = this.safeValue (response, 'data', []);
+        return this.parseMarkets (dataResponse);
     }
 
     safeNetwork (networkId) {
@@ -2151,7 +2162,8 @@ export default class okx extends Exchange {
             if (since < historyBorder) {
                 defaultType = 'HistoryCandles';
             }
-            request['before'] = since;
+            const startTime = Math.max (since - 1, 0);
+            request['before'] = startTime;
             request['after'] = this.sum (since, durationInMilliseconds * limit);
         }
         const until = this.safeInteger (params, 'until');
@@ -2564,7 +2576,7 @@ export default class okx extends Exchange {
         return await this.createOrder (symbol, 'market', 'sell', cost, undefined, params);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         const market = this.market (symbol);
         const request = {
             'instId': market['id'],
@@ -2804,7 +2816,7 @@ export default class okx extends Exchange {
         return this.extend (request, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name okx#createOrder
@@ -3093,7 +3105,7 @@ export default class okx extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         const stop = this.safeValue2 (params, 'stop', 'trigger');
-        const trailing = this.safeValue (params, 'trailing', false);
+        const trailing = this.safeBool (params, 'trailing', false);
         if (stop || trailing) {
             const orderInner = await this.cancelOrders ([ id ], symbol, params);
             return this.safeValue (orderInner, 0);
@@ -3127,7 +3139,7 @@ export default class okx extends Exchange {
          * @param {string[]|string} ids order ids
          * @returns {string[]} list of order ids
          */
-        if (typeof ids === 'string') {
+        if ((ids !== undefined) && typeof ids === 'string') {
             return ids.split (',');
         } else {
             return ids;
@@ -3161,7 +3173,7 @@ export default class okx extends Exchange {
         const clientOrderIds = this.parseIds (this.safeValue2 (params, 'clOrdId', 'clientOrderId'));
         const algoIds = this.parseIds (this.safeValue (params, 'algoId'));
         const stop = this.safeValue2 (params, 'stop', 'trigger');
-        const trailing = this.safeValue (params, 'trailing', false);
+        const trailing = this.safeBool (params, 'trailing', false);
         if (stop || trailing) {
             method = 'privatePostTradeCancelAlgos';
         }
@@ -3654,7 +3666,7 @@ export default class okx extends Exchange {
         let method = this.safeString (params, 'method', defaultMethod);
         const ordType = this.safeString (params, 'ordType');
         const stop = this.safeValue2 (params, 'stop', 'trigger');
-        const trailing = this.safeValue (params, 'trailing', false);
+        const trailing = this.safeBool (params, 'trailing', false);
         if (trailing || stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoPending';
         }
@@ -3822,7 +3834,7 @@ export default class okx extends Exchange {
         let method = this.safeString (params, 'method', defaultMethod);
         const ordType = this.safeString (params, 'ordType');
         const stop = this.safeValue2 (params, 'stop', 'trigger');
-        const trailing = this.safeValue (params, 'trailing', false);
+        const trailing = this.safeBool (params, 'trailing', false);
         if (trailing) {
             method = 'privateGetTradeOrdersAlgoHistory';
             request['ordType'] = 'move_order_stop';
@@ -4014,7 +4026,7 @@ export default class okx extends Exchange {
         let method = this.safeString (params, 'method', defaultMethod);
         const ordType = this.safeString (params, 'ordType');
         const stop = this.safeValue2 (params, 'stop', 'trigger');
-        const trailing = this.safeValue (params, 'trailing', false);
+        const trailing = this.safeBool (params, 'trailing', false);
         if (trailing || stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoHistory';
             request['state'] = 'effective';
@@ -4180,10 +4192,13 @@ export default class okx extends Exchange {
             market = this.market (symbol);
             request['instId'] = market['id'];
         }
+        if (since !== undefined) {
+            request['begin'] = since;
+        }
         [ request, params ] = this.handleUntilOption ('end', request, params);
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         request['instType'] = this.convertToInstrumentType (type);
-        if (limit !== undefined) {
+        if ((limit !== undefined) && (since === undefined)) {  // let limit = n, okx will return the n most recent results, instead of the n results after limit, so limit should only be sent when since is undefined
             request['limit'] = limit; // default 100, max 100
         }
         const response = await this.privateGetTradeFillsHistory (this.extend (request, query));
@@ -4641,7 +4656,7 @@ export default class okx extends Exchange {
         return result;
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name okx#withdraw
@@ -5450,7 +5465,7 @@ export default class okx extends Exchange {
         });
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name okx#transfer
@@ -5994,7 +6009,7 @@ export default class okx extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingHistory[];
     }
 
-    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name okx#setLeverage
@@ -6171,7 +6186,7 @@ export default class okx extends Exchange {
         for (let i = 0; i < data.length; i++) {
             rates.push (this.parseBorrowRate (data[i]));
         }
-        return rates;
+        return rates as any;
     }
 
     async fetchCrossBorrowRate (code: string, params = {}) {
@@ -6622,7 +6637,7 @@ export default class okx extends Exchange {
         };
     }
 
-    async borrowCrossMargin (code: string, amount, params = {}) {
+    async borrowCrossMargin (code: string, amount: number, params = {}) {
         /**
          * @method
          * @name okx#borrowCrossMargin
@@ -7228,6 +7243,7 @@ export default class okx extends Exchange {
                 return this.parseGreeks (entry, market);
             }
         }
+        return undefined;
     }
 
     parseGreeks (greeks, market: Market = undefined) {

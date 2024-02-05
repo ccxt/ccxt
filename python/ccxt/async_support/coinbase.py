@@ -214,6 +214,13 @@ class coinbase(Exchange, ImplicitAPI):
                             'brokerage/best_bid_ask',
                             'brokerage/convert/trade/{trade_id}',
                             'brokerage/time',
+                            'brokerage/cfm/balance_summary',
+                            'brokerage/cfm/positions',
+                            'brokerage/cfm/positions/{product_id}',
+                            'brokerage/cfm/sweeps',
+                            'brokerage/intx/portfolio/{portfolio_uuid}',
+                            'brokerage/intx/positions/{portfolio_uuid}',
+                            'brokerage/intx/positions/{portfolio_uuid}/{symbol}',
                         ],
                         'post': [
                             'brokerage/orders',
@@ -224,12 +231,15 @@ class coinbase(Exchange, ImplicitAPI):
                             'brokerage/portfolios/move_funds',
                             'brokerage/convert/quote',
                             'brokerage/convert/trade/{trade_id}',
+                            'brokerage/cfm/sweeps/schedule',
+                            'brokerage/intx/allocate',
                         ],
                         'put': [
                             'brokerage/portfolios/{portfolio_uuid}',
                         ],
                         'delete': [
                             'brokerage/portfolios/{portfolio_uuid}',
+                            'brokerage/cfm/sweeps',
                         ],
                     },
                 },
@@ -696,7 +706,7 @@ class coinbase(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None):
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # fiat deposit
         #
@@ -1322,7 +1332,10 @@ class coinbase(Exchange, ImplicitAPI):
     async def fetch_tickers_v3(self, symbols: Strings = None, params={}):
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        response = await self.v3PrivateGetBrokerageProducts(params)
+        request = {}
+        if symbols is not None:
+            request['product_ids'] = self.market_ids(symbols)
+        response = await self.v3PrivateGetBrokerageProducts(self.extend(request, params))
         #
         #     {
         #         "products": [
@@ -1564,7 +1577,7 @@ class coinbase(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def parse_balance(self, response, params={}):
+    def parse_custom_balance(self, response, params={}):
         balances = self.safe_value_2(response, 'data', 'accounts', [])
         accounts = self.safe_value(params, 'type', self.options['accounts'])
         v3Accounts = self.safe_value(params, 'type', self.options['v3Accounts'])
@@ -1624,7 +1637,7 @@ class coinbase(Exchange, ImplicitAPI):
             'limit': 250,
         }
         response = None
-        isV3 = self.safe_value(params, 'v3', False)
+        isV3 = self.safe_bool(params, 'v3', False)
         params = self.omit(params, 'v3')
         method = self.safe_string(self.options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts')
         if (isV3) or (method == 'v3PrivateGetBrokerageAccounts'):
@@ -1702,7 +1715,7 @@ class coinbase(Exchange, ImplicitAPI):
         #         "size": 9
         #     }
         #
-        return self.parse_balance(response, params)
+        return self.parse_custom_balance(response, params)
 
     async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -2101,7 +2114,7 @@ class coinbase(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder
@@ -2590,7 +2603,7 @@ class coinbase(Exchange, ImplicitAPI):
         order = self.safe_value(response, 'order', {})
         return self.parse_order(order, market)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit=100, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
@@ -3023,8 +3036,10 @@ class coinbase(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        # the 'product_ids' param isn't working properly and returns {"pricebooks":[]} when defined
-        response = await self.v3PrivateGetBrokerageBestBidAsk(params)
+        request = {}
+        if symbols is not None:
+            request['product_ids'] = self.market_ids(symbols)
+        response = await self.v3PrivateGetBrokerageBestBidAsk(self.extend(request, params))
         #
         #     {
         #         "pricebooks": [
@@ -3050,7 +3065,7 @@ class coinbase(Exchange, ImplicitAPI):
         tickers = self.safe_value(response, 'pricebooks', [])
         return self.parse_tickers(tickers, symbols)
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#send-money
@@ -3147,7 +3162,7 @@ class coinbase(Exchange, ImplicitAPI):
         savedPath = fullPath
         if method == 'GET':
             if query:
-                fullPath += '?' + self.urlencode(query)
+                fullPath += '?' + self.urlencode_with_array_repeat(query)
         url = self.urls['api']['rest'] + fullPath
         if signed:
             authorization = self.safe_string(self.headers, 'Authorization')

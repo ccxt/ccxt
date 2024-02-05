@@ -1091,7 +1091,7 @@ class hollaex extends hollaex$1 {
         const filled = this.safeString(order, 'filled');
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
         const meta = this.safeValue(order, 'meta', {});
-        const postOnly = this.safeValue(meta, 'post_only', false);
+        const postOnly = this.safeBool(meta, 'post_only', false);
         return this.safeOrder({
             'id': id,
             'clientOrderId': undefined,
@@ -1145,7 +1145,7 @@ class hollaex extends hollaex$1 {
         };
         const stopPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'stop']);
         const meta = this.safeValue(params, 'meta', {});
-        const exchangeSpecificParam = this.safeValue(meta, 'post_only', false);
+        const exchangeSpecificParam = this.safeBool(meta, 'post_only', false);
         const isMarketOrder = type === 'market';
         const postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, params);
         if (!isMarketOrder) {

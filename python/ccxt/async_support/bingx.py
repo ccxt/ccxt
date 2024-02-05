@@ -8,7 +8,7 @@ from ccxt.abstract.bingx import ImplicitAPI
 import asyncio
 import hashlib
 import numbers
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1680,7 +1680,7 @@ class bingx(Exchange, ImplicitAPI):
         params['quoteOrderQty'] = cost
         return await self.create_order(symbol, 'market', 'sell', cost, None, params)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
          * @ignore
         helper function to build request
@@ -1753,7 +1753,7 @@ class bingx(Exchange, ImplicitAPI):
             isTakeProfit = takeProfit is not None
             if ((type == 'LIMIT') or (type == 'TRIGGER_LIMIT') or (type == 'STOP') or (type == 'TAKE_PROFIT')) and not isTrailing:
                 request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
-            reduceOnly = self.safe_value(params, 'reduceOnly', False)
+            reduceOnly = self.safe_bool(params, 'reduceOnly', False)
             if isTriggerOrder:
                 request['stopPrice'] = self.parse_to_numeric(self.price_to_precision(symbol, triggerPrice))
                 if isMarketOrder or (type == 'TRIGGER_MARKET'):
@@ -1783,6 +1783,7 @@ class bingx(Exchange, ImplicitAPI):
                     requestTrailingPercent = Precise.string_div(trailingPercent, '100')
                     request['priceRate'] = self.parse_to_numeric(requestTrailingPercent)
             if isStopLoss or isTakeProfit:
+                stringifiedAmount = self.number_to_string(amount)
                 if isStopLoss:
                     slTriggerPrice = self.safe_string_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
                     slWorkingType = self.safe_string(stopLoss, 'workingType', 'MARK_PRICE')
@@ -1795,7 +1796,7 @@ class bingx(Exchange, ImplicitAPI):
                     slPrice = self.safe_string(stopLoss, 'price')
                     if slPrice is not None:
                         slRequest['price'] = self.parse_to_numeric(self.price_to_precision(symbol, slPrice))
-                    slQuantity = self.safe_string(stopLoss, 'quantity', amount)
+                    slQuantity = self.safe_string(stopLoss, 'quantity', stringifiedAmount)
                     slRequest['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, slQuantity))
                     request['stopLoss'] = self.json(slRequest)
                 if isTakeProfit:
@@ -1810,7 +1811,7 @@ class bingx(Exchange, ImplicitAPI):
                     slPrice = self.safe_string(takeProfit, 'price')
                     if slPrice is not None:
                         tpRequest['price'] = self.parse_to_numeric(self.price_to_precision(symbol, slPrice))
-                    tkQuantity = self.safe_string(takeProfit, 'quantity', amount)
+                    tkQuantity = self.safe_string(takeProfit, 'quantity', stringifiedAmount)
                     tpRequest['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, tkQuantity))
                     request['takeProfit'] = self.json(tpRequest)
             positionSide = None
@@ -1823,7 +1824,7 @@ class bingx(Exchange, ImplicitAPI):
             params = self.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'takeProfit', 'stopLoss', 'clientOrderId'])
         return self.extend(request, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
@@ -2682,7 +2683,7 @@ class bingx(Exchange, ImplicitAPI):
         orders = self.safe_value(data, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://bingx-api.github.io/docs/#/spot/account-api.html#User%20Universal%20Transfer
@@ -3138,7 +3139,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         return response
 
-    async def set_leverage(self, leverage, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Leverage
@@ -3334,7 +3335,7 @@ class bingx(Exchange, ImplicitAPI):
         coins = self.safe_value(response, 'data')
         return self.parse_deposit_withdraw_fees(coins, codes, 'coin')
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :see: https://bingx-api.github.io/docs/#/common/account-api.html#Withdraw
@@ -3372,7 +3373,7 @@ class bingx(Exchange, ImplicitAPI):
         #           "id":"1197073063359000577"
         #        }
         #    }
-        self.parse_transaction(data)
+        return self.parse_transaction(data)
 
     def parse_params(self, params):
         sortedParams = self.keysort(params)

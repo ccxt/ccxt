@@ -361,7 +361,7 @@ class coinlist extends coinlist$1 {
             const currency = currencies[i];
             const id = this.safeString(currency, 'asset');
             const code = this.safeCurrencyCode(id);
-            const isTransferable = this.safeValue(currency, 'is_transferable', false);
+            const isTransferable = this.safeBool(currency, 'is_transferable', false);
             const withdrawEnabled = isTransferable;
             const depositEnabled = isTransferable;
             const active = isTransferable;

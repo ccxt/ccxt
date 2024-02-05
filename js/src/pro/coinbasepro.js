@@ -963,7 +963,7 @@ export default class coinbasepro extends coinbaseproRest {
             }
         }
         else {
-            return method.call(this, client, message);
+            method.call(this, client, message);
         }
     }
 }

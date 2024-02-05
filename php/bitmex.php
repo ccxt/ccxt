@@ -335,8 +335,8 @@ class bitmex extends Exchange {
                 $network = $this->network_id_to_code($networkId);
                 $withdrawalFeeRaw = $this->safe_string($chain, 'withdrawalFee');
                 $withdrawalFee = $this->parse_number(Precise::string_mul($withdrawalFeeRaw, $precisionString));
-                $isDepositEnabled = $this->safe_value($chain, 'depositEnabled', false);
-                $isWithdrawEnabled = $this->safe_value($chain, 'withdrawalEnabled', false);
+                $isDepositEnabled = $this->safe_bool($chain, 'depositEnabled', false);
+                $isWithdrawEnabled = $this->safe_bool($chain, 'withdrawalEnabled', false);
                 $active = ($isDepositEnabled && $isWithdrawEnabled);
                 if ($isDepositEnabled) {
                     $depositEnabled = true;
@@ -1704,7 +1704,7 @@ class bitmex extends Exchange {
             $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'linear');
             $isInverse = ($defaultSubType === 'inverse');
         } else {
-            $isInverse = $this->safe_value($market, 'inverse', false);
+            $isInverse = $this->safe_bool($market, 'inverse', false);
         }
         if ($isInverse) {
             $cost = $this->convert_from_raw_quantity($symbol, $qty);
@@ -1820,7 +1820,7 @@ class bitmex extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://www.bitmex.com/api/explorer/#!/Order/Order_new
@@ -2330,7 +2330,7 @@ class bitmex extends Exchange {
         ));
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -2391,7 +2391,7 @@ class bitmex extends Exchange {
             $item = $response[$i];
             $marketId = $this->safe_string($item, 'symbol');
             $market = $this->safe_market($marketId);
-            $swap = $this->safe_value($market, 'swap', false);
+            $swap = $this->safe_bool($market, 'swap', false);
             if ($swap) {
                 $filteredResponse[] = $item;
             }
@@ -2508,7 +2508,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          * @param {float} $leverage the rate of $leverage

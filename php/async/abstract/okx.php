@@ -466,14 +466,20 @@ abstract class okx extends \ccxt\async\Exchange {
     public function private_get_tradingbot_grid_ai_param($params = array()) {
         return $this->request('tradingBot/grid/ai-param', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function private_get_tradingbot_public_rsi_back_testing($params = array()) {
-        return $this->request('tradingBot/public/rsi-back-testing', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function private_get_tradingbot_signal_signals($params = array()) {
+        return $this->request('tradingBot/signal/signals', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_tradingbot_signal_orders_algo_details($params = array()) {
         return $this->request('tradingBot/signal/orders-algo-details', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_tradingbot_signal_orders_algo_history($params = array()) {
+        return $this->request('tradingBot/signal/orders-algo-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_tradingbot_signal_positions($params = array()) {
         return $this->request('tradingBot/signal/positions', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_tradingbot_signal_positions_history($params = array()) {
+        return $this->request('tradingBot/signal/positions-history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_tradingbot_signal_sub_orders($params = array()) {
         return $this->request('tradingBot/signal/sub-orders', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -789,6 +795,33 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function private_post_tradingbot_grid_min_investment($params = array()) {
         return $this->request('tradingBot/grid/min-investment', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_signal_create_signal($params = array()) {
+        return $this->request('tradingBot/signal/create-signal', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_signal_order_algo($params = array()) {
+        return $this->request('tradingBot/signal/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_signal_stop_order_algo($params = array()) {
+        return $this->request('tradingBot/signal/stop-order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_signal_margin_balance($params = array()) {
+        return $this->request('tradingBot/signal/margin-balance', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_signal_amendtpsl($params = array()) {
+        return $this->request('tradingBot/signal/amendTPSL', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_signal_set_instruments($params = array()) {
+        return $this->request('tradingBot/signal/set-instruments', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_signal_close_position($params = array()) {
+        return $this->request('tradingBot/signal/close-position', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_signal_sub_order($params = array()) {
+        return $this->request('tradingBot/signal/sub-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_signal_cancel_sub_order($params = array()) {
+        return $this->request('tradingBot/signal/cancel-sub-order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_tradingbot_recurring_order_algo($params = array()) {
         return $this->request('tradingBot/recurring/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -1345,14 +1378,20 @@ abstract class okx extends \ccxt\async\Exchange {
     public function privateGetTradingBotGridAiParam($params = array()) {
         return $this->request('tradingBot/grid/ai-param', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function privateGetTradingBotPublicRsiBackTesting($params = array()) {
-        return $this->request('tradingBot/public/rsi-back-testing', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function privateGetTradingBotSignalSignals($params = array()) {
+        return $this->request('tradingBot/signal/signals', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetTradingBotSignalOrdersAlgoDetails($params = array()) {
         return $this->request('tradingBot/signal/orders-algo-details', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateGetTradingBotSignalOrdersAlgoHistory($params = array()) {
+        return $this->request('tradingBot/signal/orders-algo-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateGetTradingBotSignalPositions($params = array()) {
         return $this->request('tradingBot/signal/positions', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetTradingBotSignalPositionsHistory($params = array()) {
+        return $this->request('tradingBot/signal/positions-history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetTradingBotSignalSubOrders($params = array()) {
         return $this->request('tradingBot/signal/sub-orders', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -1668,6 +1707,33 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function privatePostTradingBotGridMinInvestment($params = array()) {
         return $this->request('tradingBot/grid/min-investment', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotSignalCreateSignal($params = array()) {
+        return $this->request('tradingBot/signal/create-signal', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotSignalOrderAlgo($params = array()) {
+        return $this->request('tradingBot/signal/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotSignalStopOrderAlgo($params = array()) {
+        return $this->request('tradingBot/signal/stop-order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotSignalMarginBalance($params = array()) {
+        return $this->request('tradingBot/signal/margin-balance', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotSignalAmendTPSL($params = array()) {
+        return $this->request('tradingBot/signal/amendTPSL', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotSignalSetInstruments($params = array()) {
+        return $this->request('tradingBot/signal/set-instruments', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotSignalClosePosition($params = array()) {
+        return $this->request('tradingBot/signal/close-position', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotSignalSubOrder($params = array()) {
+        return $this->request('tradingBot/signal/sub-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotSignalCancelSubOrder($params = array()) {
+        return $this->request('tradingBot/signal/cancel-sub-order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostTradingBotRecurringOrderAlgo($params = array()) {
         return $this->request('tradingBot/recurring/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));

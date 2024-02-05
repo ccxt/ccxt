@@ -25,7 +25,7 @@ class bitmex extends \ccxt\async\bitmex {
                 'watchOrders' => true,
                 'watchPostions' => true,
                 'watchTicker' => true,
-                'watchTickers' => false,
+                'watchTickers' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
             ),
@@ -77,6 +77,46 @@ class bitmex extends \ccxt\async\bitmex {
                 ),
             );
             return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+        }) ();
+    }
+
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @param {string[]} $symbols unified $symbol of the $market to fetch the $ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true);
+            $name = 'instrument';
+            $url = $this->urls['api']['ws'];
+            $messageHashes = array();
+            if ($symbols !== null) {
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $symbol = $symbols[$i];
+                    $market = $this->market($symbol);
+                    $hash = $name . ':' . $market['id'];
+                    $messageHashes[] = $hash;
+                }
+            } else {
+                $messageHashes[] = $name;
+            }
+            $request = array(
+                'op' => 'subscribe',
+                'args' => $messageHashes,
+            );
+            $ticker = Async\await($this->watch_multiple($url, $messageHashes, array_merge($request, $params), $messageHashes));
+            if ($this->newUpdates) {
+                if ($symbols === null) {
+                    return $ticker;
+                }
+                $result = array();
+                $result[$ticker['symbol']] = $ticker;
+                return $result;
+            }
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
         }) ();
     }
 
@@ -308,19 +348,22 @@ class bitmex extends \ccxt\async\bitmex {
         //     }
         //
         $table = $this->safe_string($message, 'table');
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
+        $tickers = array();
         for ($i = 0; $i < count($data); $i++) {
             $update = $data[$i];
-            $marketId = $this->safe_value($update, 'symbol');
+            $marketId = $this->safe_string($update, 'symbol');
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
             $messageHash = $table . ':' . $marketId;
-            $ticker = $this->safe_value($this->tickers, $symbol, array());
-            $info = $this->safe_value($ticker, 'info', array());
+            $ticker = $this->safe_dict($this->tickers, $symbol, array());
+            $info = $this->safe_dict($ticker, 'info', array());
             $ticker = $this->parse_ticker(array_merge($info, $update), $market);
+            $tickers[$symbol] = $ticker;
             $this->tickers[$symbol] = $ticker;
             $client->resolve ($ticker, $messageHash);
         }
+        $client->resolve ($tickers, 'instrument');
         return $message;
     }
 
@@ -590,7 +633,7 @@ class bitmex extends \ccxt\async\bitmex {
     }
 
     public function handle_authentication_message(Client $client, $message) {
-        $authenticated = $this->safe_value($message, 'success', false);
+        $authenticated = $this->safe_bool($message, 'success', false);
         $messageHash = 'authenticated';
         if ($authenticated) {
             // we resolve the $future here permanently so authentication only happens once
@@ -1505,7 +1548,7 @@ class bitmex extends \ccxt\async\bitmex {
         //
         //     array( "error" => "Rate limit exceeded, retry in 29 seconds." )
         //
-        $error = $this->safe_value($message, 'error');
+        $error = $this->safe_string($message, 'error');
         if ($error !== null) {
             $request = $this->safe_value($message, 'request', array());
             $args = $this->safe_value($request, 'args', array());
@@ -1516,7 +1559,7 @@ class bitmex extends \ccxt\async\bitmex {
                 $broadKey = $this->find_broadly_matched_key($broad, $error);
                 $exception = null;
                 if ($broadKey === null) {
-                    $exception = new ExchangeError ($error);
+                    $exception = new ExchangeError ($error); // c# requirement for now
                 } else {
                     $exception = new $broad[$broadKey] ($error);
                 }
@@ -1584,12 +1627,10 @@ class bitmex extends \ccxt\async\bitmex {
                 $request = $this->safe_value($message, 'request', array());
                 $op = $this->safe_value($request, 'op');
                 if ($op === 'authKeyExpires') {
-                    return $this->handle_authentication_message($client, $message);
-                } else {
-                    return $message;
+                    $this->handle_authentication_message($client, $message);
                 }
             } else {
-                return $method($client, $message);
+                $method($client, $message);
             }
         }
     }

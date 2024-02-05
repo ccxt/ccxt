@@ -383,7 +383,7 @@ class coinmetro extends Exchange {
         $quote = $this->safe_currency_code($quoteId);
         $basePrecisionAndLimits = $this->parse_market_precision_and_limits($baseId);
         $quotePrecisionAndLimits = $this->parse_market_precision_and_limits($quoteId);
-        $margin = $this->safe_value($market, 'margin', false);
+        $margin = $this->safe_bool($market, 'margin', false);
         $tradingFees = $this->safe_value($this->fees, 'trading', array());
         return $this->safe_market_structure(array(
             'id' => $id,
@@ -1202,7 +1202,7 @@ class coinmetro extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1354,7 +1354,7 @@ class coinmetro extends Exchange {
             );
             $marginMode = null;
             list($params, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
-            $isMargin = $this->safe_value($params, 'margin', false);
+            $isMargin = $this->safe_bool($params, 'margin', false);
             $params = $this->omit($params, 'margin');
             $response = null;
             if ($isMargin || ($marginMode !== null)) {
@@ -1833,7 +1833,7 @@ class coinmetro extends Exchange {
         return $this->safe_value($timeInForceTypes, $timeInForce, $timeInForce);
     }
 
-    public function borrow_cross_margin(string $code, $amount, $params = array ()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * create a loan to borrow margin

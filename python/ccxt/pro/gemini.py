@@ -568,7 +568,8 @@ class gemini(ccxt.async_support.gemini):
         #
         isArray = isinstance(message, list)
         if isArray:
-            return self.handle_order(client, message)
+            self.handle_order(client, message)
+            return
         reason = self.safe_string(message, 'reason')
         if reason == 'error':
             self.handle_error(client, message)
@@ -580,7 +581,8 @@ class gemini(ccxt.async_support.gemini):
         }
         type = self.safe_string(message, 'type', '')
         if type.find('candles') >= 0:
-            return self.handle_ohlcv(client, message)
+            self.handle_ohlcv(client, message)
+            return
         method = self.safe_value(methods, type)
         if method is not None:
             method(client, message)

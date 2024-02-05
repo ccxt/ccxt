@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.2.29';
+const version = '4.2.33';
 
 (Exchange as any).ccxtVersion = version
 
@@ -202,6 +202,7 @@ import ndaxPro from  './src/pro/ndax.js'
 import okcoinPro from  './src/pro/okcoin.js'
 import okxPro from  './src/pro/okx.js'
 import onetradingPro from  './src/pro/onetrading.js'
+import p2bPro from  './src/pro/p2b.js'
 import phemexPro from  './src/pro/phemex.js'
 import poloniexPro from  './src/pro/poloniex.js'
 import poloniexfuturesPro from  './src/pro/poloniexfutures.js'
@@ -368,6 +369,7 @@ const pro = {
     'okcoin':                 okcoinPro,
     'okx':                    okxPro,
     'onetrading':             onetradingPro,
+    'p2b':                    p2bPro,
     'phemex':                 phemexPro,
     'poloniex':               poloniexPro,
     'poloniexfutures':        poloniexfuturesPro,

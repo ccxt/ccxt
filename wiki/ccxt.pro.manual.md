@@ -50,7 +50,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support
 
 ## Exchanges
 
-The CCXT Pro library currently supports the following 52 cryptocurrency exchange markets and WebSocket trading APIs:
+The CCXT Pro library currently supports the following 53 cryptocurrency exchange markets and WebSocket trading APIs:
 
 | logo                                                                                                                                                                                                          | id                 | name                                                                                                  | ver                                                                                                                                              | certified                                                                                                                   | pro                                                                          |
 |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|-------------------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
@@ -98,6 +98,7 @@ The CCXT Pro library currently supports the following 52 cryptocurrency exchange
 | [![okcoin](https://user-images.githubusercontent.com/51840849/87295551-102fbf00-c50e-11ea-90a9-462eebba5829.jpg)](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)                  | okcoin             | [OKCoin](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)                   | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://www.okcoin.com/docs/en/)                                                    |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![okx](https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg)](https://www.okx.com/join/CCXT2023)                                                             | okx                | [OKX](https://www.okx.com/join/CCXT2023)                                                              | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://www.okx.com/docs-v5/en/)                                                    | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![onetrading](https://github.com/ccxt/ccxt/assets/43336371/bdbc26fd-02f2-4ca7-9f1e-17333690bb1c)](https://onetrading.com/)                                                                                   | onetrading         | [One Trading](https://onetrading.com/)                                                                | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.onetrading.com)                                                        |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![p2b](https://github.com/ccxt/ccxt/assets/43336371/8da13a80-1f0a-49be-bb90-ff8b25164755)](https://p2pb2b.com?referral=ee784c53)                                                                             | p2b                | [p2b](https://p2pb2b.com?referral=ee784c53)                                                           | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md)                    |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![phemex](https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg)](https://phemex.com/register?referralCode=EDNVJ)                                              | phemex             | [Phemex](https://phemex.com/register?referralCode=EDNVJ)                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/phemex/phemex-api-docs)                                          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![poloniex](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)](https://poloniex.com/signup?c=UBFZJRPJ)                                                    | poloniex           | [Poloniex](https://poloniex.com/signup?c=UBFZJRPJ)                                                    | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.poloniex.com)                                                          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![poloniexfutures](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)](https://poloniex.com/signup?c=UBFZJRPJ)                                             | poloniexfutures    | [Poloniex Futures](https://poloniex.com/signup?c=UBFZJRPJ)                                            | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://futures-docs.poloniex.com)                                                  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -433,6 +434,23 @@ require_once 'vendor/autoload.php';
 
 $exchange = new \ccxt\pro\kucoin(array( 'newUpdates' => false ));
 ```
+
+#### **C#/Dotnet**
+
+```c#
+using ccxt.pro;
+
+    public async static Task Watch()
+    {
+        var exchange = new binance();
+        while (true)
+        {
+            var trades = await exchange.WatchTrades("BTC/USDT");
+            Console.WriteLine("Trades: " + JsonConvert.SerializeObject(trades, Formatting.Indented));
+        }
+    }
+```
+
 <!-- tabs:end -->
 
 ## Exchange Properties
@@ -1009,6 +1027,12 @@ watch_orders(symbol=None, since=None, limit=None, params={})
 ```php
 watch_orders($symbol = null, $since = null, $lmit = null, $params = array());
 ```
+
+#### **C#/.NET**
+
+```c#
+public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+```
 <!-- tabs:end -->
 
 ### watchMyTrades
@@ -1024,6 +1048,13 @@ watch_my_trades(symbol=None, since=None, limit=None, params={})
 #### **PHP**
 ```php
 watch_my_trades($symbol = null, $since = null, $lmit = null, $params = array());
+```
+
+#### **C#/.NET**
+
+```c#
+public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+
 ```
 <!-- tabs:end -->
 
@@ -1043,6 +1074,12 @@ watch_positions(symbols=None, since=None, limit=None, params={})
 ```php
 watch_positions($symbols = null, $since = null, $lmit = null, $params = array());
 ```
+
+#### **C#/.NET**
+
+```c#
+public async Task<List<Position>> WatchPositions(List<string> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+```
 <!-- tabs:end -->
 
 ### createOrderWs
@@ -1059,6 +1096,12 @@ create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: flo
 #### **PHP**
 ```php
 create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ())
+```
+
+#### **C#/.NET**
+
+```c#
+    public async Task<Order> CreateOrderWs(string symbol, string type, string side, float amount, float? price2 = 0, Dictionary<string, object> parameters = null)
 ```
 <!-- tabs:end -->
 ### editOrderWs

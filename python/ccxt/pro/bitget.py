@@ -100,7 +100,9 @@ class bitget(ccxt.async_support.bitget):
             instType, params = self.handleProductTypeAndParams(market, params)
         else:
             instType = 'SPOT'
-        instType, params = self.handle_option_and_params(params, 'getInstType', 'instType', instType)
+        instypeAux = None
+        instypeAux, params = self.handle_option_and_params(params, 'getInstType', 'instType', instType)
+        instType = instypeAux
         return [instType, params]
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -847,7 +849,7 @@ class bitget(ccxt.async_support.bitget):
         await self.load_markets()
         market = None
         marketId = None
-        isStop = self.safe_value(params, 'stop', False)
+        isStop = self.safe_bool(params, 'stop', False)
         params = self.omit(params, 'stop')
         messageHash = 'triggerOrder' if (isStop) else 'order'
         subscriptionHash = 'order:trades'
