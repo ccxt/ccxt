@@ -9,7 +9,7 @@
             {
                 "description": "fetch my trades",
                 "method": "fetchMyTrades",
-                "url": "https://api.onetrading.com/public/v1/account/trades?instrument_code=BTC_USDT",
+                "url": "https://api.onetrading.com/fast/v1/account/trades?instrument_code=BTC_USDT",
                 "input": [
                   "BTC/USDT"
                 ]
@@ -19,7 +19,7 @@
             {
                 "description": "Fetch spot Balance",
                 "method": "fetchBalance",
-                "url": "https://api.onetrading.com/public/v1/account/balances?type=spot",
+                "url": "https://api.onetrading.com/fast/v1/account/balances?type=spot",
                 "input": [
                     {
                         "type": "spot"
@@ -29,7 +29,7 @@
             {
                 "description": "Fetch swap Balance",
                 "method": "fetchBalance",
-                "url": "https://api.onetrading.com/public/v1/account/balances?type=swap",
+                "url": "https://api.onetrading.com/fast/v1/account/balances?type=swap",
                 "input": [
                     {
                         "type": "swap"
@@ -41,7 +41,7 @@
             {
                 "description": "Fetch deposits",
                 "method": "fetchDeposits",
-                "url": "https://api.onetrading.com/public/v1/account/deposits",
+                "url": "https://api.onetrading.com/fast/v1/account/deposits",
                 "input": []
             }
         ]
