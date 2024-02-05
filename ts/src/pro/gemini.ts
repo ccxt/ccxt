@@ -350,45 +350,82 @@ export default class gemini extends geminiRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
+        const [ url, messageHashes ] = await this.helperForWatchMultipleConstruct ('orderbook', symbols, params);
+        const orderbook = await this.watchMultiple (url, messageHashes, undefined);
+        return orderbook.limit ();
+    }
+
+    async helperForWatchMultipleConstruct (itemHashName:string, symbols: string[], params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (symbols[0]);
         if (!firstMarket['spot'] && !firstMarket['linear']) {
-            throw new NotSupported (this.id + ' watchOrderBookForSymbols supports only spot or linear-swap symbols');
+            throw new NotSupported (this.id + ' watchMultiple supports only spot or linear-swap symbols');
         }
         const messageHashes = [];
         const marketIds = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const messageHash = 'trades:' + symbol;
+            const messageHash = itemHashName + ':' + symbol;
             messageHashes.push (messageHash);
             const market = this.market (symbol);
             marketIds.push (market['id']);
         }
         const queryStr = marketIds.join (',');
-        const url = this.urls['api']['ws'] + '/v1/multimarketdata?trades=false&bids=true&offers=true&heartbeat=true&symbols=' + queryStr;
-        const orderbook = await this.watchMultiple (url, messageHashes, undefined);
-        return orderbook.limit ();
+        let url = this.urls['api']['ws'] + '/v1/multimarketdata?symbols=' + queryStr + '&heartbeat=true&';
+        if (itemHashName === 'orderbook') {
+            url += 'trades=false&bids=true&offers=true';
+        } else if (itemHashName === 'trades') {
+            url += 'trades=true&bids=false&offers=false';
+        }
+        return [ url, messageHashes ];
     }
 
-    handleOrderBooksForMultidata (client: Client, orderbooks, timestamp: Int = undefined) {
-        if (orderbooks !== undefined) {
-            const storesForSymbols = {};
-            for (let i = 0; i < orderbooks.length; i++) {
-                const marketId = orderbooks[i]['symbol'];
-                const market = this.safeMarket (marketId.toLowerCase ());
-                const symbol = market['symbol'];
-                const orderBook = this.parseOrderBook (orderbooks[i], symbol);
-                console.log (orderBook, timestamp);
-            }
-            const symbols = Object.keys (storesForSymbols);
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                const stored = storesForSymbols[symbol];
-                const messageHash = 'orderbook:' + symbol;
-                client.resolve (stored, messageHash);
+    handleOrderBookForMultidata (client: Client, rawOrderBookChanges, timestamp: Int, nonce: Str = undefined) {
+        //
+        // rawOrderBookChanges
+        //
+        // [
+        //   {
+        //     delta: "4105123935484.817624",
+        //     price: "0.000000001",
+        //     reason: "initial", // initial|cancel|place
+        //     remaining: "4105123935484.817624",
+        //     side: "bid", // bid|ask
+        //     symbol: "SHIBUSD",
+        //     type: "change", // seems always change
+        //   },
+        //   ...
+        //
+        const marketId = rawOrderBookChanges[0]['symbol'];
+        const market = this.safeMarket (marketId.toLowerCase ());
+        const symbol = market['symbol'];
+        const messageHash = 'orderbook:' + symbol;
+        let orderbook = this.safeDict (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook ();
+        }
+        const bids = orderbook['bids'];
+        const asks = orderbook['asks'];
+        for (let i = 0; i < rawOrderBookChanges.length; i++) {
+            const entry = rawOrderBookChanges[i];
+            const price = this.safeNumber (entry, 'price');
+            const size = this.safeNumber (entry, 'remaining');
+            const rawSide = this.safeString (entry, 'side');
+            if (rawSide === 'bid') {
+                bids.store (price, size);
+            } else {
+                asks.store (price, size);
             }
         }
+        orderbook['bids'] = bids;
+        orderbook['asks'] = asks;
+        orderbook['symbol'] = symbol;
+        orderbook['nonce'] = nonce;
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, messageHash);
     }
 
     handleL2Updates (client: Client, message) {
@@ -682,22 +719,20 @@ export default class gemini extends geminiRest {
         }
         // handle multimarketdata
         if (type === 'update') {
+            const ts = this.safeInteger (message, 'timestampms', this.milliseconds ());
+            const eventId = this.safeString (message, 'eventId');
             const events = this.safeList (message, 'events');
-            const collectedEventsOfTrades = [];
-            const collectedEventsOfOrderBooks = [];
+            const orderBookItems = [];
             for (let i = 0; i < events.length; i++) {
-                const eventType = this.safeString (events[i], 'type');
-                if (eventType === 'trade') {
-                    collectedEventsOfTrades.push (events[i]);
-                }
-                if (eventType === 'change' && ('side' in events[i]) && this.inArray (events[i]['side'], [ 'ask', 'bid' ])) {
-                    collectedEventsOfOrderBooks.push (events[i]);
+                const event = events[i];
+                const eventType = this.safeString (event, 'type');
+                if (eventType === 'change' && ('side' in event) && this.inArray (event['side'], [ 'ask', 'bid' ])) {
+                    orderBookItems.push (event);
                 }
             }
-            const lengthOb = collectedEventsOfOrderBooks.length;
+            const lengthOb = orderBookItems.length;
             if (lengthOb > 0) {
-                const ts = this.safeInteger (message, 'timestampms', this.milliseconds ());
-                this.handleOrderBooksForMultidata (client, collectedEventsOfOrderBooks, ts);
+                this.handleOrderBookForMultidata (client, orderBookItems, ts, eventId);
             }
         }
     }
