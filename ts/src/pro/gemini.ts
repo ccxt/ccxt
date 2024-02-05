@@ -84,24 +84,7 @@ export default class gemini extends geminiRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
-        const firstMarket = this.market (symbols[0]);
-        if (!firstMarket['spot'] && !firstMarket['linear']) {
-            throw new NotSupported (this.id + ' watchTradesForSymbols() supports only spot or linear-swap symbols');
-        }
-        const messageHashes = [];
-        const marketIds = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            const messageHash = 'trades:' + symbol;
-            messageHashes.push (messageHash);
-            const market = this.market (symbol);
-            marketIds.push (market['id']);
-        }
-        const queryStr = marketIds.join (',');
-        const url = this.urls['api']['ws'] + '/v1/multimarketdata?trades=true&bids=false&offers=false&heartbeat=true&symbols=' + queryStr;
-        const trades = await this.watchMultiple (url, messageHashes, undefined);
+        const trades = await this.helperForWatchMultipleConstruct ('orderbook', symbols, params);
         if (this.newUpdates) {
             const first = this.safeList (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -439,8 +422,7 @@ export default class gemini extends geminiRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        const [ url, messageHashes ] = await this.helperForWatchMultipleConstruct ('orderbook', symbols, params);
-        const orderbook = await this.watchMultiple (url, messageHashes, undefined);
+        const orderbook = await this.helperForWatchMultipleConstruct ('orderbook', symbols, params);
         return orderbook.limit ();
     }
 
@@ -467,7 +449,7 @@ export default class gemini extends geminiRest {
         } else if (itemHashName === 'trades') {
             url += 'trades=true&bids=false&offers=false';
         }
-        return [ url, messageHashes ];
+        return await this.watchMultiple (url, messageHashes, undefined);
     }
 
     handleOrderBookForMultidata (client: Client, rawOrderBookChanges, timestamp: Int, nonce: Int) {
