@@ -109,7 +109,7 @@ export default class gemini extends geminiRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market = undefined): Trade {
         //
         // regular v2 trade
         //
