@@ -110,15 +110,16 @@ export default class bitmart extends bitmartRest {
         const url = this.implodeHostname (this.urls['api']['ws'][type]['public']);
         const channelType = (type === 'spot') ? 'spot' : 'futures';
         const actionType = (type === 'spot') ? 'op' : 'action';
-        const finalArray = [];
+        const requestArray = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
-            finalArray.push (channelType + '/' + channel + ':' + market['id']);
-            messageHashes.push ('orderbook:' + market['symbol']);
+            const message = channelType + '/' + channel + ':' + market['id'];
+            requestArray.push (message);
+            messageHashes.push (message); // we could use 'orderbook: market['symbol']' as a messageHash, but due to some complexities, atm we have to use message as a messageHash
         }
         const request = {
-            'args': finalArray,
+            'args': requestArray,
         };
         request[actionType] = 'subscribe';
         return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params));
@@ -1199,8 +1200,8 @@ export default class bitmart extends bitmartRest {
         //         "symbol": "BTC_USDT"
         //     }
         //
-        const asks = this.safeValue (message, 'asks', []);
-        const bids = this.safeValue (message, 'bids', []);
+        const asks = this.safeList (message, 'asks', []);
+        const bids = this.safeList (message, 'bids', []);
         this.handleDeltas (orderbook['asks'], asks);
         this.handleDeltas (orderbook['bids'], bids);
         const timestamp = this.safeInteger (message, 'ms_t');
@@ -1281,11 +1282,11 @@ export default class bitmart extends bitmartRest {
         //        }
         //    }
         //
-        const data = this.safeValue (message, 'data');
+        const data = this.safeDict (message, 'data');
         if (data === undefined) {
             return;
         }
-        const depths = this.safeValue (data, 'depths');
+        const depths = this.safeList (data, 'depths');
         const isSpot = (depths === undefined);
         const table = this.safeString2 (message, 'table', 'group');
         // find limit subscribed to
@@ -1303,7 +1304,7 @@ export default class bitmart extends bitmartRest {
                 const update = data[i];
                 const marketId = this.safeString (update, 'symbol');
                 const symbol = this.safeSymbol (marketId);
-                let orderbook = this.safeValue (this.orderbooks, symbol);
+                let orderbook = this.safeDict (this.orderbooks, symbol);
                 if (orderbook === undefined) {
                     orderbook = this.orderBook ({}, limit);
                     orderbook['symbol'] = symbol;
@@ -1315,8 +1316,10 @@ export default class bitmart extends bitmartRest {
                 }
                 this.handleOrderBookMessage (client, update, orderbook);
                 const timestamp = this.safeInteger (update, 'ms_t');
-                orderbook['timestamp'] = timestamp;
-                orderbook['datetime'] = this.iso8601 (timestamp);
+                if (orderbook['timestamp'] === undefined) {
+                    orderbook['timestamp'] = timestamp;
+                    orderbook['datetime'] = this.iso8601 (timestamp);
+                }
                 const messageHash = table + ':' + marketId;
                 client.resolve (orderbook, messageHash);
             }
