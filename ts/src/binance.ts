@@ -5744,7 +5744,7 @@ export default class binance extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
+        const clientOrderId = this.safeString2 (params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
             if (market['option']) {
                 request['clientOrderId'] = clientOrderId;
