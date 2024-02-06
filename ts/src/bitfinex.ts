@@ -1111,7 +1111,7 @@ export default class bitfinex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType , side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
         await this.loadMarkets ();
         const order = {
             'order_id': parseInt (id),

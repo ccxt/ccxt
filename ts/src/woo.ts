@@ -1024,7 +1024,7 @@ export default class woo extends Exchange {
         return order;
     }
 
-    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
         /**
          * @method
          * @name woo#editOrder
@@ -1067,7 +1067,7 @@ export default class woo extends Exchange {
         if (stopPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
         }
-        const trailingTriggerPrice = this.safeString2 (params, 'trailingTriggerPrice', 'activatedPrice', price);
+        const trailingTriggerPrice = this.safeString2 (params, 'trailingTriggerPrice', 'activatedPrice', this.numberToString (price));
         const trailingAmount = this.safeString2 (params, 'trailingAmount', 'callbackValue');
         const trailingPercent = this.safeString2 (params, 'trailingPercent', 'callbackRate');
         const isTrailingAmountOrder = trailingAmount !== undefined;
