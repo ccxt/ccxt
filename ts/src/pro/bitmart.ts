@@ -27,6 +27,7 @@ export default class bitmart extends bitmartRest {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOrders': true,
                 'watchTrades': true,
                 'watchOHLCV': true,
@@ -100,6 +101,25 @@ export default class bitmart extends bitmartRest {
             };
         }
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+    }
+
+    async subscribeMultiple (channel, symbols, type, params = {}) {
+        const url = this.implodeHostname (this.urls['api']['ws'][type]['public']);
+        let messageHash = undefined;
+        const channelType = (type === 'spot') ? 'spot' : 'futures';
+        const actionType = (type === 'spot') ? 'op' : 'action';
+        const finalArray = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            finalArray.push (channelType + '/' + channel + ':' + market['id']);
+            messageHashes.push ('orderbook:' + market['symbol']);
+        }
+        const request = {
+            'args': finalArray,
+        };
+        request[actionType] = 'subscribe';
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params));
     }
 
     async watchBalance (params = {}): Promise<Balances> {
@@ -1332,6 +1352,22 @@ export default class bitmart extends bitmartRest {
             const messageHash = table;
             client.resolve (orderbook, messageHash);
         }
+    }
+
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name bitmart#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see 
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        
     }
 
     async authenticate (type, params = {}) {
