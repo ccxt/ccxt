@@ -57,6 +57,9 @@ export default class bitmart extends bitmartRest {
                 'watchOrderBook': {
                     'depth': 'depth/increase100', // depth/increase100, depth5, depth20, depth50
                 },
+                'watchOrderBookForSymbols': {
+                    'depth': 'depth/increase100', // depth/increase100, depth5, depth20, depth50
+                },
                 'ws': {
                     'inflate': true,
                 },
@@ -103,9 +106,8 @@ export default class bitmart extends bitmartRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    async subscribeMultiple (channel, symbols, type, params = {}) {
+    async subscribeMultiple (channel, type, symbols, params = {}) {
         const url = this.implodeHostname (this.urls['api']['ws'][type]['public']);
-        let messageHash = undefined;
         const channelType = (type === 'spot') ? 'spot' : 'futures';
         const actionType = (type === 'spot') ? 'op' : 'action';
         const finalArray = [];
@@ -1366,8 +1368,17 @@ export default class bitmart extends bitmartRest {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        
+        symbols = this.marketSymbols (symbols, undefined, false, true);
+        const market = this.market (symbols[0]);
+        let channel = undefined;
+        [ channel, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'depth', 'depth/increase100');
+        let type = 'spot';
+        [ type, params ] = this.handleMarketTypeAndParams ('watchOrderBookForSymbols', market, params);
+        if (type === 'swap' && channel === 'depth/increase100') {
+            channel = 'depth50';
+        }
+        const orderbook = await this.subscribeMultiple (channel, type, symbols, params);
+        return orderbook.limit ();
     }
 
     async authenticate (type, params = {}) {
