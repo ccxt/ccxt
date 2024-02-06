@@ -30,6 +30,7 @@ public partial class bitmex
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/User/User_getMargin"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -49,6 +50,7 @@ public partial class bitmex
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/OrderBook/OrderBook_getL2"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -75,6 +77,7 @@ public partial class bitmex
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -140,6 +143,7 @@ public partial class bitmex
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -173,6 +177,7 @@ public partial class bitmex
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -246,6 +251,7 @@ public partial class bitmex
     /// fetch the history of changes, actions done by the user or operations that altered balance of the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -279,6 +285,7 @@ public partial class bitmex
     /// fetch history of deposits and withdrawals
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -318,6 +325,7 @@ public partial class bitmex
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -337,6 +345,7 @@ public partial class bitmex
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -486,6 +495,7 @@ public partial class bitmex
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Order/Order_cancel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -505,6 +515,7 @@ public partial class bitmex
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Order/Order_cancel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -524,6 +535,7 @@ public partial class bitmex
     /// cancel all open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAll"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -543,6 +555,7 @@ public partial class bitmex
     /// fetch all open positions
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Position/Position_get"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -562,6 +575,7 @@ public partial class bitmex
     /// make a withdrawal
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/User/User_requestWithdrawal"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -581,6 +595,7 @@ public partial class bitmex
     /// fetch the funding rate for multiple markets
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -600,6 +615,7 @@ public partial class bitmex
     /// Fetches the history of funding rates
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Funding/Funding_get"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -663,6 +679,7 @@ public partial class bitmex
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Position/Position_updateLeverage"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -682,6 +699,7 @@ public partial class bitmex
     /// set margin mode to 'cross' or 'isolated'
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Position/Position_isolateMargin"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

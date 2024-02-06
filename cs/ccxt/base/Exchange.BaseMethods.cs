@@ -3978,7 +3978,7 @@ public partial class Exchange
                 }
             }
             return getValue(markets, 0);
-        } else if (isTrue(isTrue(isTrue(isTrue((((string)symbol).EndsWith("-C"))) || isTrue((((string)symbol).EndsWith("-P")))) || isTrue((((string)symbol).StartsWith("C-")))) || isTrue((((string)symbol).StartsWith("P-")))))
+        } else if (isTrue(isTrue(isTrue(isTrue((((string)symbol).EndsWith(((string)"-C")))) || isTrue((((string)symbol).EndsWith(((string)"-P"))))) || isTrue((((string)symbol).StartsWith(((string)"C-"))))) || isTrue((((string)symbol).StartsWith(((string)"P-"))))))
         {
             return this.createExpiredOptionMarket(symbol);
         }

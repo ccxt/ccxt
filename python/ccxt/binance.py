@@ -4840,7 +4840,7 @@ class binance(Exchange, ImplicitAPI):
         #         "msg": "Quantity greater than max quantity."
         #     }
         #
-        # createOrder: portfolio margin linear swap and future
+        # createOrder, fetchOpenOrders: portfolio margin linear swap and future
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -4863,7 +4863,7 @@ class binance(Exchange, ImplicitAPI):
         #         "status": "NEW"
         #     }
         #
-        # createOrder: portfolio margin inverse swap and future
+        # createOrder, fetchOpenOrders: portfolio margin inverse swap and future
         #
         #     {
         #         "symbol": "ETHUSD_PERP",
@@ -4885,7 +4885,7 @@ class binance(Exchange, ImplicitAPI):
         #         "status": "NEW"
         #     }
         #
-        # createOrder: portfolio margin linear swap and future conditional
+        # createOrder, fetchOpenOrders: portfolio margin linear swap and future conditional
         #
         #     {
         #         "newClientStrategyId": "x-xcKtGhcu27f109953d6e4dc0974006",
@@ -4908,7 +4908,7 @@ class binance(Exchange, ImplicitAPI):
         #         "selfTradePreventionMode": "NONE"
         #     }
         #
-        # createOrder: portfolio margin inverse swap and future conditional
+        # createOrder, fetchOpenOrders: portfolio margin inverse swap and future conditional
         #
         #     {
         #         "newClientStrategyId": "x-xcKtGhcuc6b86f053bb34933850739",
@@ -4929,7 +4929,7 @@ class binance(Exchange, ImplicitAPI):
         #         "priceProtect": False
         #     }
         #
-        # createOrder: portfolio margin spot margin
+        # createOrder, cancelAllOrders: portfolio margin spot margin
         #
         #     {
         #         "clientOrderId": "x-R4BD3S82e9ef29d8346440f0b28b86",
@@ -4948,13 +4948,39 @@ class binance(Exchange, ImplicitAPI):
         #         "type": "LIMIT"
         #     }
         #
+        # fetchOpenOrders: portfolio margin spot margin
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "orderId": 24700763749,
+        #         "clientOrderId": "x-R4BD3S826f724c2a4af6425f98c7b6",
+        #         "price": "35000.00000000",
+        #         "origQty": "0.00100000",
+        #         "executedQty": "0.00000000",
+        #         "cummulativeQuoteQty": "0.00000000",
+        #         "status": "NEW",
+        #         "timeInForce": "GTC",
+        #         "type": "LIMIT",
+        #         "side": "BUY",
+        #         "stopPrice": "0.00000000",
+        #         "icebergQty": "0.00000000",
+        #         "time": 1707199187679,
+        #         "updateTime": 1707199187679,
+        #         "isWorking": True,
+        #         "accountId": 200180970,
+        #         "selfTradePreventionMode": "EXPIRE_MAKER",
+        #         "preventedMatchId": null,
+        #         "preventedQuantity": null
+        #     }
+        #
         code = self.safe_string(order, 'code')
         if code is not None:
             # cancelOrders/createOrders might have a partial success
             return self.safe_order({'info': order, 'status': 'rejected'}, market)
         status = self.parse_order_status(self.safe_string_2(order, 'status', 'strategyStatus'))
         marketId = self.safe_string(order, 'symbol')
-        marketType = 'contract' if ('closePosition' in order) else 'spot'
+        isContract = ('positionSide' in order) or ('cumQuote' in order)
+        marketType = 'contract' if isContract else 'spot'
         symbol = self.safe_symbol(marketId, market, None, marketType)
         filled = self.safe_string(order, 'executedQty', '0')
         timestamp = self.safe_integer_n(order, ['time', 'createTime', 'workingTime', 'transactTime', 'updateTime'])  # order of the keys matters here
@@ -5218,16 +5244,6 @@ class binance(Exchange, ImplicitAPI):
             else:
                 if reduceOnly:
                     request['sideEffectType'] = 'AUTO_REPAY'
-        if not isPortfolioMargin:
-            postOnly = self.is_post_only(isMarketOrder, initialUppercaseType == 'LIMIT_MAKER', params)
-            if market['spot'] or marketType == 'margin':
-                # only supported for spot/margin api(all margin markets are spot markets)
-                if postOnly:
-                    type = 'LIMIT_MAKER'
-                if marginMode == 'isolated':
-                    request['isIsolated'] = True
-            if market['contract'] and postOnly:
-                request['timeInForce'] = 'GTX'
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLossPrice = self.safe_string(params, 'stopLossPrice', triggerPrice)  # fallback to stopLoss
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
@@ -5285,6 +5301,15 @@ class binance(Exchange, ImplicitAPI):
             request[clientOrderIdRequest] = brokerId + self.uuid22()
         else:
             request[clientOrderIdRequest] = clientOrderId
+        postOnly = None
+        if not isPortfolioMargin:
+            postOnly = self.is_post_only(isMarketOrder, initialUppercaseType == 'LIMIT_MAKER', params)
+            if market['spot'] or marketType == 'margin':
+                # only supported for spot/margin api(all margin markets are spot markets)
+                if postOnly:
+                    uppercaseType = 'LIMIT_MAKER'
+                if marginMode == 'isolated':
+                    request['isIsolated'] = True
         typeRequest = 'strategyType' if isPortfolioMarginConditional else 'type'
         request[typeRequest] = uppercaseType
         # additional required fields depending on the order type
@@ -5371,8 +5396,6 @@ class binance(Exchange, ImplicitAPI):
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
             request['price'] = self.price_to_precision(symbol, price)
-        if timeInForceIsRequired:
-            request['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
         if stopPriceIsRequired:
             if market['contract']:
                 if stopPrice is None:
@@ -5383,16 +5406,10 @@ class binance(Exchange, ImplicitAPI):
                     raise InvalidOrder(self.id + ' createOrder() requires a stopPrice or trailingDelta param for a ' + type + ' order')
             if stopPrice is not None:
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
-        if not isPortfolioMargin:
-            postOnly = self.is_post_only(isMarketOrder, initialUppercaseType == 'LIMIT_MAKER', params)
-            if market['spot'] or marketType == 'margin':
-                # only supported for spot/margin api(all margin markets are spot markets)
-                if postOnly:
-                    type = 'LIMIT_MAKER'
-                if marginMode == 'isolated':
-                    request['isIsolated'] = True
-            if market['contract'] and postOnly:
-                request['timeInForce'] = 'GTX'
+        if timeInForceIsRequired and (self.safe_string(params, 'timeInForce') is None):
+            request['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+        if not isPortfolioMargin and market['contract'] and postOnly:
+            request['timeInForce'] = 'GTX'
         # remove timeInForce from params because PO is only used by self.is_post_onlyand it's not a valid value for Binance
         if self.safe_string(params, 'timeInForce') == 'PO':
             params = self.omit(params, 'timeInForce')
@@ -5625,21 +5642,28 @@ class binance(Exchange, ImplicitAPI):
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
+        fetch all unfilled currently open orders
         :see: https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
         :see: https://binance-docs.github.io/apidocs/futures/en/#current-all-open-orders-user_data
         :see: https://binance-docs.github.io/apidocs/delivery/en/#current-all-open-orders-user_data
         :see: https://binance-docs.github.io/apidocs/voptions/en/#query-current-open-option-orders-user_data
-        fetch all unfilled currently open orders
         :see: https://binance-docs.github.io/apidocs/spot/en/#current-open-orders-user_data
         :see: https://binance-docs.github.io/apidocs/futures/en/#current-all-open-orders-user_data
         :see: https://binance-docs.github.io/apidocs/delivery/en/#current-all-open-orders-user_data
         :see: https://binance-docs.github.io/apidocs/voptions/en/#query-current-open-option-orders-user_data
         :see: https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-open-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-all-current-um-open-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-all-current-cm-open-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-all-current-um-open-conditional-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-all-current-cm-open-conditional-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-current-margin-open-order-user_data
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
+        :param boolean [params.portfolioMargin]: set to True if you would like to fetch open orders in the portfolio margin account
+        :param boolean [params.stop]: set to True if you would like to fetch portfolio margin account conditional orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -5647,14 +5671,16 @@ class binance(Exchange, ImplicitAPI):
         type = None
         request = {}
         marginMode = None
-        query = None
-        marginMode, query = self.handle_margin_mode_and_params('fetchOpenOrders', params)
+        marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchOpenOrders', 'papi', 'portfolioMargin', False)
+        isConditional = self.safe_bool_2(params, 'stop', 'conditional')
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
             defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
             marketType = market['type'] if ('type' in market) else defaultType
-            type = self.safe_string(query, 'type', marketType)
+            type = self.safe_string(params, 'type', marketType)
         elif self.options['warnOnFetchOpenOrdersWithoutSymbol']:
             symbols = self.symbols
             numSymbols = len(symbols)
@@ -5662,29 +5688,44 @@ class binance(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + str(fetchOpenOrdersRateLimit) + ' seconds. Do not call self method frequently to avoid ban. Set ' + self.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = False to suppress self warning message.')
         else:
             defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
-            type = self.safe_string(query, 'type', defaultType)
+            type = self.safe_string(params, 'type', defaultType)
         subType = None
-        subType, query = self.handle_sub_type_and_params('fetchOpenOrders', market, query)
-        requestParams = self.omit(query, 'type')
+        subType, params = self.handle_sub_type_and_params('fetchOpenOrders', market, params)
+        params = self.omit(params, ['type', 'stop', 'conditional'])
         response = None
         if type == 'option':
             if since is not None:
                 request['startTime'] = since
             if limit is not None:
                 request['limit'] = limit
-            response = self.eapiPrivateGetOpenOrders(self.extend(request, requestParams))
+            response = self.eapiPrivateGetOpenOrders(self.extend(request, params))
         elif self.is_linear(type, subType):
-            response = self.fapiPrivateGetOpenOrders(self.extend(request, requestParams))
+            if isPortfolioMargin:
+                if isConditional:
+                    response = self.papiGetUmConditionalOpenOrders(self.extend(request, params))
+                else:
+                    response = self.papiGetUmOpenOrders(self.extend(request, params))
+            else:
+                response = self.fapiPrivateGetOpenOrders(self.extend(request, params))
         elif self.is_inverse(type, subType):
-            response = self.dapiPrivateGetOpenOrders(self.extend(request, requestParams))
+            if isPortfolioMargin:
+                if isConditional:
+                    response = self.papiGetCmConditionalOpenOrders(self.extend(request, params))
+                else:
+                    response = self.papiGetCmOpenOrders(self.extend(request, params))
+            else:
+                response = self.dapiPrivateGetOpenOrders(self.extend(request, params))
         elif type == 'margin' or marginMode is not None:
-            if marginMode == 'isolated':
-                request['isIsolated'] = True
-                if symbol is None:
-                    raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument for isolated markets')
-            response = self.sapiGetMarginOpenOrders(self.extend(request, requestParams))
+            if isPortfolioMargin:
+                response = self.papiGetMarginOpenOrders(self.extend(request, params))
+            else:
+                if marginMode == 'isolated':
+                    request['isIsolated'] = True
+                    if symbol is None:
+                        raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument for isolated markets')
+                response = self.sapiGetMarginOpenOrders(self.extend(request, params))
         else:
-            response = self.privateGetOpenOrders(self.extend(request, requestParams))
+            response = self.privateGetOpenOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -5780,40 +5821,66 @@ class binance(Exchange, ImplicitAPI):
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
+        cancel all open orders in a market
         :see: https://binance-docs.github.io/apidocs/spot/en/#cancel-all-open-orders-on-a-symbol-trade
         :see: https://binance-docs.github.io/apidocs/futures/en/#cancel-all-open-orders-trade
         :see: https://binance-docs.github.io/apidocs/delivery/en/#cancel-all-open-orders-trade
         :see: https://binance-docs.github.io/apidocs/voptions/en/#cancel-all-option-orders-on-specific-symbol-trade
         :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-cancel-order-trade
-        cancel all open orders in a market
+        :see: https://binance-docs.github.io/apidocs/pm/en/#cancel-all-um-open-orders-trade
+        :see: https://binance-docs.github.io/apidocs/pm/en/#cancel-all-cm-open-orders-trade
+        :see: https://binance-docs.github.io/apidocs/pm/en/#cancel-all-um-open-conditional-orders-trade
+        :see: https://binance-docs.github.io/apidocs/pm/en/#cancel-all-cm-open-conditional-orders-trade
+        :see: https://binance-docs.github.io/apidocs/pm/en/#cancel-margin-account-all-open-orders-on-a-symbol-trade
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
+        :param boolean [params.portfolioMargin]: set to True if you would like to cancel orders in a portfolio margin account
+        :param boolean [params.stop]: set to True if you would like to cancel portfolio margin account conditional orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
         }
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'cancelAllOrders', 'papi', 'portfolioMargin', False)
+        isConditional = self.safe_bool_2(params, 'stop', 'conditional')
         type = self.safe_string(params, 'type', market['type'])
-        params = self.omit(params, ['type'])
-        marginMode, query = self.handle_margin_mode_and_params('cancelAllOrders', params)
+        params = self.omit(params, ['type', 'stop', 'conditional'])
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('cancelAllOrders', params)
         response = None
         if market['option']:
-            response = self.eapiPrivateDeleteAllOpenOrders(self.extend(request, query))
+            response = self.eapiPrivateDeleteAllOpenOrders(self.extend(request, params))
         elif market['linear']:
-            response = self.fapiPrivateDeleteAllOpenOrders(self.extend(request, query))
+            if isPortfolioMargin:
+                if isConditional:
+                    response = self.papiDeleteUmConditionalAllOpenOrders(self.extend(request, params))
+                else:
+                    response = self.papiDeleteUmAllOpenOrders(self.extend(request, params))
+            else:
+                response = self.fapiPrivateDeleteAllOpenOrders(self.extend(request, params))
         elif market['inverse']:
-            response = self.dapiPrivateDeleteAllOpenOrders(self.extend(request, query))
+            if isPortfolioMargin:
+                if isConditional:
+                    response = self.papiDeleteCmConditionalAllOpenOrders(self.extend(request, params))
+                else:
+                    response = self.papiDeleteCmAllOpenOrders(self.extend(request, params))
+            else:
+                response = self.dapiPrivateDeleteAllOpenOrders(self.extend(request, params))
         elif (type == 'margin') or (marginMode is not None):
-            if marginMode == 'isolated':
-                request['isIsolated'] = True
-            response = self.sapiDeleteMarginOpenOrders(self.extend(request, query))
+            if isPortfolioMargin:
+                response = self.papiDeleteMarginAllOpenOrders(self.extend(request, params))
+            else:
+                if marginMode == 'isolated':
+                    request['isIsolated'] = True
+                response = self.sapiDeleteMarginOpenOrders(self.extend(request, params))
         else:
-            response = self.privateDeleteOpenOrders(self.extend(request, query))
+            response = self.privateDeleteOpenOrders(self.extend(request, params))
         if isinstance(response, list):
             return self.parse_orders(response, market)
         else:

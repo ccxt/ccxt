@@ -1673,7 +1673,7 @@ public partial class kraken : Exchange
         // const cost = this.safeString (order, 'cost');
         price = this.safeString(description, "price", price);
         // when type = trailling stop returns price = '+50.0000%'
-        if (isTrue(isTrue((!isEqual(price, null))) && isTrue(((string)price).EndsWith("%"))))
+        if (isTrue(isTrue((!isEqual(price, null))) && isTrue(((string)price).EndsWith(((string)"%")))))
         {
             price = null; // this is not the price we want
         }
@@ -1736,11 +1736,11 @@ public partial class kraken : Exchange
         stopPrice = this.omitZero(this.safeString(order, "stopprice", stopPrice));
         object stopLossPrice = null;
         object takeProfitPrice = null;
-        if (isTrue(((string)type).StartsWith("take-profit")))
+        if (isTrue(((string)type).StartsWith(((string)"take-profit"))))
         {
             takeProfitPrice = this.safeString(description, "price");
             price = this.omitZero(this.safeString(description, "price2"));
-        } else if (isTrue(((string)type).StartsWith("stop-loss")))
+        } else if (isTrue(((string)type).StartsWith(((string)"stop-loss"))))
         {
             stopLossPrice = this.safeString(description, "price");
             price = this.omitZero(this.safeString(description, "price2"));
@@ -1790,7 +1790,7 @@ public partial class kraken : Exchange
         object trailingAmount = this.safeString(parameters, "trailingAmount");
         object trailingLimitAmount = this.safeString(parameters, "trailingLimitAmount");
         object isTrailingAmountOrder = !isEqual(trailingAmount, null);
-        object isLimitOrder = ((string)type).EndsWith("limit"); // supporting limit, stop-loss-limit, take-profit-limit, etc
+        object isLimitOrder = ((string)type).EndsWith(((string)"limit")); // supporting limit, stop-loss-limit, take-profit-limit, etc
         if (isTrue(isTrue(isLimitOrder) && !isTrue(isTrailingAmountOrder)))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);

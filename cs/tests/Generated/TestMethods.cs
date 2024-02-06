@@ -921,7 +921,7 @@ public partial class testMainClass : BaseTest
             }
             object key = getValue(keyValue, 0);
             object value = getValue(keyValue, 1);
-            if (isTrue(isTrue((!isEqual(value, null))) && isTrue((isTrue((((string)value).StartsWith("["))) || isTrue((((string)value).StartsWith("{")))))))
+            if (isTrue(isTrue((!isEqual(value, null))) && isTrue((isTrue((((string)value).StartsWith(((string)"[")))) || isTrue((((string)value).StartsWith(((string)"{"))))))))
             {
                 // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
                 value = jsonParse(value);
@@ -1089,7 +1089,7 @@ public partial class testMainClass : BaseTest
             newOutput = this.urlencodedToDict(newOutput);
         } else if (isTrue(isEqual(type, "both")))
         {
-            if (isTrue(isTrue(((string)storedOutput).StartsWith("{")) || isTrue(((string)storedOutput).StartsWith("["))))
+            if (isTrue(isTrue(((string)storedOutput).StartsWith(((string)"{"))) || isTrue(((string)storedOutput).StartsWith(((string)"[")))))
             {
                 storedOutput = jsonParse(storedOutput);
                 newOutput = jsonParse(newOutput);
@@ -1395,7 +1395,7 @@ public partial class testMainClass : BaseTest
             spotOrderRequest = this.urlencodedToDict(exchange.last_request_body);
         }
         object clientOrderId = getValue(spotOrderRequest, "newClientOrderId");
-        assert(((string)clientOrderId).StartsWith(((object)spotId).ToString()), "spot clientOrderId does not start with spotId");
+        assert(((string)clientOrderId).StartsWith(((string)((object)spotId).ToString())), "spot clientOrderId does not start with spotId");
         object swapId = "x-xcKtGhcu";
         object swapOrderRequest = null;
         try
@@ -1414,9 +1414,9 @@ public partial class testMainClass : BaseTest
             swapInverseOrderRequest = this.urlencodedToDict(exchange.last_request_body);
         }
         object clientOrderIdSpot = getValue(swapOrderRequest, "newClientOrderId");
-        assert(((string)clientOrderIdSpot).StartsWith(((object)swapId).ToString()), "swap clientOrderId does not start with swapId");
+        assert(((string)clientOrderIdSpot).StartsWith(((string)((object)swapId).ToString())), "swap clientOrderId does not start with swapId");
         object clientOrderIdInverse = getValue(swapInverseOrderRequest, "newClientOrderId");
-        assert(((string)clientOrderIdInverse).StartsWith(((object)swapId).ToString()), "swap clientOrderIdInverse does not start with swapId");
+        assert(((string)clientOrderIdInverse).StartsWith(((string)((object)swapId).ToString())), "swap clientOrderIdInverse does not start with swapId");
         await close(exchange);
         return true;
     }
@@ -1434,7 +1434,7 @@ public partial class testMainClass : BaseTest
             spotOrderRequest = jsonParse(exchange.last_request_body);
         }
         object clientOrderId = getValue(getValue(spotOrderRequest, 0), "clOrdId"); // returns order inside array
-        assert(((string)clientOrderId).StartsWith(((object)id).ToString()), "spot clientOrderId does not start with id");
+        assert(((string)clientOrderId).StartsWith(((string)((object)id).ToString())), "spot clientOrderId does not start with id");
         assert(isEqual(getValue(getValue(spotOrderRequest, 0), "tag"), id), "id different from spot tag");
         object swapOrderRequest = null;
         try
@@ -1445,7 +1445,7 @@ public partial class testMainClass : BaseTest
             swapOrderRequest = jsonParse(exchange.last_request_body);
         }
         object clientOrderIdSpot = getValue(getValue(swapOrderRequest, 0), "clOrdId");
-        assert(((string)clientOrderIdSpot).StartsWith(((object)id).ToString()), "swap clientOrderId does not start with id");
+        assert(((string)clientOrderIdSpot).StartsWith(((string)((object)id).ToString())), "swap clientOrderId does not start with id");
         assert(isEqual(getValue(getValue(swapOrderRequest, 0), "tag"), id), "id different from swap tag");
         await close(exchange);
         return true;
@@ -1578,7 +1578,7 @@ public partial class testMainClass : BaseTest
             spotOrderRequest = jsonParse(exchange.last_request_body);
         }
         object clientOrderId = getValue(spotOrderRequest, "client-order-id");
-        assert(((string)clientOrderId).StartsWith(((object)id).ToString()), "spot clientOrderId does not start with id");
+        assert(((string)clientOrderId).StartsWith(((string)((object)id).ToString())), "spot clientOrderId does not start with id");
         // swap test
         object swapOrderRequest = null;
         try
@@ -1597,9 +1597,9 @@ public partial class testMainClass : BaseTest
             swapInverseOrderRequest = jsonParse(exchange.last_request_body);
         }
         object clientOrderIdSpot = getValue(swapOrderRequest, "channel_code");
-        assert(((string)clientOrderIdSpot).StartsWith(((object)id).ToString()), "swap channel_code does not start with id");
+        assert(((string)clientOrderIdSpot).StartsWith(((string)((object)id).ToString())), "swap channel_code does not start with id");
         object clientOrderIdInverse = getValue(swapInverseOrderRequest, "channel_code");
-        assert(((string)clientOrderIdInverse).StartsWith(((object)id).ToString()), "swap inverse channel_code does not start with id");
+        assert(((string)clientOrderIdInverse).StartsWith(((string)((object)id).ToString())), "swap inverse channel_code does not start with id");
         await close(exchange);
         return true;
     }
@@ -1618,7 +1618,7 @@ public partial class testMainClass : BaseTest
             spotOrderRequest = this.urlencodedToDict(exchange.last_request_body);
         }
         object brokerId = getValue(spotOrderRequest, "broker_id");
-        assert(((string)brokerId).StartsWith(((object)id).ToString()), "broker_id does not start with id");
+        assert(((string)brokerId).StartsWith(((string)((object)id).ToString())), "broker_id does not start with id");
         // swap test
         object stopOrderRequest = null;
         try
@@ -1631,7 +1631,7 @@ public partial class testMainClass : BaseTest
             stopOrderRequest = jsonParse(exchange.last_request_body);
         }
         object clientOrderIdSpot = getValue(stopOrderRequest, "brokerId");
-        assert(((string)clientOrderIdSpot).StartsWith(((object)id).ToString()), "brokerId does not start with id");
+        assert(((string)clientOrderIdSpot).StartsWith(((string)((object)id).ToString())), "brokerId does not start with id");
         await close(exchange);
         return true;
     }
@@ -1669,7 +1669,7 @@ public partial class testMainClass : BaseTest
             spotOrderRequest = jsonParse(exchange.last_request_body);
         }
         object clientOrderId = getValue(spotOrderRequest, "client_id");
-        assert(((string)clientOrderId).StartsWith(((object)id).ToString()), "clientOrderId does not start with id");
+        assert(((string)clientOrderId).StartsWith(((string)((object)id).ToString())), "clientOrderId does not start with id");
         await close(exchange);
         return true;
     }
@@ -1705,7 +1705,7 @@ public partial class testMainClass : BaseTest
             request = jsonParse(exchange.last_request_body);
         }
         object clientOrderId = getValue(request, "clOrdID");
-        assert(((string)clientOrderId).StartsWith(((object)id).ToString()), "clOrdID does not start with id");
+        assert(((string)clientOrderId).StartsWith(((string)((object)id).ToString())), "clOrdID does not start with id");
         await close(exchange);
     }
 }
