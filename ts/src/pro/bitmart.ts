@@ -30,6 +30,7 @@ export default class bitmart extends bitmartRest {
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
                 'watchOHLCV': true,
                 'watchPosition': 'emulated',
                 'watchPositions': true,
@@ -282,6 +283,36 @@ export default class bitmart extends bitmartRest {
         const trades = await this.subscribe ('trade', symbol, type, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name bitmart#watchTradesForSymbols
+         * @see https://developer-pro.bitmart.com/en/spot/#public-trade-channel
+         * @description get the list of most recent trades for a list of symbols
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false, true);
+        if (symbols.length > 20) {
+            throw new NotSupported (this.id + ' watchTradesForSymbols() accepts a maximum of 20 symbols in one request');
+        }
+        const market = this.market (symbols[0]);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchTradesForSymbols', market, params);
+        const channel = 'trade';
+        const trades = await this.subscribeMultiple (channel, type, symbols, params);
+        if (this.newUpdates) {
+            const first = this.safeDict (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
