@@ -27,6 +27,7 @@ export default class bitmart extends bitmartRest {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOrders': true,
                 'watchTrades': true,
                 'watchOHLCV': true,
@@ -54,6 +55,9 @@ export default class bitmart extends bitmartRest {
                     'awaitBalanceSnapshot': false, // whether to wait for the balance snapshot before providing updates
                 },
                 'watchOrderBook': {
+                    'depth': 'depth/increase100', // depth/increase100, depth5, depth20, depth50
+                },
+                'watchOrderBookForSymbols': {
                     'depth': 'depth/increase100', // depth/increase100, depth5, depth20, depth50
                 },
                 'ws': {
@@ -100,6 +104,25 @@ export default class bitmart extends bitmartRest {
             };
         }
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+    }
+
+    async subscribeMultiple (channel, type, symbols, params = {}) {
+        const url = this.implodeHostname (this.urls['api']['ws'][type]['public']);
+        const channelType = (type === 'spot') ? 'spot' : 'futures';
+        const actionType = (type === 'spot') ? 'op' : 'action';
+        const requestArray = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            const message = channelType + '/' + channel + ':' + market['id'];
+            requestArray.push (message);
+            messageHashes.push (message); // we could use 'orderbook: market['symbol']' as a messageHash, but due to some complexities, atm we have to use message as a messageHash
+        }
+        const request = {
+            'args': requestArray,
+        };
+        request[actionType] = 'subscribe';
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params));
     }
 
     async watchBalance (params = {}): Promise<Balances> {
@@ -1177,8 +1200,8 @@ export default class bitmart extends bitmartRest {
         //         "symbol": "BTC_USDT"
         //     }
         //
-        const asks = this.safeValue (message, 'asks', []);
-        const bids = this.safeValue (message, 'bids', []);
+        const asks = this.safeList (message, 'asks', []);
+        const bids = this.safeList (message, 'bids', []);
         this.handleDeltas (orderbook['asks'], asks);
         this.handleDeltas (orderbook['bids'], bids);
         const timestamp = this.safeInteger (message, 'ms_t');
@@ -1259,11 +1282,11 @@ export default class bitmart extends bitmartRest {
         //        }
         //    }
         //
-        const data = this.safeValue (message, 'data');
+        const data = this.safeDict (message, 'data');
         if (data === undefined) {
             return;
         }
-        const depths = this.safeValue (data, 'depths');
+        const depths = this.safeList (data, 'depths');
         const isSpot = (depths === undefined);
         const table = this.safeString2 (message, 'table', 'group');
         // find limit subscribed to
@@ -1281,7 +1304,7 @@ export default class bitmart extends bitmartRest {
                 const update = data[i];
                 const marketId = this.safeString (update, 'symbol');
                 const symbol = this.safeSymbol (marketId);
-                let orderbook = this.safeValue (this.orderbooks, symbol);
+                let orderbook = this.safeDict (this.orderbooks, symbol);
                 if (orderbook === undefined) {
                     orderbook = this.orderBook ({}, limit);
                     orderbook['symbol'] = symbol;
@@ -1293,8 +1316,10 @@ export default class bitmart extends bitmartRest {
                 }
                 this.handleOrderBookMessage (client, update, orderbook);
                 const timestamp = this.safeInteger (update, 'ms_t');
-                orderbook['timestamp'] = timestamp;
-                orderbook['datetime'] = this.iso8601 (timestamp);
+                if (orderbook['timestamp'] === undefined) {
+                    orderbook['timestamp'] = timestamp;
+                    orderbook['datetime'] = this.iso8601 (timestamp);
+                }
                 const messageHash = table + ':' + marketId;
                 client.resolve (orderbook, messageHash);
             }
@@ -1332,6 +1357,31 @@ export default class bitmart extends bitmartRest {
             const messageHash = table;
             client.resolve (orderbook, messageHash);
         }
+    }
+
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name bitmart#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see 
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false, true);
+        const market = this.market (symbols[0]);
+        let channel = undefined;
+        [ channel, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'depth', 'depth/increase100');
+        let type = 'spot';
+        [ type, params ] = this.handleMarketTypeAndParams ('watchOrderBookForSymbols', market, params);
+        if (type === 'swap' && channel === 'depth/increase100') {
+            channel = 'depth50';
+        }
+        const orderbook = await this.subscribeMultiple (channel, type, symbols, params);
+        return orderbook.limit ();
     }
 
     async authenticate (type, params = {}) {
