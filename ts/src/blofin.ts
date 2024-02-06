@@ -39,9 +39,9 @@ export default class blofin extends Exchange {
                 'createDepositAddress': false,
                 'createMarketBuyOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
-                'createOrderWithTakeProfitAndStopLoss': true,
                 'createOrder': true,
                 'createOrders': true,
+                'createOrderWithTakeProfitAndStopLoss': true,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -267,6 +267,13 @@ export default class blofin extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'brokerId': 'ec6dd3a7dd982d0b',
+                'accountsByType': {
+                    'swap': 'futures',
+                    'future': 'futures',
+                },
+                'accountsById': {
+                    'futures': 'swap',
+                },
                 'sandboxMode': false,
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
@@ -1608,7 +1615,7 @@ export default class blofin extends Exchange {
         return this.parseOrders (ordersData, market, undefined, undefined, params);
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name blofin#transfer
@@ -1616,20 +1623,23 @@ export default class blofin extends Exchange {
          * @see https://blofin.com/docs#funds-transfer
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
-         * @param {string} fromAccount account to transfer from
-         * @param {string} toAccount account to transfer to
+         * @param {string} fromAccount account to transfer from (funding, swap, copy_trading, earn)
+         * @param {string} toAccount account to transfer to (funding, swap, copy_trading, earn)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets ();
         // TODO: 此处需要接入currency接口后实现
         // const currency = this.currency (code);
-        const currency = code;
+        const currency = this.currency (code);
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
         const request = {
-            'currency': currency,
+            'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
+            'fromAccount': fromId,
+            'toAccount': toId,
         };
         const response = await this.privatePostAssetTransfer (this.extend (request, params));
         const data = this.safeList (response, 'data', []);

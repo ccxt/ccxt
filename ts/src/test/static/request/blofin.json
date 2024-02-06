@@ -238,6 +238,20 @@
               "USDT"
             ]
           }
+        ],
+        "transfer": [
+          {
+            "description": "transfer from swap to funding",
+            "method": "transfer",
+            "url": "https://openapi.blofin.com/api/v1/asset/transfer",
+            "input": [
+              "USDT",
+              1,
+              "swap",
+              "funding"
+            ],
+            "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"fromAccount\":\"futures\",\"toAccount\":\"funding\"}"
+          }
         ]
     }
 }
