@@ -266,6 +266,16 @@
             ],
             "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"fromAccount\":\"futures\",\"toAccount\":\"funding\"}"
           }
+        ],
+        "fetchFundingRate": [
+            {
+              "description": "fetch funding rate",
+              "method": "fetchFundingRate",
+              "url": "https://openapi.blofin.com/api/v1/market/funding-rate?instId=LTC-USDT",
+              "input": [
+                "LTC/USDT:USDT"
+              ]
+            }
         ]
     }
 }

@@ -1735,8 +1735,6 @@ export default class blofin extends Exchange {
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets ();
-        // TODO: 此处需要接入currency接口后实现
-        // const currency = this.currency (code);
         const currency = this.currency (code);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
@@ -1748,8 +1746,8 @@ export default class blofin extends Exchange {
             'toAccount': toId,
         };
         const response = await this.privatePostAssetTransfer (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
-        return this.parseTransfer (data, undefined);
+        const data = this.safeDict (response, 'data', {});
+        return this.parseTransfer (data, currency);
     }
 
     parseTransfer (transfer, currency: Currency = undefined) {

@@ -733,6 +733,40 @@
           }
         ]
       }
+    ],
+    "transfer": [
+      {
+        "description": "transfer",
+        "method": "transfer",
+        "input": [
+          "USDT",
+          1,
+          "swap",
+          "funding"
+        ],
+        "httpResponse": {
+          "code": "0",
+          "msg": "success",
+          "data": {
+            "transferId": "49719",
+            "clientTransferId": ""
+          }
+        },
+        "parsedResponse": {
+          "info": {
+            "transferId": "49719",
+            "clientTransferId": ""
+          },
+          "id": "49719",
+          "timestamp": null,
+          "datetime": null,
+          "currency": null,
+          "amount": null,
+          "fromAccount": null,
+          "toAccount": null,
+          "status": null
+        }
+      }
     ]
   }
 }
