@@ -2062,7 +2062,7 @@ export default class blofin extends Exchange {
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            const timestamp = this.milliseconds ();
+            const timestamp = this.milliseconds ().toString ();
             headers = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-PASSPHRASE': this.password,
