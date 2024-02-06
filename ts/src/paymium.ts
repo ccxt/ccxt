@@ -444,7 +444,7 @@ export default class paymium extends Exchange {
         return await this.privateDeleteUserOrdersUuidCancel (this.extend (request, params));
     }
 
-    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name paymium#transfer

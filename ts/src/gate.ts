@@ -5044,7 +5044,7 @@ export default class gate extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name gate#transfer

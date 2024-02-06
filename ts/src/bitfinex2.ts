@@ -879,7 +879,7 @@ export default class bitfinex2 extends Exchange {
         return this.safeBalance (result);
     }
 
-    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name bitfinex2#transfer
