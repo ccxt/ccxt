@@ -586,7 +586,7 @@ export default class kucoin extends kucoinRest {
         const marketId = this.safeString (data, 'symbol', topicSymbol);
         const symbol = this.safeSymbol (marketId, undefined, '-');
         const messageHash = 'orderbook:' + symbol;
-        let orderbook = this.orderbooks[symbol];
+        let orderbook = this.safeDict (this.orderbooks, symbol);
         if (subject === 'level2') {
             if (orderbook === undefined) {
                 orderbook = this.orderBook ();
