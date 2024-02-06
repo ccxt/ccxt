@@ -1644,7 +1644,7 @@ export default class blofin extends Exchange {
         let method = this.safeString (params, 'method', defaultMethod);
         const clientOrderIds = this.parseIds (this.safeValue (params, 'clientOrderId'));
         const tpslIds = this.parseIds (this.safeValue (params, 'tpslId'));
-        const stop = this.safeValueN (params, [ 'stop', 'trigger', 'tpsl' ]);
+        const stop = this.safeBoolN (params, [ 'stop', 'trigger', 'tpsl' ]);
         if (stop) {
             method = 'privatePostTradeCancelTpsl';
         }
@@ -1748,11 +1748,10 @@ export default class blofin extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ query ] = this.handleMarketTypeAndParams ('fetchPosition', market, params);
         const request = {
             'instId': market['id'],
         };
-        const response = await this.privateGetAccountPositions (this.extend (request, query));
+        const response = await this.privateGetAccountPositions (this.extend (request, params));
         const data = this.safeList (response, 'data', []);
         const position = this.safeDict (data, 0);
         if (position === undefined) {
@@ -2057,7 +2056,7 @@ export default class blofin extends Exchange {
         let url = this.implodeHostname (this.urls['api']['rest']) + request;
         // const type = this.getPathAuthenticationType (path);
         if (api === 'public') {
-            if (Object.keys (query).length) {
+            if (!this.isEmpty (query)) {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
@@ -2071,13 +2070,13 @@ export default class blofin extends Exchange {
             };
             let sign_body = '';
             if (method === 'GET') {
-                if (Object.keys (query).length) {
+                if (!this.isEmpty (query)) {
                     const urlencodedQuery = '?' + this.urlencode (query);
                     url += urlencodedQuery;
                     request += urlencodedQuery;
                 }
             } else {
-                if (Object.keys (query).length) {
+                if (!this.isEmpty (query)) {
                     body = this.json (query);
                     sign_body = body;
                 }

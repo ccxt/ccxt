@@ -149,12 +149,12 @@
         ],
         "fetchPosition": [
             {
-                "description": "fetch swap position",
-                "method": "fetchPosition",
-                "url": "https://openapi.blofin.com/api/v1/account/positions?0=s&1=w&2=a&3=p&instId=LTC-USDT",
-                "input": [
-                  "LTC/USDT:USDT"
-                ]
+              "description": "fetch position",
+              "method": "fetchPosition",
+              "url": "https://openapi.blofin.com/api/v1/account/positions?instId=LTC-USDT",
+              "input": [
+                "LTC/USDT:USDT"
+              ]
             }
         ],
         "fetchPositions": [
