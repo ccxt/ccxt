@@ -82,6 +82,20 @@
                 "output": "{\"instId\":\"LTC-USDT\",\"orderId\":2075628262}"
             }
         ],
+        "cancelOrders": [
+          {
+            "description": "cancel orders",
+            "method": "cancelOrders",
+            "url": "https://openapi.blofin.com/api/v1/trade/cancel-batch-orders",
+            "input": [
+              [
+                "2075704519"
+              ],
+              "LTC/USDT:USDT"
+            ],
+            "output": "[{\"orderId\":\"2075704519\",\"instId\":\"LTC-USDT\"}]"
+          }
+        ],
         "fetchMyTrades": [
             {
                 "description": "swap trades",
@@ -221,7 +235,7 @@
             "input": []
           }
         ],
-        "fetchWihdrawals": [
+        "fetchWithdrawals": [
           {
             "description": "fetch withdrawals",
             "method": "fetchWithdrawals",

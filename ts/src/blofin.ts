@@ -827,8 +827,35 @@ export default class blofin extends Exchange {
     }
 
     parseTradingBalance (response) {
+        //
+        // {
+        //     "code": "0",
+        //     "msg": "success",
+        //     "data": {
+        //         "ts": "1697021343571",
+        //         "totalEquity": "10011254.077985990315787910",
+        //         "isolatedEquity": "861.763132108800000000",
+        //         "details": [
+        //             {
+        //                 "currency": "USDT",
+        //                 "equity": "10014042.988958415234430699548",
+        //                 "balance": "10013119.885958415234430699",
+        //                 "ts": "1697021343571",
+        //                 "isolatedEquity": "862.003200000000000000048",
+        //                 "available": "9996399.4708691159703362725",
+        //                 "availableEquity": "9996399.4708691159703362725",
+        //                 "frozen": "15805.149672632597427761",
+        //                 "orderFrozen": "14920.994472632597427761",
+        //                 "equityUsd": "10011254.077985990315787910",
+        //                 "isolatedUnrealizedPnl": "-22.151999999999999999952",
+        //                 "bonus": "0"
+        //             }
+        //         ]
+        //     }
+        // }
+        //
         const result = { 'info': response };
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (data, 'ts');
         const details = this.safeList (data, 'details', []);
         for (let i = 0; i < details.length; i++) {
@@ -854,6 +881,21 @@ export default class blofin extends Exchange {
     }
 
     parseFundingBalance (response) {
+        //
+        //  {
+        //      "code": "0",
+        //      "msg": "success",
+        //      "data": [
+        //          {
+        //              "currency": "USDT",
+        //              "balance": "10012514.919418081548717298",
+        //              "available": "9872132.414278782284622898",
+        //              "frozen": "138556.471805965930761067",
+        //              "bonus": "0"
+        //          }
+        //      ]
+        //  }
+        //
         const result = { 'info': response };
         const data = this.safeList (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
@@ -888,19 +930,23 @@ export default class blofin extends Exchange {
          * @see https://blofin.com/docs#get-balance
          * @see https://blofin.com/docs#get-futures-account-balance
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.accountType] the type of account to fetch the balance for, either 'funding' or 'futures'  or 'copy_trading' or 'earn'
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        const marketType = this.safeString (params, 'accountType');
+        const accountType = this.safeString2 (params, 'accountType', 'type');
+        params = this.omit (params, [ 'accountType', 'type' ]);
         const request = {
         };
         let response = undefined;
-        if (marketType) {
+        if (accountType !== undefined) {
+            const parsedAccountType = this.safeString (this.options, 'accountsByType', accountType);
+            request['accountType'] = parsedAccountType;
             response = await this.privateGetAssetBalances (this.extend (request, params));
         } else {
-            response = await this.privateGetAccountBalance (this.extend (request));
+            response = await this.privateGetAccountBalance (this.extend (request, params));
         }
-        return this.parseBalanceByType (marketType, response);
+        return this.parseBalanceByType (accountType, response);
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
