@@ -507,6 +507,64 @@
                 "input": [
                     "ETH/USDT:USDT-231229-800-C"
                 ]
+            },
+            {
+                "description": "Spot margin portfolio margin cancel all orders",
+                "method": "cancelAllOrders",
+                "url": "https://papi.binance.com/papi/v1/margin/allOpenOrders?timestamp=1707200410926&symbol=BTCUSDT&recvWindow=10000&signature=df707ee6f73851d1e718c1dac653ef25728c1cd886a430f50f1f50aa29521923",
+                "input": [
+                  "BTC/USDT",
+                  {
+                    "portfolioMargin": true,
+                    "marginMode": "cross"
+                  }
+                ]
+            },
+            {
+                "description": "Linear swap portfolio margin cancel all orders",
+                "method": "cancelAllOrders",
+                "url": "https://papi.binance.com/papi/v1/um/allOpenOrders?timestamp=1707200607284&symbol=BTCUSDT&recvWindow=10000&signature=288414f1b0973e263c547484ce798dcf5940c8fbf65491610cb196d2f42900fc",
+                "input": [
+                  "BTC/USDT:USDT",
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
+            },
+            {
+                "description": "Inverse swap portfolio margin cancel all orders",
+                "method": "cancelAllOrders",
+                "url": "https://papi.binance.com/papi/v1/cm/allOpenOrders?timestamp=1707200728688&symbol=ETHUSD_PERP&recvWindow=10000&signature=032e5ca4f8726847411668a8d3790721a6c284989259aad341eadf45c07c3a8f",
+                "input": [
+                  "ETH/USD:ETH",
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
+            },
+            {
+                "description": "Linear swap conditional portfolio margin cancel all orders",
+                "method": "cancelAllOrders",
+                "url": "https://papi.binance.com/papi/v1/um/conditional/allOpenOrders?timestamp=1707200837231&symbol=BTCUSDT&recvWindow=10000&signature=a2d5b52b27de004012e2505eabd7008521b2755832a94e9c20e6c8b37bd8f44f",
+                "input": [
+                  "BTC/USDT:USDT",
+                  {
+                    "portfolioMargin": true,
+                    "stop": true
+                  }
+                ]
+            },
+            {
+                "description": "Inverse swap conditional portfolio margin cancel all orders",
+                "method": "cancelAllOrders",
+                "url": "https://papi.binance.com/papi/v1/cm/conditional/allOpenOrders?timestamp=1707200939553&symbol=ETHUSD_PERP&recvWindow=10000&signature=a2cd0a7bcdbf763ed40e90f84660de730e43d0e278755090fc96874911e0fb9f",
+                "input": [
+                  "ETH/USD:ETH",
+                  {
+                    "portfolioMargin": true,
+                    "stop": true
+                  }
+                ]
             }
         ],
         "fetchBalance": [

@@ -5096,7 +5096,7 @@ export default class binance extends Exchange {
         //         "priceProtect": false
         //     }
         //
-        // createOrder: portfolio margin spot margin
+        // createOrder, cancelAllOrders: portfolio margin spot margin
         //
         //     {
         //         "clientOrderId": "x-R4BD3S82e9ef29d8346440f0b28b86",
@@ -5122,7 +5122,8 @@ export default class binance extends Exchange {
         }
         const status = this.parseOrderStatus (this.safeString2 (order, 'status', 'strategyStatus'));
         const marketId = this.safeString (order, 'symbol');
-        const marketType = ('closePosition' in order) ? 'contract' : 'spot';
+        const isContract = ('positionSide' in order) || ('cumQuote' in order);
+        const marketType = isContract ? 'contract' : 'spot';
         const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         const filled = this.safeString (order, 'executedQty', '0');
         const timestamp = this.safeIntegerN (order, [ 'time', 'createTime', 'workingTime', 'transactTime', 'updateTime' ]); // order of the keys matters here
@@ -6061,42 +6062,73 @@ export default class binance extends Exchange {
         /**
          * @method
          * @name binance#cancelAllOrders
+         * @description cancel all open orders in a market
          * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-all-open-orders-on-a-symbol-trade
          * @see https://binance-docs.github.io/apidocs/futures/en/#cancel-all-open-orders-trade
          * @see https://binance-docs.github.io/apidocs/delivery/en/#cancel-all-open-orders-trade
          * @see https://binance-docs.github.io/apidocs/voptions/en/#cancel-all-option-orders-on-specific-symbol-trade
          * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-cancel-order-trade
-         * @description cancel all open orders in a market
+         * @see https://binance-docs.github.io/apidocs/pm/en/#cancel-all-um-open-orders-trade
+         * @see https://binance-docs.github.io/apidocs/pm/en/#cancel-all-cm-open-orders-trade
+         * @see https://binance-docs.github.io/apidocs/pm/en/#cancel-all-um-open-conditional-orders-trade
+         * @see https://binance-docs.github.io/apidocs/pm/en/#cancel-all-cm-open-conditional-orders-trade
+         * @see https://binance-docs.github.io/apidocs/pm/en/#cancel-margin-account-all-open-orders-on-a-symbol-trade
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to cancel orders in a portfolio margin account
+         * @param {boolean} [params.stop] set to true if you would like to cancel portfolio margin account conditional orders
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'cancelAllOrders', 'papi', 'portfolioMargin', false);
+        const isConditional = this.safeBool2 (params, 'stop', 'conditional');
         const type = this.safeString (params, 'type', market['type']);
-        params = this.omit (params, [ 'type' ]);
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
+        params = this.omit (params, [ 'type', 'stop', 'conditional' ]);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
         let response = undefined;
         if (market['option']) {
-            response = await this.eapiPrivateDeleteAllOpenOrders (this.extend (request, query));
+            response = await this.eapiPrivateDeleteAllOpenOrders (this.extend (request, params));
         } else if (market['linear']) {
-            response = await this.fapiPrivateDeleteAllOpenOrders (this.extend (request, query));
-        } else if (market['inverse']) {
-            response = await this.dapiPrivateDeleteAllOpenOrders (this.extend (request, query));
-        } else if ((type === 'margin') || (marginMode !== undefined)) {
-            if (marginMode === 'isolated') {
-                request['isIsolated'] = true;
+            if (isPortfolioMargin) {
+                if (isConditional) {
+                    response = await this.papiDeleteUmConditionalAllOpenOrders (this.extend (request, params));
+                } else {
+                    response = await this.papiDeleteUmAllOpenOrders (this.extend (request, params));
+                }
+            } else {
+                response = await this.fapiPrivateDeleteAllOpenOrders (this.extend (request, params));
             }
-            response = await this.sapiDeleteMarginOpenOrders (this.extend (request, query));
+        } else if (market['inverse']) {
+            if (isPortfolioMargin) {
+                if (isConditional) {
+                    response = await this.papiDeleteCmConditionalAllOpenOrders (this.extend (request, params));
+                } else {
+                    response = await this.papiDeleteCmAllOpenOrders (this.extend (request, params));
+                }
+            } else {
+                response = await this.dapiPrivateDeleteAllOpenOrders (this.extend (request, params));
+            }
+        } else if ((type === 'margin') || (marginMode !== undefined)) {
+            if (isPortfolioMargin) {
+                response = await this.papiDeleteMarginAllOpenOrders (this.extend (request, params));
+            } else {
+                if (marginMode === 'isolated') {
+                    request['isIsolated'] = true;
+                }
+                response = await this.sapiDeleteMarginOpenOrders (this.extend (request, params));
+            }
         } else {
-            response = await this.privateDeleteOpenOrders (this.extend (request, query));
+            response = await this.privateDeleteOpenOrders (this.extend (request, params));
         }
         if (Array.isArray (response)) {
             return this.parseOrders (response, market);
