@@ -685,10 +685,16 @@ public struct Position
     public double? notional;
     public double? leverage;
     public double? unrealizedPnl;
+
+    public double? realizedPnl;
     public double? collateral;
     public double? entryPrice;
     public double? markPrice;
     public double? liquidationPrice;
+
+    public double? stopLossPrice;
+
+    public double? takeProfitPrice;
     public string? marginMode;
     public bool? hedged;
     public double? maintenenceMargin;
@@ -713,6 +719,7 @@ public struct Position
         notional = Exchange.SafeFloat(position, "notional");
         leverage = Exchange.SafeFloat(position, "leverage");
         unrealizedPnl = Exchange.SafeFloat(position, "unrealizedPnl");
+        realizedPnl = Exchange.SafeFloat(position, "realizedPnl");
         collateral = Exchange.SafeFloat(position, "collateral");
         entryPrice = Exchange.SafeFloat(position, "entryPrice");
         markPrice = Exchange.SafeFloat(position, "markPrice");
@@ -727,6 +734,8 @@ public struct Position
         lastUpdateTimestamp = Exchange.SafeFloat(position, "lastUpdateTimestamp");
         lastPrice = Exchange.SafeFloat(position, "lastPrice");
         percentage = Exchange.SafeFloat(position, "percentage");
+        takeProfitPrice = Exchange.SafeFloat(position, "takeProfitPrice");
+        stopLossPrice = Exchange.SafeFloat(position, "stopLossPrice");
     }
 
 }

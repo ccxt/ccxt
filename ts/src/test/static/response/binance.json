@@ -172,6 +172,92 @@
             "stopLossPrice": null
           }
         ]
+      },
+      {
+        "description": "open portfolio margin orders",
+        "method": "fetchOpenOrders",
+        "input": [
+          "LTC/USDT:USDT",
+          null,
+          1,
+          {
+            "portfolioMargin": true
+          }
+        ],
+        "httpResponse": [
+          {
+            "orderId": "29067571132",
+            "symbol": "LTCUSDT",
+            "status": "NEW",
+            "clientOrderId": "x-xcKtGhcud28547066cdd46a7b96e40",
+            "price": "50",
+            "avgPrice": "0",
+            "origQty": "0.410",
+            "executedQty": "0",
+            "cumQuote": "0",
+            "timeInForce": "GTC",
+            "type": "LIMIT",
+            "reduceOnly": false,
+            "side": "BUY",
+            "positionSide": "BOTH",
+            "origType": "LIMIT",
+            "time": "1707212775174",
+            "updateTime": "1707212775174",
+            "goodTillDate": "0",
+            "selfTradePreventionMode": "NONE"
+          }
+        ],
+        "parsedResponse": [
+          {
+            "info": {
+              "orderId": "29067571132",
+              "symbol": "LTCUSDT",
+              "status": "NEW",
+              "clientOrderId": "x-xcKtGhcud28547066cdd46a7b96e40",
+              "price": "50",
+              "avgPrice": "0",
+              "origQty": "0.410",
+              "executedQty": "0",
+              "cumQuote": "0",
+              "timeInForce": "GTC",
+              "type": "LIMIT",
+              "reduceOnly": false,
+              "side": "BUY",
+              "positionSide": "BOTH",
+              "origType": "LIMIT",
+              "time": "1707212775174",
+              "updateTime": "1707212775174",
+              "goodTillDate": "0",
+              "selfTradePreventionMode": "NONE"
+            },
+            "id": "29067571132",
+            "clientOrderId": "x-xcKtGhcud28547066cdd46a7b96e40",
+            "timestamp": 1707212775174,
+            "datetime": "2024-02-06T09:46:15.174Z",
+            "lastTradeTimestamp": null,
+            "lastUpdateTimestamp": 1707212775174,
+            "symbol": "LTC/USDT:USDT",
+            "type": "limit",
+            "timeInForce": "GTC",
+            "postOnly": false,
+            "reduceOnly": false,
+            "side": "buy",
+            "price": 50,
+            "triggerPrice": null,
+            "amount": 0.41,
+            "cost": 0,
+            "average": null,
+            "filled": 0,
+            "remaining": 0.41,
+            "status": "open",
+            "fee": null,
+            "trades": [],
+            "fees": [],
+            "stopPrice": null,
+            "takeProfitPrice": null,
+            "stopLossPrice": null
+          }
+        ]
       }
     ],
     "fetchPositions": [

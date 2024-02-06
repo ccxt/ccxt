@@ -1390,6 +1390,7 @@ export default class testMainClass extends baseMainTestClass {
             this.testCoinex(),
             this.testBingx(),
             this.testPhemex(),
+            this.testBlofin()
         ];
         await Promise.all(promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1671,6 +1672,20 @@ export default class testMainClass extends baseMainTestClass {
         }
         const clientOrderId = request['clOrdID'];
         assert(clientOrderId.startsWith(id.toString()), 'clOrdID does not start with id');
+        await close(exchange);
+    }
+    async testBlofin() {
+        const exchange = this.initOfflineExchange('blofin');
+        const id = 'ec6dd3a7dd982d0b';
+        let request = undefined;
+        try {
+            await exchange.createOrder('LTC/USDT:USDT', 'market', 'buy', 1);
+        }
+        catch (e) {
+            request = jsonParse(exchange.last_request_body);
+        }
+        const brokerId = request['brokerId'];
+        assert(brokerId.startsWith(id.toString()), 'brokerId does not start with id');
         await close(exchange);
     }
 }

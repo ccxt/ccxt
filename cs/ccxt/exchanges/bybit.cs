@@ -3903,11 +3903,25 @@ public partial class bybit : Exchange
             {
                 object slTriggerPrice = this.safeValue2(stopLoss, "triggerPrice", "stopPrice", stopLoss);
                 ((IDictionary<string,object>)request)["stopLoss"] = this.priceToPrecision(symbol, slTriggerPrice);
+                object slLimitPrice = this.safeValue(stopLoss, "price");
+                if (isTrue(!isEqual(slLimitPrice, null)))
+                {
+                    ((IDictionary<string,object>)request)["tpslMode"] = "Partial";
+                    ((IDictionary<string,object>)request)["slOrderType"] = "Limit";
+                    ((IDictionary<string,object>)request)["slLimitPrice"] = this.priceToPrecision(symbol, slLimitPrice);
+                }
             }
             if (isTrue(isTakeProfit))
             {
                 object tpTriggerPrice = this.safeValue2(takeProfit, "triggerPrice", "stopPrice", takeProfit);
                 ((IDictionary<string,object>)request)["takeProfit"] = this.priceToPrecision(symbol, tpTriggerPrice);
+                object tpLimitPrice = this.safeValue(takeProfit, "price");
+                if (isTrue(!isEqual(tpLimitPrice, null)))
+                {
+                    ((IDictionary<string,object>)request)["tpslMode"] = "Partial";
+                    ((IDictionary<string,object>)request)["tpOrderType"] = "Limit";
+                    ((IDictionary<string,object>)request)["tpLimitPrice"] = this.priceToPrecision(symbol, tpLimitPrice);
+                }
             }
         }
         if (isTrue(getValue(market, "spot")))
@@ -6386,9 +6400,6 @@ public partial class bybit : Exchange
         {
             timestamp = this.safeIntegerN(position, new List<object>() {"updatedTime", "updatedAt"});
         }
-        // default to cross of USDC margined positions
-        object tradeMode = this.safeInteger(position, "tradeMode", 0);
-        object marginMode = ((bool) isTrue(tradeMode)) ? "isolated" : "cross";
         object collateralString = this.safeString(position, "positionBalance");
         object entryPrice = this.omitZero(this.safeString2(position, "entryPrice", "avgPrice"));
         object liquidationPrice = this.omitZero(this.safeString(position, "liqPrice"));
@@ -6457,7 +6468,7 @@ public partial class bybit : Exchange
             { "markPrice", this.safeNumber(position, "markPrice") },
             { "lastPrice", null },
             { "collateral", this.parseNumber(collateralString) },
-            { "marginMode", marginMode },
+            { "marginMode", null },
             { "side", side },
             { "percentage", null },
             { "stopLossPrice", this.safeNumber2(position, "stop_loss", "stopLoss") },

@@ -208,9 +208,9 @@ public partial class binance
     /// fetches the last price for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb81024-77b5-11ed-9966-0242ac110003"/>  <br/>
-    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=28c2e8fc-77ae-11ed-9966-0242ac110003"/>  <br/>
-    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=5d517ef5-77b6-11ed-9966-0242ac110003"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#symbol-price-ticker"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/future/en/#symbol-price-ticker"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -788,6 +788,11 @@ public partial class binance
     /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#current-all-open-orders-user_data"/>  <br/>
     /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#query-current-open-option-orders-user_data"/>  <br/>
     /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-open-orders-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-current-um-open-orders-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-current-cm-open-orders-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-current-um-open-conditional-orders-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-current-cm-open-conditional-orders-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-current-margin-open-order-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -811,6 +816,18 @@ public partial class binance
     /// <term>params.marginMode</term>
     /// <description>
     /// string : 'cross' or 'isolated', for spot margin trading
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolioMargin</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch open orders in the portfolio margin account
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stop</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch portfolio margin account conditional orders
     /// </description>
     /// </item>
     /// </list>
@@ -942,6 +959,11 @@ public partial class binance
     /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#cancel-all-open-orders-trade"/>  <br/>
     /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#cancel-all-option-orders-on-specific-symbol-trade"/>  <br/>
     /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#margin-account-cancel-order-trade"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#cancel-all-um-open-orders-trade"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#cancel-all-cm-open-orders-trade"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#cancel-all-um-open-conditional-orders-trade"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#cancel-all-cm-open-conditional-orders-trade"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#cancel-margin-account-all-open-orders-on-a-symbol-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -953,6 +975,18 @@ public partial class binance
     /// <term>params.marginMode</term>
     /// <description>
     /// string : 'cross' or 'isolated', for spot margin trading
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolioMargin</term>
+    /// <description>
+    /// boolean : set to true if you would like to cancel orders in a portfolio margin account
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stop</term>
+    /// <description>
+    /// boolean : set to true if you would like to cancel portfolio margin account conditional orders
     /// </description>
     /// </item>
     /// </list>

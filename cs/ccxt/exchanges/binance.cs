@@ -5223,7 +5223,7 @@ public partial class binance : Exchange
         //         "msg": "Quantity greater than max quantity."
         //     }
         //
-        // createOrder: portfolio margin linear swap and future
+        // createOrder, fetchOpenOrders: portfolio margin linear swap and future
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -5246,7 +5246,7 @@ public partial class binance : Exchange
         //         "status": "NEW"
         //     }
         //
-        // createOrder: portfolio margin inverse swap and future
+        // createOrder, fetchOpenOrders: portfolio margin inverse swap and future
         //
         //     {
         //         "symbol": "ETHUSD_PERP",
@@ -5268,7 +5268,7 @@ public partial class binance : Exchange
         //         "status": "NEW"
         //     }
         //
-        // createOrder: portfolio margin linear swap and future conditional
+        // createOrder, fetchOpenOrders: portfolio margin linear swap and future conditional
         //
         //     {
         //         "newClientStrategyId": "x-xcKtGhcu27f109953d6e4dc0974006",
@@ -5291,7 +5291,7 @@ public partial class binance : Exchange
         //         "selfTradePreventionMode": "NONE"
         //     }
         //
-        // createOrder: portfolio margin inverse swap and future conditional
+        // createOrder, fetchOpenOrders: portfolio margin inverse swap and future conditional
         //
         //     {
         //         "newClientStrategyId": "x-xcKtGhcuc6b86f053bb34933850739",
@@ -5312,7 +5312,7 @@ public partial class binance : Exchange
         //         "priceProtect": false
         //     }
         //
-        // createOrder: portfolio margin spot margin
+        // createOrder, cancelAllOrders: portfolio margin spot margin
         //
         //     {
         //         "clientOrderId": "x-R4BD3S82e9ef29d8346440f0b28b86",
@@ -5331,6 +5331,31 @@ public partial class binance : Exchange
         //         "type": "LIMIT"
         //     }
         //
+        // fetchOpenOrders: portfolio margin spot margin
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "orderId": 24700763749,
+        //         "clientOrderId": "x-R4BD3S826f724c2a4af6425f98c7b6",
+        //         "price": "35000.00000000",
+        //         "origQty": "0.00100000",
+        //         "executedQty": "0.00000000",
+        //         "cummulativeQuoteQty": "0.00000000",
+        //         "status": "NEW",
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT",
+        //         "side": "BUY",
+        //         "stopPrice": "0.00000000",
+        //         "icebergQty": "0.00000000",
+        //         "time": 1707199187679,
+        //         "updateTime": 1707199187679,
+        //         "isWorking": true,
+        //         "accountId": 200180970,
+        //         "selfTradePreventionMode": "EXPIRE_MAKER",
+        //         "preventedMatchId": null,
+        //         "preventedQuantity": null
+        //     }
+        //
         object code = this.safeString(order, "code");
         if (isTrue(!isEqual(code, null)))
         {
@@ -5342,7 +5367,8 @@ public partial class binance : Exchange
         }
         object status = this.parseOrderStatus(this.safeString2(order, "status", "strategyStatus"));
         object marketId = this.safeString(order, "symbol");
-        object marketType = ((bool) isTrue((inOp(order, "closePosition")))) ? "contract" : "spot";
+        object isContract = isTrue((inOp(order, "positionSide"))) || isTrue((inOp(order, "cumQuote")));
+        object marketType = ((bool) isTrue(isContract)) ? "contract" : "spot";
         object symbol = this.safeSymbol(marketId, market, null, marketType);
         object filled = this.safeString(order, "executedQty", "0");
         object timestamp = this.safeIntegerN(order, new List<object>() {"time", "createTime", "workingTime", "transactTime", "updateTime"}); // order of the keys matters here
@@ -5687,26 +5713,6 @@ public partial class binance : Exchange
                 }
             }
         }
-        if (!isTrue(isPortfolioMargin))
-        {
-            object postOnly = this.isPostOnly(isMarketOrder, isEqual(initialUppercaseType, "LIMIT_MAKER"), parameters);
-            if (isTrue(isTrue(getValue(market, "spot")) || isTrue(isEqual(marketType, "margin"))))
-            {
-                // only supported for spot/margin api (all margin markets are spot markets)
-                if (isTrue(postOnly))
-                {
-                    type = "LIMIT_MAKER";
-                }
-                if (isTrue(isEqual(marginMode, "isolated")))
-                {
-                    ((IDictionary<string,object>)request)["isIsolated"] = true;
-                }
-            }
-            if (isTrue(isTrue(getValue(market, "contract")) && isTrue(postOnly)))
-            {
-                ((IDictionary<string,object>)request)["timeInForce"] = "GTX";
-            }
-        }
         object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLossPrice = this.safeString(parameters, "stopLossPrice", triggerPrice); // fallback to stopLoss
         object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
@@ -5793,6 +5799,23 @@ public partial class binance : Exchange
         } else
         {
             ((IDictionary<string,object>)request)[(string)clientOrderIdRequest] = clientOrderId;
+        }
+        object postOnly = null;
+        if (!isTrue(isPortfolioMargin))
+        {
+            postOnly = this.isPostOnly(isMarketOrder, isEqual(initialUppercaseType, "LIMIT_MAKER"), parameters);
+            if (isTrue(isTrue(getValue(market, "spot")) || isTrue(isEqual(marketType, "margin"))))
+            {
+                // only supported for spot/margin api (all margin markets are spot markets)
+                if (isTrue(postOnly))
+                {
+                    uppercaseType = "LIMIT_MAKER";
+                }
+                if (isTrue(isEqual(marginMode, "isolated")))
+                {
+                    ((IDictionary<string,object>)request)["isIsolated"] = true;
+                }
+            }
         }
         object typeRequest = ((bool) isTrue(isPortfolioMarginConditional)) ? "strategyType" : "type";
         ((IDictionary<string,object>)request)[(string)typeRequest] = uppercaseType;
@@ -5914,10 +5937,6 @@ public partial class binance : Exchange
             }
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
-        if (isTrue(timeInForceIsRequired))
-        {
-            ((IDictionary<string,object>)request)["timeInForce"] = getValue(this.options, "defaultTimeInForce"); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-        }
         if (isTrue(stopPriceIsRequired))
         {
             if (isTrue(getValue(market, "contract")))
@@ -5939,25 +5958,13 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
             }
         }
-        if (!isTrue(isPortfolioMargin))
+        if (isTrue(isTrue(timeInForceIsRequired) && isTrue((isEqual(this.safeString(parameters, "timeInForce"), null)))))
         {
-            object postOnly = this.isPostOnly(isMarketOrder, isEqual(initialUppercaseType, "LIMIT_MAKER"), parameters);
-            if (isTrue(isTrue(getValue(market, "spot")) || isTrue(isEqual(marketType, "margin"))))
-            {
-                // only supported for spot/margin api (all margin markets are spot markets)
-                if (isTrue(postOnly))
-                {
-                    type = "LIMIT_MAKER";
-                }
-                if (isTrue(isEqual(marginMode, "isolated")))
-                {
-                    ((IDictionary<string,object>)request)["isIsolated"] = true;
-                }
-            }
-            if (isTrue(isTrue(getValue(market, "contract")) && isTrue(postOnly)))
-            {
-                ((IDictionary<string,object>)request)["timeInForce"] = "GTX";
-            }
+            ((IDictionary<string,object>)request)["timeInForce"] = getValue(this.options, "defaultTimeInForce"); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+        }
+        if (isTrue(isTrue(!isTrue(isPortfolioMargin) && isTrue(getValue(market, "contract"))) && isTrue(postOnly)))
+        {
+            ((IDictionary<string,object>)request)["timeInForce"] = "GTX";
         }
         // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
         if (isTrue(isEqual(this.safeString(parameters, "timeInForce"), "PO")))
@@ -6268,21 +6275,28 @@ public partial class binance : Exchange
         /**
         * @method
         * @name binance#fetchOpenOrders
+        * @description fetch all unfilled currently open orders
         * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
         * @see https://binance-docs.github.io/apidocs/futures/en/#current-all-open-orders-user_data
         * @see https://binance-docs.github.io/apidocs/delivery/en/#current-all-open-orders-user_data
         * @see https://binance-docs.github.io/apidocs/voptions/en/#query-current-open-option-orders-user_data
-        * @description fetch all unfilled currently open orders
         * @see https://binance-docs.github.io/apidocs/spot/en/#current-open-orders-user_data
         * @see https://binance-docs.github.io/apidocs/futures/en/#current-all-open-orders-user_data
         * @see https://binance-docs.github.io/apidocs/delivery/en/#current-all-open-orders-user_data
         * @see https://binance-docs.github.io/apidocs/voptions/en/#query-current-open-option-orders-user_data
         * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-open-orders-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-current-um-open-orders-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-current-cm-open-orders-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-current-um-open-conditional-orders-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-current-cm-open-conditional-orders-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#query-current-margin-open-order-user_data
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch open orders for
         * @param {int} [limit] the maximum number of open orders structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+        * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch open orders in the portfolio margin account
+        * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account conditional orders
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -6291,17 +6305,21 @@ public partial class binance : Exchange
         object type = null;
         object request = new Dictionary<string, object>() {};
         object marginMode = null;
-        object query = null;
-        var marginModequeryVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters);
-        marginMode = ((IList<object>)marginModequeryVariable)[0];
-        query = ((IList<object>)marginModequeryVariable)[1];
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        object isPortfolioMargin = null;
+        var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "fetchOpenOrders", "papi", "portfolioMargin", false);
+        isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
+        parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
+        object isConditional = this.safeBool2(parameters, "stop", "conditional");
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             object defaultType = this.safeString2(this.options, "fetchOpenOrders", "defaultType", "spot");
             object marketType = ((bool) isTrue((inOp(market, "type")))) ? getValue(market, "type") : defaultType;
-            type = this.safeString(query, "type", marketType);
+            type = this.safeString(parameters, "type", marketType);
         } else if (isTrue(getValue(this.options, "warnOnFetchOpenOrdersWithoutSymbol")))
         {
             object symbols = this.symbols;
@@ -6311,13 +6329,13 @@ public partial class binance : Exchange
         } else
         {
             object defaultType = this.safeString2(this.options, "fetchOpenOrders", "defaultType", "spot");
-            type = this.safeString(query, "type", defaultType);
+            type = this.safeString(parameters, "type", defaultType);
         }
         object subType = null;
-        var subTypequeryVariable = this.handleSubTypeAndParams("fetchOpenOrders", market, query);
-        subType = ((IList<object>)subTypequeryVariable)[0];
-        query = ((IList<object>)subTypequeryVariable)[1];
-        object requestParams = this.omit(query, "type");
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOpenOrders", market, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        parameters = this.omit(parameters, new List<object>() {"type", "stop", "conditional"});
         object response = null;
         if (isTrue(isEqual(type, "option")))
         {
@@ -6329,27 +6347,57 @@ public partial class binance : Exchange
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
-            response = await this.eapiPrivateGetOpenOrders(this.extend(request, requestParams));
+            response = await this.eapiPrivateGetOpenOrders(this.extend(request, parameters));
         } else if (isTrue(this.isLinear(type, subType)))
         {
-            response = await this.fapiPrivateGetOpenOrders(this.extend(request, requestParams));
+            if (isTrue(isPortfolioMargin))
+            {
+                if (isTrue(isConditional))
+                {
+                    response = await this.papiGetUmConditionalOpenOrders(this.extend(request, parameters));
+                } else
+                {
+                    response = await this.papiGetUmOpenOrders(this.extend(request, parameters));
+                }
+            } else
+            {
+                response = await this.fapiPrivateGetOpenOrders(this.extend(request, parameters));
+            }
         } else if (isTrue(this.isInverse(type, subType)))
         {
-            response = await this.dapiPrivateGetOpenOrders(this.extend(request, requestParams));
+            if (isTrue(isPortfolioMargin))
+            {
+                if (isTrue(isConditional))
+                {
+                    response = await this.papiGetCmConditionalOpenOrders(this.extend(request, parameters));
+                } else
+                {
+                    response = await this.papiGetCmOpenOrders(this.extend(request, parameters));
+                }
+            } else
+            {
+                response = await this.dapiPrivateGetOpenOrders(this.extend(request, parameters));
+            }
         } else if (isTrue(isTrue(isEqual(type, "margin")) || isTrue(!isEqual(marginMode, null))))
         {
-            if (isTrue(isEqual(marginMode, "isolated")))
+            if (isTrue(isPortfolioMargin))
             {
-                ((IDictionary<string,object>)request)["isIsolated"] = true;
-                if (isTrue(isEqual(symbol, null)))
+                response = await this.papiGetMarginOpenOrders(this.extend(request, parameters));
+            } else
+            {
+                if (isTrue(isEqual(marginMode, "isolated")))
                 {
-                    throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires a symbol argument for isolated markets")) ;
+                    ((IDictionary<string,object>)request)["isIsolated"] = true;
+                    if (isTrue(isEqual(symbol, null)))
+                    {
+                        throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires a symbol argument for isolated markets")) ;
+                    }
                 }
+                response = await this.sapiGetMarginOpenOrders(this.extend(request, parameters));
             }
-            response = await this.sapiGetMarginOpenOrders(this.extend(request, requestParams));
         } else
         {
-            response = await this.privateGetOpenOrders(this.extend(request, requestParams));
+            response = await this.privateGetOpenOrders(this.extend(request, parameters));
         }
         return this.parseOrders(response, market, since, limit);
     }
@@ -6485,52 +6533,95 @@ public partial class binance : Exchange
         /**
         * @method
         * @name binance#cancelAllOrders
+        * @description cancel all open orders in a market
         * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-all-open-orders-on-a-symbol-trade
         * @see https://binance-docs.github.io/apidocs/futures/en/#cancel-all-open-orders-trade
         * @see https://binance-docs.github.io/apidocs/delivery/en/#cancel-all-open-orders-trade
         * @see https://binance-docs.github.io/apidocs/voptions/en/#cancel-all-option-orders-on-specific-symbol-trade
         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-cancel-order-trade
-        * @description cancel all open orders in a market
+        * @see https://binance-docs.github.io/apidocs/pm/en/#cancel-all-um-open-orders-trade
+        * @see https://binance-docs.github.io/apidocs/pm/en/#cancel-all-cm-open-orders-trade
+        * @see https://binance-docs.github.io/apidocs/pm/en/#cancel-all-um-open-conditional-orders-trade
+        * @see https://binance-docs.github.io/apidocs/pm/en/#cancel-all-cm-open-conditional-orders-trade
+        * @see https://binance-docs.github.io/apidocs/pm/en/#cancel-margin-account-all-open-orders-on-a-symbol-trade
         * @param {string} symbol unified market symbol of the market to cancel orders in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+        * @param {boolean} [params.portfolioMargin] set to true if you would like to cancel orders in a portfolio margin account
+        * @param {boolean} [params.stop] set to true if you would like to cancel portfolio margin account conditional orders
         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " cancelAllOrders() requires a symbol argument")) ;
         }
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
+        object isPortfolioMargin = null;
+        var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "cancelAllOrders", "papi", "portfolioMargin", false);
+        isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
+        parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
+        object isConditional = this.safeBool2(parameters, "stop", "conditional");
         object type = this.safeString(parameters, "type", getValue(market, "type"));
-        parameters = this.omit(parameters, new List<object>() {"type"});
-        var marginModequeryVariable = this.handleMarginModeAndParams("cancelAllOrders", parameters);
-        var marginMode = ((IList<object>) marginModequeryVariable)[0];
-        var query = ((IList<object>) marginModequeryVariable)[1];
+        parameters = this.omit(parameters, new List<object>() {"type", "stop", "conditional"});
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("cancelAllOrders", parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
         object response = null;
         if (isTrue(getValue(market, "option")))
         {
-            response = await this.eapiPrivateDeleteAllOpenOrders(this.extend(request, query));
+            response = await this.eapiPrivateDeleteAllOpenOrders(this.extend(request, parameters));
         } else if (isTrue(getValue(market, "linear")))
         {
-            response = await this.fapiPrivateDeleteAllOpenOrders(this.extend(request, query));
+            if (isTrue(isPortfolioMargin))
+            {
+                if (isTrue(isConditional))
+                {
+                    response = await this.papiDeleteUmConditionalAllOpenOrders(this.extend(request, parameters));
+                } else
+                {
+                    response = await this.papiDeleteUmAllOpenOrders(this.extend(request, parameters));
+                }
+            } else
+            {
+                response = await this.fapiPrivateDeleteAllOpenOrders(this.extend(request, parameters));
+            }
         } else if (isTrue(getValue(market, "inverse")))
         {
-            response = await this.dapiPrivateDeleteAllOpenOrders(this.extend(request, query));
+            if (isTrue(isPortfolioMargin))
+            {
+                if (isTrue(isConditional))
+                {
+                    response = await this.papiDeleteCmConditionalAllOpenOrders(this.extend(request, parameters));
+                } else
+                {
+                    response = await this.papiDeleteCmAllOpenOrders(this.extend(request, parameters));
+                }
+            } else
+            {
+                response = await this.dapiPrivateDeleteAllOpenOrders(this.extend(request, parameters));
+            }
         } else if (isTrue(isTrue((isEqual(type, "margin"))) || isTrue((!isEqual(marginMode, null)))))
         {
-            if (isTrue(isEqual(marginMode, "isolated")))
+            if (isTrue(isPortfolioMargin))
             {
-                ((IDictionary<string,object>)request)["isIsolated"] = true;
+                response = await this.papiDeleteMarginAllOpenOrders(this.extend(request, parameters));
+            } else
+            {
+                if (isTrue(isEqual(marginMode, "isolated")))
+                {
+                    ((IDictionary<string,object>)request)["isIsolated"] = true;
+                }
+                response = await this.sapiDeleteMarginOpenOrders(this.extend(request, parameters));
             }
-            response = await this.sapiDeleteMarginOpenOrders(this.extend(request, query));
         } else
         {
-            response = await this.privateDeleteOpenOrders(this.extend(request, query));
+            response = await this.privateDeleteOpenOrders(this.extend(request, parameters));
         }
         if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
@@ -10260,19 +10351,19 @@ public partial class binance : Exchange
     {
         object marketType = null;
         object hostname = ((bool) isTrue((!isEqual(this.hostname, null)))) ? this.hostname : "binance.com";
-        if (isTrue(((string)url).StartsWith(add(add("https://api.", hostname), "/"))))
+        if (isTrue(((string)url).StartsWith(((string)add(add("https://api.", hostname), "/")))))
         {
             marketType = "spot";
-        } else if (isTrue(((string)url).StartsWith(add(add("https://dapi.", hostname), "/"))))
+        } else if (isTrue(((string)url).StartsWith(((string)add(add("https://dapi.", hostname), "/")))))
         {
             marketType = "inverse";
-        } else if (isTrue(((string)url).StartsWith(add(add("https://fapi.", hostname), "/"))))
+        } else if (isTrue(((string)url).StartsWith(((string)add(add("https://fapi.", hostname), "/")))))
         {
             marketType = "linear";
-        } else if (isTrue(((string)url).StartsWith(add(add("https://eapi.", hostname), "/"))))
+        } else if (isTrue(((string)url).StartsWith(((string)add(add("https://eapi.", hostname), "/")))))
         {
             marketType = "option";
-        } else if (isTrue(((string)url).StartsWith(add(add("https://papi.", hostname), "/"))))
+        } else if (isTrue(((string)url).StartsWith(((string)add(add("https://papi.", hostname), "/")))))
         {
             marketType = "portfoliomargin";
         }
