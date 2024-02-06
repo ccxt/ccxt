@@ -42,13 +42,13 @@ export default class blofin extends Exchange {
                 'createOrder': true,
                 'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': true,
-                'createTakeProfitOrder': true,
-                'createStopLossOrder': true,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
+                'createStopLossOrder': true,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
+                'createTakeProfitOrder': true,
                 'editOrder': false,
                 'fetchAccounts': false,
                 'fetchBalance': true,
@@ -1251,31 +1251,6 @@ export default class blofin extends Exchange {
         params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice' ]);
         return this.extend (request, params);
     }
-
-    // async createTpslOrder (symbol: string, positionSide: string, side: OrderSide, params = {}): Promise<Order> {
-    //     /**
-    //      * @method
-    //      * @name blofin#createTpslOrder
-    //      * @description create a trade tpsl order
-    //      * @see https://blofin.com/docs#place-tpsl-order
-    //      * @param {string} symbol unified symbol of the market to create an order in
-    //      * @param {string} positionSide 'long' or 'short' or 'net'
-    //      * @param {string} type 'market' or 'limit' or 'post_only' or 'ioc' or 'fok'
-    //      * @param {string} side 'buy' or 'sell'
-    //      * @param {object} [params] extra parameters specific to the exchange API endpoint
-    //      * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin, swap and future orders
-    //      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-    //      */
-    //     await this.loadMarkets ();
-    //     const market = this.market (symbol);
-    //     const request = this.createTpslOrderRequest (symbol, positionSide, side, params);
-    //     const response = await this.privatePostTradeOrderTpsl (request);
-    //     const data = this.safeDict (response, 'data', {});
-    //     const order = this.parseOrder (data, market);
-    //     order['positionSide'] = positionSide;
-    //     order['side'] = side;
-    //     return order;
-    // }
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
