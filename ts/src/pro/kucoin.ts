@@ -569,19 +569,19 @@ export default class kucoin extends kucoinRest {
         const marketId = this.safeString (data, 'symbol', topicSymbol);
         const symbol = this.safeSymbol (marketId, undefined, '-');
         const messageHash = 'orderbook:' + symbol;
-        let storedOrderBook = this.orderbooks[symbol];
+        let orderbook = this.orderbooks[symbol];
         if (subject === 'level2') {
-            if (storedOrderBook === undefined) {
-                storedOrderBook = this.orderBook ();
+            if (orderbook === undefined) {
+                orderbook = this.orderBook ();
             } else {
-                storedOrderBook.reset ();
+                orderbook.reset ();
             }
-            storedOrderBook['symbol'] = symbol;
+            orderbook['symbol'] = symbol;
         } else {
-            const nonce = this.safeInteger (storedOrderBook, 'nonce');
+            const nonce = this.safeInteger (orderbook, 'nonce');
             const deltaEnd = this.safeInteger2 (data, 'sequenceEnd', 'timestamp');
             if (nonce === undefined) {
-                const cacheLength = storedOrderBook.cache.length;
+                const cacheLength = orderbook.cache.length;
                 const subscriptions = Object.keys (client.subscriptions);
                 let subscription = undefined;
                 for (let i = 0; i < subscriptions.length; i++) {
@@ -596,14 +596,14 @@ export default class kucoin extends kucoinRest {
                 if (cacheLength === snapshotDelay) {
                     this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {});
                 }
-                storedOrderBook.cache.push (data);
+                orderbook.cache.push (data);
                 return;
             } else if (nonce >= deltaEnd) {
                 return;
             }
         }
-        this.handleDelta (storedOrderBook, data);
-        client.resolve (storedOrderBook, messageHash);
+        this.handleDelta (orderbook, data);
+        client.resolve (orderbook, messageHash);
     }
 
     getCacheIndex (orderbook, cache) {
