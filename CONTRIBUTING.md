@@ -120,7 +120,7 @@ If you're not going to develop CCXT and contribute code to the CCXT library, the
   composer install ccxt
   ```
 
-- [C# / Nugget](https://github.com/ccxt/ccxt/wiki/Install#php)
+- [C# / Nugget](https://github.com/ccxt/ccxt/wiki/Install#netc)
 
   ```shell
   # C# / Nugget
