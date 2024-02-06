@@ -757,7 +757,7 @@ export default class woo extends Exchange {
         return result;
     }
 
-    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name woo#createMarketBuyOrderWithCost

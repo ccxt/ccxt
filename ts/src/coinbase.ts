@@ -2201,7 +2201,7 @@ export default class coinbase extends Exchange {
         return request;
     }
 
-    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name coinbase#createMarketBuyOrderWithCost

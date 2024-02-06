@@ -1818,7 +1818,7 @@ export default class digifinex extends Exchange {
         return this.extend (request, params);
     }
 
-    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name digifinex#createMarketBuyOrderWithCost

@@ -2722,7 +2722,7 @@ export default class phemex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async editOrder (id: string, symbol, type = undefined, side = undefined, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType = undefined, side: OrderSide = undefined, amount: number = undefined, price: number = undefined, params = {}) {
         /**
          * @method
          * @name phemex#editOrder

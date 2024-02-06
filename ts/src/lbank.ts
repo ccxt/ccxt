@@ -1287,7 +1287,7 @@ export default class lbank extends Exchange {
         return result;
     }
 
-    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name lbank#createMarketBuyOrderWithCost

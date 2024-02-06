@@ -3452,7 +3452,7 @@ export default class bybit extends Exchange {
         return this.safeValue (result, 0) as Order;
     }
 
-    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name bybit#createMarketBuyOrderWithCost

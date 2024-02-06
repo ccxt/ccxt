@@ -1953,7 +1953,7 @@ export default class coinex extends Exchange {
         }, market);
     }
 
-    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name coinex#createMarketBuyOrderWithCost
