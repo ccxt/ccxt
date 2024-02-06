@@ -42,6 +42,8 @@ export default class blofin extends Exchange {
                 'createOrder': true,
                 'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': true,
+                'createTakeProfitOrder': true,
+                'createStopLossOrder': true,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -1165,6 +1167,7 @@ export default class blofin extends Exchange {
          * @name blofin#createOrder
          * @description create a trade order
          * @see https://blofin.com/docs#place-order
+         * @see https://blofin.com/docs#place-tpsl-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit' or 'post_only' or 'ioc' or 'fok'
          * @param {string} side 'buy' or 'sell'
@@ -1174,6 +1177,9 @@ export default class blofin extends Exchange {
          * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin, swap and future orders
          * @param {bool} [params.postOnly] true to place a post only order
          * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
+         * @param {float} [params.stopLossPrice] stop loss trigger price (will use privatePostTradeOrderTpsl)
+         * @param {float} [params.takeProfitPrice] take profit trigger price (will use privatePostTradeOrderTpsl)
+         * @param {string} [param.positionSide] *stopLossPrice/takeProfitPrice orders only* 'long' or 'short' or 'net' default is 'net'
          * @param {string} [params.clientOrderId] a unique id for the order
          * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
          * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
@@ -1189,13 +1195,17 @@ export default class blofin extends Exchange {
         params = this.omit (params, 'tpsl');
         let method = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'createOrder', 'method', 'privatePostTradeOrder');
-        if (tpsl || (method === 'privatePostTradeOrderTpsl')) {
-            const positionSide = this.safeString (params, 'positionSide', 'net');
-            params = this.omit (params, 'positionSide');
-            return await this.createTpslOrder (symbol, positionSide, side, params);
+        const isStopLossPriceDefined = this.safeString (params, 'stopLossPrice') !== undefined;
+        const isTakeProfitPriceDefined = this.safeString (params, 'takeProfitPrice') !== undefined;
+        const isType2Order = (isStopLossPriceDefined || isTakeProfitPriceDefined);
+        let response = undefined;
+        if (tpsl || (method === 'privatePostTradeOrderTpsl') || isType2Order) {
+            const tpslRequest = this.createTpslOrderRequest (symbol, type, side, amount, price, params);
+            response = await this.privatePostTradeOrderTpsl (tpslRequest);
+        } else {
+            const request = this.createOrderRequest (symbol, type, side, amount, price, params);
+            response = await this.privatePostTradeOrder (request);
         }
-        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
-        const response = await this.privatePostTradeOrder (request);
         const data = this.safeList (response, 'data', []);
         const first = this.safeDict (data, 0);
         const order = this.parseOrder (first, market);
@@ -1204,51 +1214,68 @@ export default class blofin extends Exchange {
         return order;
     }
 
-    createTpslOrderRequest (symbol: string, positionSide: string, side: OrderSide, params = {}) {
+    createTpslOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
         const market = this.market (symbol);
+        const positionSide = this.safeString (params, 'positionSide', 'net');
         const request = {
             'instId': market['id'],
             'side': side,
             'positionSide': positionSide,
             'brokerId': this.safeString (this.options, 'brokerId', 'ec6dd3a7dd982d0b'),
         };
-        const size = this.safeString (params, 'size');
-        if (size) {
-            request['size'] = this.amountToPrecision (symbol, size);
+        if (amount !== undefined) {
+            request['size'] = this.amountToPrecision (symbol, amount);
         }
         const marginMode = this.safeString (params, 'marginMode', 'cross'); // cross or isolated
         if (marginMode !== 'cross' && marginMode !== 'isolated') {
             throw new BadRequest (this.id + ' createTpslOrder() requires a marginMode parameter that must be either cross or isolated');
         }
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        if (stopLossPrice !== undefined) {
+            request['slTriggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
+            if (type === 'market') {
+                request['slOrderPrice'] = '-1';
+            } else {
+                request['slOrderPrice'] = this.priceToPrecision (symbol, price);
+            }
+        } else if (takeProfitPrice !== undefined) {
+            request['tpTriggerPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
+            if (type === 'market') {
+                request['tpOrderPrice'] = '-1';
+            } else {
+                request['tpOrderPrice'] = this.priceToPrecision (symbol, price);
+            }
+        }
         request['marginMode'] = marginMode;
-        params = this.omit (params, [ 'marginMode', 'size' ]);
+        params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice' ]);
         return this.extend (request, params);
     }
 
-    async createTpslOrder (symbol: string, positionSide: string, side: OrderSide, params = {}): Promise<Order> {
-        /**
-         * @method
-         * @name blofin#createTpslOrder
-         * @description create a trade tpsl order
-         * @see https://blofin.com/docs#place-tpsl-order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} positionSide 'long' or 'short' or 'net'
-         * @param {string} type 'market' or 'limit' or 'post_only' or 'ioc' or 'fok'
-         * @param {string} side 'buy' or 'sell'
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin, swap and future orders
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = this.createTpslOrderRequest (symbol, positionSide, side, params);
-        const response = await this.privatePostTradeOrderTpsl (request);
-        const data = this.safeDict (response, 'data', {});
-        const order = this.parseOrder (data, market);
-        order['positionSide'] = positionSide;
-        order['side'] = side;
-        return order;
-    }
+    // async createTpslOrder (symbol: string, positionSide: string, side: OrderSide, params = {}): Promise<Order> {
+    //     /**
+    //      * @method
+    //      * @name blofin#createTpslOrder
+    //      * @description create a trade tpsl order
+    //      * @see https://blofin.com/docs#place-tpsl-order
+    //      * @param {string} symbol unified symbol of the market to create an order in
+    //      * @param {string} positionSide 'long' or 'short' or 'net'
+    //      * @param {string} type 'market' or 'limit' or 'post_only' or 'ioc' or 'fok'
+    //      * @param {string} side 'buy' or 'sell'
+    //      * @param {object} [params] extra parameters specific to the exchange API endpoint
+    //      * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin, swap and future orders
+    //      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+    //      */
+    //     await this.loadMarkets ();
+    //     const market = this.market (symbol);
+    //     const request = this.createTpslOrderRequest (symbol, positionSide, side, params);
+    //     const response = await this.privatePostTradeOrderTpsl (request);
+    //     const data = this.safeDict (response, 'data', {});
+    //     const order = this.parseOrder (data, market);
+    //     order['positionSide'] = positionSide;
+    //     order['side'] = side;
+    //     return order;
+    // }
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
