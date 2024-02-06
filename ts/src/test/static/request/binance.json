@@ -827,6 +827,43 @@
                     "marginMode": "isolated"
                   }
                 ]
+            },
+            {
+                "description": "Linear swap portfolio margin fetch order",
+                "method": "fetchOrder",
+                "url": "https://papi.binance.com/papi/v1/um/order?timestamp=1707257405537&symbol=BTCUSDT&orderId=259696755816&recvWindow=10000&signature=d916df835ea5208731b4da01ebb6eaef2eca85205777d49ef71e1d791505c522",
+                "input": [
+                  259696755816,
+                  "BTC/USDT:USDT",
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
+            },
+            {
+                "description": "Inverse swap portfolio margin fetch order",
+                "method": "fetchOrder",
+                "url": "https://papi.binance.com/papi/v1/cm/order?timestamp=1707257668234&symbol=ETHUSD_PERP&orderId=71371262156&recvWindow=10000&signature=8fb58c60d328534f21486e533ffe0e7371f96050d815609a05662d640b91eba8",
+                "input": [
+                  71371262156,
+                  "ETH/USD:ETH",
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
+            },
+            {
+                "description": "Spot margin portfolio margin fetch order",
+                "method": "fetchOrder",
+                "url": "https://papi.binance.com/papi/v1/margin/order?timestamp=1707257917946&symbol=BTCUSDT&orderId=24711539682&recvWindow=10000&signature=ecc58b10a3bb4c26814fb521facda9151b0e7caafacc65836557b89eca386e17",
+                "input": [
+                  24711539682,
+                  "BTC/USDT",
+                  {
+                    "portfolioMargin": true,
+                    "marginMode": "cross"
+                  }
+                ]
             }
         ],
         "fetchOpenOrders": [
