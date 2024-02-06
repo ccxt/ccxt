@@ -5007,7 +5007,7 @@ export default class binance extends Exchange {
         //         "msg": "Quantity greater than max quantity."
         //     }
         //
-        // createOrder: portfolio margin linear swap and future
+        // createOrder, fetchOpenOrders: portfolio margin linear swap and future
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -5030,7 +5030,7 @@ export default class binance extends Exchange {
         //         "status": "NEW"
         //     }
         //
-        // createOrder: portfolio margin inverse swap and future
+        // createOrder, fetchOpenOrders: portfolio margin inverse swap and future
         //
         //     {
         //         "symbol": "ETHUSD_PERP",
@@ -5052,7 +5052,7 @@ export default class binance extends Exchange {
         //         "status": "NEW"
         //     }
         //
-        // createOrder: portfolio margin linear swap and future conditional
+        // createOrder, fetchOpenOrders: portfolio margin linear swap and future conditional
         //
         //     {
         //         "newClientStrategyId": "x-xcKtGhcu27f109953d6e4dc0974006",
@@ -5075,7 +5075,7 @@ export default class binance extends Exchange {
         //         "selfTradePreventionMode": "NONE"
         //     }
         //
-        // createOrder: portfolio margin inverse swap and future conditional
+        // createOrder, fetchOpenOrders: portfolio margin inverse swap and future conditional
         //
         //     {
         //         "newClientStrategyId": "x-xcKtGhcuc6b86f053bb34933850739",
@@ -5115,6 +5115,31 @@ export default class binance extends Exchange {
         //         "type": "LIMIT"
         //     }
         //
+        // fetchOpenOrders: portfolio margin spot margin
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "orderId": 24700763749,
+        //         "clientOrderId": "x-R4BD3S826f724c2a4af6425f98c7b6",
+        //         "price": "35000.00000000",
+        //         "origQty": "0.00100000",
+        //         "executedQty": "0.00000000",
+        //         "cummulativeQuoteQty": "0.00000000",
+        //         "status": "NEW",
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT",
+        //         "side": "BUY",
+        //         "stopPrice": "0.00000000",
+        //         "icebergQty": "0.00000000",
+        //         "time": 1707199187679,
+        //         "updateTime": 1707199187679,
+        //         "isWorking": true,
+        //         "accountId": 200180970,
+        //         "selfTradePreventionMode": "EXPIRE_MAKER",
+        //         "preventedMatchId": null,
+        //         "preventedQuantity": null
+        //     }
+        //
         const code = this.safeString (order, 'code');
         if (code !== undefined) {
             // cancelOrders/createOrders might have a partial success
@@ -5122,7 +5147,8 @@ export default class binance extends Exchange {
         }
         const status = this.parseOrderStatus (this.safeString2 (order, 'status', 'strategyStatus'));
         const marketId = this.safeString (order, 'symbol');
-        const marketType = ('closePosition' in order) ? 'contract' : 'spot';
+        const isContract = ('positionSide' in order) || ('cumQuote' in order);
+        const marketType = isContract ? 'contract' : 'spot';
         const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         const filled = this.safeString (order, 'executedQty', '0');
         const timestamp = this.safeIntegerN (order, [ 'time', 'createTime', 'workingTime', 'transactTime', 'updateTime' ]); // order of the keys matters here
@@ -5895,21 +5921,28 @@ export default class binance extends Exchange {
         /**
          * @method
          * @name binance#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
          * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
          * @see https://binance-docs.github.io/apidocs/futures/en/#current-all-open-orders-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#current-all-open-orders-user_data
          * @see https://binance-docs.github.io/apidocs/voptions/en/#query-current-open-option-orders-user_data
-         * @description fetch all unfilled currently open orders
          * @see https://binance-docs.github.io/apidocs/spot/en/#current-open-orders-user_data
          * @see https://binance-docs.github.io/apidocs/futures/en/#current-all-open-orders-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#current-all-open-orders-user_data
          * @see https://binance-docs.github.io/apidocs/voptions/en/#query-current-open-option-orders-user_data
          * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-open-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-current-um-open-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-current-cm-open-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-current-um-open-conditional-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-current-cm-open-conditional-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-current-margin-open-order-user_data
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch open orders in the portfolio margin account
+         * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account conditional orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -5917,14 +5950,16 @@ export default class binance extends Exchange {
         let type = undefined;
         const request = {};
         let marginMode = undefined;
-        let query = undefined;
-        [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchOpenOrders', 'papi', 'portfolioMargin', false);
+        const isConditional = this.safeBool2 (params, 'stop', 'conditional');
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
             const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
             const marketType = ('type' in market) ? market['type'] : defaultType;
-            type = this.safeString (query, 'type', marketType);
+            type = this.safeString (params, 'type', marketType);
         } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
             const symbols = this.symbols;
             const numSymbols = symbols.length;
@@ -5932,11 +5967,11 @@ export default class binance extends Exchange {
             throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         } else {
             const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
-            type = this.safeString (query, 'type', defaultType);
+            type = this.safeString (params, 'type', defaultType);
         }
         let subType = undefined;
-        [ subType, query ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, query);
-        const requestParams = this.omit (query, 'type');
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
+        params = this.omit (params, [ 'type', 'stop', 'conditional' ]);
         let response = undefined;
         if (type === 'option') {
             if (since !== undefined) {
@@ -5945,21 +5980,41 @@ export default class binance extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            response = await this.eapiPrivateGetOpenOrders (this.extend (request, requestParams));
+            response = await this.eapiPrivateGetOpenOrders (this.extend (request, params));
         } else if (this.isLinear (type, subType)) {
-            response = await this.fapiPrivateGetOpenOrders (this.extend (request, requestParams));
-        } else if (this.isInverse (type, subType)) {
-            response = await this.dapiPrivateGetOpenOrders (this.extend (request, requestParams));
-        } else if (type === 'margin' || marginMode !== undefined) {
-            if (marginMode === 'isolated') {
-                request['isIsolated'] = true;
-                if (symbol === undefined) {
-                    throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument for isolated markets');
+            if (isPortfolioMargin) {
+                if (isConditional) {
+                    response = await this.papiGetUmConditionalOpenOrders (this.extend (request, params));
+                } else {
+                    response = await this.papiGetUmOpenOrders (this.extend (request, params));
                 }
+            } else {
+                response = await this.fapiPrivateGetOpenOrders (this.extend (request, params));
             }
-            response = await this.sapiGetMarginOpenOrders (this.extend (request, requestParams));
+        } else if (this.isInverse (type, subType)) {
+            if (isPortfolioMargin) {
+                if (isConditional) {
+                    response = await this.papiGetCmConditionalOpenOrders (this.extend (request, params));
+                } else {
+                    response = await this.papiGetCmOpenOrders (this.extend (request, params));
+                }
+            } else {
+                response = await this.dapiPrivateGetOpenOrders (this.extend (request, params));
+            }
+        } else if (type === 'margin' || marginMode !== undefined) {
+            if (isPortfolioMargin) {
+                response = await this.papiGetMarginOpenOrders (this.extend (request, params));
+            } else {
+                if (marginMode === 'isolated') {
+                    request['isIsolated'] = true;
+                    if (symbol === undefined) {
+                        throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument for isolated markets');
+                    }
+                }
+                response = await this.sapiGetMarginOpenOrders (this.extend (request, params));
+            }
         } else {
-            response = await this.privateGetOpenOrders (this.extend (request, requestParams));
+            response = await this.privateGetOpenOrders (this.extend (request, params));
         }
         return this.parseOrders (response, market, since, limit);
     }
