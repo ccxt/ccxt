@@ -21,7 +21,7 @@ export default class blofin extends Exchange {
             'name': 'BloFin',
             'countries': [ 'US' ],
             'version': 'v1',
-            'rateLimit': 100 * 1.03, // 3% tolerance because of #20229
+            'rateLimit': 100,
             'has': {
                 'CORS': undefined,
                 'spot': false,
