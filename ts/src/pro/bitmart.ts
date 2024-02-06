@@ -1372,6 +1372,9 @@ export default class bitmart extends bitmartRest {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false, true);
+        if (symbols.length > 20) {
+            throw new NotSupported (this.id + ' watchOrderBookForSymbols() accepts a maximum of 20 symbols in one request');
+        }
         const market = this.market (symbols[0]);
         let channel = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'depth', 'depth/increase100');
