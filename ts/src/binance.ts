@@ -5416,21 +5416,6 @@ export default class binance extends Exchange {
                 }
             }
         }
-        if (!isPortfolioMargin) {
-            const postOnly = this.isPostOnly (isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', params);
-            if (market['spot'] || marketType === 'margin') {
-                // only supported for spot/margin api (all margin markets are spot markets)
-                if (postOnly) {
-                    type = 'LIMIT_MAKER';
-                }
-                if (marginMode === 'isolated') {
-                    request['isIsolated'] = true;
-                }
-            }
-            if (market['contract'] && postOnly) {
-                request['timeInForce'] = 'GTX';
-            }
-        }
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice', triggerPrice); // fallback to stopLoss
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
@@ -5498,6 +5483,19 @@ export default class binance extends Exchange {
             request[clientOrderIdRequest] = brokerId + this.uuid22 ();
         } else {
             request[clientOrderIdRequest] = clientOrderId;
+        }
+        let postOnly = undefined;
+        if (!isPortfolioMargin) {
+            postOnly = this.isPostOnly (isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', params);
+            if (market['spot'] || marketType === 'margin') {
+                // only supported for spot/margin api (all margin markets are spot markets)
+                if (postOnly) {
+                    uppercaseType = 'LIMIT_MAKER';
+                }
+                if (marginMode === 'isolated') {
+                    request['isIsolated'] = true;
+                }
+            }
         }
         const typeRequest = isPortfolioMarginConditional ? 'strategyType' : 'type';
         request[typeRequest] = uppercaseType;
@@ -5596,9 +5594,6 @@ export default class binance extends Exchange {
             }
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        if (timeInForceIsRequired) {
-            request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-        }
         if (stopPriceIsRequired) {
             if (market['contract']) {
                 if (stopPrice === undefined) {
@@ -5614,20 +5609,11 @@ export default class binance extends Exchange {
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
         }
-        if (!isPortfolioMargin) {
-            const postOnly = this.isPostOnly (isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', params);
-            if (market['spot'] || marketType === 'margin') {
-                // only supported for spot/margin api (all margin markets are spot markets)
-                if (postOnly) {
-                    type = 'LIMIT_MAKER';
-                }
-                if (marginMode === 'isolated') {
-                    request['isIsolated'] = true;
-                }
-            }
-            if (market['contract'] && postOnly) {
-                request['timeInForce'] = 'GTX';
-            }
+        if (timeInForceIsRequired && (this.safeString (params, 'timeInForce') === undefined)) {
+            request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+        }
+        if (!isPortfolioMargin && market['contract'] && postOnly) {
+            request['timeInForce'] = 'GTX';
         }
         // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
         if (this.safeString (params, 'timeInForce') === 'PO') {

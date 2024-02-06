@@ -50,7 +50,7 @@
                         "postOnly": true
                     }
                 ],
-                "output": "timestamp=1699380855361&symbol=LTCUSDT&side=BUY&newClientOrderId=x-R4BD3S82102a551f8c1642bba06728&newOrderRespType=RESULT&type=LIMIT_MAKER&quantity=0.2&price=50&recvWindow=10000&signature=6ae855678678e86725443f243b2f40613ed3e48e39a478ea0433c7dcbc36fce8"
+                "output": "timestamp=1707174812474&symbol=LTCUSDT&side=BUY&newOrderRespType=FULL&newClientOrderId=x-R4BD3S8281350e594e8f4383a36f19&type=LIMIT_MAKER&quantity=0.2&price=50&recvWindow=10000&signature=4e01e6b644312f26fce0be6524ed2eda08079dec6b6f1f2670a685362e39c6f1"
             },
             {
                 "description": "Swap market buy order",
