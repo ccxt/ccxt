@@ -1706,7 +1706,7 @@ export default class testMainClass extends baseMainTestClass {
         const id = 'ec6dd3a7dd982d0b';
         let request = undefined;
         try {
-            await exchange.createOrder ('XRP/USDT:USDT', 'market', 'buy', 1);
+            await exchange.createOrder ('LTC/USDT:USDT', 'market', 'buy', 1);
         } catch (e) {
             request = jsonParse (exchange.last_request_body);
         }
