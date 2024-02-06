@@ -40,6 +40,7 @@ export default class kucoin extends kucoinRest {
                 'watchOrderBook': {
                     'snapshotDelay': 5,
                     'snapshotMaxRetries': 3,
+                    'method': '/market/level2', // '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50'
                 },
             },
             'streaming': {
@@ -499,21 +500,22 @@ export default class kucoin extends kucoinRest {
         symbols = this.marketSymbols (symbols);
         const marketIds = this.marketIds (symbols);
         const url = await this.negotiate (false);
-        const topic = '/market/level2:' + marketIds.join (',');
+        const [ method, query ] = this.handleOptionAndParams (params, 'watchOrderBook', 'method', '/market/level2');
+        const topic = method + ':' + marketIds.join (',');
         const messageHashes = [];
         const subscriptionHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             messageHashes.push ('orderbook:' + symbol);
             const marketId = marketIds[i];
-            subscriptionHashes.push ('/market/level2:' + marketId);
+            subscriptionHashes.push (method + ':' + marketId);
         }
         const subscription = {
             'method': this.handleOrderBookSubscription,
             'symbols': symbols,
             'limit': limit,
         };
-        const orderbook = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, params, subscription);
+        const orderbook = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, query, subscription);
         return orderbook.limit ();
     }
 
@@ -537,37 +539,68 @@ export default class kucoin extends kucoinRest {
         //         }
         //     }
         //
+        //     {
+        //         "topic": "/spotMarket/level2Depth5:BTC-USDT",
+        //         "type": "message",
+        //         "data": {
+        //             "asks": [
+        //                 [
+        //                     "42815.6",
+        //                     "1.24016245"
+        //                 ]
+        //             ],
+        //             "bids": [
+        //                 [
+        //                     "42815.5",
+        //                     "0.08652716"
+        //                 ]
+        //             ],
+        //             "timestamp": 1707204474018
+        //         },
+        //         "subject": "level2"
+        //     }
+        //
         const data = this.safeValue (message, 'data');
-        const marketId = this.safeString (data, 'symbol');
+        const subject = this.safeString (message, 'subject');
+        const topic = this.safeString (message, 'topic');
+        const topicParts = topic.split (':');
+        const topicSymbol = this.safeString (topicParts, 1);
+        const topicChannel = this.safeString (topicParts, 0);
+        const marketId = this.safeString (data, 'symbol', topicSymbol);
         const symbol = this.safeSymbol (marketId, undefined, '-');
         const messageHash = 'orderbook:' + symbol;
-        const storedOrderBook = this.orderbooks[symbol];
-        const nonce = this.safeInteger (storedOrderBook, 'nonce');
-        const deltaEnd = this.safeInteger (data, 'sequenceEnd');
-        if (nonce === undefined) {
-            const cacheLength = storedOrderBook.cache.length;
-            const topic = this.safeString (message, 'topic');
-            const topicParts = topic.split (':');
-            const topicSymbol = this.safeString (topicParts, 1);
-            const topicChannel = this.safeString (topicParts, 0);
-            const subscriptions = Object.keys (client.subscriptions);
-            let subscription = undefined;
-            for (let i = 0; i < subscriptions.length; i++) {
-                const key = subscriptions[i];
-                if ((key.indexOf (topicSymbol) >= 0) && (key.indexOf (topicChannel) >= 0)) {
-                    subscription = client.subscriptions[key];
-                    break;
+        let storedOrderBook = this.orderbooks[symbol];
+        if (subject === 'level2') {
+            if (storedOrderBook === undefined) {
+                storedOrderBook = this.orderBook ();
+            } else {
+                storedOrderBook.reset ();
+            }
+            storedOrderBook['symbol'] = symbol;
+        } else {
+            const nonce = this.safeInteger (storedOrderBook, 'nonce');
+            const deltaEnd = this.safeInteger2 (data, 'sequenceEnd', 'timestamp');
+            if (nonce === undefined) {
+                const cacheLength = storedOrderBook.cache.length;
+                const subscriptions = Object.keys (client.subscriptions);
+                let subscription = undefined;
+                for (let i = 0; i < subscriptions.length; i++) {
+                    const key = subscriptions[i];
+                    if ((key.indexOf (topicSymbol) >= 0) && (key.indexOf (topicChannel) >= 0)) {
+                        subscription = client.subscriptions[key];
+                        break;
+                    }
                 }
+                const limit = this.safeInteger (subscription, 'limit');
+                const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 5);
+                if (cacheLength === snapshotDelay) {
+                    this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {});
+                }
+                storedOrderBook.cache.push (data);
+                return;
+            } else if (nonce >= deltaEnd) {
+                return;
             }
-            const limit = this.safeInteger (subscription, 'limit');
-            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 5);
-            if (cacheLength === snapshotDelay) {
-                this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {});
-            }
-            storedOrderBook.cache.push (data);
-            return;
-        } else if (nonce >= deltaEnd) {
-            return;
         }
         this.handleDelta (storedOrderBook, data);
         client.resolve (storedOrderBook, messageHash);
@@ -592,11 +625,11 @@ export default class kucoin extends kucoinRest {
     }
 
     handleDelta (orderbook, delta) {
-        orderbook['nonce'] = this.safeInteger (delta, 'sequenceEnd');
-        const timestamp = this.safeInteger (delta, 'time');
+        const timestamp = this.safeInteger2 (delta, 'time', 'timestamp');
+        orderbook['nonce'] = this.safeInteger (delta, 'sequenceEnd', timestamp);
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
-        const changes = this.safeValue (delta, 'changes');
+        const changes = this.safeValue (delta, 'changes', delta);
         const bids = this.safeValue (changes, 'bids', []);
         const asks = this.safeValue (changes, 'asks', []);
         const storedBids = orderbook['bids'];
@@ -1023,6 +1056,7 @@ export default class kucoin extends kucoinRest {
         }
         const subject = this.safeString (message, 'subject');
         const methods = {
+            'level2': this.handleOrderBook,
             'trade.l2update': this.handleOrderBook,
             'trade.ticker': this.handleTicker,
             'trade.snapshot': this.handleTicker,
