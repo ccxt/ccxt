@@ -453,10 +453,15 @@ export default class kucoin extends kucoinRest {
         /**
          * @method
          * @name kucoin#watchOrderBook
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         //
@@ -481,10 +486,15 @@ export default class kucoin extends kucoinRest {
         /**
          * @method
          * @name kucoin#watchOrderBookForSymbols
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string[]} symbols unified array of symbols
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const symbolsLength = symbols.length;
@@ -492,15 +502,19 @@ export default class kucoin extends kucoinRest {
             throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
         if (limit !== undefined) {
-            if ((limit !== 20) && (limit !== 100)) {
-                throw new ExchangeError (this.id + " watchOrderBook 'limit' argument must be undefined, 20 or 100");
+            if ((limit !== 20) && (limit !== 100) && (limit !== 50) && (limit !== 5)) {
+                throw new ExchangeError (this.id + " watchOrderBook 'limit' argument must be undefined, 5, 20, 50 or 100");
             }
         }
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const marketIds = this.marketIds (symbols);
         const url = await this.negotiate (false);
-        const [ method, query ] = this.handleOptionAndParams (params, 'watchOrderBook', 'method', '/market/level2');
+        let method: string = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'method', '/market/level2');
+        if ((limit === 5) || (limit === 50)) {
+            method = '/spotMarket/level2Depth' + limit.toString ();
+        }
         const topic = method + ':' + marketIds.join (',');
         const messageHashes = [];
         const subscriptionHashes = [];
@@ -510,12 +524,15 @@ export default class kucoin extends kucoinRest {
             const marketId = marketIds[i];
             subscriptionHashes.push (method + ':' + marketId);
         }
-        const subscription = {
-            'method': this.handleOrderBookSubscription,
-            'symbols': symbols,
-            'limit': limit,
-        };
-        const orderbook = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, query, subscription);
+        let subscription = {};
+        if (method === '/market/level2') { // other streams return the entire orderbook, so we don't need to fetch the snapshot through REST
+            subscription = {
+                'method': this.handleOrderBookSubscription,
+                'symbols': symbols,
+                'limit': limit,
+            };
+        }
+        const orderbook = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, params, subscription);
         return orderbook.limit ();
     }
 
