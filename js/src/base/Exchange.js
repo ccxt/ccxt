@@ -1447,6 +1447,9 @@ export default class Exchange {
          * @returns {object | undefined}
          */
         const value = this.safeValueN(dictionaryOrList, keys, defaultValue);
+        if (value === undefined) {
+            return defaultValue;
+        }
         if (typeof value === 'object') {
             return value;
         }
@@ -1478,6 +1481,9 @@ export default class Exchange {
          * @returns {Array | undefined}
          */
         const value = this.safeValueN(dictionaryOrList, keys, defaultValue);
+        if (value === undefined) {
+            return defaultValue;
+        }
         if (Array.isArray(value)) {
             return value;
         }
@@ -5277,7 +5283,8 @@ export default class Exchange {
                 errors = 0;
                 const responseLength = response.length;
                 if (this.verbose) {
-                    const cursorMessage = 'Cursor pagination call ' + i + 1 + ' method ' + method + ' response length ' + responseLength + ' cursor ' + cursorValue;
+                    const iteration = (i + 1).toString();
+                    const cursorMessage = 'Cursor pagination call ' + iteration + ' method ' + method + ' response length ' + responseLength.toString() + ' cursor ' + cursorValue;
                     this.log(cursorMessage);
                 }
                 if (responseLength === 0) {
@@ -5322,7 +5329,8 @@ export default class Exchange {
                 errors = 0;
                 const responseLength = response.length;
                 if (this.verbose) {
-                    const incrementalMessage = 'Incremental pagination call ' + i + 1 + ' method ' + method + ' response length ' + responseLength;
+                    const iteration = (i + 1).toString();
+                    const incrementalMessage = 'Incremental pagination call ' + iteration + ' method ' + method + ' response length ' + responseLength.toString();
                     this.log(incrementalMessage);
                 }
                 if (responseLength === 0) {

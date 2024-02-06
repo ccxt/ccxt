@@ -462,6 +462,7 @@ public partial class woo
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.woo.org/#kline-public"/>  <br/>
+    /// See <see href="https://docs.woo.org/#kline-historical-data-public"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -472,7 +473,7 @@ public partial class woo
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum amount of candles to fetch
+    /// int : max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms)))
     /// </description>
     /// </item>
     /// <item>

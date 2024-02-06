@@ -53,6 +53,10 @@ public partial class Exchange
          * @returns {object | undefined}
          */
         object value = this.safeValueN(dictionaryOrList, keys, defaultValue);
+        if (isTrue(isEqual(value, null)))
+        {
+            return defaultValue;
+        }
         if (isTrue((value is IDictionary<string, object>)))
         {
             return value;
@@ -91,6 +95,10 @@ public partial class Exchange
          * @returns {Array | undefined}
          */
         object value = this.safeValueN(dictionaryOrList, keys, defaultValue);
+        if (isTrue(isEqual(value, null)))
+        {
+            return defaultValue;
+        }
         if (isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             return value;
@@ -5193,7 +5201,8 @@ public partial class Exchange
                 object responseLength = getArrayLength(response);
                 if (isTrue(this.verbose))
                 {
-                    object cursorMessage = add(add(add(add(add(add(add(add("Cursor pagination call ", i), 1), " method "), method), " response length "), responseLength), " cursor "), cursorValue);
+                    object iteration = ((object)(add(i, 1))).ToString();
+                    object cursorMessage = add(add(add(add(add(add(add("Cursor pagination call ", iteration), " method "), method), " response length "), ((object)responseLength).ToString()), " cursor "), cursorValue);
                     this.log(cursorMessage);
                 }
                 if (isTrue(isEqual(responseLength, 0)))
@@ -5254,7 +5263,8 @@ public partial class Exchange
                 object responseLength = getArrayLength(response);
                 if (isTrue(this.verbose))
                 {
-                    object incrementalMessage = add(add(add(add(add(add("Incremental pagination call ", i), 1), " method "), method), " response length "), responseLength);
+                    object iteration = ((object)(add(i, 1))).ToString();
+                    object incrementalMessage = add(add(add(add(add("Incremental pagination call ", iteration), " method "), method), " response length "), ((object)responseLength).ToString());
                     this.log(incrementalMessage);
                 }
                 if (isTrue(isEqual(responseLength, 0)))

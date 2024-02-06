@@ -3271,6 +3271,7 @@ class bitget extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {string} [$params->price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -3299,61 +3300,49 @@ class bitget extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $options = $this->safe_value($this->options, 'fetchOHLCV', array());
-            $spotOptions = $this->safe_value($options, 'spot', array());
-            $defaultSpotMethod = $this->safe_string($spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles');
-            $method = $this->safe_string($params, 'method', $defaultSpotMethod);
-            $params = $this->omit($params, 'method');
-            if ($method !== 'publicSpotGetV2SpotMarketHistoryCandles') {
-                if ($since !== null) {
-                    $request['startTime'] = $since;
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
+            if ($since !== null) {
+                if ($limit === null) {
+                    $limit = 100; // exchange default
                 }
-                if ($until !== null) {
-                    $request['endTime'] = $until;
-                }
+                $duration = $this->parse_timeframe($timeframe) * 1000;
+                $request['endTime'] = $this->sum($since, $duration * ($limit + 1)) - 1;  // $limit + 1)) - 1 is needed for when $since is not the exact timestamp of a candle
+            } elseif ($until !== null) {
+                $request['endTime'] = $until;
+            } else {
+                $request['endTime'] = $this->milliseconds();
             }
             $response = null;
+            $thirtyOneDaysAgo = $this->milliseconds() - 2678400000;
             if ($market['spot']) {
-                if ($method === 'publicSpotGetV2SpotMarketCandles') {
-                    $response = Async\await($this->publicSpotGetV2SpotMarketCandles (array_merge($request, $params)));
-                } elseif ($method === 'publicSpotGetV2SpotMarketHistoryCandles') {
-                    if ($since !== null) {
-                        if ($limit === null) {
-                            $limit = 100; // exchange default
-                        }
-                        $duration = $this->parse_timeframe($timeframe) * 1000;
-                        $request['endTime'] = $this->sum($since, $duration * $limit);
-                    } elseif ($until !== null) {
-                        $request['endTime'] = $until;
-                    } else {
-                        $request['endTime'] = $this->milliseconds();
-                    }
+                if (($since !== null) && ($since < $thirtyOneDaysAgo)) {
                     $response = Async\await($this->publicSpotGetV2SpotMarketHistoryCandles (array_merge($request, $params)));
+                } else {
+                    $response = Async\await($this->publicSpotGetV2SpotMarketCandles (array_merge($request, $params)));
                 }
             } else {
-                $swapOptions = $this->safe_value($options, 'swap', array());
-                $defaultSwapMethod = $this->safe_string($swapOptions, 'method', 'publicMixGetV2MixMarketCandles');
-                $swapMethod = $this->safe_string($params, 'method', $defaultSwapMethod);
                 $priceType = $this->safe_string($params, 'price');
-                $params = $this->omit($params, array( 'method', 'price' ));
+                $params = $this->omit($params, array( 'price' ));
                 $productType = null;
                 list($productType, $params) = $this->handle_product_type_and_params($market, $params);
                 $request['productType'] = $productType;
-                if (($priceType === 'mark') || ($swapMethod === 'publicMixGetV2MixMarketHistoryMarkCandles')) {
+                if ($priceType === 'mark') {
                     $response = Async\await($this->publicMixGetV2MixMarketHistoryMarkCandles (array_merge($request, $params)));
-                } elseif (($priceType === 'index') || ($swapMethod === 'publicMixGetV2MixMarketHistoryIndexCandles')) {
+                } elseif ($priceType === 'index') {
                     $response = Async\await($this->publicMixGetV2MixMarketHistoryIndexCandles (array_merge($request, $params)));
-                } elseif ($swapMethod === 'publicMixGetV2MixMarketCandles') {
-                    $response = Async\await($this->publicMixGetV2MixMarketCandles (array_merge($request, $params)));
-                } elseif ($swapMethod === 'publicMixGetV2MixMarketHistoryCandles') {
+                } elseif (($since !== null) && ($since < $thirtyOneDaysAgo)) {
                     $response = Async\await($this->publicMixGetV2MixMarketHistoryCandles (array_merge($request, $params)));
+                } else {
+                    $response = Async\await($this->publicMixGetV2MixMarketCandles (array_merge($request, $params)));
                 }
             }
             if ($response === '') {
                 return array(); // happens when a new token is listed
             }
             //  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]
-            $data = $this->safe_value($response, 'data', $response);
+            $data = $this->safe_list($response, 'data', $response);
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
         }) ();
     }

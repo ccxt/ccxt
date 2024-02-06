@@ -66,7 +66,7 @@ export default class testMainClass extends baseMainTestClass {
     initOfflineExchange(exchangeName: string): Exchange;
     testExchangeRequestStatically(exchangeName: string, exchangeData: object, testName?: string): Promise<boolean>;
     testExchangeResponseStatically(exchangeName: string, exchangeData: object, testName?: string): Promise<boolean>;
-    getNumberOfTestsFromExchange(exchange: any, exchangeData: object): number;
+    getNumberOfTestsFromExchange(exchange: any, exchangeData: object, testName?: string): number;
     runStaticRequestTests(targetExchange?: string, testName?: string): Promise<void>;
     runStaticTests(type: string, targetExchange?: string, testName?: string): Promise<void>;
     runStaticResponseTests(exchangeName?: any, test?: any): Promise<void>;

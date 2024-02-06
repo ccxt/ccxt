@@ -154,10 +154,32 @@ class krakenfutures extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'tierBased' => false,
+                    'tierBased' => true,
                     'percentage' => true,
-                    'maker' => $this->parse_number('-0.0002'),
-                    'taker' => $this->parse_number('0.00075'),
+                    'taker' => $this->parse_number('0.0005'),
+                    'maker' => $this->parse_number('0.0002'),
+                    'tiers' => array(
+                        'taker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.0005') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.0004') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.0003') ),
+                            array( $this->parse_number('5000000'), $this->parse_number('0.00025') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0.0002') ),
+                            array( $this->parse_number('20000000'), $this->parse_number('0.00015') ),
+                            array( $this->parse_number('50000000'), $this->parse_number('0.000125') ),
+                            array( $this->parse_number('100000000'), $this->parse_number('0.0001') ),
+                        ),
+                        'maker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.0002') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.0015') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.000125') ),
+                            array( $this->parse_number('5000000'), $this->parse_number('0.0001') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0.000075') ),
+                            array( $this->parse_number('20000000'), $this->parse_number('0.00005') ),
+                            array( $this->parse_number('50000000'), $this->parse_number('0.000025') ),
+                            array( $this->parse_number('100000000'), $this->parse_number('0') ),
+                        ),
+                    ),
                 ),
             ),
             'exceptions' => array(

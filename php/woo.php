@@ -1506,11 +1506,12 @@ class woo extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.woo.org/#kline-public
-         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
-         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @see https://docs.woo.org/#kline-historical-data-public
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {int} [$limit] max=1000, max=100 when $since is defined and is less than (now - (999 * (is_array(ms) && array_key_exists($timeframe, ms))))
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
@@ -1520,42 +1521,68 @@ class woo extends Exchange {
             'symbol' => $market['id'],
             'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        if ($limit !== null) {
+        $useHistEndpoint = $since !== null;
+        if (($limit !== null) && ($since !== null)) {
+            $oneThousandCandles = $this->parse_timeframe($timeframe) * 1000 * 999;  // 999 because there will be delay between this and the $request, causing the latest candle to be excluded sometimes
+            $startWithLimit = $this->milliseconds() - $oneThousandCandles;
+            $useHistEndpoint = $since < $startWithLimit;
+        }
+        if ($useHistEndpoint) {
+            $request['start_time'] = $since;
+        } elseif ($limit !== null) {  // the hist endpoint does not accept $limit
             $request['limit'] = min ($limit, 1000);
         }
-        $response = $this->v1PublicGetKline (array_merge($request, $params));
-        // {
-        //     "success" => true,
-        //     "rows" => array(
-        //       array(
-        //         "open" => "0.94238",
-        //         "close" => "0.94271",
-        //         "low" => "0.94238",
-        //         "high" => "0.94296",
-        //         "volume" => "73.55",
-        //         "amount" => "69.32040520",
-        //         "symbol" => "SPOT_WOO_USDT",
-        //         "type" => "1m",
-        //         "start_timestamp" => "1641584700000",
-        //         "end_timestamp" => "1641584760000"
-        //       ),
-        //       array(
-        //         "open" => "0.94186",
-        //         "close" => "0.94186",
-        //         "low" => "0.94186",
-        //         "high" => "0.94186",
-        //         "volume" => "64.00",
-        //         "amount" => "60.27904000",
-        //         "symbol" => "SPOT_WOO_USDT",
-        //         "type" => "1m",
-        //         "start_timestamp" => "1641584640000",
-        //         "end_timestamp" => "1641584700000"
-        //       ),
-        //       ...
-        //     )
-        // }
-        $data = $this->safe_value($response, 'rows', array());
-        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+        $response = null;
+        if (!$useHistEndpoint) {
+            $response = $this->v1PublicGetKline (array_merge($request, $params));
+            //
+            //    {
+            //        "success" => true,
+            //        "rows" => array(
+            //            array(
+            //                "open" => "0.94238",
+            //                "close" => "0.94271",
+            //                "low" => "0.94238",
+            //                "high" => "0.94296",
+            //                "volume" => "73.55",
+            //                "amount" => "69.32040520",
+            //                "symbol" => "SPOT_WOO_USDT",
+            //                "type" => "1m",
+            //                "start_timestamp" => "1641584700000",
+            //                "end_timestamp" => "1641584760000"
+            //            ),
+            //            ...
+            //        )
+            //    }
+            //
+        } else {
+            $response = $this->v1PubGetHistKline (array_merge($request, $params));
+            $response = $this->safe_dict($response, 'data');
+            //
+            //    {
+            //        "success" => true,
+            //        "data" => {
+            //            "rows" => array(
+            //                array(
+            //                    "symbol" => "SPOT_BTC_USDT",
+            //                    "open" => 44181.40000000,
+            //                    "close" => 44174.29000000,
+            //                    "high" => 44193.44000000,
+            //                    "low" => 44148.34000000,
+            //                    "volume" => 110.11930100,
+            //                    "amount" => 4863796.24318878,
+            //                    "type" => "1m",
+            //                    "start_timestamp" => 1704153600000,
+            //                    "end_timestamp" => 1704153660000
+            //                ),
+            //                ...
+            //            )
+            //        }
+            //    }
+            //
+        }
+        $rows = $this->safe_value($response, 'rows', array());
+        return $this->parse_ohlcvs($rows, $market, $timeframe, $since, $limit);
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {

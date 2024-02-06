@@ -166,7 +166,7 @@ The easiest way to install the CCXT library is to use a package manager:
 - [ccxt in **NPM**](https://www.npmjs.com/package/ccxt) (JavaScript / Node v7.6+)
 - [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 3.7.0+)
 - [ccxt in **Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 7.0+)
-- [ccxt in **Nugget**](https://www.nuget.org/packages/ccxt) (netstandard 2.0)
+- [ccxt in **Nuget**](https://www.nuget.org/packages/ccxt) (netstandard 2.0)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
@@ -209,13 +209,13 @@ console.log(version, Object.keys(exchanges));
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.2.33/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@4.2.33/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.2.36/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@4.2.36/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.2.33/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.2.36/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -264,7 +264,7 @@ The library supports concurrent asynchronous mode using tools from [RecoilPHP](h
 
 ### .net/C#
 
-[ccxt in C# with **Nugget**](https://www.nuget.org/packages/ccxt) (netstandard 2.0 and netstandard 2.1)
+[ccxt in C# with **Nuget**](https://www.nuget.org/packages/ccxt) (netstandard 2.0 and netstandard 2.1)
 ```c#
 using ccxt;
 Console.WriteLine(ccxt.Exchanges) // check this later

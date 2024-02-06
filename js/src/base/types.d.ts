@@ -103,6 +103,7 @@ export interface Order {
     filled: number;
     remaining: number;
     stopPrice?: number;
+    triggerPrice?: number;
     takeProfitPrice?: number;
     stopLossPrice?: number;
     cost: number;
@@ -234,6 +235,7 @@ export interface Position {
     notional?: number;
     leverage?: number;
     unrealizedPnl?: number;
+    realizedPnl?: number;
     collateral?: number;
     entryPrice?: number;
     markPrice?: number;

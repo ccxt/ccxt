@@ -740,6 +740,151 @@
             "USDT": 31.022612
           }
         }
+      },
+      {
+        "description": "fetch papi balance",
+        "method": "fetchBalance",
+        "input": [
+          {
+            "type": "papi"
+          }
+        ],
+        "httpResponse": [
+          {
+            "asset": "USDT",
+            "totalWalletBalance": "66.9923261",
+            "crossMarginAsset": "35.9697141",
+            "crossMarginBorrowed": "0.0",
+            "crossMarginFree": "35.9697141",
+            "crossMarginInterest": "0.0",
+            "crossMarginLocked": "0.0",
+            "umWalletBalance": "31.022612",
+            "umUnrealizedPNL": "0.0",
+            "cmWalletBalance": "0.0",
+            "cmUnrealizedPNL": "0.0",
+            "updateTime": "0",
+            "negativeBalance": "0.0"
+          },
+          {
+            "asset": "LTC",
+            "totalWalletBalance": "0.000636",
+            "crossMarginAsset": "0.000636",
+            "crossMarginBorrowed": "0.0",
+            "crossMarginFree": "0.000636",
+            "crossMarginInterest": "0.0",
+            "crossMarginLocked": "0.0",
+            "umWalletBalance": "0.0",
+            "umUnrealizedPNL": "0.0",
+            "cmWalletBalance": "0.0",
+            "cmUnrealizedPNL": "0.0",
+            "updateTime": "0",
+            "negativeBalance": "0.0"
+          },
+          {
+            "asset": "ADA",
+            "totalWalletBalance": "0.0525",
+            "crossMarginAsset": "0.0525",
+            "crossMarginBorrowed": "0.0",
+            "crossMarginFree": "0.0525",
+            "crossMarginInterest": "0.0",
+            "crossMarginLocked": "0.0",
+            "umWalletBalance": "0.0",
+            "umUnrealizedPNL": "0.0",
+            "cmWalletBalance": "0.0",
+            "cmUnrealizedPNL": "0.0",
+            "updateTime": "0",
+            "negativeBalance": "0.0"
+          }
+        ],
+        "parsedResponse": {
+          "info": [
+            {
+              "asset": "USDT",
+              "totalWalletBalance": "66.9923261",
+              "crossMarginAsset": "35.9697141",
+              "crossMarginBorrowed": "0.0",
+              "crossMarginFree": "35.9697141",
+              "crossMarginInterest": "0.0",
+              "crossMarginLocked": "0.0",
+              "umWalletBalance": "31.022612",
+              "umUnrealizedPNL": "0.0",
+              "cmWalletBalance": "0.0",
+              "cmUnrealizedPNL": "0.0",
+              "updateTime": "0",
+              "negativeBalance": "0.0"
+            },
+            {
+              "asset": "LTC",
+              "totalWalletBalance": "0.000636",
+              "crossMarginAsset": "0.000636",
+              "crossMarginBorrowed": "0.0",
+              "crossMarginFree": "0.000636",
+              "crossMarginInterest": "0.0",
+              "crossMarginLocked": "0.0",
+              "umWalletBalance": "0.0",
+              "umUnrealizedPNL": "0.0",
+              "cmWalletBalance": "0.0",
+              "cmUnrealizedPNL": "0.0",
+              "updateTime": "0",
+              "negativeBalance": "0.0"
+            },
+            {
+              "asset": "ADA",
+              "totalWalletBalance": "0.0525",
+              "crossMarginAsset": "0.0525",
+              "crossMarginBorrowed": "0.0",
+              "crossMarginFree": "0.0525",
+              "crossMarginInterest": "0.0",
+              "crossMarginLocked": "0.0",
+              "umWalletBalance": "0.0",
+              "umUnrealizedPNL": "0.0",
+              "cmWalletBalance": "0.0",
+              "cmUnrealizedPNL": "0.0",
+              "updateTime": "0",
+              "negativeBalance": "0.0"
+            }
+          ],
+          "USDT": {
+            "free": 35.9697141,
+            "used": 0,
+            "total": 35.9697141,
+            "debt": 0
+          },
+          "LTC": {
+            "free": 0.000636,
+            "used": 0,
+            "total": 0.000636,
+            "debt": 0
+          },
+          "ADA": {
+            "free": 0.0525,
+            "used": 0,
+            "total": 0.0525,
+            "debt": 0
+          },
+          "timestamp": null,
+          "datetime": null,
+          "free": {
+            "USDT": 35.9697141,
+            "LTC": 0.000636,
+            "ADA": 0.0525
+          },
+          "used": {
+            "USDT": 0,
+            "LTC": 0,
+            "ADA": 0
+          },
+          "total": {
+            "USDT": 35.9697141,
+            "LTC": 0.000636,
+            "ADA": 0.0525
+          },
+          "debt": {
+            "USDT": 0,
+            "LTC": 0,
+            "ADA": 0
+          }
+        }
       }
     ],
     "fetchOHLCV": [
