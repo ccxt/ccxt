@@ -1375,7 +1375,7 @@ public partial class testMainClass : BaseTest
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex()};
+        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin()};
         await promiseAll(promises);
         object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -1706,6 +1706,23 @@ public partial class testMainClass : BaseTest
         }
         object clientOrderId = getValue(request, "clOrdID");
         assert(((string)clientOrderId).StartsWith(((string)((object)id).ToString())), "clOrdID does not start with id");
+        await close(exchange);
+    }
+
+    public async virtual Task testBlofin()
+    {
+        Exchange exchange = this.initOfflineExchange("blofin");
+        object id = "ec6dd3a7dd982d0b";
+        object request = null;
+        try
+        {
+            await exchange.createOrder("LTC/USDT:USDT", "market", "buy", 1);
+        } catch(Exception e)
+        {
+            request = jsonParse(exchange.last_request_body);
+        }
+        object brokerId = getValue(request, "brokerId");
+        assert(((string)brokerId).StartsWith(((string)((object)id).ToString())), "brokerId does not start with id");
         await close(exchange);
     }
 }
