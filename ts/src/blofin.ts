@@ -1185,6 +1185,15 @@ export default class blofin extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const tpsl = this.safeBool (params, 'tpsl', false);
+        params = this.omit (params, 'tpsl');
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'createOrder', 'method', 'privatePostTradeOrder');
+        if (tpsl || (method === 'privatePostTradeOrderTpsl')) {
+            const positionSide = this.safeString (params, 'positionSide', 'net');
+            params = this.omit (params, 'positionSide');
+            return await this.createTpslOrder (symbol, positionSide, side, params);
+        }
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         const response = await this.privatePostTradeOrder (request);
         const data = this.safeList (response, 'data', []);
@@ -1201,6 +1210,7 @@ export default class blofin extends Exchange {
             'instId': market['id'],
             'side': side,
             'positionSide': positionSide,
+            'brokerId': this.safeString (this.options, 'brokerId', 'ec6dd3a7dd982d0b'),
         };
         const size = this.safeString (params, 'size');
         if (size) {
