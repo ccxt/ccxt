@@ -153,6 +153,10 @@ export default class blofin extends Exchange {
                 'api': {
                     'rest': 'https://openapi.blofin.com',
                 },
+                'referral': {
+                    'url': 'https://blofin.com/register?referral_code=jBd8U1',
+                    'discount': 0.05,
+                },
                 'www': 'https://www.blofin.com',
                 'doc': 'https://blofin.com/docs',
             },
