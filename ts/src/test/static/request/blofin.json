@@ -76,10 +76,10 @@
                 "method": "cancelOrder",
                 "url": "https://openapi.blofin.com/api/v1/trade/cancel-order",
                 "input": [
-                  2075628262,
+                  "2075628262",
                   "LTC/USDT:USDT"
                 ],
-                "output": "{\"instId\":\"LTC-USDT\",\"orderId\":2075628262}"
+                "output": "{\"instId\":\"LTC-USDT\",\"orderId\":\"2075628262\"}"
             }
         ],
         "cancelOrders": [
