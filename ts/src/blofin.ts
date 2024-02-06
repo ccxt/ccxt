@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/blofin.js';
-import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, RateLimitExceeded } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, RateLimitExceeded, InsufficientFunds } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -255,6 +255,7 @@ export default class blofin extends Exchange {
                     '102065': BadRequest,  // Sell price is not within the price limit
                     '102068': BadRequest,  // Cancel failed as the order has been filled, triggered, canceled or does not exist
                     '103013': ExchangeError,  // Internal error; unable to process your request. Please try again.
+                    'Order failed. Insufficient USDT margin in account': InsufficientFunds,  // Insufficient USDT margin in account
                 },
                 'broad': {
                     'Internal Server Error': ExchangeNotAvailable, // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"Internal Server Error","msg":"Internal Server Error"}
@@ -964,6 +965,36 @@ export default class blofin extends Exchange {
     }
 
     parseOrder (order, market: Market = undefined): Order {
+        //
+        // {
+        //     "orderId": "2075628533",
+        //     "clientOrderId": "",
+        //     "instId": "LTC-USDT",
+        //     "marginMode": "cross",
+        //     "positionSide": "net",
+        //     "side": "buy",
+        //     "orderType": "market",
+        //     "price": "0.000000000000000000",
+        //     "size": "1.000000000000000000",
+        //     "reduceOnly": "true",
+        //     "leverage": "3",
+        //     "state": "filled",
+        //     "filledSize": "1.000000000000000000",
+        //     "pnl": "-0.050000000000000000",
+        //     "averagePrice": "68.110000000000000000",
+        //     "fee": "0.040866000000000000",
+        //     "createTime": "1706891359010",
+        //     "updateTime": "1706891359098",
+        //     "orderCategory": "normal",
+        //     "tpTriggerPrice": null,
+        //     "tpOrderPrice": null,
+        //     "slTriggerPrice": null,
+        //     "slOrderPrice": null,
+        //     "cancelSource": "not_canceled",
+        //     "cancelSourceReason": null,
+        //     "brokerId": "ec6dd3a7dd982d0b"
+        // }
+        //
         const id = this.safeString2 (order, 'tpslId', 'orderId');
         const timestamp = this.safeInteger (order, 'createTime');
         const lastUpdateTimestamp = this.safeInteger (order, 'updateTime');
@@ -990,23 +1021,20 @@ export default class blofin extends Exchange {
         const average = this.safeString (order, 'averagePrice');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const feeCostString = this.safeString (order, 'fee');
-        let amount = undefined;
-        let cost = undefined;
-        // spot market buy: "sz" can refer either to base currency units or to quote currency units
-        const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', 'base_ccy');
-        const tgtCcy = this.safeString (order, 'tgtCcy', defaultTgtCcy);
-        const instType = this.safeString (order, 'instType');
-        if ((side === 'buy') && (type === 'market') && (instType === 'SPOT') && (tgtCcy === 'quote_ccy')) {
-            // "sz" refers to the cost
-            cost = this.safeString (order, 'size');
-        } else {
-            // "sz" refers to the trade currency amount
-            amount = this.safeString (order, 'size');
+        const amount = this.safeString (order, 'size');
+        const leverage = this.safeString (order, 'leverage', '1');
+        const contractSize = this.safeString (market, 'contractSize');
+        const baseAmount = Precise.stringMul (contractSize, filled);
+        let cost: string = undefined;
+        if (average !== undefined) {
+            cost = Precise.stringMul (average, baseAmount);
+            cost = Precise.stringDiv (cost, leverage);
         }
+        // spot market buy: "sz" can refer either to base currency units or to quote currency units
         let fee = undefined;
         if (feeCostString !== undefined) {
-            const feeCostSigned = Precise.stringNeg (feeCostString);
-            const feeCurrencyId = this.safeString (order, 'feeCcy');
+            const feeCostSigned = Precise.stringAbs (feeCostString);
+            const feeCurrencyId = this.safeString (order, 'feeCcy', 'USDT');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': this.parseNumber (feeCostSigned),
@@ -1680,14 +1708,14 @@ export default class blofin extends Exchange {
         };
         const response = await this.privateGetAccountPositions (this.extend (request, query));
         const data = this.safeList (response, 'data', []);
-        const position = this.safeValue (data, 0);
+        const position = this.safeDict (data, 0);
         if (position === undefined) {
             return undefined;
         }
         return this.parsePosition (position, market);
     }
 
-    async fetchPositions (symbols: string[], params = {}): Promise<Position[]> {
+    async fetchPositions (symbols: string[] = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
          * @name blofin#fetchPosition
@@ -1829,11 +1857,10 @@ export default class blofin extends Exchange {
          * @name blofin#setLeverage
          * @description set the level of leverage for a market
          * @see https://blofin.com/docs#set-leverage
-         * @param {float} leverage the rate of leverage
+         * @param {int} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated'
-         * @param {string} [params.posSide] 'long' or 'short' for isolated margin long/short mode on futures and swap markets
          * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
@@ -1951,12 +1978,29 @@ export default class blofin extends Exchange {
         //
         const code = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
+        const feedback = this.id + ' ' + body;
         if (code !== undefined && code !== '0') {
-            const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
+        }
+        //
+        //  {
+        //      orderId: null,
+        //      clientOrderId: '',
+        //      msg: 'Order failed. Insufficient USDT margin in account',
+        //      code: '103003'
+        //  }
+        //
+        const data = this.safeList (response, 'data');
+        const first = this.safeDict (data, 0);
+        const insideMsg = this.safeString (first, 'msg');
+        const insideCode = this.safeString (first, 'code');
+        if (insideCode !== undefined && insideCode !== '0') {
+            this.throwExactlyMatchedException (this.exceptions['exact'], insideCode, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], insideMsg, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], insideMsg, feedback);
         }
         return undefined;
     }
