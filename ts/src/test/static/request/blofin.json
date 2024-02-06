@@ -212,6 +212,32 @@
                   ]
                 ]
             }
+        ],
+        "fetchDeposits": [
+          {
+            "description": "fetch deposits",
+            "method": "fetchDeposits",
+            "url": "https://openapi.blofin.com/api/v1/asset/deposit-history",
+            "input": []
+          }
+        ],
+        "fetchWihdrawals": [
+          {
+            "description": "fetch withdrawals",
+            "method": "fetchWithdrawals",
+            "url": "https://openapi.blofin.com/api/v1/asset/withdrawal-history",
+            "input": []
+          }
+        ],
+        "fetchLedger": [
+          {
+            "description": "fetch USDT ledger",
+            "method": "fetchLedger",
+            "url": "https://openapi.blofin.com/api/v1/asset/bills?currency=USDT",
+            "input": [
+              "USDT"
+            ]
+          }
         ]
     }
 }
