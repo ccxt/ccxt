@@ -2806,7 +2806,7 @@ export default class kraken extends Exchange {
         return await this.transfer (code, amount, 'spot', 'swap', params);
     }
 
-    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name kraken#transfer

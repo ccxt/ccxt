@@ -3152,7 +3152,7 @@ export default class ascendex extends Exchange {
         return this.parseDepositWithdrawFees (data, codes, 'assetCode');
     }
 
-    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name ascendex#transfer

@@ -2958,7 +2958,7 @@ export default class bitrue extends Exchange {
         return this.parseTransfers (data, currency, since, limit);
     }
 
-    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name bitrue#transfer
