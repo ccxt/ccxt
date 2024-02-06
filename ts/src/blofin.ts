@@ -149,7 +149,7 @@ export default class blofin extends Exchange {
             },
             'hostname': 'www.blofin.com',
             'urls': {
-                'logo': 'https://s2.blofin.com/logo/whiteground.png',
+                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/255a7b29-341f-4d20-8342-fbfae4932807',
                 'api': {
                     'rest': 'https://openapi.blofin.com',
                 },
