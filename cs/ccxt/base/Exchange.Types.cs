@@ -183,6 +183,12 @@ public struct Order
     public double? average;
     public double? amount;
     public double? filled;
+
+    public double? triggerPrice;
+
+    public double? stopLossPrice;
+
+    public double? takeProfitPrice;
     public double? remaining;
     public string? status;
     public Fee? fee;
@@ -208,6 +214,9 @@ public struct Order
         status = Exchange.SafeString(order, "status");
         fee = order.ContainsKey("fee") ? new Fee(order["fee"]) : null;
         trades = order.ContainsKey("trades") ? ((IEnumerable<object>)order["trades"]).Select(x => new Trade(x)) : null;
+        triggerPrice = Exchange.SafeFloat(order, "triggerPrice");
+        stopLossPrice = Exchange.SafeFloat(order, "stopLossPrice");
+        takeProfitPrice = Exchange.SafeFloat(order, "takeProfitPrice");
         info = order.ContainsKey("info") ? (Dictionary<string, object>)order["info"] : null;
     }
 }
@@ -676,10 +685,16 @@ public struct Position
     public double? notional;
     public double? leverage;
     public double? unrealizedPnl;
+
+    public double? realizedPnl;
     public double? collateral;
     public double? entryPrice;
     public double? markPrice;
     public double? liquidationPrice;
+
+    public double? stopLossPrice;
+
+    public double? takeProfitPrice;
     public string? marginMode;
     public bool? hedged;
     public double? maintenenceMargin;
@@ -704,6 +719,7 @@ public struct Position
         notional = Exchange.SafeFloat(position, "notional");
         leverage = Exchange.SafeFloat(position, "leverage");
         unrealizedPnl = Exchange.SafeFloat(position, "unrealizedPnl");
+        realizedPnl = Exchange.SafeFloat(position, "realizedPnl");
         collateral = Exchange.SafeFloat(position, "collateral");
         entryPrice = Exchange.SafeFloat(position, "entryPrice");
         markPrice = Exchange.SafeFloat(position, "markPrice");
@@ -718,6 +734,8 @@ public struct Position
         lastUpdateTimestamp = Exchange.SafeFloat(position, "lastUpdateTimestamp");
         lastPrice = Exchange.SafeFloat(position, "lastPrice");
         percentage = Exchange.SafeFloat(position, "percentage");
+        takeProfitPrice = Exchange.SafeFloat(position, "takeProfitPrice");
+        stopLossPrice = Exchange.SafeFloat(position, "stopLossPrice");
     }
 
 }
