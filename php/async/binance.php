@@ -4696,7 +4696,7 @@ class binance extends Exchange {
             }
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        if ($timeInForceIsRequired) {
+        if ($timeInForceIsRequired && ($this->safe_string($params, 'timeInForce') === null)) {
             $request['timeInForce'] = $this->options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if ($stopPriceIsRequired) {
@@ -5002,18 +5002,128 @@ class binance extends Exchange {
         //         "lastTrade" => array("id":"69","time":"1676084430567","price":"24.9","qty":"1.00"),
         //         "mmp" => false
         //     }
-        //     array(
+        //
         // cancelOrders/createOrders
-        //          "code" => -4005,
-        //          "msg" => "Quantity greater than max quantity."
-        //       ),
+        //
+        //     {
+        //         "code" => -4005,
+        //         "msg" => "Quantity greater than max quantity."
+        //     }
+        //
+        // createOrder => portfolio margin linear swap and future
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "side" => "BUY",
+        //         "executedQty" => "0.000",
+        //         "orderId" => 258649539704,
+        //         "goodTillDate" => 0,
+        //         "avgPrice" => "0",
+        //         "origQty" => "0.010",
+        //         "clientOrderId" => "x-xcKtGhcu02573c6f15e544e990057b",
+        //         "positionSide" => "BOTH",
+        //         "cumQty" => "0.000",
+        //         "updateTime" => 1707110415436,
+        //         "type" => "LIMIT",
+        //         "reduceOnly" => false,
+        //         "price" => "35000.00",
+        //         "cumQuote" => "0.00000",
+        //         "selfTradePreventionMode" => "NONE",
+        //         "timeInForce" => "GTC",
+        //         "status" => "NEW"
+        //     }
+        //
+        // createOrder => portfolio margin inverse swap and future
+        //
+        //     {
+        //         "symbol" => "ETHUSD_PERP",
+        //         "side" => "BUY",
+        //         "cumBase" => "0",
+        //         "executedQty" => "0",
+        //         "orderId" => 71275227732,
+        //         "avgPrice" => "0.00",
+        //         "origQty" => "1",
+        //         "clientOrderId" => "x-xcKtGhcuca5af3acfb5044198c5398",
+        //         "positionSide" => "BOTH",
+        //         "cumQty" => "0",
+        //         "updateTime" => 1707110994334,
+        //         "type" => "LIMIT",
+        //         "pair" => "ETHUSD",
+        //         "reduceOnly" => false,
+        //         "price" => "2000",
+        //         "timeInForce" => "GTC",
+        //         "status" => "NEW"
+        //     }
+        //
+        // createOrder => portfolio margin linear swap and future conditional
+        //
+        //     {
+        //         "newClientStrategyId" => "x-xcKtGhcu27f109953d6e4dc0974006",
+        //         "strategyId" => 3645916,
+        //         "strategyStatus" => "NEW",
+        //         "strategyType" => "STOP",
+        //         "origQty" => "0.010",
+        //         "price" => "35000.00",
+        //         "reduceOnly" => false,
+        //         "side" => "BUY",
+        //         "positionSide" => "BOTH",
+        //         "stopPrice" => "45000.00",
+        //         "symbol" => "BTCUSDT",
+        //         "timeInForce" => "GTC",
+        //         "bookTime" => 1707112625879,
+        //         "updateTime" => 1707112625879,
+        //         "workingType" => "CONTRACT_PRICE",
+        //         "priceProtect" => false,
+        //         "goodTillDate" => 0,
+        //         "selfTradePreventionMode" => "NONE"
+        //     }
+        //
+        // createOrder => portfolio margin inverse swap and future conditional
+        //
+        //     {
+        //         "newClientStrategyId" => "x-xcKtGhcuc6b86f053bb34933850739",
+        //         "strategyId" => 1423462,
+        //         "strategyStatus" => "NEW",
+        //         "strategyType" => "STOP",
+        //         "origQty" => "1",
+        //         "price" => "2000",
+        //         "reduceOnly" => false,
+        //         "side" => "BUY",
+        //         "positionSide" => "BOTH",
+        //         "stopPrice" => "3000",
+        //         "symbol" => "ETHUSD_PERP",
+        //         "timeInForce" => "GTC",
+        //         "bookTime" => 1707113098840,
+        //         "updateTime" => 1707113098840,
+        //         "workingType" => "CONTRACT_PRICE",
+        //         "priceProtect" => false
+        //     }
+        //
+        // createOrder => portfolio margin spot margin
+        //
+        //     {
+        //         "clientOrderId" => "x-R4BD3S82e9ef29d8346440f0b28b86",
+        //         "cummulativeQuoteQty" => "0.00000000",
+        //         "executedQty" => "0.00000000",
+        //         "fills" => array(),
+        //         "orderId" => 24684460474,
+        //         "origQty" => "0.00100000",
+        //         "price" => "35000.00000000",
+        //         "selfTradePreventionMode" => "EXPIRE_MAKER",
+        //         "side" => "BUY",
+        //         "status" => "NEW",
+        //         "symbol" => "BTCUSDT",
+        //         "timeInForce" => "GTC",
+        //         "transactTime" => 1707113538870,
+        //         "type" => "LIMIT"
+        //     }
         //
         $code = $this->safe_string($order, 'code');
         if ($code !== null) {
             // cancelOrders/createOrders might have a partial success
             return $this->safe_order(array( 'info' => $order, 'status' => 'rejected' ), $market);
         }
-        $status = $this->parse_order_status($this->safe_string($order, 'status'));
+        $status = $this->parse_order_status($this->safe_string_2($order, 'status', 'strategyStatus'));
         $marketId = $this->safe_string($order, 'symbol');
         $marketType = (is_array($order) && array_key_exists('closePosition', $order)) ? 'contract' : 'spot';
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
@@ -5039,11 +5149,9 @@ class binance extends Exchange {
         //   Note this is not the actual $cost, since Binance futures uses leverage to calculate margins.
         $cost = $this->safe_string_2($order, 'cummulativeQuoteQty', 'cumQuote');
         $cost = $this->safe_string($order, 'cumBase', $cost);
-        $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string_lower($order, 'type');
         $side = $this->safe_string_lower($order, 'side');
         $fills = $this->safe_value($order, 'fills', array());
-        $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         if ($timeInForce === 'GTX') {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
@@ -5066,8 +5174,8 @@ class binance extends Exchange {
         }
         return $this->safe_order(array(
             'info' => $order,
-            'id' => $id,
-            'clientOrderId' => $clientOrderId,
+            'id' => $this->safe_string_2($order, 'orderId', 'strategyId'),
+            'clientOrderId' => $this->safe_string_2($order, 'clientOrderId', 'newClientStrategyId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
@@ -5180,47 +5288,93 @@ class binance extends Exchange {
              * @see https://binance-docs.github.io/apidocs/voptions/en/#new-order-trade
              * @see https://binance-docs.github.io/apidocs/spot/en/#new-order-using-$sor-trade
              * @see https://binance-docs.github.io/apidocs/spot/en/#$test-new-order-using-$sor-trade
+             * @see https://binance-docs.github.io/apidocs/pm/en/#new-um-order-trade
+             * @see https://binance-docs.github.io/apidocs/pm/en/#new-cm-order-trade
+             * @see https://binance-docs.github.io/apidocs/pm/en/#new-margin-order-trade
+             * @see https://binance-docs.github.io/apidocs/pm/en/#new-um-conditional-order-trade
+             * @see https://binance-docs.github.io/apidocs/pm/en/#new-cm-conditional-order-trade
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
              * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} $amount how much of you want to trade in units of the base currency
+             * @param {float} [$price] the $price that the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->reduceOnly] for swap and future reduceOnly is a string 'true' or 'false' that cant be sent with close position set to true or in hedge mode. For spot margin and option reduceOnly is a boolean.
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
              * @param {boolean} [$params->sor] *spot only* whether to use SOR (Smart Order Routing) or not, default is false
              * @param {boolean} [$params->test] *spot only* whether to use the $test endpoint or not, default is false
              * @param {float} [$params->trailingPercent] the percent to trail away from the current $market $price
              * @param {float} [$params->trailingTriggerPrice] the $price to trigger a trailing order, default uses the $price argument
+             * @param {float} [$params->triggerPrice] the $price that a trigger order is triggered at
+             * @param {float} [$params->stopLossPrice] the $price that a stop loss order is triggered at
+             * @param {float} [$params->takeProfitPrice] the $price that a take profit order is triggered at
+             * @param {boolean} [$params->portfolioMargin] set to true if you would like to create an order in a portfolio margin account
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $marketType = $this->safe_string($params, 'type', $market['type']);
-            list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
-            $sor = $this->safe_value_2($params, 'sor', 'SOR', false);
-            $params = $this->omit($params, 'sor', 'SOR');
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+            $isPortfolioMargin = null;
+            list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'createOrder', 'papi', 'portfolioMargin', false);
+            $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+            $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+            $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+            $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRate');
+            $isTrailingPercentOrder = $trailingPercent !== null;
+            $isStopLoss = $stopLossPrice !== null;
+            $isTakeProfit = $takeProfitPrice !== null;
+            $isConditional = ($triggerPrice !== null) || $isTrailingPercentOrder || $isStopLoss || $isTakeProfit;
+            $sor = $this->safe_bool_2($params, 'sor', 'SOR', false);
+            $test = $this->safe_bool($params, 'test', false);
+            $params = $this->omit($params, array( 'sor', 'SOR', 'test' ));
+            if ($isPortfolioMargin) {
+                $params['portfolioMargin'] = $isPortfolioMargin;
+            }
             $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
-            $method = 'privatePostOrder';
-            if ($sor) {
-                $method = 'privatePostSorOrder';
-            } elseif ($market['linear']) {
-                $method = 'fapiPrivatePostOrder';
-            } elseif ($market['inverse']) {
-                $method = 'dapiPrivatePostOrder';
-            } elseif ($marketType === 'margin' || $marginMode !== null) {
-                $method = 'sapiPostMarginOrder';
-            }
+            $response = null;
             if ($market['option']) {
-                $method = 'eapiPrivatePostOrder';
-            }
-            // support for testing orders
-            if ($market['spot'] || $marketType === 'margin') {
-                $test = $this->safe_bool($query, 'test', false);
+                $response = Async\await($this->eapiPrivatePostOrder ($request));
+            } elseif ($sor) {
                 if ($test) {
-                    $method .= 'Test';
+                    $response = Async\await($this->privatePostSorOrderTest ($request));
+                } else {
+                    $response = Async\await($this->privatePostSorOrder ($request));
+                }
+            } elseif ($market['linear']) {
+                if ($isPortfolioMargin) {
+                    if ($isConditional) {
+                        $response = Async\await($this->papiPostUmConditionalOrder ($request));
+                    } else {
+                        $response = Async\await($this->papiPostUmOrder ($request));
+                    }
+                } else {
+                    $response = Async\await($this->fapiPrivatePostOrder ($request));
+                }
+            } elseif ($market['inverse']) {
+                if ($isPortfolioMargin) {
+                    if ($isConditional) {
+                        $response = Async\await($this->papiPostCmConditionalOrder ($request));
+                    } else {
+                        $response = Async\await($this->papiPostCmOrder ($request));
+                    }
+                } else {
+                    $response = Async\await($this->dapiPrivatePostOrder ($request));
+                }
+            } elseif ($marketType === 'margin' || $marginMode !== null) {
+                if ($isPortfolioMargin) {
+                    $response = Async\await($this->papiPostMarginOrder ($request));
+                } else {
+                    $response = Async\await($this->sapiPostMarginOrder ($request));
+                }
+            } else {
+                if ($test) {
+                    $response = Async\await($this->privatePostOrderTest ($request));
+                } else {
+                    $response = Async\await($this->privatePostOrder ($request));
                 }
             }
-            $response = Async\await($this->$method ($request));
             return $this->parse_order($response, $market);
         }) ();
     }
@@ -5228,16 +5382,13 @@ class binance extends Exchange {
     public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @ignore
-         * helper function to build $request
+         * helper function to build the $request
          * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
+         * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the exchange API endpoint
-         * @param {string|null} $params->marginMode 'cross' or 'isolated', for spot margin trading
-         * @param {float} [$params->trailingPercent] the percent to trail away from the current $market $price
-         * @param {float} [$params->trailingTriggerPrice] the $price to trigger a trailing order, default uses the $price argument
+         * @param {float} $amount how much you want to trade in units of the base currency
+         * @param {float} [$price] the $price that the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} $request to be sent to the exchange
          */
         $market = $this->market($symbol);
@@ -5246,35 +5397,53 @@ class binance extends Exchange {
         $initialUppercaseType = strtoupper($type);
         $isMarketOrder = $initialUppercaseType === 'MARKET';
         $isLimitOrder = $initialUppercaseType === 'LIMIT';
-        $postOnly = $this->is_post_only($isMarketOrder, $initialUppercaseType === 'LIMIT_MAKER', $params);
-        $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
-        $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);  // fallback to stopLoss
-        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
-        $trailingDelta = $this->safe_value($params, 'trailingDelta');
+        $request = array(
+            'symbol' => $market['id'],
+            'side' => strtoupper($side),
+        );
+        $isPortfolioMargin = null;
+        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'createOrder', 'papi', 'portfolioMargin', false);
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+        if (($marketType === 'margin') || ($marginMode !== null) || $market['option']) {
+            // for swap and future $reduceOnly is a string that cant be sent with close position set to true or in hedge mode
+            $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
+            $params = $this->omit($params, 'reduceOnly');
+            if ($market['option']) {
+                $request['reduceOnly'] = $reduceOnly;
+            } else {
+                if ($reduceOnly) {
+                    $request['sideEffectType'] = 'AUTO_REPAY';
+                }
+            }
+        }
+        if (!$isPortfolioMargin) {
+            $postOnly = $this->is_post_only($isMarketOrder, $initialUppercaseType === 'LIMIT_MAKER', $params);
+            if ($market['spot'] || $marketType === 'margin') {
+                // only supported for spot/margin api (all margin markets are spot markets)
+                if ($postOnly) {
+                    $type = 'LIMIT_MAKER';
+                }
+                if ($marginMode === 'isolated') {
+                    $request['isIsolated'] = true;
+                }
+            }
+            if ($market['contract'] && $postOnly) {
+                $request['timeInForce'] = 'GTX';
+            }
+        }
+        $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice', $triggerPrice); // fallback to stopLoss
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        $trailingDelta = $this->safe_string($params, 'trailingDelta');
         $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activationPrice', $this->number_to_string($price));
         $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRate');
         $isTrailingPercentOrder = $trailingPercent !== null;
         $isStopLoss = $stopLossPrice !== null || $trailingDelta !== null;
         $isTakeProfit = $takeProfitPrice !== null;
-        $params = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent' ));
-        list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
-        $request = array(
-            'symbol' => $market['id'],
-            'side' => strtoupper($side),
-        );
-        if ($market['spot'] || $marketType === 'margin') {
-            // only supported for spot/margin api (all margin markets are spot markets)
-            if ($postOnly) {
-                $type = 'LIMIT_MAKER';
-            }
-        }
-        if ($marketType === 'margin' || $marginMode !== null) {
-            $reduceOnly = $this->safe_value($params, 'reduceOnly');
-            if ($reduceOnly) {
-                $request['sideEffectType'] = 'AUTO_REPAY';
-                $params = $this->omit($params, 'reduceOnly');
-            }
-        }
+        $isTriggerOrder = $triggerPrice !== null;
+        $isConditional = $isTriggerOrder || $isTrailingPercentOrder || $isStopLoss || $isTakeProfit;
+        $isPortfolioMarginConditional = ($isPortfolioMargin && $isConditional);
         $uppercaseType = strtoupper($type);
         $stopPrice = null;
         if ($isTrailingPercentOrder) {
@@ -5300,29 +5469,20 @@ class binance extends Exchange {
                 $uppercaseType = $market['contract'] ? 'TAKE_PROFIT' : 'TAKE_PROFIT_LIMIT';
             }
         }
-        if ($marginMode === 'isolated') {
-            $request['isIsolated'] = true;
-        }
-        if ($clientOrderId === null) {
-            $broker = $this->safe_value($this->options, 'broker', array());
-            $defaultId = ($market['contract']) ? 'x-xcKtGhcu' : 'x-R4BD3S82';
-            $brokerId = $this->safe_string($broker, $marketType, $defaultId);
-            $request['newClientOrderId'] = $brokerId . $this->uuid22();
-        } else {
-            $request['newClientOrderId'] = $clientOrderId;
-        }
         if (($marketType === 'spot') || ($marketType === 'margin')) {
-            $request['newOrderRespType'] = $this->safe_value($this->options['newOrderRespType'], $type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+            $request['newOrderRespType'] = $this->safe_string($this->options['newOrderRespType'], $type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         } else {
             // swap, futures and options
-            $request['newOrderRespType'] = 'RESULT';  // "ACK", "RESULT", default "ACK"
+            if (!$isPortfolioMargin) {
+                $request['newOrderRespType'] = 'RESULT';  // "ACK", "RESULT", default "ACK"
+            }
         }
         if ($market['option']) {
             if ($type === 'market') {
                 throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order $type for the ' . $symbol . ' market');
             }
         } else {
-            $validOrderTypes = $this->safe_value($market['info'], 'orderTypes');
+            $validOrderTypes = $this->safe_list($market['info'], 'orderTypes');
             if (!$this->in_array($uppercaseType, $validOrderTypes)) {
                 if ($initialUppercaseType !== $uppercaseType) {
                     throw new InvalidOrder($this->id . ' $stopPrice parameter is not allowed for ' . $symbol . ' ' . $type . ' orders');
@@ -5331,7 +5491,17 @@ class binance extends Exchange {
                 }
             }
         }
-        $request['type'] = $uppercaseType;
+        $clientOrderIdRequest = $isPortfolioMarginConditional ? 'newClientStrategyId' : 'newClientOrderId';
+        if ($clientOrderId === null) {
+            $broker = $this->safe_dict($this->options, 'broker', array());
+            $defaultId = ($market['contract']) ? 'x-xcKtGhcu' : 'x-R4BD3S82';
+            $brokerId = $this->safe_string($broker, $marketType, $defaultId);
+            $request[$clientOrderIdRequest] = $brokerId . $this->uuid22();
+        } else {
+            $request[$clientOrderIdRequest] = $clientOrderId;
+        }
+        $typeRequest = $isPortfolioMarginConditional ? 'strategyType' : 'type';
+        $request[$typeRequest] = $uppercaseType;
         // additional required fields depending on the order $type
         $timeInForceIsRequired = false;
         $priceIsRequired = false;
@@ -5359,9 +5529,9 @@ class binance extends Exchange {
         //
         if ($uppercaseType === 'MARKET') {
             if ($market['spot']) {
-                $quoteOrderQty = $this->safe_value($this->options, 'quoteOrderQty', true);
+                $quoteOrderQty = $this->safe_bool($this->options, 'quoteOrderQty', true);
                 if ($quoteOrderQty) {
-                    $quoteOrderQtyNew = $this->safe_value_2($query, 'quoteOrderQty', 'cost');
+                    $quoteOrderQtyNew = $this->safe_string_2($params, 'quoteOrderQty', 'cost');
                     $precision = $market['precision']['price'];
                     if ($quoteOrderQtyNew !== null) {
                         $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQtyNew, TRUNCATE, $precision, $this->precisionMode);
@@ -5402,7 +5572,7 @@ class binance extends Exchange {
             $stopPriceIsRequired = true;
             $priceIsRequired = true;
         } elseif (($uppercaseType === 'STOP_MARKET') || ($uppercaseType === 'TAKE_PROFIT_MARKET')) {
-            $closePosition = $this->safe_value($query, 'closePosition');
+            $closePosition = $this->safe_bool($params, 'closePosition');
             if ($closePosition === null) {
                 $quantityIsRequired = true;
             }
@@ -5414,7 +5584,12 @@ class binance extends Exchange {
             }
         }
         if ($quantityIsRequired) {
-            $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+            // portfolio margin has a different $amount $precision
+            if ($isPortfolioMargin) {
+                $request['quantity'] = $this->parse_to_numeric($amount);
+            } else {
+                $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+            }
         }
         if ($priceIsRequired) {
             if ($price === null) {
@@ -5424,9 +5599,6 @@ class binance extends Exchange {
         }
         if ($timeInForceIsRequired) {
             $request['timeInForce'] = $this->options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-        }
-        if ($market['contract'] && $postOnly) {
-            $request['timeInForce'] = 'GTX';
         }
         if ($stopPriceIsRequired) {
             if ($market['contract']) {
@@ -5443,11 +5615,26 @@ class binance extends Exchange {
                 $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
             }
         }
+        if (!$isPortfolioMargin) {
+            $postOnly = $this->is_post_only($isMarketOrder, $initialUppercaseType === 'LIMIT_MAKER', $params);
+            if ($market['spot'] || $marketType === 'margin') {
+                // only supported for spot/margin api (all margin markets are spot markets)
+                if ($postOnly) {
+                    $type = 'LIMIT_MAKER';
+                }
+                if ($marginMode === 'isolated') {
+                    $request['isIsolated'] = true;
+                }
+            }
+            if ($market['contract'] && $postOnly) {
+                $request['timeInForce'] = 'GTX';
+            }
+        }
         // remove timeInForce from $params because PO is only used by $this->is_post_onlyand it's not a valid value for Binance
         if ($this->safe_string($params, 'timeInForce') === 'PO') {
-            $params = $this->omit($params, array( 'timeInForce' ));
+            $params = $this->omit($params, 'timeInForce');
         }
-        $requestParams = $this->omit($params, array( 'quoteOrderQty', 'cost', 'stopPrice', 'test', 'type', 'newClientOrderId', 'clientOrderId', 'postOnly' ));
+        $requestParams = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test' ));
         return array_merge($request, $requestParams);
     }
 

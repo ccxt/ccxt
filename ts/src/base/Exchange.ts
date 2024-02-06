@@ -1402,9 +1402,9 @@ export default class Exchange {
 
     // ping (client) {} // stub to override
 
-    // ping (client) {
-    //     return undefined;
-    // }
+    ping (client) {
+        return undefined;
+    }
 
     client (url): WsClient {
         this.clients = this.clients || {};

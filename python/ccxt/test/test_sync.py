@@ -815,10 +815,10 @@ class testMainClass(baseMainTestClass):
         #  --- Init of static tests functions------------------------------------------
         #  -----------------------------------------------------------------------------
         calculated_string = json_stringify(calculated_output)
-        output_string = json_stringify(stored_output)
-        error_message = message + ' expected ' + output_string + ' received: ' + calculated_string
+        stored_string = json_stringify(stored_output)
+        error_message = message + ' computed ' + stored_string + ' stored: ' + calculated_string
         if key is not None:
-            error_message = ' | ' + key + ' | ' + 'computed value: ' + output_string + ' stored value: ' + calculated_string
+            error_message = ' | ' + key + ' | ' + 'computed value: ' + stored_string + ' stored value: ' + calculated_string
         assert cond, error_message
 
     def load_markets_from_file(self, id):
@@ -1140,7 +1140,9 @@ class testMainClass(baseMainTestClass):
         close(exchange)
         return True   # in c# methods that will be used with promiseAll need to return something
 
-    def get_number_of_tests_from_exchange(self, exchange, exchange_data):
+    def get_number_of_tests_from_exchange(self, exchange, exchange_data, test_name=None):
+        if test_name is not None:
+            return 1
         sum = 0
         methods = exchange_data['methods']
         methods_names = list(methods.keys())
@@ -1170,7 +1172,7 @@ class testMainClass(baseMainTestClass):
         for i in range(0, len(exchanges)):
             exchange_name = exchanges[i]
             exchange_data = static_data[exchange_name]
-            number_of_tests = self.get_number_of_tests_from_exchange(exchange, exchange_data)
+            number_of_tests = self.get_number_of_tests_from_exchange(exchange, exchange_data, test_name)
             sum = exchange.sum(sum, number_of_tests)
             if type == 'request':
                 promises.append(self.test_exchange_request_statically(exchange_name, exchange_data, test_name))
@@ -1443,5 +1445,5 @@ class testMainClass(baseMainTestClass):
 
 
 if __name__ == '__main__':
-    symbol = argv.symbol if argv.symbol and '/' in argv.symbol else None
+    symbol = argv.symbol if argv.symbol else None
     (testMainClass().init(argv.exchange, symbol))

@@ -3722,10 +3722,22 @@ class bybit extends Exchange {
             if ($isStopLoss) {
                 $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
                 $request['stopLoss'] = $this->price_to_precision($symbol, $slTriggerPrice);
+                $slLimitPrice = $this->safe_value($stopLoss, 'price');
+                if ($slLimitPrice !== null) {
+                    $request['tpslMode'] = 'Partial';
+                    $request['slOrderType'] = 'Limit';
+                    $request['slLimitPrice'] = $this->price_to_precision($symbol, $slLimitPrice);
+                }
             }
             if ($isTakeProfit) {
                 $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
                 $request['takeProfit'] = $this->price_to_precision($symbol, $tpTriggerPrice);
+                $tpLimitPrice = $this->safe_value($takeProfit, 'price');
+                if ($tpLimitPrice !== null) {
+                    $request['tpslMode'] = 'Partial';
+                    $request['tpOrderType'] = 'Limit';
+                    $request['tpLimitPrice'] = $this->price_to_precision($symbol, $tpLimitPrice);
+                }
             }
         }
         if ($market['spot']) {
@@ -6024,9 +6036,6 @@ class bybit extends Exchange {
         if ($timestamp === null) {
             $timestamp = $this->safe_integer_n($position, array( 'updatedTime', 'updatedAt' ));
         }
-        // default to cross of USDC margined positions
-        $tradeMode = $this->safe_integer($position, 'tradeMode', 0);
-        $marginMode = $tradeMode ? 'isolated' : 'cross';
         $collateralString = $this->safe_string($position, 'positionBalance');
         $entryPrice = $this->omit_zero($this->safe_string_2($position, 'entryPrice', 'avgPrice'));
         $liquidationPrice = $this->omit_zero($this->safe_string($position, 'liqPrice'));
@@ -6088,7 +6097,7 @@ class bybit extends Exchange {
             'markPrice' => $this->safe_number($position, 'markPrice'),
             'lastPrice' => null,
             'collateral' => $this->parse_number($collateralString),
-            'marginMode' => $marginMode,
+            'marginMode' => null,
             'side' => $side,
             'percentage' => null,
             'stopLossPrice' => $this->safe_number_2($position, 'stop_loss', 'stopLoss'),
