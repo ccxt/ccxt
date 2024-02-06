@@ -228,6 +228,74 @@
         ]
       }
     ],
+    "fetchMyTrades": [
+      {
+        "description": "user trades",
+        "method": "fetchMyTrades",
+        "input": [
+          "LTC/USDT:USDT",
+          null,
+          1
+        ],
+        "httpResponse": {
+          "code": "0",
+          "msg": "success",
+          "data": [
+            {
+              "instId": "LTC-USDT",
+              "tradeId": "1440847",
+              "orderId": "2075705202",
+              "fillPrice": "67.850000000000000000",
+              "fillSize": "1.000000000000000000",
+              "fillPnl": "0.000000000000000000",
+              "side": "buy",
+              "positionSide": "net",
+              "fee": "0.040710000000000000",
+              "ts": "1707224678878",
+              "brokerId": ""
+            }
+          ]
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "instId": "LTC-USDT",
+              "tradeId": "1440847",
+              "orderId": "2075705202",
+              "fillPrice": "67.850000000000000000",
+              "fillSize": "1.000000000000000000",
+              "fillPnl": "0.000000000000000000",
+              "side": "buy",
+              "positionSide": "net",
+              "fee": "0.040710000000000000",
+              "ts": "1707224678878",
+              "brokerId": ""
+            },
+            "timestamp": 1707224678878,
+            "datetime": "2024-02-06T13:04:38.878Z",
+            "symbol": "LTC/USDT:USDT",
+            "id": "1440847",
+            "order": "2075705202",
+            "type": null,
+            "takerOrMaker": null,
+            "side": "buy",
+            "price": 67.85,
+            "amount": 1,
+            "cost": 67.85,
+            "fee": {
+              "cost": 0.04071,
+              "currency": "USDT"
+            },
+            "fees": [
+              {
+                "cost": 0.04071,
+                "currency": "USDT"
+              }
+            ]
+          }
+        ]
+      }
+    ],
     "fetchDeposits": [
       {
         "description": "fetch deposits",
@@ -524,6 +592,144 @@
             "marginRatio": 0.015,
             "stopLossPrice": null,
             "takeProfitPrice": null
+          }
+        ]
+      }
+    ],
+    "fetchOrderBook": [
+      {
+        "description": "fetch orderbook",
+        "method": "fetchOrderBook",
+        "input": [
+          "BTC/USDT:USDT",
+          1
+        ],
+        "httpResponse": {
+          "code": "0",
+          "msg": "success",
+          "data": [
+            {
+              "asks": [
+                [
+                  "42973.1",
+                  "1274"
+                ]
+              ],
+              "bids": [
+                [
+                  "42973",
+                  "616"
+                ]
+              ],
+              "ts": "1707231904444"
+            }
+          ]
+        },
+        "parsedResponse": {
+          "symbol": "BTC/USDT:USDT",
+          "bids": [
+            [
+              42973,
+              616
+            ]
+          ],
+          "asks": [
+            [
+              42973.1,
+              1274
+            ]
+          ],
+          "timestamp": 1707231904444,
+          "datetime": "2024-02-06T15:05:04.444Z",
+          "nonce": null
+        }
+      }
+    ],
+    "fetchOHLCV": [
+      {
+        "description": "fetch 1d ohlcv",
+        "method": "fetchOHLCV",
+        "input": [
+          "BTC/USDT:USDT",
+          "1d",
+          null,
+          1
+        ],
+        "httpResponse": {
+          "code": "0",
+          "msg": "success",
+          "data": [
+            [
+              "1707177600000",
+              "42694.4",
+              "43136.8",
+              "42558.2",
+              "42981.1",
+              "13302089",
+              "13302.089",
+              "570190549.3752",
+              "0"
+            ]
+          ]
+        },
+        "parsedResponse": [
+          [
+            1707177600000,
+            42694.4,
+            43136.8,
+            42558.2,
+            42981.1,
+            13302.089
+          ]
+        ]
+      }
+    ],
+    "fetchTrades": [
+      {
+        "description": "public trades",
+        "method": "fetchTrades",
+        "input": [
+          "LTC/USDT:USDT",
+          null,
+          1
+        ],
+        "httpResponse": {
+          "code": "0",
+          "msg": "success",
+          "data": [
+            {
+              "tradeId": "3263954569",
+              "instId": "LTC-USDT",
+              "price": "67.88",
+              "size": "3",
+              "side": "buy",
+              "ts": "1707232231298"
+            }
+          ]
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "tradeId": "3263954569",
+              "instId": "LTC-USDT",
+              "price": "67.88",
+              "size": "3",
+              "side": "buy",
+              "ts": "1707232231298"
+            },
+            "timestamp": 1707232231298,
+            "datetime": "2024-02-06T15:10:31.298Z",
+            "symbol": "LTC/USDT:USDT",
+            "id": "3263954569",
+            "order": null,
+            "type": null,
+            "takerOrMaker": null,
+            "side": "buy",
+            "price": 67.88,
+            "amount": 3,
+            "cost": 203.64,
+            "fee": null,
+            "fees": []
           }
         ]
       }

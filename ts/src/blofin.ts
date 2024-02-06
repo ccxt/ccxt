@@ -560,16 +560,48 @@ export default class blofin extends Exchange {
     }
 
     parseTrade (trade, market: Market = undefined): Trade {
+        //
+        // fetch trades
+        //   {
+        //       "tradeId": "3263934920",
+        //       "instId": "LTC-USDT",
+        //       "price": "67.87",
+        //       "size": "1",
+        //       "side": "buy",
+        //       "ts": "1707232020854"
+        //   }
+        // my trades
+        //   {
+        //       "instId": "LTC-USDT",
+        //       "tradeId": "1440847",
+        //       "orderId": "2075705202",
+        //       "fillPrice": "67.850000000000000000",
+        //       "fillSize": "1.000000000000000000",
+        //       "fillPnl": "0.000000000000000000",
+        //       "side": "buy",
+        //       "positionSide": "net",
+        //       "fee": "0.040710000000000000",
+        //       "ts": "1707224678878",
+        //       "brokerId": ""
+        //   }
+        //
         const id = this.safeString (trade, 'tradeId');
         const marketId = this.safeString (trade, 'instId');
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (trade, 'ts');
-        const price = this.safeString (trade, 'price');
-        const amount = this.safeString (trade, 'size');
+        const price = this.safeString2 (trade, 'price', 'fillPrice');
+        const amount = this.safeString2 (trade, 'size', 'fillSize');
         const side = this.safeString (trade, 'side');
         const orderId = this.safeString (trade, 'orderId');
-        const fee = undefined;
+        const feeCost = this.safeString (trade, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': market['settle'],
+            };
+        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
