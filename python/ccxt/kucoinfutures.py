@@ -223,6 +223,7 @@ class kucoinfutures(kucoin):
                     '400006': AuthenticationError,  # The IP address is not in the API whitelist
                     '400007': AuthenticationError,  # Access Denied -- Your API key does not have sufficient permissions to access the URI
                     '404000': NotSupported,  # URL Not Found -- The requested resource could not be found
+                    '400010': PermissionDenied,  # Cannot place order at this time because you reside in a country or region in which we currently do not provide services due to local laws and regulations.
                     '400100': BadRequest,  # Parameter Error -- You tried to access the resource with invalid parameters
                     '411100': AccountSuspended,  # User is frozen -- Please contact us via support center
                     '500000': ExchangeNotAvailable,  # Internal Server Error -- We had a problem with our server. Try again later.
