@@ -97,6 +97,8 @@ public struct Market
     public Limits? limits;
     public Dictionary<string, object> info;
 
+    public Int64? created;
+
     public Market(object market2)
     {
         var market = (Dictionary<string, object>)market2;
@@ -131,6 +133,7 @@ public struct Market
         precision = market.ContainsKey("precision") ? new Precision(market["precision"]) : null;
         limits = market.ContainsKey("limits") ? new Limits(market["limits"]) : null;
         info = market;
+        created = Exchange.SafeInteger(market, "created");
     }
 }
 
@@ -1005,6 +1008,8 @@ public struct MarketInterface
     public double? taker;
     public double? maker;
 
+    public Int64? created;
+
     public MarketInterface(object market)
     {
         info = Exchange.SafeValue(market, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(market, "info") : null;
@@ -1035,6 +1040,36 @@ public struct MarketInterface
         optionType = Exchange.SafeString(market, "optionType");
         taker = Exchange.SafeFloat(market, "taker");
         maker = Exchange.SafeFloat(market, "maker");
+        created = Exchange.SafeInteger(market, "created");
+    }
+
+    public struct Currency
+    {
+        public Dictionary<string, object>? info;
+        public string? id;
+        public string? code;
+        public double? precision;
+        public string? name;
+
+        public double? fee;
+
+        public bool? active;
+
+        public bool? deposit;
+
+        public bool? withdraw;
+        public Dictionary<string, Network>? networks;
+    }
+
+    public struct Network
+    {
+        public Dictionary<string, object>? info;
+        public string? id;
+        public double? fee;
+        public bool? active;
+        public bool? deposit;
+        public bool? withdraw;
+        public double? precision;
     }
 }
 // }
