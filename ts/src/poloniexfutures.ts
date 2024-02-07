@@ -1720,7 +1720,7 @@ export default class poloniexfutures extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async setMarginMode (marginMode: string, symbol: string, params = {}) {
+    async setMarginMode (marginMode: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#setMarginMode
