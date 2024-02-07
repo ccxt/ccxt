@@ -957,23 +957,15 @@ export default class bitmart extends bitmartRest {
         if (data === undefined) {
             return;
         }
-        if (isSpot) {
-            for (let i = 0; i < data.length; i++) {
-                const ticker = this.parseTicker (data[i]);
-                const symbol = ticker['symbol'];
-                const marketId = this.safeString (ticker['info'], 'symbol');
-                const messageHash = table + ':' + marketId;
-                this.tickers[symbol] = ticker;
-                client.resolve (ticker, messageHash);
-                this.resolveMessageHashesForSymbol (client, symbol, ticker, 'tickers::');
-            }
-        } else {
-            // on each update for contract markets, single ticker is provided
-            const ticker = this.parseWsSwapTicker (data);
-            const symbol = this.safeString (ticker, 'symbol');
+        const channel = 'ticker';
+        const rawTickers = (isSpot) ? data : [ data ]; // for contract markets only single ticker object is provided
+        for (let i = 0; i < rawTickers.length; i++) {
+            const rawTicker = rawTickers[i];
+            const ticker = isSpot ? this.parseTicker (rawTicker) : this.parseWsSwapTicker (rawTicker);
+            const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
-            client.resolve (ticker, 'tickers::swap');
-            this.resolveMessageHashesForSymbol (client, symbol, ticker, 'tickers::');
+            const messageHash = channel + ':' + symbol;
+            client.resolve (ticker, messageHash);
         }
     }
 
