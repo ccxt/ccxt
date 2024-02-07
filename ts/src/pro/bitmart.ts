@@ -107,17 +107,17 @@ export default class bitmart extends bitmartRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    async subscribeMultiple (channel, type, symbols, params = {}) {
-        const url = this.implodeHostname (this.urls['api']['ws'][type]['public']);
-        const channelType = (type === 'spot') ? 'spot' : 'futures';
-        const actionType = (type === 'spot') ? 'op' : 'action';
+    async subscribeMultiple (channelName, marketType, symbols, params = {}) {
+        const url = this.implodeHostname (this.urls['api']['ws'][marketType]['public']);
+        const rawMarketType = (marketType === 'spot') ? 'spot' : 'futures';
+        const actionType = (marketType === 'spot') ? 'op' : 'action';
         const rawSubscriptions = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
-            const message = channelType + '/' + channel + ':' + market['id'];
+            const message = rawMarketType + '/' + channelName + ':' + market['id'];
             rawSubscriptions.push (message);
-            messageHashes.push (channel + ':' + market['symbol']);
+            messageHashes.push (channelName + ':' + market['symbol']);
         }
         const request = {
             'args': rawSubscriptions,
@@ -299,22 +299,28 @@ export default class bitmart extends bitmartRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true);
-        if (symbols.length > 20) {
-            throw new NotSupported (this.id + ' watchTradesForSymbols() accepts a maximum of 20 symbols in one request');
-        }
-        const market = this.market (symbols[0]);
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchTradesForSymbols', market, params);
-        const channel = 'trade';
-        const trades = await this.subscribeMultiple (channel, type, symbols, params);
+        let marketType = undefined;
+        [ symbols, marketType, params ] = await this.helperForWatchMultiple (symbols, since, limit, params);
+        const channelName = 'trade';
+        const trades = await this.subscribeMultiple (channelName, marketType, symbols, params);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    async helperForWatchMultiple (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false, true);
+        if (symbols.length > 20) {
+            throw new NotSupported (this.id + ' watchTradesForSymbols() accepts a maximum of 20 symbols in one request');
+        }
+        const market = this.market (symbols[0]);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchTradesForSymbols', market, params);
+        return [ symbols, marketType, params ];
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
