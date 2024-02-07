@@ -1250,6 +1250,32 @@
                     "BTC/USD:BTC"
                 ],
                 "output": "timestamp=1699441887107&symbol=BTCUSD_PERP&marginType=ISOLATED&recvWindow=10000&signature=23faa49ca6c2c26c2ed637bda09e850587c8cf9dd884d495b44bddf6744dff09"
+            },
+            {
+                "description": "Linear swap portfolio margin set leverage",
+                "method": "setLeverage",
+                "url": "https://papi.binance.com/papi/v1/um/leverage",
+                "input": [
+                  100,
+                  "BTC/USDT:USDT",
+                  {
+                    "portfolioMargin": true
+                  }
+                ],
+                "output": "timestamp=1707286038777&symbol=BTCUSDT&leverage=100&recvWindow=10000&signature=7dc3dd7f2a447bec4ef5ef2eed9629e8228b238e90a380df9a10e0bf21e9b42f"
+            },
+            {
+                "description": "Inverse swap portfolio margin set leverage",
+                "method": "setLeverage",
+                "url": "https://papi.binance.com/papi/v1/cm/leverage",
+                "input": [
+                  100,
+                  "ETH/USD:ETH",
+                  {
+                    "portfolioMargin": true
+                  }
+                ],
+                "output": "timestamp=1707285921923&symbol=ETHUSD_PERP&leverage=100&recvWindow=10000&signature=383f5a990cdfbe2c6f26212483b7967ab613039e11e6ea3be4ef3ab2cf5640c9"
             }
         ],
         "fetchCrossBorrowRate": [
