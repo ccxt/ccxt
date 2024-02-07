@@ -1038,7 +1038,7 @@ export default class krakenfutures extends Exchange {
         return this.parseOrders (data);
     }
 
-    async editOrder (id: string, symbol: string, type:OrderType , side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#editOrder

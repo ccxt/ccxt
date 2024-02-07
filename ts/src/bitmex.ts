@@ -1955,7 +1955,7 @@ export default class bitmex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async editOrder (id: string, symbol: string, type:OrderType , side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let trailingAmount = this.safeString2 (params, 'trailingAmount', 'pegOffsetValue');
