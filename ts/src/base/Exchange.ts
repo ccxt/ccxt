@@ -3612,7 +3612,7 @@ export default class Exchange {
         return chosenNetworkId;
     }
 
-    safeNumber2 (dictionary, key1, key2, d = undefined) {
+    safeNumber2 (dictionary: object, key1: IndexType, key2: IndexType, d = undefined) {
         const value = this.safeString2 (dictionary, key1, key2);
         return this.parseNumber (value, d);
     }
@@ -4187,7 +4187,7 @@ export default class Exchange {
         return rate;
     }
 
-    handleOptionAndParams (params, methodName, optionName, defaultValue = undefined) {
+    handleOptionAndParams (params: object, methodName: string, optionName: string, defaultValue = undefined) {
         // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
         const defaultOptionName = 'default' + this.capitalize (optionName); // we also need to check the 'defaultXyzWhatever'
         // check if params contain the key
@@ -4211,7 +4211,7 @@ export default class Exchange {
         return [ value, params ];
     }
 
-    handleOptionAndParams2 (params, methodName, methodName2, optionName, defaultValue = undefined) {
+    handleOptionAndParams2 (params: object, methodName: string, methodName2: string, optionName: string, defaultValue = undefined) {
         // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
         const defaultOptionName = 'default' + this.capitalize (optionName); // we also need to check the 'defaultXyzWhatever'
         // check if params contain the key
@@ -4235,7 +4235,7 @@ export default class Exchange {
         return [ value, params ];
     }
 
-    handleOption (methodName, optionName, defaultValue = undefined) {
+    handleOption (methodName: string, optionName: string, defaultValue = undefined) {
         // eslint-disable-next-line no-unused-vars
         const [ result, empty ] = this.handleOptionAndParams ({}, methodName, optionName, defaultValue);
         return result;
@@ -4258,7 +4258,7 @@ export default class Exchange {
         return [ type, params ];
     }
 
-    handleSubTypeAndParams (methodName, market = undefined, params = {}, defaultValue = undefined) {
+    handleSubTypeAndParams (methodName: string, market = undefined, params = {}, defaultValue = undefined) {
         let subType = undefined;
         // if set in params, it takes precedence
         const subTypeInParams = this.safeString2 (params, 'subType', 'defaultSubType');
@@ -4284,7 +4284,7 @@ export default class Exchange {
         return [ subType, params ];
     }
 
-    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {
+    handleMarginModeAndParams (methodName: string, params = {}, defaultValue = undefined) {
         /**
          * @ignore
          * @method
@@ -4836,7 +4836,7 @@ export default class Exchange {
         return this.safeString (this.commonCurrencies, currency, currency);
     }
 
-    currency (code) {
+    currency (code: string) {
         if (this.currencies === undefined) {
             throw new ExchangeError (this.id + ' currencies not loaded');
         }
