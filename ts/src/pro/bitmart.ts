@@ -331,7 +331,8 @@ export default class bitmart extends bitmartRest {
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params);
         // for contract's watchTickers we can default to all-symbols
         if (methodName === 'watchTickers' && this.inArray (marketType, [ 'swap', 'future' ]) && symbols === undefined) {
-            symbols = this.filterByArray (this.symbols, 'type', [ 'swap', 'future' ]);
+            const filteredMarkets = this.filterByArray (this.markets, 'type', [ 'swap', 'future' ]);
+            symbols = this.getArrayOfObjectsKey (filteredMarkets, 'symbol');
         } else if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a list of symbols for ' + marketType + ' markets');
         } else if (symbols.length > 20) {
