@@ -1281,7 +1281,7 @@ export default class okcoin extends Exchange {
         return this.safeBalance (result);
     }
 
-    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name okcoin#createMarketBuyOrderWithCost
@@ -2279,7 +2279,7 @@ export default class okcoin extends Exchange {
         return this.indexBy (parsed, 'network');
     }
 
-    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name okcoin#transfer

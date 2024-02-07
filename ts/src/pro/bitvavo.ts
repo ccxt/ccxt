@@ -581,7 +581,7 @@ export default class bitvavo extends bitvavoRest {
         return await this.watchRequest ('privateCreateOrder', request);
     }
 
-    async editOrderWs (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}): Promise<Order> {
+    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name bitvavo#editOrderWs

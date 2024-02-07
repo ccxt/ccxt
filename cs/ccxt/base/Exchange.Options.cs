@@ -436,6 +436,12 @@ public partial class Exchange
         this.httpExceptions = SafeValue(extendedProperties, "httpExceptions") as dict;
         this.exceptions = SafeValue(extendedProperties, "exceptions") as dict;
         this.markets = SafeValue(extendedProperties, "markets") as dict;
+        var propCurrencies = SafeValue(extendedProperties, "currencies") as dict;
+        if (propCurrencies.Keys.Count > 0)
+        {
+            this.currencies = propCurrencies;
+        }
+        // this.currencies = SafeValue(extendedProperties, "currencies", null) as dict;
         this.rateLimit = SafeFloat(extendedProperties, "rateLimit", -1) ?? -1;
         this.status = SafeValue(extendedProperties, "status") as dict;
         this.precisionMode = SafeInteger(extendedProperties, "precisionMode", this.precisionMode);

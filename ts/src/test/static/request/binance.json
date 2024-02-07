@@ -460,6 +460,69 @@
                     "clientOrderId": "myswap"
                   }
                 ]
+            },
+            {
+                "description": "Spot margin portfolio margin cancel order",
+                "method": "cancelOrder",
+                "url": "https://papi.binance.com/papi/v1/margin/order?timestamp=1707259954072&symbol=BTCUSDT&orderId=24711539682&recvWindow=10000&signature=a4d929126b279d07a6bf41075e0ee173da06b56414bd46826e146baeff2b1f95",
+                "input": [
+                  24711539682,
+                  "BTC/USDT",
+                  {
+                    "portfolioMargin": true,
+                    "marginMode": "cross"
+                  }
+                ]
+            },
+            {
+                "description": "Linear swap portfolio margin cancel order",
+                "method": "cancelOrder",
+                "url": "https://papi.binance.com/papi/v1/um/order?timestamp=1707269570829&symbol=BTCUSDT&orderId=259769934117&recvWindow=10000&signature=48600abd8db8aa5c9ab39e3a79879915f5a512d146ef389ae6c6d85ea351adba",
+                "input": [
+                  259769934117,
+                  "BTC/USDT:USDT",
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
+            },
+            {
+                "description": "Inverse swap portfolio margin cancel order",
+                "method": "cancelOrder",
+                "url": "https://papi.binance.com/papi/v1/cm/order?timestamp=1707269743580&symbol=ETHUSD_PERP&orderId=71378300965&recvWindow=10000&signature=69742329ab2104f69c56c0a1f9885512a3c8f54325511130e68ff92326bd61b3",
+                "input": [
+                  71378300965,
+                  "ETH/USD:ETH",
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
+            },
+            {
+                "description": "Linear swap portfolio margin conditional cancel order",
+                "method": "cancelOrder",
+                "url": "https://papi.binance.com/papi/v1/um/conditional/order?timestamp=1707269945072&symbol=BTCUSDT&strategyId=3733207&recvWindow=10000&signature=b5ec95255493898e91209894976c9883d22a3de188b62ea177bf1c23efcd0db5",
+                "input": [
+                  3733207,
+                  "BTC/USDT:USDT",
+                  {
+                    "portfolioMargin": true,
+                    "stop": true
+                  }
+                ]
+            },
+            {
+                "description": "Inverse swap portfolio margin conditional cancel order",
+                "method": "cancelOrder",
+                "url": "https://papi.binance.com/papi/v1/cm/conditional/order?timestamp=1707270382591&symbol=ETHUSD_PERP&strategyId=1423466&recvWindow=10000&signature=4c5d4d9522fef4c07eab511eb42359bbfd9b929b312c247b3d64fdd1b0684a3f",
+                "input": [
+                  1423466,
+                  "ETH/USD:ETH",
+                  {
+                    "portfolioMargin": true,
+                    "stop": true
+                  }
+                ]
             }
         ],
         "cancelOrders": [
@@ -1228,6 +1291,32 @@
                     "BTC/USD:BTC"
                 ],
                 "output": "timestamp=1699441011001&symbol=BTCUSD_PERP&leverage=5&recvWindow=10000&signature=f932a4e8dd21ce1dcea84d8ab2fd9451c31b77c710d1adb9c51f54adc520cd90"
+            },
+            {
+                "description": "Linear swap portfolio margin set leverage",
+                "method": "setLeverage",
+                "url": "https://papi.binance.com/papi/v1/um/leverage",
+                "input": [
+                  100,
+                  "BTC/USDT:USDT",
+                  {
+                    "portfolioMargin": true
+                  }
+                ],
+                "output": "timestamp=1707286038777&symbol=BTCUSDT&leverage=100&recvWindow=10000&signature=7dc3dd7f2a447bec4ef5ef2eed9629e8228b238e90a380df9a10e0bf21e9b42f"
+            },
+            {
+                "description": "Inverse swap portfolio margin set leverage",
+                "method": "setLeverage",
+                "url": "https://papi.binance.com/papi/v1/cm/leverage",
+                "input": [
+                  100,
+                  "ETH/USD:ETH",
+                  {
+                    "portfolioMargin": true
+                  }
+                ],
+                "output": "timestamp=1707285921923&symbol=ETHUSD_PERP&leverage=100&recvWindow=10000&signature=383f5a990cdfbe2c6f26212483b7967ab613039e11e6ea3be4ef3ab2cf5640c9"
             }
         ],
         "setMarginMode": [
@@ -1785,6 +1874,34 @@
                     }
                 ],
                 "output": "timestamp=1699441011001&dualSidePosition=true&recvWindow=10000&signature=f932a4e8dd21ce1dcea84d8ab2fd9451c31b77c710d1adb9c51f54adc520cd90"
+            },
+            {
+                "description": "Swap linear portfolio margin set position mode",
+                "method": "setPositionMode",
+                "url": "https://papi.binance.com/papi/v1/um/positionSide/dual",
+                "input": [
+                  true,
+                  null,
+                  {
+                    "portfolioMargin": true,
+                    "subType": "linear"
+                  }
+                ],
+                "output": "timestamp=1707282494111&dualSidePosition=true&recvWindow=10000&signature=5895dd7f3c7bf056635cc297f9d6c92a4aa907e61d8f6e900b99d4b25407eab5"
+            },
+            {
+                "description": "Swap inverse portfolio margin set position mode",
+                "method": "setPositionMode",
+                "url": "https://papi.binance.com/papi/v1/cm/positionSide/dual",
+                "input": [
+                  true,
+                  null,
+                  {
+                    "portfolioMargin": true,
+                    "subType": "inverse"
+                  }
+                ],
+                "output": "timestamp=1707282567514&dualSidePosition=true&recvWindow=10000&signature=12b2fe3fb47a0ae0ef4ec810b754aba2223e7e20e1145c89ef7aa5c1dc6a4485"
             }
         ],
         "fetchBidsAsks": [
