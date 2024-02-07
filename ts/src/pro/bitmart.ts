@@ -1410,7 +1410,7 @@ export default class bitmart extends bitmartRest {
          * @method
          * @name bitmart#watchOrderBookForSymbols
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see 
+         * @see https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
          * @param {string[]} symbols unified array of symbols
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
