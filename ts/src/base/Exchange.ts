@@ -3530,7 +3530,7 @@ export default class Exchange {
         return networkId;
     }
 
-    networkIdToCode (networkId: string, currencyCode: string = undefined): string {
+    networkIdToCode (networkId, currencyCode = undefined): string {
         /**
          * @ignore
          * @method
