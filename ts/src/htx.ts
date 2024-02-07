@@ -19,7 +19,7 @@ type MappedNetwork = {
 
 /**
  * @class htx
- * @extends Exchange
+ * @augments Exchange
  */
 export default class htx extends Exchange {
     describe () {
