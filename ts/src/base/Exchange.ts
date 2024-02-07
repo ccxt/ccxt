@@ -1998,6 +1998,7 @@ export default class Exchange {
     }
 
     filterByLimit (array: object[], limit: Int = undefined, key: IndexType = 'timestamp', fromStart: boolean = false): any {
+        const parsedArray = this.toArray (array) as any;
         if (this.valueIsDefined (limit)) {
             const arrayLength = parsedArray.length;
             if (arrayLength > 0) {
