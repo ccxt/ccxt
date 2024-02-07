@@ -169,7 +169,7 @@ function main() {
                             foundParametersIssues = true;
                             paramsDifferences++;
                             methodsWithParamsDifferences.add(method);
-                            log.magenta( '[' + exchange + '][Parameter] Difference found', exchange, method, 'param:', param, 'found:', parametersType[param], 'expected:' ,targetParamType);
+                            log.magenta( '[' + exchange + '][Parameter] Difference', method, 'param:', param, 'found:', parametersType[param], 'expected:' ,targetParamType);
                         }
                     }
                 }
