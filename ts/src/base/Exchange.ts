@@ -2282,6 +2282,18 @@ export default class Exchange {
         throw new NotSupported (this.id + ' setLeverage() is not supported yet');
     }
 
+    async fetchLeverage (symbol: string, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' fetchLeverage() is not supported yet');
+    }
+
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' setPositionMode() is not supported yet');
+    }
+
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' setMarginMode() is not supported yet');
+    }
+
     async fetchOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OpenInterest[]> {
         throw new NotSupported (this.id + ' fetchOpenInterestHistory() is not supported yet');
     }
