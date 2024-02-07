@@ -766,7 +766,7 @@ public partial class krakenfutures : Exchange
             id = this.safeString(trade, "executionId");
         }
         object order = this.safeString(trade, "order_id");
-        object symbolId = this.safeString(trade, "symbol");
+        object marketId = this.safeString(trade, "symbol");
         object side = this.safeString(trade, "side");
         object type = null;
         object priorEdit = this.safeValue(trade, "orderPriorEdit");
@@ -774,13 +774,13 @@ public partial class krakenfutures : Exchange
         if (isTrue(!isEqual(priorExecution, null)))
         {
             order = this.safeString(priorExecution, "orderId");
-            symbolId = this.safeString(priorExecution, "symbol");
+            marketId = this.safeString(priorExecution, "symbol");
             side = this.safeString(priorExecution, "side");
             type = this.safeString(priorExecution, "type");
         } else if (isTrue(!isEqual(priorEdit, null)))
         {
             order = this.safeString(priorEdit, "orderId");
-            symbolId = this.safeString(priorEdit, "symbol");
+            marketId = this.safeString(priorEdit, "symbol");
             side = this.safeString(priorEdit, "type");
             type = this.safeString(priorEdit, "type");
         }
@@ -788,20 +788,11 @@ public partial class krakenfutures : Exchange
         {
             type = this.parseOrderType(type);
         }
-        object symbol = null;
-        if (isTrue(!isEqual(symbolId, null)))
-        {
-            market = this.safeValue(this.markets_by_id, symbolId);
-            if (isTrue(isEqual(market, null)))
-            {
-                symbol = symbolId;
-            }
-        }
-        symbol = this.safeString(market, "symbol", symbol);
+        market = this.safeMarket(marketId, market);
         object cost = null;
+        object linear = this.safeBool(market, "linear");
         if (isTrue(isTrue(isTrue((!isEqual(amount, null))) && isTrue((!isEqual(price, null)))) && isTrue((!isEqual(market, null)))))
         {
-            object linear = this.safeValue(market, "linear");
             if (isTrue(linear))
             {
                 cost = Precise.stringMul(amount, price); // in quote
@@ -827,15 +818,15 @@ public partial class krakenfutures : Exchange
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", id },
+            { "symbol", this.safeString(market, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", symbol },
             { "order", order },
             { "type", type },
             { "side", side },
             { "takerOrMaker", takerOrMaker },
             { "price", price },
-            { "amount", amount },
+            { "amount", ((bool) isTrue(linear)) ? amount : null },
             { "cost", cost },
             { "fee", null },
         });

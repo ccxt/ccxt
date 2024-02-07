@@ -43,6 +43,7 @@ class kucoin extends \ccxt\async\kucoin {
                 'watchOrderBook' => array(
                     'snapshotDelay' => 5,
                     'snapshotMaxRetries' => 3,
+                    'method' => '/market/level2', // '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50'
                 ),
             ),
             'streaming' => array(
@@ -462,10 +463,15 @@ class kucoin extends \ccxt\async\kucoin {
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+             * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
+             * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
+             * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             //
@@ -490,10 +496,15 @@ class kucoin extends \ccxt\async\kucoin {
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
+             * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+             * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
+             * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
+             * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbols
              */
             $symbolsLength = count($symbols);
@@ -501,28 +512,36 @@ class kucoin extends \ccxt\async\kucoin {
                 throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
             }
             if ($limit !== null) {
-                if (($limit !== 20) && ($limit !== 100)) {
-                    throw new ExchangeError($this->id . " watchOrderBook 'limit' argument must be null, 20 or 100");
+                if (($limit !== 20) && ($limit !== 100) && ($limit !== 50) && ($limit !== 5)) {
+                    throw new ExchangeError($this->id . " watchOrderBook 'limit' argument must be null, 5, 20, 50 or 100");
                 }
             }
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
             $marketIds = $this->market_ids($symbols);
             $url = Async\await($this->negotiate(false));
-            $topic = '/market/level2:' . implode(',', $marketIds);
+            $method = null;
+            list($method, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'method', '/market/level2');
+            if (($limit === 5) || ($limit === 50)) {
+                $method = '/spotMarket/level2Depth' . (string) $limit;
+            }
+            $topic = $method . ':' . implode(',', $marketIds);
             $messageHashes = array();
             $subscriptionHashes = array();
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $messageHashes[] = 'orderbook:' . $symbol;
                 $marketId = $marketIds[$i];
-                $subscriptionHashes[] = '/market/level2:' . $marketId;
+                $subscriptionHashes[] = $method . ':' . $marketId;
             }
-            $subscription = array(
-                'method' => array($this, 'handle_order_book_subscription'),
-                'symbols' => $symbols,
-                'limit' => $limit,
-            );
+            $subscription = array();
+            if ($method === '/market/level2') { // other streams return the entire $orderbook, so we don't need to fetch the snapshot through REST
+                $subscription = array(
+                    'method' => array($this, 'handle_order_book_subscription'),
+                    'symbols' => $symbols,
+                    'limit' => $limit,
+                );
+            }
             $orderbook = Async\await($this->subscribe_multiple($url, $messageHashes, $topic, $subscriptionHashes, $params, $subscription));
             return $orderbook->limit ();
         }) ();
@@ -548,40 +567,71 @@ class kucoin extends \ccxt\async\kucoin {
         //         }
         //     }
         //
+        //     {
+        //         "topic" => "/spotMarket/level2Depth5:BTC-USDT",
+        //         "type" => "message",
+        //         "data" => array(
+        //             "asks" => array(
+        //                 array(
+        //                     "42815.6",
+        //                     "1.24016245"
+        //                 )
+        //             ),
+        //             "bids" => array(
+        //                 array(
+        //                     "42815.5",
+        //                     "0.08652716"
+        //                 )
+        //             ),
+        //             "timestamp" => 1707204474018
+        //         ),
+        //         "subject" => "level2"
+        //     }
+        //
         $data = $this->safe_value($message, 'data');
-        $marketId = $this->safe_string($data, 'symbol');
+        $subject = $this->safe_string($message, 'subject');
+        $topic = $this->safe_string($message, 'topic');
+        $topicParts = explode(':', $topic);
+        $topicSymbol = $this->safe_string($topicParts, 1);
+        $topicChannel = $this->safe_string($topicParts, 0);
+        $marketId = $this->safe_string($data, 'symbol', $topicSymbol);
         $symbol = $this->safe_symbol($marketId, null, '-');
         $messageHash = 'orderbook:' . $symbol;
-        $storedOrderBook = $this->orderbooks[$symbol];
-        $nonce = $this->safe_integer($storedOrderBook, 'nonce');
-        $deltaEnd = $this->safe_integer($data, 'sequenceEnd');
-        if ($nonce === null) {
-            $cacheLength = count($storedOrderBook->cache);
-            $topic = $this->safe_string($message, 'topic');
-            $topicParts = explode(':', $topic);
-            $topicSymbol = $this->safe_string($topicParts, 1);
-            $topicChannel = $this->safe_string($topicParts, 0);
-            $subscriptions = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
-            $subscription = null;
-            for ($i = 0; $i < count($subscriptions); $i++) {
-                $key = $subscriptions[$i];
-                if ((mb_strpos($key, $topicSymbol) !== false) && (mb_strpos($key, $topicChannel) !== false)) {
-                    $subscription = $client->subscriptions[$key];
-                    break;
+        $orderbook = $this->safe_dict($this->orderbooks, $symbol);
+        if ($subject === 'level2') {
+            if ($orderbook === null) {
+                $orderbook = $this->order_book();
+            } else {
+                $orderbook->reset ();
+            }
+            $orderbook['symbol'] = $symbol;
+        } else {
+            $nonce = $this->safe_integer($orderbook, 'nonce');
+            $deltaEnd = $this->safe_integer_2($data, 'sequenceEnd', 'timestamp');
+            if ($nonce === null) {
+                $cacheLength = count($orderbook->cache);
+                $subscriptions = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+                $subscription = null;
+                for ($i = 0; $i < count($subscriptions); $i++) {
+                    $key = $subscriptions[$i];
+                    if ((mb_strpos($key, $topicSymbol) !== false) && (mb_strpos($key, $topicChannel) !== false)) {
+                        $subscription = $client->subscriptions[$key];
+                        break;
+                    }
                 }
+                $limit = $this->safe_integer($subscription, 'limit');
+                $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 5);
+                if ($cacheLength === $snapshotDelay) {
+                    $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit, array());
+                }
+                $orderbook->cache[] = $data;
+                return;
+            } elseif ($nonce >= $deltaEnd) {
+                return;
             }
-            $limit = $this->safe_integer($subscription, 'limit');
-            $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 5);
-            if ($cacheLength === $snapshotDelay) {
-                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit, array());
-            }
-            $storedOrderBook->cache[] = $data;
-            return;
-        } elseif ($nonce >= $deltaEnd) {
-            return;
         }
-        $this->handle_delta($storedOrderBook, $data);
-        $client->resolve ($storedOrderBook, $messageHash);
+        $this->handle_delta($orderbook, $data);
+        $client->resolve ($orderbook, $messageHash);
     }
 
     public function get_cache_index($orderbook, $cache) {
@@ -603,11 +653,11 @@ class kucoin extends \ccxt\async\kucoin {
     }
 
     public function handle_delta($orderbook, $delta) {
-        $orderbook['nonce'] = $this->safe_integer($delta, 'sequenceEnd');
-        $timestamp = $this->safe_integer($delta, 'time');
+        $timestamp = $this->safe_integer_2($delta, 'time', 'timestamp');
+        $orderbook['nonce'] = $this->safe_integer($delta, 'sequenceEnd', $timestamp);
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
-        $changes = $this->safe_value($delta, 'changes');
+        $changes = $this->safe_value($delta, 'changes', $delta);
         $bids = $this->safe_value($changes, 'bids', array());
         $asks = $this->safe_value($changes, 'asks', array());
         $storedBids = $orderbook['bids'];
@@ -1034,6 +1084,7 @@ class kucoin extends \ccxt\async\kucoin {
         }
         $subject = $this->safe_string($message, 'subject');
         $methods = array(
+            'level2' => array($this, 'handle_order_book'),
             'trade.l2update' => array($this, 'handle_order_book'),
             'trade.ticker' => array($this, 'handle_ticker'),
             'trade.snapshot' => array($this, 'handle_ticker'),

@@ -24,7 +24,7 @@ public partial class Exchange
     }
     public static object postFixIncrement(ref object a)
     {
-        if (a.GetType() == typeof(Int64))
+        if (a is Int64)
         {
             a = (Int64)a + 1;
         }
@@ -32,11 +32,11 @@ public partial class Exchange
         {
             a = (int)a + 1;
         }
-        else if (a.GetType() == typeof(double))
+        else if (a is double)
         {
             a = (double)a + 1;
         }
-        else if (a.GetType() == typeof(string))
+        else if (a is string)
         {
             a = (string)a + 1;
         }
@@ -45,6 +45,29 @@ public partial class Exchange
             return null;
         }
         return a;
+    }
+
+    public static object postFixDecrement(ref object a)
+    {
+
+        if (a is Int64)
+        {
+            a = (Int64)a - 1;
+        }
+        else if (a is int)
+        {
+            a = (int)a - 1;
+        }
+        else if (a is double)
+        {
+            a = (double)a - 1;
+        }
+        else
+        {
+            return null;
+        }
+        return a;
+
     }
 
     public static object prefixUnaryNeg(ref object a)

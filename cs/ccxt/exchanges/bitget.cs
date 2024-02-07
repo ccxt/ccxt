@@ -1350,7 +1350,7 @@ public partial class bitget : Exchange
 
     public virtual object convertSymbolForSandbox(object symbol)
     {
-        if (isTrue(((string)symbol).StartsWith("S")))
+        if (isTrue(((string)symbol).StartsWith(((string)"S"))))
         {
             // handle using the exchange specified sandbox symbols
             return symbol;

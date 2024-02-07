@@ -490,7 +490,7 @@ public partial class hitbtc : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
-            if (isTrue(((string)id).EndsWith("_BQX")))
+            if (isTrue(((string)id).EndsWith(((string)"_BQX"))))
             {
                 continue;
             }

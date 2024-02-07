@@ -7492,7 +7492,7 @@ public partial class htx : Exchange
                 {
                     object options = this.safeValue(this.options, "broker", new Dictionary<string, object>() {});
                     object id = this.safeString(options, "id", "AA03022abc");
-                    if (isTrue(isTrue(isEqual(getIndexOf(path, "cancel"), -1)) && isTrue(((string)path).EndsWith("order"))))
+                    if (isTrue(isTrue(isEqual(getIndexOf(path, "cancel"), -1)) && isTrue(((string)path).EndsWith(((string)"order")))))
                     {
                         // swap order placement
                         object channelCode = this.safeString(parameters, "channel_code");
@@ -7500,7 +7500,7 @@ public partial class htx : Exchange
                         {
                             ((IDictionary<string,object>)parameters)["channel_code"] = id;
                         }
-                    } else if (isTrue(((string)path).EndsWith("orders/place")))
+                    } else if (isTrue(((string)path).EndsWith(((string)"orders/place"))))
                     {
                         // spot order placement
                         object clientOrderId = this.safeString(parameters, "client-order-id");
