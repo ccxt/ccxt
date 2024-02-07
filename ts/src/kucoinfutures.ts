@@ -1632,7 +1632,7 @@ export default class kucoinfutures extends kucoin {
         return await this.fetchOrdersByStatus ('done', symbol, since, limit, params);
     }
 
-    async fetchOrder (id = undefined, symbol: Str = undefined, params = {}) {
+    async fetchOrder (id: string = undefined, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name kucoinfutures#fetchOrder
