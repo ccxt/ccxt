@@ -9070,9 +9070,12 @@ export default class binance extends Exchange {
          * @description set the level of leverage for a market
          * @see https://binance-docs.github.io/apidocs/futures/en/#change-initial-leverage-trade
          * @see https://binance-docs.github.io/apidocs/delivery/en/#change-initial-leverage-trade
+         * @see https://binance-docs.github.io/apidocs/pm/en/#change-um-initial-leverage-trade
+         * @see https://binance-docs.github.io/apidocs/pm/en/#change-cm-initial-leverage-trade
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to set the leverage for a trading pair in a portfolio margin account
          * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
@@ -9089,11 +9092,21 @@ export default class binance extends Exchange {
             'symbol': market['id'],
             'leverage': leverage,
         };
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'setLeverage', 'papi', 'portfolioMargin', false);
         let response = undefined;
         if (market['linear']) {
-            response = await this.fapiPrivatePostLeverage (this.extend (request, params));
+            if (isPortfolioMargin) {
+                response = await this.papiPostUmLeverage (this.extend (request, params));
+            } else {
+                response = await this.fapiPrivatePostLeverage (this.extend (request, params));
+            }
         } else if (market['inverse']) {
-            response = await this.dapiPrivatePostLeverage (this.extend (request, params));
+            if (isPortfolioMargin) {
+                response = await this.papiPostCmLeverage (this.extend (request, params));
+            } else {
+                response = await this.dapiPrivatePostLeverage (this.extend (request, params));
+            }
         } else {
             throw new NotSupported (this.id + ' setLeverage() supports linear and inverse contracts only');
         }
