@@ -219,7 +219,6 @@ export default class coinbase extends Exchange {
                             'brokerage/orders/batch_cancel',
                             'brokerage/orders/edit',
                             'brokerage/orders/edit_preview',
-                            'brokerage/orders/preview',
                             'brokerage/portfolios',
                             'brokerage/portfolios/move_funds',
                             'brokerage/convert/quote',
@@ -2243,12 +2242,11 @@ export default class coinbase extends Exchange {
          * @param {string} [params.stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
          * @param {string} [params.end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
          * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
-         * @param {boolean} [params.preview] default to false, wether to use the test/preview endpoint or not
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = {
+        const request = {
             'client_order_id': this.uuid (),
             'product_id': market['id'],
             'side': side.toUpperCase (),
@@ -2373,15 +2371,7 @@ export default class coinbase extends Exchange {
             }
         }
         params = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time' ]);
-        const preview = this.safeValue2 (params, 'preview', 'test', false);
-        let response = undefined;
-        if (preview) {
-            params = this.omit (params, [ 'preview', 'test' ]);
-            request = this.omit (request, 'client_order_id');
-            response = await this.v3PrivatePostBrokerageOrdersPreview (this.extend (request, params));
-        } else {
-            response = await this.v3PrivatePostBrokerageOrders (this.extend (request, params));
-        }
+        const response = await this.v3PrivatePostBrokerageOrders (this.extend (request, params));
         //
         // successful order
         //
