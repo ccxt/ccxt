@@ -1560,7 +1560,7 @@ export default class cex extends Exchange {
         return this.safeString (this.options['order']['status'], status, status);
     }
 
-    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
         /**
          * @method
          * @name cex#editOrderWs

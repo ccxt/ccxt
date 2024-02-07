@@ -1346,7 +1346,7 @@ export default class bitso extends Exchange {
         };
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name bitso#fetchTransactionFees
