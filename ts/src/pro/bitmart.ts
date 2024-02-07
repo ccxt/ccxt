@@ -279,16 +279,7 @@ export default class bitmart extends bitmartRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets ();
-        symbol = this.symbol (symbol);
-        const market = this.market (symbol);
-        let type = 'spot';
-        [ type, params ] = this.handleMarketTypeAndParams ('watchTrades', market, params);
-        const trades = await this.subscribe ('trade', symbol, type, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -871,16 +862,15 @@ export default class bitmart extends bitmartRest {
         //        ]
         //    }
         //
-        const channel = this.safeString2 (message, 'table', 'group');
-        const isSpot = (channel.indexOf ('spot') >= 0);
         const data = this.safeValue (message, 'data');
         if (data === undefined) {
             return;
         }
         let stored = undefined;
+        let symbol = undefined;
         for (let i = 0; i < data.length; i++) {
             const trade = this.parseWsTrade (data[i]);
-            const symbol = trade['symbol'];
+            symbol = trade['symbol'];
             const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
             stored = this.safeValue (this.trades, symbol);
             if (stored === undefined) {
@@ -889,10 +879,7 @@ export default class bitmart extends bitmartRest {
             }
             stored.append (trade);
         }
-        let messageHash = channel;
-        if (isSpot) {
-            messageHash += ':' + this.safeString (data[0], 'symbol');
-        }
+        const messageHash = 'trade:' + symbol;
         client.resolve (stored, messageHash);
     }
 
