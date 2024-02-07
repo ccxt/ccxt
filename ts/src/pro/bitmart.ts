@@ -57,7 +57,7 @@ export default class bitmart extends bitmartRest {
                 //
                 // orderbook channels can have:
                 //  -  'depth5', 'depth20', 'depth50' // these endpoints emit full Orderbooks once in every 500ms
-                //  -  'depth/increase100' // this endpoint is preferred, because it emits once in 100ms. however, when this value is chosen, it only affects spot-market, but contracts markets automatically `depth50` will be being used  
+                //  -  'depth/increase100' // this endpoint is preferred, because it emits once in 100ms. however, when this value is chosen, it only affects spot-market, but contracts markets automatically `depth50` will be being used
                 'watchOrderBook': {
                     'depth': 'depth/increase100',
                 },
