@@ -3526,7 +3526,7 @@ export default class Exchange {
         return networkId;
     }
 
-    networkIdToCode (networkId, currencyCode = undefined) {
+    networkIdToCode (networkId: string, currencyCode: string = undefined) {
         /**
          * @ignore
          * @method
@@ -3536,11 +3536,11 @@ export default class Exchange {
          * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} unified network code
          */
-        const networkCodesByIds = this.safeValue (this.options, 'networksById', {});
+        const networkCodesByIds = this.safeDict (this.options, 'networksById', {});
         let networkCode = this.safeString (networkCodesByIds, networkId, networkId);
         // replace mainnet network-codes (i.e. ERC20->ETH)
         if (currencyCode !== undefined) {
-            const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
+            const defaultNetworkCodeReplacements = this.safeDict (this.options, 'defaultNetworkCodeReplacements', {});
             if (currencyCode in defaultNetworkCodeReplacements) {
                 const replacementObject = this.safeDict (defaultNetworkCodeReplacements, currencyCode, {});
                 networkCode = this.safeString (replacementObject, networkCode, networkCode);
@@ -3558,15 +3558,15 @@ export default class Exchange {
         return [ networkCodeInParams, params ];
     }
 
-    defaultNetworkCode (currencyCode) {
+    defaultNetworkCode (currencyCode: string) {
         let defaultNetworkCode = undefined;
-        const defaultNetworks = this.safeValue (this.options, 'defaultNetworks', {});
+        const defaultNetworks = this.safeDict (this.options, 'defaultNetworks', {});
         if (currencyCode in defaultNetworks) {
             // if currency had set its network in "defaultNetworks", use it
             defaultNetworkCode = defaultNetworks[currencyCode];
         } else {
             // otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
-            const defaultNetwork = this.safeValue (this.options, 'defaultNetwork');
+            const defaultNetwork = this.safeDict (this.options, 'defaultNetwork');
             if (defaultNetwork !== undefined) {
                 defaultNetworkCode = defaultNetwork;
             }
@@ -4115,7 +4115,7 @@ export default class Exchange {
     }
 
     async fetchFundingFee (code: string, params = {}) {
-        const warnOnFetchFundingFee = this.safeValue (this.options, 'warnOnFetchFundingFee', true);
+        const warnOnFetchFundingFee = this.safeBool (this.options, 'warnOnFetchFundingFee', true);
         if (warnOnFetchFundingFee) {
             throw new NotSupported (this.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
         }
@@ -4123,7 +4123,7 @@ export default class Exchange {
     }
 
     async fetchFundingFees (codes: string[] = undefined, params = {}) {
-        const warnOnFetchFundingFees = this.safeValue (this.options, 'warnOnFetchFundingFees', true);
+        const warnOnFetchFundingFees = this.safeBool (this.options, 'warnOnFetchFundingFees', true);
         if (warnOnFetchFundingFees) {
             throw new NotSupported (this.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
         }
@@ -4180,7 +4180,7 @@ export default class Exchange {
             throw new NotSupported (this.id + ' fetchIsolatedBorrowRate() is not supported yet');
         }
         const borrowRates = await this.fetchIsolatedBorrowRates (params);
-        const rate = this.safeValue (borrowRates, symbol);
+        const rate = this.safeDict (borrowRates, symbol);
         if (rate === undefined) {
             throw new ExchangeError (this.id + ' fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ' + symbol);
         }
@@ -4243,7 +4243,7 @@ export default class Exchange {
 
     handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}): any {
         const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
-        const methodOptions = this.safeValue (this.options, methodName);
+        const methodOptions = this.safeDict (this.options, methodName);
         let methodType = defaultType;
         if (methodOptions !== undefined) {
             if (typeof methodOptions === 'string') {
@@ -4340,11 +4340,11 @@ export default class Exchange {
             const market = this.market (symbol);
             symbol = market['symbol'];
             const tickers = await this.fetchTickers ([ symbol ], params);
-            const ticker = this.safeValue (tickers, symbol);
+            const ticker = this.safeDict (tickers, symbol);
             if (ticker === undefined) {
                 throw new NullResponse (this.id + ' fetchTickers() could not find a ticker for ' + symbol);
             } else {
-                return ticker;
+                return ticker as Ticker;
             }
         } else {
             throw new NotSupported (this.id + ' fetchTicker() is not supported yet');
@@ -4383,7 +4383,7 @@ export default class Exchange {
     }
 
     async fetchUnifiedOrder (order, params = {}): Promise<Order> {
-        return await this.fetchOrder (this.safeValue (order, 'id'), this.safeValue (order, 'symbol'), params);
+        return await this.fetchOrder (this.safeString (order, 'id'), this.safeString (order, 'symbol'), params);
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
@@ -4671,7 +4671,7 @@ export default class Exchange {
     }
 
     async cancelUnifiedOrder (order, params = {}): Promise<{}> {
-        return this.cancelOrder (this.safeValue (order, 'id'), this.safeValue (order, 'symbol'), params);
+        return this.cancelOrder (this.safeString (order, 'id'), this.safeString (order, 'symbol'), params);
     }
 
     async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -5226,7 +5226,7 @@ export default class Exchange {
     }
 
     isTriggerOrder (params) {
-        const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         if (isTrigger) {
             params = this.omit (params, [ 'trigger', 'stop' ]);
         }
@@ -5243,7 +5243,7 @@ export default class Exchange {
          * @returns {boolean} true if a post only order, false otherwise
          */
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
-        let postOnly = this.safeValue2 (params, 'postOnly', 'post_only', false);
+        let postOnly = this.safeBool2 (params, 'postOnly', 'post_only', false);
         // we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
         const ioc = timeInForce === 'IOC';
         const fok = timeInForce === 'FOK';
@@ -5440,7 +5440,7 @@ export default class Exchange {
          * @param {string} account key for account name in this.options['accountsByType']
          * @returns the exchange specific account name or the isolated margin id for transfers
          */
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const lowercaseAccount = account.toLowerCase ();
         if (lowercaseAccount in accountsByType) {
             return accountsByType[lowercaseAccount];
@@ -5928,7 +5928,7 @@ export default class Exchange {
     }
 
     handleUntilOption (key, request, params, multiplier = 1) {
-        const until = this.safeValue2 (params, 'until', 'till');
+        const until = this.safeInteger2 (params, 'until', 'till');
         if (until !== undefined) {
             request[key] = this.parseToInt (until * multiplier);
             params = this.omit (params, [ 'until', 'till' ]);
