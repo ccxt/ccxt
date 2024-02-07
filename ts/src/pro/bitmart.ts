@@ -337,61 +337,25 @@ export default class bitmart extends bitmartRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        await this.loadMarkets ();
-        symbol = this.symbol (symbol);
-        const market = this.market (symbol);
-        let type = 'spot';
-        [ type, params ] = this.handleMarketTypeAndParams ('watchTicker', market, params);
-        if (type === 'swap') {
-            throw new NotSupported (this.id + ' watchTicker() does not support ' + type + ' markets. Use watchTickers() instead');
-        }
-        return await this.subscribe ('ticker', symbol, type, params);
+        const tickers = await this.watchTickers ([ symbol ], params);
+        return tickers[symbol];
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name bitmart#watchTickers
+         * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
          * @see https://developer-pro.bitmart.com/en/futures/#overview
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        await this.loadMarkets ();
-        const market = this.getMarketFromSymbols (symbols);
-        let type = 'spot';
-        [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
-        const url = this.implodeHostname (this.urls['api']['ws'][type]['public']);
-        symbols = this.marketSymbols (symbols);
-        let messageHash = 'tickers::' + type;
-        if (symbols !== undefined) {
-            messageHash += '::' + symbols.join (',');
-        }
-        let request = undefined;
-        let tickers = undefined;
-        const isSpot = (type === 'spot');
-        if (isSpot) {
-            if (symbols === undefined) {
-                throw new ArgumentsRequired (this.id + ' watchTickers() for ' + type + ' market type requires symbols argument to be provided');
-            }
-            const marketIds = this.marketIds (symbols);
-            const finalArray = [];
-            for (let i = 0; i < marketIds.length; i++) {
-                finalArray.push ('spot/ticker:' + marketIds[i]);
-            }
-            request = {
-                'op': 'subscribe',
-                'args': finalArray,
-            };
-            tickers = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
-        } else {
-            request = {
-                'action': 'subscribe',
-                'args': [ 'futures/ticker' ],
-            };
-            tickers = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
-        }
+        let marketType = undefined;
+        [ symbols, marketType, params ] = await this.helperForWatchMultiple ('watchTickers', symbols, undefined, params);
+        const channelName = 'ticker';
+        const tickers = await this.subscribeMultiple (channelName, marketType, symbols, params);
         if (this.newUpdates) {
             return tickers;
         }
