@@ -4735,7 +4735,7 @@ class binance extends binance$1 {
             }
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        if (timeInForceIsRequired) {
+        if (timeInForceIsRequired && (this.safeString(params, 'timeInForce') === undefined)) {
             request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (stopPriceIsRequired) {
@@ -5040,20 +5040,156 @@ class binance extends binance$1 {
         //         "lastTrade": {"id":"69","time":"1676084430567","price":"24.9","qty":"1.00"},
         //         "mmp": false
         //     }
-        //     {
+        //
         // cancelOrders/createOrders
-        //          "code": -4005,
-        //          "msg": "Quantity greater than max quantity."
-        //       },
+        //
+        //     {
+        //         "code": -4005,
+        //         "msg": "Quantity greater than max quantity."
+        //     }
+        //
+        // createOrder, fetchOpenOrders, fetchOrder: portfolio margin linear swap and future
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "side": "BUY",
+        //         "executedQty": "0.000",
+        //         "orderId": 258649539704,
+        //         "goodTillDate": 0,
+        //         "avgPrice": "0",
+        //         "origQty": "0.010",
+        //         "clientOrderId": "x-xcKtGhcu02573c6f15e544e990057b",
+        //         "positionSide": "BOTH",
+        //         "cumQty": "0.000",
+        //         "updateTime": 1707110415436,
+        //         "type": "LIMIT",
+        //         "reduceOnly": false,
+        //         "price": "35000.00",
+        //         "cumQuote": "0.00000",
+        //         "selfTradePreventionMode": "NONE",
+        //         "timeInForce": "GTC",
+        //         "status": "NEW"
+        //     }
+        //
+        // createOrder, fetchOpenOrders, fetchOrder: portfolio margin inverse swap and future
+        //
+        //     {
+        //         "symbol": "ETHUSD_PERP",
+        //         "side": "BUY",
+        //         "cumBase": "0",
+        //         "executedQty": "0",
+        //         "orderId": 71275227732,
+        //         "avgPrice": "0.00",
+        //         "origQty": "1",
+        //         "clientOrderId": "x-xcKtGhcuca5af3acfb5044198c5398",
+        //         "positionSide": "BOTH",
+        //         "cumQty": "0",
+        //         "updateTime": 1707110994334,
+        //         "type": "LIMIT",
+        //         "pair": "ETHUSD",
+        //         "reduceOnly": false,
+        //         "price": "2000",
+        //         "timeInForce": "GTC",
+        //         "status": "NEW"
+        //     }
+        //
+        // createOrder, fetchOpenOrders: portfolio margin linear swap and future conditional
+        //
+        //     {
+        //         "newClientStrategyId": "x-xcKtGhcu27f109953d6e4dc0974006",
+        //         "strategyId": 3645916,
+        //         "strategyStatus": "NEW",
+        //         "strategyType": "STOP",
+        //         "origQty": "0.010",
+        //         "price": "35000.00",
+        //         "reduceOnly": false,
+        //         "side": "BUY",
+        //         "positionSide": "BOTH",
+        //         "stopPrice": "45000.00",
+        //         "symbol": "BTCUSDT",
+        //         "timeInForce": "GTC",
+        //         "bookTime": 1707112625879,
+        //         "updateTime": 1707112625879,
+        //         "workingType": "CONTRACT_PRICE",
+        //         "priceProtect": false,
+        //         "goodTillDate": 0,
+        //         "selfTradePreventionMode": "NONE"
+        //     }
+        //
+        // createOrder, fetchOpenOrders: portfolio margin inverse swap and future conditional
+        //
+        //     {
+        //         "newClientStrategyId": "x-xcKtGhcuc6b86f053bb34933850739",
+        //         "strategyId": 1423462,
+        //         "strategyStatus": "NEW",
+        //         "strategyType": "STOP",
+        //         "origQty": "1",
+        //         "price": "2000",
+        //         "reduceOnly": false,
+        //         "side": "BUY",
+        //         "positionSide": "BOTH",
+        //         "stopPrice": "3000",
+        //         "symbol": "ETHUSD_PERP",
+        //         "timeInForce": "GTC",
+        //         "bookTime": 1707113098840,
+        //         "updateTime": 1707113098840,
+        //         "workingType": "CONTRACT_PRICE",
+        //         "priceProtect": false
+        //     }
+        //
+        // createOrder, cancelAllOrders: portfolio margin spot margin
+        //
+        //     {
+        //         "clientOrderId": "x-R4BD3S82e9ef29d8346440f0b28b86",
+        //         "cummulativeQuoteQty": "0.00000000",
+        //         "executedQty": "0.00000000",
+        //         "fills": [],
+        //         "orderId": 24684460474,
+        //         "origQty": "0.00100000",
+        //         "price": "35000.00000000",
+        //         "selfTradePreventionMode": "EXPIRE_MAKER",
+        //         "side": "BUY",
+        //         "status": "NEW",
+        //         "symbol": "BTCUSDT",
+        //         "timeInForce": "GTC",
+        //         "transactTime": 1707113538870,
+        //         "type": "LIMIT"
+        //     }
+        //
+        // fetchOpenOrders, fetchOrder: portfolio margin spot margin
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "orderId": 24700763749,
+        //         "clientOrderId": "x-R4BD3S826f724c2a4af6425f98c7b6",
+        //         "price": "35000.00000000",
+        //         "origQty": "0.00100000",
+        //         "executedQty": "0.00000000",
+        //         "cummulativeQuoteQty": "0.00000000",
+        //         "status": "NEW",
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT",
+        //         "side": "BUY",
+        //         "stopPrice": "0.00000000",
+        //         "icebergQty": "0.00000000",
+        //         "time": 1707199187679,
+        //         "updateTime": 1707199187679,
+        //         "isWorking": true,
+        //         "accountId": 200180970,
+        //         "selfTradePreventionMode": "EXPIRE_MAKER",
+        //         "preventedMatchId": null,
+        //         "preventedQuantity": null
+        //     }
         //
         const code = this.safeString(order, 'code');
         if (code !== undefined) {
             // cancelOrders/createOrders might have a partial success
             return this.safeOrder({ 'info': order, 'status': 'rejected' }, market);
         }
-        const status = this.parseOrderStatus(this.safeString(order, 'status'));
+        const status = this.parseOrderStatus(this.safeString2(order, 'status', 'strategyStatus'));
         const marketId = this.safeString(order, 'symbol');
-        const marketType = ('closePosition' in order) ? 'contract' : 'spot';
+        const isContract = ('positionSide' in order) || ('cumQuote' in order);
+        const marketType = isContract ? 'contract' : 'spot';
         const symbol = this.safeSymbol(marketId, market, undefined, marketType);
         const filled = this.safeString(order, 'executedQty', '0');
         const timestamp = this.safeIntegerN(order, ['time', 'createTime', 'workingTime', 'transactTime', 'updateTime']); // order of the keys matters here
@@ -5078,11 +5214,9 @@ class binance extends binance$1 {
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
         let cost = this.safeString2(order, 'cummulativeQuoteQty', 'cumQuote');
         cost = this.safeString(order, 'cumBase', cost);
-        const id = this.safeString(order, 'orderId');
         let type = this.safeStringLower(order, 'type');
         const side = this.safeStringLower(order, 'side');
         const fills = this.safeValue(order, 'fills', []);
-        const clientOrderId = this.safeString(order, 'clientOrderId');
         let timeInForce = this.safeString(order, 'timeInForce');
         if (timeInForce === 'GTX') {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
@@ -5105,8 +5239,8 @@ class binance extends binance$1 {
         }
         return this.safeOrder({
             'info': order,
-            'id': id,
-            'clientOrderId': clientOrderId,
+            'id': this.safeString2(order, 'orderId', 'strategyId'),
+            'clientOrderId': this.safeString2(order, 'clientOrderId', 'newClientStrategyId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -5220,50 +5354,105 @@ class binance extends binance$1 {
          * @see https://binance-docs.github.io/apidocs/voptions/en/#new-order-trade
          * @see https://binance-docs.github.io/apidocs/spot/en/#new-order-using-sor-trade
          * @see https://binance-docs.github.io/apidocs/spot/en/#test-new-order-using-sor-trade
+         * @see https://binance-docs.github.io/apidocs/pm/en/#new-um-order-trade
+         * @see https://binance-docs.github.io/apidocs/pm/en/#new-cm-order-trade
+         * @see https://binance-docs.github.io/apidocs/pm/en/#new-margin-order-trade
+         * @see https://binance-docs.github.io/apidocs/pm/en/#new-um-conditional-order-trade
+         * @see https://binance-docs.github.io/apidocs/pm/en/#new-cm-conditional-order-trade
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} amount how much of you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.reduceOnly] for swap and future reduceOnly is a string 'true' or 'false' that cant be sent with close position set to true or in hedge mode. For spot margin and option reduceOnly is a boolean.
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
          * @param {boolean} [params.sor] *spot only* whether to use SOR (Smart Order Routing) or not, default is false
          * @param {boolean} [params.test] *spot only* whether to use the test endpoint or not, default is false
          * @param {float} [params.trailingPercent] the percent to trail away from the current market price
          * @param {float} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
+         * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
+         * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
+         * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to create an order in a portfolio margin account
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
         const marketType = this.safeString(params, 'type', market['type']);
-        const [marginMode, query] = this.handleMarginModeAndParams('createOrder', params);
-        const sor = this.safeValue2(params, 'sor', 'SOR', false);
-        params = this.omit(params, 'sor', 'SOR');
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
+        let isPortfolioMargin = undefined;
+        [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'createOrder', 'papi', 'portfolioMargin', false);
+        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeString(params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
+        const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRate');
+        const isTrailingPercentOrder = trailingPercent !== undefined;
+        const isStopLoss = stopLossPrice !== undefined;
+        const isTakeProfit = takeProfitPrice !== undefined;
+        const isConditional = (triggerPrice !== undefined) || isTrailingPercentOrder || isStopLoss || isTakeProfit;
+        const sor = this.safeBool2(params, 'sor', 'SOR', false);
+        const test = this.safeBool(params, 'test', false);
+        params = this.omit(params, ['sor', 'SOR', 'test']);
+        if (isPortfolioMargin) {
+            params['portfolioMargin'] = isPortfolioMargin;
+        }
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
-        let method = 'privatePostOrder';
-        if (sor) {
-            method = 'privatePostSorOrder';
-        }
-        else if (market['linear']) {
-            method = 'fapiPrivatePostOrder';
-        }
-        else if (market['inverse']) {
-            method = 'dapiPrivatePostOrder';
-        }
-        else if (marketType === 'margin' || marginMode !== undefined) {
-            method = 'sapiPostMarginOrder';
-        }
+        let response = undefined;
         if (market['option']) {
-            method = 'eapiPrivatePostOrder';
+            response = await this.eapiPrivatePostOrder(request);
         }
-        // support for testing orders
-        if (market['spot'] || marketType === 'margin') {
-            const test = this.safeBool(query, 'test', false);
+        else if (sor) {
             if (test) {
-                method += 'Test';
+                response = await this.privatePostSorOrderTest(request);
+            }
+            else {
+                response = await this.privatePostSorOrder(request);
             }
         }
-        const response = await this[method](request);
+        else if (market['linear']) {
+            if (isPortfolioMargin) {
+                if (isConditional) {
+                    response = await this.papiPostUmConditionalOrder(request);
+                }
+                else {
+                    response = await this.papiPostUmOrder(request);
+                }
+            }
+            else {
+                response = await this.fapiPrivatePostOrder(request);
+            }
+        }
+        else if (market['inverse']) {
+            if (isPortfolioMargin) {
+                if (isConditional) {
+                    response = await this.papiPostCmConditionalOrder(request);
+                }
+                else {
+                    response = await this.papiPostCmOrder(request);
+                }
+            }
+            else {
+                response = await this.dapiPrivatePostOrder(request);
+            }
+        }
+        else if (marketType === 'margin' || marginMode !== undefined) {
+            if (isPortfolioMargin) {
+                response = await this.papiPostMarginOrder(request);
+            }
+            else {
+                response = await this.sapiPostMarginOrder(request);
+            }
+        }
+        else {
+            if (test) {
+                response = await this.privatePostOrderTest(request);
+            }
+            else {
+                response = await this.privatePostOrder(request);
+            }
+        }
         return this.parseOrder(response, market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
@@ -5271,16 +5460,13 @@ class binance extends binance$1 {
          * @method
          * @ignore
          * @name binance#createOrderRequest
-         * @description helper function to build request
+         * @description helper function to build the request
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
+         * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the exchange API endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot margin trading
-         * @param {float} [params.trailingPercent] the percent to trail away from the current market price
-         * @param {float} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} request to be sent to the exchange
          */
         const market = this.market(symbol);
@@ -5289,35 +5475,39 @@ class binance extends binance$1 {
         const initialUppercaseType = type.toUpperCase();
         const isMarketOrder = initialUppercaseType === 'MARKET';
         const isLimitOrder = initialUppercaseType === 'LIMIT';
-        const postOnly = this.isPostOnly(isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', params);
-        const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeValue(params, 'stopLossPrice', triggerPrice); // fallback to stopLoss
-        const takeProfitPrice = this.safeValue(params, 'takeProfitPrice');
-        const trailingDelta = this.safeValue(params, 'trailingDelta');
+        const request = {
+            'symbol': market['id'],
+            'side': side.toUpperCase(),
+        };
+        let isPortfolioMargin = undefined;
+        [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'createOrder', 'papi', 'portfolioMargin', false);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
+        if ((marketType === 'margin') || (marginMode !== undefined) || market['option']) {
+            // for swap and future reduceOnly is a string that cant be sent with close position set to true or in hedge mode
+            const reduceOnly = this.safeBool(params, 'reduceOnly', false);
+            params = this.omit(params, 'reduceOnly');
+            if (market['option']) {
+                request['reduceOnly'] = reduceOnly;
+            }
+            else {
+                if (reduceOnly) {
+                    request['sideEffectType'] = 'AUTO_REPAY';
+                }
+            }
+        }
+        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeString(params, 'stopLossPrice', triggerPrice); // fallback to stopLoss
+        const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
+        const trailingDelta = this.safeString(params, 'trailingDelta');
         const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activationPrice', this.numberToString(price));
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRate');
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const isStopLoss = stopLossPrice !== undefined || trailingDelta !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
-        params = this.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent']);
-        const [marginMode, query] = this.handleMarginModeAndParams('createOrder', params);
-        const request = {
-            'symbol': market['id'],
-            'side': side.toUpperCase(),
-        };
-        if (market['spot'] || marketType === 'margin') {
-            // only supported for spot/margin api (all margin markets are spot markets)
-            if (postOnly) {
-                type = 'LIMIT_MAKER';
-            }
-        }
-        if (marketType === 'margin' || marginMode !== undefined) {
-            const reduceOnly = this.safeValue(params, 'reduceOnly');
-            if (reduceOnly) {
-                request['sideEffectType'] = 'AUTO_REPAY';
-                params = this.omit(params, 'reduceOnly');
-            }
-        }
+        const isTriggerOrder = triggerPrice !== undefined;
+        const isConditional = isTriggerOrder || isTrailingPercentOrder || isStopLoss || isTakeProfit;
+        const isPortfolioMarginConditional = (isPortfolioMargin && isConditional);
         let uppercaseType = type.toUpperCase();
         let stopPrice = undefined;
         if (isTrailingPercentOrder) {
@@ -5347,24 +5537,14 @@ class binance extends binance$1 {
                 uppercaseType = market['contract'] ? 'TAKE_PROFIT' : 'TAKE_PROFIT_LIMIT';
             }
         }
-        if (marginMode === 'isolated') {
-            request['isIsolated'] = true;
-        }
-        if (clientOrderId === undefined) {
-            const broker = this.safeValue(this.options, 'broker', {});
-            const defaultId = (market['contract']) ? 'x-xcKtGhcu' : 'x-R4BD3S82';
-            const brokerId = this.safeString(broker, marketType, defaultId);
-            request['newClientOrderId'] = brokerId + this.uuid22();
-        }
-        else {
-            request['newClientOrderId'] = clientOrderId;
-        }
         if ((marketType === 'spot') || (marketType === 'margin')) {
-            request['newOrderRespType'] = this.safeValue(this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+            request['newOrderRespType'] = this.safeString(this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         }
         else {
             // swap, futures and options
-            request['newOrderRespType'] = 'RESULT'; // "ACK", "RESULT", default "ACK"
+            if (!isPortfolioMargin) {
+                request['newOrderRespType'] = 'RESULT'; // "ACK", "RESULT", default "ACK"
+            }
         }
         if (market['option']) {
             if (type === 'market') {
@@ -5372,7 +5552,7 @@ class binance extends binance$1 {
             }
         }
         else {
-            const validOrderTypes = this.safeValue(market['info'], 'orderTypes');
+            const validOrderTypes = this.safeList(market['info'], 'orderTypes');
             if (!this.inArray(uppercaseType, validOrderTypes)) {
                 if (initialUppercaseType !== uppercaseType) {
                     throw new errors.InvalidOrder(this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
@@ -5382,7 +5562,31 @@ class binance extends binance$1 {
                 }
             }
         }
-        request['type'] = uppercaseType;
+        const clientOrderIdRequest = isPortfolioMarginConditional ? 'newClientStrategyId' : 'newClientOrderId';
+        if (clientOrderId === undefined) {
+            const broker = this.safeDict(this.options, 'broker', {});
+            const defaultId = (market['contract']) ? 'x-xcKtGhcu' : 'x-R4BD3S82';
+            const brokerId = this.safeString(broker, marketType, defaultId);
+            request[clientOrderIdRequest] = brokerId + this.uuid22();
+        }
+        else {
+            request[clientOrderIdRequest] = clientOrderId;
+        }
+        let postOnly = undefined;
+        if (!isPortfolioMargin) {
+            postOnly = this.isPostOnly(isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', params);
+            if (market['spot'] || marketType === 'margin') {
+                // only supported for spot/margin api (all margin markets are spot markets)
+                if (postOnly) {
+                    uppercaseType = 'LIMIT_MAKER';
+                }
+                if (marginMode === 'isolated') {
+                    request['isIsolated'] = true;
+                }
+            }
+        }
+        const typeRequest = isPortfolioMarginConditional ? 'strategyType' : 'type';
+        request[typeRequest] = uppercaseType;
         // additional required fields depending on the order type
         let timeInForceIsRequired = false;
         let priceIsRequired = false;
@@ -5410,9 +5614,9 @@ class binance extends binance$1 {
         //
         if (uppercaseType === 'MARKET') {
             if (market['spot']) {
-                const quoteOrderQty = this.safeValue(this.options, 'quoteOrderQty', true);
+                const quoteOrderQty = this.safeBool(this.options, 'quoteOrderQty', true);
                 if (quoteOrderQty) {
-                    const quoteOrderQtyNew = this.safeValue2(query, 'quoteOrderQty', 'cost');
+                    const quoteOrderQtyNew = this.safeString2(params, 'quoteOrderQty', 'cost');
                     const precision = market['precision']['price'];
                     if (quoteOrderQtyNew !== undefined) {
                         request['quoteOrderQty'] = this.decimalToPrecision(quoteOrderQtyNew, number.TRUNCATE, precision, this.precisionMode);
@@ -5463,7 +5667,7 @@ class binance extends binance$1 {
             priceIsRequired = true;
         }
         else if ((uppercaseType === 'STOP_MARKET') || (uppercaseType === 'TAKE_PROFIT_MARKET')) {
-            const closePosition = this.safeValue(query, 'closePosition');
+            const closePosition = this.safeBool(params, 'closePosition');
             if (closePosition === undefined) {
                 quantityIsRequired = true;
             }
@@ -5476,19 +5680,19 @@ class binance extends binance$1 {
             }
         }
         if (quantityIsRequired) {
-            request['quantity'] = this.amountToPrecision(symbol, amount);
+            // portfolio margin has a different amount precision
+            if (isPortfolioMargin) {
+                request['quantity'] = this.parseToNumeric(amount);
+            }
+            else {
+                request['quantity'] = this.amountToPrecision(symbol, amount);
+            }
         }
         if (priceIsRequired) {
             if (price === undefined) {
                 throw new errors.InvalidOrder(this.id + ' createOrder() requires a price argument for a ' + type + ' order');
             }
             request['price'] = this.priceToPrecision(symbol, price);
-        }
-        if (timeInForceIsRequired) {
-            request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-        }
-        if (market['contract'] && postOnly) {
-            request['timeInForce'] = 'GTX';
         }
         if (stopPriceIsRequired) {
             if (market['contract']) {
@@ -5506,11 +5710,17 @@ class binance extends binance$1 {
                 request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
             }
         }
+        if (timeInForceIsRequired && (this.safeString(params, 'timeInForce') === undefined)) {
+            request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+        }
+        if (!isPortfolioMargin && market['contract'] && postOnly) {
+            request['timeInForce'] = 'GTX';
+        }
         // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
         if (this.safeString(params, 'timeInForce') === 'PO') {
-            params = this.omit(params, ['timeInForce']);
+            params = this.omit(params, 'timeInForce');
         }
-        const requestParams = this.omit(params, ['quoteOrderQty', 'cost', 'stopPrice', 'test', 'type', 'newClientOrderId', 'clientOrderId', 'postOnly']);
+        const requestParams = this.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test']);
         return this.extend(request, requestParams);
     }
     async createMarketOrderWithCost(symbol, side, cost, params = {}) {
@@ -5581,9 +5791,14 @@ class binance extends binance$1 {
          * @see https://binance-docs.github.io/apidocs/delivery/en/#query-order-user_data
          * @see https://binance-docs.github.io/apidocs/voptions/en/#query-single-order-trade
          * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-order-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-um-order-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-cm-order-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-margin-account-order-user_data
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch an order in a portfolio margin account
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -5593,11 +5808,14 @@ class binance extends binance$1 {
         const market = this.market(symbol);
         const defaultType = this.safeString2(this.options, 'fetchOrder', 'defaultType', 'spot');
         const type = this.safeString(params, 'type', defaultType);
-        const [marginMode, query] = this.handleMarginModeAndParams('fetchOrder', params);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchOrder', params);
+        let isPortfolioMargin = undefined;
+        [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'fetchOrder', 'papi', 'portfolioMargin', false);
         const request = {
             'symbol': market['id'],
         };
-        const clientOrderId = this.safeValue2(params, 'origClientOrderId', 'clientOrderId');
+        const clientOrderId = this.safeString2(params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
             if (market['option']) {
                 request['clientOrderId'] = clientOrderId;
@@ -5609,25 +5827,40 @@ class binance extends binance$1 {
         else {
             request['orderId'] = id;
         }
-        const requestParams = this.omit(query, ['type', 'clientOrderId', 'origClientOrderId']);
+        params = this.omit(params, ['type', 'clientOrderId', 'origClientOrderId']);
         let response = undefined;
         if (market['option']) {
-            response = await this.eapiPrivateGetOrder(this.extend(request, requestParams));
+            response = await this.eapiPrivateGetOrder(this.extend(request, params));
         }
         else if (market['linear']) {
-            response = await this.fapiPrivateGetOrder(this.extend(request, requestParams));
+            if (isPortfolioMargin) {
+                response = await this.papiGetUmOrder(this.extend(request, params));
+            }
+            else {
+                response = await this.fapiPrivateGetOrder(this.extend(request, params));
+            }
         }
         else if (market['inverse']) {
-            response = await this.dapiPrivateGetOrder(this.extend(request, requestParams));
-        }
-        else if (type === 'margin' || marginMode !== undefined) {
-            if (marginMode === 'isolated') {
-                request['isIsolated'] = true;
+            if (isPortfolioMargin) {
+                response = await this.papiGetCmOrder(this.extend(request, params));
             }
-            response = await this.sapiGetMarginOrder(this.extend(request, requestParams));
+            else {
+                response = await this.dapiPrivateGetOrder(this.extend(request, params));
+            }
+        }
+        else if ((type === 'margin') || (marginMode !== undefined) || isPortfolioMargin) {
+            if (isPortfolioMargin) {
+                response = await this.papiGetMarginOrder(this.extend(request, params));
+            }
+            else {
+                if (marginMode === 'isolated') {
+                    request['isIsolated'] = true;
+                }
+                response = await this.sapiGetMarginOrder(this.extend(request, params));
+            }
         }
         else {
-            response = await this.privateGetOrder(this.extend(request, requestParams));
+            response = await this.privateGetOrder(this.extend(request, params));
         }
         return this.parseOrder(response, market);
     }
@@ -5776,21 +6009,28 @@ class binance extends binance$1 {
         /**
          * @method
          * @name binance#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
          * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
          * @see https://binance-docs.github.io/apidocs/futures/en/#current-all-open-orders-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#current-all-open-orders-user_data
          * @see https://binance-docs.github.io/apidocs/voptions/en/#query-current-open-option-orders-user_data
-         * @description fetch all unfilled currently open orders
          * @see https://binance-docs.github.io/apidocs/spot/en/#current-open-orders-user_data
          * @see https://binance-docs.github.io/apidocs/futures/en/#current-all-open-orders-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#current-all-open-orders-user_data
          * @see https://binance-docs.github.io/apidocs/voptions/en/#query-current-open-option-orders-user_data
          * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-open-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-current-um-open-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-current-cm-open-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-current-um-open-conditional-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-current-cm-open-conditional-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-current-margin-open-order-user_data
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch open orders in the portfolio margin account
+         * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account conditional orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -5798,14 +6038,16 @@ class binance extends binance$1 {
         let type = undefined;
         const request = {};
         let marginMode = undefined;
-        let query = undefined;
-        [marginMode, query] = this.handleMarginModeAndParams('fetchOpenOrders', params);
+        [marginMode, params] = this.handleMarginModeAndParams('fetchOpenOrders', params);
+        let isPortfolioMargin = undefined;
+        [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'fetchOpenOrders', 'papi', 'portfolioMargin', false);
+        const isConditional = this.safeBool2(params, 'stop', 'conditional');
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['symbol'] = market['id'];
             const defaultType = this.safeString2(this.options, 'fetchOpenOrders', 'defaultType', 'spot');
             const marketType = ('type' in market) ? market['type'] : defaultType;
-            type = this.safeString(query, 'type', marketType);
+            type = this.safeString(params, 'type', marketType);
         }
         else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
             const symbols = this.symbols;
@@ -5815,11 +6057,11 @@ class binance extends binance$1 {
         }
         else {
             const defaultType = this.safeString2(this.options, 'fetchOpenOrders', 'defaultType', 'spot');
-            type = this.safeString(query, 'type', defaultType);
+            type = this.safeString(params, 'type', defaultType);
         }
         let subType = undefined;
-        [subType, query] = this.handleSubTypeAndParams('fetchOpenOrders', market, query);
-        const requestParams = this.omit(query, 'type');
+        [subType, params] = this.handleSubTypeAndParams('fetchOpenOrders', market, params);
+        params = this.omit(params, ['type', 'stop', 'conditional']);
         let response = undefined;
         if (type === 'option') {
             if (since !== undefined) {
@@ -5828,25 +6070,50 @@ class binance extends binance$1 {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            response = await this.eapiPrivateGetOpenOrders(this.extend(request, requestParams));
+            response = await this.eapiPrivateGetOpenOrders(this.extend(request, params));
         }
         else if (this.isLinear(type, subType)) {
-            response = await this.fapiPrivateGetOpenOrders(this.extend(request, requestParams));
-        }
-        else if (this.isInverse(type, subType)) {
-            response = await this.dapiPrivateGetOpenOrders(this.extend(request, requestParams));
-        }
-        else if (type === 'margin' || marginMode !== undefined) {
-            if (marginMode === 'isolated') {
-                request['isIsolated'] = true;
-                if (symbol === undefined) {
-                    throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument for isolated markets');
+            if (isPortfolioMargin) {
+                if (isConditional) {
+                    response = await this.papiGetUmConditionalOpenOrders(this.extend(request, params));
+                }
+                else {
+                    response = await this.papiGetUmOpenOrders(this.extend(request, params));
                 }
             }
-            response = await this.sapiGetMarginOpenOrders(this.extend(request, requestParams));
+            else {
+                response = await this.fapiPrivateGetOpenOrders(this.extend(request, params));
+            }
+        }
+        else if (this.isInverse(type, subType)) {
+            if (isPortfolioMargin) {
+                if (isConditional) {
+                    response = await this.papiGetCmConditionalOpenOrders(this.extend(request, params));
+                }
+                else {
+                    response = await this.papiGetCmOpenOrders(this.extend(request, params));
+                }
+            }
+            else {
+                response = await this.dapiPrivateGetOpenOrders(this.extend(request, params));
+            }
+        }
+        else if (type === 'margin' || marginMode !== undefined) {
+            if (isPortfolioMargin) {
+                response = await this.papiGetMarginOpenOrders(this.extend(request, params));
+            }
+            else {
+                if (marginMode === 'isolated') {
+                    request['isIsolated'] = true;
+                    if (symbol === undefined) {
+                        throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument for isolated markets');
+                    }
+                }
+                response = await this.sapiGetMarginOpenOrders(this.extend(request, params));
+            }
         }
         else {
-            response = await this.privateGetOpenOrders(this.extend(request, requestParams));
+            response = await this.privateGetOpenOrders(this.extend(request, params));
         }
         return this.parseOrders(response, market, since, limit);
     }
@@ -5964,46 +6231,82 @@ class binance extends binance$1 {
         /**
          * @method
          * @name binance#cancelAllOrders
+         * @description cancel all open orders in a market
          * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-all-open-orders-on-a-symbol-trade
          * @see https://binance-docs.github.io/apidocs/futures/en/#cancel-all-open-orders-trade
          * @see https://binance-docs.github.io/apidocs/delivery/en/#cancel-all-open-orders-trade
          * @see https://binance-docs.github.io/apidocs/voptions/en/#cancel-all-option-orders-on-specific-symbol-trade
          * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-cancel-order-trade
-         * @description cancel all open orders in a market
+         * @see https://binance-docs.github.io/apidocs/pm/en/#cancel-all-um-open-orders-trade
+         * @see https://binance-docs.github.io/apidocs/pm/en/#cancel-all-cm-open-orders-trade
+         * @see https://binance-docs.github.io/apidocs/pm/en/#cancel-all-um-open-conditional-orders-trade
+         * @see https://binance-docs.github.io/apidocs/pm/en/#cancel-all-cm-open-conditional-orders-trade
+         * @see https://binance-docs.github.io/apidocs/pm/en/#cancel-margin-account-all-open-orders-on-a-symbol-trade
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to cancel orders in a portfolio margin account
+         * @param {boolean} [params.stop] set to true if you would like to cancel portfolio margin account conditional orders
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
+            throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument');
         }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
+        let isPortfolioMargin = undefined;
+        [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'cancelAllOrders', 'papi', 'portfolioMargin', false);
+        const isConditional = this.safeBool2(params, 'stop', 'conditional');
         const type = this.safeString(params, 'type', market['type']);
-        params = this.omit(params, ['type']);
-        const [marginMode, query] = this.handleMarginModeAndParams('cancelAllOrders', params);
+        params = this.omit(params, ['type', 'stop', 'conditional']);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('cancelAllOrders', params);
         let response = undefined;
         if (market['option']) {
-            response = await this.eapiPrivateDeleteAllOpenOrders(this.extend(request, query));
+            response = await this.eapiPrivateDeleteAllOpenOrders(this.extend(request, params));
         }
         else if (market['linear']) {
-            response = await this.fapiPrivateDeleteAllOpenOrders(this.extend(request, query));
+            if (isPortfolioMargin) {
+                if (isConditional) {
+                    response = await this.papiDeleteUmConditionalAllOpenOrders(this.extend(request, params));
+                }
+                else {
+                    response = await this.papiDeleteUmAllOpenOrders(this.extend(request, params));
+                }
+            }
+            else {
+                response = await this.fapiPrivateDeleteAllOpenOrders(this.extend(request, params));
+            }
         }
         else if (market['inverse']) {
-            response = await this.dapiPrivateDeleteAllOpenOrders(this.extend(request, query));
+            if (isPortfolioMargin) {
+                if (isConditional) {
+                    response = await this.papiDeleteCmConditionalAllOpenOrders(this.extend(request, params));
+                }
+                else {
+                    response = await this.papiDeleteCmAllOpenOrders(this.extend(request, params));
+                }
+            }
+            else {
+                response = await this.dapiPrivateDeleteAllOpenOrders(this.extend(request, params));
+            }
         }
         else if ((type === 'margin') || (marginMode !== undefined)) {
-            if (marginMode === 'isolated') {
-                request['isIsolated'] = true;
+            if (isPortfolioMargin) {
+                response = await this.papiDeleteMarginAllOpenOrders(this.extend(request, params));
             }
-            response = await this.sapiDeleteMarginOpenOrders(this.extend(request, query));
+            else {
+                if (marginMode === 'isolated') {
+                    request['isIsolated'] = true;
+                }
+                response = await this.sapiDeleteMarginOpenOrders(this.extend(request, params));
+            }
         }
         else {
-            response = await this.privateDeleteOpenOrders(this.extend(request, query));
+            response = await this.privateDeleteOpenOrders(this.extend(request, params));
         }
         if (Array.isArray(response)) {
             return this.parseOrders(response, market);

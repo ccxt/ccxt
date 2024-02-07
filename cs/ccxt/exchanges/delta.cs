@@ -245,7 +245,7 @@ public partial class delta : Exchange
 
     public override object safeMarket(object marketId, object market = null, object delimiter = null, object marketType = null)
     {
-        object isOption = isTrue((!isEqual(marketId, null))) && isTrue((isTrue(isTrue(isTrue((((string)marketId).EndsWith("-C"))) || isTrue((((string)marketId).EndsWith("-P")))) || isTrue((((string)marketId).StartsWith("C-")))) || isTrue((((string)marketId).StartsWith("P-")))));
+        object isOption = isTrue((!isEqual(marketId, null))) && isTrue((isTrue(isTrue(isTrue((((string)marketId).EndsWith(((string)"-C")))) || isTrue((((string)marketId).EndsWith(((string)"-P"))))) || isTrue((((string)marketId).StartsWith(((string)"C-"))))) || isTrue((((string)marketId).StartsWith(((string)"P-"))))));
         if (isTrue(isTrue(isOption) && !isTrue((inOp(this.markets_by_id, marketId)))))
         {
             // handle expired option contracts

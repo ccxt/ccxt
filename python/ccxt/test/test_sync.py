@@ -815,10 +815,10 @@ class testMainClass(baseMainTestClass):
         #  --- Init of static tests functions------------------------------------------
         #  -----------------------------------------------------------------------------
         calculated_string = json_stringify(calculated_output)
-        output_string = json_stringify(stored_output)
-        error_message = message + ' expected ' + output_string + ' received: ' + calculated_string
+        stored_string = json_stringify(stored_output)
+        error_message = message + ' computed ' + stored_string + ' stored: ' + calculated_string
         if key is not None:
-            error_message = ' | ' + key + ' | ' + 'computed value: ' + output_string + ' stored value: ' + calculated_string
+            error_message = ' | ' + key + ' | ' + 'computed value: ' + stored_string + ' stored value: ' + calculated_string
         assert cond, error_message
 
     def load_markets_from_file(self, id):
@@ -1140,7 +1140,9 @@ class testMainClass(baseMainTestClass):
         close(exchange)
         return True   # in c# methods that will be used with promiseAll need to return something
 
-    def get_number_of_tests_from_exchange(self, exchange, exchange_data):
+    def get_number_of_tests_from_exchange(self, exchange, exchange_data, test_name=None):
+        if test_name is not None:
+            return 1
         sum = 0
         methods = exchange_data['methods']
         methods_names = list(methods.keys())
@@ -1170,7 +1172,7 @@ class testMainClass(baseMainTestClass):
         for i in range(0, len(exchanges)):
             exchange_name = exchanges[i]
             exchange_data = static_data[exchange_name]
-            number_of_tests = self.get_number_of_tests_from_exchange(exchange, exchange_data)
+            number_of_tests = self.get_number_of_tests_from_exchange(exchange, exchange_data, test_name)
             sum = exchange.sum(sum, number_of_tests)
             if type == 'request':
                 promises.append(self.test_exchange_request_statically(exchange_name, exchange_data, test_name))
@@ -1193,7 +1195,7 @@ class testMainClass(baseMainTestClass):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1438,10 +1440,22 @@ class testMainClass(baseMainTestClass):
         assert client_order_id.startswith(str(id)), 'clOrdID does not start with id'
         close(exchange)
 
+    def test_blofin(self):
+        exchange = self.init_offline_exchange('blofin')
+        id = 'ec6dd3a7dd982d0b'
+        request = None
+        try:
+            exchange.create_order('LTC/USDT:USDT', 'market', 'buy', 1)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        broker_id = request['brokerId']
+        assert broker_id.startswith(str(id)), 'brokerId does not start with id'
+        close(exchange)
+
 # ***** AUTO-TRANSPILER-END *****
 # *******************************
 
 
 if __name__ == '__main__':
-    symbol = argv.symbol if argv.symbol and '/' in argv.symbol else None
+    symbol = argv.symbol if argv.symbol else None
     (testMainClass().init(argv.exchange, symbol))

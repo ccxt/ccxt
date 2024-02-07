@@ -3160,6 +3160,7 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param str [params.price]: *swap only* "mark"(to fetch mark price candles) or "index"(to fetch index price candles)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
@@ -3185,52 +3186,42 @@ class bitget(Exchange, ImplicitAPI):
         params = self.omit(params, ['until', 'till'])
         if limit is not None:
             request['limit'] = limit
-        options = self.safe_value(self.options, 'fetchOHLCV', {})
-        spotOptions = self.safe_value(options, 'spot', {})
-        defaultSpotMethod = self.safe_string(spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles')
-        method = self.safe_string(params, 'method', defaultSpotMethod)
-        params = self.omit(params, 'method')
-        if method != 'publicSpotGetV2SpotMarketHistoryCandles':
-            if since is not None:
-                request['startTime'] = since
-            if until is not None:
-                request['endTime'] = until
-        response = None
-        if market['spot']:
-            if method == 'publicSpotGetV2SpotMarketCandles':
-                response = self.publicSpotGetV2SpotMarketCandles(self.extend(request, params))
-            elif method == 'publicSpotGetV2SpotMarketHistoryCandles':
-                if since is not None:
-                    if limit is None:
-                        limit = 100  # exchange default
-                    duration = self.parse_timeframe(timeframe) * 1000
-                    request['endTime'] = self.sum(since, duration * limit)
-                elif until is not None:
-                    request['endTime'] = until
-                else:
-                    request['endTime'] = self.milliseconds()
-                response = self.publicSpotGetV2SpotMarketHistoryCandles(self.extend(request, params))
+        if since is not None:
+            request['startTime'] = since
+        if since is not None:
+            if limit is None:
+                limit = 100  # exchange default
+            duration = self.parse_timeframe(timeframe) * 1000
+            request['endTime'] = self.sum(since, duration * (limit + 1)) - 1  # limit + 1)) - 1 is needed for when since is not the exact timestamp of a candle
+        elif until is not None:
+            request['endTime'] = until
         else:
-            swapOptions = self.safe_value(options, 'swap', {})
-            defaultSwapMethod = self.safe_string(swapOptions, 'method', 'publicMixGetV2MixMarketCandles')
-            swapMethod = self.safe_string(params, 'method', defaultSwapMethod)
+            request['endTime'] = self.milliseconds()
+        response = None
+        thirtyOneDaysAgo = self.milliseconds() - 2678400000
+        if market['spot']:
+            if (since is not None) and (since < thirtyOneDaysAgo):
+                response = self.publicSpotGetV2SpotMarketHistoryCandles(self.extend(request, params))
+            else:
+                response = self.publicSpotGetV2SpotMarketCandles(self.extend(request, params))
+        else:
             priceType = self.safe_string(params, 'price')
-            params = self.omit(params, ['method', 'price'])
+            params = self.omit(params, ['price'])
             productType = None
             productType, params = self.handle_product_type_and_params(market, params)
             request['productType'] = productType
-            if (priceType == 'mark') or (swapMethod == 'publicMixGetV2MixMarketHistoryMarkCandles'):
+            if priceType == 'mark':
                 response = self.publicMixGetV2MixMarketHistoryMarkCandles(self.extend(request, params))
-            elif (priceType == 'index') or (swapMethod == 'publicMixGetV2MixMarketHistoryIndexCandles'):
+            elif priceType == 'index':
                 response = self.publicMixGetV2MixMarketHistoryIndexCandles(self.extend(request, params))
-            elif swapMethod == 'publicMixGetV2MixMarketCandles':
-                response = self.publicMixGetV2MixMarketCandles(self.extend(request, params))
-            elif swapMethod == 'publicMixGetV2MixMarketHistoryCandles':
+            elif (since is not None) and (since < thirtyOneDaysAgo):
                 response = self.publicMixGetV2MixMarketHistoryCandles(self.extend(request, params))
+            else:
+                response = self.publicMixGetV2MixMarketCandles(self.extend(request, params))
         if response == '':
             return []  # happens when a new token is listed
         #  [["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"]]
-        data = self.safe_value(response, 'data', response)
+        data = self.safe_list(response, 'data', response)
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def fetch_balance(self, params={}) -> Balances:

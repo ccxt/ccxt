@@ -784,32 +784,27 @@ class krakenfutures(Exchange, ImplicitAPI):
         if id is None:
             id = self.safe_string(trade, 'executionId')
         order = self.safe_string(trade, 'order_id')
-        symbolId = self.safe_string(trade, 'symbol')
+        marketId = self.safe_string(trade, 'symbol')
         side = self.safe_string(trade, 'side')
         type = None
         priorEdit = self.safe_value(trade, 'orderPriorEdit')
         priorExecution = self.safe_value(trade, 'orderPriorExecution')
         if priorExecution is not None:
             order = self.safe_string(priorExecution, 'orderId')
-            symbolId = self.safe_string(priorExecution, 'symbol')
+            marketId = self.safe_string(priorExecution, 'symbol')
             side = self.safe_string(priorExecution, 'side')
             type = self.safe_string(priorExecution, 'type')
         elif priorEdit is not None:
             order = self.safe_string(priorEdit, 'orderId')
-            symbolId = self.safe_string(priorEdit, 'symbol')
+            marketId = self.safe_string(priorEdit, 'symbol')
             side = self.safe_string(priorEdit, 'type')
             type = self.safe_string(priorEdit, 'type')
         if type is not None:
             type = self.parse_order_type(type)
-        symbol = None
-        if symbolId is not None:
-            market = self.safe_value(self.markets_by_id, symbolId)
-            if market is None:
-                symbol = symbolId
-        symbol = self.safe_string(market, 'symbol', symbol)
+        market = self.safe_market(marketId, market)
         cost = None
+        linear = self.safe_bool(market, 'linear')
         if (amount is not None) and (price is not None) and (market is not None):
-            linear = self.safe_value(market, 'linear')
             if linear:
                 cost = Precise.string_mul(amount, price)  # in quote
             else:
@@ -826,15 +821,15 @@ class krakenfutures(Exchange, ImplicitAPI):
         return self.safe_trade({
             'info': trade,
             'id': id,
+            'symbol': self.safe_string(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
             'order': order,
             'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
-            'amount': amount,
+            'amount': amount if linear else None,
             'cost': cost,
             'fee': None,
         })

@@ -803,36 +803,29 @@ export default class krakenfutures extends Exchange {
             id = this.safeString (trade, 'executionId');
         }
         let order = this.safeString (trade, 'order_id');
-        let symbolId = this.safeString (trade, 'symbol');
+        let marketId = this.safeString (trade, 'symbol');
         let side = this.safeString (trade, 'side');
         let type = undefined;
         const priorEdit = this.safeValue (trade, 'orderPriorEdit');
         const priorExecution = this.safeValue (trade, 'orderPriorExecution');
         if (priorExecution !== undefined) {
             order = this.safeString (priorExecution, 'orderId');
-            symbolId = this.safeString (priorExecution, 'symbol');
+            marketId = this.safeString (priorExecution, 'symbol');
             side = this.safeString (priorExecution, 'side');
             type = this.safeString (priorExecution, 'type');
         } else if (priorEdit !== undefined) {
             order = this.safeString (priorEdit, 'orderId');
-            symbolId = this.safeString (priorEdit, 'symbol');
+            marketId = this.safeString (priorEdit, 'symbol');
             side = this.safeString (priorEdit, 'type');
             type = this.safeString (priorEdit, 'type');
         }
         if (type !== undefined) {
             type = this.parseOrderType (type);
         }
-        let symbol = undefined;
-        if (symbolId !== undefined) {
-            market = this.safeValue (this.markets_by_id, symbolId);
-            if (market === undefined) {
-                symbol = symbolId;
-            }
-        }
-        symbol = this.safeString (market, 'symbol', symbol);
+        market = this.safeMarket (marketId, market);
         let cost = undefined;
+        const linear = this.safeBool (market, 'linear');
         if ((amount !== undefined) && (price !== undefined) && (market !== undefined)) {
-            const linear = this.safeValue (market, 'linear');
             if (linear) {
                 cost = Precise.stringMul (amount, price); // in quote
             } else {
@@ -853,15 +846,15 @@ export default class krakenfutures extends Exchange {
         return this.safeTrade ({
             'info': trade,
             'id': id,
+            'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
             'order': order,
             'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
-            'amount': amount,
+            'amount': linear ? amount : undefined,
             'cost': cost,
             'fee': undefined,
         });

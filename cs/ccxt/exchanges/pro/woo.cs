@@ -949,7 +949,7 @@ public partial class woo : ccxt.woo
         }
     }
 
-    public virtual object ping(WebSocketClient client)
+    public override object ping(WebSocketClient client)
     {
         return new Dictionary<string, object>() {
             { "event", "ping" },

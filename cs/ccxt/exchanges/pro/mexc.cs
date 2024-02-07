@@ -510,7 +510,7 @@ public partial class mexc : ccxt.mexc
         try
         {
             this.handleDelta(storedOrderBook, data);
-            object timestamp = this.safeInteger(message, "t");
+            object timestamp = this.safeInteger2(message, "t", "ts");
             ((IDictionary<string,object>)storedOrderBook)["timestamp"] = timestamp;
             ((IDictionary<string,object>)storedOrderBook)["datetime"] = this.iso8601(timestamp);
         } catch(Exception e)
@@ -1289,7 +1289,7 @@ public partial class mexc : ccxt.mexc
         }
     }
 
-    public virtual object ping(WebSocketClient client)
+    public override object ping(WebSocketClient client)
     {
         return new Dictionary<string, object>() {
             { "method", "ping" },

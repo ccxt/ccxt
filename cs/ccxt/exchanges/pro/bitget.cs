@@ -1886,7 +1886,7 @@ public partial class bitget : ccxt.bitget
         }
     }
 
-    public virtual object ping(WebSocketClient client)
+    public override object ping(WebSocketClient client)
     {
         return "ping";
     }
