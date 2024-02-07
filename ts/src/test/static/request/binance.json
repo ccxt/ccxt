@@ -1291,28 +1291,6 @@
                     "BTC/USD:BTC"
                 ],
                 "output": "timestamp=1699441011001&symbol=BTCUSD_PERP&leverage=5&recvWindow=10000&signature=f932a4e8dd21ce1dcea84d8ab2fd9451c31b77c710d1adb9c51f54adc520cd90"
-            }
-        ],
-        "setMarginMode": [
-            {
-                "description": "Set margin mode to cross",
-                "method": "setMarginMode",
-                "url": "https://testnet.binancefuture.com/fapi/v1/marginType",
-                "input": [
-                    "CROSS",
-                    "BTC/USDT:USDT"
-                ],
-                "output": "timestamp=1699441787982&symbol=BTCUSDT&marginType=CROSSED&recvWindow=10000&signature=16f612e91d2ff4494239137194470ea53d7a20eff2d1b02c0783327bd40da955"
-            },
-            {
-                "description": "Set margin mode to isolated with inverse market",
-                "method": "setMarginMode",
-                "url": "https://dapi.binance.com/dapi/v1/marginType",
-                "input": [
-                    "isolated",
-                    "BTC/USD:BTC"
-                ],
-                "output": "timestamp=1699441887107&symbol=BTCUSD_PERP&marginType=ISOLATED&recvWindow=10000&signature=23faa49ca6c2c26c2ed637bda09e850587c8cf9dd884d495b44bddf6744dff09"
             },
             {
                 "description": "Linear swap portfolio margin set leverage",
@@ -1339,6 +1317,28 @@
                   }
                 ],
                 "output": "timestamp=1707285921923&symbol=ETHUSD_PERP&leverage=100&recvWindow=10000&signature=383f5a990cdfbe2c6f26212483b7967ab613039e11e6ea3be4ef3ab2cf5640c9"
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "Set margin mode to cross",
+                "method": "setMarginMode",
+                "url": "https://testnet.binancefuture.com/fapi/v1/marginType",
+                "input": [
+                    "CROSS",
+                    "BTC/USDT:USDT"
+                ],
+                "output": "timestamp=1699441787982&symbol=BTCUSDT&marginType=CROSSED&recvWindow=10000&signature=16f612e91d2ff4494239137194470ea53d7a20eff2d1b02c0783327bd40da955"
+            },
+            {
+                "description": "Set margin mode to isolated with inverse market",
+                "method": "setMarginMode",
+                "url": "https://dapi.binance.com/dapi/v1/marginType",
+                "input": [
+                    "isolated",
+                    "BTC/USD:BTC"
+                ],
+                "output": "timestamp=1699441887107&symbol=BTCUSD_PERP&marginType=ISOLATED&recvWindow=10000&signature=23faa49ca6c2c26c2ed637bda09e850587c8cf9dd884d495b44bddf6744dff09"
             }
         ],
         "fetchCrossBorrowRate": [
