@@ -4841,7 +4841,7 @@ class binance(Exchange, ImplicitAPI):
         #         "msg": "Quantity greater than max quantity."
         #     }
         #
-        # createOrder, fetchOpenOrders: portfolio margin linear swap and future
+        # createOrder, fetchOpenOrders, fetchOrder: portfolio margin linear swap and future
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -4864,7 +4864,7 @@ class binance(Exchange, ImplicitAPI):
         #         "status": "NEW"
         #     }
         #
-        # createOrder, fetchOpenOrders: portfolio margin inverse swap and future
+        # createOrder, fetchOpenOrders, fetchOrder: portfolio margin inverse swap and future
         #
         #     {
         #         "symbol": "ETHUSD_PERP",
@@ -4949,7 +4949,7 @@ class binance(Exchange, ImplicitAPI):
         #         "type": "LIMIT"
         #     }
         #
-        # fetchOpenOrders: portfolio margin spot margin
+        # fetchOpenOrders, fetchOrder: portfolio margin spot margin
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -5474,9 +5474,14 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/delivery/en/#query-order-user_data
         :see: https://binance-docs.github.io/apidocs/voptions/en/#query-single-order-trade
         :see: https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-order-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-um-order-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-cm-order-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-margin-account-order-user_data
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
+        :param boolean [params.portfolioMargin]: set to True if you would like to fetch an order in a portfolio margin account
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -5485,11 +5490,14 @@ class binance(Exchange, ImplicitAPI):
         market = self.market(symbol)
         defaultType = self.safe_string_2(self.options, 'fetchOrder', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
-        marginMode, query = self.handle_margin_mode_and_params('fetchOrder', params)
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchOrder', params)
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchOrder', 'papi', 'portfolioMargin', False)
         request = {
             'symbol': market['id'],
         }
-        clientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
+        clientOrderId = self.safe_string_2(params, 'origClientOrderId', 'clientOrderId')
         if clientOrderId is not None:
             if market['option']:
                 request['clientOrderId'] = clientOrderId
@@ -5497,20 +5505,29 @@ class binance(Exchange, ImplicitAPI):
                 request['origClientOrderId'] = clientOrderId
         else:
             request['orderId'] = id
-        requestParams = self.omit(query, ['type', 'clientOrderId', 'origClientOrderId'])
+        params = self.omit(params, ['type', 'clientOrderId', 'origClientOrderId'])
         response = None
         if market['option']:
-            response = await self.eapiPrivateGetOrder(self.extend(request, requestParams))
+            response = await self.eapiPrivateGetOrder(self.extend(request, params))
         elif market['linear']:
-            response = await self.fapiPrivateGetOrder(self.extend(request, requestParams))
+            if isPortfolioMargin:
+                response = await self.papiGetUmOrder(self.extend(request, params))
+            else:
+                response = await self.fapiPrivateGetOrder(self.extend(request, params))
         elif market['inverse']:
-            response = await self.dapiPrivateGetOrder(self.extend(request, requestParams))
-        elif type == 'margin' or marginMode is not None:
-            if marginMode == 'isolated':
-                request['isIsolated'] = True
-            response = await self.sapiGetMarginOrder(self.extend(request, requestParams))
+            if isPortfolioMargin:
+                response = await self.papiGetCmOrder(self.extend(request, params))
+            else:
+                response = await self.dapiPrivateGetOrder(self.extend(request, params))
+        elif (type == 'margin') or (marginMode is not None) or isPortfolioMargin:
+            if isPortfolioMargin:
+                response = await self.papiGetMarginOrder(self.extend(request, params))
+            else:
+                if marginMode == 'isolated':
+                    request['isIsolated'] = True
+                response = await self.sapiGetMarginOrder(self.extend(request, params))
         else:
-            response = await self.privateGetOrder(self.extend(request, requestParams))
+            response = await self.privateGetOrder(self.extend(request, params))
         return self.parse_order(response, market)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:

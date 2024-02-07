@@ -5223,7 +5223,7 @@ public partial class binance : Exchange
         //         "msg": "Quantity greater than max quantity."
         //     }
         //
-        // createOrder, fetchOpenOrders: portfolio margin linear swap and future
+        // createOrder, fetchOpenOrders, fetchOrder: portfolio margin linear swap and future
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -5246,7 +5246,7 @@ public partial class binance : Exchange
         //         "status": "NEW"
         //     }
         //
-        // createOrder, fetchOpenOrders: portfolio margin inverse swap and future
+        // createOrder, fetchOpenOrders, fetchOrder: portfolio margin inverse swap and future
         //
         //     {
         //         "symbol": "ETHUSD_PERP",
@@ -5331,7 +5331,7 @@ public partial class binance : Exchange
         //         "type": "LIMIT"
         //     }
         //
-        // fetchOpenOrders: portfolio margin spot margin
+        // fetchOpenOrders, fetchOrder: portfolio margin spot margin
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -6056,9 +6056,14 @@ public partial class binance : Exchange
         * @see https://binance-docs.github.io/apidocs/delivery/en/#query-order-user_data
         * @see https://binance-docs.github.io/apidocs/voptions/en/#query-single-order-trade
         * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-order-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#query-um-order-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#query-cm-order-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#query-margin-account-order-user_data
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+        * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch an order in a portfolio margin account
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -6070,13 +6075,18 @@ public partial class binance : Exchange
         object market = this.market(symbol);
         object defaultType = this.safeString2(this.options, "fetchOrder", "defaultType", "spot");
         object type = this.safeString(parameters, "type", defaultType);
-        var marginModequeryVariable = this.handleMarginModeAndParams("fetchOrder", parameters);
-        var marginMode = ((IList<object>) marginModequeryVariable)[0];
-        var query = ((IList<object>) marginModequeryVariable)[1];
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrder", parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        object isPortfolioMargin = null;
+        var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "fetchOrder", "papi", "portfolioMargin", false);
+        isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
+        parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object clientOrderId = this.safeValue2(parameters, "origClientOrderId", "clientOrderId");
+        object clientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             if (isTrue(getValue(market, "option")))
@@ -6090,27 +6100,45 @@ public partial class binance : Exchange
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
-        object requestParams = this.omit(query, new List<object>() {"type", "clientOrderId", "origClientOrderId"});
+        parameters = this.omit(parameters, new List<object>() {"type", "clientOrderId", "origClientOrderId"});
         object response = null;
         if (isTrue(getValue(market, "option")))
         {
-            response = await this.eapiPrivateGetOrder(this.extend(request, requestParams));
+            response = await this.eapiPrivateGetOrder(this.extend(request, parameters));
         } else if (isTrue(getValue(market, "linear")))
         {
-            response = await this.fapiPrivateGetOrder(this.extend(request, requestParams));
+            if (isTrue(isPortfolioMargin))
+            {
+                response = await this.papiGetUmOrder(this.extend(request, parameters));
+            } else
+            {
+                response = await this.fapiPrivateGetOrder(this.extend(request, parameters));
+            }
         } else if (isTrue(getValue(market, "inverse")))
         {
-            response = await this.dapiPrivateGetOrder(this.extend(request, requestParams));
-        } else if (isTrue(isTrue(isEqual(type, "margin")) || isTrue(!isEqual(marginMode, null))))
-        {
-            if (isTrue(isEqual(marginMode, "isolated")))
+            if (isTrue(isPortfolioMargin))
             {
-                ((IDictionary<string,object>)request)["isIsolated"] = true;
+                response = await this.papiGetCmOrder(this.extend(request, parameters));
+            } else
+            {
+                response = await this.dapiPrivateGetOrder(this.extend(request, parameters));
             }
-            response = await this.sapiGetMarginOrder(this.extend(request, requestParams));
+        } else if (isTrue(isTrue(isTrue((isEqual(type, "margin"))) || isTrue((!isEqual(marginMode, null)))) || isTrue(isPortfolioMargin)))
+        {
+            if (isTrue(isPortfolioMargin))
+            {
+                response = await this.papiGetMarginOrder(this.extend(request, parameters));
+            } else
+            {
+                if (isTrue(isEqual(marginMode, "isolated")))
+                {
+                    ((IDictionary<string,object>)request)["isIsolated"] = true;
+                }
+                response = await this.sapiGetMarginOrder(this.extend(request, parameters));
+            }
         } else
         {
-            response = await this.privateGetOrder(this.extend(request, requestParams));
+            response = await this.privateGetOrder(this.extend(request, parameters));
         }
         return this.parseOrder(response, market);
     }

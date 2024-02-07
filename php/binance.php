@@ -4967,7 +4967,7 @@ class binance extends Exchange {
         //         "msg" => "Quantity greater than max quantity."
         //     }
         //
-        // createOrder, fetchOpenOrders => portfolio margin linear swap and future
+        // createOrder, fetchOpenOrders, fetchOrder => portfolio margin linear swap and future
         //
         //     {
         //         "symbol" => "BTCUSDT",
@@ -4990,7 +4990,7 @@ class binance extends Exchange {
         //         "status" => "NEW"
         //     }
         //
-        // createOrder, fetchOpenOrders => portfolio margin inverse swap and future
+        // createOrder, fetchOpenOrders, fetchOrder => portfolio margin inverse swap and future
         //
         //     {
         //         "symbol" => "ETHUSD_PERP",
@@ -5075,7 +5075,7 @@ class binance extends Exchange {
         //         "type" => "LIMIT"
         //     }
         //
-        // fetchOpenOrders => portfolio margin spot margin
+        // fetchOpenOrders, fetchOrder => portfolio margin spot margin
         //
         //     {
         //         "symbol" => "BTCUSDT",
@@ -5661,14 +5661,19 @@ class binance extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
-         * @see https://binance-docs.github.io/apidocs/spot/en/#$query-order-user_data
-         * @see https://binance-docs.github.io/apidocs/futures/en/#$query-order-user_data
-         * @see https://binance-docs.github.io/apidocs/delivery/en/#$query-order-user_data
-         * @see https://binance-docs.github.io/apidocs/voptions/en/#$query-single-order-trade
-         * @see https://binance-docs.github.io/apidocs/spot/en/#$query-margin-account-39-s-order-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-order-user_data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#query-order-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#query-order-user_data
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#query-single-order-trade
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-order-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-um-order-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-cm-order-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-margin-account-order-user_data
+         * @param {string} $id the order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
+         * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch an order in a portfolio margin account
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         if ($symbol === null) {
@@ -5678,11 +5683,14 @@ class binance extends Exchange {
         $market = $this->market($symbol);
         $defaultType = $this->safe_string_2($this->options, 'fetchOrder', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrder', $params);
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrder', $params);
+        $isPortfolioMargin = null;
+        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchOrder', 'papi', 'portfolioMargin', false);
         $request = array(
             'symbol' => $market['id'],
         );
-        $clientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
+        $clientOrderId = $this->safe_string_2($params, 'origClientOrderId', 'clientOrderId');
         if ($clientOrderId !== null) {
             if ($market['option']) {
                 $request['clientOrderId'] = $clientOrderId;
@@ -5692,21 +5700,33 @@ class binance extends Exchange {
         } else {
             $request['orderId'] = $id;
         }
-        $requestParams = $this->omit($query, array( 'type', 'clientOrderId', 'origClientOrderId' ));
+        $params = $this->omit($params, array( 'type', 'clientOrderId', 'origClientOrderId' ));
         $response = null;
         if ($market['option']) {
-            $response = $this->eapiPrivateGetOrder (array_merge($request, $requestParams));
+            $response = $this->eapiPrivateGetOrder (array_merge($request, $params));
         } elseif ($market['linear']) {
-            $response = $this->fapiPrivateGetOrder (array_merge($request, $requestParams));
-        } elseif ($market['inverse']) {
-            $response = $this->dapiPrivateGetOrder (array_merge($request, $requestParams));
-        } elseif ($type === 'margin' || $marginMode !== null) {
-            if ($marginMode === 'isolated') {
-                $request['isIsolated'] = true;
+            if ($isPortfolioMargin) {
+                $response = $this->papiGetUmOrder (array_merge($request, $params));
+            } else {
+                $response = $this->fapiPrivateGetOrder (array_merge($request, $params));
             }
-            $response = $this->sapiGetMarginOrder (array_merge($request, $requestParams));
+        } elseif ($market['inverse']) {
+            if ($isPortfolioMargin) {
+                $response = $this->papiGetCmOrder (array_merge($request, $params));
+            } else {
+                $response = $this->dapiPrivateGetOrder (array_merge($request, $params));
+            }
+        } elseif (($type === 'margin') || ($marginMode !== null) || $isPortfolioMargin) {
+            if ($isPortfolioMargin) {
+                $response = $this->papiGetMarginOrder (array_merge($request, $params));
+            } else {
+                if ($marginMode === 'isolated') {
+                    $request['isIsolated'] = true;
+                }
+                $response = $this->sapiGetMarginOrder (array_merge($request, $params));
+            }
         } else {
-            $response = $this->privateGetOrder (array_merge($request, $requestParams));
+            $response = $this->privateGetOrder (array_merge($request, $params));
         }
         return $this->parse_order($response, $market);
     }

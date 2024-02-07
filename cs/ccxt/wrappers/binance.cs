@@ -698,6 +698,9 @@ public partial class binance
     /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#query-order-user_data"/>  <br/>
     /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#query-single-order-trade"/>  <br/>
     /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-order-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-um-order-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-cm-order-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-margin-account-order-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -709,6 +712,12 @@ public partial class binance
     /// <term>params.marginMode</term>
     /// <description>
     /// string : 'cross' or 'isolated', for spot margin trading
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolioMargin</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch an order in a portfolio margin account
     /// </description>
     /// </item>
     /// </list>

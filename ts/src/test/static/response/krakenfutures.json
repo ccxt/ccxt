@@ -1,0 +1,97 @@
+{
+  "exchange": "krakenfutures",
+  "skipKeys": [],
+  "options": {
+  },
+  "methods": {
+    "fetchMyTrades": [
+      {
+        "description": "user trades",
+        "method": "fetchMyTrades",
+        "input": [
+          null,
+          null,
+          2
+        ],
+        "httpResponse": {
+          "result": "success",
+          "fills": [
+            {
+              "fill_id": "da062bc0-5901-48a5-9bb3-34c6be3ef7a5",
+              "symbol": "PF_LTCUSD",
+              "side": "buy",
+              "order_id": "85805e01-9eed-4395-8360-ed1a228237c9",
+              "size": "0.1",
+              "price": "68.54",
+              "fillTime": "2024-02-06T22:24:34.849Z",
+              "fillType": "taker"
+            },
+            {
+              "fill_id": "7066466a-9c46-48d6-9c43-3585d48f21a4",
+              "symbol": "PF_FTMUSD",
+              "side": "sell",
+              "order_id": "56e84113-055e-44fd-950b-547113dffa3c",
+              "size": "1",
+              "price": "0.50008",
+              "fillTime": "2023-02-22T12:28:46.816Z",
+              "fillType": "taker"
+            }
+          ],
+          "serverTime": "2024-02-06T22:25:22.290Z"
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "fill_id": "7066466a-9c46-48d6-9c43-3585d48f21a4",
+              "symbol": "PF_FTMUSD",
+              "side": "sell",
+              "order_id": "56e84113-055e-44fd-950b-547113dffa3c",
+              "size": "1",
+              "price": "0.50008",
+              "fillTime": "2023-02-22T12:28:46.816Z",
+              "fillType": "taker"
+            },
+            "id": "7066466a-9c46-48d6-9c43-3585d48f21a4",
+            "symbol": "FTM/USD:USD",
+            "timestamp": 1677068926816,
+            "datetime": "2023-02-22T12:28:46.816Z",
+            "order": "56e84113-055e-44fd-950b-547113dffa3c",
+            "type": null,
+            "side": "sell",
+            "takerOrMaker": "taker",
+            "price": 0.50008,
+            "amount": 1,
+            "cost": 0.50008,
+            "fee": null,
+            "fees": []
+          },
+          {
+            "info": {
+              "fill_id": "da062bc0-5901-48a5-9bb3-34c6be3ef7a5",
+              "symbol": "PF_LTCUSD",
+              "side": "buy",
+              "order_id": "85805e01-9eed-4395-8360-ed1a228237c9",
+              "size": "0.1",
+              "price": "68.54",
+              "fillTime": "2024-02-06T22:24:34.849Z",
+              "fillType": "taker"
+            },
+            "id": "da062bc0-5901-48a5-9bb3-34c6be3ef7a5",
+            "symbol": "LTC/USD:USD",
+            "timestamp": 1707258274849,
+            "datetime": "2024-02-06T22:24:34.849Z",
+            "order": "85805e01-9eed-4395-8360-ed1a228237c9",
+            "type": null,
+            "side": "buy",
+            "takerOrMaker": "taker",
+            "price": 68.54,
+            "amount": 0.1,
+            "cost": 6.854,
+            "fee": null,
+            "fees": []
+          }
+        ]
+      }
+    ]
+  }
+}

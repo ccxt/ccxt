@@ -493,7 +493,7 @@ class mexc extends \ccxt\async\mexc {
         }
         try {
             $this->handle_delta($storedOrderBook, $data);
-            $timestamp = $this->safe_integer($message, 't');
+            $timestamp = $this->safe_integer_2($message, 't', 'ts');
             $storedOrderBook['timestamp'] = $timestamp;
             $storedOrderBook['datetime'] = $this->iso8601($timestamp);
         } catch (Exception $e) {

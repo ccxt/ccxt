@@ -5745,9 +5745,14 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/delivery/en/#query-order-user_data
          * @see https://binance-docs.github.io/apidocs/voptions/en/#query-single-order-trade
          * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-order-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-um-order-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-cm-order-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-margin-account-order-user_data
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch an order in a portfolio margin account
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -5757,11 +5762,14 @@ export default class binance extends Exchange {
         const market = this.market (symbol);
         const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrder', params);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrder', params);
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchOrder', 'papi', 'portfolioMargin', false);
         const request = {
             'symbol': market['id'],
         };
-        const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
+        const clientOrderId = this.safeString2 (params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
             if (market['option']) {
                 request['clientOrderId'] = clientOrderId;
@@ -5771,21 +5779,33 @@ export default class binance extends Exchange {
         } else {
             request['orderId'] = id;
         }
-        const requestParams = this.omit (query, [ 'type', 'clientOrderId', 'origClientOrderId' ]);
+        params = this.omit (params, [ 'type', 'clientOrderId', 'origClientOrderId' ]);
         let response = undefined;
         if (market['option']) {
-            response = await this.eapiPrivateGetOrder (this.extend (request, requestParams));
+            response = await this.eapiPrivateGetOrder (this.extend (request, params));
         } else if (market['linear']) {
-            response = await this.fapiPrivateGetOrder (this.extend (request, requestParams));
-        } else if (market['inverse']) {
-            response = await this.dapiPrivateGetOrder (this.extend (request, requestParams));
-        } else if (type === 'margin' || marginMode !== undefined) {
-            if (marginMode === 'isolated') {
-                request['isIsolated'] = true;
+            if (isPortfolioMargin) {
+                response = await this.papiGetUmOrder (this.extend (request, params));
+            } else {
+                response = await this.fapiPrivateGetOrder (this.extend (request, params));
             }
-            response = await this.sapiGetMarginOrder (this.extend (request, requestParams));
+        } else if (market['inverse']) {
+            if (isPortfolioMargin) {
+                response = await this.papiGetCmOrder (this.extend (request, params));
+            } else {
+                response = await this.dapiPrivateGetOrder (this.extend (request, params));
+            }
+        } else if ((type === 'margin') || (marginMode !== undefined) || isPortfolioMargin) {
+            if (isPortfolioMargin) {
+                response = await this.papiGetMarginOrder (this.extend (request, params));
+            } else {
+                if (marginMode === 'isolated') {
+                    request['isIsolated'] = true;
+                }
+                response = await this.sapiGetMarginOrder (this.extend (request, params));
+            }
         } else {
-            response = await this.privateGetOrder (this.extend (request, requestParams));
+            response = await this.privateGetOrder (this.extend (request, params));
         }
         return this.parseOrder (response, market);
     }

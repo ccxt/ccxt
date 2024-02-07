@@ -788,36 +788,29 @@ class krakenfutures extends Exchange {
             $id = $this->safe_string($trade, 'executionId');
         }
         $order = $this->safe_string($trade, 'order_id');
-        $symbolId = $this->safe_string($trade, 'symbol');
+        $marketId = $this->safe_string($trade, 'symbol');
         $side = $this->safe_string($trade, 'side');
         $type = null;
         $priorEdit = $this->safe_value($trade, 'orderPriorEdit');
         $priorExecution = $this->safe_value($trade, 'orderPriorExecution');
         if ($priorExecution !== null) {
             $order = $this->safe_string($priorExecution, 'orderId');
-            $symbolId = $this->safe_string($priorExecution, 'symbol');
+            $marketId = $this->safe_string($priorExecution, 'symbol');
             $side = $this->safe_string($priorExecution, 'side');
             $type = $this->safe_string($priorExecution, 'type');
         } elseif ($priorEdit !== null) {
             $order = $this->safe_string($priorEdit, 'orderId');
-            $symbolId = $this->safe_string($priorEdit, 'symbol');
+            $marketId = $this->safe_string($priorEdit, 'symbol');
             $side = $this->safe_string($priorEdit, 'type');
             $type = $this->safe_string($priorEdit, 'type');
         }
         if ($type !== null) {
             $type = $this->parse_order_type($type);
         }
-        $symbol = null;
-        if ($symbolId !== null) {
-            $market = $this->safe_value($this->markets_by_id, $symbolId);
-            if ($market === null) {
-                $symbol = $symbolId;
-            }
-        }
-        $symbol = $this->safe_string($market, 'symbol', $symbol);
+        $market = $this->safe_market($marketId, $market);
         $cost = null;
+        $linear = $this->safe_bool($market, 'linear');
         if (($amount !== null) && ($price !== null) && ($market !== null)) {
-            $linear = $this->safe_value($market, 'linear');
             if ($linear) {
                 $cost = Precise::string_mul($amount, $price); // in quote
             } else {
@@ -838,15 +831,15 @@ class krakenfutures extends Exchange {
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
+            'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
             'order' => $order,
             'type' => $type,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
             'price' => $price,
-            'amount' => $amount,
+            'amount' => $linear ? $amount : null,
             'cost' => $cost,
             'fee' => null,
         ));
