@@ -1636,7 +1636,7 @@ export default class okx extends Exchange {
                 if ((networkId !== undefined) && (networkId.indexOf ('-') >= 0)) {
                     const parts = networkId.split ('-');
                     const chainPart = this.safeString (parts, 1, networkId);
-                    const networkCode = this.safeNetwork (chainPart);
+                    const networkCode = this.networkIdToCode (chainPart, currency['code']);
                     const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
                     if (maxPrecision === undefined) {
                         maxPrecision = precision;

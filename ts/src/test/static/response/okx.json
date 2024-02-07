@@ -811,6 +811,287 @@
           ]
         ]
       }
+    ],
+    "fetchDepositAddressesByNetwork": [
+      {
+        "description": "fetch deposit addresses by network",
+        "method": "fetchDepositAddressesByNetwork",
+        "input": [
+          "USDT"
+        ],
+        "httpResponse": {
+          "code": "0",
+          "data": [
+            {
+              "chain": "USDT-Arbitrum One",
+              "ctAddr": "9fcbb9",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add1",
+              "selected": true
+            },
+            {
+              "chain": "USDT-Arbitrum One",
+              "ctAddr": "9fcbb9",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add2",
+              "selected": false
+            },
+            {
+              "chain": "USDT-Solana",
+              "ctAddr": "enwNYB",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add5",
+              "selected": true
+            },
+            {
+              "chain": "USDT-Solana",
+              "ctAddr": "enwNYB",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add6",
+              "selected": false
+            },
+            {
+              "chain": "USDT-Optimism",
+              "ctAddr": "e58e58",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add1",
+              "selected": true
+            },
+            {
+              "chain": "USDT-Optimism",
+              "ctAddr": "e58e58",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add2",
+              "selected": false
+            },
+            {
+              "chain": "USDT-Polygon",
+              "ctAddr": "b58e8f",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add1",
+              "selected": true
+            },
+            {
+              "chain": "USDT-Polygon",
+              "ctAddr": "b58e8f",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add2",
+              "selected": false
+            },
+            {
+              "chain": "USDT-Avalanche C-Chain",
+              "ctAddr": "f4a8c7",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add1",
+              "selected": true
+            },
+            {
+              "chain": "USDT-Avalanche C-Chain",
+              "ctAddr": "f4a8c7",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add2",
+              "selected": false
+            },
+            {
+              "chain": "USDT-ERC20",
+              "ctAddr": "831ec7",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add1",
+              "selected": true
+            },
+            {
+              "chain": "USDT-ERC20",
+              "ctAddr": "831ec7",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add2",
+              "selected": false
+            },
+            {
+              "chain": "USDT-TRC20",
+              "ctAddr": "gjLj6t",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add3",
+              "selected": false
+            },
+            {
+              "chain": "USDT-TRC20",
+              "ctAddr": "gjLj6t",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add4",
+              "selected": true
+            },
+            {
+              "chain": "USDT-OKTC",
+              "ctAddr": "c65c50",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add1",
+              "selected": true
+            },
+            {
+              "chain": "USDT-OKTC",
+              "ctAddr": "c65c50",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add2",
+              "selected": false
+            }
+          ],
+          "msg": ""
+        },
+        "parsedResponse": {
+          "ARBONE": {
+            "currency": "USDT",
+            "address": "add1",
+            "tag": null,
+            "network": "ARBONE",
+            "info": {
+              "chain": "USDT-Arbitrum One",
+              "ctAddr": "9fcbb9",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add1",
+              "selected": true
+            }
+          },
+          "SOL": {
+            "currency": "USDT",
+            "address": "add5",
+            "tag": null,
+            "network": "SOL",
+            "info": {
+              "chain": "USDT-Solana",
+              "ctAddr": "enwNYB",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add5",
+              "selected": true
+            }
+          },
+          "OPTIMISM": {
+            "currency": "USDT",
+            "address": "add1",
+            "tag": null,
+            "network": "OPTIMISM",
+            "info": {
+              "chain": "USDT-Optimism",
+              "ctAddr": "e58e58",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add1",
+              "selected": true
+            }
+          },
+          "MATIC": {
+            "currency": "USDT",
+            "address": "add1",
+            "tag": null,
+            "network": "MATIC",
+            "info": {
+              "chain": "USDT-Polygon",
+              "ctAddr": "b58e8f",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add1",
+              "selected": true
+            }
+          },
+          "AVAXC": {
+            "currency": "USDT",
+            "address": "add1",
+            "tag": null,
+            "network": "AVAXC",
+            "info": {
+              "chain": "USDT-Avalanche C-Chain",
+              "ctAddr": "f4a8c7",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add1",
+              "selected": true
+            }
+          },
+          "ERC20": {
+            "currency": "USDT",
+            "address": "add1",
+            "tag": null,
+            "network": "ERC20",
+            "info": {
+              "chain": "USDT-ERC20",
+              "ctAddr": "831ec7",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add1",
+              "selected": true
+            }
+          },
+          "TRC20": {
+            "currency": "USDT",
+            "address": "add4",
+            "tag": null,
+            "network": "TRC20",
+            "info": {
+              "chain": "USDT-TRC20",
+              "ctAddr": "gjLj6t",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add4",
+              "selected": true
+            }
+          },
+          "OKTC": {
+            "currency": "USDT",
+            "address": "add1",
+            "tag": null,
+            "network": "OKTC",
+            "info": {
+              "chain": "USDT-OKTC",
+              "ctAddr": "c65c50",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add1",
+              "selected": true
+            }
+          }
+        }
+      }
     ]
   }
 }
