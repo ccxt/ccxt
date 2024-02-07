@@ -1337,7 +1337,7 @@ export default class bitmart extends bitmartRest {
             }
         }
         if (isSpot) {
-            let channel = table.replace ('spot/', '');
+            const channel = table.replace ('spot/', '');
             for (let i = 0; i < data.length; i++) {
                 const update = data[i];
                 const marketId = this.safeString (update, 'symbol');
