@@ -591,7 +591,7 @@ export default class coinex extends coinexRest {
         return this.filterBySinceLimit (ohlcvs, since, limit, 0);
     }
 
-    async fetchOHLCVWs (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCVWs (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name coinex#fetchOHLCV
