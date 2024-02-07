@@ -1732,7 +1732,7 @@ export default class bingx extends Exchange {
         });
     }
 
-    async createMarketOrderWithCost (symbol: string, side: OrderSide, cost, params = {}) {
+    async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params = {}) {
         /**
          * @method
          * @name bingx#createMarketOrderWithCost

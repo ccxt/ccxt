@@ -5649,7 +5649,7 @@ export default class binance extends Exchange {
         return this.extend (request, requestParams);
     }
 
-    async createMarketOrderWithCost (symbol: string, side: OrderSide, cost, params = {}) {
+    async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params = {}) {
         /**
          * @method
          * @name binance#createMarketOrderWithCost

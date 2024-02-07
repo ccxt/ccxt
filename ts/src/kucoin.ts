@@ -1971,7 +1971,7 @@ export default class kucoin extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async createMarketOrderWithCost (symbol: string, side: OrderSide, cost, params = {}) {
+    async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params = {}) {
         /**
          * @method
          * @name kucoin#createMarketOrderWithCost

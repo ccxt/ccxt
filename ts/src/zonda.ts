@@ -667,7 +667,7 @@ export default class zonda extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name zonda#fetchTicker
@@ -1573,7 +1573,7 @@ export default class zonda extends Exchange {
         return this.parseDepositAddress (first, currency);
     }
 
-    async fetchDepositAddresses (codes = undefined, params = {}) {
+    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name zonda#fetchDepositAddresses

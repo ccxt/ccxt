@@ -455,7 +455,7 @@ export default class whitebit extends Exchange {
         return result;
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchTransactionFees
