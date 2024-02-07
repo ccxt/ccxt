@@ -1234,6 +1234,61 @@ export default class krakenfutures extends Exchange {
         return this.parseOrders (closedOrders, market, since, limit);
     }
 
+    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name krakenfutures#fetchCanceledOrders
+         * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
+         * @description Gets all canceled orders, including trigger orders, for an account from the exchange api
+         * @param {string} symbol Unified market symbol
+         * @param {int} [since] Timestamp (ms) of earliest order.
+         * @param {int} [limit] How many orders to return.
+         * @param {object} [params] Exchange specific parameters
+         * @returns An array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {};
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        const response = await this.historyGetOrders (params);
+        const allOrders = this.safeList (response, 'elements', []);
+        const canceledAndRejected: Dict[] = [];
+        for (let i = 0; i < allOrders.length; i++) {
+            const order = allOrders[i];
+            const event = this.safeDict (order, 'event', {});
+            const orderPlaced = this.safeDict (event, 'OrderPlaced');
+            if (orderPlaced !== undefined) {
+                const innerOrder = this.safeDict (orderPlaced, 'order', {});
+                const filled = this.safeString (innerOrder, 'filled');
+                if (filled === '0') {
+                    innerOrder['status'] = 'canceled'; // status not available in the response
+                    canceledAndRejected.push (innerOrder);
+                }
+            }
+            const orderCanceled = this.safeDict (event, 'OrderCancelled');
+            if (orderCanceled !== undefined) {
+                const innerOrder = this.safeDict (orderCanceled, 'order', {});
+                innerOrder['status'] = 'canceled'; // status not available in the response
+                canceledAndRejected.push (innerOrder);
+            }
+            const orderRejected = this.safeDict (event, 'OrderRejected');
+            if (orderRejected !== undefined) {
+                const innerOrder = this.safeDict (orderRejected, 'order', {});
+                innerOrder['status'] = 'rejected'; // status not available in the response
+                canceledAndRejected.push (innerOrder);
+            }
+        }
+        return this.parseOrders (canceledAndRejected, market, since, limit);
+    }
+
     parseOrderType (orderType) {
         const map = {
             'lmt': 'limit',
