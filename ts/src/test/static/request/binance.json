@@ -1848,6 +1848,34 @@
                     }
                 ],
                 "output": "timestamp=1699441011001&dualSidePosition=true&recvWindow=10000&signature=f932a4e8dd21ce1dcea84d8ab2fd9451c31b77c710d1adb9c51f54adc520cd90"
+            },
+            {
+                "description": "Swap linear portfolio margin set position mode",
+                "method": "setPositionMode",
+                "url": "https://papi.binance.com/papi/v1/um/positionSide/dual",
+                "input": [
+                  true,
+                  null,
+                  {
+                    "portfolioMargin": true,
+                    "subType": "linear"
+                  }
+                ],
+                "output": "timestamp=1707282494111&dualSidePosition=true&recvWindow=10000&signature=5895dd7f3c7bf056635cc297f9d6c92a4aa907e61d8f6e900b99d4b25407eab5"
+            },
+            {
+                "description": "Swap inverse portfolio margin set position mode",
+                "method": "setPositionMode",
+                "url": "https://papi.binance.com/papi/v1/cm/positionSide/dual",
+                "input": [
+                  true,
+                  null,
+                  {
+                    "portfolioMargin": true,
+                    "subType": "inverse"
+                  }
+                ],
+                "output": "timestamp=1707282567514&dualSidePosition=true&recvWindow=10000&signature=12b2fe3fb47a0ae0ef4ec810b754aba2223e7e20e1145c89ef7aa5c1dc6a4485"
             }
         ],
         "fetchBidsAsks": [

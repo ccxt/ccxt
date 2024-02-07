@@ -9233,9 +9233,12 @@ export default class binance extends Exchange {
          * @description set hedged to true or false for a market
          * @see https://binance-docs.github.io/apidocs/futures/en/#change-position-mode-trade
          * @see https://binance-docs.github.io/apidocs/delivery/en/#change-position-mode-trade
+         * @see https://binance-docs.github.io/apidocs/pm/en/#change-um-position-mode-trade
+         * @see https://binance-docs.github.io/apidocs/pm/en/#change-cm-position-mode-trade
          * @param {bool} hedged set to true to use dualSidePosition
          * @param {string} symbol not used by binance setPositionMode ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to set the position mode for a portfolio margin account
          * @returns {object} response from the exchange
          */
         const defaultType = this.safeString (this.options, 'defaultType', 'future');
@@ -9243,6 +9246,8 @@ export default class binance extends Exchange {
         params = this.omit (params, [ 'type' ]);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('setPositionMode', undefined, params);
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'setPositionMode', 'papi', 'portfolioMargin', false);
         let dualSidePosition = undefined;
         if (hedged) {
             dualSidePosition = 'true';
@@ -9254,10 +9259,17 @@ export default class binance extends Exchange {
         };
         let response = undefined;
         if (this.isInverse (type, subType)) {
-            response = await this.dapiPrivatePostPositionSideDual (this.extend (request, params));
+            if (isPortfolioMargin) {
+                response = await this.papiPostCmPositionSideDual (this.extend (request, params));
+            } else {
+                response = await this.dapiPrivatePostPositionSideDual (this.extend (request, params));
+            }
         } else {
-            // default to future
-            response = await this.fapiPrivatePostPositionSideDual (this.extend (request, params));
+            if (isPortfolioMargin) {
+                response = await this.papiPostUmPositionSideDual (this.extend (request, params));
+            } else {
+                response = await this.fapiPrivatePostPositionSideDual (this.extend (request, params));
+            }
         }
         //
         //     {
