@@ -114,7 +114,7 @@
     "copy-python-keys": "node build/copy keys.json python/keys.json",
     "copy-python-readme": "node build/copy README.md python/README.md",
     "postinstall": "node postinstall.js",
-    "validate-types": "node --loader ts-node/esm build/validate-return-type.ts",
+    "validate-types": "node --loader ts-node/esm build/validate-types.ts",
     "response-js": "node js/src/test/test.js --responseTests",
     "request-js": "node js/src/test/test.js --requestTests",
     "request-py": "python3 python/ccxt/test/test_async.py --requestTests",
