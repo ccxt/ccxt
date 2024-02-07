@@ -209,7 +209,6 @@ class bitfinex extends bitfinex$1 {
         //         220.05,        // 10 LOW float Daily low
         //     ]
         //
-        const timestamp = this.milliseconds();
         const marketId = this.safeString(subscription, 'pair');
         const symbol = this.safeSymbol(marketId);
         const channel = 'ticker';
@@ -222,8 +221,8 @@ class bitfinex extends bitfinex$1 {
         }
         const result = {
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': this.safeFloat(message, 9),
             'low': this.safeFloat(message, 10),
             'bid': this.safeFloat(message, 1),
@@ -458,7 +457,7 @@ class bitfinex extends bitfinex$1 {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

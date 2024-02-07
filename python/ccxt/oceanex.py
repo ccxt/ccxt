@@ -461,7 +461,7 @@ class oceanex(Exchange, ImplicitAPI):
             'market': market['id'],
         }
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 1000)
         response = self.publicGetTrades(self.extend(request, params))
         #
         #      {
@@ -667,7 +667,7 @@ class oceanex(Exchange, ImplicitAPI):
         :see: https://api.oceanex.pro/doc/v1/#order-status-get
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """

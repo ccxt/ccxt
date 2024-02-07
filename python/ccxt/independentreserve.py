@@ -485,7 +485,7 @@ class independentreserve(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -638,19 +638,20 @@ class independentreserve(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        capitalizedOrderType = self.capitalize(type)
-        method = 'privatePostPlace' + capitalizedOrderType + 'Order'
-        orderType = capitalizedOrderType
+        orderType = self.capitalize(type)
         orderType += 'Offer' if (side == 'sell') else 'Bid'
         request = self.ordered({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
             'orderType': orderType,
         })
+        response = None
+        request['volume'] = amount
         if type == 'limit':
             request['price'] = price
-        request['volume'] = amount
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.privatePostPlaceLimitOrder(self.extend(request, params))
+        else:
+            response = self.privatePostPlaceMarketOrder(self.extend(request, params))
         return self.safe_order({
             'info': response,
             'id': response['OrderGuid'],

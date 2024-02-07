@@ -385,20 +385,7 @@ class gate extends gate$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        symbol = market['symbol'];
-        const marketId = market['id'];
-        const messageType = this.getTypeByMarket(market);
-        const channel = messageType + '.trades';
-        const messageHash = 'trades:' + symbol;
-        const url = this.getUrlByMarket(market);
-        const payload = [marketId];
-        const trades = await this.subscribePublic(url, messageHash, payload, channel, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
-        }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         /**
@@ -417,9 +404,13 @@ class gate extends gate$1 {
         const market = this.market(symbols[0]);
         const messageType = this.getTypeByMarket(market);
         const channel = messageType + '.trades';
-        const messageHash = 'multipleTrades::' + symbols.join(',');
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push('trades:' + symbol);
+        }
         const url = this.getUrlByMarket(market);
-        const trades = await this.subscribePublic(url, messageHash, marketIds, channel, params);
+        const trades = await this.subscribePublicMultiple(url, messageHashes, marketIds, channel, params);
         if (this.newUpdates) {
             const first = this.safeValue(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
@@ -461,7 +452,6 @@ class gate extends gate$1 {
             cachedTrades.append(trade);
             const hash = 'trades:' + symbol;
             client.resolve(cachedTrades, hash);
-            this.resolvePromiseIfMessagehashMatches(client, 'multipleTrades::', symbol, cachedTrades);
         }
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -730,7 +720,7 @@ class gate extends gate$1 {
         //   }
         //
         const result = this.safeValue(message, 'result', []);
-        const timestamp = this.safeInteger(message, 'time');
+        const timestamp = this.safeInteger(message, 'time_ms');
         this.balance['info'] = result;
         this.balance['timestamp'] = timestamp;
         this.balance['datetime'] = this.iso8601(timestamp);
@@ -806,7 +796,7 @@ class gate extends gate$1 {
         if (this.newUpdates) {
             return positions;
         }
-        return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit(this.positions[type], symbols, since, limit, true);
     }
     setPositionsCache(client, type, symbols = undefined) {
         if (this.positions === undefined) {
@@ -901,7 +891,7 @@ class gate extends gate$1 {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] spot, margin, swap, future, or option. Required if listening to all symbols.
          * @param {boolean} [params.isInverse] if future, listen to inverse or linear contracts
@@ -1263,6 +1253,19 @@ class gate extends gate$1 {
         }
         const message = this.extend(request, params);
         return await this.watch(url, messageHash, message, messageHash, subscription);
+    }
+    async subscribePublicMultiple(url, messageHashes, payload, channel, params = {}) {
+        const requestId = this.requestId();
+        const time = this.seconds();
+        const request = {
+            'id': requestId,
+            'time': time,
+            'channel': channel,
+            'event': 'subscribe',
+            'payload': payload,
+        };
+        const message = this.extend(request, params);
+        return await this.watchMultiple(url, messageHashes, message, messageHashes);
     }
     async subscribePrivate(url, messageHash, payload, channel, params, requiresUid = false) {
         this.checkRequiredCredentials();

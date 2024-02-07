@@ -39,6 +39,7 @@ class hitbtc extends Exchange {
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'closePosition' => false,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,
@@ -1829,7 +1830,7 @@ class hitbtc extends Exchange {
              * @see https://api.hitbtc.com/#margin-orders-history
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
              * @param {bool} [$params->margin] true for fetching margin orders
@@ -2626,11 +2627,10 @@ class hitbtc extends Exchange {
         //         "2db6ebab-fb26-4537-9ef8-1a689472d236"
         //     )
         //
-        $timestamp = $this->milliseconds();
         return array(
             'id' => $this->safe_string($transfer, 0),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'currency' => $this->safe_currency_code(null, $currency),
             'amount' => null,
             'fromAccount' => null,
@@ -2873,6 +2873,9 @@ class hitbtc extends Exchange {
             $marketType = null;
             $marginMode = null;
             list($marketType, $params) = $this->handle_market_type_and_params('fetchPositions', null, $params);
+            if ($marketType === 'spot') {
+                $marketType = 'swap';
+            }
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchPositions', $params);
             $params = $this->omit($params, array( 'marginMode', 'margin' ));
             $response = null;
@@ -3535,12 +3538,50 @@ class hitbtc extends Exchange {
         return $result;
     }
 
+    public function close_position(string $symbol, ?string $side = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $side, $params) {
+            /**
+             * closes open positions for a $market
+             * @see https://api.hitbtc.com/#close-all-futures-margin-positions
+             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {string} [$params->symbol] *required* unified $market $symbol
+             * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross'
+             * @return {array} An ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('closePosition', $params, 'cross');
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+                'margin_mode' => $marginMode,
+            );
+            $response = Async\await($this->privateDeleteFuturesPositionMarginModeSymbol (array_merge($request, $params)));
+            //
+            // {
+            //     "id":"202471640",
+            //     "symbol":"TRXUSDT_PERP",
+            //     "margin_mode":"Cross",
+            //     "leverage":"1.00",
+            //     "quantity":"0",
+            //     "price_entry":"0",
+            //     "price_margin_call":"0",
+            //     "price_liquidation":"0",
+            //     "pnl":"0.001234100000",
+            //     "created_at":"2023-10-29T14:46:13.235Z",
+            //     "updated_at":"2023-12-19T09:34:40.014Z"
+            // }
+            //
+            return $this->parse_order($response, $market);
+        }) ();
+    }
+
     public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} the $marginMode in lowercase
+         * @return {Array} the $marginMode in lowercase
          */
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_value($params, 'margin', false);

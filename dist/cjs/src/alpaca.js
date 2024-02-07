@@ -8,7 +8,7 @@ var number = require('./base/functions/number.js');
 //  ---------------------------------------------------------------------------xs
 /**
  * @class alpaca
- * @extends Exchange
+ * @augments Exchange
  */
 class alpaca extends alpaca$1 {
     describe() {
@@ -36,7 +36,7 @@ class alpaca extends alpaca$1 {
                     'market': 'https://data.sandbox.{hostname}',
                 },
                 'doc': 'https://alpaca.markets/docs/',
-                'fees': 'https://alpaca.markets/support/what-are-the-fees-associated-with-crypto-trading/',
+                'fees': 'https://docs.alpaca.markets/docs/crypto-fees',
             },
             'has': {
                 'CORS': false,
@@ -50,7 +50,7 @@ class alpaca extends alpaca$1 {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createOrder': true,
-                'fetchBalance': true,
+                'fetchBalance': false,
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': false,
@@ -207,28 +207,28 @@ class alpaca extends alpaca$1 {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'maker': this.parseNumber('0.003'),
-                    'taker': this.parseNumber('0.003'),
+                    'maker': this.parseNumber('0.0015'),
+                    'taker': this.parseNumber('0.0025'),
                     'tiers': {
                         'taker': [
-                            [this.parseNumber('0'), this.parseNumber('0.003')],
-                            [this.parseNumber('500000'), this.parseNumber('0.0028')],
-                            [this.parseNumber('1000000'), this.parseNumber('0.0025')],
-                            [this.parseNumber('5000000'), this.parseNumber('0.002')],
-                            [this.parseNumber('10000000'), this.parseNumber('0.0018')],
-                            [this.parseNumber('25000000'), this.parseNumber('0.0015')],
-                            [this.parseNumber('50000000'), this.parseNumber('0.00125')],
+                            [this.parseNumber('0'), this.parseNumber('0.0025')],
+                            [this.parseNumber('100000'), this.parseNumber('0.0022')],
+                            [this.parseNumber('500000'), this.parseNumber('0.0020')],
+                            [this.parseNumber('1000000'), this.parseNumber('0.0018')],
+                            [this.parseNumber('10000000'), this.parseNumber('0.0015')],
+                            [this.parseNumber('25000000'), this.parseNumber('0.0013')],
+                            [this.parseNumber('50000000'), this.parseNumber('0.0012')],
                             [this.parseNumber('100000000'), this.parseNumber('0.001')],
                         ],
                         'maker': [
-                            [this.parseNumber('0'), this.parseNumber('0.003')],
-                            [this.parseNumber('500000'), this.parseNumber('0.0028')],
-                            [this.parseNumber('1000000'), this.parseNumber('0.0025')],
-                            [this.parseNumber('5000000'), this.parseNumber('0.002')],
-                            [this.parseNumber('10000000'), this.parseNumber('0.0018')],
-                            [this.parseNumber('25000000'), this.parseNumber('0.0015')],
-                            [this.parseNumber('50000000'), this.parseNumber('0.00125')],
-                            [this.parseNumber('100000000'), this.parseNumber('0.001')],
+                            [this.parseNumber('0'), this.parseNumber('0.0015')],
+                            [this.parseNumber('100000'), this.parseNumber('0.0012')],
+                            [this.parseNumber('500000'), this.parseNumber('0.001')],
+                            [this.parseNumber('1000000'), this.parseNumber('0.0008')],
+                            [this.parseNumber('10000000'), this.parseNumber('0.0005')],
+                            [this.parseNumber('25000000'), this.parseNumber('0.0002')],
+                            [this.parseNumber('50000000'), this.parseNumber('0.0002')],
+                            [this.parseNumber('100000000'), this.parseNumber('0.00')],
                         ],
                     },
                 },
@@ -349,10 +349,16 @@ class alpaca extends alpaca$1 {
         //
         const marketId = this.safeString(asset, 'symbol');
         const parts = marketId.split('/');
+        const assetClass = this.safeString(asset, 'class');
         const baseId = this.safeString(parts, 0);
         const quoteId = this.safeString(parts, 1);
         const base = this.safeCurrencyCode(baseId);
-        const quote = this.safeCurrencyCode(quoteId);
+        let quote = this.safeCurrencyCode(quoteId);
+        // Us equity markets do not include quote in symbol.
+        // We can safely coerce us_equity quote to USD
+        if (quote === undefined && assetClass === 'us_equity') {
+            quote = 'USD';
+        }
         const symbol = base + '/' + quote;
         const status = this.safeString(asset, 'status');
         const active = (status === 'active');
@@ -496,7 +502,7 @@ class alpaca extends alpaca$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.loc] crypto location, default: us
          * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
-        */
+         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const id = market['id'];

@@ -1,8 +1,8 @@
 import Exchange from './abstract/huobijp.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class huobijp
- * @extends Exchange
+ * @augments Exchange
  */
 export default class huobijp extends Exchange {
     describe(): any;

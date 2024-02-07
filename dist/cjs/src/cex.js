@@ -10,7 +10,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class cex
- * @extends Exchange
+ * @augments Exchange
  */
 class cex extends cex$1 {
     describe() {
@@ -1168,14 +1168,16 @@ class cex extends cex$1 {
          */
         await this.loadMarkets();
         const request = {};
-        let method = 'privatePostOpenOrders';
         let market = undefined;
+        let orders = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['pair'] = market['id'];
-            method += 'Pair';
+            orders = await this.privatePostOpenOrdersPair(this.extend(request, params));
         }
-        const orders = await this[method](this.extend(request, params));
+        else {
+            orders = await this.privatePostOpenOrders(this.extend(request, params));
+        }
         for (let i = 0; i < orders.length; i++) {
             orders[i] = this.extend(orders[i], { 'status': 'open' });
         }
@@ -1197,10 +1199,9 @@ class cex extends cex$1 {
             throw new errors.ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
         }
         await this.loadMarkets();
-        const method = 'privatePostArchivedOrdersPair';
         const market = this.market(symbol);
         const request = { 'pair': market['id'] };
-        const response = await this[method](this.extend(request, params));
+        const response = await this.privatePostArchivedOrdersPair(this.extend(request, params));
         return this.parseOrders(response, market, since, limit);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
@@ -1329,7 +1330,7 @@ class cex extends cex$1 {
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

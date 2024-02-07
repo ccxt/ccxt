@@ -12,14 +12,19 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.base.decimal_to_precision import TICK_SIZE  # noqa E402
 import numbers  # noqa E402
 from ccxt.base.precise import Precise  # noqa E402
-
+from ccxt.base.errors import OperationFailed  # noqa E402
+from ccxt.base.errors import OnMaintenance  # noqa E402
+from ccxt.base.errors import ArgumentsRequired  # noqa E402
 
 def log_template(exchange, method, entry):
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json(entry) + ' >>> '
+
+
+def is_temporary_failure(e):
+    return (isinstance(e, OperationFailed)) and (not (isinstance(e, OnMaintenance)))
 
 
 def string_value(value):
@@ -170,9 +175,13 @@ def assert_symbol(exchange, skipped_properties, method, entry, key, expected_sym
     actual_symbol = exchange.safe_string(entry, key)
     if actual_symbol is not None:
         assert isinstance(actual_symbol, str), 'symbol should be either undefined or a string' + log_text
-        assert (actual_symbol in exchange.markets), 'symbol should be present in exchange.symbols' + log_text
     if expected_symbol is not None:
         assert actual_symbol == expected_symbol, 'symbol in response (\"' + string_value(actual_symbol) + '\") should be equal to expected symbol (\"' + string_value(expected_symbol) + '\")' + log_text
+
+
+def assert_symbol_in_markets(exchange, skipped_properties, method, symbol):
+    log_text = log_template(exchange, method, {})
+    assert (symbol in exchange.markets), 'symbol should be present in exchange.symbols' + log_text
 
 
 def assert_greater(exchange, skipped_properties, method, entry, key, compare_to):
@@ -258,16 +267,15 @@ def assert_fee_structure(exchange, skipped_properties, method, entry, key):
         assert_currency_code(exchange, skipped_properties, method, entry, fee_object['currency'])
 
 
-def assert_timestamp_order(exchange, method, code_or_symbol, items, ascending=False):
+def assert_timestamp_order(exchange, method, code_or_symbol, items, ascending=True):
     for i in range(0, len(items)):
         if i > 0:
             ascending_or_descending = 'ascending' if ascending else 'descending'
-            first_index = i - 1 if ascending else i
-            second_index = i if ascending else i - 1
-            first_ts = items[first_index]['timestamp']
-            second_ts = items[second_index]['timestamp']
-            if first_ts is not None and second_ts is not None:
-                assert items[first_index]['timestamp'] >= items[second_index]['timestamp'], exchange.id + ' ' + method + ' ' + string_value(code_or_symbol) + ' must return a ' + ascending_or_descending + ' sorted array of items by timestamp. ' + exchange.json(items)
+            current_ts = items[i - 1]['timestamp']
+            next_ts = items[i]['timestamp']
+            if current_ts is not None and next_ts is not None:
+                comparison = (current_ts <= next_ts) if ascending else (current_ts >= next_ts)
+                assert comparison, exchange.id + ' ' + method + ' ' + string_value(code_or_symbol) + ' must return a ' + ascending_or_descending + ' sorted array of items by timestamp, but ' + str(current_ts) + ' is opposite with its next ' + str(next_ts) + ' ' + exchange.json(items)
 
 
 def assert_integer(exchange, skipped_properties, method, entry, key):
@@ -284,8 +292,7 @@ def assert_integer(exchange, skipped_properties, method, entry, key):
 def check_precision_accuracy(exchange, skipped_properties, method, entry, key):
     if key in skipped_properties:
         return
-    is_tick_size_precisionMode = exchange.precisionMode == TICK_SIZE
-    if is_tick_size_precisionMode:
+    if exchange.is_tick_precision():
         # TICK_SIZE should be above zero
         assert_greater(exchange, skipped_properties, method, entry, key, '0')
         # the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so their existence in our case indicates to incorrectly implemented tick-sizes, which might mistakenly be implemented with DECIMAL_PLACES, so we throw error

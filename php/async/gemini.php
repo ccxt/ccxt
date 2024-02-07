@@ -307,6 +307,7 @@ class gemini extends Exchange {
     public function fetch_currencies_from_web($params = array ()) {
         return Async\async(function () use ($params) {
             /**
+             * @ignore
              * fetches all available currencies on an exchange
              * @param {array} [$params] extra parameters specific to the endpoint
              * @return {array} an associative dictionary of currencies
@@ -981,7 +982,7 @@ class gemini extends Exchange {
                 'symbol' => $market['id'],
             );
             if ($limit !== null) {
-                $request['limit_trades'] = $limit;
+                $request['limit_trades'] = min ($limit, 500);
             }
             if ($since !== null) {
                 $request['timestamp'] = $since;

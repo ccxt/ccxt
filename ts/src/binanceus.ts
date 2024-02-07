@@ -11,6 +11,7 @@ export default class binanceus extends binance {
             'id': 'binanceus',
             'name': 'Binance US',
             'countries': [ 'US' ], // US
+            'rateLimit': 50, // 1200 req per min
             'certified': false,
             'pro': true,
             'urls': {
@@ -48,7 +49,6 @@ export default class binanceus extends binance {
                 'future': undefined,
                 'option': false,
                 'addMargin': false,
-                'borrowMargin': false,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createReduceOnlyOrder': false,
@@ -74,11 +74,34 @@ export default class binanceus extends binance {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'reduceMargin': false,
-                'repayMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+            },
+            'api': {
+                'public': {
+                    'get': {
+                        'exchangeInfo': 10,
+                        'ping': 1,
+                        'time': 1,
+                        'depth': { 'cost': 1, 'byLimit': [ [ 100, 1 ], [ 500, 5 ], [ 1000, 10 ], [ 5000, 50 ] ] },
+                        'trades': 1,
+                        'aggTrades': 1,
+                        'historicalTrades': 5,
+                        'klines': 1,
+                        'ticker/price': { 'cost': 1, 'noSymbol': 2 },
+                        'avgPrice': 1,
+                        'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
+                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
+                        'ticker': { 'cost': 2, 'noSymbol': 100 },
+                    },
+                },
+                'private': {
+                    'get': {
+                        'status': 1,
+                    },
+                },
             },
         });
     }

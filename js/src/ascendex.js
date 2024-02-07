@@ -13,7 +13,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class ascendex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class ascendex extends Exchange {
     describe() {
@@ -67,6 +67,8 @@ export default class ascendex extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -811,12 +813,14 @@ export default class ascendex extends Exchange {
          */
         await this.loadMarkets();
         await this.loadAccounts();
-        let query = undefined;
         let marketType = undefined;
-        [marketType, query] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
+        let marginMode = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
+        [marginMode, params] = this.handleMarginModeAndParams('fetchBalance', params);
         const isMargin = this.safeValue(params, 'margin', false);
-        marketType = isMargin ? 'margin' : marketType;
-        query = this.omit(query, 'margin');
+        const isCross = marginMode === 'cross';
+        marketType = (isMargin || isCross) ? 'margin' : marketType;
+        params = this.omit(params, 'margin');
         const accountsByType = this.safeValue(this.options, 'accountsByType', {});
         const accountCategory = this.safeString(accountsByType, marketType, 'cash');
         const account = this.safeValue(this.accounts, 0, {});
@@ -824,15 +828,18 @@ export default class ascendex extends Exchange {
         const request = {
             'account-group': accountGroup,
         };
+        if ((marginMode === 'isolated') && (marketType !== 'swap')) {
+            throw new BadRequest(this.id + ' does not supported isolated margin trading');
+        }
         if ((accountCategory === 'cash') || (accountCategory === 'margin')) {
             request['account-category'] = accountCategory;
         }
         let response = undefined;
         if ((marketType === 'spot') || (marketType === 'margin')) {
-            response = await this.v1PrivateAccountCategoryGetBalance(this.extend(request, query));
+            response = await this.v1PrivateAccountCategoryGetBalance(this.extend(request, params));
         }
         else if (marketType === 'swap') {
-            response = await this.v2PrivateAccountGroupGetFuturesPosition(this.extend(request, query));
+            response = await this.v2PrivateAccountGroupGetFuturesPosition(this.extend(request, params));
         }
         else {
             throw new NotSupported(this.id + ' fetchBalance() is not currently supported for ' + marketType + ' markets');
@@ -1664,7 +1671,7 @@ export default class ascendex extends Exchange {
          * @description create a list of trade orders
          * @see https://ascendex.github.io/ascendex-pro-api/#place-batch-orders
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#place-batch-orders
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {bool} [params.postOnly] true or false
@@ -1992,7 +1999,7 @@ export default class ascendex extends Exchange {
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-current-history-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch orders for
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}

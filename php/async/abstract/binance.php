@@ -28,6 +28,9 @@ abstract class binance extends \ccxt\async\Exchange {
     public function sapi_get_margin_priceindex($params = array()) {
         return $this->request('margin/priceIndex', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function sapi_get_spot_delist_schedule($params = array()) {
+        return $this->request('spot/delist-schedule', 'sapi', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function sapi_get_asset_assetdividend($params = array()) {
         return $this->request('asset/assetDividend', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -54,6 +57,9 @@ abstract class binance extends \ccxt\async\Exchange {
     }
     public function sapi_get_asset_custody_transfer_history($params = array()) {
         return $this->request('asset/custody/transfer-history', 'sapi', 'GET', $params, null, null, array("cost" => 6));
+    }
+    public function sapi_get_margin_borrow_repay($params = array()) {
+        return $this->request('margin/borrow-repay', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function sapi_get_margin_loan($params = array()) {
         return $this->request('margin/loan', 'sapi', 'GET', $params, null, null, array("cost" => 1));
@@ -391,6 +397,33 @@ abstract class binance extends \ccxt\async\Exchange {
     public function sapi_get_lending_project_position_list($params = array()) {
         return $this->request('lending/project/position/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
+    public function sapi_get_eth_staking_eth_history_stakinghistory($params = array()) {
+        return $this->request('eth-staking/eth/history/stakingHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_get_eth_staking_eth_history_redemptionhistory($params = array()) {
+        return $this->request('eth-staking/eth/history/redemptionHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_get_eth_staking_eth_history_rewardshistory($params = array()) {
+        return $this->request('eth-staking/eth/history/rewardsHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_get_eth_staking_eth_quota($params = array()) {
+        return $this->request('eth-staking/eth/quota', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_get_eth_staking_eth_history_ratehistory($params = array()) {
+        return $this->request('eth-staking/eth/history/rateHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_get_eth_staking_account($params = array()) {
+        return $this->request('eth-staking/account', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_get_eth_staking_wbeth_history_wraphistory($params = array()) {
+        return $this->request('eth-staking/wbeth/history/wrapHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_get_eth_staking_wbeth_history_unwraphistory($params = array()) {
+        return $this->request('eth-staking/wbeth/history/unwrapHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_get_eth_staking_eth_history_wbethrewardshistory($params = array()) {
+        return $this->request('eth-staking/eth/history/wbethRewardsHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
     public function sapi_get_mining_pub_algolist($params = array()) {
         return $this->request('mining/pub/algoList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -727,6 +760,9 @@ abstract class binance extends \ccxt\async\Exchange {
     public function sapi_post_capital_deposit_credit_apply($params = array()) {
         return $this->request('capital/deposit/credit-apply', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
+    public function sapi_post_margin_borrow_repay($params = array()) {
+        return $this->request('margin/borrow-repay', 'sapi', 'POST', $params, null, null, array("cost" => 20.001));
+    }
     public function sapi_post_margin_transfer($params = array()) {
         return $this->request('margin/transfer', 'sapi', 'POST', $params, null, null, array("cost" => 4.0002));
     }
@@ -928,6 +964,21 @@ abstract class binance extends \ccxt\async\Exchange {
     public function sapi_post_staking_setautostaking($params = array()) {
         return $this->request('staking/setAutoStaking', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
+    public function sapi_post_eth_staking_eth_stake($params = array()) {
+        return $this->request('eth-staking/eth/stake', 'sapi', 'POST', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_post_eth_staking_eth_redeem($params = array()) {
+        return $this->request('eth-staking/eth/redeem', 'sapi', 'POST', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_post_eth_staking_wbeth_wrap($params = array()) {
+        return $this->request('eth-staking/wbeth/wrap', 'sapi', 'POST', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_post_mining_hash_transfer_config($params = array()) {
+        return $this->request('mining/hash-transfer/config', 'sapi', 'POST', $params, null, null, array("cost" => 0.5));
+    }
+    public function sapi_post_mining_hash_transfer_config_cancel($params = array()) {
+        return $this->request('mining/hash-transfer/config/cancel', 'sapi', 'POST', $params, null, null, array("cost" => 0.5));
+    }
     public function sapi_post_portfolio_repay($params = array()) {
         return $this->request('portfolio/repay', 'sapi', 'POST', $params, null, null, array("cost" => 20.001));
     }
@@ -1054,6 +1105,9 @@ abstract class binance extends \ccxt\async\Exchange {
     public function sapi_delete_sub_account_subaccountapi_iprestriction_iplist($params = array()) {
         return $this->request('sub-account/subAccountApi/ipRestriction/ipList', 'sapi', 'DELETE', $params, null, null, array("cost" => 20.001));
     }
+    public function sapiv2_get_eth_staking_account($params = array()) {
+        return $this->request('eth-staking/account', 'sapiV2', 'GET', $params, null, null, array("cost" => 15));
+    }
     public function sapiv2_get_sub_account_futures_account($params = array()) {
         return $this->request('sub-account/futures/account', 'sapiV2', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -1062,6 +1116,9 @@ abstract class binance extends \ccxt\async\Exchange {
     }
     public function sapiv2_get_sub_account_futures_positionrisk($params = array()) {
         return $this->request('sub-account/futures/positionRisk', 'sapiV2', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiv2_post_eth_staking_eth_stake($params = array()) {
+        return $this->request('eth-staking/eth/stake', 'sapiV2', 'POST', $params, null, null, array("cost" => 15));
     }
     public function sapiv2_post_sub_account_subaccountapi_iprestriction($params = array()) {
         return $this->request('sub-account/subAccountApi/ipRestriction', 'sapiV2', 'POST', $params, null, null, array("cost" => 20.001));
@@ -2017,6 +2074,9 @@ abstract class binance extends \ccxt\async\Exchange {
     public function sapiGetMarginPriceIndex($params = array()) {
         return $this->request('margin/priceIndex', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function sapiGetSpotDelistSchedule($params = array()) {
+        return $this->request('spot/delist-schedule', 'sapi', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function sapiGetAssetAssetDividend($params = array()) {
         return $this->request('asset/assetDividend', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -2043,6 +2103,9 @@ abstract class binance extends \ccxt\async\Exchange {
     }
     public function sapiGetAssetCustodyTransferHistory($params = array()) {
         return $this->request('asset/custody/transfer-history', 'sapi', 'GET', $params, null, null, array("cost" => 6));
+    }
+    public function sapiGetMarginBorrowRepay($params = array()) {
+        return $this->request('margin/borrow-repay', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function sapiGetMarginLoan($params = array()) {
         return $this->request('margin/loan', 'sapi', 'GET', $params, null, null, array("cost" => 1));
@@ -2380,6 +2443,33 @@ abstract class binance extends \ccxt\async\Exchange {
     public function sapiGetLendingProjectPositionList($params = array()) {
         return $this->request('lending/project/position/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
+    public function sapiGetEthStakingEthHistoryStakingHistory($params = array()) {
+        return $this->request('eth-staking/eth/history/stakingHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapiGetEthStakingEthHistoryRedemptionHistory($params = array()) {
+        return $this->request('eth-staking/eth/history/redemptionHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapiGetEthStakingEthHistoryRewardsHistory($params = array()) {
+        return $this->request('eth-staking/eth/history/rewardsHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapiGetEthStakingEthQuota($params = array()) {
+        return $this->request('eth-staking/eth/quota', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapiGetEthStakingEthHistoryRateHistory($params = array()) {
+        return $this->request('eth-staking/eth/history/rateHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapiGetEthStakingAccount($params = array()) {
+        return $this->request('eth-staking/account', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapiGetEthStakingWbethHistoryWrapHistory($params = array()) {
+        return $this->request('eth-staking/wbeth/history/wrapHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapiGetEthStakingWbethHistoryUnwrapHistory($params = array()) {
+        return $this->request('eth-staking/wbeth/history/unwrapHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapiGetEthStakingEthHistoryWbethRewardsHistory($params = array()) {
+        return $this->request('eth-staking/eth/history/wbethRewardsHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
     public function sapiGetMiningPubAlgoList($params = array()) {
         return $this->request('mining/pub/algoList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -2716,6 +2806,9 @@ abstract class binance extends \ccxt\async\Exchange {
     public function sapiPostCapitalDepositCreditApply($params = array()) {
         return $this->request('capital/deposit/credit-apply', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
+    public function sapiPostMarginBorrowRepay($params = array()) {
+        return $this->request('margin/borrow-repay', 'sapi', 'POST', $params, null, null, array("cost" => 20.001));
+    }
     public function sapiPostMarginTransfer($params = array()) {
         return $this->request('margin/transfer', 'sapi', 'POST', $params, null, null, array("cost" => 4.0002));
     }
@@ -2917,6 +3010,21 @@ abstract class binance extends \ccxt\async\Exchange {
     public function sapiPostStakingSetAutoStaking($params = array()) {
         return $this->request('staking/setAutoStaking', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
+    public function sapiPostEthStakingEthStake($params = array()) {
+        return $this->request('eth-staking/eth/stake', 'sapi', 'POST', $params, null, null, array("cost" => 15));
+    }
+    public function sapiPostEthStakingEthRedeem($params = array()) {
+        return $this->request('eth-staking/eth/redeem', 'sapi', 'POST', $params, null, null, array("cost" => 15));
+    }
+    public function sapiPostEthStakingWbethWrap($params = array()) {
+        return $this->request('eth-staking/wbeth/wrap', 'sapi', 'POST', $params, null, null, array("cost" => 15));
+    }
+    public function sapiPostMiningHashTransferConfig($params = array()) {
+        return $this->request('mining/hash-transfer/config', 'sapi', 'POST', $params, null, null, array("cost" => 0.5));
+    }
+    public function sapiPostMiningHashTransferConfigCancel($params = array()) {
+        return $this->request('mining/hash-transfer/config/cancel', 'sapi', 'POST', $params, null, null, array("cost" => 0.5));
+    }
     public function sapiPostPortfolioRepay($params = array()) {
         return $this->request('portfolio/repay', 'sapi', 'POST', $params, null, null, array("cost" => 20.001));
     }
@@ -3043,6 +3151,9 @@ abstract class binance extends \ccxt\async\Exchange {
     public function sapiDeleteSubAccountSubAccountApiIpRestrictionIpList($params = array()) {
         return $this->request('sub-account/subAccountApi/ipRestriction/ipList', 'sapi', 'DELETE', $params, null, null, array("cost" => 20.001));
     }
+    public function sapiV2GetEthStakingAccount($params = array()) {
+        return $this->request('eth-staking/account', 'sapiV2', 'GET', $params, null, null, array("cost" => 15));
+    }
     public function sapiV2GetSubAccountFuturesAccount($params = array()) {
         return $this->request('sub-account/futures/account', 'sapiV2', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -3051,6 +3162,9 @@ abstract class binance extends \ccxt\async\Exchange {
     }
     public function sapiV2GetSubAccountFuturesPositionRisk($params = array()) {
         return $this->request('sub-account/futures/positionRisk', 'sapiV2', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiV2PostEthStakingEthStake($params = array()) {
+        return $this->request('eth-staking/eth/stake', 'sapiV2', 'POST', $params, null, null, array("cost" => 15));
     }
     public function sapiV2PostSubAccountSubAccountApiIpRestriction($params = array()) {
         return $this->request('sub-account/subAccountApi/ipRestriction', 'sapiV2', 'POST', $params, null, null, array("cost" => 20.001));

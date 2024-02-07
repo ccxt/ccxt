@@ -14,6 +14,7 @@ class binanceus(binance, ImplicitAPI):
             'id': 'binanceus',
             'name': 'Binance US',
             'countries': ['US'],  # US
+            'rateLimit': 50,  # 1200 req per min
             'certified': False,
             'pro': True,
             'urls': {
@@ -51,7 +52,6 @@ class binanceus(binance, ImplicitAPI):
                 'future': None,
                 'option': False,
                 'addMargin': False,
-                'borrowMargin': False,
                 'closeAllPositions': False,
                 'closePosition': False,
                 'createReduceOnlyOrder': False,
@@ -77,10 +77,16 @@ class binanceus(binance, ImplicitAPI):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'reduceMargin': False,
-                'repayMargin': False,
                 'setLeverage': False,
                 'setMargin': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+            },
+            'api': {
+                'public': {
+                    'get': {
+                        'ticker/price': {'cost': 1, 'noSymbol': 2},
+                    },
+                },
             },
         })

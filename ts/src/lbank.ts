@@ -8,13 +8,13 @@ import { Precise } from './base/Precise.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class lbank2
- * @extends Exchange
+ * @augments Exchange
  */
 export default class lbank extends Exchange {
     describe () {
@@ -26,6 +26,7 @@ export default class lbank extends Exchange {
             // 50 per second for making and cancelling orders 1000ms / 50 = 20
             // 20 per second for all other requests, cost = 50 / 20 = 2.5
             'rateLimit': 20,
+            'pro': true,
             'has': {
                 'CORS': false,
                 'spot': true,
@@ -936,13 +937,16 @@ export default class lbank extends Exchange {
         } else {
             request['size'] = 600; // max
         }
-        let method = this.safeString (params, 'method');
+        const options = this.safeValue (this.options, 'fetchTrades', {});
+        const defaultMethod = this.safeString (options, 'method', 'spotPublicGetTrades');
+        const method = this.safeString (params, 'method', defaultMethod);
         params = this.omit (params, 'method');
-        if (method === undefined) {
-            const options = this.safeValue (this.options, 'fetchTrades', {});
-            method = this.safeString (options, 'method', 'spotPublicGetTrades');
+        let response = undefined;
+        if (method === 'spotPublicGetSupplementTrades') {
+            response = await this.spotPublicGetSupplementTrades (this.extend (request, params));
+        } else {
+            response = await this.spotPublicGetTrades (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //      {
         //          "result":"true",
@@ -1183,12 +1187,17 @@ export default class lbank extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        let method = this.safeString (params, 'method');
-        if (method === undefined) {
-            const options = this.safeValue (this.options, 'fetchBalance', {});
-            method = this.safeString (options, 'method', 'spotPrivatePostSupplementUserInfo');
+        const options = this.safeValue (this.options, 'fetchBalance', {});
+        const defaultMethod = this.safeString (options, 'method', 'spotPrivatePostSupplementUserInfo');
+        const method = this.safeString (params, 'method', defaultMethod);
+        let response = undefined;
+        if (method === 'spotPrivatePostSupplementUserInfoAccount') {
+            response = await this.spotPrivatePostSupplementUserInfoAccount ();
+        } else if (method === 'spotPrivatePostUserInfo') {
+            response = await this.spotPrivatePostUserInfo ();
+        } else {
+            response = await this.spotPrivatePostSupplementUserInfo ();
         }
-        const response = await this[method] ();
         //
         //    {
         //        "result": "true",
@@ -1371,14 +1380,16 @@ export default class lbank extends Exchange {
         if (clientOrderId !== undefined) {
             request['custom_id'] = clientOrderId;
         }
-        let method = undefined;
-        method = this.safeString (params, 'method');
+        const options = this.safeValue (this.options, 'createOrder', {});
+        const defaultMethod = this.safeString (options, 'method', 'spotPrivatePostSupplementCreateOrder');
+        const method = this.safeString (params, 'method', defaultMethod);
         params = this.omit (params, 'method');
-        if (method === undefined) {
-            const options = this.safeValue (this.options, 'createOrder', {});
-            method = this.safeString (options, 'method', 'spotPrivatePostSupplementCreateOrder');
+        let response = undefined;
+        if (method === 'spotPrivatePostCreateOrder') {
+            response = await this.spotPrivatePostCreateOrder (this.extend (request, params));
+        } else {
+            response = await this.spotPrivatePostSupplementCreateOrder (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -1924,13 +1935,17 @@ export default class lbank extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
-        let method = this.safeString (params, 'method');
+        const options = this.safeValue (this.options, 'fetchDepositAddress', {});
+        const defaultMethod = this.safeString (options, 'method', 'fetchDepositAddressDefault');
+        const method = this.safeString (params, 'method', defaultMethod);
         params = this.omit (params, 'method');
-        if (method === undefined) {
-            const options = this.safeValue (this.options, 'fetchDepositAddress', {});
-            method = this.safeString (options, 'method', 'fetchDepositAddressDefault');
+        let response = undefined;
+        if (method === 'fetchDepositAddressSupplement') {
+            response = await this.fetchDepositAddressSupplement (code, params);
+        } else {
+            response = await this.fetchDepositAddressDefault (code, params);
         }
-        return await this[method] (code, params);
+        return response;
     }
 
     async fetchDepositAddressDefault (code: string, params = {}) {
@@ -2308,13 +2323,15 @@ export default class lbank extends Exchange {
         const isAuthorized = this.checkRequiredCredentials (false);
         let result = undefined;
         if (isAuthorized === true) {
-            let method = this.safeString (params, 'method');
+            const options = this.safeValue (this.options, 'fetchTransactionFees', {});
+            const defaultMethod = this.safeString (options, 'method', 'fetchPrivateTransactionFees');
+            const method = this.safeString (params, 'method', defaultMethod);
             params = this.omit (params, 'method');
-            if (method === undefined) {
-                const options = this.safeValue (this.options, 'fetchTransactionFees', {});
-                method = this.safeString (options, 'method', 'fetchPrivateTransactionFees');
+            if (method === 'fetchPublicTransactionFees') {
+                result = await this.fetchPublicTransactionFees (params);
+            } else {
+                result = await this.fetchPrivateTransactionFees (params);
             }
-            result = await this[method] (params);
         } else {
             result = await this.fetchPublicTransactionFees (params);
         }
@@ -2454,18 +2471,21 @@ export default class lbank extends Exchange {
          */
         await this.loadMarkets ();
         const isAuthorized = this.checkRequiredCredentials (false);
-        let method = undefined;
+        const response = undefined;
         if (isAuthorized === true) {
-            method = this.safeString (params, 'method');
+            const options = this.safeValue (this.options, 'fetchDepositWithdrawFees', {});
+            const defaultMethod = this.safeString (options, 'method', 'fetchPrivateDepositWithdrawFees');
+            const method = this.safeString (params, 'method', defaultMethod);
             params = this.omit (params, 'method');
-            if (method === undefined) {
-                const options = this.safeValue (this.options, 'fetchDepositWithdrawFees', {});
-                method = this.safeString (options, 'method', 'fetchPrivateDepositWithdrawFees');
+            if (method === 'fetchPublicDepositWithdrawFees') {
+                await this.fetchPublicDepositWithdrawFees (codes, params);
+            } else {
+                await this.fetchPrivateDepositWithdrawFees (codes, params);
             }
         } else {
-            method = 'fetchPublicDepositWithdrawFees';
+            await this.fetchPublicDepositWithdrawFees (codes, params);
         }
-        return await this[method] (codes, params);
+        return response;
     }
 
     async fetchPrivateDepositWithdrawFees (codes = undefined, params = {}) {

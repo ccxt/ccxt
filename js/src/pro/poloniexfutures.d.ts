@@ -1,5 +1,5 @@
 import poloniexfuturesRest from '../poloniexfutures.js';
-import { Int, Str } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class poloniexfutures extends poloniexfuturesRest {
     describe(): any;
@@ -12,17 +12,17 @@ export default class poloniexfutures extends poloniexfuturesRest {
     handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleNewStream(client: Client, message: any, subscription: any): void;
-    watchTicker(symbol: string, params?: {}): Promise<any>;
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): any;
-    watchBalance(params?: {}): Promise<any>;
+    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    watchBalance(params?: {}): Promise<Balances>;
     handleTrade(client: Client, message: any): any;
-    parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
-    parseWsOrderTrade(trade: any, market?: any): import("../base/types.js").Trade;
+    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsOrderTrade(trade: any, market?: any): Trade;
     handleOrder(client: Client, message: any): any;
     parseOrderStatus(status: string, type: string): string;
-    parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
+    parseWsOrder(order: any, market?: any): Order;
     handleTicker(client: Client, message: any): any;
     handleL3OrderBook(client: Client, message: any): any;
     handleLevel2(client: Client, message: any): void;
@@ -32,7 +32,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
     getCacheIndex(orderbook: any, cache: any): any;
     handleDelta(orderbook: any, delta: any): void;
     handleBalance(client: Client, message: any): any;
-    parseWsBalance(response: any): import("../base/types.js").Balances;
+    parseWsBalance(response: any): Balances;
     handleSystemStatus(client: Client, message: any): any;
     handleSubject(client: Client, message: any): any;
     ping(client: Client): {

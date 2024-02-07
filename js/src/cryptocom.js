@@ -12,7 +12,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 /**
  * @class cryptocom
- * @extends Exchange
+ * @augments Exchange
  */
 export default class cryptocom extends Exchange {
     describe() {
@@ -32,12 +32,14 @@ export default class cryptocom extends Exchange {
                 'future': true,
                 'option': true,
                 'addMargin': false,
-                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'closeAllPositions': false,
                 'closePosition': true,
+                'createMarketBuyOrderWithCost': false,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
                 'fetchAccounts': true,
@@ -97,7 +99,8 @@ export default class cryptocom extends Exchange {
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
-                'repayMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -131,7 +134,10 @@ export default class cryptocom extends Exchange {
                     'derivatives': 'https://deriv-api.crypto.com/v1',
                 },
                 'www': 'https://crypto.com/',
-                'referral': 'https://crypto.com/exch/5835vstech',
+                'referral': {
+                    'url': 'https://crypto.com/exch/kdacthrnxt',
+                    'discount': 0.15,
+                },
                 'doc': [
                     'https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html',
                     'https://exchange-docs.crypto.com/spot/index.html',
@@ -767,6 +773,7 @@ export default class cryptocom extends Exchange {
         //                     "p": "26386.00",
         //                     "q": "0.00453",
         //                     "t": 1686944282062,
+        //                     "tn" : 1704476468851524373,
         //                     "d": "4611686018455979970",
         //                     "i": "BTC_USD"
         //                 },
@@ -1169,7 +1176,7 @@ export default class cryptocom extends Exchange {
          * @description create a list of trade orders
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-list
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-oco
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1342,23 +1349,29 @@ export default class cryptocom extends Exchange {
         }
         if ((side === 'buy') && ((uppercaseType === 'MARKET') || (uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT'))) {
             // use createmarketBuy logic here
-            if (this.options['createMarketBuyOrderRequiresPrice']) {
-                const cost = this.safeNumber2(params, 'cost', 'notional');
-                params = this.omit(params, 'cost');
-                if (price === undefined && cost === undefined) {
-                    throw new InvalidOrder(this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the cost in the amount argument (the exchange-specific behaviour)');
+            let quoteAmount = undefined;
+            let createMarketBuyOrderRequiresPrice = true;
+            [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeNumber2(params, 'cost', 'notional');
+            params = this.omit(params, 'cost');
+            if (cost !== undefined) {
+                quoteAmount = this.costToPrecision(symbol, cost);
+            }
+            else if (createMarketBuyOrderRequiresPrice) {
+                if (price === undefined) {
+                    throw new InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
                 }
                 else {
                     const amountString = this.numberToString(amount);
                     const priceString = this.numberToString(price);
-                    const quoteAmount = Precise.stringMul(amountString, priceString);
-                    amount = (cost !== undefined) ? cost : this.parseNumber(quoteAmount);
-                    request['notional'] = this.costToPrecision(symbol, amount);
+                    const costRequest = Precise.stringMul(amountString, priceString);
+                    quoteAmount = this.costToPrecision(symbol, costRequest);
                 }
             }
             else {
-                request['notional'] = this.costToPrecision(symbol, amount);
+                quoteAmount = this.costToPrecision(symbol, amount);
             }
+            request['notional'] = quoteAmount;
         }
         else {
             request['quantity'] = this.amountToPrecision(symbol, amount);
@@ -1898,6 +1911,7 @@ export default class cryptocom extends Exchange {
         const timestamp = this.safeInteger(ticker, 't');
         const marketId = this.safeString(ticker, 'i');
         market = this.safeMarket(marketId, market, '_');
+        const quote = this.safeString(market, 'quote');
         const last = this.safeString(ticker, 'a');
         return this.safeTicker({
             'symbol': market['symbol'],
@@ -1918,7 +1932,7 @@ export default class cryptocom extends Exchange {
             'percentage': this.safeString(ticker, 'c'),
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'v'),
-            'quoteVolume': this.safeString(ticker, 'vv'),
+            'quoteVolume': (quote === 'USD') ? this.safeString(ticker, 'vv') : undefined,
             'info': ticker,
         }, market);
     }
@@ -1930,7 +1944,8 @@ export default class cryptocom extends Exchange {
         //         "s": "sell",
         //         "p": "26386.00",
         //         "q": "0.00453",
-        //         "t": 1686944282062,
+        //         "tn": 1686944282062,
+        //         "tn": 1704476468851524373,
         //         "d": "4611686018455979970",
         //         "i": "BTC_USD"
         //     }
@@ -2231,7 +2246,7 @@ export default class cryptocom extends Exchange {
          * @method
          * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {array} the marginMode in lowercase
+         * @returns {Array} the marginMode in lowercase
          */
         const defaultType = this.safeString(this.options, 'defaultType');
         const isMargin = this.safeValue(params, 'margin', false);

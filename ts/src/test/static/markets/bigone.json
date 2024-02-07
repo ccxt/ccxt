@@ -248,5 +248,123 @@
         "taker": 0.001,
         "maker": 0.001,
         "uuid": "0ba6a004-b13a-4a6a-83ce-abe98b9df159"
+    },
+    "BTC/USDT:USDT": {
+        "id": "BTCUSDT",
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "contractSize": 0.001,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {
+                "min": 0.5,
+                "max": 1000000
+            },
+            "cost": {
+                "min": 0.01
+            }
+        },
+        "info": {
+            "baseCurrency": "BTC",
+            "multiplier": "0.001",
+            "enable": true,
+            "priceStep": "0.5",
+            "maxRiskLimit": "1E+7",
+            "pricePrecision": "1",
+            "maintenanceMargin": "0.005000000",
+            "symbol": "BTCUSDT",
+            "valuePrecision": "4",
+            "minRiskLimit": "1E+6",
+            "riskLimit": "1E+6",
+            "isInverse": false,
+            "riskStep": "1E+4",
+            "settleCurrency": "USDT",
+            "baseName": "Bitcoin",
+            "feePrecision": "8",
+            "priceMin": "0.5",
+            "priceMax": "1E+6",
+            "initialMargin": "0.010000000",
+            "quoteCurrency": "USDT"
+        }
+    },
+    "XRP/USDT:USDT": {
+        "id": "XRPUSDT",
+        "symbol": "XRP/USDT:USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "contractSize": 100,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {
+                "min": 0.0001,
+                "max": 100000000
+            },
+            "cost": {
+                "min": 0.02
+            }
+        },
+        "info": {
+            "baseCurrency": "XRP",
+            "multiplier": "1E+2",
+            "enable": true,
+            "priceStep": "0.0001",
+            "maxRiskLimit": "2.1E+6",
+            "pricePrecision": "4",
+            "maintenanceMargin": "0.010000000",
+            "symbol": "XRPUSDT",
+            "valuePrecision": "4",
+            "minRiskLimit": "3E+5",
+            "riskLimit": "3E+5",
+            "isInverse": false,
+            "riskStep": "500",
+            "settleCurrency": "USDT",
+            "baseName": "XRP",
+            "feePrecision": "8",
+            "priceMin": "0.0001",
+            "priceMax": "1E+8",
+            "initialMargin": "0.020000000",
+            "quoteCurrency": "USDT"
+        }
     }
 }

@@ -13,7 +13,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ----------------------------------------------------------------------------
 /**
  * @class phemex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class phemex extends Exchange {
     describe() {
@@ -86,7 +86,7 @@ export default class phemex extends Exchange {
                 'setMarginMode': true,
                 'setPositionMode': true,
                 'transfer': true,
-                'withdraw': undefined,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
@@ -160,6 +160,7 @@ export default class phemex extends Exchange {
                 },
                 'v2': {
                     'get': {
+                        'public/products': 5,
                         'md/v2/orderbook': 5,
                         'md/v2/trade': 5,
                         'md/v2/ticker/24hr': 5,
@@ -224,6 +225,7 @@ export default class phemex extends Exchange {
                         'assets/spots/sub-accounts/transfer': 5,
                         'assets/futures/sub-accounts/transfer': 5,
                         'assets/quote': 5, // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
+                        // deposit/withdraw
                     },
                     'post': {
                         // spot
@@ -440,7 +442,8 @@ export default class phemex extends Exchange {
                     '34003': PermissionDenied,
                     '35104': InsufficientFunds,
                     '39995': RateLimitExceeded,
-                    '39996': PermissionDenied, // {"code": "39996","msg": "Access denied."}
+                    '39996': PermissionDenied,
+                    '39997': BadSymbol, // {"code":39997,"msg":"Symbol not listed sMOVRUSDT","data":null}
                 },
                 'broad': {
                     '401 Insufficient privilege': PermissionDenied,
@@ -452,12 +455,13 @@ export default class phemex extends Exchange {
                 },
             },
             'options': {
-                'brokerId': 'ccxt2022',
+                'brokerId': 'CCXT123456',
                 'x-phemex-request-expiry': 60,
                 'createOrderByQuoteRequiresPrice': true,
                 'networks': {
                     'TRC20': 'TRX',
                     'ERC20': 'ETH',
+                    'BEP20': 'BNB',
                 },
                 'defaultNetworks': {
                     'USDT': 'ETH',
@@ -467,6 +471,16 @@ export default class phemex extends Exchange {
                     'spot': 'spot',
                     'swap': 'future',
                 },
+                'stableCoins': [
+                    'BUSD',
+                    'FEI',
+                    'TUSD',
+                    'USD',
+                    'USDC',
+                    'USDD',
+                    'USDP',
+                    'USDT',
+                ],
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
@@ -486,6 +500,8 @@ export default class phemex extends Exchange {
         //
         //     {
         //         "symbol":"BTCUSD",
+        //         "code":"1",
+        //         "type":"Perpetual",
         //         "displaySymbol":"BTC / USD",
         //         "indexSymbol":".BTC",
         //         "markSymbol":".MBTC",
@@ -503,9 +519,10 @@ export default class phemex extends Exchange {
         //         "minPriceEp":5000,
         //         "maxPriceEp":10000000000,
         //         "maxOrderQty":1000000,
-        //         "type":"Perpetual",
         //         "status":"Listed",
         //         "tipOrderQty":1000000,
+        //         "listTime":"1574650800000",
+        //         "majorSymbol":true,
         //         "steps":"50",
         //         "riskLimits":[
         //             {"limit":100,"initialMargin":"1.0%","initialMarginEr":1000000,"maintenanceMargin":"0.5%","maintenanceMarginEr":500000},
@@ -563,7 +580,7 @@ export default class phemex extends Exchange {
             // "1.0"
             contractSize = this.parseNumber(contractSizeString);
         }
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': base + '/' + quote + ':' + settle,
             'base': base,
@@ -616,24 +633,26 @@ export default class phemex extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
     parseSpotMarket(market) {
         //
         //     {
         //         "symbol":"sBTCUSDT",
         //         "code":1001,
+        //         "type":"Spot",
         //         "displaySymbol":"BTC / USDT",
         //         "quoteCurrency":"USDT",
         //         "priceScale":8,
         //         "ratioScale":8,
         //         "pricePrecision":2,
-        //         "type":"Spot",
         //         "baseCurrency":"BTC",
         //         "baseTickSize":"0.000001 BTC",
         //         "baseTickSizeEv":100,
         //         "quoteTickSize":"0.01 USDT",
         //         "quoteTickSizeEv":1000000,
+        //         "baseQtyPrecision":6,
+        //         "quoteQtyPrecision":2,
         //         "minOrderValue":"10 USDT",
         //         "minOrderValueEv":1000000000,
         //         "maxBaseOrderSize":"1000 BTC",
@@ -644,13 +663,13 @@ export default class phemex extends Exchange {
         //         "defaultTakerFeeEr":100000,
         //         "defaultMakerFee":"0.001",
         //         "defaultMakerFeeEr":100000,
-        //         "baseQtyPrecision":6,
-        //         "quoteQtyPrecision":2,
+        //         "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
         //         "status":"Listed",
         //         "tipOrderQty":2,
-        //         "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
+        //         "listTime":1589338800000,
+        //         "buyPriceUpperLimitPct":110,
+        //         "sellPriceLowerLimitPct":90,
         //         "leverage":5
-        //         "valueScale":8,
         //     },
         //
         const type = this.safeStringLower(market, 'type');
@@ -662,7 +681,7 @@ export default class phemex extends Exchange {
         const status = this.safeString(market, 'status');
         const precisionAmount = this.parseSafeNumber(this.safeString(market, 'baseTickSize'));
         const precisionPrice = this.parseSafeNumber(this.safeString(market, 'quoteTickSize'));
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -715,7 +734,7 @@ export default class phemex extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
     async fetchMarkets(params = {}) {
         /**
@@ -725,21 +744,22 @@ export default class phemex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const v2Products = await this.publicGetCfgV2Products(params);
+        const v2Products = await this.v2GetPublicProducts(params);
         //
         //     {
         //         "code":0,
-        //         "msg":"OK",
+        //         "msg":"",
         //         "data":{
-        //             "ratioScale":8,
         //             "currencies":[
-        //                 {"code":1,"currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"},
-        //                 {"code":2,"currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"},
-        //                 {"code":3,"currency":"USDT","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"TetherUS"},
+        //                 {"currency":"BTC","name":"Bitcoin","code":1,"valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"needAddrTag":0,"status":"Listed","displayCurrency":"BTC","inAssetsDisplay":1,"perpetual":0,"stableCoin":0,"assetsPrecision":8},
+        //                 {"currency":"USD","name":"USD","code":2,"valueScale":4,"minValueEv":1,"maxValueEv":5000000000000000000,"needAddrTag":0,"status":"Listed","displayCurrency":"USD","inAssetsDisplay":1,"perpetual":0,"stableCoin":0,"assetsPrecision":2},
+        //                 {"currency":"USDT","name":"TetherUS","code":3,"valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"needAddrTag":0,"status":"Listed","displayCurrency":"USDT","inAssetsDisplay":1,"perpetual":2,"stableCoin":1,"assetsPrecision":8},
         //             ],
         //             "products":[
         //                 {
         //                     "symbol":"BTCUSD",
+        //                     "code":1,
+        //                     "type":"Perpetual"
         //                     "displaySymbol":"BTC / USD",
         //                     "indexSymbol":".BTC",
         //                     "markSymbol":".MBTC",
@@ -757,22 +777,31 @@ export default class phemex extends Exchange {
         //                     "minPriceEp":5000,
         //                     "maxPriceEp":10000000000,
         //                     "maxOrderQty":1000000,
-        //                     "type":"Perpetual"
+        //                     "description":"BTC/USD perpetual contracts are priced on the .BTC Index. Each contract is worth 1 USD. Funding fees are paid and received every 8 hours at UTC time: 00:00, 08:00 and 16:00.",
+        //                     "status":"Listed",
+        //                     "tipOrderQty":1000000,
+        //                     "listTime":1574650800000,
+        //                     "majorSymbol":true,
+        //                     "defaultLeverage":"-10",
+        //                     "fundingInterval":28800,
+        //                     "maxLeverage":100
         //                 },
         //                 {
         //                     "symbol":"sBTCUSDT",
         //                     "code":1001,
+        //                     "type":"Spot",
         //                     "displaySymbol":"BTC / USDT",
         //                     "quoteCurrency":"USDT",
         //                     "priceScale":8,
         //                     "ratioScale":8,
         //                     "pricePrecision":2,
-        //                     "type":"Spot",
         //                     "baseCurrency":"BTC",
         //                     "baseTickSize":"0.000001 BTC",
         //                     "baseTickSizeEv":100,
         //                     "quoteTickSize":"0.01 USDT",
         //                     "quoteTickSizeEv":1000000,
+        //                     "baseQtyPrecision":6,
+        //                     "quoteQtyPrecision":2,
         //                     "minOrderValue":"10 USDT",
         //                     "minOrderValueEv":1000000000,
         //                     "maxBaseOrderSize":"1000 BTC",
@@ -783,12 +812,49 @@ export default class phemex extends Exchange {
         //                     "defaultTakerFeeEr":100000,
         //                     "defaultMakerFee":"0.001",
         //                     "defaultMakerFeeEr":100000,
-        //                     "baseQtyPrecision":6,
-        //                     "quoteQtyPrecision":2,
+        //                     "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
         //                     "status":"Listed",
         //                     "tipOrderQty":2,
-        //                     "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
+        //                     "listTime":1589338800000,
+        //                     "buyPriceUpperLimitPct":110,
+        //                     "sellPriceLowerLimitPct":90,
         //                     "leverage":5
+        //                 },
+        //             ],
+        //             "perpProductsV2":[
+        //                 {
+        //                     "symbol":"BTCUSDT",
+        //                     "code":41541,
+        //                     "type":"PerpetualV2",
+        //                     "displaySymbol":"BTC / USDT",
+        //                     "indexSymbol":".BTCUSDT",
+        //                     "markSymbol":".MBTCUSDT",
+        //                     "fundingRateSymbol":".BTCUSDTFR",
+        //                     "fundingRate8hSymbol":".BTCUSDTFR8H",
+        //                     "contractUnderlyingAssets":"BTC",
+        //                     "settleCurrency":"USDT",
+        //                     "quoteCurrency":"USDT",
+        //                     "tickSize":"0.1",
+        //                     "priceScale":0,
+        //                     "ratioScale":0,
+        //                     "pricePrecision":1,
+        //                     "baseCurrency":"BTC",
+        //                     "description":"BTC/USDT perpetual contracts are priced on the .BTCUSDT Index. Each contract is worth 1 BTC. Funding fees are paid and received every 8 hours at UTC time: 00:00, 08:00 and 16:00.",
+        //                     "status":"Listed",
+        //                     "tipOrderQty":0,
+        //                     "listTime":1668225600000,
+        //                     "majorSymbol":true,
+        //                     "defaultLeverage":"-10",
+        //                     "fundingInterval":28800,
+        //                     "maxLeverage":100,
+        //                     "maxOrderQtyRq":"1000",
+        //                     "maxPriceRp":"2000000000",
+        //                     "minOrderValueRv":"1",
+        //                     "minPriceRp":"1000.0",
+        //                     "qtyPrecision":3,
+        //                     "qtyStepSize":"0.001",
+        //                     "tipOrderQtyRq":"200",
+        //                     "maxOpenPosLeverage":100.0
         //                 },
         //             ],
         //             "riskLimits":[
@@ -806,7 +872,25 @@ export default class phemex extends Exchange {
         //                 {"initialMargin":"1.0%","initialMarginEr":1000000,"options":[1,2,3,5,10,25,50,100]},
         //                 {"initialMargin":"1.5%","initialMarginEr":1500000,"options":[1,2,3,5,10,25,50,66]},
         //                 {"initialMargin":"2.0%","initialMarginEr":2000000,"options":[1,2,3,5,10,25,33,50]},
-        //             ]
+        //             ],
+        //             "riskLimitsV2":[
+        //                 {
+        //                     "symbol":"BTCUSDT",
+        //                     "steps":"2000K",
+        //                     "riskLimits":[
+        //                         {"limit":2000000,"initialMarginRr":"0.01","maintenanceMarginRr":"0.005"},,
+        //                         {"limit":4000000,"initialMarginRr":"0.015","maintenanceMarginRr":"0.0075"},
+        //                         {"limit":6000000,"initialMarginRr":"0.02","maintenanceMarginRr":"0.01"},
+        //                     ]
+        //                 },
+        //             ],
+        //             "leveragesV2":[
+        //                 {"options":[1.0,2.0,3.0,5.0,10.0,25.0,50.0,100.0],"initialMarginRr":"0.01"},
+        //                 {"options":[1.0,2.0,3.0,5.0,10.0,25.0,50.0,66.67],"initialMarginRr":"0.015"},
+        //                 {"options":[1.0,2.0,3.0,5.0,10.0,25.0,33.0,50.0],"initialMarginRr":"0.02"},
+        //             ],
+        //             "ratioScale":8,
+        //             "md5Checksum":"5c6604814d3c1bafbe602c3d11a7e8bf",
         //         }
         //     }
         //
@@ -848,8 +932,12 @@ export default class phemex extends Exchange {
         //     }
         //
         const v2ProductsData = this.safeValue(v2Products, 'data', {});
-        const products = this.safeValue(v2ProductsData, 'products', []);
-        const riskLimits = this.safeValue(v2ProductsData, 'riskLimits', []);
+        let products = this.safeValue(v2ProductsData, 'products', []);
+        const perpetualProductsV2 = this.safeValue(v2ProductsData, 'perpProductsV2', []);
+        products = this.arrayConcat(products, perpetualProductsV2);
+        let riskLimits = this.safeValue(v2ProductsData, 'riskLimits', []);
+        const riskLimitsV2 = this.safeValue(v2ProductsData, 'riskLimitsV2', []);
+        riskLimits = this.arrayConcat(riskLimits, riskLimitsV2);
         const currencies = this.safeValue(v2ProductsData, 'currencies', []);
         const riskLimitsById = this.indexBy(riskLimits, 'symbol');
         const v1ProductsById = this.indexBy(v1ProductsData, 'symbol');
@@ -885,7 +973,7 @@ export default class phemex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicGetCfgV2Products(params);
+        const response = await this.v2GetPublicProducts(params);
         //
         //     {
         //         "code":0,
@@ -893,9 +981,9 @@ export default class phemex extends Exchange {
         //         "data":{
         //             ...,
         //             "currencies":[
-        //                 {"currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"},
-        //                 {"currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"},
-        //                 {"currency":"USDT","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"TetherUS"},
+        //                 {"currency":"BTC","name":"Bitcoin","code":1,"valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"needAddrTag":0,"status":"Listed","displayCurrency":"BTC","inAssetsDisplay":1,"perpetual":0,"stableCoin":0,"assetsPrecision":8},
+        //                 {"currency":"USD","name":"USD","code":2,"valueScale":4,"minValueEv":1,"maxValueEv":5000000000000000000,"needAddrTag":0,"status":"Listed","displayCurrency":"USD","inAssetsDisplay":1,"perpetual":0,"stableCoin":0,"assetsPrecision":2},
+        //                 {"currency":"USDT","name":"TetherUS","code":3,"valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"needAddrTag":0,"status":"Listed","displayCurrency":"USDT","inAssetsDisplay":1,"perpetual":2,"stableCoin":1,"assetsPrecision":8},
         //             ],
         //             ...
         //         }
@@ -908,6 +996,7 @@ export default class phemex extends Exchange {
             const id = this.safeString(currency, 'currency');
             const name = this.safeString(currency, 'name');
             const code = this.safeCurrencyCode(id);
+            const status = this.safeString(currency, 'status');
             const valueScaleString = this.safeString(currency, 'valueScale');
             const valueScale = parseInt(valueScaleString);
             const minValueEv = this.safeString(currency, 'minValueEv');
@@ -926,7 +1015,7 @@ export default class phemex extends Exchange {
                 'info': currency,
                 'code': code,
                 'name': name,
-                'active': undefined,
+                'active': status === 'Listed',
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
@@ -1400,7 +1489,7 @@ export default class phemex extends Exchange {
         if (type === 'spot') {
             response = await this.v1GetMdSpotTicker24hrAll(query);
         }
-        else if (subType === 'inverse' || market['settle'] === 'USD') {
+        else if (subType === 'inverse' || this.safeString(market, 'settle') === 'USD') {
             response = await this.v1GetMdTicker24hrAll(query);
         }
         else {
@@ -2391,7 +2480,7 @@ export default class phemex extends Exchange {
         const takeProfit = this.safeValue(params, 'takeProfit');
         const takeProfitDefined = (takeProfit !== undefined);
         if (clientOrderId === undefined) {
-            const brokerId = this.safeString(this.options, 'brokerId');
+            const brokerId = this.safeString(this.options, 'brokerId', 'CCXT123456');
             if (brokerId !== undefined) {
                 request['clOrdID'] = brokerId + this.uuid16();
             }
@@ -2890,12 +2979,14 @@ export default class phemex extends Exchange {
          * @description fetch all unfilled currently open orders
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryopenorder
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotListAllOpenOrder
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        await this.loadMarkets();
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
         }
@@ -2937,20 +3028,25 @@ export default class phemex extends Exchange {
          * @name phemex#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorder
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#queryorder
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedgedd-Perpetual-API.md#query-closed-orders-by-symbol
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotDataOrdersByIds
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.settle] the settlement currency to fetch orders for
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
-        }
         await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
-            'symbol': market['id'],
-        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        const request = {};
+        if (market !== undefined) {
+            request['symbol'] = market['id'];
+        }
         if (since !== undefined) {
             request['start'] = since;
         }
@@ -2958,8 +3054,8 @@ export default class phemex extends Exchange {
             request['limit'] = limit;
         }
         let response = undefined;
-        if (market['settle'] === 'USDT') {
-            request['currency'] = market['settle'];
+        if ((symbol === undefined) || (this.safeString(market, 'settle') === 'USDT')) {
+            request['currency'] = this.safeString(params, 'settle', 'USDT');
             response = await this.privateGetExchangeOrderV2OrderList(this.extend(request, params));
         }
         else if (market['swap']) {
@@ -3020,23 +3116,25 @@ export default class phemex extends Exchange {
          * @description fetch all trades made by the user
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-user-trade
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-user-trade
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotDataTradesHist
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
-        }
         await this.loadMarkets();
-        const market = this.market(symbol);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
         const request = {};
         if (limit !== undefined) {
             limit = Math.min(200, limit);
             request['limit'] = limit;
         }
-        if (market['settle'] === 'USDT') {
+        const isUSDTSettled = (symbol === undefined) || (this.safeString(market, 'settle') === 'USDT');
+        if (isUSDTSettled) {
             request['currency'] = 'USDT';
             request['offset'] = 0;
             if (limit === undefined) {
@@ -3049,18 +3147,12 @@ export default class phemex extends Exchange {
         if (since !== undefined) {
             request['start'] = since;
         }
-        if (market['swap'] && (limit !== undefined)) {
-            request['limit'] = limit;
-        }
-        const isUSDTSettled = market['settle'] === 'USDT';
         let response = undefined;
-        if (market['swap']) {
-            if (isUSDTSettled) {
-                response = await this.privateGetExchangeOrderV2TradingList(this.extend(request, params));
-            }
-            else {
-                response = await this.privateGetExchangeOrderTrade(this.extend(request, params));
-            }
+        if (isUSDTSettled) {
+            response = await this.privateGetExchangeOrderV2TradingList(this.extend(request, params));
+        }
+        else if (market['swap']) {
+            response = await this.privateGetExchangeOrderTrade(this.extend(request, params));
         }
         else {
             response = await this.privateGetExchangeSpotOrderTrades(this.extend(request, params));
@@ -3311,6 +3403,19 @@ export default class phemex extends Exchange {
         const statuses = {
             'Success': 'ok',
             'Succeed': 'ok',
+            'Rejected': 'failed',
+            'Security check failed': 'failed',
+            'SecurityCheckFailed': 'failed',
+            'Expired': 'failed',
+            'Address Risk': 'failed',
+            'Security Checking': 'pending',
+            'SecurityChecking': 'pending',
+            'Pending Review': 'pending',
+            'Pending Transfer': 'pending',
+            'AmlCsApporve': 'pending',
+            'New': 'pending',
+            'Confirmed': 'pending',
+            'Cancelled': 'canceled',
         };
         return this.safeString(statuses, status, status);
     }
@@ -3318,36 +3423,68 @@ export default class phemex extends Exchange {
         //
         // withdraw
         //
-        //     ...
+        //     {
+        //         "id": "10000001",
+        //         "freezeId": null,
+        //         "address": "44exxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        //         "amountRv": "100",
+        //         "chainCode": "11",
+        //         "chainName": "TRX",
+        //         "currency": "USDT",
+        //         "currencyCode": 3,
+        //         "email": "abc@gmail.com",
+        //         "expiredTime": "0",
+        //         "feeRv": "1",
+        //         "nickName": null,
+        //         "phone": null,
+        //         "rejectReason": "",
+        //         "submitedAt": "1670000000000",
+        //         "submittedAt": "1670000000000",
+        //         "txHash": null,
+        //         "userId": "10000001",
+        //         "status": "Success"
         //
         // fetchDeposits
         //
         //     {
-        //         "id":29200,
-        //         "currency":"USDT",
-        //         "currencyCode":3,
-        //         "txHash":"0x0bdbdc47807769a03b158d5753f54dfc58b92993d2f5e818db21863e01238e5d",
-        //         "address":"0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
-        //         "amountEv":3000000000,
-        //         "confirmations":13,
-        //         "type":"Deposit",
-        //         "status":"Success",
-        //         "createdAt":1592722565000
+        //         "id": "29200",
+        //         "currency": "USDT",
+        //         "currencyCode": "3",
+        //         "chainName": "ETH",
+        //         "chainCode": "4",
+        //         "txHash": "0x0bdbdc47807769a03b158d5753f54dfc58b92993d2f5e818db21863e01238e5d",
+        //         "address": "0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
+        //         "amountEv": "3000000000",
+        //         "confirmations": "13",
+        //         "type": "Deposit",
+        //         "status": "Success",
+        //         "createdAt": "1592722565000",
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "address": "1Lxxxxxxxxxxx"
-        //         "amountEv": 200000
-        //         "currency": "BTC"
-        //         "currencyCode": 1
-        //         "expiredTime": 0
-        //         "feeEv": 50000
-        //         "rejectReason": null
-        //         "status": "Succeed"
-        //         "txHash": "44exxxxxxxxxxxxxxxxxxxxxx"
-        //         "withdrawStatus: ""
+        //         "id": "10000001",
+        //         "userId": "10000001",
+        //         "freezeId": "10000002",
+        //         "phone": null,
+        //         "email": "abc@gmail.com",
+        //         "nickName": null,
+        //         "currency": "USDT",
+        //         "currencyCode": "3",
+        //         "status": "Succeed",
+        //         "withdrawStatus": "Succeed",
+        //         "amountEv": "8800000000",
+        //         "feeEv": "1200000000",
+        //         "address": "0x5xxxad",
+        //         "txHash: "0x0xxxx5d",
+        //         "submitedAt": "1702571922000",
+        //         "submittedAt": "1702571922000",
+        //         "expiredTime": "0",
+        //         "rejectReason": null,
+        //         "chainName": "ETH",
+        //         "chainCode": "4",
+        //         "proxyAddress": null
         //     }
         //
         const id = this.safeString(transaction, 'id');
@@ -3357,9 +3494,13 @@ export default class phemex extends Exchange {
         const currencyId = this.safeString(transaction, 'currency');
         currency = this.safeCurrency(currencyId, currency);
         const code = currency['code'];
-        const timestamp = this.safeInteger2(transaction, 'createdAt', 'submitedAt');
+        const networkId = this.safeString(transaction, 'chainName');
+        const timestamp = this.safeIntegerN(transaction, ['createdAt', 'submitedAt', 'submittedAt']);
         let type = this.safeStringLower(transaction, 'type');
-        const feeCost = this.parseNumber(this.fromEn(this.safeString(transaction, 'feeEv'), currency['valueScale']));
+        let feeCost = this.parseNumber(this.fromEn(this.safeString(transaction, 'feeEv'), currency['valueScale']));
+        if (feeCost === undefined) {
+            feeCost = this.safeNumber(transaction, 'feeRv');
+        }
         let fee = undefined;
         if (feeCost !== undefined) {
             type = 'withdrawal';
@@ -3369,14 +3510,17 @@ export default class phemex extends Exchange {
             };
         }
         const status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
-        const amount = this.parseNumber(this.fromEn(this.safeString(transaction, 'amountEv'), currency['valueScale']));
+        let amount = this.parseNumber(this.fromEn(this.safeString(transaction, 'amountEv'), currency['valueScale']));
+        if (amount === undefined) {
+            amount = this.safeNumber(transaction, 'amountRv');
+        }
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': undefined,
+            'network': this.networkIdToCode(networkId),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -4135,6 +4279,13 @@ export default class phemex extends Exchange {
             };
             let payload = '';
             if (method === 'POST') {
+                const isOrderPlacement = (path === 'g-orders') || (path === 'spot/orders') || (path === 'orders');
+                if (isOrderPlacement) {
+                    if (this.safeString(params, 'clOrdID') === undefined) {
+                        const id = this.safeString(this.options, 'brokerId', 'CCXT123456');
+                        params['clOrdID'] = id + this.uuid16();
+                    }
+                }
                 payload = this.json(params);
                 body = payload;
                 headers['Content-Type'] = 'application/json';
@@ -4151,7 +4302,7 @@ export default class phemex extends Exchange {
          * @name phemex#setLeverage
          * @description set the level of leverage for a market
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#set-leverage
-         * @param {float} leverage the rate of leverage
+         * @param {float} leverage the rate of leverage, 100 > leverage > -100 excluding numbers between -1 to 1
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.hedged] set to true if hedged position mode is enabled (by default long and short leverage are set to the same value)
@@ -4164,8 +4315,8 @@ export default class phemex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
         }
-        if ((leverage < 1) || (leverage > 100)) {
-            throw new BadRequest(this.id + ' setLeverage() leverage should be between 1 and 100');
+        if ((leverage < -100) || (leverage > 100)) {
+            throw new BadRequest(this.id + ' setLeverage() leverage should be between -100 and 100');
         }
         await this.loadMarkets();
         const isHedged = this.safeValue(params, 'hedged', false);
@@ -4480,6 +4631,76 @@ export default class phemex extends Exchange {
         }
         const sorted = this.sortBy(result, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+    }
+    async withdraw(code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name phemex#withdraw
+         * @description make a withdrawal
+         * @see https://phemex-docs.github.io/#create-withdraw-request
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string} tag
+         * @param {object} [params] extra parameters specific to the phemex api endpoint
+         * @param {string} [params.network] unified network code
+         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         */
+        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        await this.loadMarkets();
+        this.checkAddress(address);
+        const currency = this.currency(code);
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        let networkId = this.networkCodeToId(networkCode);
+        const stableCoins = this.safeValue(this.options, 'stableCoins');
+        if (networkId === undefined) {
+            if (!(this.inArray(code, stableCoins))) {
+                networkId = currency['id'];
+            }
+            else {
+                throw new ArgumentsRequired(this.id + ' withdraw () requires an extra argument params["network"]');
+            }
+        }
+        const request = {
+            'currency': currency['id'],
+            'address': address,
+            'amount': amount,
+            'chainName': networkId.toUpperCase(),
+        };
+        if (tag !== undefined) {
+            request['addressTag'] = tag;
+        }
+        const response = await this.privatePostPhemexWithdrawWalletsApiCreateWithdraw(this.extend(request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "OK",
+        //         "data": {
+        //             "id": "10000001",
+        //             "freezeId": null,
+        //             "address": "44exxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        //             "amountRv": "100",
+        //             "chainCode": "11",
+        //             "chainName": "TRX",
+        //             "currency": "USDT",
+        //             "currencyCode": 3,
+        //             "email": "abc@gmail.com",
+        //             "expiredTime": "0",
+        //             "feeRv": "1",
+        //             "nickName": null,
+        //             "phone": null,
+        //             "rejectReason": "",
+        //             "submitedAt": "1670000000000",
+        //             "submittedAt": "1670000000000",
+        //             "txHash": null,
+        //             "userId": "10000001",
+        //             "status": "Success"
+        //         }
+        //     }
+        //
+        const data = this.safeValue(response, 'data', {});
+        return this.parseTransaction(data, currency);
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
