@@ -1375,7 +1375,7 @@ export default class cex extends cexRest {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrdersWs (ids, symbol: string = undefined, params = {}) {
+    async cancelOrdersWs (ids: string[], symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name cex#cancelOrdersWs

@@ -1733,7 +1733,7 @@ export default class blofin extends Exchange {
         return this.parseOrders (ordersData, market, undefined, undefined, params);
     }
 
-    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name blofin#transfer

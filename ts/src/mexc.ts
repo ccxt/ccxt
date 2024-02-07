@@ -5116,7 +5116,7 @@ export default class mexc extends Exchange {
         };
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchTransactionFees

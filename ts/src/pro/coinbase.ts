@@ -88,7 +88,7 @@ export default class coinbase extends coinbaseRest {
         return await this.watch (url, messageHash, subscribe, messageHash);
     }
 
-    async watchTicker (symbol, params = {}): Promise<Ticker> {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name coinbasepro#watchTicker
@@ -269,7 +269,7 @@ export default class coinbase extends coinbaseRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}): Promise<Order[]> {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinbasepro#watchOrders

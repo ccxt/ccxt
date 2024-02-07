@@ -2003,7 +2003,7 @@ export default class kucoin extends Exchange {
         return await this.createMarketOrderWithCost (symbol, 'buy', cost, params);
     }
 
-    async createMarketSellOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketSellOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name kucoin#createMarketSellOrderWithCost

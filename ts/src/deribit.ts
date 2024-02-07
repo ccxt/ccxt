@@ -473,7 +473,7 @@ export default class deribit extends Exchange {
         return reconstructedDate;
     }
 
-    createExpiredOptionMarket (symbol) {
+    createExpiredOptionMarket (symbol: string) {
         // support expired option contracts
         let quote = 'USD';
         let settle = undefined;
