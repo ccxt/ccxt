@@ -110,19 +110,19 @@ export default class bitmart extends bitmartRest {
         const url = this.implodeHostname (this.urls['api']['ws'][type]['public']);
         const channelType = (type === 'spot') ? 'spot' : 'futures';
         const actionType = (type === 'spot') ? 'op' : 'action';
-        const requestArray = [];
+        const rawSubscriptions = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             const message = channelType + '/' + channel + ':' + market['id'];
-            requestArray.push (message);
-            messageHashes.push (message); // we could use 'orderbook: market['symbol']' as a messageHash, but due to some complexities, atm we have to use message as a messageHash
+            rawSubscriptions.push (message);
+            messageHashes.push (channel + ':' + market['symbol']);
         }
         const request = {
-            'args': requestArray,
+            'args': rawSubscriptions,
         };
         request[actionType] = 'subscribe';
-        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params));
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), rawSubscriptions);
     }
 
     async watchBalance (params = {}): Promise<Balances> {
@@ -1300,6 +1300,7 @@ export default class bitmart extends bitmartRest {
             }
         }
         if (isSpot) {
+            let channel = table.replace ('spot/', '');
             for (let i = 0; i < data.length; i++) {
                 const update = data[i];
                 const marketId = this.safeString (update, 'symbol');
@@ -1322,8 +1323,13 @@ export default class bitmart extends bitmartRest {
                 }
                 const messageHash = table + ':' + marketId;
                 client.resolve (orderbook, messageHash);
+                // resolve ForSymbols
+                const messageHashForMulti = channel + ':' + symbol;
+                client.resolve (orderbook, messageHashForMulti);
             }
         } else {
+            const tableParts = table.split (':');
+            const channel = tableParts[0].replace ('futures/', '');
             const marketId = this.safeString (data, 'symbol');
             const symbol = this.safeSymbol (marketId);
             let orderbook = this.safeValue (this.orderbooks, symbol);
@@ -1356,6 +1362,9 @@ export default class bitmart extends bitmartRest {
             orderbook['datetime'] = this.iso8601 (timestamp);
             const messageHash = table;
             client.resolve (orderbook, messageHash);
+            // resolve ForSymbols
+            const messageHashForMulti = channel + ':' + symbol;
+            client.resolve (orderbook, messageHashForMulti);
         }
     }
 
