@@ -113,15 +113,19 @@ export default class bitmart extends bitmartRest {
 
     async subscribeMultiple (channelName, marketType, symbols, params = {}) {
         const url = this.implodeHostname (this.urls['api']['ws'][marketType]['public']);
-        const rawMarketType = (marketType === 'spot') ? 'spot' : 'futures';
-        const actionType = (marketType === 'spot') ? 'op' : 'action';
-        const rawSubscriptions = [];
+        const isSpot = (marketType === 'spot');
+        const rawMarketType = isSpot ? 'spot' : 'futures';
+        const actionType = isSpot ? 'op' : 'action';
+        let rawSubscriptions = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             const message = rawMarketType + '/' + channelName + ':' + market['id'];
             rawSubscriptions.push (message);
             messageHashes.push (channelName + ':' + market['symbol']);
+        }
+        if (!isSpot && channelName === 'ticker') {
+            rawSubscriptions = [ 'futures/ticker' ];
         }
         const request = {
             'args': rawSubscriptions,
@@ -317,13 +321,22 @@ export default class bitmart extends bitmartRest {
 
     async helperForWatchMultiple (methodName: string, symbols: string[], limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true);
-        if (symbols.length > 20) {
+        symbols = this.marketSymbols (symbols, undefined, true, true);
+        let market = undefined;
+        let marketType = undefined;
+        if (symbols !== undefined) {
+            market = this.market (symbols[0]);
+            marketType = market['type'];
+        }
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params);
+        // for contract's watchTickers we can default to all-symbols
+        if (methodName === 'watchTickers' && this.inArray (marketType, [ 'swap', 'future' ]) && symbols === undefined) {
+            symbols = this.filterByArray (this.symbols, 'type', [ 'swap', 'future' ]);
+        } else if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a list of symbols for ' + marketType + ' markets');
+        } else if (symbols.length > 20) {
             throw new NotSupported (this.id + ' ' + methodName + '() accepts a maximum of 20 symbols in one request');
         }
-        const market = this.market (symbols[0]);
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params);
         return [ symbols, marketType, params ];
     }
 
@@ -355,8 +368,10 @@ export default class bitmart extends bitmartRest {
         let marketType = undefined;
         [ symbols, marketType, params ] = await this.helperForWatchMultiple ('watchTickers', symbols, undefined, params);
         const channelName = 'ticker';
-        const tickers = await this.subscribeMultiple (channelName, marketType, symbols, params);
+        const ticker = await this.subscribeMultiple (channelName, marketType, symbols, params);
         if (this.newUpdates) {
+            const tickers = {};
+            tickers[ticker['symbol']] = ticker;
             return tickers;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
