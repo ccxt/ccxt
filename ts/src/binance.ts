@@ -9144,7 +9144,7 @@ export default class binance extends Exchange {
         return response;
     }
 
-    async setPositionMode (hedged, symbol: Str = undefined, params = {}) {
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name binance#setPositionMode

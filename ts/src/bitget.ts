@@ -6903,7 +6903,7 @@ export default class bitget extends Exchange {
         return response;
     }
 
-    async setMarginMode (marginMode, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitget#setMarginMode
@@ -6959,7 +6959,7 @@ export default class bitget extends Exchange {
         return response;
     }
 
-    async setPositionMode (hedged, symbol: Str = undefined, params = {}) {
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitget#setPositionMode

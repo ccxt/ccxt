@@ -6075,7 +6075,7 @@ export default class bybit extends Exchange {
         });
     }
 
-    async setMarginMode (marginMode, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bybit#setMarginMode
@@ -6220,7 +6220,7 @@ export default class bybit extends Exchange {
         return response;
     }
 
-    async setPositionMode (hedged, symbol: Str = undefined, params = {}) {
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bybit#setPositionMode

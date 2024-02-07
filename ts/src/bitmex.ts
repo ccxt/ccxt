@@ -2606,7 +2606,7 @@ export default class bitmex extends Exchange {
         return await this.privatePostPositionLeverage (this.extend (request, params));
     }
 
-    async setMarginMode (marginMode, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#setMarginMode

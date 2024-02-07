@@ -4047,7 +4047,7 @@ export default class phemex extends Exchange {
         };
     }
 
-    async setMarginMode (marginMode, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name phemex#setMarginMode
@@ -4083,7 +4083,7 @@ export default class phemex extends Exchange {
         return await this.privatePutPositionsLeverage (this.extend (request, params));
     }
 
-    async setPositionMode (hedged, symbol: Str = undefined, params = {}) {
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name phemex#setPositionMode

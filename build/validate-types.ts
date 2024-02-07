@@ -93,7 +93,9 @@ function isUserFacingMethod(method: string) {
         || method.startsWith('transfer')
         || method.startsWith('withdraw')
         || method.startsWith('deposit')
-        || method.startsWith('watch');
+        || method.startsWith('watch')
+        || method.startsWith('setM')
+        || method.startsWith('setP');
 }
 
 function isUknownReturnType(type: string) {

@@ -3831,7 +3831,7 @@ export default class bingx extends Exchange {
         return positions;
     }
 
-    async setPositionMode (hedged, symbol: Str = undefined, params = {}) {
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bingx#setPositionMode

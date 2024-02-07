@@ -2956,7 +2956,7 @@ export default class ascendex extends Exchange {
         return await this.v2PrivateAccountGroupPostFuturesLeverage (this.extend (request, params));
     }
 
-    async setMarginMode (marginMode, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#setMarginMode

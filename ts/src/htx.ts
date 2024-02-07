@@ -8932,7 +8932,7 @@ export default class htx extends Exchange {
         });
     }
 
-    async setPositionMode (hedged, symbol: Str = undefined, params = {}) {
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name htx#setPositionMode

@@ -6072,7 +6072,7 @@ export default class okx extends Exchange {
         return response;
     }
 
-    async setPositionMode (hedged, symbol: Str = undefined, params = {}) {
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name okx#setPositionMode
@@ -6107,7 +6107,7 @@ export default class okx extends Exchange {
         return response;
     }
 
-    async setMarginMode (marginMode, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name okx#setMarginMode
