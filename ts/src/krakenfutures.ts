@@ -1217,7 +1217,7 @@ export default class krakenfutures extends Exchange {
         }
         const response = await this.historyGetOrders (params);
         const allOrders = this.safeList (response, 'elements', []);
-        const closedOrders: any[] = [];
+        const closedOrders = [];
         for (let i = 0; i < allOrders.length; i++) {
             const order = allOrders[i];
             const event = this.safeDict (order, 'event', {});
@@ -1260,7 +1260,7 @@ export default class krakenfutures extends Exchange {
         }
         const response = await this.historyGetOrders (params);
         const allOrders = this.safeList (response, 'elements', []);
-        const canceledAndRejected: any[] = [];
+        const canceledAndRejected = [];
         for (let i = 0; i < allOrders.length; i++) {
             const order = allOrders[i];
             const event = this.safeDict (order, 'event', {});
