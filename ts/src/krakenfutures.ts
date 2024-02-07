@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Ticker, OrderBook, Tickers, Strings, Market, Currency, Dict } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Ticker, OrderBook, Tickers, Strings, Market, Currency } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -40,8 +40,8 @@ export default class krakenfutures extends Exchange {
                 'fetchBalance': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchClosedOrders': true, // https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
                 'fetchCanceledOrders': true,
+                'fetchClosedOrders': true, // https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchDepositAddress': false,
@@ -1217,7 +1217,7 @@ export default class krakenfutures extends Exchange {
         }
         const response = await this.historyGetOrders (params);
         const allOrders = this.safeList (response, 'elements', []);
-        const closedOrders: Dict[] = [];
+        const closedOrders: any[] = [];
         for (let i = 0; i < allOrders.length; i++) {
             const order = allOrders[i];
             const event = this.safeDict (order, 'event', {});
@@ -1260,7 +1260,7 @@ export default class krakenfutures extends Exchange {
         }
         const response = await this.historyGetOrders (params);
         const allOrders = this.safeList (response, 'elements', []);
-        const canceledAndRejected: Dict[] = [];
+        const canceledAndRejected: any[] = [];
         for (let i = 0; i < allOrders.length; i++) {
             const order = allOrders[i];
             const event = this.safeDict (order, 'event', {});
