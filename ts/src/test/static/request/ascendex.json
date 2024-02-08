@@ -334,6 +334,20 @@
                   }
                 ]
             }
+        ],
+        "transfer": [
+            {
+                "description": "transfer from spot to futures",
+                "method": "transfer",
+                "url": "https://ascendex.com/3/api/pro/v1/transfer",
+                "input": [
+                  "USDT",
+                  1,
+                  "cash",
+                  "futures"
+                ],
+                "output": "{\"amount\":\"1\",\"asset\":\"USDT\",\"fromAccount\":\"cash\",\"toAccount\":\"futures\"}"
+            }
         ]
     }
 }
