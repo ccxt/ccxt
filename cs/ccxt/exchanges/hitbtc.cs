@@ -3457,7 +3457,7 @@ public partial class hitbtc : Exchange
         return await this.modifyMarginHelper(symbol, amount, "add", parameters);
     }
 
-    public async virtual Task<object> fetchLeverage(object symbol, object parameters = null)
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
         /**
         * @method

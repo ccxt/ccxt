@@ -23,7 +23,7 @@ export default class okcoin extends Exchange {
     fetchBalance(params?: {}): Promise<Balances>;
     parseTradingBalance(response: any): Balances;
     parseFundingBalance(response: any): Balances;
-    createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
+    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): any;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
@@ -43,7 +43,7 @@ export default class okcoin extends Exchange {
     };
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
-    transfer(code: string, amount: number, fromAccount: any, toAccount: any, params?: {}): Promise<TransferEntry>;
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: any, currency?: Currency): {
         info: any;
         id: string;

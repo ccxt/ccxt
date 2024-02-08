@@ -72,6 +72,7 @@ interface Exchange {
     v3PrivatePostBrokerageOrdersBatchCancel(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersEdit(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersEditPreview(params?: {}): Promise<implicitReturnType>;
+    v3PrivatePostBrokerageOrdersPreview(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokeragePortfolios(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokeragePortfoliosMoveFunds(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageConvertQuote(params?: {}): Promise<implicitReturnType>;

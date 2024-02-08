@@ -145,7 +145,7 @@ public partial class wavesexchange : Exchange
                     { "id", "EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc" },
                     { "numericId", null },
                     { "code", "WX" },
-                    { "precision", this.parseNumber("8") },
+                    { "precision", this.parseToInt("8") },
                 }) },
             } },
             { "precisionMode", DECIMAL_PLACES },

@@ -325,7 +325,9 @@ export default class testMainClass extends baseMainTestClass {
             }
         }
         // credentials
-        this.loadCredentialsFromEnv (exchange);
+        if (this.loadKeys) {
+            this.loadCredentialsFromEnv (exchange);
+        }
         // skipped tests
         const skippedFile = this.rootDirForSkips + 'skip-tests.json';
         const skippedSettings = ioFileRead (skippedFile);

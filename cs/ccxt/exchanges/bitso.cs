@@ -305,6 +305,7 @@ public partial class bitso : Exchange
         * @method
         * @name bitso#fetchMarkets
         * @description retrieves data on all markets for bitso
+        * @see https://docs.bitso.com/bitso-api/docs/list-available-books
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of objects representing market data
         */
@@ -475,6 +476,7 @@ public partial class bitso : Exchange
         * @method
         * @name bitso#fetchBalance
         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+        * @see https://docs.bitso.com/bitso-api/docs/get-account-balance
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
@@ -515,6 +517,7 @@ public partial class bitso : Exchange
         * @method
         * @name bitso#fetchOrderBook
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://docs.bitso.com/bitso-api/docs/list-order-book
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -584,6 +587,7 @@ public partial class bitso : Exchange
         * @method
         * @name bitso#fetchTicker
         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://docs.bitso.com/bitso-api/docs/ticker
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -816,6 +820,7 @@ public partial class bitso : Exchange
         * @method
         * @name bitso#fetchTrades
         * @description get the list of most recent trades for a particular symbol
+        * @see https://docs.bitso.com/bitso-api/docs/list-trades
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -838,6 +843,7 @@ public partial class bitso : Exchange
         * @method
         * @name bitso#fetchTradingFees
         * @description fetch the trading fees for multiple markets
+        * @see https://docs.bitso.com/bitso-api/docs/list-fees
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
         */
@@ -913,6 +919,7 @@ public partial class bitso : Exchange
         * @method
         * @name bitso#fetchMyTrades
         * @description fetch all trades made by the user
+        * @see https://docs.bitso.com/bitso-api/docs/user-trades
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -954,6 +961,7 @@ public partial class bitso : Exchange
         * @method
         * @name bitso#createOrder
         * @description create a trade order
+        * @see https://docs.bitso.com/bitso-api/docs/place-an-order
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
@@ -989,6 +997,7 @@ public partial class bitso : Exchange
         * @method
         * @name bitso#cancelOrder
         * @description cancels an open order
+        * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
         * @param {string} id order id
         * @param {string} symbol not used by bitso cancelOrder ()
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1008,6 +1017,7 @@ public partial class bitso : Exchange
         * @method
         * @name bitso#cancelOrders
         * @description cancel multiple orders
+        * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
         * @param {string[]} ids order ids
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1050,6 +1060,7 @@ public partial class bitso : Exchange
         * @method
         * @name bitso#cancelAllOrders
         * @description cancel all open orders
+        * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
         * @param {undefined} symbol bitso does not support canceling orders for only a specific market
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1144,6 +1155,7 @@ public partial class bitso : Exchange
         * @method
         * @name bitso#fetchOpenOrders
         * @description fetch all unfilled currently open orders
+        * @see https://docs.bitso.com/bitso-api/docs/list-open-orders
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch open orders for
         * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1186,6 +1198,7 @@ public partial class bitso : Exchange
         * @method
         * @name bitso#fetchOrder
         * @description fetches information on an order made by the user
+        * @see https://docs.bitso.com/bitso-api/docs/look-up-orders
         * @param {string} symbol not used by bitso fetchOrder
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1213,6 +1226,7 @@ public partial class bitso : Exchange
         * @method
         * @name bitso#fetchOrderTrades
         * @description fetch all the trades made from a single order
+        * @see https://docs.bitso.com/bitso-api/docs/list-user-trades
         * @param {string} id order id
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1236,6 +1250,7 @@ public partial class bitso : Exchange
         * @method
         * @name bitso#fetchDeposit
         * @description fetch information on a deposit
+        * @see https://docs.bitso.com/bitso-payouts-funding/docs/fundings
         * @param {string} id deposit id
         * @param {string} code bitso does not support filtering by currency code and will ignore this argument
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1281,6 +1296,7 @@ public partial class bitso : Exchange
         * @method
         * @name bitso#fetchDeposits
         * @description fetch all deposits made to an account
+        * @see https://docs.bitso.com/bitso-payouts-funding/docs/fundings
         * @param {string} code unified currency code
         * @param {int} [since] the earliest time in ms to fetch deposits for
         * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -1364,7 +1380,7 @@ public partial class bitso : Exchange
         * @name bitso#fetchTransactionFees
         * @deprecated
         * @description please use fetchDepositWithdrawFees instead
-        * @see https://bitso.com/api_info#fees
+        * @see https://docs.bitso.com/bitso-api/docs/list-fees
         * @param {string[]|undefined} codes list of unified currency codes
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -1464,7 +1480,7 @@ public partial class bitso : Exchange
         * @method
         * @name bitso#fetchDepositWithdrawFees
         * @description fetch deposit and withdraw fees
-        * @see https://bitso.com/api_info#fees
+        * @see https://docs.bitso.com/bitso-api/docs/list-fees
         * @param {string[]|undefined} codes list of unified currency codes
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}

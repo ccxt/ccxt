@@ -26,6 +26,7 @@ public partial class phemex : Exchange
                 { "addMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
+                { "closePosition", false },
                 { "createOrder", true },
                 { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", true },
@@ -4315,7 +4316,7 @@ public partial class phemex : Exchange
         };
     }
 
-    public async virtual Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
     {
         /**
         * @method
@@ -4358,7 +4359,7 @@ public partial class phemex : Exchange
         return await this.privatePutPositionsLeverage(this.extend(request, parameters));
     }
 
-    public async virtual Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
+    public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
         /**
         * @method

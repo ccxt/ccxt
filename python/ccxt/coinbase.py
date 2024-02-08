@@ -227,6 +227,7 @@ class coinbase(Exchange, ImplicitAPI):
                             'brokerage/orders/batch_cancel',
                             'brokerage/orders/edit',
                             'brokerage/orders/edit_preview',
+                            'brokerage/orders/preview',
                             'brokerage/portfolios',
                             'brokerage/portfolios/move_funds',
                             'brokerage/convert/quote',
@@ -430,11 +431,12 @@ class coinbase(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
-        pagination = self.safe_value(response, 'pagination', {})
+        data = self.safe_list(response, 'data', [])
+        pagination = self.safe_dict(response, 'pagination', {})
         cursor = self.safe_string(pagination, 'next_starting_after')
-        accounts = self.safe_value(response, 'data', [])
-        lastIndex = len(accounts) - 1
+        accounts = self.safe_list(response, 'data', [])
+        length = len(accounts)
+        lastIndex = length - 1
         last = self.safe_value(accounts, lastIndex)
         if (cursor is not None) and (cursor != ''):
             last['next_starting_after'] = cursor
@@ -481,8 +483,9 @@ class coinbase(Exchange, ImplicitAPI):
         #         "size": 9
         #     }
         #
-        accounts = self.safe_value(response, 'accounts', [])
-        lastIndex = len(accounts) - 1
+        accounts = self.safe_list(response, 'accounts', [])
+        length = len(accounts)
+        lastIndex = length - 1
         last = self.safe_value(accounts, lastIndex)
         cursor = self.safe_string(response, 'cursor')
         if (cursor is not None) and (cursor != ''):
@@ -2098,7 +2101,7 @@ class coinbase(Exchange, ImplicitAPI):
             request['limit'] = limit
         return request
 
-    def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder
@@ -2133,6 +2136,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [params.stop_direction]: 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
         :param str [params.end_time]: '2023-05-25T17:01:05.092Z' for 'GTD' orders
         :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param boolean [params.preview]: default to False, wether to use the test/preview endpoint or not
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -2248,7 +2252,14 @@ class coinbase(Exchange, ImplicitAPI):
                     },
                 }
         params = self.omit(params, ['timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time'])
-        response = self.v3PrivatePostBrokerageOrders(self.extend(request, params))
+        preview = self.safe_value_2(params, 'preview', 'test', False)
+        response = None
+        if preview:
+            params = self.omit(params, ['preview', 'test'])
+            request = self.omit(request, 'client_order_id')
+            response = self.v3PrivatePostBrokerageOrdersPreview(self.extend(request, params))
+        else:
+            response = self.v3PrivatePostBrokerageOrders(self.extend(request, params))
         #
         # successful order
         #
@@ -2503,7 +2514,7 @@ class coinbase(Exchange, ImplicitAPI):
                 raise BadRequest(self.id + ' cancelOrders() has failed, check your arguments and parameters')
         return self.parse_orders(orders, market)
 
-    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         """
         edit a trade order
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_editorder

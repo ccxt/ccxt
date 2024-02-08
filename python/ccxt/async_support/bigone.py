@@ -1374,7 +1374,7 @@ class bigone(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    async def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
         :see: https://open.big.one/docs/spot_orders.html#create-order
@@ -1972,7 +1972,7 @@ class bigone(Exchange, ImplicitAPI):
         withdrawals = self.safe_value(response, 'data', [])
         return self.parse_transactions(withdrawals, currency, since, limit)
 
-    async def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://open.big.one/docs/spot_transfer.html#transfer-of-user

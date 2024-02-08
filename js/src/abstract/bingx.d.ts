@@ -15,6 +15,7 @@ interface Exchange {
     spotV1PrivatePostTradeOrder(params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeCancel(params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeBatchOrders(params?: {}): Promise<implicitReturnType>;
+    spotV1PrivatePostTradeOrderCancelReplace(params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeCancelOrders(params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeCancelOpenOrders(params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetGetAssetTransfer(params?: {}): Promise<implicitReturnType>;
@@ -22,8 +23,11 @@ interface Exchange {
     spotV3PrivateGetCapitalDepositHisrec(params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetCapitalWithdrawHistory(params?: {}): Promise<implicitReturnType>;
     spotV3PrivatePostPostAssetTransfer(params?: {}): Promise<implicitReturnType>;
+    swapV1PublicGetTickerPrice(params?: {}): Promise<implicitReturnType>;
     swapV1PrivateGetPositionSideDual(params?: {}): Promise<implicitReturnType>;
     swapV1PrivateGetMarketMarkPriceKlines(params?: {}): Promise<implicitReturnType>;
+    swapV1PrivateGetTradeBatchCancelReplace(params?: {}): Promise<implicitReturnType>;
+    swapV1PrivatePostTradeCancelReplace(params?: {}): Promise<implicitReturnType>;
     swapV1PrivatePostPositionSideDual(params?: {}): Promise<implicitReturnType>;
     swapV2PublicGetServerTime(params?: {}): Promise<implicitReturnType>;
     swapV2PublicGetQuoteContracts(params?: {}): Promise<implicitReturnType>;
