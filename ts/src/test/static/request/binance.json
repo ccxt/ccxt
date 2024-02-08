@@ -1660,6 +1660,30 @@
                         "subType": "inverse"
                     }
                 ]
+            },
+            {
+                "description": "Linear portfolio margin fetch leverage tiers",
+                "method": "fetchLeverageTiers",
+                "url": "https://papi.binance.com/papi/v1/um/leverageBracket?timestamp=1707376044709&recvWindow=10000&signature=248c0da5dc253c98bce350eb8c3d2c8f37781003baa5141838cbd2caa74a3636",
+                "input": [
+                  null,
+                  {
+                    "portfolioMargin": true,
+                    "subType": "linear"
+                  }
+                ]
+            },
+            {
+                "description": "Inverse portfolio margin fetch leverage tiers",
+                "method": "fetchLeverageTiers",
+                "url": "https://papi.binance.com/papi/v1/cm/leverageBracket?timestamp=1707376139383&recvWindow=10000&signature=6e4a769ba3c1aceddccf243167e92a4a814366cfed3594edbf6aa91bce359ed4",
+                "input": [
+                  null,
+                  {
+                    "portfolioMargin": true,
+                    "subType": "inverse"
+                  }
+                ]
             }
         ],
         "fetchFundingRateHistory": [
