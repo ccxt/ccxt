@@ -8619,11 +8619,21 @@ export default class binance extends Exchange {
             const query = this.omit (params, 'type');
             let subType = undefined;
             [ subType, params ] = this.handleSubTypeAndParams ('loadLeverageBrackets', undefined, params, 'linear');
+            let isPortfolioMargin = undefined;
+            [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'loadLeverageBrackets', 'papi', 'portfolioMargin', false);
             let response = undefined;
             if (this.isLinear (type, subType)) {
-                response = await this.fapiPrivateGetLeverageBracket (query);
+                if (isPortfolioMargin) {
+                    response = await this.papiGetUmLeverageBracket (query);
+                } else {
+                    response = await this.fapiPrivateGetLeverageBracket (query);
+                }
             } else if (this.isInverse (type, subType)) {
-                response = await this.dapiPrivateV2GetLeverageBracket (query);
+                if (isPortfolioMargin) {
+                    response = await this.papiGetCmLeverageBracket (query);
+                } else {
+                    response = await this.dapiPrivateV2GetLeverageBracket (query);
+                }
             } else {
                 throw new NotSupported (this.id + ' loadLeverageBrackets() supports linear and inverse contracts only');
             }
@@ -8653,8 +8663,11 @@ export default class binance extends Exchange {
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @see https://binance-docs.github.io/apidocs/futures/en/#notional-and-leverage-brackets-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#notional-bracket-for-symbol-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#um-notional-and-leverage-brackets-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#cm-notional-and-leverage-brackets-user_data
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the leverage tiers for a portfolio margin account
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
@@ -8662,11 +8675,21 @@ export default class binance extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverageTiers', undefined, params, 'linear');
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchLeverageTiers', 'papi', 'portfolioMargin', false);
         let response = undefined;
         if (this.isLinear (type, subType)) {
-            response = await this.fapiPrivateGetLeverageBracket (params);
+            if (isPortfolioMargin) {
+                response = await this.papiGetUmLeverageBracket (params);
+            } else {
+                response = await this.fapiPrivateGetLeverageBracket (params);
+            }
         } else if (this.isInverse (type, subType)) {
-            response = await this.dapiPrivateV2GetLeverageBracket (params);
+            if (isPortfolioMargin) {
+                response = await this.papiGetCmLeverageBracket (params);
+            } else {
+                response = await this.dapiPrivateV2GetLeverageBracket (params);
+            }
         } else {
             throw new NotSupported (this.id + ' fetchLeverageTiers() supports linear and inverse contracts only');
         }
