@@ -1050,7 +1050,9 @@ export default class coinlist extends Exchange {
             const exchangeFeesTradingTiers = this.safeValue (exchangeFeesTrading, 'tiers', {});
             const exchangeFeesTradingTiersTaker = this.safeValue (exchangeFeesTradingTiers, 'taker', []);
             const exchangeFeesTradingTiersMaker = this.safeValue (exchangeFeesTradingTiers, 'maker', []);
-            if ((keysLength === exchangeFeesTradingTiersTaker.length) && (firstTier.length > 0)) {
+            const exchangeFeesTradingTiersTakerLength = exchangeFeesTradingTiersTaker.length;
+            const firstTierLength = firstTier.length;
+            if ((keysLength === exchangeFeesTradingTiersTakerLength) && (firstTierLength > 0)) {
                 for (let i = 0; i < keysLength; i++) {
                     takerFees[i][0] = exchangeFeesTradingTiersTaker[i][0];
                     makerFees[i][0] = exchangeFeesTradingTiersMaker[i][0];
