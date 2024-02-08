@@ -1810,6 +1810,7 @@ export default class bingx extends Exchange {
         if (timeInForce === 'IOC') {
             request['timeInForce'] = 'IOC';
         }
+        const triggerPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
         if (isSpot) {
             [ postOnly, params ] = this.handlePostOnly (isMarketOrder, timeInForce === 'POC', params);
             if (postOnly || (timeInForce === 'POC')) {
@@ -1820,7 +1821,7 @@ export default class bingx extends Exchange {
             if (cost !== undefined) {
                 request['quoteOrderQty'] = this.parseToNumeric (this.costToPrecision (symbol, cost));
             } else {
-                if (market['spot'] && isMarketOrder && (price !== undefined)) {
+                if (isMarketOrder && (price !== undefined) && (side === 'buy')) {
                     // keep the legacy behavior, to avoid  breaking the old spot-market-buying code
                     const calculatedCost = Precise.stringMul (this.numberToString (amount), this.numberToString (price));
                     request['quoteOrderQty'] = this.parseToNumeric (calculatedCost);
@@ -1831,6 +1832,14 @@ export default class bingx extends Exchange {
             if (!isMarketOrder) {
                 request['price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
             }
+            if (triggerPrice !== undefined) {
+                request['stopPrice'] = triggerPrice;
+                if (type === 'LIMIT') {
+                    request['type'] = 'TRIGGER_LIMIT';
+                } else if (type === 'MARKET') {
+                    request['type'] = 'TRIGGER_MARKET';
+                }
+            }
         } else {
             [ postOnly, params ] = this.handlePostOnly (isMarketOrder, timeInForce === 'PostOnly', params);
             if (postOnly || (timeInForce === 'PostOnly')) {
@@ -1840,7 +1849,6 @@ export default class bingx extends Exchange {
             } else if (timeInForce === 'FOK') {
                 request['timeInForce'] = 'FOK';
             }
-            const triggerPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
             const stopLossPrice = this.safeString (params, 'stopLossPrice');
             const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
             const trailingAmount = this.safeString (params, 'trailingAmount');
@@ -2133,6 +2141,14 @@ export default class bingx extends Exchange {
         return this.safeString (sides, side, side);
     }
 
+    parseOrderType (type) {
+        const types = {
+            'trigger_market': 'market',
+            'trigger_limit': 'limit',
+        };
+        return this.safeString (types, type, type);
+    }
+
     parseOrder (order, market: Market = undefined): Order {
         //
         // spot
@@ -2318,7 +2334,7 @@ export default class bingx extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': this.safeInteger (order, 'updateTime'),
             'symbol': symbol,
-            'type': type,
+            'type': this.parseOrderType (type),
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': this.parseOrderSide (side),
