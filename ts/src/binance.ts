@@ -8619,11 +8619,21 @@ export default class binance extends Exchange {
             const query = this.omit (params, 'type');
             let subType = undefined;
             [ subType, params ] = this.handleSubTypeAndParams ('loadLeverageBrackets', undefined, params, 'linear');
+            let isPortfolioMargin = undefined;
+            [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'loadLeverageBrackets', 'papi', 'portfolioMargin', false);
             let response = undefined;
             if (this.isLinear (type, subType)) {
-                response = await this.fapiPrivateGetLeverageBracket (query);
+                if (isPortfolioMargin) {
+                    response = await this.papiGetUmLeverageBracket (query);
+                } else {
+                    response = await this.fapiPrivateGetLeverageBracket (query);
+                }
             } else if (this.isInverse (type, subType)) {
-                response = await this.dapiPrivateV2GetLeverageBracket (query);
+                if (isPortfolioMargin) {
+                    response = await this.papiGetCmLeverageBracket (query);
+                } else {
+                    response = await this.dapiPrivateV2GetLeverageBracket (query);
+                }
             } else {
                 throw new NotSupported (this.id + ' loadLeverageBrackets() supports linear and inverse contracts only');
             }
