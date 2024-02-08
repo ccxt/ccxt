@@ -222,6 +222,7 @@ class coinbase extends Exchange {
                             'brokerage/orders/batch_cancel',
                             'brokerage/orders/edit',
                             'brokerage/orders/edit_preview',
+                            'brokerage/orders/preview',
                             'brokerage/portfolios',
                             'brokerage/portfolios/move_funds',
                             'brokerage/convert/quote',
@@ -435,11 +436,12 @@ class coinbase extends Exchange {
             //         ]
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
-            $pagination = $this->safe_value($response, 'pagination', array());
+            $data = $this->safe_list($response, 'data', array());
+            $pagination = $this->safe_dict($response, 'pagination', array());
             $cursor = $this->safe_string($pagination, 'next_starting_after');
-            $accounts = $this->safe_value($response, 'data', array());
-            $lastIndex = strlen($accounts) - 1;
+            $accounts = $this->safe_list($response, 'data', array());
+            $length = count($accounts);
+            $lastIndex = $length - 1;
             $last = $this->safe_value($accounts, $lastIndex);
             if (($cursor !== null) && ($cursor !== '')) {
                 $last['next_starting_after'] = $cursor;
@@ -491,8 +493,9 @@ class coinbase extends Exchange {
             //         "size" => 9
             //     }
             //
-            $accounts = $this->safe_value($response, 'accounts', array());
-            $lastIndex = strlen($accounts) - 1;
+            $accounts = $this->safe_list($response, 'accounts', array());
+            $length = count($accounts);
+            $lastIndex = $length - 1;
             $last = $this->safe_value($accounts, $lastIndex);
             $cursor = $this->safe_string($response, 'cursor');
             if (($cursor !== null) && ($cursor !== '')) {
@@ -2228,7 +2231,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a $market buy order by providing the $symbol and $cost
@@ -2268,6 +2271,7 @@ class coinbase extends Exchange {
              * @param {string} [$params->stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the $stopPrice is triggered from
              * @param {string} [$params->end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
              * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+             * @param {boolean} [$params->preview] default to false, wether to use the test/preview endpoint or not
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -2397,7 +2401,15 @@ class coinbase extends Exchange {
                 }
             }
             $params = $this->omit($params, array( 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time' ));
-            $response = Async\await($this->v3PrivatePostBrokerageOrders (array_merge($request, $params)));
+            $preview = $this->safe_value_2($params, 'preview', 'test', false);
+            $response = null;
+            if ($preview) {
+                $params = $this->omit($params, array( 'preview', 'test' ));
+                $request = $this->omit($request, 'client_order_id');
+                $response = Async\await($this->v3PrivatePostBrokerageOrdersPreview (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->v3PrivatePostBrokerageOrders (array_merge($request, $params)));
+            }
             //
             // successful order
             //
@@ -2673,7 +2685,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order

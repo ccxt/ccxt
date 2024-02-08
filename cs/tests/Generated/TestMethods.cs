@@ -163,7 +163,10 @@ public partial class testMainClass : BaseTest
             }
         }
         // credentials
-        this.loadCredentialsFromEnv(exchange);
+        if (isTrue(this.loadKeys))
+        {
+            this.loadCredentialsFromEnv(exchange);
+        }
         // skipped tests
         object skippedFile = add(this.rootDirForSkips, "skip-tests.json");
         object skippedSettings = ioFileRead(skippedFile);
@@ -1180,6 +1183,7 @@ public partial class testMainClass : BaseTest
         object currencies = this.loadCurrenciesFromFile(exchangeName);
         Exchange exchange = initExchange(exchangeName, new Dictionary<string, object>() {
             { "markets", markets },
+            { "currencies", currencies },
             { "enableRateLimit", false },
             { "rateLimit", 1 },
             { "httpProxy", "http://fake:8080" },

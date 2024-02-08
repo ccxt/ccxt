@@ -372,7 +372,8 @@ class testMainClass(baseMainTestClass):
                         final_value = exchange_settings[key]
                     set_exchange_prop(exchange, key, final_value)
         # credentials
-        self.load_credentials_from_env(exchange)
+        if self.load_keys:
+            self.load_credentials_from_env(exchange)
         # skipped tests
         skipped_file = self.root_dir_for_skips + 'skip-tests.json'
         skipped_settings = io_file_read(skipped_file)
@@ -1052,6 +1053,7 @@ class testMainClass(baseMainTestClass):
         currencies = self.load_currencies_from_file(exchange_name)
         exchange = init_exchange(exchange_name, {
             'markets': markets,
+            'currencies': currencies,
             'enableRateLimit': False,
             'rateLimit': 1,
             'httpProxy': 'http://fake:8080',

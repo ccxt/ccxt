@@ -1227,7 +1227,7 @@ class lbank(Exchange, ImplicitAPI):
             result[symbol] = fee
         return result
 
-    def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
         :see: https://www.lbank.com/en-US/docs/index.html#place-order
@@ -2163,7 +2163,7 @@ class lbank(Exchange, ImplicitAPI):
         withdraws = self.safe_value(data, 'withdraws', [])
         return self.parse_transactions(withdraws, currency, since, limit)
 
-    def fetch_transaction_fees(self, codes=None, params={}):
+    def fetch_transaction_fees(self, codes: List[str] = None, params={}):
         """
          * @deprecated
         please use fetchDepositWithdrawFees instead

@@ -1660,6 +1660,30 @@
                         "subType": "inverse"
                     }
                 ]
+            },
+            {
+                "description": "Linear portfolio margin fetch leverage tiers",
+                "method": "fetchLeverageTiers",
+                "url": "https://papi.binance.com/papi/v1/um/leverageBracket?timestamp=1707376044709&recvWindow=10000&signature=248c0da5dc253c98bce350eb8c3d2c8f37781003baa5141838cbd2caa74a3636",
+                "input": [
+                  null,
+                  {
+                    "portfolioMargin": true,
+                    "subType": "linear"
+                  }
+                ]
+            },
+            {
+                "description": "Inverse portfolio margin fetch leverage tiers",
+                "method": "fetchLeverageTiers",
+                "url": "https://papi.binance.com/papi/v1/cm/leverageBracket?timestamp=1707376139383&recvWindow=10000&signature=6e4a769ba3c1aceddccf243167e92a4a814366cfed3594edbf6aa91bce359ed4",
+                "input": [
+                  null,
+                  {
+                    "portfolioMargin": true,
+                    "subType": "inverse"
+                  }
+                ]
             }
         ],
         "fetchFundingRateHistory": [
@@ -1953,6 +1977,19 @@
                   1
                 ],
                 "output": "timestamp=1704884619619&asset=USDT&amount=1&isIsolated=FALSE&type=BORROW&recvWindow=10000&signature=7decbb81d0e7d0b0d553496893c7a36438ddcba418c9437eaa384a541325843b"
+            },
+            {
+                "description": "Portfolio margin borrow cross margin",
+                "method": "borrowCrossMargin",
+                "url": "https://papi.binance.com/papi/v1/marginLoan",
+                "input": [
+                  "USDT",
+                  5,
+                  {
+                    "portfolioMargin": true
+                  }
+                ],
+                "output": "timestamp=1707369605273&asset=USDT&amount=5&recvWindow=10000&signature=2c17935d2d5997eb83c7299eddd116373949583a9b06b6f431affeda5fab5f3b"
             }
         ],
         "repayCrossMargin": [
@@ -1965,6 +2002,19 @@
                   1
                 ],
                 "output": "timestamp=1704884654418&asset=USDT&amount=1&isIsolated=FALSE&type=REPAY&recvWindow=10000&signature=22d5b8db751dc8cc40771a7e6999e863c5630b9108c15dca22c7bebd6b07ca17"
+            },
+            {
+                "description": "Portfolio margin repay cross margin",
+                "method": "repayCrossMargin",
+                "url": "https://papi.binance.com/papi/v1/repayLoan",
+                "input": [
+                  "USDT",
+                  5,
+                  {
+                    "portfolioMargin": true
+                  }
+                ],
+                "output": "timestamp=1707370050475&asset=USDT&amount=5&recvWindow=10000&signature=25ac0418c9c3e2830f2b231da826c7d5deb816f58d0b31f654fe0f80c63561b7"
             }
         ],
         "fetchMyDustTrades": [

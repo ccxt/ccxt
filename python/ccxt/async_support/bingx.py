@@ -154,6 +154,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'trade/order': 3,
                                 'trade/cancel': 3,
                                 'trade/batchOrders': 3,
+                                'trade/order/cancelReplace': 3,
                                 'trade/cancelOrders': 3,
                                 'trade/cancelOpenOrders': 3,
                             },
@@ -175,12 +176,19 @@ class bingx(Exchange, ImplicitAPI):
                 },
                 'swap': {
                     'v1': {
+                        'public': {
+                            'get': {
+                                'ticker/price': 1,
+                            },
+                        },
                         'private': {
                             'get': {
                                 'positionSide/dual': 1,
                                 'market/markPriceKlines': 1,
+                                'trade/batchCancelReplace': 1,
                             },
                             'post': {
+                                'trade/cancelReplace': 1,
                                 'positionSide/dual': 1,
                             },
                         },
@@ -1646,7 +1654,7 @@ class bingx(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    async def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost, params={}):
+    async def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params={}):
         """
         create a market order by providing the symbol, side and cost
         :param str symbol: unified symbol of the market to create an order in
@@ -1658,7 +1666,7 @@ class bingx(Exchange, ImplicitAPI):
         params['quoteOrderQty'] = cost
         return await self.create_order(symbol, 'market', side, cost, None, params)
 
-    async def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
@@ -1669,7 +1677,7 @@ class bingx(Exchange, ImplicitAPI):
         params['quoteOrderQty'] = cost
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    async def create_market_sell_order_with_cost(self, symbol: str, cost, params={}):
+    async def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market sell order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
@@ -2117,21 +2125,102 @@ class bingx(Exchange, ImplicitAPI):
         #        reduceOnly: False
         #    }
         #
+        # editOrder(swap)
+        #
+        #    {
+        #        cancelResult: 'true',
+        #        cancelMsg: '',
+        #        cancelResponse: {
+        #            cancelClientOrderId: '',
+        #            cancelOrderId: '1755336244265705472',
+        #            symbol: 'SOL-USDT',
+        #            orderId: '1755336244265705472',
+        #            side: 'SELL',
+        #            positionSide: 'SHORT',
+        #            type: 'LIMIT',
+        #            origQty: '1',
+        #            price: '100.000',
+        #            executedQty: '0',
+        #            avgPrice: '0.000',
+        #            cumQuote: '0',
+        #            stopPrice: '',
+        #            profit: '0.0000',
+        #            commission: '0.000000',
+        #            status: 'PENDING',
+        #            time: '1707339747860',
+        #            updateTime: '1707339747860',
+        #            clientOrderId: '',
+        #            leverage: '20X',
+        #            workingType: 'MARK_PRICE',
+        #            onlyOnePosition: False,
+        #            reduceOnly: False
+        #        },
+        #        replaceResult: 'true',
+        #        replaceMsg: '',
+        #        newOrderResponse: {
+        #            orderId: '1755338440612995072',
+        #            symbol: 'SOL-USDT',
+        #            positionSide: 'SHORT',
+        #            side: 'SELL',
+        #            type: 'LIMIT',
+        #            price: '99',
+        #            quantity: '2',
+        #            stopPrice: '0',
+        #            workingType: 'MARK_PRICE',
+        #            clientOrderID: '',
+        #            timeInForce: 'GTC',
+        #            priceRate: '0',
+        #            stopLoss: '',
+        #            takeProfit: '',
+        #            reduceOnly: False
+        #        }
+        #    }
+        #
+        # editOrder(spot)
+        #
+        #    {
+        #        cancelResult: {code: '0', msg: '', result: True},
+        #        openResult: {code: '0', msg: '', result: True},
+        #        orderOpenResponse: {
+        #            symbol: 'SOL-USDT',
+        #            orderId: '1755334007697866752',
+        #            transactTime: '1707339214620',
+        #            price: '99',
+        #            stopPrice: '0',
+        #            origQty: '0.2',
+        #            executedQty: '0',
+        #            cummulativeQuoteQty: '0',
+        #            status: 'PENDING',
+        #            type: 'LIMIT',
+        #            side: 'SELL',
+        #            clientOrderID: ''
+        #        },
+        #        orderCancelResponse: {
+        #            symbol: 'SOL-USDT',
+        #            orderId: '1755117055251480576',
+        #            price: '100',
+        #            stopPrice: '0',
+        #            origQty: '0.2',
+        #            executedQty: '0',
+        #            cummulativeQuoteQty: '0',
+        #            status: 'CANCELED',
+        #            type: 'LIMIT',
+        #            side: 'SELL'
+        #        }
+        #    }
+        #
+        info = order
+        newOrder = self.safe_dict_2(order, 'newOrderResponse', 'orderOpenResponse')
+        if newOrder is not None:
+            order = newOrder
         positionSide = self.safe_string_2(order, 'positionSide', 'ps')
         marketType = 'spot' if (positionSide is None) else 'swap'
         marketId = self.safe_string_2(order, 'symbol', 's')
         if market is None:
             market = self.safe_market(marketId, None, None, marketType)
-        symbol = self.safe_symbol(marketId, market, '-', marketType)
-        orderId = self.safe_string_2(order, 'orderId', 'i')
         side = self.safe_string_lower_2(order, 'side', 'S')
-        type = self.safe_string_lower_2(order, 'type', 'o')
         timestamp = self.safe_integer_n(order, ['time', 'transactTime', 'E'])
         lastTradeTimestamp = self.safe_integer_2(order, 'updateTime', 'T')
-        price = self.safe_string_2(order, 'price', 'p')
-        average = self.safe_string_2(order, 'avgPrice', 'ap')
-        amount = self.safe_string_2(order, 'origQty', 'q')
-        filled = self.safe_string_2(order, 'executedQty', 'z')
         statusId = self.safe_string_2(order, 'status', 'X')
         feeCurrencyCode = self.safe_string_2(order, 'feeAsset', 'N')
         feeCost = self.safe_string_n(order, ['fee', 'commission', 'n'])
@@ -2143,11 +2232,6 @@ class bingx(Exchange, ImplicitAPI):
                     feeCurrencyCode = market['quote']
             else:
                 feeCurrencyCode = market['quote']
-        fee = {
-            'currency': feeCurrencyCode,
-            'cost': Precise.string_abs(feeCost),
-        }
-        clientOrderId = self.safe_string_n(order, ['clientOrderID', 'origClientOrderId', 'c'])
         stopLoss = self.safe_value(order, 'stopLoss')
         stopLossPrice = None
         if (stopLoss is not None) and (stopLoss != ''):
@@ -2167,31 +2251,35 @@ class bingx(Exchange, ImplicitAPI):
                 takeProfit = self.parse_json(takeProfit)
             takeProfitPrice = self.safe_number(takeProfit, 'stopPrice')
         return self.safe_order({
-            'info': order,
-            'id': orderId,
-            'clientOrderId': clientOrderId,
+            'info': info,
+            'id': self.safe_string_2(order, 'orderId', 'i'),
+            'clientOrderId': self.safe_string_n(order, ['clientOrderID', 'origClientOrderId', 'c']),
+            'symbol': self.safe_symbol(marketId, market, '-', marketType),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': self.safe_integer(order, 'updateTime'),
-            'symbol': symbol,
-            'type': type,
-            'timeInForce': None,
+            'type': self.safe_string_lower_2(order, 'type', 'o'),
+            'timeInForce': self.safe_string(order, 'timeInForce'),
             'postOnly': None,
             'side': self.parse_order_side(side),
-            'price': price,
+            'price': self.safe_string_2(order, 'price', 'p'),
             'stopPrice': self.safe_number(order, 'stopPrice'),
             'triggerPrice': self.safe_number(order, 'stopPrice'),
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
-            'average': average,
+            'average': self.safe_string_2(order, 'avgPrice', 'ap'),
             'cost': None,
-            'amount': amount,
-            'filled': filled,
+            'amount': self.safe_string_n(order, ['origQty', 'q', 'quantity']),
+            'filled': self.safe_string_2(order, 'executedQty', 'z'),
             'remaining': None,
             'status': self.parse_order_status(statusId),
-            'fee': fee,
+            'fee': {
+                'currency': feeCurrencyCode,
+                'cost': Precise.string_abs(feeCost),
+            },
             'trades': None,
+            'reduceOnly': self.safe_bool(order, 'reduceOnly'),
         }, market)
 
     def parse_order_status(self, status):
@@ -2683,7 +2771,7 @@ class bingx(Exchange, ImplicitAPI):
         orders = self.safe_value(data, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://bingx-api.github.io/docs/#/spot/account-api.html#User%20Universal%20Transfer
@@ -3561,7 +3649,7 @@ class bingx(Exchange, ImplicitAPI):
             positions.append(position)
         return positions
 
-    async def set_position_mode(self, hedged, symbol: Str = None, params={}):
+    async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         """
         set hedged to True or False for a market
         :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Set%20Position%20Mode
@@ -3587,6 +3675,140 @@ class bingx(Exchange, ImplicitAPI):
         #     }
         #
         return await self.swapV1PrivatePostPositionSideDual(self.extend(request, params))
+
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}) -> Order:
+        """
+        cancels an order and places a new order
+        :see: https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20order%20and%20place%20a%20new%20order  # spot
+        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20an%20order%20and%20then%20Place%20a%20new%20order  # swap
+        :param str id: order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of the currency you want to trade in units of the base currency
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.stopPrice]: Trigger price used for TAKE_STOP_LIMIT, TAKE_STOP_MARKET, TRIGGER_LIMIT, TRIGGER_MARKET order types.
+        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+        :param float [params.takeProfit.triggerPrice]: take profit trigger price
+        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+        :param float [params.stopLoss.triggerPrice]: stop loss trigger price
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param str [params.cancelClientOrderID]: the user-defined id of the order to be canceled, 1-40 characters, different orders cannot use the same clientOrderID, only supports a query range of 2 hours
+        :param str [params.cancelRestrictions]: cancel orders with specified status, NEW: New order, PENDING: Pending order, PARTIALLY_FILLED: Partially filled
+        :param str [params.cancelReplaceMode]: STOP_ON_FAILURE - if the cancel order fails, it will not continue to place a new order, ALLOW_FAILURE - regardless of whether the cancel order succeeds or fails, it will continue to place a new order
+        :param float [params.quoteOrderQty]: order amount
+        :param str [params.newClientOrderId]: custom order id consisting of letters, numbers, and _, 1-40 characters, different orders cannot use the same newClientOrderId.
+        :param str [params.positionSide]: *contract only* position direction, required for single position, for both long and short positions only LONG or SHORT can be chosen, defaults to LONG if empty
+        :param str [params.reduceOnly]: *contract only* True or False, default=false for single position mode. self parameter is not accepted for both long and short positions mode
+        :param float [params.priceRate]: *contract only* for type TRAILING_STOP_Market, Max = 1
+        :param str [params.workingType]: *contract only* StopPrice trigger price types, MARK_PRICE(default), CONTRACT_PRICE, or INDEX_PRICE
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = self.create_order_request(symbol, type, side, amount, price, params)
+        request['cancelOrderId'] = id
+        request['cancelReplaceMode'] = 'STOP_ON_FAILURE'
+        response = None
+        if market['swap']:
+            response = await self.swapV1PrivatePostTradeCancelReplace(self.extend(request, params))
+            #
+            #    {
+            #        code: '0',
+            #        msg: '',
+            #        data: {
+            #            cancelResult: 'true',
+            #            cancelMsg: '',
+            #            cancelResponse: {
+            #                cancelClientOrderId: '',
+            #                cancelOrderId: '1755336244265705472',
+            #                symbol: 'SOL-USDT',
+            #                orderId: '1755336244265705472',
+            #                side: 'SELL',
+            #                positionSide: 'SHORT',
+            #                type: 'LIMIT',
+            #                origQty: '1',
+            #                price: '100.000',
+            #                executedQty: '0',
+            #                avgPrice: '0.000',
+            #                cumQuote: '0',
+            #                stopPrice: '',
+            #                profit: '0.0000',
+            #                commission: '0.000000',
+            #                status: 'PENDING',
+            #                time: '1707339747860',
+            #                updateTime: '1707339747860',
+            #                clientOrderId: '',
+            #                leverage: '20X',
+            #                workingType: 'MARK_PRICE',
+            #                onlyOnePosition: False,
+            #                reduceOnly: False
+            #            },
+            #            replaceResult: 'true',
+            #            replaceMsg: '',
+            #            newOrderResponse: {
+            #                orderId: '1755338440612995072',
+            #                symbol: 'SOL-USDT',
+            #                positionSide: 'SHORT',
+            #                side: 'SELL',
+            #                type: 'LIMIT',
+            #                price: '99',
+            #                quantity: '2',
+            #                stopPrice: '0',
+            #                workingType: 'MARK_PRICE',
+            #                clientOrderID: '',
+            #                timeInForce: 'GTC',
+            #                priceRate: '0',
+            #                stopLoss: '',
+            #                takeProfit: '',
+            #                reduceOnly: False
+            #            }
+            #        }
+            #    }
+            #
+        else:
+            response = await self.spotV1PrivatePostTradeOrderCancelReplace(self.extend(request, params))
+            #
+            #    {
+            #        code: '0',
+            #        msg: '',
+            #        debugMsg: '',
+            #        data: {
+            #            cancelResult: {code: '0', msg: '', result: True},
+            #            openResult: {code: '0', msg: '', result: True},
+            #            orderOpenResponse: {
+            #                symbol: 'SOL-USDT',
+            #                orderId: '1755334007697866752',
+            #                transactTime: '1707339214620',
+            #                price: '99',
+            #                stopPrice: '0',
+            #                origQty: '0.2',
+            #                executedQty: '0',
+            #                cummulativeQuoteQty: '0',
+            #                status: 'PENDING',
+            #                type: 'LIMIT',
+            #                side: 'SELL',
+            #                clientOrderID: ''
+            #            },
+            #            orderCancelResponse: {
+            #                symbol: 'SOL-USDT',
+            #                orderId: '1755117055251480576',
+            #                price: '100',
+            #                stopPrice: '0',
+            #                origQty: '0.2',
+            #                executedQty: '0',
+            #                cummulativeQuoteQty: '0',
+            #                status: 'CANCELED',
+            #                type: 'LIMIT',
+            #                side: 'SELL'
+            #            }
+            #        }
+            #    }
+            #
+        data = self.safe_dict(response, 'data')
+        return self.parse_order(data, market)
 
     def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
         type = section[0]

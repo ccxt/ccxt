@@ -70,7 +70,7 @@ export default class kraken extends Exchange {
     parseOrderType(status: any): string;
     parseOrder(order: any, market?: Market): Order;
     orderRequest(method: any, symbol: any, type: any, request: any, price?: any, params?: {}): any[];
-    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOrdersByIds(ids: any, symbol?: Str, params?: {}): Promise<any[]>;
@@ -114,7 +114,7 @@ export default class kraken extends Exchange {
     fetchPositions(symbols?: Strings, params?: {}): Promise<any>;
     parseAccount(account: any): string;
     transferOut(code: string, amount: any, params?: {}): Promise<TransferEntry>;
-    transfer(code: string, amount: number, fromAccount: any, toAccount: any, params?: {}): Promise<TransferEntry>;
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: any, currency?: Currency): {
         info: any;
         id: string;

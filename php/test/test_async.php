@@ -450,7 +450,9 @@ class testMainClass extends baseMainTestClass {
             }
         }
         // credentials
-        $this->load_credentials_from_env($exchange);
+        if ($this->load_keys) {
+            $this->load_credentials_from_env($exchange);
+        }
         // skipped tests
         $skipped_file = $this->root_dir_for_skips . 'skip-tests.json';
         $skipped_settings = io_file_read($skipped_file);
@@ -1300,6 +1302,7 @@ class testMainClass extends baseMainTestClass {
         $currencies = $this->load_currencies_from_file($exchange_name);
         $exchange = init_exchange($exchange_name, array(
             'markets' => $markets,
+            'currencies' => $currencies,
             'enableRateLimit' => false,
             'rateLimit' => 1,
             'httpProxy' => 'http://fake:8080',

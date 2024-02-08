@@ -554,7 +554,7 @@ class coinex(ccxt.async_support.coinex):
             limit = ohlcvs.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcvs, since, limit, 0)
 
-    async def fetch_ohlcv_ws(self, symbol, timeframe='1m', since=None, limit=None, params={}) -> List[list]:
+    async def fetch_ohlcv_ws(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket005_kline_query
         query historical candlestick data containing the open, high, low, and close price, and the volume of a market

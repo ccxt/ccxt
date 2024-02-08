@@ -165,7 +165,7 @@ class ascendex(Exchange, ImplicitAPI):
                         'get': {
                             'info': 1,
                             'wallet/transactions': 1,
-                            'wallet/deposit/address': 1,  # not documented
+                            'wallet/deposit/address': 1,
                             'data/balance/snapshot': 1,
                             'data/balance/history': 1,
                         },
@@ -284,11 +284,14 @@ class ascendex(Exchange, ImplicitAPI):
                     'fillResponseFromRequest': True,
                 },
                 'networks': {
-                    'BSC': 'BEP20(BSC)',
+                    'BSC': 'BEP20 ' + '(BSC)',
                     'ARB': 'arbitrum',
                     'SOL': 'Solana',
                     'AVAX': 'avalanche C chain',
                     'OMNI': 'Omni',
+                    'TRC': 'TRC20',
+                    'TRX': 'TRC20',
+                    'ERC': 'ERC20',
                 },
                 'networksById': {
                     'BEP20(BSC)': 'BSC',
@@ -296,6 +299,16 @@ class ascendex(Exchange, ImplicitAPI):
                     'Solana': 'SOL',
                     'avalanche C chain': 'AVAX',
                     'Omni': 'OMNI',
+                    'TRC20': 'TRC20',
+                    'ERC20': 'ERC20',
+                    'GO20': 'GO20',
+                    'BEP2': 'BEP2',
+                    'Bitcoin': 'BTC',
+                    'Bitcoin ABC': 'BCH',
+                    'Litecoin': 'LTC',
+                    'Matic Network': 'MATIC',
+                    'xDai': 'STAKE',
+                    'Akash': 'AKT',
                 },
             },
             'exceptions': {
@@ -2253,8 +2266,8 @@ class ascendex(Exchange, ImplicitAPI):
         tag = self.safe_string(depositAddress, tagId)
         self.check_address(address)
         code = None if (currency is None) else currency['code']
-        chainName = self.safe_string(depositAddress, 'chainName')
-        network = self.safe_network(chainName)
+        chainName = self.safe_string(depositAddress, 'blockchain')
+        network = self.network_id_to_code(chainName, code)
         return {
             'currency': code,
             'address': address,
@@ -2264,35 +2277,26 @@ class ascendex(Exchange, ImplicitAPI):
         }
 
     def safe_network(self, networkId):
-        networksById = {
-            'TRC20': 'TRC20',
-            'ERC20': 'ERC20',
-            'GO20': 'GO20',
-            'BEP2': 'BEP2',
-            'BEP20(BSC)': 'BEP20',
-            'Bitcoin': 'BTC',
-            'Bitcoin ABC': 'BCH',
-            'Litecoin': 'LTC',
-            'Matic Network': 'MATIC',
-            'Solana': 'SOL',
-            'xDai': 'STAKE',
-            'Akash': 'AKT',
-        }
+        networksById = self.safe_dict(self.options, 'networksById')
         return self.safe_string(networksById, networkId, networkId)
 
     async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
+        :see: https://ascendex.github.io/ascendex-pro-api/#query-deposit-addresses
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: unified network code for deposit chain
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
-        chainName = self.safe_string(params, 'chainName')
-        params = self.omit(params, 'chainName')
+        networkCode = self.safe_string_2(params, 'network', 'chainName')
+        networkId = self.network_code_to_id(networkCode)
+        params = self.omit(params, ['chainName'])
         request = {
             'asset': currency['id'],
+            'blockchain': networkId,
         }
         response = await self.v1PrivateGetWalletDepositAddress(self.extend(request, params))
         #
@@ -2328,20 +2332,20 @@ class ascendex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        addresses = self.safe_value(data, 'address', [])
+        data = self.safe_dict(response, 'data', {})
+        addresses = self.safe_list(data, 'address', [])
         numAddresses = len(addresses)
         address = None
         if numAddresses > 1:
             addressesByChainName = self.index_by(addresses, 'chainName')
-            if chainName is None:
+            if networkId is None:
                 chainNames = list(addressesByChainName.keys())
                 chains = ', '.join(chainNames)
                 raise ArgumentsRequired(self.id + ' fetchDepositAddress() returned more than one address, a chainName parameter is required, one of ' + chains)
-            address = self.safe_value(addressesByChainName, chainName, {})
+            address = self.safe_dict(addressesByChainName, networkId, {})
         else:
             # first address
-            address = self.safe_value(addresses, 0, {})
+            address = self.safe_dict(addresses, 0, {})
         result = self.parse_deposit_address(address, currency)
         return self.extend(result, {
             'info': response,
@@ -2781,7 +2785,7 @@ class ascendex(Exchange, ImplicitAPI):
         }
         return await self.v2PrivateAccountGroupPostFuturesLeverage(self.extend(request, params))
 
-    async def set_margin_mode(self, marginMode, symbol: Str = None, params={}):
+    async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-margin-type
@@ -2959,7 +2963,7 @@ class ascendex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_deposit_withdraw_fees(data, codes, 'assetCode')
 
-    async def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency codeåå

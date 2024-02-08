@@ -1917,7 +1917,7 @@ class bitmex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'pegOffsetValue');
@@ -2552,7 +2552,7 @@ class bitmex extends Exchange {
         return $this->privatePostPositionLeverage (array_merge($request, $params));
     }
 
-    public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
         /**
          * set margin mode to 'cross' or 'isolated'
          * @see https://www.bitmex.com/api/explorer/#!/Position/Position_isolateMargin

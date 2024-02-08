@@ -324,7 +324,7 @@ class wavesexchange(Exchange, ImplicitAPI):
                 },
             },
             'currencies': {
-                'WX': self.safe_currency_structure({'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': None, 'code': 'WX', 'precision': self.parse_number('8')}),
+                'WX': self.safe_currency_structure({'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': None, 'code': 'WX', 'precision': self.parse_to_int('8')}),
             },
             'precisionMode': DECIMAL_PLACES,
             'options': {

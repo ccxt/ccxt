@@ -126,7 +126,7 @@ public partial class coinbase : Exchange
                 { "v3", new Dictionary<string, object>() {
                     { "private", new Dictionary<string, object>() {
                         { "get", new List<object>() {"brokerage/accounts", "brokerage/accounts/{account_uuid}", "brokerage/orders/historical/batch", "brokerage/orders/historical/fills", "brokerage/orders/historical/{order_id}", "brokerage/products", "brokerage/products/{product_id}", "brokerage/products/{product_id}/candles", "brokerage/products/{product_id}/ticker", "brokerage/portfolios", "brokerage/portfolios/{portfolio_uuid}", "brokerage/transaction_summary", "brokerage/product_book", "brokerage/best_bid_ask", "brokerage/convert/trade/{trade_id}", "brokerage/time", "brokerage/cfm/balance_summary", "brokerage/cfm/positions", "brokerage/cfm/positions/{product_id}", "brokerage/cfm/sweeps", "brokerage/intx/portfolio/{portfolio_uuid}", "brokerage/intx/positions/{portfolio_uuid}", "brokerage/intx/positions/{portfolio_uuid}/{symbol}"} },
-                        { "post", new List<object>() {"brokerage/orders", "brokerage/orders/batch_cancel", "brokerage/orders/edit", "brokerage/orders/edit_preview", "brokerage/portfolios", "brokerage/portfolios/move_funds", "brokerage/convert/quote", "brokerage/convert/trade/{trade_id}", "brokerage/cfm/sweeps/schedule", "brokerage/intx/allocate"} },
+                        { "post", new List<object>() {"brokerage/orders", "brokerage/orders/batch_cancel", "brokerage/orders/edit", "brokerage/orders/edit_preview", "brokerage/orders/preview", "brokerage/portfolios", "brokerage/portfolios/move_funds", "brokerage/convert/quote", "brokerage/convert/trade/{trade_id}", "brokerage/cfm/sweeps/schedule", "brokerage/intx/allocate"} },
                         { "put", new List<object>() {"brokerage/portfolios/{portfolio_uuid}"} },
                         { "delete", new List<object>() {"brokerage/portfolios/{portfolio_uuid}", "brokerage/cfm/sweeps"} },
                     } },
@@ -310,11 +310,12 @@ public partial class coinbase : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
-        object pagination = this.safeValue(response, "pagination", new Dictionary<string, object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
+        object pagination = this.safeDict(response, "pagination", new Dictionary<string, object>() {});
         object cursor = this.safeString(pagination, "next_starting_after");
-        object accounts = this.safeValue(response, "data", new List<object>() {});
-        object lastIndex = subtract(getArrayLength(accounts), 1);
+        object accounts = this.safeList(response, "data", new List<object>() {});
+        object length = getArrayLength(accounts);
+        object lastIndex = subtract(length, 1);
         object last = this.safeValue(accounts, lastIndex);
         if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((!isEqual(cursor, "")))))
         {
@@ -370,8 +371,9 @@ public partial class coinbase : Exchange
         //         "size": 9
         //     }
         //
-        object accounts = this.safeValue(response, "accounts", new List<object>() {});
-        object lastIndex = subtract(getArrayLength(accounts), 1);
+        object accounts = this.safeList(response, "accounts", new List<object>() {});
+        object length = getArrayLength(accounts);
+        object lastIndex = subtract(length, 1);
         object last = this.safeValue(accounts, lastIndex);
         object cursor = this.safeString(response, "cursor");
         if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((!isEqual(cursor, "")))))
@@ -2238,6 +2240,7 @@ public partial class coinbase : Exchange
         * @param {string} [params.stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
         * @param {string} [params.end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+        * @param {boolean} [params.preview] default to false, wether to use the test/preview endpoint or not
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -2394,7 +2397,17 @@ public partial class coinbase : Exchange
             }
         }
         parameters = this.omit(parameters, new List<object>() {"timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopPrice", "stop_price", "stopDirection", "stop_direction", "clientOrderId", "postOnly", "post_only", "end_time"});
-        object response = await this.v3PrivatePostBrokerageOrders(this.extend(request, parameters));
+        object preview = this.safeValue2(parameters, "preview", "test", false);
+        object response = null;
+        if (isTrue(preview))
+        {
+            parameters = this.omit(parameters, new List<object>() {"preview", "test"});
+            request = this.omit(request, "client_order_id");
+            response = await this.v3PrivatePostBrokerageOrdersPreview(this.extend(request, parameters));
+        } else
+        {
+            response = await this.v3PrivatePostBrokerageOrders(this.extend(request, parameters));
+        }
         //
         // successful order
         //
