@@ -1321,7 +1321,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
-    def fetch_order(self, id=None, symbol: Str = None, params={}):
+    def fetch_order(self, id: str = None, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://futures-docs.poloniex.com/#get-details-of-a-single-order
@@ -1619,24 +1619,28 @@ class poloniexfutures(Exchange, ImplicitAPI):
         trades = self.safe_value(data, 'items', {})
         return self.parse_trades(trades, market, since, limit)
 
-    def set_margin_mode(self, marginMode, symbol, params={}):
+    def set_margin_mode(self, marginMode: str, symbol: str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :see: https://futures-docs.poloniex.com/#change-margin-mode
-        :param int marginMode: 0(isolated) or 1(cross)
+        :param str marginMode: "0"(isolated) or "1"(cross)
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
-        if (marginMode != 0) and (marginMode != 1):
-            raise ArgumentsRequired(self.id + ' setMarginMode() marginMode must be 0(isolated) or 1(cross)')
+        if (marginMode != '0') and (marginMode != '1') and (marginMode != 'isolated') and (marginMode != 'cross'):
+            raise ArgumentsRequired(self.id + ' setMarginMode() marginMode must be 0/isolated or 1/cross')
         self.load_markets()
+        if marginMode == 'isolated':
+            marginMode = '0'
+        if marginMode == 'cross':
+            marginMode = '1'
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'marginType': marginMode,
+            'marginType': self.parse_to_int(marginMode),
         }
         return self.privatePostMarginTypeChange(request)
 

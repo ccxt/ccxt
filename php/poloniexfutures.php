@@ -1366,7 +1366,7 @@ class poloniexfutures extends Exchange {
         return $this->fetch_orders_by_status('closed', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_order($id = null, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(?string $id = null, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @see https://futures-docs.poloniex.com/#get-details-of-a-single-order
@@ -1675,11 +1675,11 @@ class poloniexfutures extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function set_margin_mode($marginMode, $symbol, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
         /**
          * set margin mode to 'cross' or 'isolated'
          * @see https://futures-docs.poloniex.com/#change-margin-mode
-         * @param {int} $marginMode 0 (isolated) or 1 (cross)
+         * @param {string} $marginMode "0" (isolated) or "1" (cross)
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} response from the exchange
@@ -1687,14 +1687,20 @@ class poloniexfutures extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
         }
-        if (($marginMode !== 0) && ($marginMode !== 1)) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() $marginMode must be 0 (isolated) or 1 (cross)');
+        if (($marginMode !== '0') && ($marginMode !== '1') && ($marginMode !== 'isolated') && ($marginMode !== 'cross')) {
+            throw new ArgumentsRequired($this->id . ' setMarginMode() $marginMode must be 0/isolated or 1/cross');
         }
         $this->load_markets();
+        if ($marginMode === 'isolated') {
+            $marginMode = '0';
+        }
+        if ($marginMode === 'cross') {
+            $marginMode = '1';
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'marginType' => $marginMode,
+            'marginType' => $this->parse_to_int($marginMode),
         );
         return $this->privatePostMarginTypeChange ($request);
     }

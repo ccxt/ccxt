@@ -3111,7 +3111,7 @@ public partial class ascendex : Exchange
         return await this.v2PrivateAccountGroupPostFuturesLeverage(this.extend(request, parameters));
     }
 
-    public async virtual Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
     {
         /**
         * @method
