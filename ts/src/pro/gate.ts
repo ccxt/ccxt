@@ -305,7 +305,7 @@ export default class gate extends gateRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        return await this.helperForWatchTickersBidsAsks (symbols, 'watchTickers', this.extend ({ 'method': 'tickers' }, params));
+        return await this.subscribeWatchTickersAndBidsAsks (symbols, 'watchTickers', this.extend ({ 'method': 'tickers' }, params));
     }
 
     handleTicker (client: Client, message) {
@@ -327,7 +327,7 @@ export default class gate extends gateRest {
         //        }
         //    }
         //
-        this.helperForHandleTickerBidAsk ('ticker', client, message);
+        this.handleTickerAndBidAsk ('ticker', client, message);
     }
 
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -340,7 +340,7 @@ export default class gate extends gateRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        return await this.helperForWatchTickersBidsAsks (symbols, 'watchBidsAsks', this.extend ({ 'method': 'book_ticker' }, params));
+        return await this.subscribeWatchTickersAndBidsAsks (symbols, 'watchBidsAsks', this.extend ({ 'method': 'book_ticker' }, params));
     }
 
     handleBidAsk (client: Client, message) {
@@ -361,25 +361,18 @@ export default class gate extends gateRest {
         //        }
         //    }
         //
-        this.helperForHandleTickerBidAsk ('bidask', client, message);
+        this.handleTickerAndBidAsk ('bidask', client, message);
     }
 
-    async helperForWatchTickersBidsAsks (symbols: Strings = undefined, methdoName: Str = undefined, params = {}): Promise<Tickers> {
+    async subscribeWatchTickersAndBidsAsks (symbols: Strings = undefined, methodName: Str = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams (methdoName, undefined, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, undefined, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams (methdoName, undefined, params);
+        [ subType, params ] = this.handleSubTypeAndParams (methodName, undefined, params);
         if (symbols === undefined) {
-            if (marketType === undefined) {
-                throw new ArgumentsRequired (this.id + ' ' + methdoName + ' requires symbols or set params["defaultType"] to any from "spot|swap|future". if you do not use spot, then you also need to set params["defaultSubType"] to "linear" or "inverse"');
-            }
-            this.checkRequiredArgument (methdoName, marketType, 'defaultType', [ 'spot', 'swap', 'future', 'option' ]);
             const isSwapOrFuture = this.inArray (marketType, [ 'swap', 'future' ]);
-            if (isSwapOrFuture) {
-                this.checkRequiredArgument (methdoName, subType, 'defaultSubType', [ 'linear', 'inverse' ]);
-            }
             let filteredMarkets = this.filterBy (this.markets, 'type', marketType);
             filteredMarkets = this.filterByArray (filteredMarkets, 'active', [ true ], false);
             if (isSwapOrFuture) {
@@ -391,10 +384,10 @@ export default class gate extends gateRest {
         const messageType = this.getTypeByMarket (market);
         const marketIds = this.marketIds (symbols);
         let method = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, methdoName, 'method');
+        [ method, params ] = this.handleOptionAndParams (params, methodName, 'method');
         const url = this.getUrlByMarket (market);
         const channel = messageType + '.' + method;
-        const isWatchTickers = (methdoName === 'watchTickers');
+        const isWatchTickers = (methodName === 'watchTickers');
         const prefix = isWatchTickers ? 'ticker' : 'bidask';
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -411,7 +404,7 @@ export default class gate extends gateRest {
         return this.filterByArray (result, 'symbol', symbols, true);
     }
 
-    helperForHandleTickerBidAsk (objectName: string, client: Client, message) {
+    handleTickerAndBidAsk (objectName: string, client: Client, message) {
         const channel = this.safeString (message, 'channel');
         const parts = channel.split ('.');
         const rawMarketType = this.safeString (parts, 0);
