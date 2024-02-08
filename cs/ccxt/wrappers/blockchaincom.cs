@@ -10,6 +10,7 @@ public partial class blockchaincom
     /// retrieves data on all markets for blockchaincom
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.blockchain.com/v3/#/unauthenticated/getSymbols"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -29,6 +30,7 @@ public partial class blockchaincom
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.blockchain.com/v3/#/unauthenticated/getL3OrderBook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -55,6 +57,7 @@ public partial class blockchaincom
     /// fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.blockchain.com/v3/#/unauthenticated/getL3OrderBook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -87,6 +90,7 @@ public partial class blockchaincom
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.blockchain.com/v3/#/unauthenticated/getTickerBySymbol"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -106,6 +110,7 @@ public partial class blockchaincom
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.blockchain.com/v3/#/unauthenticated/getTickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -125,6 +130,7 @@ public partial class blockchaincom
     /// create a trade order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.blockchain.com/v3/#/trading/createOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -151,6 +157,7 @@ public partial class blockchaincom
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.blockchain.com/v3/#/trading/deleteOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -170,6 +177,7 @@ public partial class blockchaincom
     /// cancel all open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.blockchain.com/v3/#/trading/deleteAllOrders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -189,6 +197,7 @@ public partial class blockchaincom
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.blockchain.com/v3/#/trading/getFees"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -208,6 +217,7 @@ public partial class blockchaincom
     /// fetches information on multiple canceled orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.blockchain.com/v3/#/trading/getOrders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -241,6 +251,7 @@ public partial class blockchaincom
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.blockchain.com/v3/#/trading/getOrders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -274,6 +285,7 @@ public partial class blockchaincom
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.blockchain.com/v3/#/trading/getOrders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -314,6 +326,7 @@ public partial class blockchaincom
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.blockchain.com/v3/#/trading/getFills"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -347,6 +360,7 @@ public partial class blockchaincom
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.blockchain.com/v3/#/payments/getDepositAddress"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -366,6 +380,7 @@ public partial class blockchaincom
     /// make a withdrawal
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.blockchain.com/v3/#/payments/createWithdrawal"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -385,6 +400,7 @@ public partial class blockchaincom
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.blockchain.com/v3/#/payments/getWithdrawals"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -418,6 +434,7 @@ public partial class blockchaincom
     /// fetch data on a currency withdrawal via the withdrawal id
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.blockchain.com/v3/#/payments/getWithdrawalById"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -437,6 +454,7 @@ public partial class blockchaincom
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.blockchain.com/v3/#/payments/getDeposits"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -470,6 +488,7 @@ public partial class blockchaincom
     /// fetch information on a deposit
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.blockchain.com/v3/#/payments/getDepositById"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -489,6 +508,7 @@ public partial class blockchaincom
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.blockchain.com/v3/#/payments/getAccounts"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -508,6 +528,7 @@ public partial class blockchaincom
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.blockchain.com/v3/#/trading/getOrderById"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

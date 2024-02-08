@@ -754,6 +754,30 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " setLeverage() is not supported yet")) ;
     }
 
+    public async virtual Task<object> fetchLeverage(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchLeverage() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " setPositionMode() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " setMarginMode() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchDepositAddressesByNetwork() is not supported yet")) ;
+    }
+
     public async virtual Task<object> fetchOpenInterestHistory(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         timeframe ??= "1h";
@@ -2261,12 +2285,12 @@ public partial class Exchange
          * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} unified network code
          */
-        object networkCodesByIds = this.safeValue(this.options, "networksById", new Dictionary<string, object>() {});
+        object networkCodesByIds = this.safeDict(this.options, "networksById", new Dictionary<string, object>() {});
         object networkCode = this.safeString(networkCodesByIds, networkId, networkId);
         // replace mainnet network-codes (i.e. ERC20->ETH)
         if (isTrue(!isEqual(currencyCode, null)))
         {
-            object defaultNetworkCodeReplacements = this.safeValue(this.options, "defaultNetworkCodeReplacements", new Dictionary<string, object>() {});
+            object defaultNetworkCodeReplacements = this.safeDict(this.options, "defaultNetworkCodeReplacements", new Dictionary<string, object>() {});
             if (isTrue(inOp(defaultNetworkCodeReplacements, currencyCode)))
             {
                 object replacementObject = this.safeDict(defaultNetworkCodeReplacements, currencyCode, new Dictionary<string, object>() {});

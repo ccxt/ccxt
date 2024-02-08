@@ -1044,13 +1044,15 @@ export default class coinlist extends Exchange {
             }
             takerFees = this.sortBy (takerFees, 1, true);
             makerFees = this.sortBy (makerFees, 1, true);
-            const firstTier = this.safeValue (takerFees, 0, []);
-            const exchangeFees = this.safeValue (this, 'fees', {});
-            const exchangeFeesTrading = this.safeValue (exchangeFees, 'trading', {});
-            const exchangeFeesTradingTiers = this.safeValue (exchangeFeesTrading, 'tiers', {});
-            const exchangeFeesTradingTiersTaker = this.safeValue (exchangeFeesTradingTiers, 'taker', []);
-            const exchangeFeesTradingTiersMaker = this.safeValue (exchangeFeesTradingTiers, 'maker', []);
-            if ((keysLength === exchangeFeesTradingTiersTaker.length) && (firstTier.length > 0)) {
+            const firstTier = this.safeDict (takerFees, 0, []);
+            const exchangeFees = this.safeDict (this, 'fees', {});
+            const exchangeFeesTrading = this.safeDict (exchangeFees, 'trading', {});
+            const exchangeFeesTradingTiers = this.safeDict (exchangeFeesTrading, 'tiers', {});
+            const exchangeFeesTradingTiersTaker = this.safeList (exchangeFeesTradingTiers, 'taker', []);
+            const exchangeFeesTradingTiersMaker = this.safeList (exchangeFeesTradingTiers, 'maker', []);
+            const exchangeFeesTradingTiersTakerLength = exchangeFeesTradingTiersTaker.length;
+            const firstTierLength = firstTier.length;
+            if ((keysLength === exchangeFeesTradingTiersTakerLength) && (firstTierLength > 0)) {
                 for (let i = 0; i < keysLength; i++) {
                     takerFees[i][0] = exchangeFeesTradingTiersTaker[i][0];
                     makerFees[i][0] = exchangeFeesTradingTiersMaker[i][0];
@@ -1551,7 +1553,7 @@ export default class coinlist extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
         /**
          * @method
          * @name coinlist#editOrder
@@ -1733,7 +1735,7 @@ export default class coinlist extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name coinlist#transfer

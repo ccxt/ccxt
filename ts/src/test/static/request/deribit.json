@@ -349,7 +349,7 @@
                 "input": [
                     "USDT",
                     1,
-                    null,
+                    "",
                     "toAccount"
                 ]
             }
