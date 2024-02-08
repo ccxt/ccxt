@@ -5516,6 +5516,7 @@ export default class bybit extends Exchange {
             'amount': this.numberToString (amount),
             'address': address,
             'timestamp': this.nonce (),
+            'feeType': 1, // bybit will deduce the fee from the amount
         };
         if (tag !== undefined) {
             request['tag'] = tag;
