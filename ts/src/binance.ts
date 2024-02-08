@@ -10318,9 +10318,11 @@ export default class binance extends Exchange {
          * @name binance#borrowCrossMargin
          * @description create a loan to borrow margin
          * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
+         * @see https://binance-docs.github.io/apidocs/pm/en/#margin-account-borrow-margin
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to borrow margin in a portfolio margin account
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets ();
@@ -10328,10 +10330,17 @@ export default class binance extends Exchange {
         const request = {
             'asset': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
-            'isIsolated': 'FALSE',
-            'type': 'BORROW',
         };
-        const response = await this.sapiPostMarginBorrowRepay (this.extend (request, params));
+        let response = undefined;
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'borrowCrossMargin', 'papi', 'portfolioMargin', false);
+        if (isPortfolioMargin) {
+            response = await this.papiPostMarginLoan (this.extend (request, params));
+        } else {
+            request['isIsolated'] = 'FALSE';
+            request['type'] = 'BORROW';
+            response = await this.sapiPostMarginBorrowRepay (this.extend (request, params));
+        }
         //
         //     {
         //         "tranId": 108988250265,
