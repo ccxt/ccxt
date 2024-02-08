@@ -4128,6 +4128,12 @@ public partial class bitget : Exchange
             size = this.safeString(order, "size");
             filled = this.safeString(order, "baseVolume");
         }
+        object side = this.safeString(order, "side");
+        object posMode = this.safeString(order, "posMode");
+        if (isTrue(isTrue(isEqual(posMode, "hedge_mode")) && isTrue(reduceOnly)))
+        {
+            side = ((bool) isTrue((isEqual(side, "buy")))) ? "sell" : "buy";
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", this.safeString2(order, "orderId", "data") },
@@ -4138,7 +4144,7 @@ public partial class bitget : Exchange
             { "lastUpdateTimestamp", updateTimestamp },
             { "symbol", getValue(market, "symbol") },
             { "type", this.safeString(order, "orderType") },
-            { "side", this.safeString(order, "side") },
+            { "side", side },
             { "price", price },
             { "amount", size },
             { "cost", this.safeString2(order, "quoteVolume", "quoteSize") },

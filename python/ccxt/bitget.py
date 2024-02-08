@@ -3794,6 +3794,12 @@ class bitget(Exchange, ImplicitAPI):
         else:
             size = self.safe_string(order, 'size')
             filled = self.safe_string(order, 'baseVolume')
+        side = self.safe_string(order, 'side')
+        posMode = self.safe_string(order, 'posMode')
+        if posMode == 'hedge_mode' and reduceOnly:
+            side = 'sell' if (side == 'buy') else 'buy'
+            # on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
+            # so the side of the reduceOnly order is inversed
         return self.safe_order({
             'info': order,
             'id': self.safe_string_2(order, 'orderId', 'data'),
@@ -3804,7 +3810,7 @@ class bitget(Exchange, ImplicitAPI):
             'lastUpdateTimestamp': updateTimestamp,
             'symbol': market['symbol'],
             'type': self.safe_string(order, 'orderType'),
-            'side': self.safe_string(order, 'side'),
+            'side': side,
             'price': price,
             'amount': size,
             'cost': self.safe_string_2(order, 'quoteVolume', 'quoteSize'),
