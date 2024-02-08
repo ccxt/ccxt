@@ -4277,7 +4277,7 @@ export default class Exchange {
             }
             // if it was not defined in market object
             if (subType === undefined) {
-                const values = this.handleOptionAndParams (undefined, methodName, 'subType', defaultValue); // no need to re-test params here
+                const values = this.handleOptionAndParams ({}, methodName, 'subType', defaultValue); // no need to re-test params here
                 subType = values[0];
             }
         }
