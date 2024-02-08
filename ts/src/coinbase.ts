@@ -436,7 +436,8 @@ export default class coinbase extends Exchange {
         const pagination = this.safeValue (response, 'pagination', {});
         const cursor = this.safeString (pagination, 'next_starting_after');
         const accounts = this.safeValue (response, 'data', []);
-        const lastIndex = accounts.length - 1;
+        const length = accounts.length;
+        const lastIndex = length - 1;
         const last = this.safeValue (accounts, lastIndex);
         if ((cursor !== undefined) && (cursor !== '')) {
             last['next_starting_after'] = cursor;
@@ -487,7 +488,8 @@ export default class coinbase extends Exchange {
         //     }
         //
         const accounts = this.safeValue (response, 'accounts', []);
-        const lastIndex = accounts.length - 1;
+        const length = accounts.length;
+        const lastIndex = length - 1;
         const last = this.safeValue (accounts, lastIndex);
         const cursor = this.safeString (response, 'cursor');
         if ((cursor !== undefined) && (cursor !== '')) {
