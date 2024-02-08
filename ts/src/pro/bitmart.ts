@@ -309,7 +309,8 @@ export default class bitmart extends bitmartRest {
     async helperForWatchMultiple (methodName: string, symbols: string[], limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false, true);
-        if (symbols.length > 20) {
+        const length = symbols.length;
+        if (length > 20) {
             throw new NotSupported (this.id + ' ' + methodName + '() accepts a maximum of 20 symbols in one request');
         }
         const market = this.market (symbols[0]);
