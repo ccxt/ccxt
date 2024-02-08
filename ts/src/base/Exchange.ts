@@ -3899,6 +3899,16 @@ export default class Exchange {
         return ohlcvs;
     }
 
+    urlencodeExcludingChars (obj, chars: string[]) {
+        let encoded = this.urlencode (obj);
+        for (let i = 0; i < chars.length; i++) {
+            const char = chars[i];
+            const safeChar = this.encodeURIComponent (char);
+            encoded = encoded.replace (safeChar, char);
+        }
+        return encoded;
+    }
+
     parseTradingViewOHLCV (ohlcvs, market = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined) {
         const result = this.convertTradingViewToOHLCV (ohlcvs);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
