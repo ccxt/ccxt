@@ -294,8 +294,9 @@ export default class bitmart extends bitmartRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
+        await this.loadMarkets ();
         let marketType = undefined;
-        [ symbols, marketType, params ] = await this.helperForWatchMultiple ('watchTradesForSymbols', symbols, limit, params);
+        [ symbols, marketType, params ] = this.getParamsForMultipleSub ('watchTradesForSymbols', symbols, limit, params);
         const channelName = 'trade';
         const trades = await this.subscribeMultiple (channelName, marketType, symbols, params);
         if (this.newUpdates) {
@@ -306,8 +307,7 @@ export default class bitmart extends bitmartRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async helperForWatchMultiple (methodName: string, symbols: string[], limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+    getParamsForMultipleSub (methodName: string, symbols: string[], limit: Int = undefined, params = {}) {
         symbols = this.marketSymbols (symbols, undefined, false, true);
         const length = symbols.length;
         if (length > 20) {
@@ -1420,7 +1420,7 @@ export default class bitmart extends bitmartRest {
          */
         await this.loadMarkets ();
         let type = undefined;
-        [ symbols, type, params ] = await this.helperForWatchMultiple ('watchOrderBookForSymbols', symbols, limit, params);
+        [ symbols, type, params ] = this.getParamsForMultipleSub ('watchOrderBookForSymbols', symbols, limit, params);
         let channel = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'depth', 'depth/increase100');
         if (type === 'swap' && channel === 'depth/increase100') {
