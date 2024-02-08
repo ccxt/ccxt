@@ -8213,8 +8213,11 @@ export default class bitget extends Exchange {
                 auth += body;
             } else {
                 if (Object.keys (params).length) {
-                    const sorted = this.keysort (params);
-                    const queryInner = '?' + this.urlencodeExcludingChars (sorted, [ '$' ]);
+                    let queryInner = '?' + this.urlencode (this.keysort (params));
+                    // check #21169 pr
+                    if (queryInner.indexOf ('%24') > -1) {
+                        queryInner = queryInner.replace ('%24', '$');
+                    }
                     url += queryInner;
                     auth += queryInner;
                 }
