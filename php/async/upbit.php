@@ -1629,7 +1629,7 @@ class upbit extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
              * @see https://docs.upbit.com/reference/%EC%A0%84%EC%B2%B4-%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%A1%B0%ED%9A%8C

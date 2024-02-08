@@ -1522,7 +1522,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    async def fetch_deposit_addresses(self, codes=None, params={}):
+    async def fetch_deposit_addresses(self, codes: List[str] = None, params={}):
         """
         :see: https://docs.upbit.com/reference/%EC%A0%84%EC%B2%B4-%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%A1%B0%ED%9A%8C
         fetch deposit addresses for multiple currencies and chain types

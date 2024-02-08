@@ -1390,7 +1390,7 @@ export default class huobijp extends Exchange {
         }, market);
     }
 
-    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name huobijp#createMarketBuyOrderWithCost

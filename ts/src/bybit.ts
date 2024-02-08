@@ -1183,7 +1183,7 @@ export default class bybit extends Exchange {
         return reconstructedDate;
     }
 
-    createExpiredOptionMarket (symbol) {
+    createExpiredOptionMarket (symbol: string) {
         // support expired option contracts
         const quote = 'USD';
         const settle = 'USDC';
@@ -3452,7 +3452,7 @@ export default class bybit extends Exchange {
         return this.safeValue (result, 0) as Order;
     }
 
-    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name bybit#createMarketBuyOrderWithCost
@@ -3471,7 +3471,7 @@ export default class bybit extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, 1, params);
     }
 
-    async createMarketSellOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketSellOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name bybit#createMarkeSellOrderWithCost
@@ -4013,7 +4013,7 @@ export default class bybit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
         /**
          * @method
          * @name bybit#editOrder
@@ -6075,7 +6075,7 @@ export default class bybit extends Exchange {
         });
     }
 
-    async setMarginMode (marginMode, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bybit#setMarginMode
@@ -6220,7 +6220,7 @@ export default class bybit extends Exchange {
         return response;
     }
 
-    async setPositionMode (hedged, symbol: Str = undefined, params = {}) {
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bybit#setPositionMode
@@ -6572,7 +6572,7 @@ export default class bybit extends Exchange {
         };
     }
 
-    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name bybit#transfer

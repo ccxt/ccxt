@@ -1052,6 +1052,7 @@ class testMainClass(baseMainTestClass):
         currencies = self.load_currencies_from_file(exchange_name)
         exchange = init_exchange(exchange_name, {
             'markets': markets,
+            'currencies': currencies,
             'enableRateLimit': False,
             'rateLimit': 1,
             'httpProxy': 'http://fake:8080',

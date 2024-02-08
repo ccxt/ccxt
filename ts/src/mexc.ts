@@ -2087,7 +2087,7 @@ export default class mexc extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name mexc#createMarketBuyOrderWithCost
@@ -4909,7 +4909,7 @@ export default class mexc extends Exchange {
         return this.parseTransfers (resultList, currency, since, limit);
     }
 
-    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name mexc3#transfer
@@ -5086,7 +5086,7 @@ export default class mexc extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async setPositionMode (hedged, symbol: Str = undefined, params = {}) {
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         const request = {
             'positionMode': hedged ? 1 : 2, // 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
         };
@@ -5116,7 +5116,7 @@ export default class mexc extends Exchange {
         };
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchTransactionFees

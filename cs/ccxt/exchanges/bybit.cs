@@ -5274,7 +5274,7 @@ public partial class bybit : Exchange
         };
     }
 
-    public async virtual Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
+    public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
     {
         /**
         * @method
@@ -6476,7 +6476,7 @@ public partial class bybit : Exchange
         });
     }
 
-    public async virtual Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
     {
         /**
         * @method
@@ -6657,7 +6657,7 @@ public partial class bybit : Exchange
         return response;
     }
 
-    public async virtual Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
+    public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
         /**
         * @method

@@ -1959,7 +1959,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             Async\await($this->load_markets());
             $request = array();
@@ -2612,7 +2612,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
              * set margin mode to 'cross' or 'isolated'

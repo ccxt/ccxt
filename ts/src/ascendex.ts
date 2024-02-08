@@ -2956,7 +2956,7 @@ export default class ascendex extends Exchange {
         return await this.v2PrivateAccountGroupPostFuturesLeverage (this.extend (request, params));
     }
 
-    async setMarginMode (marginMode, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#setMarginMode
@@ -3152,7 +3152,7 @@ export default class ascendex extends Exchange {
         return this.parseDepositWithdrawFees (data, codes, 'assetCode');
     }
 
-    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name ascendex#transfer

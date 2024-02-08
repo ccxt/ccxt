@@ -73,6 +73,7 @@ class ImplicitAPI:
     v3_private_post_brokerage_orders_batch_cancel = v3PrivatePostBrokerageOrdersBatchCancel = Entry('brokerage/orders/batch_cancel', ['v3', 'private'], 'POST', {})
     v3_private_post_brokerage_orders_edit = v3PrivatePostBrokerageOrdersEdit = Entry('brokerage/orders/edit', ['v3', 'private'], 'POST', {})
     v3_private_post_brokerage_orders_edit_preview = v3PrivatePostBrokerageOrdersEditPreview = Entry('brokerage/orders/edit_preview', ['v3', 'private'], 'POST', {})
+    v3_private_post_brokerage_orders_preview = v3PrivatePostBrokerageOrdersPreview = Entry('brokerage/orders/preview', ['v3', 'private'], 'POST', {})
     v3_private_post_brokerage_portfolios = v3PrivatePostBrokeragePortfolios = Entry('brokerage/portfolios', ['v3', 'private'], 'POST', {})
     v3_private_post_brokerage_portfolios_move_funds = v3PrivatePostBrokeragePortfoliosMoveFunds = Entry('brokerage/portfolios/move_funds', ['v3', 'private'], 'POST', {})
     v3_private_post_brokerage_convert_quote = v3PrivatePostBrokerageConvertQuote = Entry('brokerage/convert/quote', ['v3', 'private'], 'POST', {})

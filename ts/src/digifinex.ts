@@ -1818,7 +1818,7 @@ export default class digifinex extends Exchange {
         return this.extend (request, params);
     }
 
-    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name digifinex#createMarketBuyOrderWithCost
@@ -2911,7 +2911,7 @@ export default class digifinex extends Exchange {
         };
     }
 
-    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name digifinex#transfer
@@ -4217,7 +4217,7 @@ export default class digifinex extends Exchange {
         };
     }
 
-    async setMarginMode (marginMode, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#setMarginMode

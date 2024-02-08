@@ -7155,7 +7155,7 @@ public partial class gate : Exchange
         return this.safeString(ledgerType, type, type);
     }
 
-    public async virtual Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
+    public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
         /**
         * @method

@@ -694,7 +694,7 @@ class luno(Exchange, ImplicitAPI):
         trades = self.safe_value(response, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         :see: https://www.luno.com/en/developers/api#tag/Market/operation/GetCandles
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -712,7 +712,7 @@ class luno(Exchange, ImplicitAPI):
             'pair': market['id'],
         }
         if since is not None:
-            request['since'] = int(since)
+            request['since'] = self.parse_to_int(since)
         else:
             duration = 1000 * 1000 * self.parse_timeframe(timeframe)
             request['since'] = self.milliseconds() - duration

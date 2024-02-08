@@ -872,7 +872,7 @@ export default class gate extends Exchange {
         return reconstructedDate;
     }
 
-    createExpiredOptionMarket (symbol) {
+    createExpiredOptionMarket (symbol: string) {
         // support expired option contracts
         const quote = 'USDT';
         const settle = quote;
@@ -2086,7 +2086,7 @@ export default class gate extends Exchange {
         };
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchTransactionFees
@@ -4153,7 +4153,7 @@ export default class gate extends Exchange {
         return this.extend (request, params);
     }
 
-    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name gate#createMarketBuyOrderWithCost
@@ -4173,7 +4173,7 @@ export default class gate extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
         /**
          * @method
          * @name gate#editOrder
@@ -5044,7 +5044,7 @@ export default class gate extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name gate#transfer
@@ -6612,7 +6612,7 @@ export default class gate extends Exchange {
         return this.safeString (ledgerType, type, type);
     }
 
-    async setPositionMode (hedged, symbol = undefined, params = {}) {
+    async setPositionMode (hedged: boolean, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name gate#setPositionMode

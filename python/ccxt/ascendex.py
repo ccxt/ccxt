@@ -2781,7 +2781,7 @@ class ascendex(Exchange, ImplicitAPI):
         }
         return self.v2PrivateAccountGroupPostFuturesLeverage(self.extend(request, params))
 
-    def set_margin_mode(self, marginMode, symbol: Str = None, params={}):
+    def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-margin-type
@@ -2959,7 +2959,7 @@ class ascendex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_deposit_withdraw_fees(data, codes, 'assetCode')
 
-    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency codeåå

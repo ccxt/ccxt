@@ -1306,7 +1306,7 @@ class cex extends \ccxt\async\cex {
         }) ();
     }
 
-    public function edit_order_ws(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()): PromiseInterface {
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -1379,7 +1379,7 @@ class cex extends \ccxt\async\cex {
         }) ();
     }
 
-    public function cancel_orders_ws($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders

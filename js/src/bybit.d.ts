@@ -13,7 +13,7 @@ export default class bybit extends Exchange {
     convertExpireDate(date: any): string;
     convertExpireDateToMarketIdDate(date: any): any;
     convertMarketIdExpireDate(date: any): string;
-    createExpiredOptionMarket(symbol: any): MarketInterface;
+    createExpiredOptionMarket(symbol: string): MarketInterface;
     safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): MarketInterface;
     getBybitType(method: any, market: any, params?: {}): any[];
     fetchTime(params?: {}): Promise<number>;
@@ -57,14 +57,14 @@ export default class bybit extends Exchange {
     parseTimeInForce(timeInForce: any): string;
     parseOrder(order: any, market?: Market): Order;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
-    createMarketSellOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
+    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
+    createMarketSellOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}, isUTA?: boolean): any;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     createUsdcOrder(symbol: any, type: any, side: any, amount: number, price?: number, params?: {}): Promise<Order>;
     editUsdcOrder(id: any, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
-    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
     cancelUsdcOrder(id: any, symbol?: Str, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllUsdcOrders(symbol?: Str, params?: {}): Promise<any>;
@@ -121,9 +121,9 @@ export default class bybit extends Exchange {
     fetchUsdcPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: Market): import("./base/types.js").Position;
-    setMarginMode(marginMode: any, symbol?: Str, params?: {}): Promise<any>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
-    setPositionMode(hedged: any, symbol?: Str, params?: {}): Promise<any>;
+    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
     fetchDerivativesOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OpenInterest[]>;
     fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OpenInterest[]>;
@@ -156,7 +156,7 @@ export default class bybit extends Exchange {
         datetime: any;
         info: any;
     };
-    transfer(code: string, amount: number, fromAccount: any, toAccount: any, params?: {}): Promise<TransferEntry>;
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     borrowCrossMargin(code: string, amount: number, params?: {}): Promise<any>;
     repayCrossMargin(code: string, amount: any, params?: {}): Promise<any>;

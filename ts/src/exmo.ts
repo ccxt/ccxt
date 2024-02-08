@@ -429,7 +429,7 @@ export default class exmo extends Exchange {
         return result;
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name exmo#fetchTransactionFees
@@ -2039,7 +2039,7 @@ export default class exmo extends Exchange {
         }
     }
 
-    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
         /**
          * @method
          * @name exmo#editOrder

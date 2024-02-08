@@ -864,7 +864,7 @@ class bitfinex2(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    async def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://docs.bitfinex.com/reference/rest-auth-transfer
@@ -3363,7 +3363,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         order = self.safe_list(response, 0)
         return self.parse_order(order, market)
 
-    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         """
         edit a trade order
         :see: https://docs.bitfinex.com/reference/rest-auth-update-order

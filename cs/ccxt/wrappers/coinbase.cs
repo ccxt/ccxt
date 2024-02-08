@@ -403,7 +403,7 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Order> CreateMarketBuyOrderWithCost(string symbol, object cost, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateMarketBuyOrderWithCost(string symbol, double cost, Dictionary<string, object> parameters = null)
     {
         var res = await this.createMarketBuyOrderWithCost(symbol, cost, parameters);
         return new Order(res);
@@ -478,6 +478,12 @@ public partial class coinbase
     /// <term>params.cost</term>
     /// <description>
     /// float : *spot market buy only* the quote quantity that can be used as an alternative for the amount
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.preview</term>
+    /// <description>
+    /// boolean : default to false, wether to use the test/preview endpoint or not
     /// </description>
     /// </item>
     /// </list>
@@ -556,8 +562,10 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Order> EditOrder(string id, object symbol, object type, object side, object amount = null, object price = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var price = price2 == 0 ? null : (object)price2;
         var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
