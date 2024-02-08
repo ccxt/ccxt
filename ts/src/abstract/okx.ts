@@ -106,6 +106,7 @@ interface Exchange {
     privateGetTradeEasyConvertHistory (params?: {}): Promise<implicitReturnType>;
     privateGetTradeOneClickRepayCurrencyList (params?: {}): Promise<implicitReturnType>;
     privateGetTradeOneClickRepayHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeAccountRateLimit (params?: {}): Promise<implicitReturnType>;
     privateGetAssetCurrencies (params?: {}): Promise<implicitReturnType>;
     privateGetAssetBalances (params?: {}): Promise<implicitReturnType>;
     privateGetAssetNonTradableAssets (params?: {}): Promise<implicitReturnType>;

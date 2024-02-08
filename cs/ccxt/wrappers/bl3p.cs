@@ -10,6 +10,7 @@ public partial class bl3p
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#35---get-account-info--balance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -29,6 +30,7 @@ public partial class bl3p
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://github.com/BitonicNL/bl3p-api/blob/master/docs/public_api/http.md#22---orderbook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -55,6 +57,7 @@ public partial class bl3p
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://github.com/BitonicNL/bl3p-api/blob/master/docs/public_api/http.md#21---ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -74,6 +77,7 @@ public partial class bl3p
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://github.com/BitonicNL/bl3p-api/blob/master/docs/public_api/http.md#23---last-1000-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -107,6 +111,7 @@ public partial class bl3p
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
+    /// See <see href="https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#35---get-account-info--balance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -165,6 +170,7 @@ public partial class bl3p
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#22---cancel-an-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

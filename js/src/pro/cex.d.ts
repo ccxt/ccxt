@@ -40,9 +40,9 @@ export default class cex extends cexRest {
     fetchOrderWs(id: string, symbol?: string, params?: {}): Promise<Order>;
     fetchOpenOrdersWs(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
-    editOrderWs(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
+    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
     cancelOrderWs(id: string, symbol?: string, params?: {}): Promise<Order>;
-    cancelOrdersWs(ids: any, symbol?: string, params?: {}): Promise<Order[]>;
+    cancelOrdersWs(ids: string[], symbol?: string, params?: {}): Promise<Order[]>;
     resolveData(client: Client, message: any): void;
     handleConnected(client: Client, message: any): any;
     handleErrorMessage(client: Client, message: any): void;

@@ -1690,7 +1690,7 @@ public partial class latoken : Exchange
         if (isTrue(isGreaterThanOrEqual(getIndexOf(toAccount, "@"), 0)))
         {
             response = await this.privatePostAuthTransferEmail(this.extend(request, parameters));
-        } else if (isTrue(isEqual(getArrayLength(toAccount), 36)))
+        } else if (isTrue(isEqual(((string)toAccount).Length, 36)))
         {
             response = await this.privatePostAuthTransferId(this.extend(request, parameters));
         } else

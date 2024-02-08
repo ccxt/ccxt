@@ -4,6 +4,7 @@ import Client from '../base/ws/Client.js';
 export default class bitmart extends bitmartRest {
     describe(): any;
     subscribe(channel: any, symbol: any, type: any, params?: {}): Promise<any>;
+    subscribeMultiple(channel: string, type: string, symbols: string[], params?: {}): Promise<any>;
     watchBalance(params?: {}): Promise<Balances>;
     setBalanceCache(client: Client, type: any, subscribeHash: any): void;
     loadBalanceSnapshot(client: any, messageHash: any, type: any): Promise<void>;
@@ -31,6 +32,7 @@ export default class bitmart extends bitmartRest {
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBookMessage(client: Client, message: any, orderbook: any): any;
     handleOrderBook(client: Client, message: any): void;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     authenticate(type: any, params?: {}): Promise<any>;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleAuthenticate(client: Client, message: any): void;

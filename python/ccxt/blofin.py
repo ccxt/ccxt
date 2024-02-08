@@ -1598,7 +1598,7 @@ class blofin(Exchange, ImplicitAPI):
         ordersData = self.safe_list(response, 'data', [])
         return self.parse_orders(ordersData, market, None, None, params)
 
-    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://blofin.com/docs#funds-transfer
@@ -1780,7 +1780,7 @@ class blofin(Exchange, ImplicitAPI):
         response = self.privateGetAccountLeverageInfo(self.extend(request, params))
         return response
 
-    def set_leverage(self, leverage, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://blofin.com/docs#set-leverage
