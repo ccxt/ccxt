@@ -806,7 +806,7 @@ public partial class luno : Exchange
         };
         if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["since"] = parseInt(since);
+            ((IDictionary<string,object>)request)["since"] = this.parseToInt(since);
         } else
         {
             object duration = multiply(multiply(1000, 1000), this.parseTimeframe(timeframe));

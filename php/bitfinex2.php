@@ -868,7 +868,7 @@ class bitfinex2 extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://docs.bitfinex.com/reference/rest-auth-transfer
@@ -3521,7 +3521,7 @@ class bitfinex2 extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * edit a trade $order
          * @see https://docs.bitfinex.com/reference/rest-auth-update-$order

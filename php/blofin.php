@@ -1690,7 +1690,7 @@ class blofin extends Exchange {
         return $this->parse_orders($ordersData, $market, null, null, $params);
     }
 
-    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://blofin.com/docs#funds-transfer
@@ -1887,7 +1887,7 @@ class blofin extends Exchange {
         return $response;
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          * @see https://blofin.com/docs#set-$leverage

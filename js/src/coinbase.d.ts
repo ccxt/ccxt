@@ -71,7 +71,7 @@ export default class coinbase extends Exchange {
     prepareAccountRequestWithCurrencyCode(code?: Str, limit?: Int, params?: {}): Promise<{
         account_id: string;
     }>;
-    createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
+    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     parseOrder(order: any, market?: Market): Order;
     parseOrderStatus(status: any): string;
@@ -79,7 +79,7 @@ export default class coinbase extends Exchange {
     parseTimeInForce(timeInForce: any): string;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<Order[]>;
-    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;

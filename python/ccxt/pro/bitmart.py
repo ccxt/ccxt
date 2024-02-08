@@ -33,6 +33,7 @@ class bitmart(ccxt.async_support.bitmart):
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchOrderBook': True,
+                'watchOrderBookForSymbols': True,
                 'watchOrders': True,
                 'watchTrades': True,
                 'watchOHLCV': True,
@@ -59,8 +60,15 @@ class bitmart(ccxt.async_support.bitmart):
                     'fetchBalanceSnapshot': True,  # or False
                     'awaitBalanceSnapshot': False,  # whether to wait for the balance snapshot before providing updates
                 },
+                #
+                # orderbook channels can have:
+                #  -  'depth5', 'depth20', 'depth50'  # these endpoints emit full Orderbooks once in every 500ms
+                #  -  'depth/increase100'  # self endpoint is preferred, because it emits once in 100ms. however, when self value is chosen, it only affects spot-market, but contracts markets automatically `depth50` will be being used
                 'watchOrderBook': {
-                    'depth': 'depth/increase100',  # depth/increase100, depth5, depth20, depth50
+                    'depth': 'depth/increase100',
+                },
+                'watchOrderBookForSymbols': {
+                    'depth': 'depth/increase100',
                 },
                 'ws': {
                     'inflate': True,
@@ -104,6 +112,23 @@ class bitmart(ccxt.async_support.bitmart):
                 'args': [messageHash],
             }
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
+
+    async def subscribe_multiple(self, channel: str, type: str, symbols: List[str], params={}):
+        url = self.implode_hostname(self.urls['api']['ws'][type]['public'])
+        channelType = 'spot' if (type == 'spot') else 'futures'
+        actionType = 'op' if (type == 'spot') else 'action'
+        rawSubscriptions = []
+        messageHashes = []
+        for i in range(0, len(symbols)):
+            market = self.market(symbols[i])
+            message = channelType + '/' + channel + ':' + market['id']
+            rawSubscriptions.append(message)
+            messageHashes.append(channel + ':' + market['symbol'])
+        request = {
+            'args': rawSubscriptions,
+        }
+        request[actionType] = 'subscribe'
+        return await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), rawSubscriptions)
 
     async def watch_balance(self, params={}) -> Balances:
         """
@@ -1084,8 +1109,8 @@ class bitmart(ccxt.async_support.bitmart):
         #         "symbol": "BTC_USDT"
         #     }
         #
-        asks = self.safe_value(message, 'asks', [])
-        bids = self.safe_value(message, 'bids', [])
+        asks = self.safe_list(message, 'asks', [])
+        bids = self.safe_list(message, 'bids', [])
         self.handle_deltas(orderbook['asks'], asks)
         self.handle_deltas(orderbook['bids'], bids)
         timestamp = self.safe_integer(message, 'ms_t')
@@ -1099,6 +1124,7 @@ class bitmart(ccxt.async_support.bitmart):
     def handle_order_book(self, client: Client, message):
         #
         # spot depth-all
+        #
         #    {
         #        "data": [
         #            {
@@ -1118,33 +1144,31 @@ class bitmart(ccxt.async_support.bitmart):
         #        ],
         #        "table": "spot/depth5"
         #    }
+        #
         # spot increse depth snapshot
+        #
         #    {
         #        "data":[
         #           {
-        #              "asks":[
-        #                 [
-        #                    "43652.52",
-        #                    "0.02039"
-        #                 ],
-        #                 ...
-        #              ],
-        #              "bids":[
-        #                [
-        #                   "43652.51",
-        #                   "0.00500"
+        #               "asks":[
+        #                   ["43652.52", "0.02039"],
+        #                   ...
         #                ],
-        #                ...
-        #              ],
-        #              "ms_t":1703376836487,
-        #              "symbol":"BTC_USDT",
-        #              "type":"snapshot",  # or update
-        #              "version":2141731
+        #                "bids":[
+        #                   ["43652.51", "0.00500"],
+        #                   ...
+        #                ],
+        #                "ms_t":1703376836487,
+        #                "symbol":"BTC_USDT",
+        #                "type":"snapshot",  # or update
+        #                "version":2141731
         #           }
         #        ],
         #        "table":"spot/depth/increase100"
         #    }
+        #
         # swap
+        #
         #    {
         #        "group":"futures/depth50:BTCUSDT",
         #        "data":{
@@ -1165,43 +1189,58 @@ class bitmart(ccxt.async_support.bitmart):
         #        }
         #    }
         #
-        data = self.safe_value(message, 'data')
-        if data is None:
+        isSpot = ('table' in message)
+        datas = []
+        if isSpot:
+            datas = self.safe_list(message, 'data', datas)
+        else:
+            orderBookEntry = self.safe_dict(message, 'data')
+            if orderBookEntry is not None:
+                datas.append(orderBookEntry)
+        length = len(datas)
+        if length <= 0:
             return
-        depths = self.safe_value(data, 'depths')
-        isSpot = (depths is None)
-        table = self.safe_string_2(message, 'table', 'group')
+        channelName = self.safe_string_2(message, 'table', 'group')
         # find limit subscribed to
         limitsToCheck = ['100', '50', '20', '10', '5']
         limit = 0
         for i in range(0, len(limitsToCheck)):
             limitString = limitsToCheck[i]
-            if table.find(limitString) >= 0:
+            if channelName.find(limitString) >= 0:
                 limit = self.parse_to_int(limitString)
                 break
         if isSpot:
-            for i in range(0, len(data)):
-                update = data[i]
+            channel = channelName.replace('spot/', '')
+            for i in range(0, len(datas)):
+                update = datas[i]
                 marketId = self.safe_string(update, 'symbol')
                 symbol = self.safe_symbol(marketId)
-                orderbook = self.safe_value(self.orderbooks, symbol)
+                orderbook = self.safe_dict(self.orderbooks, symbol)
                 if orderbook is None:
                     orderbook = self.order_book({}, limit)
                     orderbook['symbol'] = symbol
                     self.orderbooks[symbol] = orderbook
                 type = self.safe_value(update, 'type')
-                if (type == 'snapshot') or (not(table.find('increase') >= 0)):
+                if (type == 'snapshot') or (not(channelName.find('increase') >= 0)):
                     orderbook.reset({})
                 self.handle_order_book_message(client, update, orderbook)
                 timestamp = self.safe_integer(update, 'ms_t')
-                orderbook['timestamp'] = timestamp
-                orderbook['datetime'] = self.iso8601(timestamp)
-                messageHash = table + ':' + marketId
+                if orderbook['timestamp'] is None:
+                    orderbook['timestamp'] = timestamp
+                    orderbook['datetime'] = self.iso8601(timestamp)
+                messageHash = channelName + ':' + marketId
                 client.resolve(orderbook, messageHash)
+                # resolve ForSymbols
+                messageHashForMulti = channel + ':' + symbol
+                client.resolve(orderbook, messageHashForMulti)
         else:
+            tableParts = channelName.split(':')
+            channel = tableParts[0].replace('futures/', '')
+            data = datas[0]  # contract markets always contain only one member
+            depths = data['depths']
             marketId = self.safe_string(data, 'symbol')
             symbol = self.safe_symbol(marketId)
-            orderbook = self.safe_value(self.orderbooks, symbol)
+            orderbook = self.safe_dict(self.orderbooks, symbol)
             if orderbook is None:
                 orderbook = self.order_book({}, limit)
                 orderbook['symbol'] = symbol
@@ -1225,8 +1264,35 @@ class bitmart(ccxt.async_support.bitmart):
             timestamp = self.safe_integer(data, 'ms_t')
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
-            messageHash = table
+            messageHash = channelName
             client.resolve(orderbook, messageHash)
+            # resolve ForSymbols
+            messageHashForMulti = channel + ':' + symbol
+            client.resolve(orderbook, messageHashForMulti)
+
+    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
+        :param str[] symbols: unified array of symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.depth]: the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False, True)
+        if len(symbols) > 20:
+            raise NotSupported(self.id + ' watchOrderBookForSymbols() accepts a maximum of 20 symbols in one request')
+        market = self.market(symbols[0])
+        channel = None
+        channel, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'depth', 'depth/increase100')
+        type = 'spot'
+        type, params = self.handle_market_type_and_params('watchOrderBookForSymbols', market, params)
+        if type == 'swap' and channel == 'depth/increase100':
+            channel = 'depth50'
+        orderbook = await self.subscribe_multiple(channel, type, symbols, params)
+        return orderbook.limit()
 
     async def authenticate(self, type, params={}):
         self.check_required_credentials()

@@ -264,6 +264,7 @@ public partial class okx : Exchange
                         { "trade/easy-convert-history", 20 },
                         { "trade/one-click-repay-currency-list", 20 },
                         { "trade/one-click-repay-history", 20 },
+                        { "trade/account-rate-limit", 1 },
                         { "asset/currencies", divide(5, 3) },
                         { "asset/balances", divide(5, 3) },
                         { "asset/non-tradable-assets", divide(5, 3) },
@@ -1600,7 +1601,7 @@ public partial class okx : Exchange
                 {
                     object parts = ((string)networkId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                     object chainPart = this.safeString(parts, 1, networkId);
-                    object networkCode = this.safeNetwork(chainPart);
+                    object networkCode = this.networkIdToCode(chainPart, getValue(currency, "code"));
                     object precision = this.parsePrecision(this.safeString(chain, "wdTickSz"));
                     if (isTrue(isEqual(maxPrecision, null)))
                     {
@@ -3804,7 +3805,6 @@ public partial class okx : Exchange
         * @param {int} [since] the earliest time in ms to fetch open orders for
         * @param {int} [limit] the maximum number of  open orders structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.till] Timestamp in ms of the latest time to retrieve orders for
         * @param {bool} [params.stop] True if fetching trigger or conditional orders
         * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
         * @param {string} [params.algoId] Algo ID "'433845797218942976'"
@@ -4783,7 +4783,7 @@ public partial class okx : Exchange
         };
     }
 
-    public async virtual Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
+    public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
     {
         /**
         * @method
@@ -5352,7 +5352,7 @@ public partial class okx : Exchange
         };
     }
 
-    public async virtual Task<object> fetchLeverage(object symbol, object parameters = null)
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
         /**
         * @method
@@ -6340,7 +6340,7 @@ public partial class okx : Exchange
         return response;
     }
 
-    public async virtual Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
+    public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
         /**
         * @method
@@ -6379,7 +6379,7 @@ public partial class okx : Exchange
         return response;
     }
 
-    public async virtual Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
     {
         /**
         * @method

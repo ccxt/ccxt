@@ -2075,7 +2075,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 raise NotSupported(self.id + ' cancelOrder() not support self market type')
         return self.parse_order(response, market)
 
-    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         await self.load_markets()
         market = None
         request = {
@@ -2400,7 +2400,7 @@ class hitbtc(Exchange, ImplicitAPI):
         filteredMargin = self.filter_by_symbol(marginModes, symbol)
         return self.safe_value(filteredMargin, 0)
 
-    async def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://api.hitbtc.com/#transfer-between-wallet-and-exchange

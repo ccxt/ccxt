@@ -1115,7 +1115,7 @@ public partial class woo : Exchange
         {
             ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, stopPrice);
         }
-        object trailingTriggerPrice = this.safeString2(parameters, "trailingTriggerPrice", "activatedPrice", price);
+        object trailingTriggerPrice = this.safeString2(parameters, "trailingTriggerPrice", "activatedPrice", this.numberToString(price));
         object trailingAmount = this.safeString2(parameters, "trailingAmount", "callbackValue");
         object trailingPercent = this.safeString2(parameters, "trailingPercent", "callbackRate");
         object isTrailingAmountOrder = !isEqual(trailingAmount, null);
@@ -2805,7 +2805,7 @@ public partial class woo : Exchange
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
-    public async virtual Task<object> fetchLeverage(object symbol, object parameters = null)
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

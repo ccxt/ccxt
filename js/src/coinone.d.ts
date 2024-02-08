@@ -23,7 +23,7 @@ export default class coinone extends Exchange {
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
-    fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositAddresses(codes?: string[], params?: {}): Promise<{}>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

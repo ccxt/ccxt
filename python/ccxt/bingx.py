@@ -1645,7 +1645,7 @@ class bingx(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost, params={}):
+    def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params={}):
         """
         create a market order by providing the symbol, side and cost
         :param str symbol: unified symbol of the market to create an order in
@@ -1657,7 +1657,7 @@ class bingx(Exchange, ImplicitAPI):
         params['quoteOrderQty'] = cost
         return self.create_order(symbol, 'market', side, cost, None, params)
 
-    def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
@@ -1668,7 +1668,7 @@ class bingx(Exchange, ImplicitAPI):
         params['quoteOrderQty'] = cost
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    def create_market_sell_order_with_cost(self, symbol: str, cost, params={}):
+    def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market sell order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
@@ -2682,7 +2682,7 @@ class bingx(Exchange, ImplicitAPI):
         orders = self.safe_value(data, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://bingx-api.github.io/docs/#/spot/account-api.html#User%20Universal%20Transfer
@@ -3560,7 +3560,7 @@ class bingx(Exchange, ImplicitAPI):
             positions.append(position)
         return positions
 
-    def set_position_mode(self, hedged, symbol: Str = None, params={}):
+    def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         """
         set hedged to True or False for a market
         :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Set%20Position%20Mode

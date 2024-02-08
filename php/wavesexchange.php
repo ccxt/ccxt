@@ -308,7 +308,7 @@ class wavesexchange extends Exchange {
                 ),
             ),
             'currencies' => array(
-                'WX' => $this->safe_currency_structure(array( 'id' => 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId' => null, 'code' => 'WX', 'precision' => $this->parse_number('8') )),
+                'WX' => $this->safe_currency_structure(array( 'id' => 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId' => null, 'code' => 'WX', 'precision' => $this->parse_to_int('8') )),
             ),
             'precisionMode' => DECIMAL_PLACES,
             'options' => array(

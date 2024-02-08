@@ -989,7 +989,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'batchStatus', [])
         return self.parse_orders(data)
 
-    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         """
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-edit-order
         Edit an open order on the exchange
@@ -2132,7 +2132,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         return self.transfer(code, amount, 'future', 'spot', params)
 
-    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-wallet-transfer
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-withdrawal-to-spot-wallet

@@ -1878,7 +1878,7 @@ public partial class currencycom : Exchange
         return this.safeString(types, type, type);
     }
 
-    public async virtual Task<object> fetchLeverage(object symbol, object parameters = null)
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
         /**
         * @method

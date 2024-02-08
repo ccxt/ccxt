@@ -881,7 +881,7 @@ class gate extends Exchange {
         return $reconstructedDate;
     }
 
-    public function create_expired_option_market($symbol) {
+    public function create_expired_option_market(string $symbol) {
         // support expired option contracts
         $quote = 'USDT';
         $settle = $quote;
@@ -2097,7 +2097,7 @@ class gate extends Exchange {
         );
     }
 
-    public function fetch_transaction_fees($codes = null, $params = array ()) {
+    public function fetch_transaction_fees(?array $codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
              * @deprecated
@@ -4168,7 +4168,7 @@ class gate extends Exchange {
         return array_merge($request, $params);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a $market buy order by providing the $symbol and $cost
@@ -4188,7 +4188,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order, gate currently only supports the modification of the $price or $amount fields
@@ -5061,7 +5061,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): PromiseInterface {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -6631,7 +6631,7 @@ class gate extends Exchange {
         return $this->safe_string($ledgerType, $type, $type);
     }
 
-    public function set_position_mode($hedged, $symbol = null, $params = array ()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($hedged, $symbol, $params) {
             /**
              * set dual/hedged mode to true or false for a swap $market, make sure all positions are closed and no orders are open before setting dual mode
