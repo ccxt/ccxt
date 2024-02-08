@@ -529,6 +529,19 @@
             "trailing": true
           }
         ]
+      },
+      {
+        "description": "fetch open trigger orders",
+        "method": "fetchOpenOrders",
+        "url": "https://www.okx.com/api/v5/trade/orders-algo-pending?ordType=trigger",
+        "input": [
+          null,
+          null,
+          null,
+          {
+            "trigger": true
+          }
+        ]
       }
     ],
     "fetchCanceledOrders": [
