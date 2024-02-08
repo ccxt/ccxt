@@ -3672,12 +3672,8 @@ export default class okx extends Exchange {
         }
         if (trailing) {
             request['ordType'] = 'move_order_stop';
-        } else if (stop || (ordType in algoOrderTypes)) {
-            if (stop) {
-                if (ordType === undefined) {
-                    throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
-                }
-            }
+        } else if (stop && (ordType === undefined)) {
+            request['ordType'] = 'trigger';
         }
         const query = this.omit (params, [ 'method', 'stop', 'trigger', 'trailing' ]);
         let response = undefined;
