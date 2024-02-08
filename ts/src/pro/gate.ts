@@ -305,7 +305,7 @@ export default class gate extends gateRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        return await this.helperForWatchTickersBidsAsks (symbols, 'watchTickers', this.extend ({ 'method': 'tickers' }, params));
+        return await this.watchMultipleTickersOrBidsAsks (symbols, 'watchTickers', this.extend ({ 'method': 'tickers' }, params));
     }
 
     handleTicker (client: Client, message) {
@@ -340,7 +340,7 @@ export default class gate extends gateRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        return await this.helperForWatchTickersBidsAsks (symbols, 'watchBidsAsks', this.extend ({ 'method': 'book_ticker' }, params));
+        return await this.watchMultipleTickersOrBidsAsks (symbols, 'watchBidsAsks', this.extend ({ 'method': 'book_ticker' }, params));
     }
 
     handleBidAsk (client: Client, message) {
@@ -364,7 +364,7 @@ export default class gate extends gateRest {
         this.helperForHandleTickerBidAsk ('bidask', client, message);
     }
 
-    async helperForWatchTickersBidsAsks (symbols: Strings = undefined, methdoName: Str = undefined, params = {}): Promise<Tickers> {
+    async watchMultipleTickersOrBidsAsks (symbols: Strings = undefined, methdoName: Str = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         let marketType = undefined;
@@ -416,20 +416,28 @@ export default class gate extends gateRest {
         const parts = channel.split ('.');
         const rawMarketType = this.safeString (parts, 0);
         const marketType = (rawMarketType === 'futures') ? 'contract' : 'spot';
-        const rawEntry = this.safeDict (message, 'result');
-        const isTicker = (objectName === 'ticker');
-        const ticker = rawEntry;
-        const marketId = this.safeString (ticker, 's');
-        const market = this.safeMarket (marketId, undefined, '_', marketType);
-        const parsedItem = this.parseTicker (ticker, market);
-        const symbol = parsedItem['symbol'];
-        if (isTicker) {
-            this.tickers[symbol] = parsedItem;
+        let results = [];
+        if (marketType === 'contract') {
+            results = this.safeList (message, 'result', []);
         } else {
-            this.bidsasks[symbol] = parsedItem;
+            const rawTicker = this.safeDict (message, 'result', {});
+            results = [ rawTicker ];
         }
-        const messageHash = objectName + ':' + symbol;
-        client.resolve (parsedItem, messageHash);
+        const isTicker = (objectName === 'ticker'); // whether ticker or bid-ask
+        for (let i = 0; i < results.length; i++) {
+            const rawTicker = results[i];
+            const marketId = this.safeString (rawTicker, 's');
+            const market = this.safeMarket (marketId, undefined, '_', marketType);
+            const parsedItem = this.parseTicker (rawTicker, market);
+            const symbol = parsedItem['symbol'];
+            if (isTicker) {
+                this.tickers[symbol] = parsedItem;
+            } else {
+                this.bidsasks[symbol] = parsedItem;
+            }
+            const messageHash = objectName + ':' + symbol;
+            client.resolve (parsedItem, messageHash);
+        }
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
