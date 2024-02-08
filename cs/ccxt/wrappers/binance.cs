@@ -1585,11 +1585,19 @@ public partial class binance
     /// <remarks>
     /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#notional-and-leverage-brackets-user_data"/>  <br/>
     /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#notional-bracket-for-symbol-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#um-notional-and-leverage-brackets-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#cm-notional-and-leverage-brackets-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolioMargin</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch the leverage tiers for a portfolio margin account
     /// </description>
     /// </item>
     /// </list>

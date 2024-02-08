@@ -36,6 +36,7 @@ class bitmart(ccxt.async_support.bitmart):
                 'watchOrderBookForSymbols': True,
                 'watchOrders': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': True,
                 'watchOHLCV': True,
                 'watchPosition': 'emulated',
                 'watchPositions': True,
@@ -261,15 +262,38 @@ class bitmart(ccxt.async_support.bitmart):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
+        return await self.watch_trades_for_symbols([symbol], since, limit, params)
+
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        :see: https://developer-pro.bitmart.com/en/spot/#public-trade-channel
+        get the list of most recent trades for a list of symbols
+        :param str[] symbols: unified symbol of the market to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
         await self.load_markets()
-        symbol = self.symbol(symbol)
-        market = self.market(symbol)
-        type = 'spot'
-        type, params = self.handle_market_type_and_params('watchTrades', market, params)
-        trades = await self.subscribe('trade', symbol, type, params)
+        marketType = None
+        symbols, marketType, params = self.get_params_for_multiple_sub('watchTradesForSymbols', symbols, limit, params)
+        channelName = 'trade'
+        trades = await self.subscribe_multiple(channelName, marketType, symbols, params)
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
+            first = self.safe_dict(trades, 0)
+            tradeSymbol = self.safe_string(first, 'symbol')
+            limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+
+    def get_params_for_multiple_sub(self, methodName: str, symbols: List[str], limit: Int = None, params={}):
+        symbols = self.market_symbols(symbols, None, False, True)
+        length = len(symbols)
+        if length > 20:
+            raise NotSupported(self.id + ' ' + methodName + '() accepts a maximum of 20 symbols in one request')
+        market = self.market(symbols[0])
+        marketType = None
+        marketType, params = self.handle_market_type_and_params(methodName, market, params)
+        return [symbols, marketType, params]
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
@@ -772,12 +796,11 @@ class bitmart(ccxt.async_support.bitmart):
         #        ]
         #    }
         #
-        channel = self.safe_string_2(message, 'table', 'group')
-        isSpot = (channel.find('spot') >= 0)
         data = self.safe_value(message, 'data')
         if data is None:
             return
         stored = None
+        symbol = None
         for i in range(0, len(data)):
             trade = self.parse_ws_trade(data[i])
             symbol = trade['symbol']
@@ -787,9 +810,7 @@ class bitmart(ccxt.async_support.bitmart):
                 stored = ArrayCache(tradesLimit)
                 self.trades[symbol] = stored
             stored.append(trade)
-        messageHash = channel
-        if isSpot:
-            messageHash += ':' + self.safe_string(data[0], 'symbol')
+        messageHash = 'trade:' + symbol
         client.resolve(stored, messageHash)
 
     def parse_ws_trade(self, trade, market: Market = None):
@@ -1281,14 +1302,10 @@ class bitmart(ccxt.async_support.bitmart):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
-        symbols = self.market_symbols(symbols, None, False, True)
-        if len(symbols) > 20:
-            raise NotSupported(self.id + ' watchOrderBookForSymbols() accepts a maximum of 20 symbols in one request')
-        market = self.market(symbols[0])
+        type = None
+        symbols, type, params = self.get_params_for_multiple_sub('watchOrderBookForSymbols', symbols, limit, params)
         channel = None
         channel, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'depth', 'depth/increase100')
-        type = 'spot'
-        type, params = self.handle_market_type_and_params('watchOrderBookForSymbols', market, params)
         if type == 'swap' and channel == 'depth/increase100':
             channel = 'depth50'
         orderbook = await self.subscribe_multiple(channel, type, symbols, params)

@@ -2649,7 +2649,7 @@ class binance extends binance$1 {
             let minPrecision = undefined;
             let isWithdrawEnabled = true;
             let isDepositEnabled = true;
-            const networkList = this.safeValue(entry, 'networkList', []);
+            const networkList = this.safeList(entry, 'networkList', []);
             const fees = {};
             let fee = undefined;
             for (let j = 0; j < networkList.length; j++) {
@@ -2657,12 +2657,12 @@ class binance extends binance$1 {
                 const network = this.safeString(networkItem, 'network');
                 // const name = this.safeString (networkItem, 'name');
                 const withdrawFee = this.safeNumber(networkItem, 'withdrawFee');
-                const depositEnable = this.safeValue(networkItem, 'depositEnable');
-                const withdrawEnable = this.safeValue(networkItem, 'withdrawEnable');
+                const depositEnable = this.safeBool(networkItem, 'depositEnable');
+                const withdrawEnable = this.safeBool(networkItem, 'withdrawEnable');
                 isDepositEnabled = isDepositEnabled || depositEnable;
                 isWithdrawEnabled = isWithdrawEnabled || withdrawEnable;
                 fees[network] = withdrawFee;
-                const isDefault = this.safeValue(networkItem, 'isDefault');
+                const isDefault = this.safeBool(networkItem, 'isDefault');
                 if (isDefault || (fee === undefined)) {
                     fee = withdrawFee;
                 }
@@ -2673,7 +2673,7 @@ class binance extends binance$1 {
                     minPrecision = (minPrecision === undefined) ? precisionTick : Precise["default"].stringMin(minPrecision, precisionTick);
                 }
             }
-            const trading = this.safeValue(entry, 'trading');
+            const trading = this.safeBool(entry, 'trading');
             const active = (isWithdrawEnabled && isDepositEnabled && trading);
             let maxDecimalPlaces = undefined;
             if (minPrecision !== undefined) {
@@ -2709,8 +2709,8 @@ class binance extends binance$1 {
          * @returns {object[]} an array of objects representing market data
          */
         const promisesRaw = [];
-        const rawFetchMarkets = this.safeValue(this.options, 'fetchMarkets', ['spot', 'linear', 'inverse']);
-        const sandboxMode = this.safeValue(this.options, 'sandboxMode', false);
+        const rawFetchMarkets = this.safeList(this.options, 'fetchMarkets', ['spot', 'linear', 'inverse']);
+        const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         const fetchMarkets = [];
         for (let i = 0; i < rawFetchMarkets.length; i++) {
             const type = rawFetchMarkets[i];
@@ -2988,7 +2988,7 @@ class binance extends binance$1 {
         }
         const settle = this.safeCurrencyCode(settleId);
         const spot = !contract;
-        const filters = this.safeValue(market, 'filters', []);
+        const filters = this.safeList(market, 'filters', []);
         const filtersByType = this.indexBy(filters, 'filterType');
         const status = this.safeString2(market, 'status', 'contractStatus');
         let contractSize = undefined;
@@ -3011,11 +3011,11 @@ class binance extends binance$1 {
             linear = settle === quote;
             inverse = settle === base;
             const feesType = linear ? 'linear' : 'inverse';
-            fees = this.safeValue(this.fees, feesType, {});
+            fees = this.safeDict(this.fees, feesType, {});
         }
         let active = (status === 'TRADING');
         if (spot) {
-            const permissions = this.safeValue(market, 'permissions', []);
+            const permissions = this.safeList(market, 'permissions', []);
             for (let j = 0; j < permissions.length; j++) {
                 if (permissions[j] === 'TRD_GRP_003') {
                     active = false;
@@ -3093,7 +3093,7 @@ class binance extends binance$1 {
             'created': this.safeInteger(market, 'onboardDate'), // present in inverse & linear apis
         };
         if ('PRICE_FILTER' in filtersByType) {
-            const filter = this.safeValue(filtersByType, 'PRICE_FILTER', {});
+            const filter = this.safeDict(filtersByType, 'PRICE_FILTER', {});
             // PRICE_FILTER reports zero values for maxPrice
             // since they updated filter types in November 2018
             // https://github.com/ccxt/ccxt/issues/4286
@@ -3105,7 +3105,7 @@ class binance extends binance$1 {
             entry['precision']['price'] = this.precisionFromString(filter['tickSize']);
         }
         if ('LOT_SIZE' in filtersByType) {
-            const filter = this.safeValue(filtersByType, 'LOT_SIZE', {});
+            const filter = this.safeDict(filtersByType, 'LOT_SIZE', {});
             const stepSize = this.safeString(filter, 'stepSize');
             entry['precision']['amount'] = this.precisionFromString(stepSize);
             entry['limits']['amount'] = {
@@ -3114,14 +3114,14 @@ class binance extends binance$1 {
             };
         }
         if ('MARKET_LOT_SIZE' in filtersByType) {
-            const filter = this.safeValue(filtersByType, 'MARKET_LOT_SIZE', {});
+            const filter = this.safeDict(filtersByType, 'MARKET_LOT_SIZE', {});
             entry['limits']['market'] = {
                 'min': this.safeNumber(filter, 'minQty'),
                 'max': this.safeNumber(filter, 'maxQty'),
             };
         }
         if (('MIN_NOTIONAL' in filtersByType) || ('NOTIONAL' in filtersByType)) { // notional added in 12/04/23 to spot testnet
-            const filter = this.safeValue2(filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', {});
+            const filter = this.safeDict2(filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', {});
             entry['limits']['cost']['min'] = this.safeNumber2(filter, 'minNotional', 'notional');
             entry['limits']['cost']['max'] = this.safeNumber(filter, 'maxNotional');
         }
@@ -3815,7 +3815,7 @@ class binance extends binance$1 {
             }
         }
         if (Array.isArray(response)) {
-            const firstTicker = this.safeValue(response, 0, {});
+            const firstTicker = this.safeDict(response, 0, {});
             return this.parseTicker(firstTicker, market);
         }
         return this.parseTicker(response, market);
@@ -5241,7 +5241,7 @@ class binance extends binance$1 {
         cost = this.safeString(order, 'cumBase', cost);
         let type = this.safeStringLower(order, 'type');
         const side = this.safeStringLower(order, 'side');
-        const fills = this.safeValue(order, 'fills', []);
+        const fills = this.safeList(order, 'fills', []);
         let timeInForce = this.safeString(order, 'timeInForce');
         if (timeInForce === 'GTX') {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
@@ -5274,7 +5274,7 @@ class binance extends binance$1 {
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
-            'reduceOnly': this.safeValue(order, 'reduceOnly'),
+            'reduceOnly': this.safeBool(order, 'reduceOnly'),
             'side': side,
             'price': price,
             'triggerPrice': stopPrice,
@@ -5308,7 +5308,7 @@ class binance extends binance$1 {
             const side = this.safeString(rawOrder, 'side');
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
-            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const orderParams = this.safeDict(rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
         }
@@ -6700,11 +6700,11 @@ class binance extends binance$1 {
         //         },
         //       ]
         //     }
-        const results = this.safeValue(response, 'userAssetDribblets', []);
+        const results = this.safeList(response, 'userAssetDribblets', []);
         const rows = this.safeInteger(response, 'total', 0);
         const data = [];
         for (let i = 0; i < rows; i++) {
-            const logs = this.safeValue(results[i], 'userAssetDribbletDetails', []);
+            const logs = this.safeList(results[i], 'userAssetDribbletDetails', []);
             for (let j = 0; j < logs.length; j++) {
                 logs[j]['isDustTrade'] = true;
                 data.push(logs[j]);
@@ -6811,7 +6811,7 @@ class binance extends binance$1 {
         let currency = undefined;
         let response = undefined;
         const request = {};
-        const legalMoney = this.safeValue(this.options, 'legalMoney', {});
+        const legalMoney = this.safeDict(this.options, 'legalMoney', {});
         const fiatOnly = this.safeBool(params, 'fiat', false);
         params = this.omit(params, 'fiatOnly');
         const until = this.safeInteger(params, 'until');
@@ -6923,7 +6923,7 @@ class binance extends binance$1 {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic('fetchWithdrawals', code, since, limit, params);
         }
-        const legalMoney = this.safeValue(this.options, 'legalMoney', {});
+        const legalMoney = this.safeDict(this.options, 'legalMoney', {});
         const fiatOnly = this.safeBool(params, 'fiat', false);
         params = this.omit(params, 'fiatOnly');
         const request = {};
@@ -7067,7 +7067,7 @@ class binance extends binance$1 {
                 'Refund Failed': 'failed',
             },
         };
-        const statuses = this.safeValue(statusesByType, type, {});
+        const statuses = this.safeDict(statusesByType, type, {});
         return this.safeString(statuses, status, status);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -7232,7 +7232,7 @@ class binance extends binance$1 {
         const type = this.safeString(transfer, 'type');
         let fromAccount = undefined;
         let toAccount = undefined;
-        const accountsById = this.safeValue(this.options, 'accountsById', {});
+        const accountsById = this.safeDict(this.options, 'accountsById', {});
         if (type !== undefined) {
             const parts = type.split('_');
             fromAccount = this.safeValue(parts, 0);
@@ -7330,7 +7330,7 @@ class binance extends binance$1 {
                     throw new errors.ArgumentsRequired(this.id + ' transfer () requires params["symbol"] when toAccount is ' + toAccount);
                 }
             }
-            const accountsById = this.safeValue(this.options, 'accountsById', {});
+            const accountsById = this.safeDict(this.options, 'accountsById', {});
             const fromIsolated = !(fromId in accountsById);
             const toIsolated = !(toId in accountsById);
             if (fromIsolated && (market === undefined)) {
@@ -7420,7 +7420,7 @@ class binance extends binance$1 {
         const defaultTo = (fromAccount === 'future') ? 'spot' : 'future';
         const toAccount = this.safeString(params, 'toAccount', defaultTo);
         let type = this.safeString(params, 'type');
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount);
         const toId = this.safeString(accountsByType, toAccount);
         if (type === undefined) {
@@ -7464,7 +7464,7 @@ class binance extends binance$1 {
         //         ]
         //     }
         //
-        const rows = this.safeValue(response, 'rows', []);
+        const rows = this.safeList(response, 'rows', []);
         return this.parseTransfers(rows, currency, since, limit);
     }
     async fetchDepositAddress(code, params = {}) {
@@ -7483,7 +7483,7 @@ class binance extends binance$1 {
             'coin': currency['id'],
             // 'network': 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         };
-        const networks = this.safeValue(this.options, 'networks', {});
+        const networks = this.safeDict(this.options, 'networks', {});
         let network = this.safeStringUpper(params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
@@ -7510,7 +7510,7 @@ class binance extends binance$1 {
         const url = this.safeString(response, 'url');
         let impliedNetwork = undefined;
         if (url !== undefined) {
-            const reverseNetworks = this.safeValue(this.options, 'reverseNetworks', {});
+            const reverseNetworks = this.safeDict(this.options, 'reverseNetworks', {});
             const parts = url.split('/');
             let topLevel = this.safeString(parts, 2);
             if ((topLevel === 'blockchair.com') || (topLevel === 'viewblock.io')) {
@@ -7525,7 +7525,7 @@ class binance extends binance$1 {
                 'TRX': { 'TRC20': 'TRX' },
             });
             if (code in impliedNetworks) {
-                const conversion = this.safeValue(impliedNetworks, code, {});
+                const conversion = this.safeDict(impliedNetworks, code, {});
                 impliedNetwork = this.safeString(conversion, impliedNetwork, impliedNetwork);
             }
         }
@@ -7641,7 +7641,7 @@ class binance extends binance$1 {
             const entry = response[i];
             const currencyId = this.safeString(entry, 'coin');
             const code = this.safeCurrencyCode(currencyId);
-            const networkList = this.safeValue(entry, 'networkList', []);
+            const networkList = this.safeList(entry, 'networkList', []);
             withdrawFees[code] = {};
             for (let j = 0; j < networkList.length; j++) {
                 const networkEntry = networkList[j];
@@ -7754,14 +7754,14 @@ class binance extends binance$1 {
         //        ]
         //    }
         //
-        const networkList = this.safeValue(fee, 'networkList', []);
+        const networkList = this.safeList(fee, 'networkList', []);
         const result = this.depositWithdrawFee(fee);
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
             const networkId = this.safeString(networkEntry, 'network');
             const networkCode = this.networkIdToCode(networkId);
             const withdrawFee = this.safeNumber(networkEntry, 'withdrawFee');
-            const isDefault = this.safeValue(networkEntry, 'isDefault');
+            const isDefault = this.safeBool(networkEntry, 'isDefault');
             if (isDefault === true) {
                 result['withdraw'] = {
                     'fee': withdrawFee,
@@ -7809,7 +7809,7 @@ class binance extends binance$1 {
         if (tag !== undefined) {
             request['addressTag'] = tag;
         }
-        const networks = this.safeValue(this.options, 'networks', {});
+        const networks = this.safeDict(this.options, 'networks', {});
         let network = this.safeStringUpper(params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
@@ -7901,7 +7901,7 @@ class binance extends binance$1 {
         //
         let data = response;
         if (Array.isArray(data)) {
-            data = this.safeValue(data, 0, {});
+            data = this.safeDict(data, 0, {});
         }
         return this.parseTradingFee(data);
     }
@@ -8315,8 +8315,8 @@ class binance extends binance$1 {
         };
     }
     parseAccountPositions(account) {
-        const positions = this.safeValue(account, 'positions');
-        const assets = this.safeValue(account, 'assets', []);
+        const positions = this.safeList(account, 'positions');
+        const assets = this.safeList(account, 'assets', []);
         const balances = {};
         for (let i = 0; i < assets.length; i++) {
             const entry = assets[i];
@@ -8417,8 +8417,8 @@ class binance extends binance$1 {
             contractsStringAbs = Precise["default"].stringDiv(Precise["default"].stringAdd(contractsString, '0.5'), '1', 0);
         }
         const contracts = this.parseNumber(contractsStringAbs);
-        const leverageBrackets = this.safeValue(this.options, 'leverageBrackets', {});
-        const leverageBracket = this.safeValue(leverageBrackets, symbol, []);
+        const leverageBrackets = this.safeDict(this.options, 'leverageBrackets', {});
+        const leverageBracket = this.safeList(leverageBrackets, symbol, []);
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
@@ -8434,7 +8434,7 @@ class binance extends binance$1 {
         if (timestamp === 0) {
             timestamp = undefined;
         }
-        const isolated = this.safeValue(position, 'isolated');
+        const isolated = this.safeBool(position, 'isolated');
         let marginMode = undefined;
         let collateralString = undefined;
         let walletBalance = undefined;
@@ -8590,8 +8590,8 @@ class binance extends binance$1 {
         const marketId = this.safeString(position, 'symbol');
         market = this.safeMarket(marketId, market, undefined, 'contract');
         const symbol = this.safeString(market, 'symbol');
-        const leverageBrackets = this.safeValue(this.options, 'leverageBrackets', {});
-        const leverageBracket = this.safeValue(leverageBrackets, symbol, []);
+        const leverageBrackets = this.safeDict(this.options, 'leverageBrackets', {});
+        const leverageBracket = this.safeList(leverageBrackets, symbol, []);
         const notionalString = this.safeString2(position, 'notional', 'notionalValue');
         const notionalStringAbs = Precise["default"].stringAbs(notionalString);
         let maintenanceMarginPercentageString = undefined;
@@ -8628,7 +8628,7 @@ class binance extends binance$1 {
         const linear = ('notional' in position);
         if (marginMode === 'cross') {
             // calculate collateral
-            const precision = this.safeValue(market, 'precision', {});
+            const precision = this.safeDict(market, 'precision', {});
             if (linear) {
                 // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
                 let onePlusMaintenanceMarginPercentageString = undefined;
@@ -8735,12 +8735,24 @@ class binance extends binance$1 {
             const query = this.omit(params, 'type');
             let subType = undefined;
             [subType, params] = this.handleSubTypeAndParams('loadLeverageBrackets', undefined, params, 'linear');
+            let isPortfolioMargin = undefined;
+            [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'loadLeverageBrackets', 'papi', 'portfolioMargin', false);
             let response = undefined;
             if (this.isLinear(type, subType)) {
-                response = await this.fapiPrivateGetLeverageBracket(query);
+                if (isPortfolioMargin) {
+                    response = await this.papiGetUmLeverageBracket(query);
+                }
+                else {
+                    response = await this.fapiPrivateGetLeverageBracket(query);
+                }
             }
             else if (this.isInverse(type, subType)) {
-                response = await this.dapiPrivateV2GetLeverageBracket(query);
+                if (isPortfolioMargin) {
+                    response = await this.papiGetCmLeverageBracket(query);
+                }
+                else {
+                    response = await this.dapiPrivateV2GetLeverageBracket(query);
+                }
             }
             else {
                 throw new errors.NotSupported(this.id + ' loadLeverageBrackets() supports linear and inverse contracts only');
@@ -8750,7 +8762,7 @@ class binance extends binance$1 {
                 const entry = response[i];
                 const marketId = this.safeString(entry, 'symbol');
                 const symbol = this.safeSymbol(marketId, undefined, undefined, 'contract');
-                const brackets = this.safeValue(entry, 'brackets', []);
+                const brackets = this.safeList(entry, 'brackets', []);
                 const result = [];
                 for (let j = 0; j < brackets.length; j++) {
                     const bracket = brackets[j];
@@ -8770,8 +8782,11 @@ class binance extends binance$1 {
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @see https://binance-docs.github.io/apidocs/futures/en/#notional-and-leverage-brackets-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#notional-bracket-for-symbol-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#um-notional-and-leverage-brackets-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#cm-notional-and-leverage-brackets-user_data
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the leverage tiers for a portfolio margin account
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets();
@@ -8779,12 +8794,24 @@ class binance extends binance$1 {
         [type, params] = this.handleMarketTypeAndParams('fetchLeverageTiers', undefined, params);
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchLeverageTiers', undefined, params, 'linear');
+        let isPortfolioMargin = undefined;
+        [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'fetchLeverageTiers', 'papi', 'portfolioMargin', false);
         let response = undefined;
         if (this.isLinear(type, subType)) {
-            response = await this.fapiPrivateGetLeverageBracket(params);
+            if (isPortfolioMargin) {
+                response = await this.papiGetUmLeverageBracket(params);
+            }
+            else {
+                response = await this.fapiPrivateGetLeverageBracket(params);
+            }
         }
         else if (this.isInverse(type, subType)) {
-            response = await this.dapiPrivateV2GetLeverageBracket(params);
+            if (isPortfolioMargin) {
+                response = await this.papiGetCmLeverageBracket(params);
+            }
+            else {
+                response = await this.dapiPrivateV2GetLeverageBracket(params);
+            }
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchLeverageTiers() supports linear and inverse contracts only');
@@ -8854,7 +8881,7 @@ class binance extends binance$1 {
         //
         const marketId = this.safeString(info, 'symbol');
         market = this.safeMarket(marketId, market, undefined, 'contract');
-        const brackets = this.safeValue(info, 'brackets', []);
+        const brackets = this.safeList(info, 'brackets', []);
         const tiers = [];
         for (let j = 0; j < brackets.length; j++) {
             const bracket = brackets[j];
@@ -9813,7 +9840,7 @@ class binance extends binance$1 {
                     const isSpotOrMargin = (api.indexOf('sapi') > -1 || api === 'private');
                     const marketType = isSpotOrMargin ? 'spot' : 'future';
                     const defaultId = (!isSpotOrMargin) ? 'x-xcKtGhcu' : 'x-R4BD3S82';
-                    const broker = this.safeValue(this.options, 'broker', {});
+                    const broker = this.safeDict(this.options, 'broker', {});
                     const brokerId = this.safeString(broker, marketType, defaultId);
                     params['newClientOrderId'] = brokerId + this.uuid22();
                 }
@@ -9841,8 +9868,8 @@ class binance extends binance$1 {
             }
             else if ((path === 'batchOrders') || (path.indexOf('sub-account') >= 0) || (path === 'capital/withdraw/apply') || (path.indexOf('staking') >= 0)) {
                 if ((method === 'DELETE') && (path === 'batchOrders')) {
-                    const orderidlist = this.safeValue(extendedParams, 'orderidlist', []);
-                    const origclientorderidlist = this.safeValue(extendedParams, 'origclientorderidlist', []);
+                    const orderidlist = this.safeList(extendedParams, 'orderidlist', []);
+                    const origclientorderidlist = this.safeList(extendedParams, 'origclientorderidlist', []);
                     extendedParams = this.omit(extendedParams, ['orderidlist', 'origclientorderidlist']);
                     query = this.rawencode(extendedParams);
                     const orderidlistLength = orderidlist.length;
@@ -9911,8 +9938,8 @@ class binance extends binance$1 {
             marketType = 'portfoliomargin';
         }
         if (marketType !== undefined) {
-            const exceptionsForMarketType = this.safeValue(this.exceptions, marketType, {});
-            return this.safeValue(exceptionsForMarketType, exactOrBroad, {});
+            const exceptionsForMarketType = this.safeDict(this.exceptions, marketType, {});
+            return this.safeDict(exceptionsForMarketType, exactOrBroad, {});
         }
         return {};
     }
@@ -10146,7 +10173,7 @@ class binance extends binance$1 {
         //         },
         //     ]
         //
-        const rate = this.safeValue(response, 0);
+        const rate = this.safeDict(response, 0);
         return this.parseBorrowRate(rate);
     }
     async fetchBorrowRateHistory(code, since = undefined, limit = undefined, params = {}) {
@@ -10250,7 +10277,7 @@ class binance extends binance$1 {
         //         "success": true
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         const giftcardCode = this.safeString(data, 'code');
         const id = this.safeString(data, 'referenceNo');
         return {
@@ -10359,7 +10386,7 @@ class binance extends binance$1 {
         //         "total": 1
         //     }
         //
-        const rows = this.safeValue(response, 'rows');
+        const rows = this.safeList(response, 'rows');
         const interest = this.parseBorrowInterests(rows, market);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }
@@ -10386,9 +10413,11 @@ class binance extends binance$1 {
          * @name binance#repayCrossMargin
          * @description repay borrowed margin and interest
          * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
+         * @see https://binance-docs.github.io/apidocs/pm/en/#margin-account-repay-margin
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to repay margin in a portfolio margin account
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets();
@@ -10396,10 +10425,18 @@ class binance extends binance$1 {
         const request = {
             'asset': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
-            'isIsolated': 'FALSE',
-            'type': 'REPAY',
         };
-        const response = await this.sapiPostMarginBorrowRepay(this.extend(request, params));
+        let response = undefined;
+        let isPortfolioMargin = undefined;
+        [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'repayCrossMargin', 'papi', 'portfolioMargin', false);
+        if (isPortfolioMargin) {
+            response = await this.papiPostRepayLoan(this.extend(request, params));
+        }
+        else {
+            request['isIsolated'] = 'FALSE';
+            request['type'] = 'REPAY';
+            response = await this.sapiPostMarginBorrowRepay(this.extend(request, params));
+        }
         //
         //     {
         //         "tranId": 108988250265,
@@ -10445,9 +10482,11 @@ class binance extends binance$1 {
          * @name binance#borrowCrossMargin
          * @description create a loan to borrow margin
          * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
+         * @see https://binance-docs.github.io/apidocs/pm/en/#margin-account-borrow-margin
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to borrow margin in a portfolio margin account
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets();
@@ -10455,10 +10494,18 @@ class binance extends binance$1 {
         const request = {
             'asset': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
-            'isIsolated': 'FALSE',
-            'type': 'BORROW',
         };
-        const response = await this.sapiPostMarginBorrowRepay(this.extend(request, params));
+        let response = undefined;
+        let isPortfolioMargin = undefined;
+        [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'borrowCrossMargin', 'papi', 'portfolioMargin', false);
+        if (isPortfolioMargin) {
+            response = await this.papiPostMarginLoan(this.extend(request, params));
+        }
+        else {
+            request['isIsolated'] = 'FALSE';
+            request['type'] = 'BORROW';
+            response = await this.sapiPostMarginBorrowRepay(this.extend(request, params));
+        }
         //
         //     {
         //         "tranId": 108988250265,

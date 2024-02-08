@@ -2637,7 +2637,7 @@ class binance(Exchange, ImplicitAPI):
             minPrecision = None
             isWithdrawEnabled = True
             isDepositEnabled = True
-            networkList = self.safe_value(entry, 'networkList', [])
+            networkList = self.safe_list(entry, 'networkList', [])
             fees = {}
             fee = None
             for j in range(0, len(networkList)):
@@ -2645,12 +2645,12 @@ class binance(Exchange, ImplicitAPI):
                 network = self.safe_string(networkItem, 'network')
                 # name = self.safe_string(networkItem, 'name')
                 withdrawFee = self.safe_number(networkItem, 'withdrawFee')
-                depositEnable = self.safe_value(networkItem, 'depositEnable')
-                withdrawEnable = self.safe_value(networkItem, 'withdrawEnable')
+                depositEnable = self.safe_bool(networkItem, 'depositEnable')
+                withdrawEnable = self.safe_bool(networkItem, 'withdrawEnable')
                 isDepositEnabled = isDepositEnabled or depositEnable
                 isWithdrawEnabled = isWithdrawEnabled or withdrawEnable
                 fees[network] = withdrawFee
-                isDefault = self.safe_value(networkItem, 'isDefault')
+                isDefault = self.safe_bool(networkItem, 'isDefault')
                 if isDefault or (fee is None):
                     fee = withdrawFee
                 precisionTick = self.safe_string(networkItem, 'withdrawIntegerMultiple')
@@ -2658,7 +2658,7 @@ class binance(Exchange, ImplicitAPI):
                 # so, when there is zero instead of i.e. 0.001, then we skip those cases, because we don't know the precision - it might be because of network is suspended or other reasons
                 if not Precise.string_eq(precisionTick, '0'):
                     minPrecision = precisionTick if (minPrecision is None) else Precise.string_min(minPrecision, precisionTick)
-            trading = self.safe_value(entry, 'trading')
+            trading = self.safe_bool(entry, 'trading')
             active = (isWithdrawEnabled and isDepositEnabled and trading)
             maxDecimalPlaces = None
             if minPrecision is not None:
@@ -2690,8 +2690,8 @@ class binance(Exchange, ImplicitAPI):
         :returns dict[]: an array of objects representing market data
         """
         promisesRaw = []
-        rawFetchMarkets = self.safe_value(self.options, 'fetchMarkets', ['spot', 'linear', 'inverse'])
-        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+        rawFetchMarkets = self.safe_list(self.options, 'fetchMarkets', ['spot', 'linear', 'inverse'])
+        sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         fetchMarkets = []
         for i in range(0, len(rawFetchMarkets)):
             type = rawFetchMarkets[i]
@@ -2956,7 +2956,7 @@ class binance(Exchange, ImplicitAPI):
             future = True
         settle = self.safe_currency_code(settleId)
         spot = not contract
-        filters = self.safe_value(market, 'filters', [])
+        filters = self.safe_list(market, 'filters', [])
         filtersByType = self.index_by(filters, 'filterType')
         status = self.safe_string_2(market, 'status', 'contractStatus')
         contractSize = None
@@ -2976,10 +2976,10 @@ class binance(Exchange, ImplicitAPI):
             linear = settle == quote
             inverse = settle == base
             feesType = 'linear' if linear else 'inverse'
-            fees = self.safe_value(self.fees, feesType, {})
+            fees = self.safe_dict(self.fees, feesType, {})
         active = (status == 'TRADING')
         if spot:
-            permissions = self.safe_value(market, 'permissions', [])
+            permissions = self.safe_list(market, 'permissions', [])
             for j in range(0, len(permissions)):
                 if permissions[j] == 'TRD_GRP_003':
                     active = False
@@ -3050,7 +3050,7 @@ class binance(Exchange, ImplicitAPI):
             'created': self.safe_integer(market, 'onboardDate'),  # present in inverse & linear apis
         }
         if 'PRICE_FILTER' in filtersByType:
-            filter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
+            filter = self.safe_dict(filtersByType, 'PRICE_FILTER', {})
             # PRICE_FILTER reports zero values for maxPrice
             # since they updated filter types in November 2018
             # https://github.com/ccxt/ccxt/issues/4286
@@ -3061,7 +3061,7 @@ class binance(Exchange, ImplicitAPI):
             }
             entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
         if 'LOT_SIZE' in filtersByType:
-            filter = self.safe_value(filtersByType, 'LOT_SIZE', {})
+            filter = self.safe_dict(filtersByType, 'LOT_SIZE', {})
             stepSize = self.safe_string(filter, 'stepSize')
             entry['precision']['amount'] = self.precision_from_string(stepSize)
             entry['limits']['amount'] = {
@@ -3069,13 +3069,13 @@ class binance(Exchange, ImplicitAPI):
                 'max': self.safe_number(filter, 'maxQty'),
             }
         if 'MARKET_LOT_SIZE' in filtersByType:
-            filter = self.safe_value(filtersByType, 'MARKET_LOT_SIZE', {})
+            filter = self.safe_dict(filtersByType, 'MARKET_LOT_SIZE', {})
             entry['limits']['market'] = {
                 'min': self.safe_number(filter, 'minQty'),
                 'max': self.safe_number(filter, 'maxQty'),
             }
         if ('MIN_NOTIONAL' in filtersByType) or ('NOTIONAL' in filtersByType):  # notional added in 12/04/23 to spot testnet
-            filter = self.safe_value_2(filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', {})
+            filter = self.safe_dict_2(filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', {})
             entry['limits']['cost']['min'] = self.safe_number_2(filter, 'minNotional', 'notional')
             entry['limits']['cost']['max'] = self.safe_number(filter, 'maxNotional')
         return entry
@@ -3719,7 +3719,7 @@ class binance(Exchange, ImplicitAPI):
             else:
                 response = self.publicGetTicker24hr(self.extend(request, params))
         if isinstance(response, list):
-            firstTicker = self.safe_value(response, 0, {})
+            firstTicker = self.safe_dict(response, 0, {})
             return self.parse_ticker(firstTicker, market)
         return self.parse_ticker(response, market)
 
@@ -5028,7 +5028,7 @@ class binance(Exchange, ImplicitAPI):
         cost = self.safe_string(order, 'cumBase', cost)
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
-        fills = self.safe_value(order, 'fills', [])
+        fills = self.safe_list(order, 'fills', [])
         timeInForce = self.safe_string(order, 'timeInForce')
         if timeInForce == 'GTX':
             # GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
@@ -5058,7 +5058,7 @@ class binance(Exchange, ImplicitAPI):
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
-            'reduceOnly': self.safe_value(order, 'reduceOnly'),
+            'reduceOnly': self.safe_bool(order, 'reduceOnly'),
             'side': side,
             'price': price,
             'triggerPrice': stopPrice,
@@ -5090,7 +5090,7 @@ class binance(Exchange, ImplicitAPI):
             side = self.safe_string(rawOrder, 'side')
             amount = self.safe_value(rawOrder, 'amount')
             price = self.safe_value(rawOrder, 'price')
-            orderParams = self.safe_value(rawOrder, 'params', {})
+            orderParams = self.safe_dict(rawOrder, 'params', {})
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
         orderSymbols = self.market_symbols(orderSymbols, None, False, True, True)
@@ -6241,11 +6241,11 @@ class binance(Exchange, ImplicitAPI):
         #         },
         #       ]
         #     }
-        results = self.safe_value(response, 'userAssetDribblets', [])
+        results = self.safe_list(response, 'userAssetDribblets', [])
         rows = self.safe_integer(response, 'total', 0)
         data = []
         for i in range(0, rows):
-            logs = self.safe_value(results[i], 'userAssetDribbletDetails', [])
+            logs = self.safe_list(results[i], 'userAssetDribbletDetails', [])
             for j in range(0, len(logs)):
                 logs[j]['isDustTrade'] = True
                 data.append(logs[j])
@@ -6342,7 +6342,7 @@ class binance(Exchange, ImplicitAPI):
         currency = None
         response = None
         request = {}
-        legalMoney = self.safe_value(self.options, 'legalMoney', {})
+        legalMoney = self.safe_dict(self.options, 'legalMoney', {})
         fiatOnly = self.safe_bool(params, 'fiat', False)
         params = self.omit(params, 'fiatOnly')
         until = self.safe_integer(params, 'until')
@@ -6441,7 +6441,7 @@ class binance(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchWithdrawals', code, since, limit, params)
-        legalMoney = self.safe_value(self.options, 'legalMoney', {})
+        legalMoney = self.safe_dict(self.options, 'legalMoney', {})
         fiatOnly = self.safe_bool(params, 'fiat', False)
         params = self.omit(params, 'fiatOnly')
         request = {}
@@ -6576,7 +6576,7 @@ class binance(Exchange, ImplicitAPI):
                 'Refund Failed': 'failed',
             },
         }
-        statuses = self.safe_value(statusesByType, type, {})
+        statuses = self.safe_dict(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
     def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
@@ -6733,7 +6733,7 @@ class binance(Exchange, ImplicitAPI):
         type = self.safe_string(transfer, 'type')
         fromAccount = None
         toAccount = None
-        accountsById = self.safe_value(self.options, 'accountsById', {})
+        accountsById = self.safe_dict(self.options, 'accountsById', {})
         if type is not None:
             parts = type.split('_')
             fromAccount = self.safe_value(parts, 0)
@@ -6822,7 +6822,7 @@ class binance(Exchange, ImplicitAPI):
             if toId == 'ISOLATED':
                 if symbol is None:
                     raise ArgumentsRequired(self.id + ' transfer() requires params["symbol"] when toAccount is ' + toAccount)
-            accountsById = self.safe_value(self.options, 'accountsById', {})
+            accountsById = self.safe_dict(self.options, 'accountsById', {})
             fromIsolated = not (fromId in accountsById)
             toIsolated = not (toId in accountsById)
             if fromIsolated and (market is None):
@@ -6895,7 +6895,7 @@ class binance(Exchange, ImplicitAPI):
         defaultTo = 'spot' if (fromAccount == 'future') else 'future'
         toAccount = self.safe_string(params, 'toAccount', defaultTo)
         type = self.safe_string(params, 'type')
-        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount)
         toId = self.safe_string(accountsByType, toAccount)
         if type is None:
@@ -6933,7 +6933,7 @@ class binance(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        rows = self.safe_value(response, 'rows', [])
+        rows = self.safe_list(response, 'rows', [])
         return self.parse_transfers(rows, currency, since, limit)
 
     def fetch_deposit_address(self, code: str, params={}):
@@ -6950,7 +6950,7 @@ class binance(Exchange, ImplicitAPI):
             'coin': currency['id'],
             # 'network': 'ETH',  # 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         }
-        networks = self.safe_value(self.options, 'networks', {})
+        networks = self.safe_dict(self.options, 'networks', {})
         network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
         if network is not None:
@@ -6976,7 +6976,7 @@ class binance(Exchange, ImplicitAPI):
         url = self.safe_string(response, 'url')
         impliedNetwork = None
         if url is not None:
-            reverseNetworks = self.safe_value(self.options, 'reverseNetworks', {})
+            reverseNetworks = self.safe_dict(self.options, 'reverseNetworks', {})
             parts = url.split('/')
             topLevel = self.safe_string(parts, 2)
             if (topLevel == 'blockchair.com') or (topLevel == 'viewblock.io'):
@@ -6989,7 +6989,7 @@ class binance(Exchange, ImplicitAPI):
                 'TRX': {'TRC20': 'TRX'},
             })
             if code in impliedNetworks:
-                conversion = self.safe_value(impliedNetworks, code, {})
+                conversion = self.safe_dict(impliedNetworks, code, {})
                 impliedNetwork = self.safe_string(conversion, impliedNetwork, impliedNetwork)
         tag = self.safe_string(response, 'tag', '')
         if len(tag) == 0:
@@ -7100,7 +7100,7 @@ class binance(Exchange, ImplicitAPI):
             entry = response[i]
             currencyId = self.safe_string(entry, 'coin')
             code = self.safe_currency_code(currencyId)
-            networkList = self.safe_value(entry, 'networkList', [])
+            networkList = self.safe_list(entry, 'networkList', [])
             withdrawFees[code] = {}
             for j in range(0, len(networkList)):
                 networkEntry = networkList[j]
@@ -7209,14 +7209,14 @@ class binance(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        networkList = self.safe_value(fee, 'networkList', [])
+        networkList = self.safe_list(fee, 'networkList', [])
         result = self.deposit_withdraw_fee(fee)
         for j in range(0, len(networkList)):
             networkEntry = networkList[j]
             networkId = self.safe_string(networkEntry, 'network')
             networkCode = self.network_id_to_code(networkId)
             withdrawFee = self.safe_number(networkEntry, 'withdrawFee')
-            isDefault = self.safe_value(networkEntry, 'isDefault')
+            isDefault = self.safe_bool(networkEntry, 'isDefault')
             if isDefault is True:
                 result['withdraw'] = {
                     'fee': withdrawFee,
@@ -7259,7 +7259,7 @@ class binance(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['addressTag'] = tag
-        networks = self.safe_value(self.options, 'networks', {})
+        networks = self.safe_dict(self.options, 'networks', {})
         network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
         if network is not None:
@@ -7345,7 +7345,7 @@ class binance(Exchange, ImplicitAPI):
         #
         data = response
         if isinstance(data, list):
-            data = self.safe_value(data, 0, {})
+            data = self.safe_dict(data, 0, {})
         return self.parse_trading_fee(data)
 
     def fetch_trading_fees(self, params={}):
@@ -7719,8 +7719,8 @@ class binance(Exchange, ImplicitAPI):
         }
 
     def parse_account_positions(self, account):
-        positions = self.safe_value(account, 'positions')
-        assets = self.safe_value(account, 'assets', [])
+        positions = self.safe_list(account, 'positions')
+        assets = self.safe_list(account, 'assets', [])
         balances = {}
         for i in range(0, len(assets)):
             entry = assets[i]
@@ -7816,8 +7816,8 @@ class binance(Exchange, ImplicitAPI):
             contractsString = Precise.string_div(entryNotional, contractSizeNew)
             contractsStringAbs = Precise.string_div(Precise.string_add(contractsString, '0.5'), '1', 0)
         contracts = self.parse_number(contractsStringAbs)
-        leverageBrackets = self.safe_value(self.options, 'leverageBrackets', {})
-        leverageBracket = self.safe_value(leverageBrackets, symbol, [])
+        leverageBrackets = self.safe_dict(self.options, 'leverageBrackets', {})
+        leverageBracket = self.safe_list(leverageBrackets, symbol, [])
         maintenanceMarginPercentageString = None
         for i in range(0, len(leverageBracket)):
             bracket = leverageBracket[i]
@@ -7830,7 +7830,7 @@ class binance(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(position, 'updateTime')
         if timestamp == 0:
             timestamp = None
-        isolated = self.safe_value(position, 'isolated')
+        isolated = self.safe_bool(position, 'isolated')
         marginMode = None
         collateralString = None
         walletBalance = None
@@ -7975,8 +7975,8 @@ class binance(Exchange, ImplicitAPI):
         marketId = self.safe_string(position, 'symbol')
         market = self.safe_market(marketId, market, None, 'contract')
         symbol = self.safe_string(market, 'symbol')
-        leverageBrackets = self.safe_value(self.options, 'leverageBrackets', {})
-        leverageBracket = self.safe_value(leverageBrackets, symbol, [])
+        leverageBrackets = self.safe_dict(self.options, 'leverageBrackets', {})
+        leverageBracket = self.safe_list(leverageBrackets, symbol, [])
         notionalString = self.safe_string_2(position, 'notional', 'notionalValue')
         notionalStringAbs = Precise.string_abs(notionalString)
         maintenanceMarginPercentageString = None
@@ -8009,7 +8009,7 @@ class binance(Exchange, ImplicitAPI):
         linear = ('notional' in position)
         if marginMode == 'cross':
             # calculate collateral
-            precision = self.safe_value(market, 'precision', {})
+            precision = self.safe_dict(market, 'precision', {})
             if linear:
                 # walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
                 onePlusMaintenanceMarginPercentageString = None
@@ -8103,11 +8103,19 @@ class binance(Exchange, ImplicitAPI):
             query = self.omit(params, 'type')
             subType = None
             subType, params = self.handle_sub_type_and_params('loadLeverageBrackets', None, params, 'linear')
+            isPortfolioMargin = None
+            isPortfolioMargin, params = self.handle_option_and_params_2(params, 'loadLeverageBrackets', 'papi', 'portfolioMargin', False)
             response = None
             if self.is_linear(type, subType):
-                response = self.fapiPrivateGetLeverageBracket(query)
+                if isPortfolioMargin:
+                    response = self.papiGetUmLeverageBracket(query)
+                else:
+                    response = self.fapiPrivateGetLeverageBracket(query)
             elif self.is_inverse(type, subType):
-                response = self.dapiPrivateV2GetLeverageBracket(query)
+                if isPortfolioMargin:
+                    response = self.papiGetCmLeverageBracket(query)
+                else:
+                    response = self.dapiPrivateV2GetLeverageBracket(query)
             else:
                 raise NotSupported(self.id + ' loadLeverageBrackets() supports linear and inverse contracts only')
             self.options['leverageBrackets'] = {}
@@ -8115,7 +8123,7 @@ class binance(Exchange, ImplicitAPI):
                 entry = response[i]
                 marketId = self.safe_string(entry, 'symbol')
                 symbol = self.safe_symbol(marketId, None, None, 'contract')
-                brackets = self.safe_value(entry, 'brackets', [])
+                brackets = self.safe_list(entry, 'brackets', [])
                 result = []
                 for j in range(0, len(brackets)):
                     bracket = brackets[j]
@@ -8130,8 +8138,11 @@ class binance(Exchange, ImplicitAPI):
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         :see: https://binance-docs.github.io/apidocs/futures/en/#notional-and-leverage-brackets-user_data
         :see: https://binance-docs.github.io/apidocs/delivery/en/#notional-bracket-for-symbol-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#um-notional-and-leverage-brackets-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#cm-notional-and-leverage-brackets-user_data
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.portfolioMargin]: set to True if you would like to fetch the leverage tiers for a portfolio margin account
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
         """
         self.load_markets()
@@ -8139,11 +8150,19 @@ class binance(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchLeverageTiers', None, params)
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchLeverageTiers', None, params, 'linear')
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchLeverageTiers', 'papi', 'portfolioMargin', False)
         response = None
         if self.is_linear(type, subType):
-            response = self.fapiPrivateGetLeverageBracket(params)
+            if isPortfolioMargin:
+                response = self.papiGetUmLeverageBracket(params)
+            else:
+                response = self.fapiPrivateGetLeverageBracket(params)
         elif self.is_inverse(type, subType):
-            response = self.dapiPrivateV2GetLeverageBracket(params)
+            if isPortfolioMargin:
+                response = self.papiGetCmLeverageBracket(params)
+            else:
+                response = self.dapiPrivateV2GetLeverageBracket(params)
         else:
             raise NotSupported(self.id + ' fetchLeverageTiers() supports linear and inverse contracts only')
         #
@@ -8210,7 +8229,7 @@ class binance(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(info, 'symbol')
         market = self.safe_market(marketId, market, None, 'contract')
-        brackets = self.safe_value(info, 'brackets', [])
+        brackets = self.safe_list(info, 'brackets', [])
         tiers = []
         for j in range(0, len(brackets)):
             bracket = brackets[j]
@@ -9058,7 +9077,7 @@ class binance(Exchange, ImplicitAPI):
                     isSpotOrMargin = (api.find('sapi') > -1 or api == 'private')
                     marketType = 'spot' if isSpotOrMargin else 'future'
                     defaultId = 'x-xcKtGhcu' if (not isSpotOrMargin) else 'x-R4BD3S82'
-                    broker = self.safe_value(self.options, 'broker', {})
+                    broker = self.safe_dict(self.options, 'broker', {})
                     brokerId = self.safe_string(broker, marketType, defaultId)
                     params['newClientOrderId'] = brokerId + self.uuid22()
             query = None
@@ -9080,8 +9099,8 @@ class binance(Exchange, ImplicitAPI):
                 query = self.urlencode_with_array_repeat(extendedParams)
             elif (path == 'batchOrders') or (path.find('sub-account') >= 0) or (path == 'capital/withdraw/apply') or (path.find('staking') >= 0):
                 if (method == 'DELETE') and (path == 'batchOrders'):
-                    orderidlist = self.safe_value(extendedParams, 'orderidlist', [])
-                    origclientorderidlist = self.safe_value(extendedParams, 'origclientorderidlist', [])
+                    orderidlist = self.safe_list(extendedParams, 'orderidlist', [])
+                    origclientorderidlist = self.safe_list(extendedParams, 'origclientorderidlist', [])
                     extendedParams = self.omit(extendedParams, ['orderidlist', 'origclientorderidlist'])
                     query = self.rawencode(extendedParams)
                     orderidlistLength = len(orderidlist)
@@ -9130,8 +9149,8 @@ class binance(Exchange, ImplicitAPI):
         elif url.startswith('https://papi.' + hostname + '/'):
             marketType = 'portfoliomargin'
         if marketType is not None:
-            exceptionsForMarketType = self.safe_value(self.exceptions, marketType, {})
-            return self.safe_value(exceptionsForMarketType, exactOrBroad, {})
+            exceptionsForMarketType = self.safe_dict(self.exceptions, marketType, {})
+            return self.safe_dict(exceptionsForMarketType, exactOrBroad, {})
         return {}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
@@ -9327,7 +9346,7 @@ class binance(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        rate = self.safe_value(response, 0)
+        rate = self.safe_dict(response, 0)
         return self.parse_borrow_rate(rate)
 
     def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params={}):
@@ -9423,7 +9442,7 @@ class binance(Exchange, ImplicitAPI):
         #         "success": True
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         giftcardCode = self.safe_string(data, 'code')
         id = self.safe_string(data, 'referenceNo')
         return {
@@ -9522,7 +9541,7 @@ class binance(Exchange, ImplicitAPI):
         #         "total": 1
         #     }
         #
-        rows = self.safe_value(response, 'rows')
+        rows = self.safe_list(response, 'rows')
         interest = self.parse_borrow_interests(rows, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
@@ -9547,9 +9566,11 @@ class binance(Exchange, ImplicitAPI):
         """
         repay borrowed margin and interest
         :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
+        :see: https://binance-docs.github.io/apidocs/pm/en/#margin-account-repay-margin
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.portfolioMargin]: set to True if you would like to repay margin in a portfolio margin account
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
         self.load_markets()
@@ -9557,10 +9578,16 @@ class binance(Exchange, ImplicitAPI):
         request = {
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
-            'isIsolated': 'FALSE',
-            'type': 'REPAY',
         }
-        response = self.sapiPostMarginBorrowRepay(self.extend(request, params))
+        response = None
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'repayCrossMargin', 'papi', 'portfolioMargin', False)
+        if isPortfolioMargin:
+            response = self.papiPostRepayLoan(self.extend(request, params))
+        else:
+            request['isIsolated'] = 'FALSE'
+            request['type'] = 'REPAY'
+            response = self.sapiPostMarginBorrowRepay(self.extend(request, params))
         #
         #     {
         #         "tranId": 108988250265,
@@ -9602,9 +9629,11 @@ class binance(Exchange, ImplicitAPI):
         """
         create a loan to borrow margin
         :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-repay-margin
+        :see: https://binance-docs.github.io/apidocs/pm/en/#margin-account-borrow-margin
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.portfolioMargin]: set to True if you would like to borrow margin in a portfolio margin account
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
         self.load_markets()
@@ -9612,10 +9641,16 @@ class binance(Exchange, ImplicitAPI):
         request = {
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
-            'isIsolated': 'FALSE',
-            'type': 'BORROW',
         }
-        response = self.sapiPostMarginBorrowRepay(self.extend(request, params))
+        response = None
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'borrowCrossMargin', 'papi', 'portfolioMargin', False)
+        if isPortfolioMargin:
+            response = self.papiPostMarginLoan(self.extend(request, params))
+        else:
+            request['isIsolated'] = 'FALSE'
+            request['type'] = 'BORROW'
+            response = self.sapiPostMarginBorrowRepay(self.extend(request, params))
         #
         #     {
         #         "tranId": 108988250265,

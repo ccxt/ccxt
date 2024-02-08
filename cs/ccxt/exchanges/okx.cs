@@ -3847,15 +3847,9 @@ public partial class okx : Exchange
         if (isTrue(trailing))
         {
             ((IDictionary<string,object>)request)["ordType"] = "move_order_stop";
-        } else if (isTrue(isTrue(stop) || isTrue((inOp(algoOrderTypes, ordType)))))
+        } else if (isTrue(isTrue(stop) && isTrue((isEqual(ordType, null)))))
         {
-            if (isTrue(stop))
-            {
-                if (isTrue(isEqual(ordType, null)))
-                {
-                    throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires an \"ordType\" string parameter, \"conditional\", \"oco\", \"trigger\", \"move_order_stop\", \"iceberg\", or \"twap\"")) ;
-                }
-            }
+            ((IDictionary<string,object>)request)["ordType"] = "trigger";
         }
         object query = this.omit(parameters, new List<object>() {"method", "stop", "trigger", "trailing"});
         object response = null;
@@ -4169,7 +4163,7 @@ public partial class okx : Exchange
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {bool} [params.stop] True if fetching trigger or conditional orders
+        * @param {bool} [params.trigger] True if fetching trigger or conditional orders
         * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
         * @param {string} [params.algoId] Algo ID "'433845797218942976'"
         * @param {int} [params.until] timestamp in ms to fetch orders for
@@ -4205,12 +4199,12 @@ public partial class okx : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
         }
-        object options = this.safeValue(this.options, "fetchClosedOrders", new Dictionary<string, object>() {});
-        object algoOrderTypes = this.safeValue(this.options, "algoOrderTypes", new Dictionary<string, object>() {});
+        object options = this.safeDict(this.options, "fetchClosedOrders", new Dictionary<string, object>() {});
+        object algoOrderTypes = this.safeDict(this.options, "algoOrderTypes", new Dictionary<string, object>() {});
         object defaultMethod = this.safeString(options, "method", "privateGetTradeOrdersHistory");
         object method = this.safeString(parameters, "method", defaultMethod);
         object ordType = this.safeString(parameters, "ordType");
-        object stop = this.safeValue2(parameters, "stop", "trigger");
+        object stop = this.safeBool2(parameters, "stop", "trigger");
         object trailing = this.safeBool(parameters, "trailing", false);
         if (isTrue(isTrue(isTrue(trailing) || isTrue(stop)) || isTrue((inOp(algoOrderTypes, ordType)))))
         {
@@ -4220,14 +4214,11 @@ public partial class okx : Exchange
         if (isTrue(trailing))
         {
             ((IDictionary<string,object>)request)["ordType"] = "move_order_stop";
-        } else if (isTrue(isTrue(stop) || isTrue((inOp(algoOrderTypes, ordType)))))
+        } else if (isTrue(stop))
         {
-            if (isTrue(stop))
+            if (isTrue(isEqual(ordType, null)))
             {
-                if (isTrue(isEqual(ordType, null)))
-                {
-                    throw new ArgumentsRequired ((string)add(this.id, " fetchClosedOrders() requires an \"ordType\" string parameter, \"conditional\", \"oco\", \"trigger\", \"move_order_stop\", \"iceberg\", or \"twap\"")) ;
-                }
+                ((IDictionary<string,object>)request)["ordType"] = "trigger";
             }
         } else
         {
