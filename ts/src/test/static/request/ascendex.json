@@ -339,6 +339,7 @@
             {
                 "description": "transfer from spot to futures",
                 "method": "transfer",
+                "disabled": true,
                 "url": "https://ascendex.com/3/api/pro/v1/transfer",
                 "input": [
                   "USDT",
