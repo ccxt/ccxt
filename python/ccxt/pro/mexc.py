@@ -455,7 +455,7 @@ class mexc(ccxt.async_support.mexc):
             return
         try:
             self.handle_delta(storedOrderBook, data)
-            timestamp = self.safe_integer(message, 't')
+            timestamp = self.safe_integer_2(message, 't', 'ts')
             storedOrderBook['timestamp'] = timestamp
             storedOrderBook['datetime'] = self.iso8601(timestamp)
         except Exception as e:

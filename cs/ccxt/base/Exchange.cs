@@ -24,6 +24,7 @@ public partial class Exchange
         {
             this.setMarkets(this.markets);
         }
+        this.afterConstruct();
     }
 
     private void initHttpClient()

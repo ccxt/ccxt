@@ -2237,7 +2237,7 @@ class bitmart extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * create a $market buy order by providing the $symbol and $cost
          * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
@@ -3597,7 +3597,7 @@ class bitmart extends Exchange {
         return $result;
     }
 
-    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account, currently only supports transfer between spot and margin
          * @see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer-signed

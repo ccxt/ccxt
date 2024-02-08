@@ -1300,6 +1300,7 @@ class testMainClass extends baseMainTestClass {
         $currencies = $this->load_currencies_from_file($exchange_name);
         $exchange = init_exchange($exchange_name, array(
             'markets' => $markets,
+            'currencies' => $currencies,
             'enableRateLimit' => false,
             'rateLimit' => 1,
             'httpProxy' => 'http://fake:8080',

@@ -592,7 +592,7 @@ class coinex extends \ccxt\async\coinex {
         }) ();
     }
 
-    public function fetch_ohlcv_ws($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv_ws(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket005_kline_query

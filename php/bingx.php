@@ -1699,7 +1699,7 @@ class bingx extends Exchange {
         ));
     }
 
-    public function create_market_order_with_cost(string $symbol, string $side, $cost, $params = array ()) {
+    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array ()) {
         /**
          * create a market order by providing the $symbol, $side and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
@@ -1712,7 +1712,7 @@ class bingx extends Exchange {
         return $this->create_order($symbol, 'market', $side, $cost, null, $params);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * create a market buy order by providing the $symbol and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
@@ -1724,7 +1724,7 @@ class bingx extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function create_market_sell_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * create a market sell order by providing the $symbol and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
@@ -2804,7 +2804,7 @@ class bingx extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://bingx-api.github.io/docs/#/spot/account-api.html#User%20Universal%20Transfer
@@ -3743,7 +3743,7 @@ class bingx extends Exchange {
         return $positions;
     }
 
-    public function set_position_mode($hedged, ?string $symbol = null, $params = array ()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
         /**
          * set $hedged to true or false for a market
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Set%20Position%20Mode

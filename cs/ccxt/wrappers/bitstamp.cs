@@ -10,6 +10,7 @@ public partial class bitstamp
     /// retrieves data on all markets for bitstamp
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Market-info/operation/GetTradingPairsInfo"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -34,6 +35,7 @@ public partial class bitstamp
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Order-book/operation/GetOrderBook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -60,6 +62,7 @@ public partial class bitstamp
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Tickers/operation/GetMarketTicker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -79,7 +82,7 @@ public partial class bitstamp
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.bitstamp.net/api/#all-tickers"/>  <br/>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Tickers/operation/GetCurrencyPairTickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -99,6 +102,7 @@ public partial class bitstamp
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Transactions-public/operation/GetTransactions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -166,6 +170,7 @@ public partial class bitstamp
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Account-balances/operation/GetAccountBalances"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -185,6 +190,7 @@ public partial class bitstamp
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Fees/operation/GetAllTradingFees"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -204,6 +210,7 @@ public partial class bitstamp
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Fees/operation/GetAllTradingFees"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -234,7 +241,7 @@ public partial class bitstamp
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTransactionFees(object codes = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> FetchTransactionFees(List<string> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTransactionFees(codes, parameters);
         return ((Dictionary<string, object>)res);
@@ -243,7 +250,7 @@ public partial class bitstamp
     /// fetch deposit and withdraw fees
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.bitstamp.net/api/#balance"/>  <br/>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Fees/operation/GetAllWithdrawalFees"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -295,6 +302,7 @@ public partial class bitstamp
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -314,6 +322,8 @@ public partial class bitstamp
     /// cancel all open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Orders/operation/CancelAllOrders"/>  <br/>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrdersForMarket"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -338,6 +348,7 @@ public partial class bitstamp
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Orders/operation/GetOrderStatus"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -357,6 +368,8 @@ public partial class bitstamp
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions"/>  <br/>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactionsForMarket"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -390,6 +403,7 @@ public partial class bitstamp
     /// fetch history of deposits and withdrawals
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -429,6 +443,7 @@ public partial class bitstamp
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Withdrawals/operation/GetWithdrawalRequests"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -462,6 +477,7 @@ public partial class bitstamp
     /// fetch the history of changes, actions done by the user or operations that altered balance of the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -495,6 +511,8 @@ public partial class bitstamp
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Orders/operation/GetAllOpenOrders"/>  <br/>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Orders/operation/GetOpenOrdersForMarket"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -528,6 +546,7 @@ public partial class bitstamp
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Deposits/operation/GetCryptoDepositAddress"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -547,6 +566,8 @@ public partial class bitstamp
     /// make a withdrawal
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Withdrawals/operation/RequestFiatWithdrawal"/>  <br/>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Withdrawals/operation/RequestCryptoWithdrawal"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

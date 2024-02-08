@@ -1800,7 +1800,7 @@ class bitrue(Exchange, ImplicitAPI):
             'trades': fills,
         }, market)
 
-    def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
         :see: https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
@@ -2778,7 +2778,7 @@ class bitrue(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_transfers(data, currency, since, limit)
 
-    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://www.bitrue.com/api-docs#new-future-account-transfer-user_data-hmac-sha256

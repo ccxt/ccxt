@@ -92,7 +92,7 @@ export default class htx extends Exchange {
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: Market): Order;
-    createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
+    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createTrailingPercentOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, trailingPercent?: any, trailingTriggerPrice?: any, params?: {}): Promise<Order>;
     createSpotOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<any>;
     createContractOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): any;
@@ -128,7 +128,7 @@ export default class htx extends Exchange {
         toAccount: any;
         status: any;
     };
-    transfer(code: string, amount: number, fromAccount: any, toAccount: any, params?: {}): Promise<TransferEntry>;
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     fetchIsolatedBorrowRates(params?: {}): Promise<BorrowRate[]>;
     parseIsolatedBorrowRate(info: any, market?: Market): {
         symbol: string;
@@ -266,5 +266,5 @@ export default class htx extends Exchange {
     };
     fetchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
     parseLiquidation(liquidation: any, market?: Market): import("./base/types.js").Liquidation;
-    setPositionMode(hedged: any, symbol?: Str, params?: {}): Promise<any>;
+    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
 }

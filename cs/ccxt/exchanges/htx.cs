@@ -6384,7 +6384,7 @@ public partial class htx : Exchange
         };
     }
 
-    public async virtual Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
+    public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
     {
         /**
         * @method
@@ -9292,7 +9292,7 @@ public partial class htx : Exchange
         });
     }
 
-    public async virtual Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
+    public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
         /**
         * @method

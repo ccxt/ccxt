@@ -2722,7 +2722,7 @@ export default class phemex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async editOrder (id: string, symbol, type = undefined, side = undefined, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType = undefined, side: OrderSide = undefined, amount: number = undefined, price: number = undefined, params = {}) {
         /**
          * @method
          * @name phemex#editOrder
@@ -4047,7 +4047,7 @@ export default class phemex extends Exchange {
         };
     }
 
-    async setMarginMode (marginMode, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name phemex#setMarginMode
@@ -4083,7 +4083,7 @@ export default class phemex extends Exchange {
         return await this.privatePutPositionsLeverage (this.extend (request, params));
     }
 
-    async setPositionMode (hedged, symbol: Str = undefined, params = {}) {
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name phemex#setPositionMode
@@ -4338,7 +4338,7 @@ export default class phemex extends Exchange {
         return response;
     }
 
-    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name phemex#transfer

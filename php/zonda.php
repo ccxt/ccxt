@@ -652,7 +652,7 @@ class zonda extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * v1_01PublicGetTradingTickerSymbol retrieves timestamp, datetime, bid, ask, close, last, previousClose, v1_01PublicGetTradingStatsSymbol retrieves high, low, volume and opening price of an asset
          * @see https://docs.zondacrypto.exchange/reference/market-statistics
@@ -1542,7 +1542,7 @@ class zonda extends Exchange {
         return $this->parse_deposit_address($first, $currency);
     }
 
-    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         /**
          * @see https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto
          * fetch deposit addresses for multiple currencies and chain types
@@ -1569,7 +1569,7 @@ class zonda extends Exchange {
         return $this->parse_deposit_addresses($data, $codes);
     }
 
-    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
         /**
          * @see https://docs.zondacrypto.exchange/reference/internal-$transfer
          * $transfer $currency internally between wallets on the same account

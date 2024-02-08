@@ -1284,7 +1284,7 @@ class okcoin extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a $market buy order by providing the $symbol and $cost
@@ -2280,7 +2280,7 @@ class okcoin extends Exchange {
         }) ();
     }
 
-    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): PromiseInterface {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-funds-transfer

@@ -298,6 +298,9 @@ abstract class okx extends \ccxt\async\Exchange {
     public function private_get_trade_one_click_repay_history($params = array()) {
         return $this->request('trade/one-click-repay-history', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
+    public function private_get_trade_account_rate_limit($params = array()) {
+        return $this->request('trade/account-rate-limit', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_asset_currencies($params = array()) {
         return $this->request('asset/currencies', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
@@ -1209,6 +1212,9 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function privateGetTradeOneClickRepayHistory($params = array()) {
         return $this->request('trade/one-click-repay-history', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function privateGetTradeAccountRateLimit($params = array()) {
+        return $this->request('trade/account-rate-limit', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetAssetCurrencies($params = array()) {
         return $this->request('asset/currencies', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
