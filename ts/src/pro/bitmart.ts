@@ -309,14 +309,22 @@ export default class bitmart extends bitmartRest {
     }
 
     getParamsForMultipleSub (methodName: string, symbols: string[], limit: Int = undefined, params = {}) {
-        symbols = this.marketSymbols (symbols, undefined, false, true);
-        const length = symbols.length;
-        if (length > 20) {
-            throw new NotSupported (this.id + ' ' + methodName + '() accepts a maximum of 20 symbols in one request');
+        symbols = this.marketSymbols (symbols, undefined, true, true); // allow empty at this stage, and below throw exception if still empty
+        let market = undefined;
+        if (symbols !== undefined) {
+            market = this.market (symbols[0]);
         }
-        const market = this.market (symbols[0]);
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params);
+        // for contract's watchTickers we can default to all-symbols
+        if (methodName === 'watchTickers' && this.inArray (marketType, [ 'swap', 'future' ]) && symbols === undefined) {
+            const filteredMarkets = this.filterByArray (this.markets, 'type', [ 'swap', 'future' ]);
+            symbols = this.getArrayOfObjectsKey (filteredMarkets, 'symbol');
+        } else if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a list of symbols for ' + marketType + ' markets');
+        } else if (symbols.length > 20) {
+            throw new NotSupported (this.id + ' ' + methodName + '() accepts a maximum of 20 symbols in one request');
+        }
         return [ symbols, marketType, params ];
     }
 
@@ -331,7 +339,10 @@ export default class bitmart extends bitmartRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        const tickers = await this.watchTickers ([ symbol ], params);
+        const request = {
+            'methodName': 'watchTicker',
+        };
+        const tickers = await this.watchTickers ([ symbol ], this.extend (request, params));
         return tickers[symbol];
     }
 
@@ -346,8 +357,10 @@ export default class bitmart extends bitmartRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
+        await this.loadMarkets ();
+        const methodName = this.safeString (params, 'methodName', 'watchTickers');
         let marketType = undefined;
-        [ symbols, marketType, params ] = await this.helperForWatchMultiple ('watchTickers', symbols, undefined, params);
+        [ symbols, marketType, params ] = this.getParamsForMultipleSub (methodName, symbols, undefined, params);
         const channelName = 'ticker';
         const ticker = await this.subscribeMultiple (channelName, marketType, symbols, params);
         if (this.newUpdates) {
