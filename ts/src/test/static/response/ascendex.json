@@ -1,0 +1,54 @@
+{
+  "exchange": "ascendex",
+  "skipKeys": [],
+  "options": {
+  },
+  "methods": {
+    "fetchDepositAddress": [
+      {
+        "description": "fetch usdt deposit address",
+        "method": "fetchDepositAddress",
+        "input": [
+          "USDT",
+          {
+            "network": "TRC20"
+          }
+        ],
+        "httpResponse": {
+          "code": "0",
+          "data": {
+            "asset": "USDT",
+            "assetName": "Tether",
+            "address": [
+              {
+                "address": "ZXXfdfd",
+                "destTag": "",
+                "blockchain": "TRC20"
+              }
+            ]
+          }
+        },
+        "parsedResponse": {
+          "currency": "USDT",
+          "address": "ZXXfdfd",
+          "tag": null,
+          "network": "TRC20",
+          "info": {
+            "code": "0",
+            "data": {
+              "asset": "USDT",
+              "assetName": "Tether",
+              "address": [
+                {
+                  "address": "ZXXfdfd",
+                  "destTag": "",
+                  "blockchain": "TRC20"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  }
+}

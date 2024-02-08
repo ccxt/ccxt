@@ -2425,7 +2425,7 @@ export default class ascendex extends Exchange {
         const currency = this.currency (code);
         const networkCode = this.safeString2 (params, 'network', 'chainName');
         const networkId = this.networkCodeToId (networkCode);
-        params = this.omit (params, [ 'network', 'chainName' ]);
+        params = this.omit (params, [ 'chainName' ]);
         const request = {
             'asset': currency['id'],
             'blockchain': networkId,

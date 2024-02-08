@@ -321,6 +321,19 @@
                 ],
                 "output":"{\"symbol\":\"BTC-PERP\",\"time\":1701161145825}"
             }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://ascendex.com/api/pro/v1/wallet/deposit/address?asset=USDT&blockchain=TRC20&network=TRC20",
+                "input": [
+                  "USDT",
+                  {
+                    "network": "TRC20"
+                  }
+                ]
+            }
         ]
     }
 }
