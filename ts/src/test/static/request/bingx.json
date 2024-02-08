@@ -715,6 +715,54 @@
                   5
                 ]
             }
-        ]
+        ],
+        "editOrder": [
+            {
+              "description": "edit spot order",
+              "method": "editOrder",
+              "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order/cancelReplace?cancelOrderId=1755603335580221440&cancelReplaceMode=STOP_ON_FAILURE&price=51&quantity=0.11&side=BUY&symbol=LTC-USDT&timestamp=1707403466447&type=LIMIT&signature=0bee060e6424f8eba8ed39077e38408c743148d3c6c92e3d1d5d0f540a71d5d8",
+              "input": [
+                "1755603335580221440",
+                "LTC/USDT",
+                "limit",
+                "buy",
+                0.11,
+                51
+              ]
+            },
+            {
+              "description": "edit swap order",
+              "method": "editOrder",
+              "url": "https://open-api.bingx.com/openApi/swap/v1/trade/cancelReplace?cancelOrderId=1755603986301546496&cancelReplaceMode=STOP_ON_FAILURE&positionSide=LONG&price=51&quantity=0.1&side=BUY&symbol=LTC-USDT&timestamp=1707403614874&type=LIMIT&signature=a1c7f4e3b91ee4f615fac9164cc031abfa2ee5a33783341400a6258f845d21c0",
+              "input": [
+                "1755603986301546496",
+                "LTC/USDT:USDT",
+                "limit",
+                "buy",
+                0.11,
+                51
+              ]
+            }
+          ],
+          "fetchOrder": [
+            {
+              "description": "fetch canceled swap order",
+              "method": "fetchOrder",
+              "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?orderId=1755604122901639168&symbol=LTC-USDT&timestamp=1707404139157&signature=8fad2c2153024cbe332cb21665f2ccd7e0dbdae296ee68ca8081dac561aadc3e",
+              "input": [
+                "1755604122901639168",
+                "LTC/USDT:USDT"
+              ]
+            },
+            {
+              "description": "fetch canceled spot order",
+              "method": "fetchOrder",
+              "url": "https://open-api.bingx.com/openApi/spot/v1/trade/query?orderId=1755603500760301568&symbol=LTC-USDT&timestamp=1707404205248&signature=08baae73177b16e8088332a7dd9bc48409ae4711207c220517f6588880048d8d",
+              "input": [
+                "1755603500760301568",
+                "LTC/USDT"
+              ]
+            }
+          ]
     }
 }
