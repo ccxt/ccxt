@@ -8214,8 +8214,7 @@ export default class bitget extends Exchange {
             } else {
                 if (Object.keys (params).length) {
                     const sorted = this.keysort (params);
-                    let queryInner = '?' + this.urlencodeExcludingChars (sorted, [ '$' ]);
-                    queryInner = queryInner.replace ('%24', '$'); // place back $ sign
+                    const queryInner = '?' + this.urlencodeExcludingChars (sorted, [ '$' ]);
                     url += queryInner;
                     auth += queryInner;
                 }
