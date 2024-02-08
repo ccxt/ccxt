@@ -3951,7 +3951,7 @@ export default class bingx extends Exchange {
         return await this.swapV1PrivatePostPositionSideDual (this.extend (request, params));
     }
 
-    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name bingx#editOrder
