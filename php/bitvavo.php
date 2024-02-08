@@ -1205,7 +1205,7 @@ class bitvavo extends Exchange {
         return $request;
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * edit a trade order
          * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/put

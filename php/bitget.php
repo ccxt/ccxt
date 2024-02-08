@@ -3922,7 +3922,7 @@ class bitget extends Exchange {
         ), $market);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * create a $market buy order by providing the $symbol and $cost
          * @see https://www.bitget.com/api-doc/spot/trade/Place-Order
@@ -4341,7 +4341,7 @@ class bitget extends Exchange {
         return $this->parse_orders($both, $market);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * edit a trade order
          * @see https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order
@@ -4394,7 +4394,7 @@ class bitget extends Exchange {
         $takeProfit = $this->safe_value($params, 'takeProfit');
         $isStopLoss = $stopLoss !== null;
         $isTakeProfit = $takeProfit !== null;
-        $trailingTriggerPrice = $this->safe_string($params, 'trailingTriggerPrice', $price);
+        $trailingTriggerPrice = $this->safe_string($params, 'trailingTriggerPrice', $this->number_to_string($price));
         $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'newCallbackRatio');
         $isTrailingPercentOrder = $trailingPercent !== null;
         if ($this->sum($isTriggerOrder, $isStopLossOrder, $isTakeProfitOrder, $isTrailingPercentOrder) > 1) {
@@ -6818,7 +6818,7 @@ class bitget extends Exchange {
         return $response;
     }
 
-    public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
         /**
          * set margin mode to 'cross' or 'isolated'
          * @see https://www.bitget.com/api-doc/contract/account/Change-Margin-Mode
@@ -6872,7 +6872,7 @@ class bitget extends Exchange {
         return $response;
     }
 
-    public function set_position_mode($hedged, ?string $symbol = null, $params = array ()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
         /**
          * set $hedged to true or false for a $market
          * @see https://www.bitget.com/api-doc/contract/account/Change-Hold-Mode
@@ -7045,7 +7045,7 @@ class bitget extends Exchange {
         return $this->parse_transfers($data, $currency, $since, $limit);
     }
 
-    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://www.bitget.com/api-doc/spot/account/Wallet-Transfer

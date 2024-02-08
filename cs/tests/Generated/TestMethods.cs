@@ -1180,6 +1180,7 @@ public partial class testMainClass : BaseTest
         object currencies = this.loadCurrenciesFromFile(exchangeName);
         Exchange exchange = initExchange(exchangeName, new Dictionary<string, object>() {
             { "markets", markets },
+            { "currencies", currencies },
             { "enableRateLimit", false },
             { "rateLimit", 1 },
             { "httpProxy", "http://fake:8080" },

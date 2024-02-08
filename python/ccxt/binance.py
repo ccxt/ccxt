@@ -2361,7 +2361,7 @@ class binance(Exchange, ImplicitAPI):
         reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z'
         return reconstructedDate
 
-    def create_expired_option_market(self, symbol):
+    def create_expired_option_market(self, symbol: str):
         # support expired option contracts
         settle = 'USDT'
         optionParts = symbol.split('-')
@@ -4626,7 +4626,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         """
         edit a trade order
         :see: https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
@@ -4840,7 +4840,7 @@ class binance(Exchange, ImplicitAPI):
         #         "msg": "Quantity greater than max quantity."
         #     }
         #
-        # createOrder, fetchOpenOrders, fetchOrder: portfolio margin linear swap and future
+        # createOrder, fetchOpenOrders, fetchOrder, cancelOrder: portfolio margin linear swap and future
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -4863,7 +4863,7 @@ class binance(Exchange, ImplicitAPI):
         #         "status": "NEW"
         #     }
         #
-        # createOrder, fetchOpenOrders, fetchOrder: portfolio margin inverse swap and future
+        # createOrder, fetchOpenOrders, fetchOrder, cancelOrder: portfolio margin inverse swap and future
         #
         #     {
         #         "symbol": "ETHUSD_PERP",
@@ -4929,7 +4929,7 @@ class binance(Exchange, ImplicitAPI):
         #         "priceProtect": False
         #     }
         #
-        # createOrder, cancelAllOrders: portfolio margin spot margin
+        # createOrder, cancelAllOrders, cancelOrder: portfolio margin spot margin
         #
         #     {
         #         "clientOrderId": "x-R4BD3S82e9ef29d8346440f0b28b86",
@@ -4971,6 +4971,31 @@ class binance(Exchange, ImplicitAPI):
         #         "selfTradePreventionMode": "EXPIRE_MAKER",
         #         "preventedMatchId": null,
         #         "preventedQuantity": null
+        #     }
+        #
+        # cancelOrder: portfolio margin linear and inverse swap conditional
+        #
+        #     {
+        #         "strategyId": 3733211,
+        #         "newClientStrategyId": "x-xcKtGhcuaf166172ed504cd1bc0396",
+        #         "strategyType": "STOP",
+        #         "strategyStatus": "CANCELED",
+        #         "origQty": "0.010",
+        #         "price": "35000.00",
+        #         "reduceOnly": False,
+        #         "side": "BUY",
+        #         "positionSide": "BOTH",
+        #         "stopPrice": "50000.00",  # ignored with trailing orders
+        #         "symbol": "BTCUSDT",
+        #         "timeInForce": "GTC",
+        #         "activatePrice": null,  # only return with trailing orders
+        #         "priceRate": null,      # only return with trailing orders
+        #         "bookTime": 1707270098774,
+        #         "updateTime": 1707270119261,
+        #         "workingType": "CONTRACT_PRICE",
+        #         "priceProtect": False,
+        #         "goodTillDate": 0,
+        #         "selfTradePreventionMode": "NONE"
         #     }
         #
         code = self.safe_string(order, 'code')
@@ -5416,7 +5441,7 @@ class binance(Exchange, ImplicitAPI):
         requestParams = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test'])
         return self.extend(request, requestParams)
 
-    def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost, params={}):
+    def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params={}):
         """
         create a market order by providing the symbol, side and cost
         :see: https://binance-docs.github.io/apidocs/spot/en/#new-order-trade
@@ -5433,7 +5458,7 @@ class binance(Exchange, ImplicitAPI):
         params['quoteOrderQty'] = cost
         return self.create_order(symbol, 'market', side, cost, None, params)
 
-    def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
         :see: https://binance-docs.github.io/apidocs/spot/en/#new-order-trade
@@ -5449,7 +5474,7 @@ class binance(Exchange, ImplicitAPI):
         params['quoteOrderQty'] = cost
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    def create_market_sell_order_with_cost(self, symbol: str, cost, params={}):
+    def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market sell order by providing the symbol and cost
         :see: https://binance-docs.github.io/apidocs/spot/en/#new-order-trade
@@ -5795,9 +5820,16 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/delivery/en/#cancel-order-trade
         :see: https://binance-docs.github.io/apidocs/voptions/en/#cancel-option-order-trade
         :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-cancel-order-trade
+        :see: https://binance-docs.github.io/apidocs/pm/en/#cancel-um-order-trade
+        :see: https://binance-docs.github.io/apidocs/pm/en/#cancel-cm-order-trade
+        :see: https://binance-docs.github.io/apidocs/pm/en/#cancel-um-conditional-order-trade
+        :see: https://binance-docs.github.io/apidocs/pm/en/#cancel-cm-conditional-order-trade
+        :see: https://binance-docs.github.io/apidocs/pm/en/#cancel-margin-account-order-trade
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.portfolioMargin]: set to True if you would like to cancel an order in a portfolio margin account
+        :param boolean [params.stop]: set to True if you would like to cancel a portfolio margin account conditional order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -5806,34 +5838,57 @@ class binance(Exchange, ImplicitAPI):
         market = self.market(symbol)
         defaultType = self.safe_string_2(self.options, 'cancelOrder', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
-        marginMode, query = self.handle_margin_mode_and_params('cancelOrder', params)
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'cancelOrder', 'papi', 'portfolioMargin', False)
+        isConditional = self.safe_bool_2(params, 'stop', 'conditional')
         request = {
             'symbol': market['id'],
-            # 'orderId': id,
-            # 'origClientOrderId': id,
         }
-        clientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
+        clientOrderId = self.safe_string_n(params, ['origClientOrderId', 'clientOrderId', 'newClientStrategyId'])
         if clientOrderId is not None:
             if market['option']:
                 request['clientOrderId'] = clientOrderId
             else:
-                request['origClientOrderId'] = clientOrderId
+                if isPortfolioMargin and isConditional:
+                    request['newClientStrategyId'] = clientOrderId
+                else:
+                    request['origClientOrderId'] = clientOrderId
         else:
-            request['orderId'] = id
-        requestParams = self.omit(query, ['type', 'origClientOrderId', 'clientOrderId'])
+            if isPortfolioMargin and isConditional:
+                request['strategyId'] = id
+            else:
+                request['orderId'] = id
+        params = self.omit(params, ['type', 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'conditional'])
         response = None
         if market['option']:
-            response = self.eapiPrivateDeleteOrder(self.extend(request, requestParams))
+            response = self.eapiPrivateDeleteOrder(self.extend(request, params))
         elif market['linear']:
-            response = self.fapiPrivateDeleteOrder(self.extend(request, requestParams))
+            if isPortfolioMargin:
+                if isConditional:
+                    response = self.papiDeleteUmConditionalOrder(self.extend(request, params))
+                else:
+                    response = self.papiDeleteUmOrder(self.extend(request, params))
+            else:
+                response = self.fapiPrivateDeleteOrder(self.extend(request, params))
         elif market['inverse']:
-            response = self.dapiPrivateDeleteOrder(self.extend(request, requestParams))
-        elif type == 'margin' or marginMode is not None:
-            if marginMode == 'isolated':
-                request['isIsolated'] = True
-            response = self.sapiDeleteMarginOrder(self.extend(request, requestParams))
+            if isPortfolioMargin:
+                if isConditional:
+                    response = self.papiDeleteCmConditionalOrder(self.extend(request, params))
+                else:
+                    response = self.papiDeleteCmOrder(self.extend(request, params))
+            else:
+                response = self.dapiPrivateDeleteOrder(self.extend(request, params))
+        elif (type == 'margin') or (marginMode is not None) or isPortfolioMargin:
+            if isPortfolioMargin:
+                response = self.papiDeleteMarginOrder(self.extend(request, params))
+            else:
+                if marginMode == 'isolated':
+                    request['isIsolated'] = True
+                response = self.sapiDeleteMarginOrder(self.extend(request, params))
         else:
-            response = self.privateDeleteOrder(self.extend(request, requestParams))
+            response = self.privateDeleteOrder(self.extend(request, params))
         return self.parse_order(response, market)
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
@@ -6729,7 +6784,7 @@ class binance(Exchange, ImplicitAPI):
             'amount': amount,
         }
 
-    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
@@ -6948,7 +7003,7 @@ class binance(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_transaction_fees(self, codes=None, params={}):
+    def fetch_transaction_fees(self, codes: List[str] = None, params={}):
         """
          * @deprecated
         please use fetchDepositWithdrawFees instead
@@ -8509,9 +8564,12 @@ class binance(Exchange, ImplicitAPI):
         set the level of leverage for a market
         :see: https://binance-docs.github.io/apidocs/futures/en/#change-initial-leverage-trade
         :see: https://binance-docs.github.io/apidocs/delivery/en/#change-initial-leverage-trade
+        :see: https://binance-docs.github.io/apidocs/pm/en/#change-um-initial-leverage-trade
+        :see: https://binance-docs.github.io/apidocs/pm/en/#change-cm-initial-leverage-trade
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.portfolioMargin]: set to True if you would like to set the leverage for a trading pair in a portfolio margin account
         :returns dict: response from the exchange
         """
         if symbol is None:
@@ -8526,11 +8584,19 @@ class binance(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'leverage': leverage,
         }
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'setLeverage', 'papi', 'portfolioMargin', False)
         response = None
         if market['linear']:
-            response = self.fapiPrivatePostLeverage(self.extend(request, params))
+            if isPortfolioMargin:
+                response = self.papiPostUmLeverage(self.extend(request, params))
+            else:
+                response = self.fapiPrivatePostLeverage(self.extend(request, params))
         elif market['inverse']:
-            response = self.dapiPrivatePostLeverage(self.extend(request, params))
+            if isPortfolioMargin:
+                response = self.papiPostCmLeverage(self.extend(request, params))
+            else:
+                response = self.dapiPrivatePostLeverage(self.extend(request, params))
         else:
             raise NotSupported(self.id + ' setLeverage() supports linear and inverse contracts only')
         return response
@@ -8589,14 +8655,17 @@ class binance(Exchange, ImplicitAPI):
                 raise e
         return response
 
-    def set_position_mode(self, hedged, symbol: Str = None, params={}):
+    def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         """
         set hedged to True or False for a market
         :see: https://binance-docs.github.io/apidocs/futures/en/#change-position-mode-trade
         :see: https://binance-docs.github.io/apidocs/delivery/en/#change-position-mode-trade
+        :see: https://binance-docs.github.io/apidocs/pm/en/#change-um-position-mode-trade
+        :see: https://binance-docs.github.io/apidocs/pm/en/#change-cm-position-mode-trade
         :param bool hedged: set to True to use dualSidePosition
         :param str symbol: not used by binance setPositionMode()
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.portfolioMargin]: set to True if you would like to set the position mode for a portfolio margin account
         :returns dict: response from the exchange
         """
         defaultType = self.safe_string(self.options, 'defaultType', 'future')
@@ -8604,6 +8673,8 @@ class binance(Exchange, ImplicitAPI):
         params = self.omit(params, ['type'])
         subType = None
         subType, params = self.handle_sub_type_and_params('setPositionMode', None, params)
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'setPositionMode', 'papi', 'portfolioMargin', False)
         dualSidePosition = None
         if hedged:
             dualSidePosition = 'true'
@@ -8614,10 +8685,15 @@ class binance(Exchange, ImplicitAPI):
         }
         response = None
         if self.is_inverse(type, subType):
-            response = self.dapiPrivatePostPositionSideDual(self.extend(request, params))
+            if isPortfolioMargin:
+                response = self.papiPostCmPositionSideDual(self.extend(request, params))
+            else:
+                response = self.dapiPrivatePostPositionSideDual(self.extend(request, params))
         else:
-            # default to future
-            response = self.fapiPrivatePostPositionSideDual(self.extend(request, params))
+            if isPortfolioMargin:
+                response = self.papiPostUmPositionSideDual(self.extend(request, params))
+            else:
+                response = self.fapiPrivatePostPositionSideDual(self.extend(request, params))
         #
         #     {
         #       "code": 200,

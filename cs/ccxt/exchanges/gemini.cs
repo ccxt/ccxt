@@ -1760,7 +1760,7 @@ public partial class gemini : Exchange
         return this.safeValue(networkGroup, code);
     }
 
-    public async virtual Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
+    public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
     {
         /**
         * @method
