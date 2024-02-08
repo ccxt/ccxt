@@ -2395,7 +2395,7 @@ export default class ascendex extends Exchange {
         this.checkAddress (address);
         const code = (currency === undefined) ? undefined : currency['code'];
         const chainName = this.safeString (depositAddress, 'blockchain');
-        const network = this.safeNetwork (chainName);
+        const network = this.networkIdToCode (chainName, code);
         return {
             'currency': code,
             'address': address,
@@ -2464,8 +2464,8 @@ export default class ascendex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const addresses = this.safeValue (data, 'address', []);
+        const data = this.safeDict (response, 'data', {});
+        const addresses = this.safeList (data, 'address', []);
         const numAddresses = addresses.length;
         let address = undefined;
         if (numAddresses > 1) {
@@ -2475,10 +2475,10 @@ export default class ascendex extends Exchange {
                 const chains = chainNames.join (', ');
                 throw new ArgumentsRequired (this.id + ' fetchDepositAddress() returned more than one address, a chainName parameter is required, one of ' + chains);
             }
-            address = this.safeValue (addressesByChainName, networkId, {});
+            address = this.safeDict (addressesByChainName, networkId, {});
         } else {
             // first address
-            address = this.safeValue (addresses, 0, {});
+            address = this.safeDict (addresses, 0, {});
         }
         const result = this.parseDepositAddress (address, currency);
         return this.extend (result, {
