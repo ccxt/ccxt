@@ -3978,7 +3978,7 @@ export default class okx extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.stop] True if fetching trigger or conditional orders
+         * @param {bool} [params.trigger] True if fetching trigger or conditional orders
          * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string} [params.algoId] Algo ID "'433845797218942976'"
          * @param {int} [params.until] timestamp in ms to fetch orders for
@@ -4016,12 +4016,12 @@ export default class okx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        const options = this.safeValue (this.options, 'fetchClosedOrders', {});
-        const algoOrderTypes = this.safeValue (this.options, 'algoOrderTypes', {});
+        const options = this.safeDict (this.options, 'fetchClosedOrders', {});
+        const algoOrderTypes = this.safeDict (this.options, 'algoOrderTypes', {});
         const defaultMethod = this.safeString (options, 'method', 'privateGetTradeOrdersHistory');
         let method = this.safeString (params, 'method', defaultMethod);
         const ordType = this.safeString (params, 'ordType');
-        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        const stop = this.safeBool2 (params, 'stop', 'trigger');
         const trailing = this.safeBool (params, 'trailing', false);
         if (trailing || stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoHistory';
@@ -4029,11 +4029,9 @@ export default class okx extends Exchange {
         }
         if (trailing) {
             request['ordType'] = 'move_order_stop';
-        } else if (stop || (ordType in algoOrderTypes)) {
-            if (stop) {
-                if (ordType === undefined) {
-                    throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
-                }
+        } else if (stop) {
+            if (ordType === undefined) {
+                request['ordType'] = 'trigger';
             }
         } else {
             if (since !== undefined) {

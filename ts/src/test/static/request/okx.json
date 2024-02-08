@@ -657,6 +657,19 @@
             "trailing": true
           }
         ]
+      },
+      {
+        "description": "closed trigger orders",
+        "method": "fetchClosedOrders",
+        "url": "https://www.okx.com/api/v5/trade/orders-algo-history?instType=SPOT&state=effective&ordType=trigger",
+        "input": [
+          null,
+          null,
+          null,
+          {
+            "trigger": true
+          }
+        ]
       }
     ],
     "cancelOrder": [
