@@ -1270,15 +1270,6 @@ export default class bitmart extends bitmartRest {
         //        }
         //    }
         //
-<<<<<<< HEAD
-        const data = this.safeDict (message, 'data');
-        if (data === undefined) {
-            return;
-        }
-        const depths = this.safeList (data, 'depths');
-        const isSpot = (depths === undefined);
-        const table = this.safeString2 (message, 'table', 'group');
-=======
         const isSpot = ('table' in message);
         let datas = [];
         if (isSpot) {
@@ -1294,7 +1285,6 @@ export default class bitmart extends bitmartRest {
             return;
         }
         const channelName = this.safeString2 (message, 'table', 'group');
->>>>>>> 760b1ea92559814edad77bd7c85b2fa8b5f484d3
         // find limit subscribed to
         const limitsToCheck = [ '100', '50', '20', '10', '5' ];
         let limit = 0;
@@ -1306,15 +1296,9 @@ export default class bitmart extends bitmartRest {
             }
         }
         if (isSpot) {
-<<<<<<< HEAD
-            const channel = table.replace ('spot/', '');
-            for (let i = 0; i < data.length; i++) {
-                const update = data[i];
-=======
             const channel = channelName.replace ('spot/', '');
             for (let i = 0; i < datas.length; i++) {
                 const update = datas[i];
->>>>>>> 760b1ea92559814edad77bd7c85b2fa8b5f484d3
                 const marketId = this.safeString (update, 'symbol');
                 const symbol = this.safeSymbol (marketId);
                 let orderbook = this.safeDict (this.orderbooks, symbol);
@@ -1333,26 +1317,17 @@ export default class bitmart extends bitmartRest {
                     orderbook['timestamp'] = timestamp;
                     orderbook['datetime'] = this.iso8601 (timestamp);
                 }
-<<<<<<< HEAD
-                const messageHash = table + ':' + marketId;
-=======
                 const messageHash = channelName + ':' + marketId;
->>>>>>> 760b1ea92559814edad77bd7c85b2fa8b5f484d3
                 client.resolve (orderbook, messageHash);
                 // resolve ForSymbols
                 const messageHashForMulti = channel + ':' + symbol;
                 client.resolve (orderbook, messageHashForMulti);
             }
         } else {
-<<<<<<< HEAD
-            const tableParts = table.split (':');
-            const channel = tableParts[0].replace ('futures/', '');
-=======
             const tableParts = channelName.split (':');
             const channel = tableParts[0].replace ('futures/', '');
             const data = datas[0]; // contract markets always contain only one member
             const depths = data['depths'];
->>>>>>> 760b1ea92559814edad77bd7c85b2fa8b5f484d3
             const marketId = this.safeString (data, 'symbol');
             const symbol = this.safeSymbol (marketId);
             let orderbook = this.safeDict (this.orderbooks, symbol);
