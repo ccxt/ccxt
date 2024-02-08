@@ -1953,6 +1953,19 @@
                   1
                 ],
                 "output": "timestamp=1704884619619&asset=USDT&amount=1&isIsolated=FALSE&type=BORROW&recvWindow=10000&signature=7decbb81d0e7d0b0d553496893c7a36438ddcba418c9437eaa384a541325843b"
+            },
+            {
+                "description": "Portfolio margin borrow cross margin",
+                "method": "borrowCrossMargin",
+                "url": "https://papi.binance.com/papi/v1/marginLoan",
+                "input": [
+                  "USDT",
+                  5,
+                  {
+                    "portfolioMargin": true
+                  }
+                ],
+                "output": "timestamp=1707369605273&asset=USDT&amount=5&recvWindow=10000&signature=2c17935d2d5997eb83c7299eddd116373949583a9b06b6f431affeda5fab5f3b"
             }
         ],
         "repayCrossMargin": [
