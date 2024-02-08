@@ -8221,6 +8221,10 @@ class bitget extends Exchange {
             } else {
                 if ($params) {
                     $queryInner = '?' . $this->urlencode($this->keysort($params));
+                    // check #21169 pr
+                    if (mb_strpos($queryInner, '%24') > -1) {
+                        $queryInner = str_replace('%24', '$', $queryInner);
+                    }
                     $url .= $queryInner;
                     $auth .= $queryInner;
                 }

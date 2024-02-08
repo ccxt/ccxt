@@ -7712,6 +7712,9 @@ class bitget(Exchange, ImplicitAPI):
             else:
                 if params:
                     queryInner = '?' + self.urlencode(self.keysort(params))
+                    # check  #21169 pr
+                    if queryInner.find('%24') > -1:
+                        queryInner = queryInner.replace('%24', '$')
                     url += queryInner
                     auth += queryInner
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')

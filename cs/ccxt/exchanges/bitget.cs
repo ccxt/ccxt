@@ -8975,6 +8975,11 @@ public partial class bitget : Exchange
                 if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
                 {
                     object queryInner = add("?", this.urlencode(this.keysort(parameters)));
+                    // check #21169 pr
+                    if (isTrue(isGreaterThan(getIndexOf(queryInner, "%24"), -1)))
+                    {
+                        queryInner = ((string)queryInner).Replace((string)"%24", (string)"$");
+                    }
                     url = add(url, queryInner);
                     auth = add(auth, queryInner);
                 }
