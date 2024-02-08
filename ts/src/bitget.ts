@@ -3931,6 +3931,13 @@ export default class bitget extends Exchange {
             size = this.safeString (order, 'size');
             filled = this.safeString (order, 'baseVolume');
         }
+        let side = this.safeString (order, 'side');
+        const posMode = this.safeString (order, 'posMode');
+        if (posMode === 'hedge_mode' && reduceOnly) {
+            side = (side === 'buy') ? 'sell' : 'buy';
+            // on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
+            // so the side of the reduceOnly order is inversed
+        }
         return this.safeOrder ({
             'info': order,
             'id': this.safeString2 (order, 'orderId', 'data'),
@@ -3941,7 +3948,7 @@ export default class bitget extends Exchange {
             'lastUpdateTimestamp': updateTimestamp,
             'symbol': market['symbol'],
             'type': this.safeString (order, 'orderType'),
-            'side': this.safeString (order, 'side'),
+            'side': side,
             'price': price,
             'amount': size,
             'cost': this.safeString2 (order, 'quoteVolume', 'quoteSize'),
@@ -4203,13 +4210,14 @@ export default class bitget extends Exchange {
                 request['marginMode'] = marginModeRequest;
                 const oneWayMode = this.safeBool (params, 'oneWayMode', false);
                 params = this.omit (params, 'oneWayMode');
-                let requestSide = side;
+                const requestSide = side;
                 if (reduceOnly) {
                     if (oneWayMode) {
                         request['reduceOnly'] = 'YES';
                     } else {
                         // on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
-                        requestSide = (side === 'buy') ? 'sell' : 'buy';
+                        // requestSide = (side === 'buy') ? 'sell' : 'buy';
+                        // requestSide =
                         request['tradeSide'] = 'Close';
                     }
                 } else {
