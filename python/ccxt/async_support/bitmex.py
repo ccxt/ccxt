@@ -1827,7 +1827,7 @@ class bitmex(Exchange, ImplicitAPI):
         response = await self.privatePostOrder(self.extend(request, params))
         return self.parse_order(response, market)
 
-    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         await self.load_markets()
         request = {}
         trailingAmount = self.safe_string_2(params, 'trailingAmount', 'pegOffsetValue')
@@ -2423,7 +2423,7 @@ class bitmex(Exchange, ImplicitAPI):
         }
         return await self.privatePostPositionLeverage(self.extend(request, params))
 
-    async def set_margin_mode(self, marginMode, symbol: Str = None, params={}):
+    async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :see: https://www.bitmex.com/api/explorer/#not /Position/Position_isolateMargin

@@ -416,7 +416,7 @@ class exmo(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' parseFixedFloatValue() detected an unsupported non-zero percentage-based fee ' + input)
         return result
 
-    async def fetch_transaction_fees(self, codes=None, params={}):
+    async def fetch_transaction_fees(self, codes: List[str] = None, params={}):
         """
          * @deprecated
         please use fetchDepositWithdrawFees instead
@@ -1882,7 +1882,7 @@ class exmo(Exchange, ImplicitAPI):
                     result.append(order)
             return result
 
-    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         """
         *margin only* edit a trade order
         :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#f27ee040-c75f-4b59-b608-d05bd45b7899  # margin

@@ -1170,7 +1170,7 @@ class bitvavo(Exchange, ImplicitAPI):
         request['market'] = market['id']
         return request
 
-    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         """
         edit a trade order
         :see: https://docs.bitvavo.com/#tag/Orders/paths/~1order/put

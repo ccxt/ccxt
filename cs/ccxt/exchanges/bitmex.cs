@@ -2782,7 +2782,7 @@ public partial class bitmex : Exchange
         return await this.privatePostPositionLeverage(this.extend(request, parameters));
     }
 
-    public async virtual Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
     {
         /**
         * @method

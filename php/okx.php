@@ -278,6 +278,7 @@ class okx extends Exchange {
                         'trade/easy-convert-history' => 20,
                         'trade/one-click-repay-currency-list' => 20,
                         'trade/one-click-repay-history' => 20,
+                        'trade/account-rate-limit' => 1,
                         // asset
                         'asset/currencies' => 5 / 3,
                         'asset/balances' => 5 / 3,
@@ -1102,7 +1103,7 @@ class okx extends Exchange {
         return $reconstructedDate;
     }
 
-    public function create_expired_option_market($symbol) {
+    public function create_expired_option_market(string $symbol) {
         // support expired option contracts
         $quote = 'USD';
         $optionParts = explode('-', $symbol);
@@ -1620,7 +1621,7 @@ class okx extends Exchange {
                 if (($networkId !== null) && (mb_strpos($networkId, '-') !== false)) {
                     $parts = explode('-', $networkId);
                     $chainPart = $this->safe_string($parts, 1, $networkId);
-                    $networkCode = $this->safe_network($chainPart);
+                    $networkCode = $this->network_id_to_code($chainPart, $currency['code']);
                     $precision = $this->parse_precision($this->safe_string($chain, 'wdTickSz'));
                     if ($maxPrecision === null) {
                         $maxPrecision = $precision;
@@ -2503,7 +2504,7 @@ class okx extends Exchange {
         return $this->parse_balance_by_type($marketType, $response);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
          * create a $market buy order by providing the $symbol and $cost
@@ -2522,7 +2523,7 @@ class okx extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function create_market_sell_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
          * create a $market buy order by providing the $symbol and $cost
@@ -2981,7 +2982,7 @@ class okx extends Exchange {
         return array_merge($request, $params);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * edit a trade $order
          * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-post-amend-$order
@@ -3577,7 +3578,6 @@ class okx extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of  open orders structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {int} [$params->till] Timestamp in ms of the latest time to retrieve orders for
          * @param {bool} [$params->stop] True if fetching trigger or conditional orders
          * @param {string} [$params->ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string} [$params->algoId] Algo ID "'433845797218942976'"
@@ -5382,7 +5382,7 @@ class okx extends Exchange {
         ));
     }
 
-    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-funds-transfer
@@ -5979,7 +5979,7 @@ class okx extends Exchange {
         return $response;
     }
 
-    public function set_position_mode($hedged, ?string $symbol = null, $params = array ()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
         /**
          * set $hedged to true or false for a market
          * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-set-position-mode
@@ -6012,7 +6012,7 @@ class okx extends Exchange {
         return $response;
     }
 
-    public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
         /**
          * set margin mode to 'cross' or 'isolated'
          * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-set-leverage

@@ -638,6 +638,10 @@ export default class Exchange {
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     createDepositAddress(code: string, params?: {}): Promise<DepositAddressResponse>;
     setLeverage(leverage: Int, symbol?: string, params?: {}): Promise<{}>;
+    fetchLeverage(symbol: string, params?: {}): Promise<{}>;
+    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<{}>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<{}>;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OpenInterest[]>;
     fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
     signIn(params?: {}): Promise<{}>;

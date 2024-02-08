@@ -1316,7 +1316,7 @@ class hollaex extends Exchange {
         );
     }
 
-    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit $addresses for multiple currencies and chain types
          * @param {string[]|null} $codes list of unified currency $codes, default is null

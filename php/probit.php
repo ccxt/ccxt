@@ -1364,7 +1364,7 @@ class probit extends Exchange {
         return $this->parse_deposit_address($firstAddress, $currency);
     }
 
-    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         /**
          * @see https://docs-en.probit.com/reference/deposit_address
          * fetch deposit addresses for multiple currencies and chain types

@@ -759,7 +759,7 @@ class luno extends luno$1 {
             'pair': market['id'],
         };
         if (since !== undefined) {
-            request['since'] = parseInt(since);
+            request['since'] = this.parseToInt(since);
         }
         else {
             const duration = 1000 * 1000 * this.parseTimeframe(timeframe);

@@ -4753,7 +4753,7 @@ class htx(Exchange, ImplicitAPI):
             'trades': trades,
         }, market)
 
-    async def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
         :see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4ee16-7773-11ed-9966-0242ac110003
@@ -6023,7 +6023,7 @@ class htx(Exchange, ImplicitAPI):
             'status': None,
         }
 
-    async def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
@@ -8357,7 +8357,7 @@ class htx(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         })
 
-    async def set_position_mode(self, hedged, symbol: Str = None, params={}):
+    async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         """
         set hedged to True or False
         :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-position-mode

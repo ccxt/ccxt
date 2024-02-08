@@ -99,6 +99,7 @@ class ImplicitAPI:
     private_get_trade_easy_convert_history = privateGetTradeEasyConvertHistory = Entry('trade/easy-convert-history', 'private', 'GET', {'cost': 20})
     private_get_trade_one_click_repay_currency_list = privateGetTradeOneClickRepayCurrencyList = Entry('trade/one-click-repay-currency-list', 'private', 'GET', {'cost': 20})
     private_get_trade_one_click_repay_history = privateGetTradeOneClickRepayHistory = Entry('trade/one-click-repay-history', 'private', 'GET', {'cost': 20})
+    private_get_trade_account_rate_limit = privateGetTradeAccountRateLimit = Entry('trade/account-rate-limit', 'private', 'GET', {'cost': 1})
     private_get_asset_currencies = privateGetAssetCurrencies = Entry('asset/currencies', 'private', 'GET', {'cost': 1.6666666666666667})
     private_get_asset_balances = privateGetAssetBalances = Entry('asset/balances', 'private', 'GET', {'cost': 1.6666666666666667})
     private_get_asset_non_tradable_assets = privateGetAssetNonTradableAssets = Entry('asset/non-tradable-assets', 'private', 'GET', {'cost': 1.6666666666666667})
