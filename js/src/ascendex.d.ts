@@ -87,7 +87,7 @@ export default class ascendex extends Exchange {
     reduceMargin(symbol: string, amount: any, params?: {}): Promise<any>;
     addMargin(symbol: string, amount: any, params?: {}): Promise<any>;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
-    setMarginMode(marginMode: any, symbol?: Str, params?: {}): Promise<any>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;
     parseMarketLeverageTiers(info: any, market?: Market): any[];
     parseDepositWithdrawFee(fee: any, currency?: Currency): {
@@ -103,7 +103,7 @@ export default class ascendex extends Exchange {
         networks: {};
     };
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
-    transfer(code: string, amount: number, fromAccount: any, toAccount: any, params?: {}): Promise<TransferEntry>;
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: any, currency?: Currency): {
         info: any;
         id: any;

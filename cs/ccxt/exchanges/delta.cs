@@ -2849,7 +2849,7 @@ public partial class delta : Exchange
         }, market);
     }
 
-    public async virtual Task<object> fetchLeverage(object symbol, object parameters = null)
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
         /**
         * @method

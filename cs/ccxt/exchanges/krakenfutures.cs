@@ -2458,7 +2458,7 @@ public partial class krakenfutures : Exchange
         return await this.privatePutLeveragepreferences(this.extend(request, parameters));
     }
 
-    public async virtual Task<object> fetchLeverage(object symbol = null, object parameters = null)
+    public async override Task<object> fetchLeverage(object symbol = null, object parameters = null)
     {
         /**
         * @method

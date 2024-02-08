@@ -1065,7 +1065,7 @@ class woo extends woo$1 {
         if (stopPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision(symbol, stopPrice);
         }
-        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activatedPrice', price);
+        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activatedPrice', this.numberToString(price));
         const trailingAmount = this.safeString2(params, 'trailingAmount', 'callbackValue');
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRate');
         const isTrailingAmountOrder = trailingAmount !== undefined;

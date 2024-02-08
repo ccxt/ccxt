@@ -1185,7 +1185,7 @@ class bybit(Exchange, ImplicitAPI):
         reconstructedDate = day + month + year
         return reconstructedDate
 
-    def create_expired_option_market(self, symbol):
+    def create_expired_option_market(self, symbol: str):
         # support expired option contracts
         quote = 'USD'
         settle = 'USDC'
@@ -3299,7 +3299,7 @@ class bybit(Exchange, ImplicitAPI):
             raise InvalidOrder(self.id + ' returned more than one order')
         return self.safe_value(result, 0)
 
-    async def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         :see: https://bybit-exchange.github.io/docs/v5/order/create-order
         create a market buy order by providing the symbol and cost
@@ -3314,7 +3314,7 @@ class bybit(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         return await self.create_order(symbol, 'market', 'buy', cost, 1, params)
 
-    async def create_market_sell_order_with_cost(self, symbol: str, cost, params={}):
+    async def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         :see: https://bybit-exchange.github.io/docs/v5/order/create-order
         create a market sell order by providing the symbol and cost
@@ -3796,7 +3796,7 @@ class bybit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
 
-    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         """
         edit a trade order
         :see: https://bybit-exchange.github.io/docs/v5/order/amend-order
@@ -5695,7 +5695,7 @@ class bybit(Exchange, ImplicitAPI):
             'takeProfitPrice': self.safe_number_2(position, 'take_profit', 'takeProfit'),
         })
 
-    async def set_margin_mode(self, marginMode, symbol: Str = None, params={}):
+    async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode(account) or trade mode(symbol)
         :see: https://bybit-exchange.github.io/docs/v5/account/set-margin-mode
@@ -5821,7 +5821,7 @@ class bybit(Exchange, ImplicitAPI):
             response = await self.privatePostV5PositionSetLeverage(self.extend(request, params))
         return response
 
-    async def set_position_mode(self, hedged, symbol: Str = None, params={}):
+    async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         """
         set hedged to True or False for a market
         :see: https://bybit-exchange.github.io/docs/v5/position/position-mode
@@ -6140,7 +6140,7 @@ class bybit(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://bybit-exchange.github.io/docs/v5/asset/create-inter-transfer

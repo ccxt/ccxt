@@ -1783,7 +1783,7 @@ public partial class cryptocom : Exchange
         return this.parseTransaction(result, currency);
     }
 
-    public async virtual Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
+    public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
     {
         /**
         * @method

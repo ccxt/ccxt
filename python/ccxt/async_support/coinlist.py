@@ -1459,7 +1459,7 @@ class coinlist(Exchange, ImplicitAPI):
         order = self.safe_value(response, 'order', {})
         return self.parse_order(order, market)
 
-    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         """
         create a trade order
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#modify-existing-order
@@ -1631,7 +1631,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#transfer-funds-between-entities
