@@ -4,7 +4,7 @@
 import blofinRest from '../blofin.js';
 import { NotSupported } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, MarketInterface, Trade, Str } from '../base/types.js';
+import type { Int, MarketInterface, Trade, OrderBook, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -127,6 +127,41 @@ export default class blofin extends blofinRest {
         return this.parseTrade (trade, market);
     }
 
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name blofin#watchOrderBook
+         * @see https://docs.blofin.com/index.html#ws-order-book-channel
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
+         * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    }
+
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name bitmart#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.blofin.com/index.html#ws-order-book-channel
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        let channelName = undefined;
+        [ channelName, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'channel', 'books');
+        const orderbook = await this.watchMultipleSymbols (channelName, 'watchTradesForSymbols', symbols, limit, params);
+        return orderbook.limit ();
+    }
+
     async watchMultipleSymbols (channelName: string, methodName: string, symbols: string[], limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         let firstMarket = undefined;
@@ -191,6 +226,7 @@ export default class blofin extends blofinRest {
         //
         const methods = {
             'trades': this.handleWsTrades,
+            'orderbook': this.handleWsOrderBook,
         };
         const event = this.safeString (message, 'event');
         if (event === 'subscribe') {
