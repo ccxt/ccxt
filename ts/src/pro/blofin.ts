@@ -93,7 +93,7 @@ export default class blofin extends blofinRest {
         //
         const methods = {
             'trades': this.handleWsTrades,
-            'orderbook': this.handleWsOrderBook,
+            'books': this.handleWsOrderBook,
         };
         const event = this.safeString (message, 'event');
         if (event === 'subscribe') {
@@ -108,7 +108,7 @@ export default class blofin extends blofinRest {
     }
 
     handleParam (params: object, optionName: string, defaultValue = undefined) {
-        const value = this.safeValue2 (params, optionName, defaultValue);
+        const value = this.safeValue (params, optionName, defaultValue);
         if (value !== undefined) {
             params = this.omit (params, optionName);
         }
@@ -244,47 +244,51 @@ export default class blofin extends blofinRest {
         [ callerMethodName, params ] = this.handleParam (params, 'callerMethodName', 'watchOrderBookForSymbols');
         let channelName = undefined;
         [ channelName, params ] = this.handleOptionAndParams (params, callerMethodName, 'channel', 'books');
+        // due to some problem, temporarily disable other channels
+        if (channelName !== 'books') {
+            throw new NotSupported (this.id + ' ' + callerMethodName + '() at this moment ' + channelName + ' is not supported, coming soon');
+        }
         const orderbook = await this.watchMultipleSymbols (channelName, callerMethodName, symbols, limit, params);
         return orderbook.limit ();
     }
 
     handleWsOrderBook (client: Client, message, channelName: Str) {
         //
-        // snapshot:
-        //
         //   {
         //     arg: {
         //         channel: "books",
         //         instId: "DOGE-USDT",
         //     },
-        //     action: "snapshot",
+        //     action: "snapshot", // can be 'snapshot' or 'update'
         //     data: {
         //         asks: [   [ 0.08096, 1 ], [ 0.08097, 123 ], ...   ],
         //         bids: [   [ 0.08095, 4 ], [ 0.08094, 237 ], ...   ],
         //         ts: "1707491587909",
-        //         prevSeqId: "0",
+        //         prevSeqId: "0", // in case of 'update' there will be some value, less then seqId
         //         seqId: "3374250786",
         //     },
         // }
         //
-        const marketId = this.safeString (message, 'product_id');
+        const arg = this.safeDict (message, 'arg');
+        const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const messageHash = 'book:' + symbol;
-        const orderbook = this.orderbooks[symbol];
-        const side = this.safeString (message, 'side');
-        const price = this.safeNumber (message, 'price');
-        const qty = this.safeNumber (message, 'qty');
-        const timestamp = this.safeInteger (message, 'timestamp');
-        if (side === 'sell') {
-            const asks = orderbook['asks'];
-            asks.store (price, qty);
-        } else {
-            const bids = orderbook['bids'];
-            bids.store (price, qty);
+        const messageHash = channelName + ':' + symbol;
+        let orderbook = this.safeDict (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook ();
         }
-        orderbook['timestamp'] = timestamp;
-        orderbook['datetime'] = this.iso8601 (timestamp);
-        client.resolve (orderbook, messageHash);
+        const data = this.safeDict (message, 'data');
+        const timestamp = this.safeInteger (data, 'ts');
+        const action = this.safeString (message, 'action');
+        if (action === 'snapshot') {
+            const orderBookSnapshot = this.parseOrderBook (data, symbol, timestamp);
+            orderBookSnapshot['nonce'] = this.safeInteger (data, 'seqId');
+            orderbook.reset (orderBookSnapshot);
+            this.orderbooks[symbol] = orderbook;
+            client.resolve (orderbook, messageHash);
+        } else {
+            // temp
+        }
     }
 }
