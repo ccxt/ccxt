@@ -8226,13 +8226,17 @@ export default class binance extends Exchange {
             const marketId = this.safeString (position, 'symbol');
             const market = this.safeMarket (marketId, undefined, undefined, 'contract');
             const code = market['linear'] ? market['quote'] : market['base'];
-            // sometimes not all the codes are correctly returned...
-            if (code in balances) {
-                const parsed = this.parseAccountPosition (this.extend (position, {
-                    'crossMargin': balances[code]['crossMargin'],
-                    'crossWalletBalance': balances[code]['crossWalletBalance'],
-                }), market);
-                result.push (parsed);
+            const maintenanceMargin = this.safeString (position, 'maintMargin');
+            // check for maintenance margin so empty positions are not returned
+            if ((maintenanceMargin !== '0') && (maintenanceMargin !== '0.00000000')) {
+                // sometimes not all the codes are correctly returned...
+                if (code in balances) {
+                    const parsed = this.parseAccountPosition (this.extend (position, {
+                        'crossMargin': balances[code]['crossMargin'],
+                        'crossWalletBalance': balances[code]['crossWalletBalance'],
+                    }), market);
+                    result.push (parsed);
+                }
             }
         }
         return result;
@@ -8241,6 +8245,7 @@ export default class binance extends Exchange {
     parseAccountPosition (position, market: Market = undefined) {
         //
         // usdm
+        //
         //    {
         //       "symbol": "BTCBUSD",
         //       "initialMargin": "0",
@@ -8261,6 +8266,7 @@ export default class binance extends Exchange {
         //     }
         //
         // coinm
+        //
         //     {
         //       "symbol": "BTCUSD_210625",
         //       "initialMargin": "0.00024393",
@@ -8277,6 +8283,46 @@ export default class binance extends Exchange {
         //       "isolatedWallet": "0",
         //       "crossMargin": "0.314"
         //       "crossWalletBalance": "34",
+        //     }
+        //
+        // linear portfolio margin
+        //
+        //     {
+        //         "symbol": "CTSIUSDT",
+        //         "initialMargin": "0",
+        //         "maintMargin": "0",
+        //         "unrealizedProfit": "0.00000000",
+        //         "positionInitialMargin": "0",
+        //         "openOrderInitialMargin": "0",
+        //         "leverage": "20",
+        //         "entryPrice": "0.0",
+        //         "maxNotional": "25000",
+        //         "bidNotional": "0",
+        //         "askNotional": "0",
+        //         "positionSide": "SHORT",
+        //         "positionAmt": "0",
+        //         "updateTime": 0,
+        //         "notional": "0",
+        //         "breakEvenPrice": "0.0"
+        //     }
+        //
+        // inverse portoflio margin
+        //
+        //     {
+        //         "symbol": "TRXUSD_PERP",
+        //         "initialMargin": "0",
+        //         "maintMargin": "0",
+        //         "unrealizedProfit": "0.00000000",
+        //         "positionInitialMargin": "0",
+        //         "openOrderInitialMargin": "0",
+        //         "leverage": "20",
+        //         "entryPrice": "0.00000000",
+        //         "positionSide": "SHORT",
+        //         "positionAmt": "0",
+        //         "maxQty": "5000000",
+        //         "updateTime": 0,
+        //         "notionalValue": "0",
+        //         "breakEvenPrice": "0.00000000"
         //     }
         //
         const marketId = this.safeString (position, 'symbol');
@@ -8975,8 +9021,11 @@ export default class binance extends Exchange {
          * @description fetch account positions
          * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-um-account-detail-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions in a portfolio margin account
          * @returns {object} data on account positions
          */
         if (symbols !== undefined) {
@@ -8988,14 +9037,24 @@ export default class binance extends Exchange {
         await this.loadLeverageBrackets (false, params);
         const defaultType = this.safeString (this.options, 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
-        let query = this.omit (params, 'type');
+        params = this.omit (params, 'type');
         let subType = undefined;
-        [ subType, query ] = this.handleSubTypeAndParams ('fetchAccountPositions', undefined, params, 'linear');
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchAccountPositions', undefined, params, 'linear');
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchAccountPositions', 'papi', 'portfolioMargin', false);
         let response = undefined;
         if (this.isLinear (type, subType)) {
-            response = await this.fapiPrivateV2GetAccount (query);
+            if (isPortfolioMargin) {
+                response = await this.papiGetUmAccount (params);
+            } else {
+                response = await this.fapiPrivateV2GetAccount (params);
+            }
         } else if (this.isInverse (type, subType)) {
-            response = await this.dapiPrivateGetAccount (query);
+            if (isPortfolioMargin) {
+                response = await this.papiGetCmAccount (params);
+            } else {
+                response = await this.dapiPrivateGetAccount (params);
+            }
         } else {
             throw new NotSupported (this.id + ' fetchPositions() supports linear and inverse contracts only');
         }
