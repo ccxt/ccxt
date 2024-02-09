@@ -7160,20 +7160,16 @@ export default class binance extends Exchange {
         //     }
         //
         const marketId = this.safeString (income, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, undefined, 'swap');
-        const amount = this.safeNumber (income, 'income');
         const currencyId = this.safeString (income, 'asset');
-        const code = this.safeCurrencyCode (currencyId);
-        const id = this.safeString (income, 'tranId');
         const timestamp = this.safeInteger (income, 'time');
         return {
             'info': income,
-            'symbol': symbol,
-            'code': code,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
+            'code': this.safeCurrencyCode (currencyId),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'id': id,
-            'amount': amount,
+            'id': this.safeString (income, 'tranId'),
+            'amount': this.safeNumber (income, 'income'),
         };
     }
 
@@ -9255,15 +9251,19 @@ export default class binance extends Exchange {
          * @description fetch the history of funding payments paid and received on this account
          * @see https://binance-docs.github.io/apidocs/futures/en/#get-income-history-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#get-income-history-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-um-income-history-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-income-history-user_data
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch funding history for
          * @param {int} [limit] the maximum number of funding history structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest funding history entry
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the funding history for a portfolio margin account
          * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {
+        let request = {
             'incomeType': 'FUNDING_FEE', // "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION" and "INSURANCE_CLEAR"
         };
         if (symbol !== undefined) {
@@ -9275,6 +9275,9 @@ export default class binance extends Exchange {
         }
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingHistory', market, params, 'linear');
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchFundingHistory', 'papi', 'portfolioMargin', false);
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -9286,9 +9289,17 @@ export default class binance extends Exchange {
         params = this.omit (params, 'type');
         let response = undefined;
         if (this.isLinear (type, subType)) {
-            response = await this.fapiPrivateGetIncome (this.extend (request, params));
+            if (isPortfolioMargin) {
+                response = await this.papiGetUmIncome (this.extend (request, params));
+            } else {
+                response = await this.fapiPrivateGetIncome (this.extend (request, params));
+            }
         } else if (this.isInverse (type, subType)) {
-            response = await this.dapiPrivateGetIncome (this.extend (request, params));
+            if (isPortfolioMargin) {
+                response = await this.papiGetCmIncome (this.extend (request, params));
+            } else {
+                response = await this.dapiPrivateGetIncome (this.extend (request, params));
+            }
         } else {
             throw new NotSupported (this.id + ' fetchFundingHistory() supports linear and inverse contracts only');
         }
