@@ -1810,6 +1810,34 @@
                         "subType": "inverse"
                     }
                 ]
+            },
+            {
+                "description": "Inverse portfolio margin fetch positions risk",
+                "method": "fetchPositionsRisk",
+                "url": "https://papi.binance.com/papi/v1/cm/positionRisk?timestamp=1707443702916&recvWindow=10000&signature=88c195bc372626397818eb714cae53388fdfb9baa32f997d0611075dde07bd4f",
+                "input": [
+                  [
+                    "ETH/USD:ETH"
+                  ],
+                  {
+                    "portfolioMargin": true,
+                    "subType": "inverse"
+                  }
+                ]
+            },
+            {
+                "description": "Linear portfolio margin fetch positions risk",
+                "method": "fetchPositionsRisk",
+                "url": "https://papi.binance.com/papi/v1/um/positionRisk?timestamp=1707444182528&recvWindow=10000&signature=c51d48deff54a226859b6fe4ce62a5982c1b3eec82255d211c6e67d6b3bd4f0f",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ],
+                  {
+                    "portfolioMargin": true,
+                    "subType": "linear"
+                  }
+                ]
             }
         ],
         "fetchAccountPositions": [
