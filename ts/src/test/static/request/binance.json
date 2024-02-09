@@ -1269,6 +1269,36 @@
                         "subType": "inverse"
                     }
                 ]
+            },
+            {
+                "description": "Linear swap portfolio margin fetch ledger",
+                "method": "fetchLedger",
+                "url": "https://papi.binance.com/papi/v1/um/income?timestamp=1707448893303&recvWindow=10000&signature=3aed27d69b1967eb5dd0a6183b32fb08bd85f14d0f9d02d951a45a6007b74843",
+                "input": [
+                  null,
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true,
+                    "type": "swap",
+                    "subType": "linear"
+                  }
+                ]
+            },
+            {
+                "description": "Inverse swap portfolio margin fetch ledger",
+                "method": "fetchLedger",
+                "url": "https://papi.binance.com/papi/v1/cm/income?timestamp=1707448981443&recvWindow=10000&signature=19baa97358f2f82e612b69e6d13c59ced0de2f6379df0c32fc6621bd74ec2639",
+                "input": [
+                  null,
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true,
+                    "type": "swap",
+                    "subType": "inverse"
+                  }
+                ]
             }
         ],
         "setLeverage": [
