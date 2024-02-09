@@ -8475,6 +8475,40 @@ export default class binance extends Exchange {
         //       "isolatedWallet": "0.00268058"
         //     }
         //
+        // inverse portfolio margin
+        //
+        //     {
+        //         "symbol": "ETHUSD_PERP",
+        //         "positionAmt": "1",
+        //         "entryPrice": "2422.400000007",
+        //         "markPrice": "2424.51267823",
+        //         "unRealizedProfit": "0.0000036",
+        //         "liquidationPrice": "293.57678898",
+        //         "leverage": "100",
+        //         "positionSide": "LONG",
+        //         "updateTime": 1707371941861,
+        //         "maxQty": "15",
+        //         "notionalValue": "0.00412454",
+        //         "breakEvenPrice": "2423.368960034"
+        //     }
+        //
+        // linear portfolio margin
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "positionAmt": "0.01",
+        //         "entryPrice": "44525.0",
+        //         "markPrice": "45464.1735922",
+        //         "unRealizedProfit": "9.39173592",
+        //         "liquidationPrice": "38007.16308568",
+        //         "leverage": "100",
+        //         "positionSide": "LONG",
+        //         "updateTime": 1707371879042,
+        //         "maxNotionalValue": "500000.0",
+        //         "notional": "454.64173592",
+        //         "breakEvenPrice": "44542.81"
+        //     }
+        //
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market, undefined, 'contract');
         const symbol = this.safeString (market, 'symbol');
@@ -9012,8 +9046,11 @@ export default class binance extends Exchange {
          * @description fetch positions risk
          * @see https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#position-information-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-um-position-information-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-cm-position-information-user_data
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions for a portfolio margin account
          * @returns {object} data on the positions risk
          */
         if (symbols !== undefined) {
@@ -9029,69 +9066,120 @@ export default class binance extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionsRisk', undefined, params, 'linear');
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchPositionsRisk', 'papi', 'portfolioMargin', false);
         params = this.omit (params, 'type');
         let response = undefined;
         if (this.isLinear (type, subType)) {
-            response = await this.fapiPrivateV2GetPositionRisk (this.extend (request, params));
-            // ### Response examples ###
-            //
-            // For One-way position mode:
-            //     [
-            //         {
-            //             "entryPrice": "0.00000",
-            //             "marginType": "isolated",
-            //             "isAutoAddMargin": "false",
-            //             "isolatedMargin": "0.00000000",
-            //             "leverage": "10",
-            //             "liquidationPrice": "0",
-            //             "markPrice": "6679.50671178",
-            //             "maxNotionalValue": "20000000",
-            //             "positionAmt": "0.000",
-            //             "symbol": "BTCUSDT",
-            //             "unRealizedProfit": "0.00000000",
-            //             "positionSide": "BOTH",
-            //             "updateTime": 0
-            //        }
-            //     ]
-            //
-            // For Hedge position mode:
-            //     [
-            //         {
-            //             "entryPrice": "6563.66500",
-            //             "marginType": "isolated",
-            //             "isAutoAddMargin": "false",
-            //             "isolatedMargin": "15517.54150468",
-            //             "leverage": "10",
-            //             "liquidationPrice": "5930.78",
-            //             "markPrice": "6679.50671178",
-            //             "maxNotionalValue": "20000000",
-            //             "positionAmt": "20.000",
-            //             "symbol": "BTCUSDT",
-            //             "unRealizedProfit": "2316.83423560"
-            //             "positionSide": "LONG",
-            //             "updateTime": 1625474304765
-            //         },
-            //         {
-            //             "entryPrice": "0.00000",
-            //             "marginType": "isolated",
-            //             "isAutoAddMargin": "false",
-            //             "isolatedMargin": "5413.95799991",
-            //             "leverage": "10",
-            //             "liquidationPrice": "7189.95",
-            //             "markPrice": "6679.50671178",
-            //             "maxNotionalValue": "20000000",
-            //             "positionAmt": "-10.000",
-            //             "symbol": "BTCUSDT",
-            //             "unRealizedProfit": "-1156.46711780",
-            //             "positionSide": "SHORT",
-            //             "updateTime": 0
-            //         }
-            //     ]
+            if (isPortfolioMargin) {
+                response = await this.papiGetUmPositionRisk (this.extend (request, params));
+            } else {
+                response = await this.fapiPrivateV2GetPositionRisk (this.extend (request, params));
+            }
         } else if (this.isInverse (type, subType)) {
-            response = await this.dapiPrivateGetPositionRisk (this.extend (request, params));
+            if (isPortfolioMargin) {
+                response = await this.papiGetCmPositionRisk (this.extend (request, params));
+            } else {
+                response = await this.dapiPrivateGetPositionRisk (this.extend (request, params));
+            }
         } else {
             throw new NotSupported (this.id + ' fetchPositionsRisk() supports linear and inverse contracts only');
         }
+        // ### Response examples ###
+        //
+        // For One-way position mode:
+        //
+        //     [
+        //         {
+        //             "entryPrice": "0.00000",
+        //             "marginType": "isolated",
+        //             "isAutoAddMargin": "false",
+        //             "isolatedMargin": "0.00000000",
+        //             "leverage": "10",
+        //             "liquidationPrice": "0",
+        //             "markPrice": "6679.50671178",
+        //             "maxNotionalValue": "20000000",
+        //             "positionAmt": "0.000",
+        //             "symbol": "BTCUSDT",
+        //             "unRealizedProfit": "0.00000000",
+        //             "positionSide": "BOTH",
+        //             "updateTime": 0
+        //        }
+        //     ]
+        //
+        // For Hedge position mode:
+        //
+        //     [
+        //         {
+        //             "entryPrice": "6563.66500",
+        //             "marginType": "isolated",
+        //             "isAutoAddMargin": "false",
+        //             "isolatedMargin": "15517.54150468",
+        //             "leverage": "10",
+        //             "liquidationPrice": "5930.78",
+        //             "markPrice": "6679.50671178",
+        //             "maxNotionalValue": "20000000",
+        //             "positionAmt": "20.000",
+        //             "symbol": "BTCUSDT",
+        //             "unRealizedProfit": "2316.83423560"
+        //             "positionSide": "LONG",
+        //             "updateTime": 1625474304765
+        //         },
+        //         {
+        //             "entryPrice": "0.00000",
+        //             "marginType": "isolated",
+        //             "isAutoAddMargin": "false",
+        //             "isolatedMargin": "5413.95799991",
+        //             "leverage": "10",
+        //             "liquidationPrice": "7189.95",
+        //             "markPrice": "6679.50671178",
+        //             "maxNotionalValue": "20000000",
+        //             "positionAmt": "-10.000",
+        //             "symbol": "BTCUSDT",
+        //             "unRealizedProfit": "-1156.46711780",
+        //             "positionSide": "SHORT",
+        //             "updateTime": 0
+        //         }
+        //     ]
+        //
+        // inverse portfolio margin:
+        //
+        //     [
+        //         {
+        //             "symbol": "ETHUSD_PERP",
+        //             "positionAmt": "1",
+        //             "entryPrice": "2422.400000007",
+        //             "markPrice": "2424.51267823",
+        //             "unRealizedProfit": "0.0000036",
+        //             "liquidationPrice": "293.57678898",
+        //             "leverage": "100",
+        //             "positionSide": "LONG",
+        //             "updateTime": 1707371941861,
+        //             "maxQty": "15",
+        //             "notionalValue": "0.00412454",
+        //             "breakEvenPrice": "2423.368960034"
+        //         }
+        //     ]
+        //
+        // linear portfolio margin:
+        //
+        //     [
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "positionAmt": "0.01",
+        //             "entryPrice": "44525.0",
+        //             "markPrice": "45464.1735922",
+        //             "unRealizedProfit": "9.39173592",
+        //             "liquidationPrice": "38007.16308568",
+        //             "leverage": "100",
+        //             "positionSide": "LONG",
+        //             "updateTime": 1707371879042,
+        //             "maxNotionalValue": "500000.0",
+        //             "notional": "454.64173592",
+        //             "breakEvenPrice": "44542.81"
+        //         }
+        //     ]
+        //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const parsed = this.parsePositionRisk (response[i]);
