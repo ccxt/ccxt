@@ -1841,7 +1841,7 @@ export default class bingx extends Exchange {
                 request['price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
             }
             if (triggerPrice !== undefined) {
-                request['stopPrice'] = this.priceToPrecision (triggerPrice, symbol);
+                request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
                 if (type === 'LIMIT') {
                     request['type'] = 'TRIGGER_LIMIT';
                 } else if (type === 'MARKET') {
