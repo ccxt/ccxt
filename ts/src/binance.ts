@@ -9510,12 +9510,15 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/voptions/en/#account-funding-flow-user_data
          * @see https://binance-docs.github.io/apidocs/futures/en/#get-income-history-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#get-income-history-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-um-income-history-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-income-history-user_data
          * @param {string} code unified currency code
          * @param {int} [since] timestamp in ms of the earliest ledger entry
          * @param {int} [limit] max number of ledger entrys to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest ledger entry
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the ledger for a portfolio margin account
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
@@ -9544,15 +9547,25 @@ export default class binance extends Exchange {
             params = this.omit (params, 'until');
             request['endTime'] = until;
         }
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchLedger', 'papi', 'portfolioMargin', false);
         let response = undefined;
         if (type === 'option') {
             this.checkRequiredArgument ('fetchLedger', code, 'code');
             request['currency'] = currency['id'];
             response = await this.eapiPrivateGetBill (this.extend (request, params));
         } else if (this.isLinear (type, subType)) {
-            response = await this.fapiPrivateGetIncome (this.extend (request, params));
+            if (isPortfolioMargin) {
+                response = await this.papiGetUmIncome (this.extend (request, params));
+            } else {
+                response = await this.fapiPrivateGetIncome (this.extend (request, params));
+            }
         } else if (this.isInverse (type, subType)) {
-            response = await this.dapiPrivateGetIncome (this.extend (request, params));
+            if (isPortfolioMargin) {
+                response = await this.papiGetCmIncome (this.extend (request, params));
+            } else {
+                response = await this.dapiPrivateGetIncome (this.extend (request, params));
+            }
         } else {
             throw new NotSupported (this.id + ' fetchLedger() supports contract wallets only');
         }
@@ -9569,7 +9582,7 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        // futures (fapi, dapi)
+        // futures (fapi, dapi, papi)
         //
         //     [
         //         {
@@ -9599,7 +9612,7 @@ export default class binance extends Exchange {
         //         "createDate": 1676621042489
         //     }
         //
-        // futures (fapi, dapi)
+        // futures (fapi, dapi, papi)
         //
         //     {
         //         "symbol": "",
