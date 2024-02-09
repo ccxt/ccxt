@@ -1744,6 +1744,32 @@
                 "input": [
                     "BTC/USD:BTC"
                 ]
+            },
+            {
+                "description": "Linear swap portfolio margin fetch funding history",
+                "method": "fetchFundingHistory",
+                "url": "https://papi.binance.com/papi/v1/um/income?timestamp=1707450596925&incomeType=FUNDING_FEE&symbol=BTCUSDT&recvWindow=10000&signature=2b76b4aedcc0b567260c087b446b50146f6db538a00d4cb692b0aeb0f939b9d3",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
+            },
+            {
+                "description": "Inverse swap portfolio margin fetch funding history",
+                "method": "fetchFundingHistory",
+                "url": "https://papi.binance.com/papi/v1/cm/income?timestamp=1707450694387&incomeType=FUNDING_FEE&symbol=ETHUSD_PERP&recvWindow=10000&signature=26f345820e4a993c6a6be8b6acc0b7fdcc98cdf2ed33ddf0c3f78cef382ea4e2",
+                "input": [
+                  "ETH/USD:ETH",
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
             }
         ],
         "fetchTrades": [
