@@ -4,7 +4,7 @@
 import blofinRest from '../blofin.js';
 import { NotSupported } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, Trade } from '../base/types.js';
+import type { Int, MarketInterface, Trade, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -107,42 +107,84 @@ export default class blofin extends blofinRest {
     }
 
     handleMessage (client: Client, message) {
+        //
+        // message examples
+        //
+        // {
+        //   arg: {
+        //     channel: "trades",
+        //     instId: "DOGE-USDT",
+        //   },
+        //   event: "subscribe"
+        // }
+        //
+        //
+        // {
+        //   arg: {
+        //     channel: "trades",
+        //     instId: "DOGE-USDT",
+        //   },
+        //   data: [
+        //     {
+        //       instId: "DOGE-USDT",
+        //       tradeId: "3373545342",
+        //       price: "0.08199",
+        //       size: "4",
+        //       side: "buy",
+        //       ts: "1707486245435",
+        //     },
+        //   ],
+        // }
+        //
         const methods = {
-            'trade': this.handleTrades,
+            'trades': this.handleWsTrades,
         };
-        const methodName = this.safeString (message, 'type');
-        const method = this.safeValue (methods, methodName);
+        const event = this.safeString (message, 'event');
+        if (event === 'subscribe') {
+            return;
+        }
+        const arg = this.safeDict (message, 'arg');
+        const channelName = this.safeString (arg, 'channel');
+        const method = this.safeValue (methods, channelName);
         if (method) {
-            method.call (this, client, message);
+            method.call (this, client, message, channelName);
         }
     }
 
-    handleTrades (client: Client, message) {
-        // { type: "trade",
-        //   "code": "KRW-BTC",
-        //   "timestamp": 1584508285812,
-        //   "trade_date": "2020-03-18",
-        //   "trade_time": "05:11:25",
-        //   "trade_timestamp": 1584508285000,
-        //   "trade_price": 6747000,
-        //   "trade_volume": 0.06499468,
-        //   "ask_bid": "ASK",
-        //   "prev_closing_price": 6774000,
-        //   "change": "FALL",
-        //   "change_price": 27000,
-        //   "sequential_id": 1584508285000002,
-        //   "stream_type": "REALTIME" }
-        const trade = this.parseTrade (message);
-        const symbol = trade['symbol'];
-        let stored = this.safeValue (this.trades, symbol);
-        if (stored === undefined) {
-            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = new ArrayCache (limit);
-            this.trades[symbol] = stored;
+    handleWsTrades (client: Client, message, channelName: Str) {
+        const data = this.safeList (message, 'data');
+        //
+        //  [
+        //     {
+        //       instId: "DOGE-USDT",
+        //       tradeId: "3373545342",
+        //       price: "0.08199",
+        //       size: "4",
+        //       side: "buy",
+        //       ts: "1707486245435",
+        //     }
+        //  ]
+        //
+        if (data === undefined) {
+            return;
         }
-        stored.append (trade);
-        const marketId = this.safeString (message, 'code');
-        const messageHash = 'trade:' + marketId;
-        client.resolve (stored, messageHash);
+        for (let i = 0; i < data.length; i++) {
+            const rawTrade = data[i];
+            const trade = this.parseWsTrade (rawTrade);
+            const symbol = trade['symbol'];
+            let stored = this.safeValue (this.trades, symbol);
+            if (stored === undefined) {
+                const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                stored = new ArrayCache (limit);
+                this.trades[symbol] = stored;
+            }
+            stored.append (trade);
+            const messageHash = channelName + ':' + symbol;
+            client.resolve (stored, messageHash);
+        }
+    }
+
+    parseWsTrade (trade: any, market?: MarketInterface): Trade {
+        return this.parseTrade (trade, market);
     }
 }
