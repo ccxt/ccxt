@@ -444,6 +444,7 @@ export default class mexc extends Exchange {
                     'TRC20': 'Tron(TRC20)',
                     'ERC20': 'Ethereum(ERC20)',
                     'BEP20': 'BNB Smart Chain(BEP20)',
+                    'BSC': 'BNB Smart Chain(BEP20)',
                     'OPTIMISM': 'Optimism(OP)',
                     'SOL': 'Solana(SOL)',
                     'CRC20': 'CRONOS',
@@ -676,6 +677,17 @@ export default class mexc extends Exchange {
                     // 'FILECASH': 'FIC',
                     // 'ASSETMANTLE': 'MNTL',
                     // OKB <> OKT (for usdt it's exception) for OKC, PMEER, FLARE, STRD, ZEL, FUND, "NONE", CRING, FREETON, QTZ  (probably unique network is meant), HT, BSC(RACAV1), BSC(RACAV2), AMBROSUS, BAJUN, NOM. their individual info is at https://www.mexc.com/api/platform/asset/spot/{COINNAME}
+                },
+                'networksById': {
+                    'Ethereum(ERC20)': 'ERC20',
+                    'Algorand(ALGO)': 'ALGO',
+                    'ArbitrumOne(ARB)': 'ARBONE',
+                    'AvalancheCChain(AVAXCCHAIN)': 'AVAXC',
+                    'BNB Smart Chain(BEP20)': 'BSC',
+                    'Polygon(MATIC)': 'MATIC',
+                    'Optimism(OP)': 'OPTIMISM',
+                    'Solana(SOL)': 'SOL',
+                    'Tron(TRC20)': 'TRC20',
                 },
                 'recvWindow': 5 * 1000, // 5 sec, default
                 'maxTimeTillEnd': 90 * 86400 * 1000 - 1, // 90 days
@@ -957,7 +969,7 @@ export default class mexc extends Exchange {
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'network');
-                const network = this.safeNetwork (networkId);
+                const network = this.networkIdToCode (networkId);
                 const isDepositEnabled = this.safeBool (chain, 'depositEnable', false);
                 const isWithdrawEnabled = this.safeBool (chain, 'withdrawEnable', false);
                 const active = (isDepositEnabled && isWithdrawEnabled);
@@ -1029,27 +1041,6 @@ export default class mexc extends Exchange {
             };
         }
         return result;
-    }
-
-    safeNetwork (networkId) {
-        if (networkId.indexOf ('BSC') >= 0) {
-            return 'BEP20';
-        }
-        const parts = networkId.split (' ');
-        networkId = parts.join ('');
-        networkId = networkId.replace ('-20', '20');
-        const networksById = {
-            'Ethereum(ERC20)': 'ERC20',
-            'Algorand(ALGO)': 'ALGO',
-            'ArbitrumOne(ARB)': 'ARBONE',
-            'AvalancheCChain(AVAXCCHAIN)': 'AVAXC',
-            'BNB Smart Chain(BEP20)': 'BEP20',
-            'Polygon(MATIC)': 'MATIC',
-            'Optimism(OP)': 'OPTIMISM',
-            'Solana(SOL)': 'SOL',
-            'Tron(TRC20)': 'TRC20',
-        };
-        return this.safeString (networksById, networkId, networkId);
     }
 
     async fetchMarkets (params = {}) {
@@ -4289,23 +4280,22 @@ export default class mexc extends Exchange {
 
     parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
-        //     {"chain":"ERC-20","address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6"},
-        //     {"chain":"MATIC","address":"0x05aa3236f1970eae0f8feb17ec19435b39574d74"},
-        //     {"chain":"TRC20","address":"TGaPfhW41EXD3sAfs1grLF6DKfugfqANNw"},
-        //     {"chain":"SOL","address":"5FSpUKuh2gjw4mF89T2e7sEjzUA1SkRKjBChFqP43KhV"},
-        //     {"chain":"ALGO","address":"B3XTZND2JJTSYR7R2TQVCUDT4QSSYVAIZYDPWVBX34DGAYATBU3AUV43VU"}
-        //
+        //    {
+        //        coin: "USDT",
+        //        network: "BNB Smart Chain(BEP20)",
+        //        address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
+        //        memo:  null
+        //    }
         //
         const address = this.safeString (depositAddress, 'address');
-        const code = this.safeCurrencyCode (undefined, currency);
-        const networkId = this.safeString (depositAddress, 'chain');
-        const network = this.safeNetwork (networkId);
+        const currencyId = this.safeString (depositAddress, 'coin');
+        const networkId = this.safeString (depositAddress, 'network');
         this.checkAddress (address);
         return {
-            'currency': code,
+            'currency': this.safeCurrencyCode (currencyId, currency),
             'address': address,
-            'tag': undefined,
-            'network': network,
+            'tag': this.safeString (depositAddress, 'memo'),
+            'network': this.networkIdToCode (networkId),
             'info': depositAddress,
         };
     }
@@ -4332,23 +4322,19 @@ export default class mexc extends Exchange {
         }
         params = this.omit (params, 'network');
         const response = await this.spotPrivateGetCapitalDepositAddress (this.extend (request, params));
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const depositAddress = response[i];
-            const coin = this.safeString (depositAddress, 'coin');
-            const currencyInner = this.currency (coin);
-            const networkIdInner = this.safeString (depositAddress, 'network');
-            const network = this.safeNetwork (networkIdInner);
-            const address = this.safeString (depositAddress, 'address', undefined);
-            const tag = this.safeString2 (depositAddress, 'tag', 'memo', undefined);
-            result.push ({
-                'currency': currencyInner['id'],
-                'network': network,
-                'address': address,
-                'tag': tag,
-            });
-        }
-        return result;
+        //
+        //    [
+        //        {
+        //            coin: "USDT",
+        //            network: "BNB Smart Chain(BEP20)",
+        //            address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
+        //            memo:  null
+        //        }
+        //        ...
+        //    ]
+        //
+        const addressStructures = this.parseDepositAddresses (response, undefined, false);
+        return this.indexBy (addressStructures, 'network');
     }
 
     async createDepositAddress (code: string, params = {}) {
@@ -4383,13 +4369,7 @@ export default class mexc extends Exchange {
         //        "address": "zzqqqqqqqqqq",
         //        "memo": "MX10068"
         //     }
-        return {
-            'info': response,
-            'currency': this.safeString (response, 'coin'),
-            'network': this.safeString (response, 'network'),
-            'address': this.safeString (response, 'address'),
-            'tag': this.safeString (response, 'memo'),
-        };
+        return this.parseDepositAddress (response, currency);
     }
 
     async fetchDepositAddress (code: string, params = {}) {
@@ -4400,23 +4380,22 @@ export default class mexc extends Exchange {
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.network] the chain of currency, this only apply for multi-chain currency, and there is no need for single chain currency
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
-        const rawNetwork = this.safeStringUpper (params, 'network');
-        params = this.omit (params, 'network');
-        const response = await this.fetchDepositAddressesByNetwork (code, params);
-        if (rawNetwork !== undefined) {
-            for (let i = 0; i < response.length; i++) {
-                const depositAddress = response[i];
-                const network = this.safeStringUpper (depositAddress, 'network');
-                if (rawNetwork === network) {
-                    return depositAddress;
-                }
-            }
+        let network = undefined;
+        [ network, params ] = this.handleNetworkParameter (code, params);
+        const addressStructures = await this.fetchDepositAddressesByNetwork (code, params);
+        let result = undefined;
+        if (network !== undefined) {
+            result = this.safeDict (addressStructures, network);
+        } else {
+            const keys = Object.keys (addressStructures);
+            const key = this.safeString (keys, 0);
+            result = this.safeDict (addressStructures, key);
         }
-        const result = this.safeValue (response, 0);
         if (result === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find a deposit address for ' + code + ', consider creating one using the MEXC platform');
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find a deposit address for ' + code + ', and network' + network + 'consider creating one using the MEXC platform');
         }
         return result;
     }
@@ -4591,7 +4570,7 @@ export default class mexc extends Exchange {
         let network = undefined;
         const rawNetwork = this.safeString (transaction, 'network');
         if (rawNetwork !== undefined) {
-            network = this.safeNetwork (rawNetwork);
+            network = this.networkIdToCode (rawNetwork);
         }
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
