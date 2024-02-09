@@ -1343,7 +1343,7 @@ export default class Exchange {
         return undefined;
     }
 
-    client (url): WsClient {
+    client (url: string): WsClient {
         this.clients = this.clients || {};
         if (!this.clients[url]) {
             const onMessage = this.handleMessage.bind (this);
@@ -1374,7 +1374,7 @@ export default class Exchange {
         return this.clients[url];
     }
 
-    watchMultiple (url, messageHashes, message = undefined, subscribeHashes = undefined, subscription = undefined) {
+    watchMultiple (url: string, messageHashes: string[], message = undefined, subscribeHashes = undefined, subscription = undefined) {
         //
         // Without comments the code of this method is short and easy:
         //
@@ -1467,7 +1467,7 @@ export default class Exchange {
         return future;
     }
 
-    watch (url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined) {
+    watch (url: string, messageHash: string, message = undefined, subscribeHash = undefined, subscription = undefined) {
         //
         // Without comments the code of this method is short and easy:
         //
@@ -1584,7 +1584,7 @@ export default class Exchange {
         return;
     }
 
-    async loadOrderBook (client, messageHash, symbol, limit = undefined, params = {}) {
+    async loadOrderBook (client, messageHash: string, symbol: string, limit: Int = undefined, params = {}) {
         if (!(symbol in this.orderbooks)) {
             client.reject (new ExchangeError (this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
             return;
@@ -1645,7 +1645,7 @@ export default class Exchange {
         return axolotl(payload, hexKey, ed25519);
     }
 
-    fixStringifiedJsonMembers (content) {
+    fixStringifiedJsonMembers (content: string) {
         // used for instance in bingx
         // when stringified json has members with their values also stringified, like:
         // '{"code":0, "data":{"order":{"orderId":1742968678528512345,"symbol":"BTC-USDT", "takeProfit":"{\"type\":\"TAKE_PROFIT\",\"stopPrice\":43320.1}","reduceOnly":false}}}'
@@ -1837,7 +1837,7 @@ export default class Exchange {
         return undefined;
     }
 
-    checkProxyUrlSettings (url = undefined, method = undefined, headers = undefined, body = undefined) {
+    checkProxyUrlSettings (url: string = undefined, method: string = undefined, headers = undefined, body = undefined) {
         const usedProxies = [];
         let proxyUrl = undefined;
         if (this.proxyUrl !== undefined) {
@@ -1873,7 +1873,7 @@ export default class Exchange {
         return proxyUrl;
     }
 
-    checkProxySettings (url = undefined, method = undefined, headers = undefined, body = undefined) {
+    checkProxySettings (url: string = undefined, method: string = undefined, headers = undefined, body = undefined) {
         const usedProxies = [];
         let httpProxy = undefined;
         let httpsProxy = undefined;
