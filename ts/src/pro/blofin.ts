@@ -127,11 +127,8 @@ export default class blofin extends blofinRest {
         //   data: [
         //     {
         //       instId: "DOGE-USDT",
-        //       tradeId: "3373545342",
         //       price: "0.08199",
-        //       size: "4",
-        //       side: "buy",
-        //       ts: "1707486245435",
+        //       ...
         //     },
         //   ],
         // }
@@ -185,6 +182,16 @@ export default class blofin extends blofinRest {
     }
 
     parseWsTrade (trade: any, market?: MarketInterface): Trade {
+        //
+        //     {
+        //       instId: "DOGE-USDT",
+        //       tradeId: "3373545342",
+        //       price: "0.08199",
+        //       size: "4",
+        //       side: "buy",
+        //       ts: "1707486245435",
+        //     }
+        //
         return this.parseTrade (trade, market);
     }
 }
