@@ -26,6 +26,7 @@ public partial class phemex : Exchange
                 { "addMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
+                { "closePosition", false },
                 { "createOrder", true },
                 { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", true },

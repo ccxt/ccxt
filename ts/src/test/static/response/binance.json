@@ -1220,6 +1220,52 @@
           "nonce": 35263532345
         }
       }
+    ],
+    "fetchFundingHistory": [
+      {
+        "description": "fetch portfolio margin funding history",
+        "method": "fetchFundingHistory",
+        "input": [
+          "BTC/USDT:USDT",
+          null,
+          1,
+          {
+            "portfolioMargin": true
+          }
+        ],
+        "httpResponse": [
+          {
+            "symbol": "BTCUSDT",
+            "incomeType": "FUNDING_FEE",
+            "income": "-0.04618913",
+            "asset": "USDT",
+            "time": "1707465600000",
+            "info": "FUNDING_FEE",
+            "tranId": "8082457372019390060",
+            "tradeId": ""
+          }
+        ],
+        "parsedResponse": [
+          {
+            "info": {
+              "symbol": "BTCUSDT",
+              "incomeType": "FUNDING_FEE",
+              "income": "-0.04618913",
+              "asset": "USDT",
+              "time": "1707465600000",
+              "info": "FUNDING_FEE",
+              "tranId": "8082457372019390060",
+              "tradeId": ""
+            },
+            "symbol": "BTC/USDT:USDT",
+            "code": "USDT",
+            "timestamp": 1707465600000,
+            "datetime": "2024-02-09T08:00:00.000Z",
+            "id": "8082457372019390060",
+            "amount": -0.04618913
+          }
+        ]
+      }
     ]
   }
 }

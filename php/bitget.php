@@ -3892,6 +3892,13 @@ class bitget extends Exchange {
             $size = $this->safe_string($order, 'size');
             $filled = $this->safe_string($order, 'baseVolume');
         }
+        $side = $this->safe_string($order, 'side');
+        $posMode = $this->safe_string($order, 'posMode');
+        if ($posMode === 'hedge_mode' && $reduceOnly) {
+            $side = ($side === 'buy') ? 'sell' : 'buy';
+            // on bitget hedge mode if the position is long the $side is always buy, and if the position is short the $side is always sell
+            // so the $side of the $reduceOnly $order is inversed
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string_2($order, 'orderId', 'data'),
@@ -3902,7 +3909,7 @@ class bitget extends Exchange {
             'lastUpdateTimestamp' => $updateTimestamp,
             'symbol' => $market['symbol'],
             'type' => $this->safe_string($order, 'orderType'),
-            'side' => $this->safe_string($order, 'side'),
+            'side' => $side,
             'price' => $price,
             'amount' => $size,
             'cost' => $this->safe_string_2($order, 'quoteVolume', 'quoteSize'),
@@ -8097,6 +8104,10 @@ class bitget extends Exchange {
             } else {
                 if ($params) {
                     $queryInner = '?' . $this->urlencode($this->keysort($params));
+                    // check #21169 pr
+                    if (mb_strpos($queryInner, '%24') > -1) {
+                        $queryInner = str_replace('%24', '$', $queryInner);
+                    }
                     $url .= $queryInner;
                     $auth .= $queryInner;
                 }

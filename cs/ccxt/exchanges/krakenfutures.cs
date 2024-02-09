@@ -31,7 +31,8 @@ public partial class krakenfutures : Exchange
                 { "fetchBalance", true },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
-                { "fetchClosedOrders", null },
+                { "fetchCanceledOrders", true },
+                { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchDepositAddress", false },
@@ -1213,6 +1214,122 @@ public partial class krakenfutures : Exchange
         return this.parseOrders(orders, market, since, limit);
     }
 
+    public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name krakenfutures#fetchClosedOrders
+        * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
+        * @description Gets all closed orders, including trigger orders, for an account from the exchange api
+        * @param {string} symbol Unified market symbol
+        * @param {int} [since] Timestamp (ms) of earliest order.
+        * @param {int} [limit] How many orders to return.
+        * @param {object} [params] Exchange specific parameters
+        * @returns An array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["count"] = limit;
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["from"] = since;
+        }
+        object response = await this.historyGetOrders(this.extend(request, parameters));
+        object allOrders = this.safeList(response, "elements", new List<object>() {});
+        object closedOrders = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(allOrders)); postFixIncrement(ref i))
+        {
+            object order = getValue(allOrders, i);
+            object eventVar = this.safeDict(order, "event", new Dictionary<string, object>() {});
+            object orderPlaced = this.safeDict(eventVar, "OrderPlaced");
+            if (isTrue(!isEqual(orderPlaced, null)))
+            {
+                object innerOrder = this.safeDict(orderPlaced, "order", new Dictionary<string, object>() {});
+                object filled = this.safeString(innerOrder, "filled");
+                if (isTrue(!isEqual(filled, "0")))
+                {
+                    ((IDictionary<string,object>)innerOrder)["status"] = "closed"; // status not available in the response
+                    ((IList<object>)closedOrders).Add(innerOrder);
+                }
+            }
+        }
+        return this.parseOrders(closedOrders, market, since, limit);
+    }
+
+    public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name krakenfutures#fetchCanceledOrders
+        * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
+        * @description Gets all canceled orders, including trigger orders, for an account from the exchange api
+        * @param {string} symbol Unified market symbol
+        * @param {int} [since] Timestamp (ms) of earliest order.
+        * @param {int} [limit] How many orders to return.
+        * @param {object} [params] Exchange specific parameters
+        * @returns An array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["count"] = limit;
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["from"] = since;
+        }
+        object response = await this.historyGetOrders(this.extend(request, parameters));
+        object allOrders = this.safeList(response, "elements", new List<object>() {});
+        object canceledAndRejected = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(allOrders)); postFixIncrement(ref i))
+        {
+            object order = getValue(allOrders, i);
+            object eventVar = this.safeDict(order, "event", new Dictionary<string, object>() {});
+            object orderPlaced = this.safeDict(eventVar, "OrderPlaced");
+            if (isTrue(!isEqual(orderPlaced, null)))
+            {
+                object innerOrder = this.safeDict(orderPlaced, "order", new Dictionary<string, object>() {});
+                object filled = this.safeString(innerOrder, "filled");
+                if (isTrue(isEqual(filled, "0")))
+                {
+                    ((IDictionary<string,object>)innerOrder)["status"] = "canceled"; // status not available in the response
+                    ((IList<object>)canceledAndRejected).Add(innerOrder);
+                }
+            }
+            object orderCanceled = this.safeDict(eventVar, "OrderCancelled");
+            if (isTrue(!isEqual(orderCanceled, null)))
+            {
+                object innerOrder = this.safeDict(orderCanceled, "order", new Dictionary<string, object>() {});
+                ((IDictionary<string,object>)innerOrder)["status"] = "canceled"; // status not available in the response
+                ((IList<object>)canceledAndRejected).Add(innerOrder);
+            }
+            object orderRejected = this.safeDict(eventVar, "OrderRejected");
+            if (isTrue(!isEqual(orderRejected, null)))
+            {
+                object innerOrder = this.safeDict(orderRejected, "order", new Dictionary<string, object>() {});
+                ((IDictionary<string,object>)innerOrder)["status"] = "rejected"; // status not available in the response
+                ((IList<object>)canceledAndRejected).Add(innerOrder);
+            }
+        }
+        return this.parseOrders(canceledAndRejected, market, since, limit);
+    }
+
     public virtual object parseOrderType(object orderType)
     {
         object map = new Dictionary<string, object>() {
@@ -1464,6 +1581,32 @@ public partial class krakenfutures : Exchange
         //       "status": "requiredArgumentMissing",
         //       "orderEvents": []
         //    }
+        // closed orders
+        //    {
+        //        uid: '2f00cd63-e61d-44f8-8569-adabde885941',
+        //        timestamp: '1707258274849',
+        //        event: {
+        //          OrderPlaced: {
+        //            order: {
+        //              uid: '85805e01-9eed-4395-8360-ed1a228237c9',
+        //              accountUid: '406142dd-7c5c-4a8b-acbc-5f16eca30009',
+        //              tradeable: 'PF_LTCUSD',
+        //              direction: 'Buy',
+        //              quantity: '0',
+        //              filled: '0.1',
+        //              timestamp: '1707258274849',
+        //              limitPrice: '69.2200000000',
+        //              orderType: 'IoC',
+        //              clientId: '',
+        //              reduceOnly: false,
+        //              lastUpdateTimestamp: '1707258274849'
+        //            },
+        //            reason: 'new_user_order',
+        //            reducedQuantity: '',
+        //            algoId: ''
+        //          }
+        //        }
+        //    }
         //
         object orderEvents = this.safeValue(order, "orderEvents", new List<object>() {});
         object errorStatus = this.safeString(order, "status");
@@ -1538,7 +1681,8 @@ public partial class krakenfutures : Exchange
         object remaining = this.safeString(details, "unfilledSize");
         object average = null;
         object filled2 = "0.0";
-        if (isTrue(getArrayLength(trades)))
+        object tradesLength = getArrayLength(trades);
+        if (isTrue(isGreaterThan(tradesLength, 0)))
         {
             object vwapSum = "0.0";
             for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))

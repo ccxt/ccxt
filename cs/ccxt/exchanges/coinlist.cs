@@ -1054,13 +1054,15 @@ public partial class coinlist : Exchange
             }
             takerFees = this.sortBy(takerFees, 1, true);
             makerFees = this.sortBy(makerFees, 1, true);
-            object firstTier = this.safeValue(takerFees, 0, new List<object>() {});
-            object exchangeFees = this.safeValue(this, "fees", new Dictionary<string, object>() {});
-            object exchangeFeesTrading = this.safeValue(exchangeFees, "trading", new Dictionary<string, object>() {});
-            object exchangeFeesTradingTiers = this.safeValue(exchangeFeesTrading, "tiers", new Dictionary<string, object>() {});
-            object exchangeFeesTradingTiersTaker = this.safeValue(exchangeFeesTradingTiers, "taker", new List<object>() {});
-            object exchangeFeesTradingTiersMaker = this.safeValue(exchangeFeesTradingTiers, "maker", new List<object>() {});
-            if (isTrue(isTrue((isEqual(keysLength, getArrayLength(exchangeFeesTradingTiersTaker)))) && isTrue((isGreaterThan(getArrayLength(firstTier), 0)))))
+            object firstTier = this.safeDict(takerFees, 0, new List<object>() {});
+            object exchangeFees = this.safeDict(this, "fees", new Dictionary<string, object>() {});
+            object exchangeFeesTrading = this.safeDict(exchangeFees, "trading", new Dictionary<string, object>() {});
+            object exchangeFeesTradingTiers = this.safeDict(exchangeFeesTrading, "tiers", new Dictionary<string, object>() {});
+            object exchangeFeesTradingTiersTaker = this.safeList(exchangeFeesTradingTiers, "taker", new List<object>() {});
+            object exchangeFeesTradingTiersMaker = this.safeList(exchangeFeesTradingTiers, "maker", new List<object>() {});
+            object exchangeFeesTradingTiersTakerLength = getArrayLength(exchangeFeesTradingTiersTaker);
+            object firstTierLength = getArrayLength(firstTier);
+            if (isTrue(isTrue((isEqual(keysLength, exchangeFeesTradingTiersTakerLength))) && isTrue((isGreaterThan(firstTierLength, 0)))))
             {
                 for (object i = 0; isLessThan(i, keysLength); postFixIncrement(ref i))
                 {

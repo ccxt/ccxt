@@ -310,11 +310,12 @@ public partial class coinbase : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
-        object pagination = this.safeValue(response, "pagination", new Dictionary<string, object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
+        object pagination = this.safeDict(response, "pagination", new Dictionary<string, object>() {});
         object cursor = this.safeString(pagination, "next_starting_after");
-        object accounts = this.safeValue(response, "data", new List<object>() {});
-        object lastIndex = subtract(getArrayLength(accounts), 1);
+        object accounts = this.safeList(response, "data", new List<object>() {});
+        object length = getArrayLength(accounts);
+        object lastIndex = subtract(length, 1);
         object last = this.safeValue(accounts, lastIndex);
         if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((!isEqual(cursor, "")))))
         {
@@ -370,8 +371,9 @@ public partial class coinbase : Exchange
         //         "size": 9
         //     }
         //
-        object accounts = this.safeValue(response, "accounts", new List<object>() {});
-        object lastIndex = subtract(getArrayLength(accounts), 1);
+        object accounts = this.safeList(response, "accounts", new List<object>() {});
+        object length = getArrayLength(accounts);
+        object lastIndex = subtract(length, 1);
         object last = this.safeValue(accounts, lastIndex);
         object cursor = this.safeString(response, "cursor");
         if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((!isEqual(cursor, "")))))

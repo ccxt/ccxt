@@ -2651,7 +2651,7 @@ export default class binance extends Exchange {
             let minPrecision = undefined;
             let isWithdrawEnabled = true;
             let isDepositEnabled = true;
-            const networkList = this.safeValue (entry, 'networkList', []);
+            const networkList = this.safeList (entry, 'networkList', []);
             const fees = {};
             let fee = undefined;
             for (let j = 0; j < networkList.length; j++) {
@@ -2659,12 +2659,12 @@ export default class binance extends Exchange {
                 const network = this.safeString (networkItem, 'network');
                 // const name = this.safeString (networkItem, 'name');
                 const withdrawFee = this.safeNumber (networkItem, 'withdrawFee');
-                const depositEnable = this.safeValue (networkItem, 'depositEnable');
-                const withdrawEnable = this.safeValue (networkItem, 'withdrawEnable');
+                const depositEnable = this.safeBool (networkItem, 'depositEnable');
+                const withdrawEnable = this.safeBool (networkItem, 'withdrawEnable');
                 isDepositEnabled = isDepositEnabled || depositEnable;
                 isWithdrawEnabled = isWithdrawEnabled || withdrawEnable;
                 fees[network] = withdrawFee;
-                const isDefault = this.safeValue (networkItem, 'isDefault');
+                const isDefault = this.safeBool (networkItem, 'isDefault');
                 if (isDefault || (fee === undefined)) {
                     fee = withdrawFee;
                 }
@@ -2675,7 +2675,7 @@ export default class binance extends Exchange {
                     minPrecision = (minPrecision === undefined) ? precisionTick : Precise.stringMin (minPrecision, precisionTick);
                 }
             }
-            const trading = this.safeValue (entry, 'trading');
+            const trading = this.safeBool (entry, 'trading');
             const active = (isWithdrawEnabled && isDepositEnabled && trading);
             let maxDecimalPlaces = undefined;
             if (minPrecision !== undefined) {
@@ -2712,8 +2712,8 @@ export default class binance extends Exchange {
          * @returns {object[]} an array of objects representing market data
          */
         const promisesRaw = [];
-        const rawFetchMarkets = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'linear', 'inverse' ]);
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const rawFetchMarkets = this.safeList (this.options, 'fetchMarkets', [ 'spot', 'linear', 'inverse' ]);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const fetchMarkets = [];
         for (let i = 0; i < rawFetchMarkets.length; i++) {
             const type = rawFetchMarkets[i];
@@ -2986,7 +2986,7 @@ export default class binance extends Exchange {
         }
         const settle = this.safeCurrencyCode (settleId);
         const spot = !contract;
-        const filters = this.safeValue (market, 'filters', []);
+        const filters = this.safeList (market, 'filters', []);
         const filtersByType = this.indexBy (filters, 'filterType');
         const status = this.safeString2 (market, 'status', 'contractStatus');
         let contractSize = undefined;
@@ -3007,11 +3007,11 @@ export default class binance extends Exchange {
             linear = settle === quote;
             inverse = settle === base;
             const feesType = linear ? 'linear' : 'inverse';
-            fees = this.safeValue (this.fees, feesType, {});
+            fees = this.safeDict (this.fees, feesType, {});
         }
         let active = (status === 'TRADING');
         if (spot) {
-            const permissions = this.safeValue (market, 'permissions', []);
+            const permissions = this.safeList (market, 'permissions', []);
             for (let j = 0; j < permissions.length; j++) {
                 if (permissions[j] === 'TRD_GRP_003') {
                     active = false;
@@ -3086,7 +3086,7 @@ export default class binance extends Exchange {
             'created': this.safeInteger (market, 'onboardDate'), // present in inverse & linear apis
         };
         if ('PRICE_FILTER' in filtersByType) {
-            const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
+            const filter = this.safeDict (filtersByType, 'PRICE_FILTER', {});
             // PRICE_FILTER reports zero values for maxPrice
             // since they updated filter types in November 2018
             // https://github.com/ccxt/ccxt/issues/4286
@@ -3098,7 +3098,7 @@ export default class binance extends Exchange {
             entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
         }
         if ('LOT_SIZE' in filtersByType) {
-            const filter = this.safeValue (filtersByType, 'LOT_SIZE', {});
+            const filter = this.safeDict (filtersByType, 'LOT_SIZE', {});
             const stepSize = this.safeString (filter, 'stepSize');
             entry['precision']['amount'] = this.precisionFromString (stepSize);
             entry['limits']['amount'] = {
@@ -3107,14 +3107,14 @@ export default class binance extends Exchange {
             };
         }
         if ('MARKET_LOT_SIZE' in filtersByType) {
-            const filter = this.safeValue (filtersByType, 'MARKET_LOT_SIZE', {});
+            const filter = this.safeDict (filtersByType, 'MARKET_LOT_SIZE', {});
             entry['limits']['market'] = {
                 'min': this.safeNumber (filter, 'minQty'),
                 'max': this.safeNumber (filter, 'maxQty'),
             };
         }
         if (('MIN_NOTIONAL' in filtersByType) || ('NOTIONAL' in filtersByType)) { // notional added in 12/04/23 to spot testnet
-            const filter = this.safeValue2 (filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', {});
+            const filter = this.safeDict2 (filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', {});
             entry['limits']['cost']['min'] = this.safeNumber2 (filter, 'minNotional', 'notional');
             entry['limits']['cost']['max'] = this.safeNumber (filter, 'maxNotional');
         }
@@ -3794,7 +3794,7 @@ export default class binance extends Exchange {
             }
         }
         if (Array.isArray (response)) {
-            const firstTicker = this.safeValue (response, 0, {});
+            const firstTicker = this.safeDict (response, 0, {});
             return this.parseTicker (firstTicker, market);
         }
         return this.parseTicker (response, market);
@@ -5199,7 +5199,7 @@ export default class binance extends Exchange {
         cost = this.safeString (order, 'cumBase', cost);
         let type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');
-        const fills = this.safeValue (order, 'fills', []);
+        const fills = this.safeList (order, 'fills', []);
         let timeInForce = this.safeString (order, 'timeInForce');
         if (timeInForce === 'GTX') {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
@@ -5232,7 +5232,7 @@ export default class binance extends Exchange {
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
-            'reduceOnly': this.safeValue (order, 'reduceOnly'),
+            'reduceOnly': this.safeBool (order, 'reduceOnly'),
             'side': side,
             'price': price,
             'triggerPrice': stopPrice,
@@ -5267,7 +5267,7 @@ export default class binance extends Exchange {
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
-            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const orderParams = this.safeDict (rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
@@ -6587,11 +6587,11 @@ export default class binance extends Exchange {
         //         },
         //       ]
         //     }
-        const results = this.safeValue (response, 'userAssetDribblets', []);
+        const results = this.safeList (response, 'userAssetDribblets', []);
         const rows = this.safeInteger (response, 'total', 0);
         const data = [];
         for (let i = 0; i < rows; i++) {
-            const logs = this.safeValue (results[i], 'userAssetDribbletDetails', []);
+            const logs = this.safeList (results[i], 'userAssetDribbletDetails', []);
             for (let j = 0; j < logs.length; j++) {
                 logs[j]['isDustTrade'] = true;
                 data.push (logs[j]);
@@ -6699,7 +6699,7 @@ export default class binance extends Exchange {
         let currency = undefined;
         let response = undefined;
         const request = {};
-        const legalMoney = this.safeValue (this.options, 'legalMoney', {});
+        const legalMoney = this.safeDict (this.options, 'legalMoney', {});
         const fiatOnly = this.safeBool (params, 'fiat', false);
         params = this.omit (params, 'fiatOnly');
         const until = this.safeInteger (params, 'until');
@@ -6811,7 +6811,7 @@ export default class binance extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, params);
         }
-        const legalMoney = this.safeValue (this.options, 'legalMoney', {});
+        const legalMoney = this.safeDict (this.options, 'legalMoney', {});
         const fiatOnly = this.safeBool (params, 'fiat', false);
         params = this.omit (params, 'fiatOnly');
         const request = {};
@@ -6955,7 +6955,7 @@ export default class binance extends Exchange {
                 'Refund Failed': 'failed',
             },
         };
-        const statuses = this.safeValue (statusesByType, type, {});
+        const statuses = this.safeDict (statusesByType, type, {});
         return this.safeString (statuses, status, status);
     }
 
@@ -7123,7 +7123,7 @@ export default class binance extends Exchange {
         const type = this.safeString (transfer, 'type');
         let fromAccount = undefined;
         let toAccount = undefined;
-        const accountsById = this.safeValue (this.options, 'accountsById', {});
+        const accountsById = this.safeDict (this.options, 'accountsById', {});
         if (type !== undefined) {
             const parts = type.split ('_');
             fromAccount = this.safeValue (parts, 0);
@@ -7160,20 +7160,16 @@ export default class binance extends Exchange {
         //     }
         //
         const marketId = this.safeString (income, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, undefined, 'swap');
-        const amount = this.safeNumber (income, 'income');
         const currencyId = this.safeString (income, 'asset');
-        const code = this.safeCurrencyCode (currencyId);
-        const id = this.safeString (income, 'tranId');
         const timestamp = this.safeInteger (income, 'time');
         return {
             'info': income,
-            'symbol': symbol,
-            'code': code,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
+            'code': this.safeCurrencyCode (currencyId),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'id': id,
-            'amount': amount,
+            'id': this.safeString (income, 'tranId'),
+            'amount': this.safeNumber (income, 'income'),
         };
     }
 
@@ -7223,7 +7219,7 @@ export default class binance extends Exchange {
                     throw new ArgumentsRequired (this.id + ' transfer () requires params["symbol"] when toAccount is ' + toAccount);
                 }
             }
-            const accountsById = this.safeValue (this.options, 'accountsById', {});
+            const accountsById = this.safeDict (this.options, 'accountsById', {});
             const fromIsolated = !(fromId in accountsById);
             const toIsolated = !(toId in accountsById);
             if (fromIsolated && (market === undefined)) {
@@ -7309,7 +7305,7 @@ export default class binance extends Exchange {
         const defaultTo = (fromAccount === 'future') ? 'spot' : 'future';
         const toAccount = this.safeString (params, 'toAccount', defaultTo);
         let type = this.safeString (params, 'type');
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount);
         const toId = this.safeString (accountsByType, toAccount);
         if (type === undefined) {
@@ -7353,7 +7349,7 @@ export default class binance extends Exchange {
         //         ]
         //     }
         //
-        const rows = this.safeValue (response, 'rows', []);
+        const rows = this.safeList (response, 'rows', []);
         return this.parseTransfers (rows, currency, since, limit);
     }
 
@@ -7373,7 +7369,7 @@ export default class binance extends Exchange {
             'coin': currency['id'],
             // 'network': 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         };
-        const networks = this.safeValue (this.options, 'networks', {});
+        const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
@@ -7400,7 +7396,7 @@ export default class binance extends Exchange {
         const url = this.safeString (response, 'url');
         let impliedNetwork = undefined;
         if (url !== undefined) {
-            const reverseNetworks = this.safeValue (this.options, 'reverseNetworks', {});
+            const reverseNetworks = this.safeDict (this.options, 'reverseNetworks', {});
             const parts = url.split ('/');
             let topLevel = this.safeString (parts, 2);
             if ((topLevel === 'blockchair.com') || (topLevel === 'viewblock.io')) {
@@ -7415,7 +7411,7 @@ export default class binance extends Exchange {
                 'TRX': { 'TRC20': 'TRX' },
             });
             if (code in impliedNetworks) {
-                const conversion = this.safeValue (impliedNetworks, code, {});
+                const conversion = this.safeDict (impliedNetworks, code, {});
                 impliedNetwork = this.safeString (conversion, impliedNetwork, impliedNetwork);
             }
         }
@@ -7532,7 +7528,7 @@ export default class binance extends Exchange {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (currencyId);
-            const networkList = this.safeValue (entry, 'networkList', []);
+            const networkList = this.safeList (entry, 'networkList', []);
             withdrawFees[code] = {};
             for (let j = 0; j < networkList.length; j++) {
                 const networkEntry = networkList[j];
@@ -7647,14 +7643,14 @@ export default class binance extends Exchange {
         //        ]
         //    }
         //
-        const networkList = this.safeValue (fee, 'networkList', []);
+        const networkList = this.safeList (fee, 'networkList', []);
         const result = this.depositWithdrawFee (fee);
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
             const networkId = this.safeString (networkEntry, 'network');
             const networkCode = this.networkIdToCode (networkId);
             const withdrawFee = this.safeNumber (networkEntry, 'withdrawFee');
-            const isDefault = this.safeValue (networkEntry, 'isDefault');
+            const isDefault = this.safeBool (networkEntry, 'isDefault');
             if (isDefault === true) {
                 result['withdraw'] = {
                     'fee': withdrawFee,
@@ -7703,7 +7699,7 @@ export default class binance extends Exchange {
         if (tag !== undefined) {
             request['addressTag'] = tag;
         }
-        const networks = this.safeValue (this.options, 'networks', {});
+        const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
@@ -7795,7 +7791,7 @@ export default class binance extends Exchange {
         //
         let data = response;
         if (Array.isArray (data)) {
-            data = this.safeValue (data, 0, {});
+            data = this.safeDict (data, 0, {});
         }
         return this.parseTradingFee (data);
     }
@@ -8206,8 +8202,8 @@ export default class binance extends Exchange {
     }
 
     parseAccountPositions (account) {
-        const positions = this.safeValue (account, 'positions');
-        const assets = this.safeValue (account, 'assets', []);
+        const positions = this.safeList (account, 'positions');
+        const assets = this.safeList (account, 'assets', []);
         const balances = {};
         for (let i = 0; i < assets.length; i++) {
             const entry = assets[i];
@@ -8226,13 +8222,17 @@ export default class binance extends Exchange {
             const marketId = this.safeString (position, 'symbol');
             const market = this.safeMarket (marketId, undefined, undefined, 'contract');
             const code = market['linear'] ? market['quote'] : market['base'];
-            // sometimes not all the codes are correctly returned...
-            if (code in balances) {
-                const parsed = this.parseAccountPosition (this.extend (position, {
-                    'crossMargin': balances[code]['crossMargin'],
-                    'crossWalletBalance': balances[code]['crossWalletBalance'],
-                }), market);
-                result.push (parsed);
+            const maintenanceMargin = this.safeString (position, 'maintMargin');
+            // check for maintenance margin so empty positions are not returned
+            if ((maintenanceMargin !== '0') && (maintenanceMargin !== '0.00000000')) {
+                // sometimes not all the codes are correctly returned...
+                if (code in balances) {
+                    const parsed = this.parseAccountPosition (this.extend (position, {
+                        'crossMargin': balances[code]['crossMargin'],
+                        'crossWalletBalance': balances[code]['crossWalletBalance'],
+                    }), market);
+                    result.push (parsed);
+                }
             }
         }
         return result;
@@ -8241,6 +8241,7 @@ export default class binance extends Exchange {
     parseAccountPosition (position, market: Market = undefined) {
         //
         // usdm
+        //
         //    {
         //       "symbol": "BTCBUSD",
         //       "initialMargin": "0",
@@ -8261,6 +8262,7 @@ export default class binance extends Exchange {
         //     }
         //
         // coinm
+        //
         //     {
         //       "symbol": "BTCUSD_210625",
         //       "initialMargin": "0.00024393",
@@ -8277,6 +8279,46 @@ export default class binance extends Exchange {
         //       "isolatedWallet": "0",
         //       "crossMargin": "0.314"
         //       "crossWalletBalance": "34",
+        //     }
+        //
+        // linear portfolio margin
+        //
+        //     {
+        //         "symbol": "CTSIUSDT",
+        //         "initialMargin": "0",
+        //         "maintMargin": "0",
+        //         "unrealizedProfit": "0.00000000",
+        //         "positionInitialMargin": "0",
+        //         "openOrderInitialMargin": "0",
+        //         "leverage": "20",
+        //         "entryPrice": "0.0",
+        //         "maxNotional": "25000",
+        //         "bidNotional": "0",
+        //         "askNotional": "0",
+        //         "positionSide": "SHORT",
+        //         "positionAmt": "0",
+        //         "updateTime": 0,
+        //         "notional": "0",
+        //         "breakEvenPrice": "0.0"
+        //     }
+        //
+        // inverse portoflio margin
+        //
+        //     {
+        //         "symbol": "TRXUSD_PERP",
+        //         "initialMargin": "0",
+        //         "maintMargin": "0",
+        //         "unrealizedProfit": "0.00000000",
+        //         "positionInitialMargin": "0",
+        //         "openOrderInitialMargin": "0",
+        //         "leverage": "20",
+        //         "entryPrice": "0.00000000",
+        //         "positionSide": "SHORT",
+        //         "positionAmt": "0",
+        //         "maxQty": "5000000",
+        //         "updateTime": 0,
+        //         "notionalValue": "0",
+        //         "breakEvenPrice": "0.00000000"
         //     }
         //
         const marketId = this.safeString (position, 'symbol');
@@ -8309,8 +8351,8 @@ export default class binance extends Exchange {
             contractsStringAbs = Precise.stringDiv (Precise.stringAdd (contractsString, '0.5'), '1', 0);
         }
         const contracts = this.parseNumber (contractsStringAbs);
-        const leverageBrackets = this.safeValue (this.options, 'leverageBrackets', {});
-        const leverageBracket = this.safeValue (leverageBrackets, symbol, []);
+        const leverageBrackets = this.safeDict (this.options, 'leverageBrackets', {});
+        const leverageBracket = this.safeList (leverageBrackets, symbol, []);
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
@@ -8326,7 +8368,7 @@ export default class binance extends Exchange {
         if (timestamp === 0) {
             timestamp = undefined;
         }
-        const isolated = this.safeValue (position, 'isolated');
+        const isolated = this.safeBool (position, 'isolated');
         let marginMode = undefined;
         let collateralString = undefined;
         let walletBalance = undefined;
@@ -8475,11 +8517,45 @@ export default class binance extends Exchange {
         //       "isolatedWallet": "0.00268058"
         //     }
         //
+        // inverse portfolio margin
+        //
+        //     {
+        //         "symbol": "ETHUSD_PERP",
+        //         "positionAmt": "1",
+        //         "entryPrice": "2422.400000007",
+        //         "markPrice": "2424.51267823",
+        //         "unRealizedProfit": "0.0000036",
+        //         "liquidationPrice": "293.57678898",
+        //         "leverage": "100",
+        //         "positionSide": "LONG",
+        //         "updateTime": 1707371941861,
+        //         "maxQty": "15",
+        //         "notionalValue": "0.00412454",
+        //         "breakEvenPrice": "2423.368960034"
+        //     }
+        //
+        // linear portfolio margin
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "positionAmt": "0.01",
+        //         "entryPrice": "44525.0",
+        //         "markPrice": "45464.1735922",
+        //         "unRealizedProfit": "9.39173592",
+        //         "liquidationPrice": "38007.16308568",
+        //         "leverage": "100",
+        //         "positionSide": "LONG",
+        //         "updateTime": 1707371879042,
+        //         "maxNotionalValue": "500000.0",
+        //         "notional": "454.64173592",
+        //         "breakEvenPrice": "44542.81"
+        //     }
+        //
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market, undefined, 'contract');
         const symbol = this.safeString (market, 'symbol');
-        const leverageBrackets = this.safeValue (this.options, 'leverageBrackets', {});
-        const leverageBracket = this.safeValue (leverageBrackets, symbol, []);
+        const leverageBrackets = this.safeDict (this.options, 'leverageBrackets', {});
+        const leverageBracket = this.safeList (leverageBrackets, symbol, []);
         const notionalString = this.safeString2 (position, 'notional', 'notionalValue');
         const notionalStringAbs = Precise.stringAbs (notionalString);
         let maintenanceMarginPercentageString = undefined;
@@ -8515,7 +8591,7 @@ export default class binance extends Exchange {
         const linear = ('notional' in position);
         if (marginMode === 'cross') {
             // calculate collateral
-            const precision = this.safeValue (market, 'precision', {});
+            const precision = this.safeDict (market, 'precision', {});
             if (linear) {
                 // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
                 let onePlusMaintenanceMarginPercentageString = undefined;
@@ -8642,7 +8718,7 @@ export default class binance extends Exchange {
                 const entry = response[i];
                 const marketId = this.safeString (entry, 'symbol');
                 const symbol = this.safeSymbol (marketId, undefined, undefined, 'contract');
-                const brackets = this.safeValue (entry, 'brackets', []);
+                const brackets = this.safeList (entry, 'brackets', []);
                 const result = [];
                 for (let j = 0; j < brackets.length; j++) {
                     const bracket = brackets[j];
@@ -8759,7 +8835,7 @@ export default class binance extends Exchange {
         //
         const marketId = this.safeString (info, 'symbol');
         market = this.safeMarket (marketId, market, undefined, 'contract');
-        const brackets = this.safeValue (info, 'brackets', []);
+        const brackets = this.safeList (info, 'brackets', []);
         const tiers = [];
         for (let j = 0; j < brackets.length; j++) {
             const bracket = brackets[j];
@@ -8975,8 +9051,11 @@ export default class binance extends Exchange {
          * @description fetch account positions
          * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-um-account-detail-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions in a portfolio margin account
          * @returns {object} data on account positions
          */
         if (symbols !== undefined) {
@@ -8988,14 +9067,24 @@ export default class binance extends Exchange {
         await this.loadLeverageBrackets (false, params);
         const defaultType = this.safeString (this.options, 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
-        let query = this.omit (params, 'type');
+        params = this.omit (params, 'type');
         let subType = undefined;
-        [ subType, query ] = this.handleSubTypeAndParams ('fetchAccountPositions', undefined, params, 'linear');
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchAccountPositions', undefined, params, 'linear');
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchAccountPositions', 'papi', 'portfolioMargin', false);
         let response = undefined;
         if (this.isLinear (type, subType)) {
-            response = await this.fapiPrivateV2GetAccount (query);
+            if (isPortfolioMargin) {
+                response = await this.papiGetUmAccount (params);
+            } else {
+                response = await this.fapiPrivateV2GetAccount (params);
+            }
         } else if (this.isInverse (type, subType)) {
-            response = await this.dapiPrivateGetAccount (query);
+            if (isPortfolioMargin) {
+                response = await this.papiGetCmAccount (params);
+            } else {
+                response = await this.dapiPrivateGetAccount (params);
+            }
         } else {
             throw new NotSupported (this.id + ' fetchPositions() supports linear and inverse contracts only');
         }
@@ -9012,8 +9101,11 @@ export default class binance extends Exchange {
          * @description fetch positions risk
          * @see https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#position-information-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-um-position-information-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-cm-position-information-user_data
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions for a portfolio margin account
          * @returns {object} data on the positions risk
          */
         if (symbols !== undefined) {
@@ -9029,69 +9121,120 @@ export default class binance extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionsRisk', undefined, params, 'linear');
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchPositionsRisk', 'papi', 'portfolioMargin', false);
         params = this.omit (params, 'type');
         let response = undefined;
         if (this.isLinear (type, subType)) {
-            response = await this.fapiPrivateV2GetPositionRisk (this.extend (request, params));
-            // ### Response examples ###
-            //
-            // For One-way position mode:
-            //     [
-            //         {
-            //             "entryPrice": "0.00000",
-            //             "marginType": "isolated",
-            //             "isAutoAddMargin": "false",
-            //             "isolatedMargin": "0.00000000",
-            //             "leverage": "10",
-            //             "liquidationPrice": "0",
-            //             "markPrice": "6679.50671178",
-            //             "maxNotionalValue": "20000000",
-            //             "positionAmt": "0.000",
-            //             "symbol": "BTCUSDT",
-            //             "unRealizedProfit": "0.00000000",
-            //             "positionSide": "BOTH",
-            //             "updateTime": 0
-            //        }
-            //     ]
-            //
-            // For Hedge position mode:
-            //     [
-            //         {
-            //             "entryPrice": "6563.66500",
-            //             "marginType": "isolated",
-            //             "isAutoAddMargin": "false",
-            //             "isolatedMargin": "15517.54150468",
-            //             "leverage": "10",
-            //             "liquidationPrice": "5930.78",
-            //             "markPrice": "6679.50671178",
-            //             "maxNotionalValue": "20000000",
-            //             "positionAmt": "20.000",
-            //             "symbol": "BTCUSDT",
-            //             "unRealizedProfit": "2316.83423560"
-            //             "positionSide": "LONG",
-            //             "updateTime": 1625474304765
-            //         },
-            //         {
-            //             "entryPrice": "0.00000",
-            //             "marginType": "isolated",
-            //             "isAutoAddMargin": "false",
-            //             "isolatedMargin": "5413.95799991",
-            //             "leverage": "10",
-            //             "liquidationPrice": "7189.95",
-            //             "markPrice": "6679.50671178",
-            //             "maxNotionalValue": "20000000",
-            //             "positionAmt": "-10.000",
-            //             "symbol": "BTCUSDT",
-            //             "unRealizedProfit": "-1156.46711780",
-            //             "positionSide": "SHORT",
-            //             "updateTime": 0
-            //         }
-            //     ]
+            if (isPortfolioMargin) {
+                response = await this.papiGetUmPositionRisk (this.extend (request, params));
+            } else {
+                response = await this.fapiPrivateV2GetPositionRisk (this.extend (request, params));
+            }
         } else if (this.isInverse (type, subType)) {
-            response = await this.dapiPrivateGetPositionRisk (this.extend (request, params));
+            if (isPortfolioMargin) {
+                response = await this.papiGetCmPositionRisk (this.extend (request, params));
+            } else {
+                response = await this.dapiPrivateGetPositionRisk (this.extend (request, params));
+            }
         } else {
             throw new NotSupported (this.id + ' fetchPositionsRisk() supports linear and inverse contracts only');
         }
+        // ### Response examples ###
+        //
+        // For One-way position mode:
+        //
+        //     [
+        //         {
+        //             "entryPrice": "0.00000",
+        //             "marginType": "isolated",
+        //             "isAutoAddMargin": "false",
+        //             "isolatedMargin": "0.00000000",
+        //             "leverage": "10",
+        //             "liquidationPrice": "0",
+        //             "markPrice": "6679.50671178",
+        //             "maxNotionalValue": "20000000",
+        //             "positionAmt": "0.000",
+        //             "symbol": "BTCUSDT",
+        //             "unRealizedProfit": "0.00000000",
+        //             "positionSide": "BOTH",
+        //             "updateTime": 0
+        //        }
+        //     ]
+        //
+        // For Hedge position mode:
+        //
+        //     [
+        //         {
+        //             "entryPrice": "6563.66500",
+        //             "marginType": "isolated",
+        //             "isAutoAddMargin": "false",
+        //             "isolatedMargin": "15517.54150468",
+        //             "leverage": "10",
+        //             "liquidationPrice": "5930.78",
+        //             "markPrice": "6679.50671178",
+        //             "maxNotionalValue": "20000000",
+        //             "positionAmt": "20.000",
+        //             "symbol": "BTCUSDT",
+        //             "unRealizedProfit": "2316.83423560"
+        //             "positionSide": "LONG",
+        //             "updateTime": 1625474304765
+        //         },
+        //         {
+        //             "entryPrice": "0.00000",
+        //             "marginType": "isolated",
+        //             "isAutoAddMargin": "false",
+        //             "isolatedMargin": "5413.95799991",
+        //             "leverage": "10",
+        //             "liquidationPrice": "7189.95",
+        //             "markPrice": "6679.50671178",
+        //             "maxNotionalValue": "20000000",
+        //             "positionAmt": "-10.000",
+        //             "symbol": "BTCUSDT",
+        //             "unRealizedProfit": "-1156.46711780",
+        //             "positionSide": "SHORT",
+        //             "updateTime": 0
+        //         }
+        //     ]
+        //
+        // inverse portfolio margin:
+        //
+        //     [
+        //         {
+        //             "symbol": "ETHUSD_PERP",
+        //             "positionAmt": "1",
+        //             "entryPrice": "2422.400000007",
+        //             "markPrice": "2424.51267823",
+        //             "unRealizedProfit": "0.0000036",
+        //             "liquidationPrice": "293.57678898",
+        //             "leverage": "100",
+        //             "positionSide": "LONG",
+        //             "updateTime": 1707371941861,
+        //             "maxQty": "15",
+        //             "notionalValue": "0.00412454",
+        //             "breakEvenPrice": "2423.368960034"
+        //         }
+        //     ]
+        //
+        // linear portfolio margin:
+        //
+        //     [
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "positionAmt": "0.01",
+        //             "entryPrice": "44525.0",
+        //             "markPrice": "45464.1735922",
+        //             "unRealizedProfit": "9.39173592",
+        //             "liquidationPrice": "38007.16308568",
+        //             "leverage": "100",
+        //             "positionSide": "LONG",
+        //             "updateTime": 1707371879042,
+        //             "maxNotionalValue": "500000.0",
+        //             "notional": "454.64173592",
+        //             "breakEvenPrice": "44542.81"
+        //         }
+        //     ]
+        //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const parsed = this.parsePositionRisk (response[i]);
@@ -9108,15 +9251,19 @@ export default class binance extends Exchange {
          * @description fetch the history of funding payments paid and received on this account
          * @see https://binance-docs.github.io/apidocs/futures/en/#get-income-history-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#get-income-history-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-um-income-history-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-income-history-user_data
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch funding history for
          * @param {int} [limit] the maximum number of funding history structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest funding history entry
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the funding history for a portfolio margin account
          * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {
+        let request = {
             'incomeType': 'FUNDING_FEE', // "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION" and "INSURANCE_CLEAR"
         };
         if (symbol !== undefined) {
@@ -9128,6 +9275,9 @@ export default class binance extends Exchange {
         }
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingHistory', market, params, 'linear');
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchFundingHistory', 'papi', 'portfolioMargin', false);
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -9139,9 +9289,17 @@ export default class binance extends Exchange {
         params = this.omit (params, 'type');
         let response = undefined;
         if (this.isLinear (type, subType)) {
-            response = await this.fapiPrivateGetIncome (this.extend (request, params));
+            if (isPortfolioMargin) {
+                response = await this.papiGetUmIncome (this.extend (request, params));
+            } else {
+                response = await this.fapiPrivateGetIncome (this.extend (request, params));
+            }
         } else if (this.isInverse (type, subType)) {
-            response = await this.dapiPrivateGetIncome (this.extend (request, params));
+            if (isPortfolioMargin) {
+                response = await this.papiGetCmIncome (this.extend (request, params));
+            } else {
+                response = await this.dapiPrivateGetIncome (this.extend (request, params));
+            }
         } else {
             throw new NotSupported (this.id + ' fetchFundingHistory() supports linear and inverse contracts only');
         }
@@ -9510,12 +9668,15 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/voptions/en/#account-funding-flow-user_data
          * @see https://binance-docs.github.io/apidocs/futures/en/#get-income-history-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#get-income-history-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-um-income-history-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-income-history-user_data
          * @param {string} code unified currency code
          * @param {int} [since] timestamp in ms of the earliest ledger entry
          * @param {int} [limit] max number of ledger entrys to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest ledger entry
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the ledger for a portfolio margin account
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
@@ -9544,15 +9705,25 @@ export default class binance extends Exchange {
             params = this.omit (params, 'until');
             request['endTime'] = until;
         }
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchLedger', 'papi', 'portfolioMargin', false);
         let response = undefined;
         if (type === 'option') {
             this.checkRequiredArgument ('fetchLedger', code, 'code');
             request['currency'] = currency['id'];
             response = await this.eapiPrivateGetBill (this.extend (request, params));
         } else if (this.isLinear (type, subType)) {
-            response = await this.fapiPrivateGetIncome (this.extend (request, params));
+            if (isPortfolioMargin) {
+                response = await this.papiGetUmIncome (this.extend (request, params));
+            } else {
+                response = await this.fapiPrivateGetIncome (this.extend (request, params));
+            }
         } else if (this.isInverse (type, subType)) {
-            response = await this.dapiPrivateGetIncome (this.extend (request, params));
+            if (isPortfolioMargin) {
+                response = await this.papiGetCmIncome (this.extend (request, params));
+            } else {
+                response = await this.dapiPrivateGetIncome (this.extend (request, params));
+            }
         } else {
             throw new NotSupported (this.id + ' fetchLedger() supports contract wallets only');
         }
@@ -9569,7 +9740,7 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        // futures (fapi, dapi)
+        // futures (fapi, dapi, papi)
         //
         //     [
         //         {
@@ -9599,7 +9770,7 @@ export default class binance extends Exchange {
         //         "createDate": 1676621042489
         //     }
         //
-        // futures (fapi, dapi)
+        // futures (fapi, dapi, papi)
         //
         //     {
         //         "symbol": "",
@@ -9706,7 +9877,7 @@ export default class binance extends Exchange {
                     const isSpotOrMargin = (api.indexOf ('sapi') > -1 || api === 'private');
                     const marketType = isSpotOrMargin ? 'spot' : 'future';
                     const defaultId = (!isSpotOrMargin) ? 'x-xcKtGhcu' : 'x-R4BD3S82';
-                    const broker = this.safeValue (this.options, 'broker', {});
+                    const broker = this.safeDict (this.options, 'broker', {});
                     const brokerId = this.safeString (broker, marketType, defaultId);
                     params['newClientOrderId'] = brokerId + this.uuid22 ();
                 }
@@ -9733,8 +9904,8 @@ export default class binance extends Exchange {
                 query = this.urlencodeWithArrayRepeat (extendedParams);
             } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0) || (path === 'capital/withdraw/apply') || (path.indexOf ('staking') >= 0)) {
                 if ((method === 'DELETE') && (path === 'batchOrders')) {
-                    const orderidlist = this.safeValue (extendedParams, 'orderidlist', []);
-                    const origclientorderidlist = this.safeValue (extendedParams, 'origclientorderidlist', []);
+                    const orderidlist = this.safeList (extendedParams, 'orderidlist', []);
+                    const origclientorderidlist = this.safeList (extendedParams, 'origclientorderidlist', []);
                     extendedParams = this.omit (extendedParams, [ 'orderidlist', 'origclientorderidlist' ]);
                     query = this.rawencode (extendedParams);
                     const orderidlistLength = orderidlist.length;
@@ -9794,8 +9965,8 @@ export default class binance extends Exchange {
             marketType = 'portfoliomargin';
         }
         if (marketType !== undefined) {
-            const exceptionsForMarketType = this.safeValue (this.exceptions, marketType, {});
-            return this.safeValue (exceptionsForMarketType, exactOrBroad, {});
+            const exceptionsForMarketType = this.safeDict (this.exceptions, marketType, {});
+            return this.safeDict (exceptionsForMarketType, exactOrBroad, {});
         }
         return {};
     }
@@ -10032,7 +10203,7 @@ export default class binance extends Exchange {
         //         },
         //     ]
         //
-        const rate = this.safeValue (response, 0);
+        const rate = this.safeDict (response, 0);
         return this.parseBorrowRate (rate);
     }
 
@@ -10139,7 +10310,7 @@ export default class binance extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         const giftcardCode = this.safeString (data, 'code');
         const id = this.safeString (data, 'referenceNo');
         return {
@@ -10251,7 +10422,7 @@ export default class binance extends Exchange {
         //         "total": 1
         //     }
         //
-        const rows = this.safeValue (response, 'rows');
+        const rows = this.safeList (response, 'rows');
         const interest = this.parseBorrowInterests (rows, market);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }

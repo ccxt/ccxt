@@ -10,6 +10,8 @@ export default class bitmart extends bitmartRest {
     loadBalanceSnapshot(client: any, messageHash: any, type: any): Promise<void>;
     handleBalance(client: Client, message: any): void;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    getParamsForMultipleSub(methodName: string, symbols: string[], limit?: Int, params?: {}): any[];
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;

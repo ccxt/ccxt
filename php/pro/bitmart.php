@@ -33,6 +33,7 @@ class bitmart extends \ccxt\async\bitmart {
                 'watchOrderBookForSymbols' => true,
                 'watchOrders' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => true,
                 'watchOHLCV' => true,
                 'watchPosition' => 'emulated',
                 'watchPositions' => true,
@@ -279,24 +280,52 @@ class bitmart extends \ccxt\async\bitmart {
             /**
              * @see https://developer-pro.bitmart.com/en/spot/#public-trade-channel
              * @see https://developer-pro.bitmart.com/en/futures/#public-trade-channel
-             * get the list of most recent $trades for a particular $symbol
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             * get the list of most recent trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the market to fetch trades for
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             */
+            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
+        }) ();
+    }
+
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * @see https://developer-pro.bitmart.com/en/spot/#public-trade-channel
+             * get the list of most recent $trades for a list of $symbols
+             * @param {string[]} $symbols unified symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
-            $symbol = $this->symbol($symbol);
-            $market = $this->market($symbol);
-            $type = 'spot';
-            list($type, $params) = $this->handle_market_type_and_params('watchTrades', $market, $params);
-            $trades = Async\await($this->subscribe('trade', $symbol, $type, $params));
+            $marketType = null;
+            list($symbols, $marketType, $params) = $this->get_params_for_multiple_sub('watchTradesForSymbols', $symbols, $limit, $params);
+            $channelName = 'trade';
+            $trades = Async\await($this->subscribe_multiple($channelName, $marketType, $symbols, $params));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $first = $this->safe_dict($trades, 0);
+                $tradeSymbol = $this->safe_string($first, 'symbol');
+                $limit = $trades->getLimit ($tradeSymbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
+    }
+
+    public function get_params_for_multiple_sub(string $methodName, array $symbols, ?int $limit = null, $params = array ()) {
+        $symbols = $this->market_symbols($symbols, null, false, true);
+        $length = count($symbols);
+        if ($length > 20) {
+            throw new NotSupported($this->id . ' ' . $methodName . '() accepts a maximum of 20 $symbols in one request');
+        }
+        $market = $this->market($symbols[0]);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params($methodName, $market, $params);
+        return array( $symbols, $marketType, $params );
     }
 
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
@@ -843,13 +872,12 @@ class bitmart extends \ccxt\async\bitmart {
         //        )
         //    }
         //
-        $channel = $this->safe_string_2($message, 'table', 'group');
-        $isSpot = (mb_strpos($channel, 'spot') !== false);
         $data = $this->safe_value($message, 'data');
         if ($data === null) {
             return;
         }
         $stored = null;
+        $symbol = null;
         for ($i = 0; $i < count($data); $i++) {
             $trade = $this->parse_ws_trade($data[$i]);
             $symbol = $trade['symbol'];
@@ -861,10 +889,7 @@ class bitmart extends \ccxt\async\bitmart {
             }
             $stored->append ($trade);
         }
-        $messageHash = $channel;
-        if ($isSpot) {
-            $messageHash .= ':' . $this->safe_string($data[0], 'symbol');
-        }
+        $messageHash = 'trade:' . $symbol;
         $client->resolve ($stored, $messageHash);
     }
 
@@ -1399,18 +1424,13 @@ class bitmart extends \ccxt\async\bitmart {
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->depth] the $type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market $symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbols
              */
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, false, true);
-            if (strlen($symbols) > 20) {
-                throw new NotSupported($this->id . ' watchOrderBookForSymbols() accepts a maximum of 20 $symbols in one request');
-            }
-            $market = $this->market($symbols[0]);
+            $type = null;
+            list($symbols, $type, $params) = $this->get_params_for_multiple_sub('watchOrderBookForSymbols', $symbols, $limit, $params);
             $channel = null;
             list($channel, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'depth', 'depth/increase100');
-            $type = 'spot';
-            list($type, $params) = $this->handle_market_type_and_params('watchOrderBookForSymbols', $market, $params);
             if ($type === 'swap' && $channel === 'depth/increase100') {
                 $channel = 'depth50';
             }
