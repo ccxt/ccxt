@@ -28,15 +28,15 @@ export default class blofin extends blofinRest {
             },
             'options': {
                 'tradesLimit': 1000,
-            },
-            // orderbook channel can be one from:
-            //  - "books": 200 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed every 100 ms for the changes in the order book during that period of time.
-            //  - "books5": 5 depth levels snapshot will be pushed every time. Snapshot data will be pushed every 100 ms when there are changes in the 5 depth levels snapshot.
-            'watchOrderBook': {
-                'channel': 'books',
-            },
-            'watchOrderBookForSymbols': {
-                'channel': 'books',
+                // orderbook channel can be one from:
+                //  - "books": 200 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed every 100 ms for the changes in the order book during that period of time.
+                //  - "books5": 5 depth levels snapshot will be pushed every time. Snapshot data will be pushed every 100 ms when there are changes in the 5 depth levels snapshot.
+                'watchOrderBook': {
+                    'channel': 'books',
+                },
+                'watchOrderBookForSymbols': {
+                    'channel': 'books',
+                },
             },
         });
     }
@@ -89,20 +89,7 @@ export default class blofin extends blofinRest {
         //   event: "subscribe"
         // }
         //
-        //
-        // {
-        //   arg: {
-        //     channel: "trades",
-        //     instId: "DOGE-USDT",
-        //   },
-        //   data: [
-        //     {
-        //       instId: "DOGE-USDT",
-        //       price: "0.08199",
-        //       ...
-        //     },
-        //   ],
-        // }
+        // incoming data updates' examples can be seen under each handler method
         //
         const methods = {
             'trades': this.handleWsTrades,
@@ -141,14 +128,14 @@ export default class blofin extends blofinRest {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
-        params['callerMethod'] = 'watchTrades';
+        params['callerMethodName'] = 'watchTrades';
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
-         * @name bitmart#watchTradesForSymbols
+         * @name blofin#watchTradesForSymbols
          * @see https://docs.blofin.com/index.html#ws-trades-channel
          * @description get the list of most recent trades for a list of symbols
          * @param {string[]} symbols unified symbol of the market to fetch trades for
@@ -158,9 +145,9 @@ export default class blofin extends blofinRest {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
-        let callerMethod = undefined;
-        [ callerMethod, params ] = this.handleParam (params, 'callerMethod', 'watchTradesForSymbols');
-        const trades = await this.watchMultipleSymbols ('trades', callerMethod, symbols, limit, params);
+        let callerMethodName = undefined;
+        [ callerMethodName, params ] = this.handleParam (params, 'callerMethodName', 'watchTradesForSymbols');
+        const trades = await this.watchMultipleSymbols ('trades', callerMethodName, symbols, limit, params);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -172,16 +159,23 @@ export default class blofin extends blofinRest {
     handleWsTrades (client: Client, message, channelName: Str) {
         const data = this.safeList (message, 'data');
         //
-        //  [
         //     {
-        //       instId: "DOGE-USDT",
-        //       tradeId: "3373545342",
-        //       price: "0.08199",
-        //       size: "4",
-        //       side: "buy",
-        //       ts: "1707486245435",
+        //       arg: {
+        //         channel: "trades",
+        //         instId: "DOGE-USDT",
+        //       },
+        //       data : [
+        //         {
+        //           instId: "DOGE-USDT",
+        //           tradeId: "3373545342",
+        //           price: "0.08199",
+        //           size: "4",
+        //           side: "buy",
+        //           ts: "1707486245435",
+        //         },
+        //         ...
+        //       ]
         //     }
-        //  ]
         //
         if (data === undefined) {
             return;
@@ -216,4 +210,81 @@ export default class blofin extends blofinRest {
         return this.parseTrade (trade, market);
     }
 
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name blofin#watchOrderBook
+         * @see https://docs.blofin.com/index.html#ws-order-book-channel
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
+         * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        params['callerMethodName'] = 'watchOrderBook';
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    }
+
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name blofin#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.blofin.com/index.html#ws-order-book-channel
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        let callerMethodName = undefined;
+        [ callerMethodName, params ] = this.handleParam (params, 'callerMethodName', 'watchOrderBookForSymbols');
+        let channelName = undefined;
+        [ channelName, params ] = this.handleOptionAndParams (params, callerMethodName, 'channel', 'books');
+        const orderbook = await this.watchMultipleSymbols (channelName, callerMethodName, symbols, limit, params);
+        return orderbook.limit ();
+    }
+
+    handleWsOrderBook (client: Client, message, channelName: Str) {
+        //
+        // snapshot:
+        //
+        //   {
+        //     arg: {
+        //         channel: "books",
+        //         instId: "DOGE-USDT",
+        //     },
+        //     action: "snapshot",
+        //     data: {
+        //         asks: [   [ 0.08096, 1 ], [ 0.08097, 123 ], ...   ],
+        //         bids: [   [ 0.08095, 4 ], [ 0.08094, 237 ], ...   ],
+        //         ts: "1707491587909",
+        //         prevSeqId: "0",
+        //         seqId: "3374250786",
+        //     },
+        // }
+        //
+        const marketId = this.safeString (message, 'product_id');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const messageHash = 'book:' + symbol;
+        const orderbook = this.orderbooks[symbol];
+        const side = this.safeString (message, 'side');
+        const price = this.safeNumber (message, 'price');
+        const qty = this.safeNumber (message, 'qty');
+        const timestamp = this.safeInteger (message, 'timestamp');
+        if (side === 'sell') {
+            const asks = orderbook['asks'];
+            asks.store (price, qty);
+        } else {
+            const bids = orderbook['bids'];
+            bids.store (price, qty);
+        }
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        client.resolve (orderbook, messageHash);
+    }
 }
