@@ -5986,7 +5986,7 @@ export default class Exchange {
     handleNetworkParameter (code: string, params = {}) {
         const defaultNetworks = this.safeDict (this.options, 'defaultNetworks');
         const defaultNetwork = this.safeString (defaultNetworks, code);
-        const network = this.safeString2 (params, 'network', 'defaultNetwork', defaultNetwork);
+        const network = this.safeStringN (params, [ 'network', 'defaultNetwork', 'networkCode' ], defaultNetwork);
         params = this.omit (params, 'network');
         return [ network, params ];
     }
