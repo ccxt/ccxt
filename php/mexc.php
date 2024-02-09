@@ -1043,7 +1043,7 @@ class mexc extends Exchange {
 
     public function fetch_markets($params = array ()) {
         /**
-         * retrieves data on all markets for mexc3
+         * retrieves data on all markets for mexc
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */

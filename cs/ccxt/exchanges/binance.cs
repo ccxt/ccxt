@@ -7602,20 +7602,16 @@ public partial class binance : Exchange
         //     }
         //
         object marketId = this.safeString(income, "symbol");
-        object symbol = this.safeSymbol(marketId, market, null, "swap");
-        object amount = this.safeNumber(income, "income");
         object currencyId = this.safeString(income, "asset");
-        object code = this.safeCurrencyCode(currencyId);
-        object id = this.safeString(income, "tranId");
         object timestamp = this.safeInteger(income, "time");
         return new Dictionary<string, object>() {
             { "info", income },
-            { "symbol", symbol },
-            { "code", code },
+            { "symbol", this.safeSymbol(marketId, market, null, "swap") },
+            { "code", this.safeCurrencyCode(currencyId) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "id", id },
-            { "amount", amount },
+            { "id", this.safeString(income, "tranId") },
+            { "amount", this.safeNumber(income, "income") },
         };
     }
 
@@ -8786,14 +8782,19 @@ public partial class binance : Exchange
             object marketId = this.safeString(position, "symbol");
             object market = this.safeMarket(marketId, null, null, "contract");
             object code = ((bool) isTrue(getValue(market, "linear"))) ? getValue(market, "quote") : getValue(market, "base");
-            // sometimes not all the codes are correctly returned...
-            if (isTrue(inOp(balances, code)))
+            object maintenanceMargin = this.safeString(position, "maintMargin");
+            // check for maintenance margin so empty positions are not returned
+            if (isTrue(isTrue((!isEqual(maintenanceMargin, "0"))) && isTrue((!isEqual(maintenanceMargin, "0.00000000")))))
             {
-                object parsed = this.parseAccountPosition(this.extend(position, new Dictionary<string, object>() {
-                    { "crossMargin", getValue(getValue(balances, code), "crossMargin") },
-                    { "crossWalletBalance", getValue(getValue(balances, code), "crossWalletBalance") },
-                }), market);
-                ((IList<object>)result).Add(parsed);
+                // sometimes not all the codes are correctly returned...
+                if (isTrue(inOp(balances, code)))
+                {
+                    object parsed = this.parseAccountPosition(this.extend(position, new Dictionary<string, object>() {
+                        { "crossMargin", getValue(getValue(balances, code), "crossMargin") },
+                        { "crossWalletBalance", getValue(getValue(balances, code), "crossWalletBalance") },
+                    }), market);
+                    ((IList<object>)result).Add(parsed);
+                }
             }
         }
         return result;
@@ -8803,6 +8804,7 @@ public partial class binance : Exchange
     {
         //
         // usdm
+        //
         //    {
         //       "symbol": "BTCBUSD",
         //       "initialMargin": "0",
@@ -8823,6 +8825,7 @@ public partial class binance : Exchange
         //     }
         //
         // coinm
+        //
         //     {
         //       "symbol": "BTCUSD_210625",
         //       "initialMargin": "0.00024393",
@@ -8839,6 +8842,46 @@ public partial class binance : Exchange
         //       "isolatedWallet": "0",
         //       "crossMargin": "0.314"
         //       "crossWalletBalance": "34",
+        //     }
+        //
+        // linear portfolio margin
+        //
+        //     {
+        //         "symbol": "CTSIUSDT",
+        //         "initialMargin": "0",
+        //         "maintMargin": "0",
+        //         "unrealizedProfit": "0.00000000",
+        //         "positionInitialMargin": "0",
+        //         "openOrderInitialMargin": "0",
+        //         "leverage": "20",
+        //         "entryPrice": "0.0",
+        //         "maxNotional": "25000",
+        //         "bidNotional": "0",
+        //         "askNotional": "0",
+        //         "positionSide": "SHORT",
+        //         "positionAmt": "0",
+        //         "updateTime": 0,
+        //         "notional": "0",
+        //         "breakEvenPrice": "0.0"
+        //     }
+        //
+        // inverse portoflio margin
+        //
+        //     {
+        //         "symbol": "TRXUSD_PERP",
+        //         "initialMargin": "0",
+        //         "maintMargin": "0",
+        //         "unrealizedProfit": "0.00000000",
+        //         "positionInitialMargin": "0",
+        //         "openOrderInitialMargin": "0",
+        //         "leverage": "20",
+        //         "entryPrice": "0.00000000",
+        //         "positionSide": "SHORT",
+        //         "positionAmt": "0",
+        //         "maxQty": "5000000",
+        //         "updateTime": 0,
+        //         "notionalValue": "0",
+        //         "breakEvenPrice": "0.00000000"
         //     }
         //
         object marketId = this.safeString(position, "symbol");
@@ -9052,6 +9095,40 @@ public partial class binance : Exchange
         //       "positionSide": "BOTH",
         //       "notionalValue": "0.00524892",
         //       "isolatedWallet": "0.00268058"
+        //     }
+        //
+        // inverse portfolio margin
+        //
+        //     {
+        //         "symbol": "ETHUSD_PERP",
+        //         "positionAmt": "1",
+        //         "entryPrice": "2422.400000007",
+        //         "markPrice": "2424.51267823",
+        //         "unRealizedProfit": "0.0000036",
+        //         "liquidationPrice": "293.57678898",
+        //         "leverage": "100",
+        //         "positionSide": "LONG",
+        //         "updateTime": 1707371941861,
+        //         "maxQty": "15",
+        //         "notionalValue": "0.00412454",
+        //         "breakEvenPrice": "2423.368960034"
+        //     }
+        //
+        // linear portfolio margin
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "positionAmt": "0.01",
+        //         "entryPrice": "44525.0",
+        //         "markPrice": "45464.1735922",
+        //         "unRealizedProfit": "9.39173592",
+        //         "liquidationPrice": "38007.16308568",
+        //         "leverage": "100",
+        //         "positionSide": "LONG",
+        //         "updateTime": 1707371879042,
+        //         "maxNotionalValue": "500000.0",
+        //         "notional": "454.64173592",
+        //         "breakEvenPrice": "44542.81"
         //     }
         //
         object marketId = this.safeString(position, "symbol");
@@ -9626,8 +9703,11 @@ public partial class binance : Exchange
         * @description fetch account positions
         * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
         * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#get-um-account-detail-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions in a portfolio margin account
         * @returns {object} data on account positions
         */
         parameters ??= new Dictionary<string, object>();
@@ -9642,18 +9722,34 @@ public partial class binance : Exchange
         await this.loadLeverageBrackets(false, parameters);
         object defaultType = this.safeString(this.options, "defaultType", "future");
         object type = this.safeString(parameters, "type", defaultType);
-        object query = this.omit(parameters, "type");
+        parameters = this.omit(parameters, "type");
         object subType = null;
-        var subTypequeryVariable = this.handleSubTypeAndParams("fetchAccountPositions", null, parameters, "linear");
-        subType = ((IList<object>)subTypequeryVariable)[0];
-        query = ((IList<object>)subTypequeryVariable)[1];
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchAccountPositions", null, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object isPortfolioMargin = null;
+        var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "fetchAccountPositions", "papi", "portfolioMargin", false);
+        isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
+        parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
         object response = null;
         if (isTrue(this.isLinear(type, subType)))
         {
-            response = await this.fapiPrivateV2GetAccount(query);
+            if (isTrue(isPortfolioMargin))
+            {
+                response = await this.papiGetUmAccount(parameters);
+            } else
+            {
+                response = await this.fapiPrivateV2GetAccount(parameters);
+            }
         } else if (isTrue(this.isInverse(type, subType)))
         {
-            response = await this.dapiPrivateGetAccount(query);
+            if (isTrue(isPortfolioMargin))
+            {
+                response = await this.papiGetCmAccount(parameters);
+            } else
+            {
+                response = await this.dapiPrivateGetAccount(parameters);
+            }
         } else
         {
             throw new NotSupported ((string)add(this.id, " fetchPositions() supports linear and inverse contracts only")) ;
@@ -9672,8 +9768,11 @@ public partial class binance : Exchange
         * @description fetch positions risk
         * @see https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
         * @see https://binance-docs.github.io/apidocs/delivery/en/#position-information-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#query-um-position-information-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#query-cm-position-information-user_data
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions for a portfolio margin account
         * @returns {object} data on the positions risk
         */
         parameters ??= new Dictionary<string, object>();
@@ -9694,18 +9793,129 @@ public partial class binance : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositionsRisk", null, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object isPortfolioMargin = null;
+        var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "fetchPositionsRisk", "papi", "portfolioMargin", false);
+        isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
+        parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
         parameters = this.omit(parameters, "type");
         object response = null;
         if (isTrue(this.isLinear(type, subType)))
         {
-            response = await this.fapiPrivateV2GetPositionRisk(this.extend(request, parameters));
+            if (isTrue(isPortfolioMargin))
+            {
+                response = await this.papiGetUmPositionRisk(this.extend(request, parameters));
+            } else
+            {
+                response = await this.fapiPrivateV2GetPositionRisk(this.extend(request, parameters));
+            }
         } else if (isTrue(this.isInverse(type, subType)))
         {
-            response = await this.dapiPrivateGetPositionRisk(this.extend(request, parameters));
+            if (isTrue(isPortfolioMargin))
+            {
+                response = await this.papiGetCmPositionRisk(this.extend(request, parameters));
+            } else
+            {
+                response = await this.dapiPrivateGetPositionRisk(this.extend(request, parameters));
+            }
         } else
         {
             throw new NotSupported ((string)add(this.id, " fetchPositionsRisk() supports linear and inverse contracts only")) ;
         }
+        // ### Response examples ###
+        //
+        // For One-way position mode:
+        //
+        //     [
+        //         {
+        //             "entryPrice": "0.00000",
+        //             "marginType": "isolated",
+        //             "isAutoAddMargin": "false",
+        //             "isolatedMargin": "0.00000000",
+        //             "leverage": "10",
+        //             "liquidationPrice": "0",
+        //             "markPrice": "6679.50671178",
+        //             "maxNotionalValue": "20000000",
+        //             "positionAmt": "0.000",
+        //             "symbol": "BTCUSDT",
+        //             "unRealizedProfit": "0.00000000",
+        //             "positionSide": "BOTH",
+        //             "updateTime": 0
+        //        }
+        //     ]
+        //
+        // For Hedge position mode:
+        //
+        //     [
+        //         {
+        //             "entryPrice": "6563.66500",
+        //             "marginType": "isolated",
+        //             "isAutoAddMargin": "false",
+        //             "isolatedMargin": "15517.54150468",
+        //             "leverage": "10",
+        //             "liquidationPrice": "5930.78",
+        //             "markPrice": "6679.50671178",
+        //             "maxNotionalValue": "20000000",
+        //             "positionAmt": "20.000",
+        //             "symbol": "BTCUSDT",
+        //             "unRealizedProfit": "2316.83423560"
+        //             "positionSide": "LONG",
+        //             "updateTime": 1625474304765
+        //         },
+        //         {
+        //             "entryPrice": "0.00000",
+        //             "marginType": "isolated",
+        //             "isAutoAddMargin": "false",
+        //             "isolatedMargin": "5413.95799991",
+        //             "leverage": "10",
+        //             "liquidationPrice": "7189.95",
+        //             "markPrice": "6679.50671178",
+        //             "maxNotionalValue": "20000000",
+        //             "positionAmt": "-10.000",
+        //             "symbol": "BTCUSDT",
+        //             "unRealizedProfit": "-1156.46711780",
+        //             "positionSide": "SHORT",
+        //             "updateTime": 0
+        //         }
+        //     ]
+        //
+        // inverse portfolio margin:
+        //
+        //     [
+        //         {
+        //             "symbol": "ETHUSD_PERP",
+        //             "positionAmt": "1",
+        //             "entryPrice": "2422.400000007",
+        //             "markPrice": "2424.51267823",
+        //             "unRealizedProfit": "0.0000036",
+        //             "liquidationPrice": "293.57678898",
+        //             "leverage": "100",
+        //             "positionSide": "LONG",
+        //             "updateTime": 1707371941861,
+        //             "maxQty": "15",
+        //             "notionalValue": "0.00412454",
+        //             "breakEvenPrice": "2423.368960034"
+        //         }
+        //     ]
+        //
+        // linear portfolio margin:
+        //
+        //     [
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "positionAmt": "0.01",
+        //             "entryPrice": "44525.0",
+        //             "markPrice": "45464.1735922",
+        //             "unRealizedProfit": "9.39173592",
+        //             "liquidationPrice": "38007.16308568",
+        //             "leverage": "100",
+        //             "positionSide": "LONG",
+        //             "updateTime": 1707371879042,
+        //             "maxNotionalValue": "500000.0",
+        //             "notional": "454.64173592",
+        //             "breakEvenPrice": "44542.81"
+        //         }
+        //     ]
+        //
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
@@ -9724,10 +9934,14 @@ public partial class binance : Exchange
         * @description fetch the history of funding payments paid and received on this account
         * @see https://binance-docs.github.io/apidocs/futures/en/#get-income-history-user_data
         * @see https://binance-docs.github.io/apidocs/delivery/en/#get-income-history-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#get-um-income-history-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-income-history-user_data
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch funding history for
         * @param {int} [limit] the maximum number of funding history structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] timestamp in ms of the latest funding history entry
+        * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the funding history for a portfolio margin account
         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -9749,6 +9963,13 @@ public partial class binance : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchFundingHistory", market, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object isPortfolioMargin = null;
+        var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "fetchFundingHistory", "papi", "portfolioMargin", false);
+        isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
+        parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
+        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
@@ -9763,10 +9984,22 @@ public partial class binance : Exchange
         object response = null;
         if (isTrue(this.isLinear(type, subType)))
         {
-            response = await this.fapiPrivateGetIncome(this.extend(request, parameters));
+            if (isTrue(isPortfolioMargin))
+            {
+                response = await this.papiGetUmIncome(this.extend(request, parameters));
+            } else
+            {
+                response = await this.fapiPrivateGetIncome(this.extend(request, parameters));
+            }
         } else if (isTrue(this.isInverse(type, subType)))
         {
-            response = await this.dapiPrivateGetIncome(this.extend(request, parameters));
+            if (isTrue(isPortfolioMargin))
+            {
+                response = await this.papiGetCmIncome(this.extend(request, parameters));
+            } else
+            {
+                response = await this.dapiPrivateGetIncome(this.extend(request, parameters));
+            }
         } else
         {
             throw new NotSupported ((string)add(this.id, " fetchFundingHistory() supports linear and inverse contracts only")) ;
@@ -10200,12 +10433,15 @@ public partial class binance : Exchange
         * @see https://binance-docs.github.io/apidocs/voptions/en/#account-funding-flow-user_data
         * @see https://binance-docs.github.io/apidocs/futures/en/#get-income-history-user_data
         * @see https://binance-docs.github.io/apidocs/delivery/en/#get-income-history-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#get-um-income-history-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-income-history-user_data
         * @param {string} code unified currency code
         * @param {int} [since] timestamp in ms of the earliest ledger entry
         * @param {int} [limit] max number of ledger entrys to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] timestamp in ms of the latest ledger entry
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the ledger for a portfolio margin account
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -10246,6 +10482,10 @@ public partial class binance : Exchange
             parameters = this.omit(parameters, "until");
             ((IDictionary<string,object>)request)["endTime"] = until;
         }
+        object isPortfolioMargin = null;
+        var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "fetchLedger", "papi", "portfolioMargin", false);
+        isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
+        parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
         object response = null;
         if (isTrue(isEqual(type, "option")))
         {
@@ -10254,10 +10494,22 @@ public partial class binance : Exchange
             response = await this.eapiPrivateGetBill(this.extend(request, parameters));
         } else if (isTrue(this.isLinear(type, subType)))
         {
-            response = await this.fapiPrivateGetIncome(this.extend(request, parameters));
+            if (isTrue(isPortfolioMargin))
+            {
+                response = await this.papiGetUmIncome(this.extend(request, parameters));
+            } else
+            {
+                response = await this.fapiPrivateGetIncome(this.extend(request, parameters));
+            }
         } else if (isTrue(this.isInverse(type, subType)))
         {
-            response = await this.dapiPrivateGetIncome(this.extend(request, parameters));
+            if (isTrue(isPortfolioMargin))
+            {
+                response = await this.papiGetCmIncome(this.extend(request, parameters));
+            } else
+            {
+                response = await this.dapiPrivateGetIncome(this.extend(request, parameters));
+            }
         } else
         {
             throw new NotSupported ((string)add(this.id, " fetchLedger() supports contract wallets only")) ;
@@ -10275,7 +10527,7 @@ public partial class binance : Exchange
         //         }
         //     ]
         //
-        // futures (fapi, dapi)
+        // futures (fapi, dapi, papi)
         //
         //     [
         //         {
@@ -10306,7 +10558,7 @@ public partial class binance : Exchange
         //         "createDate": 1676621042489
         //     }
         //
-        // futures (fapi, dapi)
+        // futures (fapi, dapi, papi)
         //
         //     {
         //         "symbol": "",
