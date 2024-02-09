@@ -41,6 +41,93 @@ export default class blofin extends blofinRest {
         });
     }
 
+    async watchMultipleSymbols (channelName: string, methodName: string, symbols: string[], limit: Int = undefined, params = {}) {
+        // underlier method for all watch-multiple symbols
+        await this.loadMarkets ();
+        let firstMarket = undefined;
+        symbols = this.marketSymbols (symbols, undefined, true, true);
+        if (symbols !== undefined) {
+            firstMarket = this.market (symbols[0]);
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, firstMarket, params);
+        if (marketType === 'spot') {
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for spot markets');
+        }
+        // const length = symbols.length;
+        // if (length > 20) {
+        //     throw new NotSupported (this.id + ' ' + methodName + '() accepts a maximum of 20 symbols in one request');
+        // }
+        const rawSubscriptions = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            const message = {
+                'channel': channelName,
+                'instId': market['id'],
+            };
+            rawSubscriptions.push (message);
+            messageHashes.push (channelName + ':' + market['symbol']);
+        }
+        const request = {
+            'op': 'subscribe',
+            'args': rawSubscriptions,
+        };
+        const url = this.implodeHostname (this.urls['api']['ws'][marketType]['public']);
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
+    }
+
+    handleMessage (client: Client, message) {
+        //
+        // message examples
+        //
+        // {
+        //   arg: {
+        //     channel: "trades",
+        //     instId: "DOGE-USDT",
+        //   },
+        //   event: "subscribe"
+        // }
+        //
+        //
+        // {
+        //   arg: {
+        //     channel: "trades",
+        //     instId: "DOGE-USDT",
+        //   },
+        //   data: [
+        //     {
+        //       instId: "DOGE-USDT",
+        //       price: "0.08199",
+        //       ...
+        //     },
+        //   ],
+        // }
+        //
+        const methods = {
+            'trades': this.handleWsTrades,
+            'orderbook': this.handleWsOrderBook,
+        };
+        const event = this.safeString (message, 'event');
+        if (event === 'subscribe') {
+            return;
+        }
+        const arg = this.safeDict (message, 'arg');
+        const channelName = this.safeString (arg, 'channel');
+        const method = this.safeValue (methods, channelName);
+        if (method) {
+            method.call (this, client, message, channelName);
+        }
+    }
+
+    handleParam (params: object, optionName: string, defaultValue = undefined) {
+        const value = this.safeValue2 (params, optionName, defaultValue);
+        if (value !== undefined) {
+            params = this.omit (params, optionName);
+        }
+        return [ value, params ];
+    }
+
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
@@ -129,88 +216,4 @@ export default class blofin extends blofinRest {
         return this.parseTrade (trade, market);
     }
 
-    async watchMultipleSymbols (channelName: string, methodName: string, symbols: string[], limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
-        let firstMarket = undefined;
-        symbols = this.marketSymbols (symbols, undefined, true, true);
-        if (symbols !== undefined) {
-            firstMarket = this.market (symbols[0]);
-        }
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, firstMarket, params);
-        if (marketType === 'spot') {
-            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for spot markets');
-        }
-        // const length = symbols.length;
-        // if (length > 20) {
-        //     throw new NotSupported (this.id + ' ' + methodName + '() accepts a maximum of 20 symbols in one request');
-        // }
-        const rawSubscriptions = [];
-        const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market (symbols[i]);
-            const message = {
-                'channel': channelName,
-                'instId': market['id'],
-            };
-            rawSubscriptions.push (message);
-            messageHashes.push (channelName + ':' + market['symbol']);
-        }
-        const request = {
-            'op': 'subscribe',
-            'args': rawSubscriptions,
-        };
-        const url = this.implodeHostname (this.urls['api']['ws'][marketType]['public']);
-        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
-    }
-
-    handleMessage (client: Client, message) {
-        //
-        // message examples
-        //
-        // {
-        //   arg: {
-        //     channel: "trades",
-        //     instId: "DOGE-USDT",
-        //   },
-        //   event: "subscribe"
-        // }
-        //
-        //
-        // {
-        //   arg: {
-        //     channel: "trades",
-        //     instId: "DOGE-USDT",
-        //   },
-        //   data: [
-        //     {
-        //       instId: "DOGE-USDT",
-        //       price: "0.08199",
-        //       ...
-        //     },
-        //   ],
-        // }
-        //
-        const methods = {
-            'trades': this.handleWsTrades,
-        };
-        const event = this.safeString (message, 'event');
-        if (event === 'subscribe') {
-            return;
-        }
-        const arg = this.safeDict (message, 'arg');
-        const channelName = this.safeString (arg, 'channel');
-        const method = this.safeValue (methods, channelName);
-        if (method) {
-            method.call (this, client, message, channelName);
-        }
-    }
-
-    handleParam (params: object, optionName: string, defaultValue = undefined) {
-        const value = this.safeValue2 (params, optionName, defaultValue);
-        if (value !== undefined) {
-            params = this.omit (params, optionName);
-        }
-        return [ value, params ];
-    }
 }
