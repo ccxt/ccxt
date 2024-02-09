@@ -563,7 +563,7 @@ export default class blofin extends Exchange {
 
     parseTrade (trade, market: Market = undefined): Trade {
         //
-        // fetch trades
+        // fetch trades & ws trades
         //   {
         //       "tradeId": "3263934920",
         //       "instId": "LTC-USDT",
@@ -572,6 +572,7 @@ export default class blofin extends Exchange {
         //       "side": "buy",
         //       "ts": "1707232020854"
         //   }
+        //
         // my trades
         //   {
         //       "instId": "LTC-USDT",

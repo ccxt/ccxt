@@ -29,6 +29,15 @@ export default class blofin extends blofinRest {
             'options': {
                 'tradesLimit': 1000,
             },
+            // orderbook channel can be one from:
+            //  - "books": 200 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed every 100 ms for the changes in the order book during that period of time.
+            //  - "books5": 5 depth levels snapshot will be pushed every time. Snapshot data will be pushed every 100 ms when there are changes in the 5 depth levels snapshot.
+            'watchOrderBook': {
+                'channel': 'books',
+            },
+            'watchOrderBookForSymbols': {
+                'channel': 'books',
+            },
         });
     }
 
@@ -69,6 +78,53 @@ export default class blofin extends blofinRest {
             limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleWsTrades (client: Client, message, channelName: Str) {
+        const data = this.safeList (message, 'data');
+        //
+        //  [
+        //     {
+        //       instId: "DOGE-USDT",
+        //       tradeId: "3373545342",
+        //       price: "0.08199",
+        //       size: "4",
+        //       side: "buy",
+        //       ts: "1707486245435",
+        //     }
+        //  ]
+        //
+        if (data === undefined) {
+            return;
+        }
+        for (let i = 0; i < data.length; i++) {
+            const rawTrade = data[i];
+            const trade = this.parseWsTrade (rawTrade);
+            const symbol = trade['symbol'];
+            let stored = this.safeValue (this.trades, symbol);
+            if (stored === undefined) {
+                const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                stored = new ArrayCache (limit);
+                this.trades[symbol] = stored;
+            }
+            stored.append (trade);
+            const messageHash = channelName + ':' + symbol;
+            client.resolve (stored, messageHash);
+        }
+    }
+
+    parseWsTrade (trade: any, market?: MarketInterface): Trade {
+        //
+        //     {
+        //       instId: "DOGE-USDT",
+        //       tradeId: "3373545342",
+        //       price: "0.08199",
+        //       size: "4",
+        //       side: "buy",
+        //       ts: "1707486245435",
+        //     }
+        //
+        return this.parseTrade (trade, market);
     }
 
     async watchMultipleSymbols (channelName: string, methodName: string, symbols: string[], limit: Int = undefined, params = {}) {
@@ -146,52 +202,5 @@ export default class blofin extends blofinRest {
         if (method) {
             method.call (this, client, message, channelName);
         }
-    }
-
-    handleWsTrades (client: Client, message, channelName: Str) {
-        const data = this.safeList (message, 'data');
-        //
-        //  [
-        //     {
-        //       instId: "DOGE-USDT",
-        //       tradeId: "3373545342",
-        //       price: "0.08199",
-        //       size: "4",
-        //       side: "buy",
-        //       ts: "1707486245435",
-        //     }
-        //  ]
-        //
-        if (data === undefined) {
-            return;
-        }
-        for (let i = 0; i < data.length; i++) {
-            const rawTrade = data[i];
-            const trade = this.parseWsTrade (rawTrade);
-            const symbol = trade['symbol'];
-            let stored = this.safeValue (this.trades, symbol);
-            if (stored === undefined) {
-                const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                stored = new ArrayCache (limit);
-                this.trades[symbol] = stored;
-            }
-            stored.append (trade);
-            const messageHash = channelName + ':' + symbol;
-            client.resolve (stored, messageHash);
-        }
-    }
-
-    parseWsTrade (trade: any, market?: MarketInterface): Trade {
-        //
-        //     {
-        //       instId: "DOGE-USDT",
-        //       tradeId: "3373545342",
-        //       price: "0.08199",
-        //       size: "4",
-        //       side: "buy",
-        //       ts: "1707486245435",
-        //     }
-        //
-        return this.parseTrade (trade, market);
     }
 }
