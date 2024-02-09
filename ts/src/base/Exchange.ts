@@ -3487,7 +3487,7 @@ export default class Exchange {
         return ohlcv;
     }
 
-    networkCodeToId (networkCode, currencyCode = undefined) {
+    networkCodeToId (networkCode: string, currencyCode: string = undefined) {
         /**
          * @ignore
          * @method
@@ -3530,7 +3530,7 @@ export default class Exchange {
         return networkId;
     }
 
-    networkIdToCode (networkId, currencyCode = undefined): string {
+    networkIdToCode (networkId: string, currencyCode: string = undefined): string {
         /**
          * @ignore
          * @method
