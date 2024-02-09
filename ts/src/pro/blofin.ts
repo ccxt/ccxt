@@ -54,7 +54,7 @@ export default class blofin extends blofinRest {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
-        symbol = this.symbol (symbol);
+        params['callerMethod'] = 'watchTrades';
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
@@ -71,7 +71,9 @@ export default class blofin extends blofinRest {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
-        const trades = await this.watchMultipleSymbols ('trades', 'watchTradesForSymbols', symbols, limit, params);
+        let callerMethod = undefined;
+        [ callerMethod, params ] = this.handleParam (params, 'callerMethod', 'watchTradesForSymbols');
+        const trades = await this.watchMultipleSymbols ('trades', callerMethod, symbols, limit, params);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -125,41 +127,6 @@ export default class blofin extends blofinRest {
         //     }
         //
         return this.parseTrade (trade, market);
-    }
-
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name blofin#watchOrderBook
-         * @see https://docs.blofin.com/index.html#ws-order-book-channel
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
-         * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
-        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
-    }
-
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name bitmart#watchOrderBookForSymbols
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.blofin.com/index.html#ws-order-book-channel
-         * @param {string[]} symbols unified array of symbols
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
-        await this.loadMarkets ();
-        let channelName = undefined;
-        [ channelName, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'channel', 'books');
-        const orderbook = await this.watchMultipleSymbols (channelName, 'watchTradesForSymbols', symbols, limit, params);
-        return orderbook.limit ();
     }
 
     async watchMultipleSymbols (channelName: string, methodName: string, symbols: string[], limit: Int = undefined, params = {}) {
@@ -226,7 +193,6 @@ export default class blofin extends blofinRest {
         //
         const methods = {
             'trades': this.handleWsTrades,
-            'orderbook': this.handleWsOrderBook,
         };
         const event = this.safeString (message, 'event');
         if (event === 'subscribe') {
@@ -238,5 +204,13 @@ export default class blofin extends blofinRest {
         if (method) {
             method.call (this, client, message, channelName);
         }
+    }
+
+    handleParam (params: object, optionName: string, defaultValue = undefined) {
+        const value = this.safeValue2 (params, optionName, defaultValue);
+        if (value !== undefined) {
+            params = this.omit (params, optionName);
+        }
+        return [ value, params ];
     }
 }
