@@ -1892,6 +1892,30 @@
                         "subType": "inverse"
                     }
                 ]
+            },
+            {
+                "description": "Linear portfolio margin fetch account positions",
+                "method": "fetchAccountPositions",
+                "url": "https://papi.binance.com/papi/v1/um/account?timestamp=1707464139103&recvWindow=10000&signature=2d245f910f1fe4d4a5481bdfe529e9e1815cea7085e6dc4e1d7640e4e9d5bb12",
+                "input": [
+                  null,
+                  {
+                    "portfolioMargin": true,
+                    "subType": "linear"
+                  }
+                ]
+            },
+            {
+                "description": "Inverse portfolio margin fetch account positions",
+                "method": "fetchAccountPositions",
+                "url": "https://papi.binance.com/papi/v1/cm/account?timestamp=1707464453893&recvWindow=10000&signature=515b93a4c7fdcbcd02bae0a798484b0e064f871375dad2fff72e7e4c8a2da16c",
+                "input": [
+                  null,
+                  {
+                    "portfolioMargin": true,
+                    "subType": "inverse"
+                  }
+                ]
             }
         ],
         "fetchOpenInterest": [
