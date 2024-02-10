@@ -464,7 +464,7 @@ class Exchange extends \ccxt\Exchange {
         return null;
     }
 
-    public function check_proxy_url_settings($url = null, $method = null, $headers = null, $body = null) {
+    public function check_proxy_url_settings(?string $url = null, ?string $method = null, $headers = null, $body = null) {
         $usedProxies = array();
         $proxyUrl = null;
         if ($this->proxyUrl !== null) {
@@ -500,7 +500,7 @@ class Exchange extends \ccxt\Exchange {
         return $proxyUrl;
     }
 
-    public function check_proxy_settings($url = null, $method = null, $headers = null, $body = null) {
+    public function check_proxy_settings(?string $url = null, ?string $method = null, $headers = null, $body = null) {
         $usedProxies = array();
         $httpProxy = null;
         $httpsProxy = null;
@@ -2120,7 +2120,7 @@ class Exchange extends \ccxt\Exchange {
         return $ohlcv;
     }
 
-    public function network_code_to_id($networkCode, $currencyCode = null) {
+    public function network_code_to_id(string $networkCode, ?string $currencyCode = null) {
         /**
          * @ignore
          * tries to convert the provided $networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
@@ -2161,7 +2161,7 @@ class Exchange extends \ccxt\Exchange {
         return $networkId;
     }
 
-    public function network_id_to_code($networkId, $currencyCode = null) {
+    public function network_id_to_code(string $networkId, ?string $currencyCode = null) {
         /**
          * @ignore
          * tries to convert the provided exchange-specific $networkId to an unified network Code. In order to achieve this, derived class needs to have "options['networksById']" defined.
@@ -2272,7 +2272,7 @@ class Exchange extends \ccxt\Exchange {
         return $this->filter_by_since_limit($sorted, $since, $limit, 0);
     }
 
-    public function parse_leverage_tiers($response, ?array $symbols = null, $marketIdKey = null) {
+    public function parse_leverage_tiers(mixed $response, ?array $symbols = null, $marketIdKey = null) {
         // $marketIdKey should only be null when $response is a dictionary
         $symbols = $this->market_symbols($symbols);
         $tiers = array();
@@ -2332,7 +2332,7 @@ class Exchange extends \ccxt\Exchange {
         return $position;
     }
 
-    public function parse_positions($positions, ?array $symbols = null, $params = array ()) {
+    public function parse_positions(array $positions, ?array $symbols = null, $params = array ()) {
         $symbols = $this->market_symbols($symbols);
         $positions = $this->to_array($positions);
         $result = array();
@@ -2343,7 +2343,7 @@ class Exchange extends \ccxt\Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
-    public function parse_accounts($accounts, $params = array ()) {
+    public function parse_accounts(array $accounts, $params = array ()) {
         $accounts = $this->to_array($accounts);
         $result = array();
         for ($i = 0; $i < count($accounts); $i++) {
@@ -2353,7 +2353,7 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
-    public function parse_trades($trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function parse_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $trades = $this->to_array($trades);
         $result = array();
         for ($i = 0; $i < count($trades); $i++) {
@@ -2365,7 +2365,7 @@ class Exchange extends \ccxt\Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
-    public function parse_transactions($transactions, ?array $currency = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function parse_transactions(array $transactions, ?array $currency = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $transactions = $this->to_array($transactions);
         $result = array();
         for ($i = 0; $i < count($transactions); $i++) {
@@ -2377,7 +2377,7 @@ class Exchange extends \ccxt\Exchange {
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
-    public function parse_transfers($transfers, ?array $currency = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function parse_transfers(array $transfers, ?array $currency = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $transfers = $this->to_array($transfers);
         $result = array();
         for ($i = 0; $i < count($transfers); $i++) {
@@ -2541,19 +2541,19 @@ class Exchange extends \ccxt\Exchange {
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
-    public function edit_limit_buy_order($id, $symbol, float $amount, ?float $price = null, $params = array ()) {
+    public function edit_limit_buy_order(string $id, string $symbol, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $amount, $price, $params) {
             return Async\await($this->edit_limit_order($id, $symbol, 'buy', $amount, $price, $params));
         }) ();
     }
 
-    public function edit_limit_sell_order($id, $symbol, float $amount, ?float $price = null, $params = array ()) {
+    public function edit_limit_sell_order(string $id, string $symbol, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $amount, $price, $params) {
             return Async\await($this->edit_limit_order($id, $symbol, 'sell', $amount, $price, $params));
         }) ();
     }
 
-    public function edit_limit_order($id, $symbol, $side, float $amount, ?float $price = null, $params = array ()) {
+    public function edit_limit_order(string $id, string $symbol, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $side, $amount, $price, $params) {
             return Async\await($this->edit_order($id, $symbol, 'limit', $side, $amount, $price, $params));
         }) ();
@@ -4161,7 +4161,7 @@ class Exchange extends \ccxt\Exchange {
         }
     }
 
-    public function check_required_argument($methodName, $argument, $argumentName, $options = []) {
+    public function check_required_argument(string $methodName, $argument, $argumentName, $options = []) {
         /**
          * @ignore
          * @param {string} $methodName the name of the method that the $argument is being checked for
@@ -4639,7 +4639,7 @@ class Exchange extends \ccxt\Exchange {
         return $input;
     }
 
-    public function handle_until_option($key, $request, $params, $multiplier = 1) {
+    public function handle_until_option(string $key, $request, $params, $multiplier = 1) {
         $until = $this->safe_integer_2($params, 'until', 'till');
         if ($until !== null) {
             $request[$key] = $this->parseToInt ($until * $multiplier);

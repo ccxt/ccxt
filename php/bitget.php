@@ -2396,7 +2396,10 @@ class bitget extends Exchange {
         $this->load_markets();
         $networkCode = $this->safe_string_2($params, 'chain', 'network');
         $params = $this->omit($params, 'network');
-        $networkId = $this->network_code_to_id($networkCode, $code);
+        $networkId = null;
+        if ($networkCode !== null) {
+            $networkId = $this->network_code_to_id($networkCode, $code);
+        }
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['code'],
@@ -2436,11 +2439,15 @@ class bitget extends Exchange {
         $currencyId = $this->safe_string($depositAddress, 'coin');
         $networkId = $this->safe_string($depositAddress, 'chain');
         $parsedCurrency = $this->safe_currency_code($currencyId, $currency);
+        $network = null;
+        if ($networkId !== null) {
+            $network = $this->network_id_to_code($networkId, $parsedCurrency);
+        }
         return array(
             'currency' => $parsedCurrency,
             'address' => $this->safe_string($depositAddress, 'address'),
             'tag' => $this->safe_string($depositAddress, 'tag'),
-            'network' => $this->network_id_to_code($networkId, $parsedCurrency),
+            'network' => $network,
             'info' => $depositAddress,
         );
     }

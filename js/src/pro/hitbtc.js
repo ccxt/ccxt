@@ -174,7 +174,7 @@ export default class hitbtc extends hitbtcRest {
         await this.loadMarkets();
         await this.authenticate();
         const url = this.urls['api']['ws']['private'];
-        const messageHash = this.nonce();
+        const messageHash = this.nonce().toString();
         const subscribe = {
             'method': name,
             'params': params,

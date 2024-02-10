@@ -1604,7 +1604,10 @@ class gate extends Exchange {
                 $currency = $parts[0];
                 $code = $this->safe_currency_code($currency);
                 $networkId = $this->safe_string($entry, 'chain');
-                $networkCode = $this->network_id_to_code($networkId, $code);
+                $networkCode = null;
+                if ($networkId !== null) {
+                    $networkCode = $this->network_id_to_code($networkId, $code);
+                }
                 $delisted = $this->safe_value($entry, 'delisted');
                 $withdrawDisabled = $this->safe_bool($entry, 'withdraw_disabled', false);
                 $depositDisabled = $this->safe_bool($entry, 'deposit_disabled', false);

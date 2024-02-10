@@ -183,7 +183,7 @@ class poloniex extends \ccxt\async\poloniex {
              * @return {array} data from the websocket stream
              */
             $url = $this->urls['api']['ws']['private'];
-            $messageHash = $this->nonce();
+            $messageHash = (string) $this->nonce();
             $subscribe = array(
                 'id' => $messageHash,
                 'event' => $name,

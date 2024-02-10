@@ -4330,7 +4330,9 @@ class phemex(Exchange, ImplicitAPI):
         currency = self.currency(code)
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
-        networkId = self.network_code_to_id(networkCode)
+        networkId = None
+        if networkCode is not None:
+            networkId = self.network_code_to_id(networkCode)
         stableCoins = self.safe_value(self.options, 'stableCoins')
         if networkId is None:
             if not (self.in_array(code, stableCoins)):
