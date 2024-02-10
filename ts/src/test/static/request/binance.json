@@ -768,6 +768,45 @@
                     "marginMode": "isolated"
                   }
                 ]
+            },
+            {
+                "description": "Linear swap portfolio margin fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://papi.binance.com/papi/v1/um/userTrades?timestamp=1707530080933&symbol=BTCUSDT&recvWindow=10000&signature=60b731019a84caf5034fb81e6ace6c4ccf66f02dc2b75713f1965a659d28c856",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
+            },
+            {
+                "description": "Inverse swap portfolio margin fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://papi.binance.com/papi/v1/cm/userTrades?timestamp=1707530344032&symbol=ETHUSD_PERP&recvWindow=10000&signature=d689f5f2a52c7fef837beb49c2493ccc15de55c0706d9878a6890a972a943fc8",
+                "input": [
+                  "ETH/USD:ETH",
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
+            },
+            {
+                "description": "Spot margin portfolio margin fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://papi.binance.com/papi/v1/margin/myTrades?timestamp=1707549805183&symbol=ADAUSDT&recvWindow=10000&signature=5592c16d537fb2fd7c109ad2a7d779f28f24cb4a11175b33a1f458df35f611c0",
+                "input": [
+                  "ADA/USDT",
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
             }
         ],
         "fetchOrders": [
