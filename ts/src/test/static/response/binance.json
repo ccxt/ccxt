@@ -598,6 +598,73 @@
             ]
           }
         ]
+      },
+      {
+        "description": "spot porfolioMargin private trade",
+        "method": "fetchMyTrades",
+        "input": [
+          "LTC/USDT",
+          null,
+          1,
+          {
+            "portfolioMargin": true
+          }
+        ],
+        "httpResponse": [
+          {
+            "symbol": "LTCUSDT",
+            "id": "320530367",
+            "orderId": "3949667670",
+            "price": "69.39000000",
+            "qty": "0.17300000",
+            "quoteQty": "12.00447000",
+            "commission": "0.01200447",
+            "commissionAsset": "USDT",
+            "time": "1706694267729",
+            "isBuyer": false,
+            "isMaker": false,
+            "isBestMatch": true
+          }
+        ],
+        "parsedResponse": [
+          {
+            "info": {
+              "symbol": "LTCUSDT",
+              "id": "320530367",
+              "orderId": "3949667670",
+              "price": "69.39000000",
+              "qty": "0.17300000",
+              "quoteQty": "12.00447000",
+              "commission": "0.01200447",
+              "commissionAsset": "USDT",
+              "time": "1706694267729",
+              "isBuyer": false,
+              "isMaker": false,
+              "isBestMatch": true
+            },
+            "timestamp": 1706694267729,
+            "datetime": "2024-01-31T09:44:27.729Z",
+            "symbol": "LTC/USDT",
+            "id": "320530367",
+            "order": "3949667670",
+            "type": null,
+            "side": "sell",
+            "takerOrMaker": "taker",
+            "price": 69.39,
+            "amount": 0.173,
+            "cost": 12.00447,
+            "fee": {
+              "cost": 0.01200447,
+              "currency": "USDT"
+            },
+            "fees": [
+              {
+                "cost": 0.01200447,
+                "currency": "USDT"
+              }
+            ]
+          }
+        ]
       }
     ],
     "fetchBalance": [
