@@ -1920,6 +1920,7 @@ public partial class bingx : Exchange
         {
             ((IDictionary<string,object>)request)["timeInForce"] = "IOC";
         }
+        object triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
         if (isTrue(isSpot))
         {
             var postOnlyparametersVariable = this.handlePostOnly(isMarketOrder, isEqual(timeInForce, "POC"), parameters);
@@ -1936,7 +1937,7 @@ public partial class bingx : Exchange
                 ((IDictionary<string,object>)request)["quoteOrderQty"] = this.parseToNumeric(this.costToPrecision(symbol, cost));
             } else
             {
-                if (isTrue(isTrue(isTrue(getValue(market, "spot")) && isTrue(isMarketOrder)) && isTrue((!isEqual(price, null)))))
+                if (isTrue(isTrue(isMarketOrder) && isTrue((!isEqual(price, null)))))
                 {
                     // keep the legacy behavior, to avoid  breaking the old spot-market-buying code
                     object calculatedCost = Precise.stringMul(this.numberToString(amount), this.numberToString(price));
@@ -1949,6 +1950,21 @@ public partial class bingx : Exchange
             if (!isTrue(isMarketOrder))
             {
                 ((IDictionary<string,object>)request)["price"] = this.parseToNumeric(this.priceToPrecision(symbol, price));
+            }
+            if (isTrue(!isEqual(triggerPrice, null)))
+            {
+                if (isTrue(isTrue(isMarketOrder) && isTrue(isEqual(this.safeString(request, "quoteOrderQty"), null))))
+                {
+                    throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires the cost parameter (or the amount + price) for placing spot market-buy trigger orders")) ;
+                }
+                ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
+                if (isTrue(isEqual(type, "LIMIT")))
+                {
+                    ((IDictionary<string,object>)request)["type"] = "TRIGGER_LIMIT";
+                } else if (isTrue(isEqual(type, "MARKET")))
+                {
+                    ((IDictionary<string,object>)request)["type"] = "TRIGGER_MARKET";
+                }
             }
         } else
         {
@@ -1965,7 +1981,6 @@ public partial class bingx : Exchange
             {
                 ((IDictionary<string,object>)request)["timeInForce"] = "FOK";
             }
-            object triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
             object stopLossPrice = this.safeString(parameters, "stopLossPrice");
             object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
             object trailingAmount = this.safeString(parameters, "trailingAmount");
@@ -2293,6 +2308,15 @@ public partial class bingx : Exchange
         return this.safeString(sides, side, side);
     }
 
+    public virtual object parseOrderType(object type)
+    {
+        object types = new Dictionary<string, object>() {
+            { "trigger_market", "market" },
+            { "trigger_limit", "limit" },
+        };
+        return this.safeString(types, type, type);
+    }
+
     public override object parseOrder(object order, object market = null)
     {
         //
@@ -2569,7 +2593,7 @@ public partial class bingx : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", lastTradeTimestamp },
             { "lastUpdateTimestamp", this.safeInteger(order, "updateTime") },
-            { "type", this.safeStringLower2(order, "type", "o") },
+            { "type", this.parseOrderType(this.safeStringLower2(order, "type", "o")) },
             { "timeInForce", this.safeString(order, "timeInForce") },
             { "postOnly", null },
             { "side", this.parseOrderSide(side) },

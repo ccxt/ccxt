@@ -1561,7 +1561,9 @@ class gate(Exchange, ImplicitAPI):
             currency = parts[0]
             code = self.safe_currency_code(currency)
             networkId = self.safe_string(entry, 'chain')
-            networkCode = self.network_id_to_code(networkId, code)
+            networkCode = None
+            if networkId is not None:
+                networkCode = self.network_id_to_code(networkId, code)
             delisted = self.safe_value(entry, 'delisted')
             withdrawDisabled = self.safe_bool(entry, 'withdraw_disabled', False)
             depositDisabled = self.safe_bool(entry, 'deposit_disabled', False)

@@ -2361,7 +2361,9 @@ class bitget(Exchange, ImplicitAPI):
         self.load_markets()
         networkCode = self.safe_string_2(params, 'chain', 'network')
         params = self.omit(params, 'network')
-        networkId = self.network_code_to_id(networkCode, code)
+        networkId = None
+        if networkCode is not None:
+            networkId = self.network_code_to_id(networkCode, code)
         currency = self.currency(code)
         request = {
             'coin': currency['code'],
@@ -2399,11 +2401,14 @@ class bitget(Exchange, ImplicitAPI):
         currencyId = self.safe_string(depositAddress, 'coin')
         networkId = self.safe_string(depositAddress, 'chain')
         parsedCurrency = self.safe_currency_code(currencyId, currency)
+        network = None
+        if networkId is not None:
+            network = self.network_id_to_code(networkId, parsedCurrency)
         return {
             'currency': parsedCurrency,
             'address': self.safe_string(depositAddress, 'address'),
             'tag': self.safe_string(depositAddress, 'tag'),
-            'network': self.network_id_to_code(networkId, parsedCurrency),
+            'network': network,
             'info': depositAddress,
         }
 

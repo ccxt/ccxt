@@ -183,7 +183,7 @@ class cex(ccxt.async_support.cex):
         if not isinstance(trade, list):
             trade = trade.split(':')
         side = self.safe_string(trade, 0)
-        timestamp = self.safe_number(trade, 1)
+        timestamp = self.safe_integer(trade, 1)
         amount = self.safe_string(trade, 2)
         price = self.safe_string(trade, 3)
         id = self.safe_string(trade, 4)

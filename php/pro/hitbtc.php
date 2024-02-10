@@ -182,7 +182,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->urls['api']['ws']['private'];
-            $messageHash = $this->nonce();
+            $messageHash = (string) $this->nonce();
             $subscribe = array(
                 'method' => $name,
                 'params' => $params,

@@ -664,7 +664,7 @@ class gemini extends \ccxt\async\gemini {
         //         "socket_sequence" => 139
         //     }
         //
-        $timestamp = $this->safe_number($order, 'timestampms');
+        $timestamp = $this->safe_integer($order, 'timestampms');
         $status = $this->safe_string($order, 'type');
         $marketId = $this->safe_string($order, 'symbol');
         $typeId = $this->safe_string($order, 'order_type');

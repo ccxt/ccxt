@@ -4573,7 +4573,10 @@ class phemex extends Exchange {
         $currency = $this->currency($code);
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
-        $networkId = $this->network_code_to_id($networkCode);
+        $networkId = null;
+        if ($networkCode !== null) {
+            $networkId = $this->network_code_to_id($networkCode);
+        }
         $stableCoins = $this->safe_value($this->options, 'stableCoins');
         if ($networkId === null) {
             if (!($this->in_array($code, $stableCoins))) {

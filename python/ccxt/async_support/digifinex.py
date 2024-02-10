@@ -431,7 +431,9 @@ class digifinex(Exchange, ImplicitAPI):
             minFoundPrecision = Precise.string_min(feeString, Precise.string_min(minDepositString, minWithdrawString))
             precision = self.parse_number(minFoundPrecision)
             networkId = self.safe_string(currency, 'chain')
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = None
+            if networkId is not None:
+                networkCode = self.network_id_to_code(networkId)
             network = {
                 'info': currency,
                 'id': networkId,

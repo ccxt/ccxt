@@ -726,7 +726,10 @@ class poloniex extends Exchange {
                 $code = $this->safe_currency_code($id);
                 $name = $this->safe_string($currency, 'name');
                 $networkId = $this->safe_string($currency, 'blockchain');
-                $networkCode = $this->network_id_to_code($networkId, $code);
+                $networkCode = null;
+                if ($networkId !== null) {
+                    $networkCode = $this->network_id_to_code($networkId, $code);
+                }
                 $delisted = $this->safe_value($currency, 'delisted');
                 $walletEnabled = $this->safe_string($currency, 'walletState') === 'ENABLED';
                 $depositEnabled = $this->safe_string($currency, 'walletDepositState') === 'ENABLED';

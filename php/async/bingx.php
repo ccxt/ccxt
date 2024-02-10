@@ -1824,6 +1824,7 @@ class bingx extends Exchange {
         if ($timeInForce === 'IOC') {
             $request['timeInForce'] = 'IOC';
         }
+        $triggerPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
         if ($isSpot) {
             list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $timeInForce === 'POC', $params);
             if ($postOnly || ($timeInForce === 'POC')) {
@@ -1834,7 +1835,7 @@ class bingx extends Exchange {
             if ($cost !== null) {
                 $request['quoteOrderQty'] = $this->parse_to_numeric($this->cost_to_precision($symbol, $cost));
             } else {
-                if ($market['spot'] && $isMarketOrder && ($price !== null)) {
+                if ($isMarketOrder && ($price !== null)) {
                     // keep the legacy behavior, to avoid  breaking the old spot-$market-buying code
                     $calculatedCost = Precise::string_mul($this->number_to_string($amount), $this->number_to_string($price));
                     $request['quoteOrderQty'] = $this->parse_to_numeric($calculatedCost);
@@ -1845,6 +1846,17 @@ class bingx extends Exchange {
             if (!$isMarketOrder) {
                 $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
             }
+            if ($triggerPrice !== null) {
+                if ($isMarketOrder && $this->safe_string($request, 'quoteOrderQty') === null) {
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires the $cost parameter (or the $amount . $price) for placing spot $market-buy trigger orders');
+                }
+                $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+                if ($type === 'LIMIT') {
+                    $request['type'] = 'TRIGGER_LIMIT';
+                } elseif ($type === 'MARKET') {
+                    $request['type'] = 'TRIGGER_MARKET';
+                }
+            }
         } else {
             list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $timeInForce === 'PostOnly', $params);
             if ($postOnly || ($timeInForce === 'PostOnly')) {
@@ -1854,7 +1866,6 @@ class bingx extends Exchange {
             } elseif ($timeInForce === 'FOK') {
                 $request['timeInForce'] = 'FOK';
             }
-            $triggerPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
             $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
             $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
             $trailingAmount = $this->safe_string($params, 'trailingAmount');
@@ -2146,6 +2157,14 @@ class bingx extends Exchange {
         return $this->safe_string($sides, $side, $side);
     }
 
+    public function parse_order_type($type) {
+        $types = array(
+            'trigger_market' => 'market',
+            'trigger_limit' => 'limit',
+        );
+        return $this->safe_string($types, $type, $type);
+    }
+
     public function parse_order($order, ?array $market = null): array {
         //
         // spot
@@ -2408,7 +2427,7 @@ class bingx extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'lastUpdateTimestamp' => $this->safe_integer($order, 'updateTime'),
-            'type' => $this->safe_string_lower_2($order, 'type', 'o'),
+            'type' => $this->parse_order_type($this->safe_string_lower_2($order, 'type', 'o')),
             'timeInForce' => $this->safe_string($order, 'timeInForce'),
             'postOnly' => null,
             'side' => $this->parse_order_side($side),

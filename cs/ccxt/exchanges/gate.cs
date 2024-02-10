@@ -1574,7 +1574,11 @@ public partial class gate : Exchange
             object currency = getValue(parts, 0);
             object code = this.safeCurrencyCode(currency);
             object networkId = this.safeString(entry, "chain");
-            object networkCode = this.networkIdToCode(networkId, code);
+            object networkCode = null;
+            if (isTrue(!isEqual(networkId, null)))
+            {
+                networkCode = this.networkIdToCode(networkId, code);
+            }
             object delisted = this.safeValue(entry, "delisted");
             object withdrawDisabled = this.safeBool(entry, "withdraw_disabled", false);
             object depositDisabled = this.safeBool(entry, "deposit_disabled", false);

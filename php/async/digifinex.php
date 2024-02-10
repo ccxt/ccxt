@@ -422,7 +422,10 @@ class digifinex extends Exchange {
                 $minFoundPrecision = Precise::string_min($feeString, Precise::string_min($minDepositString, $minWithdrawString));
                 $precision = $this->parse_number($minFoundPrecision);
                 $networkId = $this->safe_string($currency, 'chain');
-                $networkCode = $this->network_id_to_code($networkId);
+                $networkCode = null;
+                if ($networkId !== null) {
+                    $networkCode = $this->network_id_to_code($networkId);
+                }
                 $network = array(
                     'info' => $currency,
                     'id' => $networkId,
