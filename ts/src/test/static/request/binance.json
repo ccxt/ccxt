@@ -2265,6 +2265,39 @@
                   "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "Cross fetch borrow interest",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.binance.com/sapi/v1/margin/interestHistory?timestamp=1707551014113&asset=USDT&recvWindow=10000&signature=dff73a2270259eeac6da202942c96aa6880a346b5c6c3d09280fe766de203fa0",
+                "input": [
+                  "USDT"
+                ]
+            },
+            {
+                "description": "Isolated fetch borrow interest",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.binance.com/sapi/v1/margin/interestHistory?timestamp=1707551070428&asset=USDT&isolatedSymbol=BTCUSDT&recvWindow=10000&signature=5cf6a6b08309f58688b75986e55266363093030d30632b4d3840ecdaf906dfc8",    
+                "input": [
+                  "USDT",
+                  "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Portfolio margin fetch borrow interest",
+                "method": "fetchBorrowInterest",
+                "url": "https://papi.binance.com/papi/v1/margin/marginInterestHistory?timestamp=1707550913636&asset=USDT&recvWindow=10000&signature=67a8ccc93c868c13044e059a799ab7929d10000f40def3a9be7ec87719e22a25",
+                "input": [
+                  "USDT",
+                  null,
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
+            }
         ]
     }
 }
