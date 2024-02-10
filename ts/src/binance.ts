@@ -4307,20 +4307,73 @@ export default class binance extends Exchange {
         //         "time": 1676366446072
         //     }
         //
+        // fetchMyTrades: linear portfolio margin
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "id": 4575108247,
+        //         "orderId": 261942655610,
+        //         "side": "SELL",
+        //         "price": "47263.40",
+        //         "qty": "0.010",
+        //         "realizedPnl": "27.38400000",
+        //         "marginAsset": "USDT",
+        //         "quoteQty": "472.63",
+        //         "commission": "0.18905360",
+        //         "commissionAsset": "USDT",
+        //         "time": 1707530039409,
+        //         "buyer": false,
+        //         "maker": false,
+        //         "positionSide": "LONG"
+        //     }
+        //
+        // fetchMyTrades: inverse portfolio margin
+        //
+        //     {
+        //         "symbol": "ETHUSD_PERP",
+        //         "id": 701907838,
+        //         "orderId": 71548909034,
+        //         "pair": "ETHUSD",
+        //         "side": "SELL",
+        //         "price": "2498.15",
+        //         "qty": "1",
+        //         "realizedPnl": "0.00012517",
+        //         "marginAsset": "ETH",
+        //         "baseQty": "0.00400296",
+        //         "commission": "0.00000160",
+        //         "commissionAsset": "ETH",
+        //         "time": 1707530317519,
+        //         "positionSide": "LONG",
+        //         "buyer": false,
+        //         "maker": false
+        //     }
+        //
+        // fetchMyTrades: spot margin portfolio margin
+        //
+        //     {
+        //         "symbol": "ADAUSDT",
+        //         "id": 470227543,
+        //         "orderId": 4421170947,
+        //         "price": "0.53880000",
+        //         "qty": "10.00000000",
+        //         "quoteQty": "5.38800000",
+        //         "commission": "0.00538800",
+        //         "commissionAsset": "USDT",
+        //         "time": 1707545780522,
+        //         "isBuyer": false,
+        //         "isMaker": false,
+        //         "isBestMatch": true
+        //     }
+        //
         const timestamp = this.safeInteger2 (trade, 'T', 'time');
-        const price = this.safeString2 (trade, 'p', 'price');
         let amount = this.safeString2 (trade, 'q', 'qty');
         amount = this.safeString (trade, 'quantity', amount);
-        const cost = this.safeString2 (trade, 'quoteQty', 'baseQty');  // inverse futures
         const marketId = this.safeString (trade, 'symbol');
-        const isSpotTrade = ('isIsolated' in trade) || ('M' in trade) || ('orderListId' in trade);
+        const isSpotTrade = ('isIsolated' in trade) || ('M' in trade) || ('orderListId' in trade) || ('isMaker' in trade);
         const marketType = isSpotTrade ? 'spot' : 'contract';
         market = this.safeMarket (marketId, market, undefined, marketType);
         const symbol = market['symbol'];
-        let id = this.safeString2 (trade, 't', 'a');
-        id = this.safeString2 (trade, 'tradeId', 'id', id);
         let side = undefined;
-        const orderId = this.safeString (trade, 'orderId');
         const buyerMaker = this.safeValue2 (trade, 'm', 'isBuyerMaker');
         let takerOrMaker = undefined;
         if (buyerMaker !== undefined) {
@@ -4368,14 +4421,14 @@ export default class binance extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': id,
-            'order': orderId,
+            'id': this.safeStringN (trade, [ 't', 'a', 'tradeId', 'id' ]),
+            'order': this.safeString (trade, 'orderId'),
             'type': this.safeStringLower (trade, 'type'),
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
+            'price': this.safeString2 (trade, 'p', 'price'),
             'amount': amount,
-            'cost': cost,
+            'cost': this.safeString2 (trade, 'quoteQty', 'baseQty'),
             'fee': fee,
         }, market);
     }
@@ -6386,12 +6439,16 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#account-trade-list-user_data
          * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-trade-list-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#margin-account-trade-list-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#um-account-trade-list-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#cm-account-trade-list-user_data
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch trades for a portfolio margin account
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
@@ -6444,8 +6501,12 @@ export default class binance extends Exchange {
                 throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
             }
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
+            let isPortfolioMargin = undefined;
+            [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchMyTrades', 'papi', 'portfolioMargin', false);
             if (type === 'spot' || type === 'margin') {
-                if ((type === 'margin') || (marginMode !== undefined)) {
+                if (isPortfolioMargin) {
+                    response = await this.papiGetMarginMyTrades (this.extend (request, params));
+                } else if ((type === 'margin') || (marginMode !== undefined)) {
                     if (marginMode === 'isolated') {
                         request['isIsolated'] = true;
                     }
@@ -6454,9 +6515,17 @@ export default class binance extends Exchange {
                     response = await this.privateGetMyTrades (this.extend (request, params));
                 }
             } else if (market['linear']) {
-                response = await this.fapiPrivateGetUserTrades (this.extend (request, params));
+                if (isPortfolioMargin) {
+                    response = await this.papiGetUmUserTrades (this.extend (request, params));
+                } else {
+                    response = await this.fapiPrivateGetUserTrades (this.extend (request, params));
+                }
             } else if (market['inverse']) {
-                response = await this.dapiPrivateGetUserTrades (this.extend (request, params));
+                if (isPortfolioMargin) {
+                    response = await this.papiGetCmUserTrades (this.extend (request, params));
+                } else {
+                    response = await this.dapiPrivateGetUserTrades (this.extend (request, params));
+                }
             }
         }
         //
@@ -6521,6 +6590,70 @@ export default class binance extends Exchange {
         //             "quantityScale": 2,
         //             "optionSide": "CALL",
         //             "quoteAsset": "USDT"
+        //         }
+        //     ]
+        //
+        // linear portfolio margin
+        //
+        //     [
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "id": 4575108247,
+        //             "orderId": 261942655610,
+        //             "side": "SELL",
+        //             "price": "47263.40",
+        //             "qty": "0.010",
+        //             "realizedPnl": "27.38400000",
+        //             "marginAsset": "USDT",
+        //             "quoteQty": "472.63",
+        //             "commission": "0.18905360",
+        //             "commissionAsset": "USDT",
+        //             "time": 1707530039409,
+        //             "buyer": false,
+        //             "maker": false,
+        //             "positionSide": "LONG"
+        //         }
+        //     ]
+        //
+        // inverse portfolio margin
+        //
+        //     [
+        //         {
+        //             "symbol": "ETHUSD_PERP",
+        //             "id": 701907838,
+        //             "orderId": 71548909034,
+        //             "pair": "ETHUSD",
+        //             "side": "SELL",
+        //             "price": "2498.15",
+        //             "qty": "1",
+        //             "realizedPnl": "0.00012517",
+        //             "marginAsset": "ETH",
+        //             "baseQty": "0.00400296",
+        //             "commission": "0.00000160",
+        //             "commissionAsset": "ETH",
+        //             "time": 1707530317519,
+        //             "positionSide": "LONG",
+        //             "buyer": false,
+        //             "maker": false
+        //         }
+        //     ]
+        //
+        // spot margin portfolio margin
+        //
+        //     [
+        //         {
+        //             "symbol": "ADAUSDT",
+        //             "id": 470227543,
+        //             "orderId": 4421170947,
+        //             "price": "0.53880000",
+        //             "qty": "10.00000000",
+        //             "quoteQty": "5.38800000",
+        //             "commission": "0.00538800",
+        //             "commissionAsset": "USDT",
+        //             "time": 1707545780522,
+        //             "isBuyer": false,
+        //             "isMaker": false,
+        //             "isBestMatch": true
         //         }
         //     ]
         //
