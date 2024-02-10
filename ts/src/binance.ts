@@ -10562,7 +10562,7 @@ export default class binance extends Exchange {
 
     parseBorrowInterest (info, market: Market = undefined) {
         const symbol = this.safeString (info, 'isolatedSymbol');
-        const timestamp = this.safeNumber (info, 'interestAccuredTime');
+        const timestamp = this.safeInteger (info, 'interestAccuredTime');
         const marginMode = (symbol === undefined) ? 'cross' : 'isolated';
         return {
             'account': (symbol === undefined) ? 'cross' : symbol,
