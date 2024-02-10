@@ -674,8 +674,8 @@ public partial class bitforex : Exchange
     public override object parseOrder(object order, object market = null)
     {
         object id = this.safeString(order, "orderId");
-        object timestamp = this.safeNumber(order, "createTime");
-        object lastTradeTimestamp = this.safeNumber(order, "lastTime");
+        object timestamp = this.safeInteger(order, "createTime");
+        object lastTradeTimestamp = this.safeInteger(order, "lastTime");
         object symbol = getValue(market, "symbol");
         object sideId = this.safeInteger(order, "tradeType");
         object side = this.parseSide(sideId);

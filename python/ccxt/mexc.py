@@ -4447,7 +4447,7 @@ class mexc(Exchange, ImplicitAPI):
         marginType = 'isolated' if (openType == '1') else 'cross'
         leverage = self.safe_number(position, 'leverage')
         liquidationPrice = self.safe_number(position, 'liquidatePrice')
-        timestamp = self.safe_number(position, 'updateTime')
+        timestamp = self.safe_integer(position, 'updateTime')
         return self.safe_position({
             'info': position,
             'id': None,

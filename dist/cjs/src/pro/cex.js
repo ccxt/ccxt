@@ -185,7 +185,7 @@ class cex extends cex$1 {
             trade = trade.split(':');
         }
         const side = this.safeString(trade, 0);
-        const timestamp = this.safeNumber(trade, 1);
+        const timestamp = this.safeInteger(trade, 1);
         const amount = this.safeString(trade, 2);
         const price = this.safeString(trade, 3);
         const id = this.safeString(trade, 4);

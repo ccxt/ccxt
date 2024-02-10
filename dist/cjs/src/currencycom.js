@@ -1936,7 +1936,7 @@ class currencycom extends currencycom$1 {
         //
         market = this.safeMarket(this.safeString(position, 'symbol'), market);
         const symbol = market['symbol'];
-        const timestamp = this.safeNumber(position, 'createdTimestamp');
+        const timestamp = this.safeInteger(position, 'createdTimestamp');
         const quantityRaw = this.safeString(position, 'openQuantity');
         const side = Precise["default"].stringGt(quantityRaw, '0') ? 'long' : 'short';
         const quantity = Precise["default"].stringAbs(quantityRaw);

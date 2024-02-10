@@ -1797,6 +1797,7 @@ class bingx extends bingx$1 {
         if (timeInForce === 'IOC') {
             request['timeInForce'] = 'IOC';
         }
+        const triggerPrice = this.safeString2(params, 'stopPrice', 'triggerPrice');
         if (isSpot) {
             [postOnly, params] = this.handlePostOnly(isMarketOrder, timeInForce === 'POC', params);
             if (postOnly || (timeInForce === 'POC')) {
@@ -1808,7 +1809,7 @@ class bingx extends bingx$1 {
                 request['quoteOrderQty'] = this.parseToNumeric(this.costToPrecision(symbol, cost));
             }
             else {
-                if (market['spot'] && isMarketOrder && (price !== undefined)) {
+                if (isMarketOrder && (price !== undefined)) {
                     // keep the legacy behavior, to avoid  breaking the old spot-market-buying code
                     const calculatedCost = Precise["default"].stringMul(this.numberToString(amount), this.numberToString(price));
                     request['quoteOrderQty'] = this.parseToNumeric(calculatedCost);
@@ -1819,6 +1820,18 @@ class bingx extends bingx$1 {
             }
             if (!isMarketOrder) {
                 request['price'] = this.parseToNumeric(this.priceToPrecision(symbol, price));
+            }
+            if (triggerPrice !== undefined) {
+                if (isMarketOrder && this.safeString(request, 'quoteOrderQty') === undefined) {
+                    throw new errors.ArgumentsRequired(this.id + ' createOrder() requires the cost parameter (or the amount + price) for placing spot market-buy trigger orders');
+                }
+                request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
+                if (type === 'LIMIT') {
+                    request['type'] = 'TRIGGER_LIMIT';
+                }
+                else if (type === 'MARKET') {
+                    request['type'] = 'TRIGGER_MARKET';
+                }
             }
         }
         else {
@@ -1832,7 +1845,6 @@ class bingx extends bingx$1 {
             else if (timeInForce === 'FOK') {
                 request['timeInForce'] = 'FOK';
             }
-            const triggerPrice = this.safeString2(params, 'stopPrice', 'triggerPrice');
             const stopLossPrice = this.safeString(params, 'stopLossPrice');
             const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
             const trailingAmount = this.safeString(params, 'trailingAmount');
@@ -2132,6 +2144,13 @@ class bingx extends bingx$1 {
         };
         return this.safeString(sides, side, side);
     }
+    parseOrderType(type) {
+        const types = {
+            'trigger_market': 'market',
+            'trigger_limit': 'limit',
+        };
+        return this.safeString(types, type, type);
+    }
     parseOrder(order, market = undefined) {
         //
         // spot
@@ -2396,7 +2415,7 @@ class bingx extends bingx$1 {
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': this.safeInteger(order, 'updateTime'),
-            'type': this.safeStringLower2(order, 'type', 'o'),
+            'type': this.parseOrderType(this.safeStringLower2(order, 'type', 'o')),
             'timeInForce': this.safeString(order, 'timeInForce'),
             'postOnly': undefined,
             'side': this.parseOrderSide(side),

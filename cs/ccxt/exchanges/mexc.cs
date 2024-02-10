@@ -4770,7 +4770,7 @@ public partial class mexc : Exchange
         object marginType = ((bool) isTrue((isEqual(openType, "1")))) ? "isolated" : "cross";
         object leverage = this.safeNumber(position, "leverage");
         object liquidationPrice = this.safeNumber(position, "liquidatePrice");
-        object timestamp = this.safeNumber(position, "updateTime");
+        object timestamp = this.safeInteger(position, "updateTime");
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },

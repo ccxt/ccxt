@@ -4676,7 +4676,7 @@ class mexc extends Exchange {
         $marginType = ($openType === '1') ? 'isolated' : 'cross';
         $leverage = $this->safe_number($position, 'leverage');
         $liquidationPrice = $this->safe_number($position, 'liquidatePrice');
-        $timestamp = $this->safe_number($position, 'updateTime');
+        $timestamp = $this->safe_integer($position, 'updateTime');
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,

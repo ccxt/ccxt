@@ -4752,7 +4752,7 @@ class mexc extends mexc$1 {
         const marginType = (openType === '1') ? 'isolated' : 'cross';
         const leverage = this.safeNumber(position, 'leverage');
         const liquidationPrice = this.safeNumber(position, 'liquidatePrice');
-        const timestamp = this.safeNumber(position, 'updateTime');
+        const timestamp = this.safeInteger(position, 'updateTime');
         return this.safePosition({
             'info': position,
             'id': undefined,

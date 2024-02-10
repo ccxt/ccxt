@@ -73,6 +73,7 @@ export default class bingx extends Exchange {
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     parseOrderSide(side: any): string;
+    parseOrderType(type: any): string;
     parseOrder(order: any, market?: Market): Order;
     parseOrderStatus(status: any): string;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
