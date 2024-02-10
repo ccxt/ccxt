@@ -657,7 +657,7 @@ export default class bitforex extends Exchange {
     parseOrder (order, market: Market = undefined): Order {
         const id = this.safeString (order, 'orderId');
         const timestamp = this.safeInteger (order, 'createTime');
-        const lastTradetimestamp = this.safeInteger (order, 'lastTime');
+        const lastTradeTimestamp = this.safeInteger (order, 'lastTime');
         const symbol = market['symbol'];
         const sideId = this.safeInteger (order, 'tradeType');
         const side = this.parseSide (sideId);
