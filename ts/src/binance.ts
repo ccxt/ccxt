@@ -10381,15 +10381,19 @@ export default class binance extends Exchange {
          * @name binance#fetchBorrowInterest
          * @description fetch the interest owed by the user for borrowing currency for margin trading
          * @see https://binance-docs.github.io/apidocs/spot/en/#get-interest-history-user_data
-         * @param {string} code unified currency code
-         * @param {string} symbol unified market symbol when fetch interest in isolated markets
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-margin-borrow-loan-interest-history-user_data
+         * @param {string} [code] unified currency code
+         * @param {string} [symbol] unified market symbol when fetch interest in isolated markets
          * @param {int} [since] the earliest time in ms to fetch borrrow interest for
          * @param {int} [limit] the maximum number of structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the borrow interest in a portfolio margin account
          * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchBorrowInterest', 'papi', 'portfolioMargin', false);
+        let request = {};
         let market = undefined;
         if (code !== undefined) {
             const currency = this.currency (code);
@@ -10401,11 +10405,19 @@ export default class binance extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        if (symbol !== undefined) { // Isolated
-            market = this.market (symbol);
-            request['isolatedSymbol'] = market['id'];
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        let response = undefined;
+        if (isPortfolioMargin) {
+            response = await this.papiGetMarginMarginInterestHistory (this.extend (request, params));
+        } else {
+            if (symbol !== undefined) {
+                market = this.market (symbol);
+                request['isolatedSymbol'] = market['id'];
+            }
+            response = await this.sapiGetMarginInterestHistory (this.extend (request, params));
         }
-        const response = await this.sapiGetMarginInterestHistory (this.extend (request, params));
+        //
+        // spot margin
         //
         //     {
         //         "rows":[
@@ -10420,6 +10432,24 @@ export default class binance extends Exchange {
         //             }
         //         ],
         //         "total": 1
+        //     }
+        //
+        // spot margin portfolio margin
+        //
+        //     {
+        //         "total": 49,
+        //         "rows": [
+        //             {
+        //                 "txId": 1656187724899910076,
+        //                 "interestAccuredTime": 1707541200000,
+        //                 "asset": "USDT",
+        //                 "rawAsset": "USDT",
+        //                 "principal": "0.00011146",
+        //                 "interest": "0.00000001",
+        //                 "interestRate": "0.00089489",
+        //                 "type": "PERIODIC"
+        //             },
+        //         ]
         //     }
         //
         const rows = this.safeList (response, 'rows');
