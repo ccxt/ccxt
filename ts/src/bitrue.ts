@@ -3033,7 +3033,7 @@ export default class bitrue extends Exchange {
         };
     }
 
-    async setMargin (symbol: string, amount, params = {}) {
+    async setMargin (symbol: string, amount: number, params = {}) {
         /**
          * @method
          * @name bitrue#setMargin
