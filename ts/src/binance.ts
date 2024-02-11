@@ -6121,7 +6121,7 @@ export default class binance extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const orders = await this.fetchOrders (symbol, since, undefined, params);
-        const filteredOrders = this.filterBy (orders, 'status', 'canceled');
+        const filteredOrders = this.filterBy (orders, 'status', 'closed');
         return this.filterBySinceLimit (filteredOrders, since, limit);
     }
 
