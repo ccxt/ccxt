@@ -2289,8 +2289,7 @@ export default class Exchange {
     async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' setPositionMode() is not supported yet');
     }
-    
-    
+
     async addMargin (symbol: string, amount: number, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' addMargin() is not supported yet');
     }
@@ -2302,7 +2301,7 @@ export default class Exchange {
     async setMargin (symbol: string, amount: number, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' setMargin() is not supported yet');
     }
-    
+
     async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' setMarginMode() is not supported yet');
     }
