@@ -1108,6 +1108,18 @@
                 ]
             }
         ],
+        "fetchClosedOrders": [
+            {
+                "description": "closed orders, should not provide limit in the request",
+                "method": "fetchClosedOrders",
+                "url": "https://api.binance.com/api/v3/allOrders?timestamp=1707669100824&symbol=LTCUSDT&recvWindow=10000&signature=e84b020042f478f2d7857ed9544737864d9b2fd23e85f55009bb3b2c6ad62215",
+                "input": [
+                  "LTC/USDT",
+                  null,
+                  10
+                ]
+            }
+        ],
         "fetchOrderTrades": [
             {
                 "description": "spot order trades",
