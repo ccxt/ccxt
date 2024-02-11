@@ -2289,7 +2289,20 @@ export default class Exchange {
     async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' setPositionMode() is not supported yet');
     }
+    
+    
+    async addMargin (symbol: string, amount: number, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' addMargin() is not supported yet');
+    }
 
+    async reduceMargin (symbol: string, amount: number, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' reduceMargin() is not supported yet');
+    }
+
+    async setMargin (symbol: string, amount: number, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' setMargin() is not supported yet');
+    }
+    
     async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' setMarginMode() is not supported yet');
     }
@@ -3698,7 +3711,7 @@ export default class Exchange {
             contractSize = this.safeNumber (market, 'contractSize');
             position['contractSize'] = contractSize;
         }
-        return position as any;
+        return position as Position;
     }
 
     parsePositions (positions: any[], symbols: string[] = undefined, params = {}): Position[] {
