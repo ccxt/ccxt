@@ -3783,13 +3783,25 @@ export default class Exchange {
         ];
     }
 
-    getArrayOfObjectsKey (objects, key: IndexType) {
+    getListFromObjectValues (objects, key: IndexType) {
         const newArray = this.toArray (objects);
         const results = [];
         for (let i = 0; i < newArray.length; i++) {
             results.push (newArray[i][key]);
         }
         return results;
+    }
+
+    getSymbolsForMarketType (marketType: string = undefined, subType: string = undefined, activeStatuses = [ true, undefined ]) {
+        let filteredMarkets = this.markets;
+        if (marketType !== undefined) {
+            filteredMarkets = this.filterBy (filteredMarkets, 'type', marketType);
+        }
+        if (subType !== undefined) {
+            filteredMarkets = this.filterBy (filteredMarkets, 'subType', subType);
+        }
+        filteredMarkets = this.filterByArray (filteredMarkets, 'active', activeStatuses, false);
+        return this.getListFromObjectValues (filteredMarkets, 'symbol');
     }
 
     filterByArray (objects, key: IndexType, values = undefined, indexed = true) {
