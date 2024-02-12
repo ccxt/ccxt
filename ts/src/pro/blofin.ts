@@ -4,7 +4,7 @@
 import blofinRest from '../blofin.js';
 import { NotSupported } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, MarketInterface, Trade, OrderBook, Str } from '../base/types.js';
+import type { Int, MarketInterface, Trade, OrderBook, Str, Strings, Ticker, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -98,6 +98,7 @@ export default class blofin extends blofinRest {
         const methods = {
             'trades': this.handleWsTrades,
             'books': this.handleWsOrderBook,
+            'tickers': this.handleWsTicker,
         };
         const event = this.safeString (message, 'event');
         if (event === 'subscribe') {
@@ -299,5 +300,54 @@ export default class blofin extends blofinRest {
         }
         this.orderbooks[symbol] = orderbook;
         client.resolve (orderbook, messageHash);
+    }
+
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name blofin#watchTickers
+         * @see https://docs.blofin.com/index.html#ws-tickers-channel
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        let callerMethodName = undefined;
+        [ callerMethodName, params ] = this.handleParam (params, 'callerMethodName', 'watchTickers');
+        const ticker = await this.watchMultipleWrapper ('tickers', callerMethodName, symbols, undefined, params);
+        if (this.newUpdates) {
+            const tickers = {};
+            tickers[ticker['symbol']] = ticker;
+            return tickers;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
+    handleWsTicker (client: Client, message, channelName: string) {
+        //
+        //     {
+        //         instId: "ADA-USDT",
+        //         ts: "1707736811486",
+        //         last: "0.5315",
+        //         lastSize: "4",
+        //         askPrice: "0.5318",
+        //         askSize: "248",
+        //         bidPrice: "0.5315",
+        //         bidSize: "63",
+        //         open24h: "0.5555",
+        //         high24h: "0.5563",
+        //         low24h: "0.5315",
+        //         volCurrency24h: "198560100",
+        //         vol24h: "1985601",
+        //     }
+        //
+        const data = this.safeList (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const ticker = this.parseTicker (data[i]);
+            const symbol = ticker['symbol'];
+            const messageHash = channelName + ':' + symbol;
+            this.tickers[symbol] = ticker;
+            client.resolve (this.tickers[symbol], messageHash);
+        }
     }
 }
