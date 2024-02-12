@@ -505,6 +505,57 @@
             "USDT": 61.33874377565181
           }
         }
+      },
+      {
+        "description": "fetch futures balance",
+        "method": "fetchBalance",
+        "input": [
+          {
+            "accountType": "futures"
+          }
+        ],
+        "httpResponse": {
+          "code": "0",
+          "msg": "success",
+          "data": [
+            {
+              "currency": "USDT",
+              "balance": "59.031464560798605211",
+              "available": "38.965448294131938533",
+              "frozen": "0.000000000000000012",
+              "bonus": "0.000000000000000000"
+            }
+          ]
+        },
+        "parsedResponse": {
+          "info": {
+            "code": "0",
+            "msg": "success",
+            "data": [
+              {
+                "currency": "USDT",
+                "balance": "59.031464560798605211",
+                "available": "38.965448294131938533",
+                "frozen": "0.000000000000000012",
+                "bonus": "0.000000000000000000"
+              }
+            ]
+          },
+          "USDT": {
+            "free": 38.96544829413194,
+            "used": 1.2e-17,
+            "total": 59.031464560798604
+          },
+          "free": {
+            "USDT": 38.96544829413194
+          },
+          "used": {
+            "USDT": 1.2e-17
+          },
+          "total": {
+            "USDT": 59.031464560798604
+          }
+        }
       }
     ],
     "fetchPositions": [
