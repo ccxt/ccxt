@@ -302,6 +302,23 @@ export default class blofin extends blofinRest {
         client.resolve (orderbook, messageHash);
     }
 
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name blofin#watchTicker
+         * @see https://docs.blofin.com/index.html#ws-tickers-channel
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        params['callerMethodName'] = 'watchTicker';
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const result = await this.watchTickers ([ symbol ], params);
+        return result[symbol];
+    }
+
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
