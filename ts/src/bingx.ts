@@ -404,6 +404,13 @@ export default class bingx extends Exchange {
                 },
                 'recvWindow': 5 * 1000, // 5 sec
                 'broker': 'CCXT',
+                'defaultNetworks': {
+                    'ETH': 'ETH',
+                    'USDT': 'ERC20',
+                    'USDC': 'ERC20',
+                    'BTC': 'BTC',
+                    'LTC': 'LTC',
+                },
             },
         });
     }
@@ -3147,16 +3154,22 @@ export default class bingx extends Exchange {
          * @param {string} [params.network] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
-        let network = undefined;
-        [ network, params ] = this.handleNetworkParameter (code, params);
-        params = this.omit (params, 'network');
+
+        const network = this.safeString (params, 'network');
+        params = this.omit (params, [ 'network' ]);
         const addressStructures = await this.fetchDepositAddressesByNetwork (code, params);
         if (network !== undefined) {
             return this.safeDict (addressStructures, network);
         } else {
-            const keys = Object.keys (addressStructures);
-            const key = this.safeString (keys, 0);
-            return this.safeDict (addressStructures, key);
+            const options = this.safeDict (this.options, 'defaultNetworks');
+            const defaultNetworkForCurrency = this.safeString (options, code);
+            if (defaultNetworkForCurrency !== undefined) {
+                return this.safeDict (addressStructures, defaultNetworkForCurrency);
+            } else {
+                const keys = Object.keys (addressStructures);
+                const key = this.safeString (keys, 0);
+                return this.safeDict (addressStructures, key);
+            }
         }
     }
 
