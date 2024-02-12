@@ -3166,6 +3166,7 @@ export default class htx extends Exchange {
             'ht2': 'erc20',
             'hbch': 'erc20',
             'eth': 'erc20',
+            'ETH': 'erc20',
             'rain': 'erc20',
             'xfi': 'erc20',
             'arbieth': 'arb',
