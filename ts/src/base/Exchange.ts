@@ -3804,6 +3804,12 @@ export default class Exchange {
         return this.getListFromObjectValues (filteredMarkets, 'symbol');
     }
 
+    requireSymbolsForMultiSubscription (callerMethodName: string, symbols: string[]) {
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' ' + callerMethodName + '() - this exchange allows to subscribe to all symbols at once, but you still need to define the list of symbols you want to subscribe. Use helper method "exchange.getSymbolsForMarketType(marketType?, subType?)" to get specific symbols easily.');
+        }
+    }
+
     filterByArray (objects, key: IndexType, values = undefined, indexed = true) {
         objects = this.toArray (objects);
         // return all of them if no values were passed
