@@ -450,7 +450,9 @@ class testMainClass extends baseMainTestClass {
             }
         }
         // credentials
-        $this->load_credentials_from_env($exchange);
+        if ($this->load_keys) {
+            $this->load_credentials_from_env($exchange);
+        }
         // skipped tests
         $skipped_file = $this->root_dir_for_skips . 'skip-tests.json';
         $skipped_settings = io_file_read($skipped_file);

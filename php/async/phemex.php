@@ -40,6 +40,7 @@ class phemex extends Exchange {
                 'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'closePosition' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
@@ -3989,7 +3990,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function set_margin(string $symbol, $amount, $params = array ()) {
+    public function set_margin(string $symbol, float $amount, $params = array ()) {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * Either adds or reduces margin in an isolated position in order to set the margin to a specific value
@@ -4645,7 +4646,10 @@ class phemex extends Exchange {
             $currency = $this->currency($code);
             $networkCode = null;
             list($networkCode, $params) = $this->handle_network_code_and_params($params);
-            $networkId = $this->network_code_to_id($networkCode);
+            $networkId = null;
+            if ($networkCode !== null) {
+                $networkId = $this->network_code_to_id($networkCode);
+            }
             $stableCoins = $this->safe_value($this->options, 'stableCoins');
             if ($networkId === null) {
                 if (!($this->in_array($code, $stableCoins))) {

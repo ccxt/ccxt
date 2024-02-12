@@ -199,7 +199,7 @@ class cex extends \ccxt\async\cex {
             $trade = explode(':', $trade);
         }
         $side = $this->safe_string($trade, 0);
-        $timestamp = $this->safe_number($trade, 1);
+        $timestamp = $this->safe_integer($trade, 1);
         $amount = $this->safe_string($trade, 2);
         $price = $this->safe_string($trade, 3);
         $id = $this->safe_string($trade, 4);

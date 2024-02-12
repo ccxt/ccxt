@@ -1920,7 +1920,7 @@ class currencycom extends Exchange {
         //
         $market = $this->safe_market($this->safe_string($position, 'symbol'), $market);
         $symbol = $market['symbol'];
-        $timestamp = $this->safe_number($position, 'createdTimestamp');
+        $timestamp = $this->safe_integer($position, 'createdTimestamp');
         $quantityRaw = $this->safe_string($position, 'openQuantity');
         $side = Precise::string_gt($quantityRaw, '0') ? 'long' : 'short';
         $quantity = Precise::string_abs($quantityRaw);

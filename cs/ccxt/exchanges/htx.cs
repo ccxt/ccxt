@@ -7381,7 +7381,7 @@ public partial class htx : Exchange
         object marginMode = ((bool) isTrue((isEqual(marketId, null)))) ? "cross" : "isolated";
         market = this.safeMarket(marketId);
         object symbol = this.safeString(market, "symbol");
-        object timestamp = this.safeNumber(info, "accrued-at");
+        object timestamp = this.safeInteger(info, "accrued-at");
         return new Dictionary<string, object>() {
             { "account", ((bool) isTrue((isEqual(marginMode, "isolated")))) ? symbol : "cross" },
             { "symbol", symbol },

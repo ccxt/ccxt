@@ -431,11 +431,12 @@ class coinbase(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
-        pagination = self.safe_value(response, 'pagination', {})
+        data = self.safe_list(response, 'data', [])
+        pagination = self.safe_dict(response, 'pagination', {})
         cursor = self.safe_string(pagination, 'next_starting_after')
-        accounts = self.safe_value(response, 'data', [])
-        lastIndex = len(accounts) - 1
+        accounts = self.safe_list(response, 'data', [])
+        length = len(accounts)
+        lastIndex = length - 1
         last = self.safe_value(accounts, lastIndex)
         if (cursor is not None) and (cursor != ''):
             last['next_starting_after'] = cursor
@@ -482,8 +483,9 @@ class coinbase(Exchange, ImplicitAPI):
         #         "size": 9
         #     }
         #
-        accounts = self.safe_value(response, 'accounts', [])
-        lastIndex = len(accounts) - 1
+        accounts = self.safe_list(response, 'accounts', [])
+        length = len(accounts)
+        lastIndex = length - 1
         last = self.safe_value(accounts, lastIndex)
         cursor = self.safe_string(response, 'cursor')
         if (cursor is not None) and (cursor != ''):

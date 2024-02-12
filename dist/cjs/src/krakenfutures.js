@@ -39,7 +39,8 @@ class krakenfutures extends krakenfutures$1 {
                 'fetchBalance': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchClosedOrders': undefined,
+                'fetchCanceledOrders': true,
+                'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchDepositAddress': false,
@@ -1186,6 +1187,102 @@ class krakenfutures extends krakenfutures$1 {
         const orders = this.safeValue(response, 'openOrders', []);
         return this.parseOrders(orders, market, since, limit);
     }
+    async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#fetchClosedOrders
+         * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
+         * @description Gets all closed orders, including trigger orders, for an account from the exchange api
+         * @param {string} symbol Unified market symbol
+         * @param {int} [since] Timestamp (ms) of earliest order.
+         * @param {int} [limit] How many orders to return.
+         * @param {object} [params] Exchange specific parameters
+         * @returns An array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        const request = {};
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        const response = await this.historyGetOrders(this.extend(request, params));
+        const allOrders = this.safeList(response, 'elements', []);
+        const closedOrders = [];
+        for (let i = 0; i < allOrders.length; i++) {
+            const order = allOrders[i];
+            const event = this.safeDict(order, 'event', {});
+            const orderPlaced = this.safeDict(event, 'OrderPlaced');
+            if (orderPlaced !== undefined) {
+                const innerOrder = this.safeDict(orderPlaced, 'order', {});
+                const filled = this.safeString(innerOrder, 'filled');
+                if (filled !== '0') {
+                    innerOrder['status'] = 'closed'; // status not available in the response
+                    closedOrders.push(innerOrder);
+                }
+            }
+        }
+        return this.parseOrders(closedOrders, market, since, limit);
+    }
+    async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#fetchCanceledOrders
+         * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
+         * @description Gets all canceled orders, including trigger orders, for an account from the exchange api
+         * @param {string} symbol Unified market symbol
+         * @param {int} [since] Timestamp (ms) of earliest order.
+         * @param {int} [limit] How many orders to return.
+         * @param {object} [params] Exchange specific parameters
+         * @returns An array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        const request = {};
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        const response = await this.historyGetOrders(this.extend(request, params));
+        const allOrders = this.safeList(response, 'elements', []);
+        const canceledAndRejected = [];
+        for (let i = 0; i < allOrders.length; i++) {
+            const order = allOrders[i];
+            const event = this.safeDict(order, 'event', {});
+            const orderPlaced = this.safeDict(event, 'OrderPlaced');
+            if (orderPlaced !== undefined) {
+                const innerOrder = this.safeDict(orderPlaced, 'order', {});
+                const filled = this.safeString(innerOrder, 'filled');
+                if (filled === '0') {
+                    innerOrder['status'] = 'canceled'; // status not available in the response
+                    canceledAndRejected.push(innerOrder);
+                }
+            }
+            const orderCanceled = this.safeDict(event, 'OrderCancelled');
+            if (orderCanceled !== undefined) {
+                const innerOrder = this.safeDict(orderCanceled, 'order', {});
+                innerOrder['status'] = 'canceled'; // status not available in the response
+                canceledAndRejected.push(innerOrder);
+            }
+            const orderRejected = this.safeDict(event, 'OrderRejected');
+            if (orderRejected !== undefined) {
+                const innerOrder = this.safeDict(orderRejected, 'order', {});
+                innerOrder['status'] = 'rejected'; // status not available in the response
+                canceledAndRejected.push(innerOrder);
+            }
+        }
+        return this.parseOrders(canceledAndRejected, market, since, limit);
+    }
     parseOrderType(orderType) {
         const map = {
             'lmt': 'limit',
@@ -1429,6 +1526,32 @@ class krakenfutures extends krakenfutures$1 {
         //       "status": "requiredArgumentMissing",
         //       "orderEvents": []
         //    }
+        // closed orders
+        //    {
+        //        uid: '2f00cd63-e61d-44f8-8569-adabde885941',
+        //        timestamp: '1707258274849',
+        //        event: {
+        //          OrderPlaced: {
+        //            order: {
+        //              uid: '85805e01-9eed-4395-8360-ed1a228237c9',
+        //              accountUid: '406142dd-7c5c-4a8b-acbc-5f16eca30009',
+        //              tradeable: 'PF_LTCUSD',
+        //              direction: 'Buy',
+        //              quantity: '0',
+        //              filled: '0.1',
+        //              timestamp: '1707258274849',
+        //              limitPrice: '69.2200000000',
+        //              orderType: 'IoC',
+        //              clientId: '',
+        //              reduceOnly: false,
+        //              lastUpdateTimestamp: '1707258274849'
+        //            },
+        //            reason: 'new_user_order',
+        //            reducedQuantity: '',
+        //            algoId: ''
+        //          }
+        //        }
+        //    }
         //
         const orderEvents = this.safeValue(order, 'orderEvents', []);
         const errorStatus = this.safeString(order, 'status');
@@ -1491,7 +1614,8 @@ class krakenfutures extends krakenfutures$1 {
         let remaining = this.safeString(details, 'unfilledSize');
         let average = undefined;
         let filled2 = '0.0';
-        if (trades.length) {
+        const tradesLength = trades.length;
+        if (tradesLength > 0) {
             let vwapSum = '0.0';
             for (let i = 0; i < trades.length; i++) {
                 const trade = trades[i];

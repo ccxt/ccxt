@@ -73,6 +73,7 @@ export default class bingx extends Exchange {
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     parseOrderSide(side: any): string;
+    parseOrderType(type: any): string;
     parseOrder(order: any, market?: Market): Order;
     parseOrderStatus(status: any): string;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -107,7 +108,7 @@ export default class bingx extends Exchange {
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseTransactionStatus(status: any): string;
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
-    setMargin(symbol: string, amount: any, params?: {}): Promise<any>;
+    setMargin(symbol: string, amount: number, params?: {}): Promise<any>;
     fetchLeverage(symbol: string, params?: {}): Promise<any>;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -131,6 +132,7 @@ export default class bingx extends Exchange {
     closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
     closeAllPositions(params?: {}): Promise<Position[]>;
     setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
     sign(path: any, section?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;

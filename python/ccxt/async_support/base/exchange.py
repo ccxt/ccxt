@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.39'
+__version__ = '4.2.43'
 
 # -----------------------------------------------------------------------------
 
@@ -657,6 +657,15 @@ class Exchange(BaseExchange):
     async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' setPositionMode() is not supported yet')
 
+    async def add_margin(self, symbol: str, amount: float, params={}):
+        raise NotSupported(self.id + ' addMargin() is not supported yet')
+
+    async def reduce_margin(self, symbol: str, amount: float, params={}):
+        raise NotSupported(self.id + ' reduceMargin() is not supported yet')
+
+    async def set_margin(self, symbol: str, amount: float, params={}):
+        raise NotSupported(self.id + ' setMargin() is not supported yet')
+
     async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' setMarginMode() is not supported yet')
 
@@ -794,13 +803,13 @@ class Exchange(BaseExchange):
         self.accountsById = self.index_by(self.accounts, 'id')
         return self.accounts
 
-    async def edit_limit_buy_order(self, id, symbol, amount: float, price: float = None, params={}):
+    async def edit_limit_buy_order(self, id: str, symbol: str, amount: float, price: float = None, params={}):
         return await self.edit_limit_order(id, symbol, 'buy', amount, price, params)
 
-    async def edit_limit_sell_order(self, id, symbol, amount: float, price: float = None, params={}):
+    async def edit_limit_sell_order(self, id: str, symbol: str, amount: float, price: float = None, params={}):
         return await self.edit_limit_order(id, symbol, 'sell', amount, price, params)
 
-    async def edit_limit_order(self, id, symbol, side, amount: float, price: float = None, params={}):
+    async def edit_limit_order(self, id: str, symbol: str, side: OrderSide, amount: float, price: float = None, params={}):
         return await self.edit_order(id, symbol, 'limit', side, amount, price, params)
 
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
@@ -879,13 +888,13 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' fetchStatus() is not supported yet')
 
     async def fetch_funding_fee(self, code: str, params={}):
-        warnOnFetchFundingFee = self.safe_value(self.options, 'warnOnFetchFundingFee', True)
+        warnOnFetchFundingFee = self.safe_bool(self.options, 'warnOnFetchFundingFee', True)
         if warnOnFetchFundingFee:
             raise NotSupported(self.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = False to suppress self warning')
         return await self.fetch_transaction_fee(code, params)
 
     async def fetch_funding_fees(self, codes: List[str] = None, params={}):
-        warnOnFetchFundingFees = self.safe_value(self.options, 'warnOnFetchFundingFees', True)
+        warnOnFetchFundingFees = self.safe_bool(self.options, 'warnOnFetchFundingFees', True)
         if warnOnFetchFundingFees:
             raise NotSupported(self.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = False to suppress self warning')
         return await self.fetch_transaction_fees(codes, params)
@@ -922,7 +931,7 @@ class Exchange(BaseExchange):
         if not self.has['fetchBorrowRates']:
             raise NotSupported(self.id + ' fetchIsolatedBorrowRate() is not supported yet')
         borrowRates = await self.fetchIsolatedBorrowRates(params)
-        rate = self.safe_value(borrowRates, symbol)
+        rate = self.safe_dict(borrowRates, symbol)
         if rate is None:
             raise ExchangeError(self.id + ' fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ' + symbol)
         return rate
@@ -933,7 +942,7 @@ class Exchange(BaseExchange):
             market = self.market(symbol)
             symbol = market['symbol']
             tickers = await self.fetch_tickers([symbol], params)
-            ticker = self.safe_value(tickers, symbol)
+            ticker = self.safe_dict(tickers, symbol)
             if ticker is None:
                 raise NullResponse(self.id + ' fetchTickers() could not find a ticker for ' + symbol)
             else:
@@ -966,7 +975,7 @@ class Exchange(BaseExchange):
         return order['status']
 
     async def fetch_unified_order(self, order, params={}):
-        return await self.fetch_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
+        return await self.fetch_order(self.safe_string(order, 'id'), self.safe_string(order, 'symbol'), params)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
@@ -1191,7 +1200,7 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' cancelAllOrdersWs() is not supported yet')
 
     async def cancel_unified_order(self, order, params={}):
-        return self.cancelOrder(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
+        return self.cancelOrder(self.safe_string(order, 'id'), self.safe_string(order, 'symbol'), params)
 
     async def fetch_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         if self.has['fetchOpenOrders'] and self.has['fetchClosedOrders']:

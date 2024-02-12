@@ -2252,6 +2252,7 @@ public partial class bybit : Exchange
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
         * @param {int} [limit] the maximum amount of candles to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] the latest time in ms to fetch orders for
         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
         */
@@ -2286,6 +2287,9 @@ public partial class bybit : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // max 1000, default 1000
         }
+        var requestparametersVariable = this.handleUntilOption("end", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         ((IDictionary<string,object>)request)["interval"] = this.safeString(this.timeframes, timeframe, timeframe);
         object response = null;
         if (isTrue(getValue(market, "spot")))

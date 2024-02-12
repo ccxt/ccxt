@@ -172,7 +172,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         await self.load_markets()
         await self.authenticate()
         url = self.urls['api']['ws']['private']
-        messageHash = self.nonce()
+        messageHash = str(self.nonce())
         subscribe = {
             'method': name,
             'params': params,

@@ -1034,13 +1034,15 @@ class coinlist extends coinlist$1 {
             }
             takerFees = this.sortBy(takerFees, 1, true);
             makerFees = this.sortBy(makerFees, 1, true);
-            const firstTier = this.safeValue(takerFees, 0, []);
-            const exchangeFees = this.safeValue(this, 'fees', {});
-            const exchangeFeesTrading = this.safeValue(exchangeFees, 'trading', {});
-            const exchangeFeesTradingTiers = this.safeValue(exchangeFeesTrading, 'tiers', {});
-            const exchangeFeesTradingTiersTaker = this.safeValue(exchangeFeesTradingTiers, 'taker', []);
-            const exchangeFeesTradingTiersMaker = this.safeValue(exchangeFeesTradingTiers, 'maker', []);
-            if ((keysLength === exchangeFeesTradingTiersTaker.length) && (firstTier.length > 0)) {
+            const firstTier = this.safeDict(takerFees, 0, []);
+            const exchangeFees = this.safeDict(this, 'fees', {});
+            const exchangeFeesTrading = this.safeDict(exchangeFees, 'trading', {});
+            const exchangeFeesTradingTiers = this.safeDict(exchangeFeesTrading, 'tiers', {});
+            const exchangeFeesTradingTiersTaker = this.safeList(exchangeFeesTradingTiers, 'taker', []);
+            const exchangeFeesTradingTiersMaker = this.safeList(exchangeFeesTradingTiers, 'maker', []);
+            const exchangeFeesTradingTiersTakerLength = exchangeFeesTradingTiersTaker.length;
+            const firstTierLength = firstTier.length;
+            if ((keysLength === exchangeFeesTradingTiersTakerLength) && (firstTierLength > 0)) {
                 for (let i = 0; i < keysLength; i++) {
                     takerFees[i][0] = exchangeFeesTradingTiersTaker[i][0];
                     makerFees[i][0] = exchangeFeesTradingTiersMaker[i][0];

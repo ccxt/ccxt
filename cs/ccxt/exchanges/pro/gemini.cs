@@ -703,7 +703,7 @@ public partial class gemini : ccxt.gemini
         //         "socket_sequence": 139
         //     }
         //
-        object timestamp = this.safeNumber(order, "timestampms");
+        object timestamp = this.safeInteger(order, "timestampms");
         object status = this.safeString(order, "type");
         object marketId = this.safeString(order, "symbol");
         object typeId = this.safeString(order, "order_type");

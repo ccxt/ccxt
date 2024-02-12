@@ -6488,7 +6488,7 @@ class htx(Exchange, ImplicitAPI):
         marginMode = 'cross' if (marketId is None) else 'isolated'
         market = self.safe_market(marketId)
         symbol = self.safe_string(market, 'symbol')
-        timestamp = self.safe_number(info, 'accrued-at')
+        timestamp = self.safe_integer(info, 'accrued-at')
         return {
             'account': symbol if (marginMode == 'isolated') else 'cross',  # deprecated
             'symbol': symbol,
