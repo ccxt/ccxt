@@ -18,6 +18,8 @@ export default class blofin extends blofinRest {
                 'watchTradesForSymbols': true,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
+                'watchTicker': true,
+                'watchTickers': true,
             },
             'urls': {
                 'api': {
