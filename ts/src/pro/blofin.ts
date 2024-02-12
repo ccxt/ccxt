@@ -4,7 +4,7 @@
 import blofinRest from '../blofin.js';
 import { NotSupported, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, MarketInterface, Trade, OrderBook, Str, Strings, Ticker, Tickers, OHLCV } from '../base/types.js';
+import type { Int, MarketInterface, Trade, OrderBook, Str, Strings, Ticker, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -54,7 +54,7 @@ export default class blofin extends blofinRest {
         [ methodName, params ] = this.handleParam (params, 'callerMethodName', methodName);
         // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
         const isOHLCV = (channelName === 'candle');
-        const symbols = !isOHLCV ? symbolsArray : this.getListFromObjectValues (symbolsArray, 0);
+        let symbols = !isOHLCV ? symbolsArray : this.getListFromObjectValues (symbolsArray, 0);
         this.requireSymbolsForMultiSubscription (methodName, symbols);
         let firstMarket = undefined;
         symbols = this.marketSymbols (symbols, undefined, false, true);
@@ -85,7 +85,7 @@ export default class blofin extends blofinRest {
                 'instId': market['id'],
             };
             rawSubscriptions.push (topic);
-            messageHashes.push (channelName + ':' + market['symbol']);
+            messageHashes.push (channel + ':' + market['symbol']);
         }
         const request = {
             'op': 'subscribe',
@@ -113,6 +113,7 @@ export default class blofin extends blofinRest {
             'trades': this.handleWsTrades,
             'books': this.handleWsOrderBook,
             'tickers': this.handleWsTicker,
+            'candle': this.handleWsOHLCV,
         };
         const event = this.safeString (message, 'event');
         if (event === 'subscribe') {
@@ -120,7 +121,10 @@ export default class blofin extends blofinRest {
         }
         const arg = this.safeDict (message, 'arg');
         const channelName = this.safeString (arg, 'channel');
-        const method = this.safeValue (methods, channelName);
+        let method = this.safeValue (methods, channelName);
+        if (!method && channelName.indexOf ('candle') >= 0) {
+            method = methods['candle'];
+        }
         if (method) {
             method.call (this, client, message, channelName);
         }
@@ -421,4 +425,41 @@ export default class blofin extends blofinRest {
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
+    handleOHLCV (client: Client, message, channelName: string) {
+        //
+        // message
+        //
+        //     {
+        //         arg: {
+        //             channel: "candle1m",
+        //             instId: "DOGE-USDT",
+        //         },
+        //         data: [
+        //             [
+        //               "1707759720000",
+        //               "0.08181",
+        //               "0.08195",
+        //               "0.08179",
+        //               "0.08194",
+        //               "7695",
+        //               "7695000",
+        //               "630099.32",
+        //               "0",
+        //             ],
+        //         ],
+        //     }
+        //
+        // const marketId = this.safeString (message, 'S');
+        // const symbol = this.safeSymbol (marketId);
+        // let stored = this.safeValue (this.ohlcvs, symbol);
+        // if (stored === undefined) {
+        //     const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+        //     stored = new ArrayCacheByTimestamp (limit);
+        //     this.ohlcvs[symbol] = stored;
+        // }
+        // const parsed = this.parseOHLCV (message);
+        // stored.append (parsed);
+        // const messageHash = 'ohlcv:' + symbol;
+        // client.resolve (stored, messageHash);
+    }
 }
