@@ -388,7 +388,9 @@ export default class bingx extends Exchange {
                 },
                 'broad': {},
             },
-            'commonCurrencies': {},
+            'commonCurrencies': {
+                'SNOW': 'Snowman', // Snowman vs SnowSwap conflict
+            },
             'options': {
                 'defaultType': 'spot',
                 'accountsByType': {
