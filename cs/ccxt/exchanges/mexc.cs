@@ -3878,7 +3878,7 @@ public partial class mexc : Exchange
         return response;
     }
 
-    public async virtual Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
@@ -3893,7 +3893,7 @@ public partial class mexc : Exchange
         return await this.modifyMarginHelper(symbol, amount, "SUB", parameters);
     }
 
-    public async virtual Task<object> addMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method

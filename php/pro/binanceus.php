@@ -13,7 +13,7 @@ class binanceus extends \ccxt\pro\binance {
         // eslint-disable-next-line new-cap
         $restInstance = new \ccxt\async\binanceus ();
         $restDescribe = $restInstance->describe ();
-        $extended = $this->deep_extend(parent::describe(), $restDescribe);
+        $extended = $this->deep_extend($restDescribe, parent::describe());
         return $this->deep_extend($extended, array(
             'id' => 'binanceus',
             'name' => 'Binance US',

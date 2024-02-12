@@ -81,7 +81,7 @@ export default class bitrue extends Exchange {
         symbol: any;
         status: any;
     };
-    setMargin(symbol: string, amount: any, params?: {}): Promise<{
+    setMargin(symbol: string, amount: number, params?: {}): Promise<{
         info: any;
         type: any;
         amount: any;

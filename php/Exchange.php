@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.2.42';
+$version = '4.2.43';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.42';
+    const VERSION = '4.2.43';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2750,6 +2750,18 @@ class Exchange {
 
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' setPositionMode() is not supported yet');
+    }
+
+    public function add_margin(string $symbol, float $amount, $params = array ()) {
+        throw new NotSupported($this->id . ' addMargin() is not supported yet');
+    }
+
+    public function reduce_margin(string $symbol, float $amount, $params = array ()) {
+        throw new NotSupported($this->id . ' reduceMargin() is not supported yet');
+    }
+
+    public function set_margin(string $symbol, float $amount, $params = array ()) {
+        throw new NotSupported($this->id . ' setMargin() is not supported yet');
     }
 
     public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {

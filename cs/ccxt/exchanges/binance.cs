@@ -6527,8 +6527,9 @@ public partial class binance : Exchange
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        object orders = await this.fetchOrders(symbol, since, limit, parameters);
-        return this.filterBy(orders, "status", "closed");
+        object orders = await this.fetchOrders(symbol, since, null, parameters);
+        object filteredOrders = this.filterBy(orders, "status", "closed");
+        return this.filterBySinceLimit(filteredOrders, since, limit);
     }
 
     public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -11159,7 +11160,7 @@ public partial class binance : Exchange
         };
     }
 
-    public async virtual Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
@@ -11176,7 +11177,7 @@ public partial class binance : Exchange
         return await this.modifyMarginHelper(symbol, amount, 2, parameters);
     }
 
-    public async virtual Task<object> addMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method

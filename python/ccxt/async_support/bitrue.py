@@ -2844,7 +2844,7 @@ class bitrue(Exchange, ImplicitAPI):
             'status': None,
         }
 
-    async def set_margin(self, symbol: str, amount, params={}):
+    async def set_margin(self, symbol: str, amount: float, params={}):
         """
         Either adds or reduces margin in an isolated position in order to set the margin to a specific value
         :see: https://www.bitrue.com/api-docs#modify-isolated-position-margin-trade-hmac-sha256

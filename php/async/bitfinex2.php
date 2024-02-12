@@ -3488,7 +3488,7 @@ class bitfinex2 extends Exchange {
         ));
     }
 
-    public function set_margin(string $symbol, $amount, $params = array ()) {
+    public function set_margin(string $symbol, float $amount, $params = array ()) {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * either adds or reduces margin in a swap position in order to set the margin to a specific value

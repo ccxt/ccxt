@@ -6060,8 +6060,9 @@ class binance extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
-        $orders = $this->fetch_orders($symbol, $since, $limit, $params);
-        return $this->filter_by($orders, 'status', 'closed');
+        $orders = $this->fetch_orders($symbol, $since, null, $params);
+        $filteredOrders = $this->filter_by($orders, 'status', 'closed');
+        return $this->filter_by_since_limit($filteredOrders, $since, $limit);
     }
 
     public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {

@@ -6556,7 +6556,7 @@ public partial class gate : Exchange
         };
     }
 
-    public async virtual Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
@@ -6573,7 +6573,7 @@ public partial class gate : Exchange
         return await this.modifyMarginHelper(symbol, prefixUnaryNeg(ref amount), parameters);
     }
 
-    public async virtual Task<object> addMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method

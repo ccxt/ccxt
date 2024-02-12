@@ -766,6 +766,24 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " setPositionMode() is not supported yet")) ;
     }
 
+    public async virtual Task<object> addMargin(object symbol, object amount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " addMargin() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " reduceMargin() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> setMargin(object symbol, object amount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " setMargin() is not supported yet")) ;
+    }
+
     public async virtual Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -2486,7 +2504,7 @@ public partial class Exchange
             contractSize = this.safeNumber(market, "contractSize");
             ((IDictionary<string,object>)position)["contractSize"] = contractSize;
         }
-        return ((object)position);
+        return position;
     }
 
     public virtual object parsePositions(object positions, object symbols = null, object parameters = null)

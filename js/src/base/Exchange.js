@@ -1938,6 +1938,15 @@ export default class Exchange {
     async setPositionMode(hedged, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' setPositionMode() is not supported yet');
     }
+    async addMargin(symbol, amount, params = {}) {
+        throw new NotSupported(this.id + ' addMargin() is not supported yet');
+    }
+    async reduceMargin(symbol, amount, params = {}) {
+        throw new NotSupported(this.id + ' reduceMargin() is not supported yet');
+    }
+    async setMargin(symbol, amount, params = {}) {
+        throw new NotSupported(this.id + ' setMargin() is not supported yet');
+    }
     async setMarginMode(marginMode, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' setMarginMode() is not supported yet');
     }

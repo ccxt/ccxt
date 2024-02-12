@@ -5838,8 +5838,9 @@ class binance(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        orders = self.fetch_orders(symbol, since, limit, params)
-        return self.filter_by(orders, 'status', 'closed')
+        orders = self.fetch_orders(symbol, since, None, params)
+        filteredOrders = self.filter_by(orders, 'status', 'closed')
+        return self.filter_by_since_limit(filteredOrders, since, limit)
 
     def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """

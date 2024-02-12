@@ -6212,8 +6212,9 @@ class binance extends binance$1 {
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const orders = await this.fetchOrders(symbol, since, limit, params);
-        return this.filterBy(orders, 'status', 'closed');
+        const orders = await this.fetchOrders(symbol, since, undefined, params);
+        const filteredOrders = this.filterBy(orders, 'status', 'closed');
+        return this.filterBySinceLimit(filteredOrders, since, limit);
     }
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

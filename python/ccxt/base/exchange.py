@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.42'
+__version__ = '4.2.43'
 
 # -----------------------------------------------------------------------------
 
@@ -2194,6 +2194,15 @@ class Exchange(object):
 
     def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' setPositionMode() is not supported yet')
+
+    def add_margin(self, symbol: str, amount: float, params={}):
+        raise NotSupported(self.id + ' addMargin() is not supported yet')
+
+    def reduce_margin(self, symbol: str, amount: float, params={}):
+        raise NotSupported(self.id + ' reduceMargin() is not supported yet')
+
+    def set_margin(self, symbol: str, amount: float, params={}):
+        raise NotSupported(self.id + ' setMargin() is not supported yet')
 
     def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' setMarginMode() is not supported yet')

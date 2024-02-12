@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.2.42';
+$version = '4.2.43';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.2.42';
+    const VERSION = '4.2.43';
 
     public $browser;
     public $marketsLoading = null;
@@ -917,6 +917,18 @@ class Exchange extends \ccxt\Exchange {
 
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' setPositionMode() is not supported yet');
+    }
+
+    public function add_margin(string $symbol, float $amount, $params = array ()) {
+        throw new NotSupported($this->id . ' addMargin() is not supported yet');
+    }
+
+    public function reduce_margin(string $symbol, float $amount, $params = array ()) {
+        throw new NotSupported($this->id . ' reduceMargin() is not supported yet');
+    }
+
+    public function set_margin(string $symbol, float $amount, $params = array ()) {
+        throw new NotSupported($this->id . ' setMargin() is not supported yet');
     }
 
     public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
