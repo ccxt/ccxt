@@ -45,6 +45,47 @@
           "nonce": 20453289489
         }
       }
+    ],
+    "fetchDepositAddress": [
+      {
+        "description": "fetch USDT address (should return ERC20 address)",
+        "method": "fetchDepositAddress",
+        "input": [
+          "USDT"
+        ],
+        "httpResponse": [
+          {
+            "coin": "USDT",
+            "network": "BNB Smart Chain(BEP20)",
+            "address": "XXXXXX",
+            "memo": null
+          },
+          {
+            "coin": "USDT",
+            "network": "Ethereum(ERC20)",
+            "address": "XXXXXX",
+            "memo": null
+          },
+          {
+            "coin": "USDT",
+            "network": "Tron(TRC20)",
+            "address": "YYYY",
+            "memo": null
+          }
+        ],
+        "parsedResponse": {
+          "currency": "USDT",
+          "address": "XXXXXX",
+          "tag": null,
+          "network": "ERC20",
+          "info": {
+            "coin": "USDT",
+            "network": "Ethereum(ERC20)",
+            "address": "XXXXXX",
+            "memo": null
+          }
+        }
+      }
     ]
   }
 }
