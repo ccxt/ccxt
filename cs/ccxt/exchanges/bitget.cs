@@ -2478,7 +2478,11 @@ public partial class bitget : Exchange
         await this.loadMarkets();
         object networkCode = this.safeString2(parameters, "chain", "network");
         parameters = this.omit(parameters, "network");
-        object networkId = this.networkCodeToId(networkCode, code);
+        object networkId = null;
+        if (isTrue(!isEqual(networkCode, null)))
+        {
+            networkId = this.networkCodeToId(networkCode, code);
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "code") },
@@ -2520,11 +2524,16 @@ public partial class bitget : Exchange
         object currencyId = this.safeString(depositAddress, "coin");
         object networkId = this.safeString(depositAddress, "chain");
         object parsedCurrency = this.safeCurrencyCode(currencyId, currency);
+        object network = null;
+        if (isTrue(!isEqual(networkId, null)))
+        {
+            network = this.networkIdToCode(networkId, parsedCurrency);
+        }
         return new Dictionary<string, object>() {
             { "currency", parsedCurrency },
             { "address", this.safeString(depositAddress, "address") },
             { "tag", this.safeString(depositAddress, "tag") },
-            { "network", this.networkIdToCode(networkId, parsedCurrency) },
+            { "network", network },
             { "info", depositAddress },
         };
     }
@@ -4128,6 +4137,12 @@ public partial class bitget : Exchange
             size = this.safeString(order, "size");
             filled = this.safeString(order, "baseVolume");
         }
+        object side = this.safeString(order, "side");
+        object posMode = this.safeString(order, "posMode");
+        if (isTrue(isTrue(isEqual(posMode, "hedge_mode")) && isTrue(reduceOnly)))
+        {
+            side = ((bool) isTrue((isEqual(side, "buy")))) ? "sell" : "buy";
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", this.safeString2(order, "orderId", "data") },
@@ -4138,7 +4153,7 @@ public partial class bitget : Exchange
             { "lastUpdateTimestamp", updateTimestamp },
             { "symbol", getValue(market, "symbol") },
             { "type", this.safeString(order, "orderType") },
-            { "side", this.safeString(order, "side") },
+            { "side", side },
             { "price", price },
             { "amount", size },
             { "cost", this.safeString2(order, "quoteVolume", "quoteSize") },
@@ -8975,6 +8990,11 @@ public partial class bitget : Exchange
                 if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
                 {
                     object queryInner = add("?", this.urlencode(this.keysort(parameters)));
+                    // check #21169 pr
+                    if (isTrue(isGreaterThan(getIndexOf(queryInner, "%24"), -1)))
+                    {
+                        queryInner = ((string)queryInner).Replace((string)"%24", (string)"$");
+                    }
                     url = add(url, queryInner);
                     auth = add(auth, queryInner);
                 }

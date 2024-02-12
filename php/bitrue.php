@@ -2711,28 +2711,20 @@ class bitrue extends Exchange {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
-        $chainName = $this->safe_string_2($params, 'network', 'chainName');
-        if ($chainName === null) {
-            $networks = $this->safe_value($currency, 'networks', array());
-            $optionsNetworks = $this->safe_value($this->options, 'networks', array());
-            $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
-            $network = $this->safe_string($optionsNetworks, $network, $network);
-            $networkEntry = $this->safe_value($networks, $network, array());
-            $chainName = $this->safe_string($networkEntry, 'id'); // handle ERC20>ETH alias
-            if ($chainName === null) {
-                throw new ArgumentsRequired($this->id . ' withdraw() requires a $network parameter or a $chainName parameter');
-            }
-            $params = $this->omit($params, 'network');
-        }
         $request = array(
-            'coin' => strtoupper($currency['id']),
+            'coin' => $currency['id'],
             'amount' => $amount,
             'addressTo' => $address,
-            'chainName' => $chainName, // 'ERC20', 'TRC20', 'SOL'
+            // 'chainName' => chainName, // 'ERC20', 'TRC20', 'SOL'
             // 'addressMark' => '', // mark of $address
             // 'addrType' => '', // type of $address
             // 'tag' => $tag,
         );
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        if ($networkCode !== null) {
+            $request['chainName'] = $this->network_code_to_id($networkCode);
+        }
         if ($tag !== null) {
             $request['tag'] = $tag;
         }

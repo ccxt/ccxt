@@ -1043,7 +1043,7 @@ class mexc(Exchange, ImplicitAPI):
 
     async def fetch_markets(self, params={}):
         """
-        retrieves data on all markets for mexc3
+        retrieves data on all markets for mexc
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -4054,7 +4054,9 @@ class mexc(Exchange, ImplicitAPI):
             'coin': currency['id'],
         }
         networkCode = self.safe_string(params, 'network')
-        networkId = self.network_code_to_id(networkCode, code)
+        networkId = None
+        if networkCode is not None:
+            networkId = self.network_code_to_id(networkCode, code)
         if networkId is not None:
             request['network'] = networkId
         params = self.omit(params, 'network')
@@ -4447,7 +4449,7 @@ class mexc(Exchange, ImplicitAPI):
         marginType = 'isolated' if (openType == '1') else 'cross'
         leverage = self.safe_number(position, 'leverage')
         liquidationPrice = self.safe_number(position, 'liquidatePrice')
-        timestamp = self.safe_number(position, 'updateTime')
+        timestamp = self.safe_integer(position, 'updateTime')
         return self.safe_position({
             'info': position,
             'id': None,

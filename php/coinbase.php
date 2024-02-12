@@ -423,11 +423,12 @@ class coinbase extends Exchange {
         //         ]
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $pagination = $this->safe_value($response, 'pagination', array());
+        $data = $this->safe_list($response, 'data', array());
+        $pagination = $this->safe_dict($response, 'pagination', array());
         $cursor = $this->safe_string($pagination, 'next_starting_after');
-        $accounts = $this->safe_value($response, 'data', array());
-        $lastIndex = strlen($accounts) - 1;
+        $accounts = $this->safe_list($response, 'data', array());
+        $length = count($accounts);
+        $lastIndex = $length - 1;
         $last = $this->safe_value($accounts, $lastIndex);
         if (($cursor !== null) && ($cursor !== '')) {
             $last['next_starting_after'] = $cursor;
@@ -477,8 +478,9 @@ class coinbase extends Exchange {
         //         "size" => 9
         //     }
         //
-        $accounts = $this->safe_value($response, 'accounts', array());
-        $lastIndex = strlen($accounts) - 1;
+        $accounts = $this->safe_list($response, 'accounts', array());
+        $length = count($accounts);
+        $lastIndex = $length - 1;
         $last = $this->safe_value($accounts, $lastIndex);
         $cursor = $this->safe_string($response, 'cursor');
         if (($cursor !== null) && ($cursor !== '')) {

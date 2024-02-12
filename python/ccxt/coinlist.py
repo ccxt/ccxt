@@ -1014,13 +1014,15 @@ class coinlist(Exchange, ImplicitAPI):
                 takerFees.append([None, self.parse_number(taker)])
             takerFees = self.sort_by(takerFees, 1, True)
             makerFees = self.sort_by(makerFees, 1, True)
-            firstTier = self.safe_value(takerFees, 0, [])
-            exchangeFees = self.safe_value(self, 'fees', {})
-            exchangeFeesTrading = self.safe_value(exchangeFees, 'trading', {})
-            exchangeFeesTradingTiers = self.safe_value(exchangeFeesTrading, 'tiers', {})
-            exchangeFeesTradingTiersTaker = self.safe_value(exchangeFeesTradingTiers, 'taker', [])
-            exchangeFeesTradingTiersMaker = self.safe_value(exchangeFeesTradingTiers, 'maker', [])
-            if (keysLength == len(exchangeFeesTradingTiersTaker)) and (len(firstTier) > 0):
+            firstTier = self.safe_dict(takerFees, 0, [])
+            exchangeFees = self.safe_dict(self, 'fees', {})
+            exchangeFeesTrading = self.safe_dict(exchangeFees, 'trading', {})
+            exchangeFeesTradingTiers = self.safe_dict(exchangeFeesTrading, 'tiers', {})
+            exchangeFeesTradingTiersTaker = self.safe_list(exchangeFeesTradingTiers, 'taker', [])
+            exchangeFeesTradingTiersMaker = self.safe_list(exchangeFeesTradingTiers, 'maker', [])
+            exchangeFeesTradingTiersTakerLength = len(exchangeFeesTradingTiersTaker)
+            firstTierLength = len(firstTier)
+            if (keysLength == exchangeFeesTradingTiersTakerLength) and (firstTierLength > 0):
                 for i in range(0, keysLength):
                     takerFees[i][0] = exchangeFeesTradingTiersTaker[i][0]
                     makerFees[i][0] = exchangeFeesTradingTiersMaker[i][0]

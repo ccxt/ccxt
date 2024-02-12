@@ -1123,7 +1123,8 @@ class coinmetro(Exchange, ImplicitAPI):
             descriptionArray = description.split(' ')
         type = None
         referenceId = None
-        if len(descriptionArray) > 1:
+        length = len(descriptionArray)
+        if length > 1:
             type = self.parse_ledger_entry_type(descriptionArray[0])
             if descriptionArray[1] != '-':
                 referenceId = descriptionArray[1]

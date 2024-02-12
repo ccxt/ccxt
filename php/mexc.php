@@ -1043,7 +1043,7 @@ class mexc extends Exchange {
 
     public function fetch_markets($params = array ()) {
         /**
-         * retrieves data on all markets for mexc3
+         * retrieves data on all markets for mexc
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
@@ -4253,7 +4253,10 @@ class mexc extends Exchange {
             'coin' => $currency['id'],
         );
         $networkCode = $this->safe_string($params, 'network');
-        $networkId = $this->network_code_to_id($networkCode, $code);
+        $networkId = null;
+        if ($networkCode !== null) {
+            $networkId = $this->network_code_to_id($networkCode, $code);
+        }
         if ($networkId !== null) {
             $request['network'] = $networkId;
         }
@@ -4676,7 +4679,7 @@ class mexc extends Exchange {
         $marginType = ($openType === '1') ? 'isolated' : 'cross';
         $leverage = $this->safe_number($position, 'leverage');
         $liquidationPrice = $this->safe_number($position, 'liquidatePrice');
-        $timestamp = $this->safe_number($position, 'updateTime');
+        $timestamp = $this->safe_integer($position, 'updateTime');
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,

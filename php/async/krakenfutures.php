@@ -42,7 +42,8 @@ class krakenfutures extends Exchange {
                 'fetchBalance' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchClosedOrders' => null, // https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
+                'fetchCanceledOrders' => true,
+                'fetchClosedOrders' => true, // https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchDepositAddress' => false,
@@ -1192,6 +1193,104 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-$order-events
+             * Gets all closed orders, including trigger orders, for an account from the exchange api
+             * @param {string} $symbol Unified $market $symbol
+             * @param {int} [$since] Timestamp (ms) of earliest $order->
+             * @param {int} [$limit] How many orders to return.
+             * @param {array} [$params] Exchange specific parameters
+             * @return An array of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $request = array();
+            if ($limit !== null) {
+                $request['count'] = $limit;
+            }
+            if ($since !== null) {
+                $request['from'] = $since;
+            }
+            $response = Async\await($this->historyGetOrders (array_merge($request, $params)));
+            $allOrders = $this->safe_list($response, 'elements', array());
+            $closedOrders = array();
+            for ($i = 0; $i < count($allOrders); $i++) {
+                $order = $allOrders[$i];
+                $event = $this->safe_dict($order, 'event', array());
+                $orderPlaced = $this->safe_dict($event, 'OrderPlaced');
+                if ($orderPlaced !== null) {
+                    $innerOrder = $this->safe_dict($orderPlaced, 'order', array());
+                    $filled = $this->safe_string($innerOrder, 'filled');
+                    if ($filled !== '0') {
+                        $innerOrder['status'] = 'closed'; // status not available in the $response
+                        $closedOrders[] = $innerOrder;
+                    }
+                }
+            }
+            return $this->parse_orders($closedOrders, $market, $since, $limit);
+        }) ();
+    }
+
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-$order-events
+             * Gets all canceled orders, including trigger orders, for an account from the exchange api
+             * @param {string} $symbol Unified $market $symbol
+             * @param {int} [$since] Timestamp (ms) of earliest $order->
+             * @param {int} [$limit] How many orders to return.
+             * @param {array} [$params] Exchange specific parameters
+             * @return An array of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $request = array();
+            if ($limit !== null) {
+                $request['count'] = $limit;
+            }
+            if ($since !== null) {
+                $request['from'] = $since;
+            }
+            $response = Async\await($this->historyGetOrders (array_merge($request, $params)));
+            $allOrders = $this->safe_list($response, 'elements', array());
+            $canceledAndRejected = array();
+            for ($i = 0; $i < count($allOrders); $i++) {
+                $order = $allOrders[$i];
+                $event = $this->safe_dict($order, 'event', array());
+                $orderPlaced = $this->safe_dict($event, 'OrderPlaced');
+                if ($orderPlaced !== null) {
+                    $innerOrder = $this->safe_dict($orderPlaced, 'order', array());
+                    $filled = $this->safe_string($innerOrder, 'filled');
+                    if ($filled === '0') {
+                        $innerOrder['status'] = 'canceled'; // status not available in the $response
+                        $canceledAndRejected[] = $innerOrder;
+                    }
+                }
+                $orderCanceled = $this->safe_dict($event, 'OrderCancelled');
+                if ($orderCanceled !== null) {
+                    $innerOrder = $this->safe_dict($orderCanceled, 'order', array());
+                    $innerOrder['status'] = 'canceled'; // status not available in the $response
+                    $canceledAndRejected[] = $innerOrder;
+                }
+                $orderRejected = $this->safe_dict($event, 'OrderRejected');
+                if ($orderRejected !== null) {
+                    $innerOrder = $this->safe_dict($orderRejected, 'order', array());
+                    $innerOrder['status'] = 'rejected'; // status not available in the $response
+                    $canceledAndRejected[] = $innerOrder;
+                }
+            }
+            return $this->parse_orders($canceledAndRejected, $market, $since, $limit);
+        }) ();
+    }
+
     public function parse_order_type($orderType) {
         $map = array(
             'lmt' => 'limit',
@@ -1438,6 +1537,32 @@ class krakenfutures extends Exchange {
         //       "status" => "requiredArgumentMissing",
         //       "orderEvents" => array()
         //    }
+        // closed orders
+        //    {
+        //        uid => '2f00cd63-e61d-44f8-8569-adabde885941',
+        //        $timestamp => '1707258274849',
+        //        event => {
+        //          OrderPlaced => {
+        //            $order => array(
+        //              uid => '85805e01-9eed-4395-8360-ed1a228237c9',
+        //              accountUid => '406142dd-7c5c-4a8b-acbc-5f16eca30009',
+        //              tradeable => 'PF_LTCUSD',
+        //              direction => 'Buy',
+        //              quantity => '0',
+        //              $filled => '0.1',
+        //              $timestamp => '1707258274849',
+        //              limitPrice => '69.2200000000',
+        //              orderType => 'IoC',
+        //              clientId => '',
+        //              reduceOnly => false,
+        //              $lastUpdateTimestamp => '1707258274849'
+        //            ),
+        //            reason => 'new_user_order',
+        //            reducedQuantity => '',
+        //            algoId => ''
+        //          }
+        //        }
+        //    }
         //
         $orderEvents = $this->safe_value($order, 'orderEvents', array());
         $errorStatus = $this->safe_string($order, 'status');
@@ -1499,7 +1624,8 @@ class krakenfutures extends Exchange {
         $remaining = $this->safe_string($details, 'unfilledSize');
         $average = null;
         $filled2 = '0.0';
-        if (strlen($trades)) {
+        $tradesLength = count($trades);
+        if ($tradesLength > 0) {
             $vwapSum = '0.0';
             for ($i = 0; $i < count($trades); $i++) {
                 $trade = $trades[$i];

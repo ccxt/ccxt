@@ -768,6 +768,45 @@
                     "marginMode": "isolated"
                   }
                 ]
+            },
+            {
+                "description": "Linear swap portfolio margin fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://papi.binance.com/papi/v1/um/userTrades?timestamp=1707530080933&symbol=BTCUSDT&recvWindow=10000&signature=60b731019a84caf5034fb81e6ace6c4ccf66f02dc2b75713f1965a659d28c856",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
+            },
+            {
+                "description": "Inverse swap portfolio margin fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://papi.binance.com/papi/v1/cm/userTrades?timestamp=1707530344032&symbol=ETHUSD_PERP&recvWindow=10000&signature=d689f5f2a52c7fef837beb49c2493ccc15de55c0706d9878a6890a972a943fc8",
+                "input": [
+                  "ETH/USD:ETH",
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
+            },
+            {
+                "description": "Spot margin portfolio margin fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://papi.binance.com/papi/v1/margin/myTrades?timestamp=1707549805183&symbol=ADAUSDT&recvWindow=10000&signature=5592c16d537fb2fd7c109ad2a7d779f28f24cb4a11175b33a1f458df35f611c0",
+                "input": [
+                  "ADA/USDT",
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
             }
         ],
         "fetchOrders": [
@@ -1069,6 +1108,18 @@
                 ]
             }
         ],
+        "fetchClosedOrders": [
+            {
+                "description": "closed orders, should not provide limit in the request",
+                "method": "fetchClosedOrders",
+                "url": "https://api.binance.com/api/v3/allOrders?timestamp=1707669100824&symbol=LTCUSDT&recvWindow=10000&signature=e84b020042f478f2d7857ed9544737864d9b2fd23e85f55009bb3b2c6ad62215",
+                "input": [
+                  "LTC/USDT",
+                  null,
+                  10
+                ]
+            }
+        ],
         "fetchOrderTrades": [
             {
                 "description": "spot order trades",
@@ -1268,6 +1319,36 @@
                         "type": "swap",
                         "subType": "inverse"
                     }
+                ]
+            },
+            {
+                "description": "Linear swap portfolio margin fetch ledger",
+                "method": "fetchLedger",
+                "url": "https://papi.binance.com/papi/v1/um/income?timestamp=1707448893303&recvWindow=10000&signature=3aed27d69b1967eb5dd0a6183b32fb08bd85f14d0f9d02d951a45a6007b74843",
+                "input": [
+                  null,
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true,
+                    "type": "swap",
+                    "subType": "linear"
+                  }
+                ]
+            },
+            {
+                "description": "Inverse swap portfolio margin fetch ledger",
+                "method": "fetchLedger",
+                "url": "https://papi.binance.com/papi/v1/cm/income?timestamp=1707448981443&recvWindow=10000&signature=19baa97358f2f82e612b69e6d13c59ced0de2f6379df0c32fc6621bd74ec2639",
+                "input": [
+                  null,
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true,
+                    "type": "swap",
+                    "subType": "inverse"
+                  }
                 ]
             }
         ],
@@ -1744,6 +1825,32 @@
                 "input": [
                     "BTC/USD:BTC"
                 ]
+            },
+            {
+                "description": "Linear swap portfolio margin fetch funding history",
+                "method": "fetchFundingHistory",
+                "url": "https://papi.binance.com/papi/v1/um/income?timestamp=1707450596925&incomeType=FUNDING_FEE&symbol=BTCUSDT&recvWindow=10000&signature=2b76b4aedcc0b567260c087b446b50146f6db538a00d4cb692b0aeb0f939b9d3",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
+            },
+            {
+                "description": "Inverse swap portfolio margin fetch funding history",
+                "method": "fetchFundingHistory",
+                "url": "https://papi.binance.com/papi/v1/cm/income?timestamp=1707450694387&incomeType=FUNDING_FEE&symbol=ETHUSD_PERP&recvWindow=10000&signature=26f345820e4a993c6a6be8b6acc0b7fdcc98cdf2ed33ddf0c3f78cef382ea4e2",
+                "input": [
+                  "ETH/USD:ETH",
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
             }
         ],
         "fetchTrades": [
@@ -1810,6 +1917,34 @@
                         "subType": "inverse"
                     }
                 ]
+            },
+            {
+                "description": "Inverse portfolio margin fetch positions risk",
+                "method": "fetchPositionsRisk",
+                "url": "https://papi.binance.com/papi/v1/cm/positionRisk?timestamp=1707443702916&recvWindow=10000&signature=88c195bc372626397818eb714cae53388fdfb9baa32f997d0611075dde07bd4f",
+                "input": [
+                  [
+                    "ETH/USD:ETH"
+                  ],
+                  {
+                    "portfolioMargin": true,
+                    "subType": "inverse"
+                  }
+                ]
+            },
+            {
+                "description": "Linear portfolio margin fetch positions risk",
+                "method": "fetchPositionsRisk",
+                "url": "https://papi.binance.com/papi/v1/um/positionRisk?timestamp=1707444182528&recvWindow=10000&signature=c51d48deff54a226859b6fe4ce62a5982c1b3eec82255d211c6e67d6b3bd4f0f",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ],
+                  {
+                    "portfolioMargin": true,
+                    "subType": "linear"
+                  }
+                ]
             }
         ],
         "fetchAccountPositions": [
@@ -1833,6 +1968,30 @@
                     {
                         "subType": "inverse"
                     }
+                ]
+            },
+            {
+                "description": "Linear portfolio margin fetch account positions",
+                "method": "fetchAccountPositions",
+                "url": "https://papi.binance.com/papi/v1/um/account?timestamp=1707464139103&recvWindow=10000&signature=2d245f910f1fe4d4a5481bdfe529e9e1815cea7085e6dc4e1d7640e4e9d5bb12",
+                "input": [
+                  null,
+                  {
+                    "portfolioMargin": true,
+                    "subType": "linear"
+                  }
+                ]
+            },
+            {
+                "description": "Inverse portfolio margin fetch account positions",
+                "method": "fetchAccountPositions",
+                "url": "https://papi.binance.com/papi/v1/cm/account?timestamp=1707464453893&recvWindow=10000&signature=515b93a4c7fdcbcd02bae0a798484b0e064f871375dad2fff72e7e4c8a2da16c",
+                "input": [
+                  null,
+                  {
+                    "portfolioMargin": true,
+                    "subType": "inverse"
+                  }
                 ]
             }
         ],
@@ -2116,6 +2275,39 @@
                 "url": "https://api.binance.com/sapi/v1/asset/tradeFee?timestamp=1706095328067&symbol=BTCUSDT&recvWindow=10000&signature=b24637ac06270ce8d90d3d0835e9bc6a6c56ff389364fec2bce09ee74ef8aef8",
                 "input": [
                   "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "Cross fetch borrow interest",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.binance.com/sapi/v1/margin/interestHistory?timestamp=1707551014113&asset=USDT&recvWindow=10000&signature=dff73a2270259eeac6da202942c96aa6880a346b5c6c3d09280fe766de203fa0",
+                "input": [
+                  "USDT"
+                ]
+            },
+            {
+                "description": "Isolated fetch borrow interest",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.binance.com/sapi/v1/margin/interestHistory?timestamp=1707551070428&asset=USDT&isolatedSymbol=BTCUSDT&recvWindow=10000&signature=5cf6a6b08309f58688b75986e55266363093030d30632b4d3840ecdaf906dfc8",    
+                "input": [
+                  "USDT",
+                  "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Portfolio margin fetch borrow interest",
+                "method": "fetchBorrowInterest",
+                "url": "https://papi.binance.com/papi/v1/margin/marginInterestHistory?timestamp=1707550913636&asset=USDT&recvWindow=10000&signature=67a8ccc93c868c13044e059a799ab7929d10000f40def3a9be7ec87719e22a25",
+                "input": [
+                  "USDT",
+                  null,
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true
+                  }
                 ]
             }
         ]

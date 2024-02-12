@@ -26,6 +26,7 @@ public partial class bitmart : ccxt.bitmart
                 { "watchOrderBookForSymbols", true },
                 { "watchOrders", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", true },
                 { "watchOHLCV", true },
                 { "watchPosition", "emulated" },
                 { "watchPositions", true },
@@ -303,19 +304,55 @@ public partial class bitmart : ccxt.bitmart
         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
         */
         parameters ??= new Dictionary<string, object>();
+        return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
+    }
+
+    public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitmart#watchTradesForSymbols
+        * @see https://developer-pro.bitmart.com/en/spot/#public-trade-channel
+        * @description get the list of most recent trades for a list of symbols
+        * @param {string[]} symbols unified symbol of the market to fetch trades for
+        * @param {int} [since] timestamp in ms of the earliest trade to fetch
+        * @param {int} [limit] the maximum amount of trades to fetch
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+        */
+        parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        symbol = this.symbol(symbol);
-        object market = this.market(symbol);
-        object type = "spot";
-        var typeparametersVariable = this.handleMarketTypeAndParams("watchTrades", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
-        object trades = await this.subscribe("trade", symbol, type, parameters);
+        object marketType = null;
+        var symbolsmarketTypeparametersVariable = this.getParamsForMultipleSub("watchTradesForSymbols", symbols, limit, parameters);
+        symbols = ((IList<object>)symbolsmarketTypeparametersVariable)[0];
+        marketType = ((IList<object>)symbolsmarketTypeparametersVariable)[1];
+        parameters = ((IList<object>)symbolsmarketTypeparametersVariable)[2];
+        object channelName = "trade";
+        object trades = await this.subscribeMultiple(channelName, marketType, symbols, parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            object first = this.safeDict(trades, 0);
+            object tradeSymbol = this.safeString(first, "symbol");
+            limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
         }
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+    }
+
+    public virtual object getParamsForMultipleSub(object methodName, object symbols, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        symbols = this.marketSymbols(symbols, null, false, true);
+        object length = getArrayLength(symbols);
+        if (isTrue(isGreaterThan(length, 20)))
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " "), methodName), "() accepts a maximum of 20 symbols in one request")) ;
+        }
+        object market = this.market(getValue(symbols, 0));
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams(methodName, market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        return new List<object>() {symbols, marketType, parameters};
     }
 
     public async override Task<object> watchTicker(object symbol, object parameters = null)
@@ -911,18 +948,17 @@ public partial class bitmart : ccxt.bitmart
         //        ]
         //    }
         //
-        object channel = this.safeString2(message, "table", "group");
-        object isSpot = (isGreaterThanOrEqual(getIndexOf(channel, "spot"), 0));
         object data = this.safeValue(message, "data");
         if (isTrue(isEqual(data, null)))
         {
             return;
         }
         object stored = null;
+        object symbol = null;
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object trade = this.parseWsTrade(getValue(data, i));
-            object symbol = getValue(trade, "symbol");
+            symbol = getValue(trade, "symbol");
             object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = this.safeValue(this.trades, symbol);
             if (isTrue(isEqual(stored, null)))
@@ -932,11 +968,7 @@ public partial class bitmart : ccxt.bitmart
             }
             callDynamically(stored, "append", new object[] {trade});
         }
-        object messageHash = channel;
-        if (isTrue(isSpot))
-        {
-            messageHash = add(messageHash, add(":", this.safeString(getValue(data, 0), "symbol")));
-        }
+        object messageHash = add("trade:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
     }
 
@@ -1530,20 +1562,15 @@ public partial class bitmart : ccxt.bitmart
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, null, false, true);
-        if (isTrue(isGreaterThan(getArrayLength(symbols), 20)))
-        {
-            throw new NotSupported ((string)add(this.id, " watchOrderBookForSymbols() accepts a maximum of 20 symbols in one request")) ;
-        }
-        object market = this.market(getValue(symbols, 0));
+        object type = null;
+        var symbolstypeparametersVariable = this.getParamsForMultipleSub("watchOrderBookForSymbols", symbols, limit, parameters);
+        symbols = ((IList<object>)symbolstypeparametersVariable)[0];
+        type = ((IList<object>)symbolstypeparametersVariable)[1];
+        parameters = ((IList<object>)symbolstypeparametersVariable)[2];
         object channel = null;
         var channelparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "depth", "depth/increase100");
         channel = ((IList<object>)channelparametersVariable)[0];
         parameters = ((IList<object>)channelparametersVariable)[1];
-        object type = "spot";
-        var typeparametersVariable = this.handleMarketTypeAndParams("watchOrderBookForSymbols", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
         if (isTrue(isTrue(isEqual(type, "swap")) && isTrue(isEqual(channel, "depth/increase100"))))
         {
             channel = "depth50";

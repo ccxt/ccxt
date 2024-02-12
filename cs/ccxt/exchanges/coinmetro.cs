@@ -1237,7 +1237,8 @@ public partial class coinmetro : Exchange
         }
         object type = null;
         object referenceId = null;
-        if (isTrue(isGreaterThan(getArrayLength(descriptionArray), 1)))
+        object length = getArrayLength(descriptionArray);
+        if (isTrue(isGreaterThan(length, 1)))
         {
             type = this.parseLedgerEntryType(getValue(descriptionArray, 0));
             if (isTrue(!isEqual(getValue(descriptionArray, 1), "-")))

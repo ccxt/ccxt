@@ -2602,26 +2602,19 @@ class bitrue(Exchange, ImplicitAPI):
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
-        chainName = self.safe_string_2(params, 'network', 'chainName')
-        if chainName is None:
-            networks = self.safe_value(currency, 'networks', {})
-            optionsNetworks = self.safe_value(self.options, 'networks', {})
-            network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
-            network = self.safe_string(optionsNetworks, network, network)
-            networkEntry = self.safe_value(networks, network, {})
-            chainName = self.safe_string(networkEntry, 'id')  # handle ERC20>ETH alias
-            if chainName is None:
-                raise ArgumentsRequired(self.id + ' withdraw() requires a network parameter or a chainName parameter')
-            params = self.omit(params, 'network')
         request = {
-            'coin': currency['id'].upper(),
+            'coin': currency['id'],
             'amount': amount,
             'addressTo': address,
-            'chainName': chainName,  # 'ERC20', 'TRC20', 'SOL'
+            # 'chainName': chainName,  # 'ERC20', 'TRC20', 'SOL'
             # 'addressMark': '',  # mark of address
             # 'addrType': '',  # type of address
             # 'tag': tag,
         }
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is not None:
+            request['chainName'] = self.network_code_to_id(networkCode)
         if tag is not None:
             request['tag'] = tag
         response = await self.spotV1PrivatePostWithdrawCommit(self.extend(request, params))

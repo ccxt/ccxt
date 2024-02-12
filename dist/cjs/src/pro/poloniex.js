@@ -172,7 +172,7 @@ class poloniex extends poloniex$1 {
          * @returns {object} data from the websocket stream
          */
         const url = this.urls['api']['ws']['private'];
-        const messageHash = this.nonce();
+        const messageHash = this.nonce().toString();
         const subscribe = {
             'id': messageHash,
             'event': name,

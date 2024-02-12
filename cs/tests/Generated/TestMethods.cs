@@ -163,7 +163,10 @@ public partial class testMainClass : BaseTest
             }
         }
         // credentials
-        this.loadCredentialsFromEnv(exchange);
+        if (isTrue(this.loadKeys))
+        {
+            this.loadCredentialsFromEnv(exchange);
+        }
         // skipped tests
         object skippedFile = add(this.rootDirForSkips, "skip-tests.json");
         object skippedSettings = ioFileRead(skippedFile);

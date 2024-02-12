@@ -314,7 +314,11 @@ public partial class digifinex : Exchange
             object minFoundPrecision = Precise.stringMin(feeString, Precise.stringMin(minDepositString, minWithdrawString));
             object precision = this.parseNumber(minFoundPrecision);
             object networkId = this.safeString(currency, "chain");
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = null;
+            if (isTrue(!isEqual(networkId, null)))
+            {
+                networkCode = this.networkIdToCode(networkId);
+            }
             object network = new Dictionary<string, object>() {
                 { "info", currency },
                 { "id", networkId },

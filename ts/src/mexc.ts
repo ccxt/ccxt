@@ -928,7 +928,7 @@ export default class mexc extends Exchange {
     async fetchStatus (params = {}) {
         /**
          * @method
-         * @name mexc3#fetchStatus
+         * @name mexc#fetchStatus
          * @description the latest known information on the availability of the exchange API
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
@@ -965,7 +965,7 @@ export default class mexc extends Exchange {
     async fetchTime (params = {}) {
         /**
          * @method
-         * @name mexc3#fetchTime
+         * @name mexc#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
@@ -991,7 +991,7 @@ export default class mexc extends Exchange {
     async fetchCurrencies (params = {}) {
         /**
          * @method
-         * @name mexc3#fetchCurrencies
+         * @name mexc#fetchCurrencies
          * @description fetches all available currencies on an exchange
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1137,8 +1137,8 @@ export default class mexc extends Exchange {
     async fetchMarkets (params = {}) {
         /**
          * @method
-         * @name mexc3#fetchMarkets
-         * @description retrieves data on all markets for mexc3
+         * @name mexc#fetchMarkets
+         * @description retrieves data on all markets for mexc
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -1381,7 +1381,7 @@ export default class mexc extends Exchange {
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
-         * @name mexc3#fetchOrderBook
+         * @name mexc#fetchOrderBook
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#order-book
          * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-s-depth-information
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -1459,7 +1459,7 @@ export default class mexc extends Exchange {
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
-         * @name mexc3#fetchTrades
+         * @name mexc#fetchTrades
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#recent-trades-list
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#compressed-aggregate-trades-list
          * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-transaction-data
@@ -1732,7 +1732,7 @@ export default class mexc extends Exchange {
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
-         * @name mexc3#fetchOHLCV
+         * @name mexc#fetchOHLCV
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-candlestick-data
          * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#k-line-data
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -1852,7 +1852,7 @@ export default class mexc extends Exchange {
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
-         * @name mexc3#fetchTickers
+         * @name mexc#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1940,7 +1940,7 @@ export default class mexc extends Exchange {
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
-         * @name mexc3#fetchTicker
+         * @name mexc#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2130,7 +2130,7 @@ export default class mexc extends Exchange {
     async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#fetchBidsAsks
+         * @name mexc#fetchBidsAsks
          * @description fetches the bid and ask price and volume for multiple markets
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2192,7 +2192,7 @@ export default class mexc extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#createOrder
+         * @name mexc#createOrder
          * @description create a trade order
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
          * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
@@ -2466,7 +2466,7 @@ export default class mexc extends Exchange {
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#fetchOrder
+         * @name mexc#fetchOrder
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2586,7 +2586,7 @@ export default class mexc extends Exchange {
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
-         * @name mexc3#fetchOrders
+         * @name mexc#fetchOrders
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
@@ -2816,7 +2816,7 @@ export default class mexc extends Exchange {
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
-         * @name mexc3#fetchOpenOrders
+         * @name mexc#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -2906,7 +2906,7 @@ export default class mexc extends Exchange {
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
-         * @name mexc3#fetchClosedOrders
+         * @name mexc#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
@@ -2920,7 +2920,7 @@ export default class mexc extends Exchange {
     async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#fetchCanceledOrders
+         * @name mexc#fetchCanceledOrders
          * @description fetches information on multiple canceled orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
@@ -2950,7 +2950,7 @@ export default class mexc extends Exchange {
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#cancelOrder
+         * @name mexc#cancelOrder
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
@@ -3063,7 +3063,7 @@ export default class mexc extends Exchange {
     async cancelOrders (ids, symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#cancelOrders
+         * @name mexc#cancelOrders
          * @description cancel multiple orders
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol, default is undefined
@@ -3098,7 +3098,7 @@ export default class mexc extends Exchange {
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#cancelAllOrders
+         * @name mexc#cancelAllOrders
          * @description cancel all open orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3503,7 +3503,7 @@ export default class mexc extends Exchange {
     async fetchAccounts (params = {}) {
         /**
          * @method
-         * @name mexc3#fetchAccounts
+         * @name mexc#fetchAccounts
          * @description fetch all the accounts associated with a profile
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
@@ -3531,7 +3531,7 @@ export default class mexc extends Exchange {
     async fetchTradingFees (params = {}) {
         /**
          * @method
-         * @name mexc3#fetchTradingFees
+         * @name mexc#fetchTradingFees
          * @description fetch the trading fees for multiple markets
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
@@ -3681,7 +3681,7 @@ export default class mexc extends Exchange {
     async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
-         * @name mexc3#fetchBalance
+         * @name mexc#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
          * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
@@ -3812,7 +3812,7 @@ export default class mexc extends Exchange {
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#fetchMyTrades
+         * @name mexc#fetchMyTrades
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -3902,7 +3902,7 @@ export default class mexc extends Exchange {
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#fetchOrderTrades
+         * @name mexc#fetchOrderTrades
          * @description fetch all the trades made from a single order
          * @param {string} id order id
          * @param {string} symbol unified market symbol
@@ -4001,7 +4001,7 @@ export default class mexc extends Exchange {
     async reduceMargin (symbol: string, amount, params = {}) {
         /**
          * @method
-         * @name mexc3#reduceMargin
+         * @name mexc#reduceMargin
          * @description remove margin from a position
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
@@ -4014,7 +4014,7 @@ export default class mexc extends Exchange {
     async addMargin (symbol: string, amount, params = {}) {
         /**
          * @method
-         * @name mexc3#addMargin
+         * @name mexc#addMargin
          * @description add margin
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
@@ -4027,7 +4027,7 @@ export default class mexc extends Exchange {
     async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#setLeverage
+         * @name mexc#setLeverage
          * @description set the level of leverage for a market
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
@@ -4059,7 +4059,7 @@ export default class mexc extends Exchange {
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#fetchFundingHistory
+         * @name mexc#fetchFundingHistory
          * @description fetch the history of funding payments paid and received on this account
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch funding history for
@@ -4176,7 +4176,7 @@ export default class mexc extends Exchange {
     async fetchFundingRate (symbol: string, params = {}) {
         /**
          * @method
-         * @name mexc3#fetchFundingRate
+         * @name mexc#fetchFundingRate
          * @description fetch the current funding rate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4279,7 +4279,7 @@ export default class mexc extends Exchange {
     async fetchLeverageTiers (symbols: Strings = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#fetchLeverageTiers
+         * @name mexc#fetchLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4394,7 +4394,7 @@ export default class mexc extends Exchange {
     async fetchDepositAddressesByNetwork (code: string, params = {}) {
         /**
          * @method
-         * @name mexc3#fetchDepositAddressesByNetwork
+         * @name mexc#fetchDepositAddressesByNetwork
          * @description fetch a dictionary of addresses for a currency, indexed by network
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
          * @param {string} code unified currency code of the currency for the deposit address
@@ -4407,7 +4407,10 @@ export default class mexc extends Exchange {
             'coin': currency['id'],
         };
         const networkCode = this.safeString (params, 'network');
-        const networkId = this.networkCodeToId (networkCode, code);
+        let networkId = undefined;
+        if (networkCode !== undefined) {
+            networkId = this.networkCodeToId (networkCode, code);
+        }
         if (networkId !== undefined) {
             request['network'] = networkId;
         }
@@ -4431,7 +4434,7 @@ export default class mexc extends Exchange {
     async createDepositAddress (code: string, params = {}) {
         /**
          * @method
-         * @name mexc3#createDepositAddress
+         * @name mexc#createDepositAddress
          * @description create a currency deposit address
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
          * @param {string} code unified currency code of the currency for the deposit address
@@ -4466,7 +4469,7 @@ export default class mexc extends Exchange {
     async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
-         * @name mexc3#fetchDepositAddress
+         * @name mexc#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
          * @param {string} code unified currency code
@@ -4494,7 +4497,7 @@ export default class mexc extends Exchange {
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
-         * @name mexc3#fetchDeposits
+         * @name mexc#fetchDeposits
          * @description fetch all deposits made to an account
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-history-supporting-network
          * @param {string} code unified currency code
@@ -4555,7 +4558,7 @@ export default class mexc extends Exchange {
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
-         * @name mexc3#fetchWithdrawals
+         * @name mexc#fetchWithdrawals
          * @description fetch all withdrawals made from an account
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-history-supporting-network
          * @param {string} code unified currency code
@@ -4735,7 +4738,7 @@ export default class mexc extends Exchange {
     async fetchPosition (symbol: string, params = {}) {
         /**
          * @method
-         * @name mexc3#fetchPosition
+         * @name mexc#fetchPosition
          * @description fetch data on a single open contract trade position
          * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4753,7 +4756,7 @@ export default class mexc extends Exchange {
     async fetchPositions (symbols: Strings = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#fetchPositions
+         * @name mexc#fetchPositions
          * @description fetch all open positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4831,7 +4834,7 @@ export default class mexc extends Exchange {
         const marginType = (openType === '1') ? 'isolated' : 'cross';
         const leverage = this.safeNumber (position, 'leverage');
         const liquidationPrice = this.safeNumber (position, 'liquidatePrice');
-        const timestamp = this.safeNumber (position, 'updateTime');
+        const timestamp = this.safeInteger (position, 'updateTime');
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -4895,7 +4898,7 @@ export default class mexc extends Exchange {
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#fetchTransfers
+         * @name mexc#fetchTransfers
          * @description fetch a history of internal transfers made on an account
          * @param {string} code unified currency code of the currency transferred
          * @param {int} [since] the earliest time in ms to fetch transfers for
@@ -4982,7 +4985,7 @@ export default class mexc extends Exchange {
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
-         * @name mexc3#transfer
+         * @name mexc#transfer
          * @description transfer currency internally between wallets on the same account
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
          * @param {string} code unified currency code
@@ -5118,7 +5121,7 @@ export default class mexc extends Exchange {
     async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#withdraw
+         * @name mexc#withdraw
          * @description make a withdrawal
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw
          * @param {string} code unified currency code
@@ -5189,7 +5192,7 @@ export default class mexc extends Exchange {
     async fetchTransactionFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#fetchTransactionFees
+         * @name mexc#fetchTransactionFees
          * @description fetch deposit and withdrawal fees
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
          * @param {string[]|undefined} codes returns fees for all currencies if undefined
@@ -5290,7 +5293,7 @@ export default class mexc extends Exchange {
     async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#fetchDepositWithdrawFees
+         * @name mexc#fetchDepositWithdrawFees
          * @description fetch deposit and withdrawal fees
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
          * @param {string[]|undefined} codes returns fees for all currencies if undefined
