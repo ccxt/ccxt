@@ -7903,33 +7903,44 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
          * @see https://binance-docs.github.io/apidocs/futures/en/#user-commission-rate-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#user-commission-rate-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-user-commission-rate-for-um-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-user-commission-rate-for-cm-user_data
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch trading fees in a portfolio margin account
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'fetchTradingFee', 'defaultType', 'linear');
-        const type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
+        const type = market['type'];
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTradingFee', market, params);
-        const isSpotOrMargin = (type === 'spot') || (type === 'margin');
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchTradingFee', 'papi', 'portfolioMargin', false);
         const isLinear = this.isLinear (type, subType);
         const isInverse = this.isInverse (type, subType);
         const request = {
             'symbol': market['id'],
         };
         let response = undefined;
-        if (isSpotOrMargin) {
-            response = await this.sapiGetAssetTradeFee (this.extend (request, params));
-        } else if (isLinear) {
-            response = await this.fapiPrivateGetCommissionRate (this.extend (request, params));
+        if (isLinear) {
+            if (isPortfolioMargin) {
+                response = await this.papiGetUmCommissionRate (this.extend (request, params));
+            } else {
+                response = await this.fapiPrivateGetCommissionRate (this.extend (request, params));
+            }
         } else if (isInverse) {
-            response = await this.dapiPrivateGetCommissionRate (this.extend (request, params));
+            if (isPortfolioMargin) {
+                response = await this.papiGetCmCommissionRate (this.extend (request, params));
+            } else {
+                response = await this.dapiPrivateGetCommissionRate (this.extend (request, params));
+            }
+        } else {
+            response = await this.sapiGetAssetTradeFee (this.extend (request, params));
         }
         //
         // spot
+        //
         //     [
         //       {
         //         "symbol": "BTCUSDT",
@@ -7939,6 +7950,7 @@ export default class binance extends Exchange {
         //     ]
         //
         // swap
+        //
         //     {
         //         "symbol": "BTCUSD_PERP",
         //         "makerCommissionRate": "0.00015",  // 0.015%
@@ -7949,7 +7961,7 @@ export default class binance extends Exchange {
         if (Array.isArray (data)) {
             data = this.safeDict (data, 0, {});
         }
-        return this.parseTradingFee (data);
+        return this.parseTradingFee (data, market);
     }
 
     async fetchTradingFees (params = {}) {
