@@ -3783,7 +3783,7 @@ export default class Exchange {
         ];
     }
 
-    getArrayOfObjectsKey (objects, key: IndexType) {
+    getListFromObjectValues (objects, key: IndexType) {
         const newArray = this.toArray (objects);
         const results = [];
         for (let i = 0; i < newArray.length; i++) {

@@ -378,7 +378,7 @@ export default class gate extends gateRest {
             if (isSwapOrFuture) {
                 filteredMarkets = this.filterBy (filteredMarkets, 'subType', subType);
             }
-            symbols = this.getArrayOfObjectsKey (filteredMarkets, 'symbol');
+            symbols = this.getListFromObjectValues (filteredMarkets, 'symbol');
         }
         const market = this.market (symbols[0]);
         const messageType = this.getTypeByMarket (market);
