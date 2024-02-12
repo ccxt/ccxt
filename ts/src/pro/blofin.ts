@@ -15,6 +15,9 @@ export default class blofin extends blofinRest {
             'has': {
                 'ws': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
+                'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
             },
             'urls': {
                 'api': {
@@ -41,7 +44,7 @@ export default class blofin extends blofinRest {
         });
     }
 
-    async watchMultipleSymbols (channelName: string, methodName: string, symbols: string[], limit: Int = undefined, params = {}) {
+    async watchMultipleWrapper (channelName: string, methodName: string, symbols: string[], limit: Int = undefined, params = {}) {
         // underlier method for all watch-multiple symbols
         await this.loadMarkets ();
         let firstMarket = undefined;
@@ -54,10 +57,11 @@ export default class blofin extends blofinRest {
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for spot markets');
         }
-        // const length = symbols.length;
-        // if (length > 20) {
-        //     throw new NotSupported (this.id + ' ' + methodName + '() accepts a maximum of 20 symbols in one request');
-        // }
+        if (symbols === undefined) {
+            let filteredMarkets = this.filterBy (this.markets, 'type', marketType);
+            filteredMarkets = this.filterByArray (filteredMarkets, 'active', [ true, undefined ], false);
+            symbols = this.getArrayOfObjectsKey (filteredMarkets, 'symbol');
+        }
         const rawSubscriptions = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -147,7 +151,7 @@ export default class blofin extends blofinRest {
         await this.loadMarkets ();
         let callerMethodName = undefined;
         [ callerMethodName, params ] = this.handleParam (params, 'callerMethodName', 'watchTradesForSymbols');
-        const trades = await this.watchMultipleSymbols ('trades', callerMethodName, symbols, limit, params);
+        const trades = await this.watchMultipleWrapper ('trades', callerMethodName, symbols, limit, params);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -248,7 +252,7 @@ export default class blofin extends blofinRest {
         if (channelName !== 'books') {
             throw new NotSupported (this.id + ' ' + callerMethodName + '() at this moment ' + channelName + ' is not supported, coming soon');
         }
-        const orderbook = await this.watchMultipleSymbols (channelName, callerMethodName, symbols, limit, params);
+        const orderbook = await this.watchMultipleWrapper (channelName, callerMethodName, symbols, limit, params);
         return orderbook.limit ();
     }
 
