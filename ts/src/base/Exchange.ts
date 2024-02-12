@@ -3798,6 +3798,7 @@ export default class Exchange {
             filteredMarkets = this.filterBy (filteredMarkets, 'type', marketType);
         }
         if (subType !== undefined) {
+            this.checkRequiredArgument ('getSymbolsForMarketType', subType, 'subType', [ 'linear', 'inverse', 'quanto' ]);
             filteredMarkets = this.filterBy (filteredMarkets, 'subType', subType);
         }
         filteredMarkets = this.filterByArray (filteredMarkets, 'active', activeStatuses, false);
@@ -3806,7 +3807,7 @@ export default class Exchange {
 
     requireSymbolsForMultiSubscription (callerMethodName: string, symbols: string[]) {
         if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' ' + callerMethodName + '() - this exchange allows to subscribe to all symbols at once, but you still need to define the list of symbols you want to subscribe. Use helper method "exchange.getSymbolsForMarketType(marketType?, subType?)" to get specific symbols easily.');
+            throw new ArgumentsRequired (this.id + ' ' + callerMethodName + '() might allow to subscribe to all symbols at once, but to avoid unnecessary load, you still need to provide the list of symbols. You can use the helper method "exchange.getSymbolsForMarketType(marketType?, subType?)" if you want symbols array per market type.');
         }
     }
 
