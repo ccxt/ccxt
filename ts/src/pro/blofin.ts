@@ -48,9 +48,13 @@ export default class blofin extends blofinRest {
         });
     }
 
-    async watchMultipleWrapper (channelName: string, methodName: string, symbols: string[], limit: Int = undefined, params = {}) {
+    async watchMultipleWrapper (channelName: string, methodName: string, symbolsArray, params = {}) {
         // underlier method for all watch-multiple symbols
         await this.loadMarkets ();
+        [ methodName, params ] = this.handleParam (params, 'callerMethodName', methodName);
+        // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
+        const isOHLCV = (channelName === 'candle');
+        const symbols = !isOHLCV ? symbolsArray : this.getListFromObjectValues (symbolsArray, 0);
         this.requireSymbolsForMultiSubscription (methodName, symbols);
         let firstMarket = undefined;
         symbols = this.marketSymbols (symbols, undefined, false, true);
@@ -64,13 +68,23 @@ export default class blofin extends blofinRest {
         }
         const rawSubscriptions = [];
         const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market (symbols[i]);
-            const message = {
-                'channel': channelName,
+        for (let i = 0; i < symbolsArray.length; i++) {
+            const current = symbolsArray[i];
+            let market = undefined;
+            let channel = channelName;
+            if (isOHLCV) {
+                market = this.market (current[0]);
+                const tf = current[1];
+                const interval = this.safeString (this.timeframes, tf, tf);
+                channel += interval;
+            } else {
+                market = this.market (current);
+            }
+            const topic = {
+                'channel': channel,
                 'instId': market['id'],
             };
-            rawSubscriptions.push (message);
+            rawSubscriptions.push (topic);
             messageHashes.push (channelName + ':' + market['symbol']);
         }
         const request = {
@@ -132,7 +146,6 @@ export default class blofin extends blofinRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets ();
         params['callerMethodName'] = 'watchTrades';
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
@@ -150,9 +163,7 @@ export default class blofin extends blofinRest {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
-        let callerMethodName = undefined;
-        [ callerMethodName, params ] = this.handleParam (params, 'callerMethodName', 'watchTradesForSymbols');
-        const trades = await this.watchMultipleWrapper ('trades', callerMethodName, symbols, limit, params);
+        const trades = await this.watchMultipleWrapper ('trades', 'watchTradesForSymbols', symbols, params);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -253,7 +264,7 @@ export default class blofin extends blofinRest {
         if (channelName !== 'books') {
             throw new NotSupported (this.id + ' ' + callerMethodName + '() at this moment ' + channelName + ' is not supported, coming soon');
         }
-        const orderbook = await this.watchMultipleWrapper (channelName, callerMethodName, symbols, limit, params);
+        const orderbook = await this.watchMultipleWrapper (channelName, callerMethodName, symbols, params);
         return orderbook.limit ();
     }
 
@@ -329,9 +340,7 @@ export default class blofin extends blofinRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        let callerMethodName = undefined;
-        [ callerMethodName, params ] = this.handleParam (params, 'callerMethodName', 'watchTickers');
-        const ticker = await this.watchMultipleWrapper ('tickers', callerMethodName, symbols, undefined, params);
+        const ticker = await this.watchMultipleWrapper ('tickers', 'watchTickers', symbols, params);
         if (this.newUpdates) {
             const tickers = {};
             tickers[ticker['symbol']] = ticker;
@@ -404,28 +413,7 @@ export default class blofin extends blofinRest {
             throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
         }
         await this.loadMarkets ();
-        const topics = [];
-        const messageHashes = [];
-        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const symbolAndTimeframe = symbolsAndTimeframes[i];
-            const sym = symbolAndTimeframe[0];
-            const tf = symbolAndTimeframe[1];
-            const marketId = this.marketId (sym);
-            const interval = this.safeString (this.timeframes, tf, tf);
-            const channel = 'candle' + interval;
-            const topic = {
-                'channel': channel,
-                'instId': marketId,
-            };
-            topics.push (topic);
-            messageHashes.push ('multi:' + channel + ':' + sym);
-        }
-        const request = {
-            'op': 'subscribe',
-            'args': topics,
-        };
-        const url = this.getUrl ('candle', 'public');
-        const [ symbol, timeframe, candles ] = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const [ symbol, timeframe, candles ] = await this.watchMultipleWrapper ('candle', 'watchOHLCVForSymbol', symbolsAndTimeframes, params);
         if (this.newUpdates) {
             limit = candles.getLimit (symbol, limit);
         }
@@ -433,69 +421,4 @@ export default class blofin extends blofinRest {
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
-    handleOHLCV (client: Client, message) {
-        //
-        //     {
-        //         "e": "kline",
-        //         "E": 1579482921215,
-        //         "s": "ETHBTC",
-        //         "k": {
-        //             "t": 1579482900000,
-        //             "T": 1579482959999,
-        //             "s": "ETHBTC",
-        //             "i": "1m",
-        //             "f": 158411535,
-        //             "L": 158411550,
-        //             "o": "0.01913200",
-        //             "c": "0.01913500",
-        //             "h": "0.01913700",
-        //             "l": "0.01913200",
-        //             "v": "5.08400000",
-        //             "n": 16,
-        //             "x": false,
-        //             "q": "0.09728060",
-        //             "V": "3.30200000",
-        //             "Q": "0.06318500",
-        //             "B": "0"
-        //         }
-        //     }
-        //
-        let event = this.safeString (message, 'e');
-        const eventMap = {
-            'indexPrice_kline': 'indexPriceKline',
-            'markPrice_kline': 'markPriceKline',
-        };
-        event = this.safeString (eventMap, event, event);
-        const kline = this.safeValue (message, 'k');
-        let marketId = this.safeString2 (kline, 's', 'ps');
-        if (event === 'indexPriceKline') {
-            // indexPriceKline doesn't have the _PERP suffix
-            marketId = this.safeString (message, 'ps');
-        }
-        const lowercaseMarketId = marketId.toLowerCase ();
-        const interval = this.safeString (kline, 'i');
-        // use a reverse lookup in a static map instead
-        const timeframe = this.findTimeframe (interval);
-        const messageHash = lowercaseMarketId + '@' + event + '_' + interval;
-        const parsed = [
-            this.safeInteger (kline, 't'),
-            this.safeFloat (kline, 'o'),
-            this.safeFloat (kline, 'h'),
-            this.safeFloat (kline, 'l'),
-            this.safeFloat (kline, 'c'),
-            this.safeFloat (kline, 'v'),
-        ];
-        const isSpot = ((client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('/testnet.binance') > -1));
-        const marketType = (isSpot) ? 'spot' : 'contract';
-        const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
-        if (stored === undefined) {
-            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
-        }
-        stored.append (parsed);
-        client.resolve (stored, messageHash);
-    }
 }
