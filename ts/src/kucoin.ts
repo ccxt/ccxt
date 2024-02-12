@@ -3859,11 +3859,11 @@ export default class kucoin extends Exchange {
             }
         }
         let fee = undefined;
-        const feeCost = this.safeNumber (item, 'fee');
+        const feeCost = this.safeString (item, 'fee');
         let feeCurrency = undefined;
-        if (feeCost !== 0) {
+        if (feeCost !== '0') {
             feeCurrency = code;
-            fee = { 'cost': feeCost, 'currency': feeCurrency };
+            fee = { 'cost': this.parseNumber (feeCost), 'currency': feeCurrency };
         }
         return {
             'id': id,
