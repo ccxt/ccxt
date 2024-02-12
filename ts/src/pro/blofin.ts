@@ -285,10 +285,15 @@ export default class blofin extends blofinRest {
             const orderBookSnapshot = this.parseOrderBook (data, symbol, timestamp);
             orderBookSnapshot['nonce'] = this.safeInteger (data, 'seqId');
             orderbook.reset (orderBookSnapshot);
-            this.orderbooks[symbol] = orderbook;
-            client.resolve (orderbook, messageHash);
         } else {
-            // temp
+            const asks = this.safeValue (data, 'asks', []);
+            const bids = this.safeValue (data, 'bids', []);
+            this.handleDeltasWithKeys (orderbook['asks'], asks);
+            this.handleDeltasWithKeys (orderbook['bids'], bids);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
         }
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, messageHash);
     }
 }
