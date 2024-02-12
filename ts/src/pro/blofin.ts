@@ -2,9 +2,9 @@
 //  ---------------------------------------------------------------------------
 
 import blofinRest from '../blofin.js';
-import { NotSupported } from '../base/errors.js';
+import { NotSupported, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, MarketInterface, Trade, OrderBook, Str, Strings, Ticker, Tickers } from '../base/types.js';
+import type { Int, MarketInterface, Trade, OrderBook, Str, Strings, Ticker, Tickers, OHLCV } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -20,6 +20,8 @@ export default class blofin extends blofinRest {
                 'watchOrderBookForSymbols': true,
                 'watchTicker': true,
                 'watchTickers': true,
+                'watchOHLCV': true,
+                'watchOHLCVForSymbols': true,
             },
             'urls': {
                 'api': {
@@ -49,8 +51,9 @@ export default class blofin extends blofinRest {
     async watchMultipleWrapper (channelName: string, methodName: string, symbols: string[], limit: Int = undefined, params = {}) {
         // underlier method for all watch-multiple symbols
         await this.loadMarkets ();
+        this.requireSymbolsForMultiSubscription (methodName, symbols);
         let firstMarket = undefined;
-        symbols = this.marketSymbols (symbols, undefined, true, true);
+        symbols = this.marketSymbols (symbols, undefined, false, true);
         if (symbols !== undefined) {
             firstMarket = this.market (symbols[0]);
         }
@@ -58,11 +61,6 @@ export default class blofin extends blofinRest {
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, firstMarket, params);
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for spot markets');
-        }
-        if (symbols === undefined) {
-            let filteredMarkets = this.filterBy (this.markets, 'type', marketType);
-            filteredMarkets = this.filterByArray (filteredMarkets, 'active', [ true, undefined ], false);
-            symbols = this.getArrayOfObjectsKey (filteredMarkets, 'symbol');
         }
         const rawSubscriptions = [];
         const messageHashes = [];
@@ -368,5 +366,136 @@ export default class blofin extends blofinRest {
             this.tickers[symbol] = ticker;
             client.resolve (this.tickers[symbol], messageHash);
         }
+    }
+
+    // async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    //     /**
+    //      * @method
+    //      * @name blofin#watchOHLCV
+    //      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+    //      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+    //      * @param {string} timeframe the length of time each candle represents
+    //      * @param {int} [since] timestamp in ms of the earliest candle to fetch
+    //      * @param {int} [limit] the maximum amount of candles to fetch
+    //      * @param {object} [params] extra parameters specific to the exchange API endpoint
+    //      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+    //      */
+    //     params['callerMethodName'] = 'watchOHLCV';
+    //     const market = this.market (symbol);
+    //     symbol = market['symbol'];
+    //     const result = await this.watchOHLCVForSymbols ([ symbol, timeframe ], since, limit, params);
+    //     return result[symbol];
+    // }
+
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name blofin#watchOHLCVForSymbols
+         * @see https://docs.blofin.com/index.html#ws-candlesticks-channel
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        const symbolsLength = symbolsAndTimeframes.length;
+        if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
+            throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
+        }
+        await this.loadMarkets ();
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const sym = symbolAndTimeframe[0];
+            const tf = symbolAndTimeframe[1];
+            const marketId = this.marketId (sym);
+            const interval = this.safeString (this.timeframes, tf, tf);
+            const channel = 'candle' + interval;
+            const topic = {
+                'channel': channel,
+                'instId': marketId,
+            };
+            topics.push (topic);
+            messageHashes.push ('multi:' + channel + ':' + sym);
+        }
+        const request = {
+            'op': 'subscribe',
+            'args': topics,
+        };
+        const url = this.getUrl ('candle', 'public');
+        const [ symbol, timeframe, candles ] = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        if (this.newUpdates) {
+            limit = candles.getLimit (symbol, limit);
+        }
+        const filtered = this.filterBySinceLimit (candles, since, limit, 0, true);
+        return this.createOHLCVObject (symbol, timeframe, filtered);
+    }
+
+    handleOHLCV (client: Client, message) {
+        //
+        //     {
+        //         "e": "kline",
+        //         "E": 1579482921215,
+        //         "s": "ETHBTC",
+        //         "k": {
+        //             "t": 1579482900000,
+        //             "T": 1579482959999,
+        //             "s": "ETHBTC",
+        //             "i": "1m",
+        //             "f": 158411535,
+        //             "L": 158411550,
+        //             "o": "0.01913200",
+        //             "c": "0.01913500",
+        //             "h": "0.01913700",
+        //             "l": "0.01913200",
+        //             "v": "5.08400000",
+        //             "n": 16,
+        //             "x": false,
+        //             "q": "0.09728060",
+        //             "V": "3.30200000",
+        //             "Q": "0.06318500",
+        //             "B": "0"
+        //         }
+        //     }
+        //
+        let event = this.safeString (message, 'e');
+        const eventMap = {
+            'indexPrice_kline': 'indexPriceKline',
+            'markPrice_kline': 'markPriceKline',
+        };
+        event = this.safeString (eventMap, event, event);
+        const kline = this.safeValue (message, 'k');
+        let marketId = this.safeString2 (kline, 's', 'ps');
+        if (event === 'indexPriceKline') {
+            // indexPriceKline doesn't have the _PERP suffix
+            marketId = this.safeString (message, 'ps');
+        }
+        const lowercaseMarketId = marketId.toLowerCase ();
+        const interval = this.safeString (kline, 'i');
+        // use a reverse lookup in a static map instead
+        const timeframe = this.findTimeframe (interval);
+        const messageHash = lowercaseMarketId + '@' + event + '_' + interval;
+        const parsed = [
+            this.safeInteger (kline, 't'),
+            this.safeFloat (kline, 'o'),
+            this.safeFloat (kline, 'h'),
+            this.safeFloat (kline, 'l'),
+            this.safeFloat (kline, 'c'),
+            this.safeFloat (kline, 'v'),
+        ];
+        const isSpot = ((client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('/testnet.binance') > -1));
+        const marketType = (isSpot) ? 'spot' : 'contract';
+        const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe] = stored;
+        }
+        stored.append (parsed);
+        client.resolve (stored, messageHash);
     }
 }
