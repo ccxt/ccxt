@@ -11,6 +11,7 @@ export interface Message {
     payload: any;
     error: any;
     metadata: Metadata;
+    history: Message[];
 }
 
 export type ConsumerFunction = (message: Message) => Promise<void> | void;
@@ -54,7 +55,8 @@ export class Stream {
             metadata: {
                 topic,
                 index,
-            }
+            },
+            history: this.getMessageHistory (topic).slice (0, -1),
         };
 
         if (this.maxMessagesPerTopic && messages.length >= this.maxMessagesPerTopic) {

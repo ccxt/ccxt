@@ -154,8 +154,9 @@ export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balan
 // move this elsewhere
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from './ws/Cache.js'
 import totp from './functions/totp.js';
-import { Message, Stream, Topic } from './ws/Stream.js'
+import { ConsumerFunction, Message, Stream, Topic } from './ws/Stream.js'
 import { sleep } from './functions.js'
+import testWatchTicker from '../pro/test/Exchange/test.watchTicker.js'
 
 // ----------------------------------------------------------------------------
 /**
@@ -1730,6 +1731,7 @@ export default class Exchange {
         stream.produce (topic, payload, error);
     }
 
+    subscribeWatchTicker
     safeBoolN (dictionaryOrList, keys: IndexType[], defaultValue: boolean = undefined): boolean | undefined {
         /**
          * @ignore
@@ -2139,24 +2141,77 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchTrades() is not supported yet');
     }
 
+    async subscribeTrades (symbol: string, callback: ConsumerFunction, params = {}): Promise<void> {
+        await this.subscribeTradesForSymbols ([symbol], callback, params);
+    }
+
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' watchTradesForSymbols() is not supported yet');
+    }
+
+    async subscribeTradesForSymbols (symbols: string[], callback: ConsumerFunction, params = {}): Promise<void> {
+        for (let i = 0; i < symbols.length; i++) {
+            this.stream.subscribe ('trades::' + symbols[i], callback);
+        }
+        if (this.isEmpty (symbols)) {
+            this.stream.subscribe ('trades', callback);
+        }
+        await this.watchTradesForSymbols (symbols, undefined, undefined, params);
     }
 
     async watchMyTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' watchMyTradesForSymbols() is not supported yet');
     }
 
+    async subscribeMyTradesForSymbols (symbols: string[], callback: ConsumerFunction, params = {}): Promise<void> {
+        for (let i = 0; i < symbols.length; i++) {
+            this.stream.subscribe ('myTrades::' + symbols[i], callback);
+        }
+        if (this.isEmpty (symbols)) {
+            this.stream.subscribe ('myTrades', callback);
+        }
+        await this.watchMyTradesForSymbols (symbols, undefined, undefined, params);
+    }
+
     async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         throw new NotSupported (this.id + ' watchOrdersForSymbols() is not supported yet');
+    }
+
+    async subscribeOrdersForSymbols (symbols: string[], callback: ConsumerFunction, params = {}): Promise<void> {
+        for (let i = 0; i < symbols.length; i++) {
+            this.stream.subscribe ('orders::' + symbols[i], callback);
+        }
+        if (this.isEmpty (symbols)) {
+            this.stream.subscribe ('orders', callback);
+        }
+        await this.watchOrdersForSymbols (symbols, undefined, undefined, params);
     }
 
     async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dictionary<Dictionary<OHLCV[]>>> {
         throw new NotSupported (this.id + ' watchOHLCVForSymbols() is not supported yet');
     }
 
+    async subscribeOHLCVForSymbols (symbols: string[], callback: ConsumerFunction, params = {}): Promise<void> {
+        for (let i = 0; i < symbols.length; i++) {
+            this.stream.subscribe ('ohlcv::' + symbols[i], callback);
+        }
+        if (this.isEmpty (symbols)) {
+            this.stream.subscribe ('ohlcv', callback);
+        }
+        await this.watchOrdersForSymbols (symbols, undefined, undefined, params);
+    }
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         throw new NotSupported (this.id + ' watchOrderBookForSymbols() is not supported yet');
+    }
+
+    async subscribeOrderBookForSymbols (symbols: string[], callback: ConsumerFunction, params = {}): Promise<void> {
+        for (let i = 0; i < symbols.length; i++) {
+            this.stream.subscribe ('orderbook::' + symbols[i], callback);
+        }
+        if (this.isEmpty (symbols)) {
+            this.stream.subscribe ('orderbook', callback);
+        }
+        await this.watchOrderBookForSymbols (symbols, undefined, params);
     }
 
     async fetchDepositAddresses (codes: string[] = undefined, params = {}): Promise<{}> {
@@ -2190,6 +2245,9 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchOrderBook() is not supported yet');
     }
 
+    async subscribeOrderBook (symbol: string, callback: ConsumerFunction, params = {}): Promise<void> {
+        await this.subscribeOrderBookForSymbols ([symbol], callback, params);
+    }
     async fetchTime (params = {}): Promise<Int> {
         throw new NotSupported (this.id + ' fetchTime() is not supported yet');
     }
@@ -5092,7 +5150,7 @@ export default class Exchange {
         return currency['code'];
     }
 
-    filterBySymbolSinceLimit (array, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+    filterBySymbolSinceLimit (array, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, tail = false): any[] {
         return this.filterByValueSinceLimit (array, 'symbol', symbol, since, limit, 'timestamp', tail);
     }
 
