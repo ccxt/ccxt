@@ -6000,14 +6000,6 @@ export default class Exchange {
     parseGreeks (greeks, market: Market = undefined): Greeks {
         throw new NotSupported (this.id + ' parseGreeks () is not supported yet');
     }
-
-    handleNetworkParameter (code: string, params = {}) {
-        const defaultNetworks = this.safeDict (this.options, 'defaultNetworks');
-        const defaultNetwork = this.safeString (defaultNetworks, code);
-        const network = this.safeString2 (params, 'network', 'defaultNetwork', defaultNetwork);
-        params = this.omit (params, 'network');
-        return [ network, params ];
-    }
 }
 
 export {
