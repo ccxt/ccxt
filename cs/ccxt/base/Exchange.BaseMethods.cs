@@ -2252,6 +2252,10 @@ public partial class Exchange
          * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} exchange-specific network id
          */
+        if (isTrue(isEqual(networkCode, null)))
+        {
+            return null;
+        }
         object networkIdsByCodes = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
         object networkId = this.safeString(networkIdsByCodes, networkCode);
         // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
@@ -2303,6 +2307,10 @@ public partial class Exchange
          * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} unified network code
          */
+        if (isTrue(isEqual(networkId, null)))
+        {
+            return null;
+        }
         object networkCodesByIds = this.safeDict(this.options, "networksById", new Dictionary<string, object>() {});
         object networkCode = this.safeString(networkCodesByIds, networkId, networkId);
         // replace mainnet network-codes (i.e. ERC20->ETH)

@@ -2652,9 +2652,11 @@ class binance extends binance$1 {
             const networkList = this.safeList(entry, 'networkList', []);
             const fees = {};
             let fee = undefined;
+            const networks = {};
             for (let j = 0; j < networkList.length; j++) {
                 const networkItem = networkList[j];
                 const network = this.safeString(networkItem, 'network');
+                const networkCode = this.networkIdToCode(network);
                 // const name = this.safeString (networkItem, 'name');
                 const withdrawFee = this.safeNumber(networkItem, 'withdrawFee');
                 const depositEnable = this.safeBool(networkItem, 'depositEnable');
@@ -2672,6 +2674,26 @@ class binance extends binance$1 {
                 if (!Precise["default"].stringEq(precisionTick, '0')) {
                     minPrecision = (minPrecision === undefined) ? precisionTick : Precise["default"].stringMin(minPrecision, precisionTick);
                 }
+                networks[networkCode] = {
+                    'info': networkItem,
+                    'id': network,
+                    'network': networkCode,
+                    'active': depositEnable && withdrawEnable,
+                    'deposit': depositEnable,
+                    'withdraw': withdrawEnable,
+                    'fee': this.parseNumber(fee),
+                    'precision': minPrecision,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(networkItem, 'withdrawMin'),
+                            'max': this.safeNumber(networkItem, 'withdrawMax'),
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                };
             }
             const trading = this.safeBool(entry, 'trading');
             const active = (isWithdrawEnabled && isDepositEnabled && trading);
@@ -2688,7 +2710,7 @@ class binance extends binance$1 {
                 'active': active,
                 'deposit': isDepositEnabled,
                 'withdraw': isWithdrawEnabled,
-                'networks': networkList,
+                'networks': networks,
                 'fee': fee,
                 'fees': fees,
                 'limits': this.limits,

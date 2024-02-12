@@ -2642,9 +2642,11 @@ class binance extends Exchange {
             $networkList = $this->safe_list($entry, 'networkList', array());
             $fees = array();
             $fee = null;
+            $networks = array();
             for ($j = 0; $j < count($networkList); $j++) {
                 $networkItem = $networkList[$j];
                 $network = $this->safe_string($networkItem, 'network');
+                $networkCode = $this->network_id_to_code($network);
                 // $name = $this->safe_string($networkItem, 'name');
                 $withdrawFee = $this->safe_number($networkItem, 'withdrawFee');
                 $depositEnable = $this->safe_bool($networkItem, 'depositEnable');
@@ -2662,6 +2664,26 @@ class binance extends Exchange {
                 if (!Precise::string_eq($precisionTick, '0')) {
                     $minPrecision = ($minPrecision === null) ? $precisionTick : Precise::string_min($minPrecision, $precisionTick);
                 }
+                $networks[$networkCode] = array(
+                    'info' => $networkItem,
+                    'id' => $network,
+                    'network' => $networkCode,
+                    'active' => $depositEnable && $withdrawEnable,
+                    'deposit' => $depositEnable,
+                    'withdraw' => $withdrawEnable,
+                    'fee' => $this->parse_number($fee),
+                    'precision' => $minPrecision,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($networkItem, 'withdrawMin'),
+                            'max' => $this->safe_number($networkItem, 'withdrawMax'),
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                );
             }
             $trading = $this->safe_bool($entry, 'trading');
             $active = ($isWithdrawEnabled && $isDepositEnabled && $trading);
@@ -2678,7 +2700,7 @@ class binance extends Exchange {
                 'active' => $active,
                 'deposit' => $isDepositEnabled,
                 'withdraw' => $isWithdrawEnabled,
-                'networks' => $networkList,
+                'networks' => $networks,
                 'fee' => $fee,
                 'fees' => $fees,
                 'limits' => $this->limits,

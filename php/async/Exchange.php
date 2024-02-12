@@ -2140,6 +2140,9 @@ class Exchange extends \ccxt\Exchange {
          * @param {string} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
          * @return {string|null} exchange-specific network id
          */
+        if ($networkCode === null) {
+            return null;
+        }
         $networkIdsByCodes = $this->safe_value($this->options, 'networks', array());
         $networkId = $this->safe_string($networkIdsByCodes, $networkCode);
         // for example, if 'ETH' is passed for $networkCode, but 'ETH' $key not defined in `options->networks` object
@@ -2181,6 +2184,9 @@ class Exchange extends \ccxt\Exchange {
          * @param {string|null} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
          * @return {string|null} unified network code
          */
+        if ($networkId === null) {
+            return null;
+        }
         $networkCodesByIds = $this->safe_dict($this->options, 'networksById', array());
         $networkCode = $this->safe_string($networkCodesByIds, $networkId, $networkId);
         // replace mainnet network-codes (i.e. ERC20->ETH)

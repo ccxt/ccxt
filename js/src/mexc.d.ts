@@ -15,7 +15,6 @@ export default class mexc extends Exchange {
     }>;
     fetchTime(params?: {}): Promise<number>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    safeNetwork(networkId: any): string;
     fetchMarkets(params?: {}): Promise<any>;
     fetchSpotMarkets(params?: {}): Promise<any[]>;
     fetchSwapMarkets(params?: {}): Promise<any[]>;
@@ -108,17 +107,17 @@ export default class mexc extends Exchange {
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         currency: string;
         address: string;
-        tag: any;
+        tag: string;
         network: string;
         info: any;
     };
-    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<any[]>;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
     createDepositAddress(code: string, params?: {}): Promise<{
-        info: any;
         currency: string;
-        network: string;
         address: string;
         tag: string;
+        network: string;
+        info: any;
     }>;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
