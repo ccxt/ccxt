@@ -3607,7 +3607,7 @@ public partial class bingx : Exchange
         return await this.swapV2PrivatePostTradeMarginType(this.extend(request, parameters));
     }
 
-    public async virtual Task<object> setMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> setMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method

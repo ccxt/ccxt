@@ -640,6 +640,9 @@ export default class Exchange {
     setLeverage(leverage: Int, symbol?: string, params?: {}): Promise<{}>;
     fetchLeverage(symbol: string, params?: {}): Promise<{}>;
     setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<{}>;
+    addMargin(symbol: string, amount: number, params?: {}): Promise<{}>;
+    reduceMargin(symbol: string, amount: number, params?: {}): Promise<{}>;
+    setMargin(symbol: string, amount: number, params?: {}): Promise<{}>;
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<{}>;
     fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OpenInterest[]>;

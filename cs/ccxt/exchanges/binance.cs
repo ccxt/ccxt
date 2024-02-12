@@ -2680,10 +2680,12 @@ public partial class binance : Exchange
             object networkList = this.safeList(entry, "networkList", new List<object>() {});
             object fees = new Dictionary<string, object>() {};
             object fee = null;
+            object networks = new Dictionary<string, object>() {};
             for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
             {
                 object networkItem = getValue(networkList, j);
                 object network = this.safeString(networkItem, "network");
+                object networkCode = this.networkIdToCode(network);
                 // const name = this.safeString (networkItem, 'name');
                 object withdrawFee = this.safeNumber(networkItem, "withdrawFee");
                 object depositEnable = this.safeBool(networkItem, "depositEnable");
@@ -2703,6 +2705,26 @@ public partial class binance : Exchange
                 {
                     minPrecision = ((bool) isTrue((isEqual(minPrecision, null)))) ? precisionTick : Precise.stringMin(minPrecision, precisionTick);
                 }
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "info", networkItem },
+                    { "id", network },
+                    { "network", networkCode },
+                    { "active", isTrue(depositEnable) && isTrue(withdrawEnable) },
+                    { "deposit", depositEnable },
+                    { "withdraw", withdrawEnable },
+                    { "fee", this.parseNumber(fee) },
+                    { "precision", minPrecision },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(networkItem, "withdrawMin") },
+                            { "max", this.safeNumber(networkItem, "withdrawMax") },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                    } },
+                };
             }
             object trading = this.safeBool(entry, "trading");
             object active = (isTrue(isTrue(isWithdrawEnabled) && isTrue(isDepositEnabled)) && isTrue(trading));
@@ -2720,7 +2742,7 @@ public partial class binance : Exchange
                 { "active", active },
                 { "deposit", isDepositEnabled },
                 { "withdraw", isWithdrawEnabled },
-                { "networks", networkList },
+                { "networks", networks },
                 { "fee", fee },
                 { "fees", fees },
                 { "limits", this.limits },
@@ -6527,8 +6549,9 @@ public partial class binance : Exchange
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        object orders = await this.fetchOrders(symbol, since, limit, parameters);
-        return this.filterBy(orders, "status", "closed");
+        object orders = await this.fetchOrders(symbol, since, null, parameters);
+        object filteredOrders = this.filterBy(orders, "status", "closed");
+        return this.filterBySinceLimit(filteredOrders, since, limit);
     }
 
     public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -11159,7 +11182,7 @@ public partial class binance : Exchange
         };
     }
 
-    public async virtual Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
@@ -11176,7 +11199,7 @@ public partial class binance : Exchange
         return await this.modifyMarginHelper(symbol, amount, 2, parameters);
     }
 
-    public async virtual Task<object> addMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method

@@ -3337,7 +3337,7 @@ class bingx extends Exchange {
         return $this->swapV2PrivatePostTradeMarginType (array_merge($request, $params));
     }
 
-    public function set_margin(string $symbol, $amount, $params = array ()) {
+    public function set_margin(string $symbol, float $amount, $params = array ()) {
         /**
          * Either adds or reduces margin in an isolated position in order to set the margin to a specific value
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Adjust%20isolated%20margin
