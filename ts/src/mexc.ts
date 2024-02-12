@@ -436,7 +436,10 @@ export default class mexc extends Exchange {
                 'defaultNetwork': 'ETH',
                 'defaultNetworks': {
                     'ETH': 'ETH',
-                    'USDT': 'TRC20',
+                    'USDT': 'ERC20',
+                    'USDC': 'ERC20',
+                    'BTC': 'BTC',
+                    'LTC': 'LTC',
                 },
                 'networks': {
                     'ABBC': 'ABBC',
@@ -4477,16 +4480,22 @@ export default class mexc extends Exchange {
          * @param {string} [params.network] the chain of currency, this only apply for multi-chain currency, and there is no need for single chain currency
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
-        let network = undefined;
-        [ network, params ] = this.handleNetworkParameter (code, params);
+        const network = this.safeString (params, 'network');
+        params = this.omit (params, [ 'network' ]);
         const addressStructures = await this.fetchDepositAddressesByNetwork (code, params);
         let result = undefined;
         if (network !== undefined) {
-            result = this.safeDict (addressStructures, network);
+            result = this.safeDict (addressStructures, this.networkIdToCode (network, code));
         } else {
-            const keys = Object.keys (addressStructures);
-            const key = this.safeString (keys, 0);
-            result = this.safeDict (addressStructures, key);
+            const options = this.safeDict (this.options, 'defaultNetworks');
+            const defaultNetworkForCurrency = this.safeString (options, code);
+            if (defaultNetworkForCurrency !== undefined) {
+                result = this.safeDict (addressStructures, defaultNetworkForCurrency);
+            } else {
+                const keys = Object.keys (addressStructures);
+                const key = this.safeString (keys, 0);
+                result = this.safeDict (addressStructures, key);
+            }
         }
         if (result === undefined) {
             throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find a deposit address for ' + code + ', and network' + network + 'consider creating one using the MEXC platform');
