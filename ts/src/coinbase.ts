@@ -3383,6 +3383,85 @@ export default class coinbase extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
+    async fetchDepositAddress (code: string, params = {}) {
+        /**
+         * @method
+         * @name ascendex#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @see https://ascendex.github.io/ascendex-pro-api/#query-deposit-addresses
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.network] unified network code for deposit chain
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        await this.loadMarkets ();
+        let request = undefined;
+        [ request, params ] = await this.prepareAccountRequestWithCurrencyCode (code);
+        const response = await this.v2PrivateGetAccountsAccountIdAddresses (this.extend (request, params));
+        //
+        //    {
+        //        "id": "dd3183eb-af1d-5f5d-a90d-cbff946435ff",
+        //        "address": "mswUGcPHp1YnkLCgF1TtoryqSc5E9Q8xFa",
+        //        "name": "One off payment",
+        //        "created_at": "2015-01-31T20:49:02Z",
+        //        "updated_at": "2015-03-31T17:25:29-07:00",
+        //        "network": "bitcoin",
+        //        "resource": "address",
+        //        "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/addresses/dd3183eb-af1d-5f5d-a90d-cbff946435ff"
+        //    }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const addresses = this.safeList (data, 'address', []);
+        const numAddresses = addresses.length;
+        let address = undefined;
+        if (numAddresses > 1) {
+            const addressesByChainName = this.indexBy (addresses, 'chainName');
+            if (networkId === undefined) {
+                const chainNames = Object.keys (addressesByChainName);
+                const chains = chainNames.join (', ');
+                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() returned more than one address, a chainName parameter is required, one of ' + chains);
+            }
+            address = this.safeDict (addressesByChainName, networkId, {});
+        } else {
+            // first address
+            address = this.safeDict (addresses, 0, {});
+        }
+        const result = this.parseDepositAddress (address, currency);
+        return this.extend (result, {
+            'info': response,
+        });
+    }
+
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+        //
+        //     {
+        //         "address": "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
+        //         "destTag": "",
+        //         "tagType": "",
+        //         "tagId": "",
+        //         "chainName": "ERC20",
+        //         "numConfirmations": 20,
+        //         "withdrawalFee": 1,
+        //         "nativeScale": 4,
+        //         "tips": []
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        const tagId = this.safeString (depositAddress, 'tagId');
+        const tag = this.safeString (depositAddress, tagId);
+        this.checkAddress (address);
+        const code = (currency === undefined) ? undefined : currency['code'];
+        const chainName = this.safeString (depositAddress, 'blockchain');
+        const network = this.networkIdToCode (chainName, code);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'network': network,
+            'info': depositAddress,
+        };
+    }
+
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = api[0];
         const signed = api[1] === 'private';
