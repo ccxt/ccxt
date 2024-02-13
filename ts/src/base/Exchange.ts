@@ -3815,7 +3815,7 @@ export default class Exchange {
 
     requireSymbolsForMultiSubscription (callerMethodName: string, symbols: string[]) {
         if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' ' + callerMethodName + '() might allow to subscribe to all symbols at once, but to avoid unnecessary load, you still need to provide the list of symbols. You can use the helper method "exchange.getSymbolsForMarketType(marketType?, subType?)" if you want symbols array per market type.');
+            throw new ArgumentsRequired (this.id + ' ' + callerMethodName + '() requires a list of symbols to subscribe to.');
         }
     }
 
