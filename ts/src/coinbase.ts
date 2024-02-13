@@ -131,6 +131,7 @@ export default class coinbase extends Exchange {
                     'public': {
                         'get': [
                             'currencies',
+                            'currencies/crypto',
                             'time',
                             'exchange-rates',
                             'users/{user_id}',
@@ -1249,10 +1250,35 @@ export default class coinbase extends Exchange {
         const expires = this.safeInteger (options, 'expires', 1000);
         const now = this.milliseconds ();
         if ((timestamp === undefined) || ((now - timestamp) > expires)) {
-            const currencies = await this.v2PublicGetCurrencies (params);
+            const fiatResponse = await this.v2PublicGetCurrencies (params);
+            //
+            //    [
+            //        "data": {
+            //            id: 'IMP',
+            //            name: 'Isle of Man Pound',
+            //            min_size: '0.01'
+            //        },
+            //        ...
+            //    ]
+            //
+            const cryptoResponse = await this.v2PublicGetCurrenciesCrypto (params);
+            //
+            //    {
+            //        asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
+            //        code: 'AERO',
+            //        name: 'Aerodrome Finance',
+            //        color: '#0433FF',
+            //        sort_index: '340',
+            //        exponent: '8',
+            //        type: 'crypto',
+            //        address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
+            //    }
+            //
+            const fiatData = this.safeValue (fiatResponse, 'data', []);
+            const cryptoData = this.safeValue (cryptoResponse, 'data', []);
             const exchangeRates = await this.v2PublicGetExchangeRates (params);
             this.options['fetchCurrencies'] = this.extend (options, {
-                'currencies': currencies,
+                'currencies': this.arrayConcat (fiatData, cryptoData),
                 'exchangeRates': exchangeRates,
                 'timestamp': now,
             });
@@ -1273,18 +1299,27 @@ export default class coinbase extends Exchange {
         const response = await this.fetchCurrenciesFromCache (params);
         const currencies = this.safeValue (response, 'currencies', {});
         //
-        //     {
-        //         "data":[
-        //             {"id":"AED","name":"United Arab Emirates Dirham","min_size":"0.01000000"},
-        //             {"id":"AFN","name":"Afghan Afghani","min_size":"0.01000000"},
-        //             {"id":"ALL","name":"Albanian Lek","min_size":"0.01000000"},
-        //             {"id":"AMD","name":"Armenian Dram","min_size":"0.01000000"},
-        //             {"id":"ANG","name":"Netherlands Antillean Gulden","min_size":"0.01000000"},
-        //             ...
-        //         ],
-        //     }
+        // fiat
         //
-        const exchangeRates = this.safeValue (response, 'exchangeRates', {});
+        //    {
+        //        id: 'IMP',
+        //        name: 'Isle of Man Pound',
+        //        min_size: '0.01'
+        //    },
+        //
+        // crypto
+        //
+        //    {
+        //        asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
+        //        code: 'AERO',
+        //        name: 'Aerodrome Finance',
+        //        color: '#0433FF',
+        //        sort_index: '340',
+        //        exponent: '8',
+        //        type: 'crypto',
+        //        address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
+        //    }
+        //
         //
         //     {
         //         "data":{
@@ -1300,24 +1335,19 @@ export default class coinbase extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (currencies, 'data', []);
-        const dataById = this.indexBy (data, 'id');
-        const rates = this.safeValue (this.safeValue (exchangeRates, 'data', {}), 'rates', {});
-        const keys = Object.keys (rates);
         const result = {};
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const type = (key in dataById) ? 'fiat' : 'crypto';
-            const currency = this.safeValue (dataById, key, {});
-            const id = this.safeString (currency, 'id', key);
-            const name = this.safeString (currency, 'name');
+        for (let i = 0; i < currencies.length; i++) {
+            const currency = currencies[i];
+            const assetId = this.safeString (currency, 'asset_id');
+            const id = this.safeString2 (currency, 'id', 'code');
             const code = this.safeCurrencyCode (id);
             result[code] = {
-                'id': id,
-                'code': code,
                 'info': currency, // the original payload
-                'type': type,
-                'name': name,
+                'id': id,
+                'assetId': assetId,
+                'code': code,
+                'type': (assetId !== undefined) ? 'fiat' : 'crypto',
+                'name': this.safeString (currency, 'name'),
                 'active': true,
                 'deposit': undefined,
                 'withdraw': undefined,
