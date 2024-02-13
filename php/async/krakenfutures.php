@@ -865,6 +865,7 @@ class krakenfutures extends Exchange {
 
     public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         $type = $this->safe_string($params, 'orderType', $type);
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $postOnly = false;
@@ -881,7 +882,7 @@ class krakenfutures extends Exchange {
         $request = array(
             'symbol' => $market['id'],
             'side' => $side,
-            'size' => $amount,
+            'size' => $this->amount_to_precision($symbol, $amount),
         );
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'cliOrdId');
         if ($clientOrderId !== null) {
@@ -917,7 +918,7 @@ class krakenfutures extends Exchange {
         }
         $request['orderType'] = $type;
         if ($price !== null) {
-            $request['limitPrice'] = $price;
+            $request['limitPrice'] = $this->price_to_precision($symbol, $price);
         }
         $params = $this->omit($params, array( 'clientOrderId', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
         return array_merge($request, $params);

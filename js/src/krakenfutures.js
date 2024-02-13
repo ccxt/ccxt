@@ -864,6 +864,7 @@ export default class krakenfutures extends Exchange {
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
+        symbol = market['symbol'];
         type = this.safeString(params, 'orderType', type);
         const timeInForce = this.safeString(params, 'timeInForce');
         let postOnly = false;
@@ -883,7 +884,7 @@ export default class krakenfutures extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': side,
-            'size': amount,
+            'size': this.amountToPrecision(symbol, amount),
         };
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'cliOrdId');
         if (clientOrderId !== undefined) {
@@ -921,7 +922,7 @@ export default class krakenfutures extends Exchange {
         }
         request['orderType'] = type;
         if (price !== undefined) {
-            request['limitPrice'] = price;
+            request['limitPrice'] = this.priceToPrecision(symbol, price);
         }
         params = this.omit(params, ['clientOrderId', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
         return this.extend(request, params);

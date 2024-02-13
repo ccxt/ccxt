@@ -5123,7 +5123,7 @@ class binance extends binance$1 {
         //         "msg": "Quantity greater than max quantity."
         //     }
         //
-        // createOrder, fetchOpenOrders, fetchOrder, cancelOrder: portfolio margin linear swap and future
+        // createOrder, fetchOpenOrders, fetchOrder, cancelOrder, fetchOrders: portfolio margin linear swap and future
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -5146,7 +5146,7 @@ class binance extends binance$1 {
         //         "status": "NEW"
         //     }
         //
-        // createOrder, fetchOpenOrders, fetchOrder, cancelOrder: portfolio margin inverse swap and future
+        // createOrder, fetchOpenOrders, fetchOrder, cancelOrder, fetchOrders: portfolio margin inverse swap and future
         //
         //     {
         //         "symbol": "ETHUSD_PERP",
@@ -5231,7 +5231,7 @@ class binance extends binance$1 {
         //         "type": "LIMIT"
         //     }
         //
-        // fetchOpenOrders, fetchOrder: portfolio margin spot margin
+        // fetchOpenOrders, fetchOrder, fetchOrders: portfolio margin spot margin
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -5275,6 +5275,32 @@ class binance extends binance$1 {
         //         "priceRate": null,      // only return with trailing orders
         //         "bookTime": 1707270098774,
         //         "updateTime": 1707270119261,
+        //         "workingType": "CONTRACT_PRICE",
+        //         "priceProtect": false,
+        //         "goodTillDate": 0,
+        //         "selfTradePreventionMode": "NONE"
+        //     }
+        //
+        // fetchOrders: portfolio margin linear and inverse swap conditional
+        //
+        //     {
+        //         "newClientStrategyId": "x-xcKtGhcuaf166172ed504cd1bc0396",
+        //         "strategyId": 3733211,
+        //         "strategyStatus": "CANCELLED",
+        //         "strategyType": "STOP",
+        //         "origQty": "0.010",
+        //         "price": "35000",
+        //         "orderId": 0,
+        //         "reduceOnly": false,
+        //         "side": "BUY",
+        //         "positionSide": "BOTH",
+        //         "stopPrice": "50000",
+        //         "symbol": "BTCUSDT",
+        //         "type": "LIMIT",
+        //         "bookTime": 1707270098774,
+        //         "updateTime": 1707270119261,
+        //         "timeInForce": "GTC",
+        //         "triggerTime": 0,
         //         "workingType": "CONTRACT_PRICE",
         //         "priceProtect": false,
         //         "goodTillDate": 0,
@@ -5339,7 +5365,7 @@ class binance extends binance$1 {
         }
         return this.safeOrder({
             'info': order,
-            'id': this.safeString2(order, 'orderId', 'strategyId'),
+            'id': this.safeString2(order, 'strategyId', 'orderId'),
             'clientOrderId': this.safeString2(order, 'clientOrderId', 'newClientStrategyId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -5974,13 +6000,20 @@ class binance extends binance$1 {
          * @see https://binance-docs.github.io/apidocs/delivery/en/#all-orders-user_data
          * @see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
          * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-orders-user_data
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
          * @param {int} [params.until] the latest time in ms to fetch orders for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
+         * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -5993,17 +6026,18 @@ class binance extends binance$1 {
             return await this.fetchPaginatedCallDynamic('fetchOrders', symbol, since, limit, params);
         }
         const market = this.market(symbol);
-        const defaultType = this.safeString2(this.options, 'fetchOrders', 'defaultType', 'spot');
+        const defaultType = this.safeString2(this.options, 'fetchOrders', 'defaultType', market['type']);
         const type = this.safeString(params, 'type', defaultType);
-        const [marginMode, query] = this.handleMarginModeAndParams('fetchOrders', params);
-        const request = {
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchOrders', params);
+        let isPortfolioMargin = undefined;
+        [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'fetchOrders', 'papi', 'portfolioMargin', false);
+        const isConditional = this.safeBool2(params, 'stop', 'conditional');
+        params = this.omit(params, ['stop', 'conditional', 'type']);
+        let request = {
             'symbol': market['id'],
         };
-        const until = this.safeInteger(params, 'until');
-        if (until !== undefined) {
-            params = this.omit(params, 'until');
-            request['endTime'] = until;
-        }
+        [request, params] = this.handleUntilOption('endTime', request, params);
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -6012,22 +6046,47 @@ class binance extends binance$1 {
         }
         let response = undefined;
         if (market['option']) {
-            response = await this.eapiPrivateGetHistoryOrders(this.extend(request, query));
+            response = await this.eapiPrivateGetHistoryOrders(this.extend(request, params));
         }
         else if (market['linear']) {
-            response = await this.fapiPrivateGetAllOrders(this.extend(request, query));
+            if (isPortfolioMargin) {
+                if (isConditional) {
+                    response = await this.papiGetUmConditionalAllOrders(this.extend(request, params));
+                }
+                else {
+                    response = await this.papiGetUmAllOrders(this.extend(request, params));
+                }
+            }
+            else {
+                response = await this.fapiPrivateGetAllOrders(this.extend(request, params));
+            }
         }
         else if (market['inverse']) {
-            response = await this.dapiPrivateGetAllOrders(this.extend(request, query));
-        }
-        else if (type === 'margin' || marginMode !== undefined) {
-            if (marginMode === 'isolated') {
-                request['isIsolated'] = true;
+            if (isPortfolioMargin) {
+                if (isConditional) {
+                    response = await this.papiGetCmConditionalAllOrders(this.extend(request, params));
+                }
+                else {
+                    response = await this.papiGetCmAllOrders(this.extend(request, params));
+                }
             }
-            response = await this.sapiGetMarginAllOrders(this.extend(request, query));
+            else {
+                response = await this.dapiPrivateGetAllOrders(this.extend(request, params));
+            }
         }
         else {
-            response = await this.privateGetAllOrders(this.extend(request, query));
+            if (isPortfolioMargin) {
+                response = await this.papiGetMarginAllOrders(this.extend(request, params));
+            }
+            else if (type === 'margin' || marginMode !== undefined) {
+                if (marginMode === 'isolated') {
+                    request['isIsolated'] = true;
+                }
+                response = await this.sapiGetMarginAllOrders(this.extend(request, params));
+            }
+            else {
+                response = await this.privateGetAllOrders(this.extend(request, params));
+            }
         }
         //
         //  spot
@@ -6101,6 +6160,112 @@ class binance extends binance$1 {
         //             "lastTrade": {"id":"69","time":"1676084430567","price":"24.9","qty":"1.00"},
         //             "mmp": false
         //         }
+        //     ]
+        //
+        // inverse portfolio margin
+        //
+        //     [
+        //         {
+        //             "orderId": 71328442983,
+        //             "symbol": "ETHUSD_PERP",
+        //             "pair": "ETHUSD",
+        //             "status": "CANCELED",
+        //             "clientOrderId": "x-xcKtGhcu4b3e3d8515dd4dc5ba9ccc",
+        //             "price": "2000",
+        //             "avgPrice": "0.00",
+        //             "origQty": "1",
+        //             "executedQty": "0",
+        //             "cumBase": "0",
+        //             "timeInForce": "GTC",
+        //             "type": "LIMIT",
+        //             "reduceOnly": false,
+        //             "side": "BUY",
+        //             "origType": "LIMIT",
+        //             "time": 1707197843046,
+        //             "updateTime": 1707197941373,
+        //             "positionSide": "BOTH"
+        //         },
+        //     ]
+        //
+        // linear portfolio margin
+        //
+        //     [
+        //         {
+        //             "orderId": 259235347005,
+        //             "symbol": "BTCUSDT",
+        //             "status": "CANCELED",
+        //             "clientOrderId": "x-xcKtGhcu402881c9103f42bdb4183b",
+        //             "price": "35000",
+        //             "avgPrice": "0.00000",
+        //             "origQty": "0.010",
+        //             "executedQty": "0",
+        //             "cumQuote": "0",
+        //             "timeInForce": "GTC",
+        //             "type": "LIMIT",
+        //             "reduceOnly": false,
+        //             "side": "BUY",
+        //             "origType": "LIMIT",
+        //             "time": 1707194702167,
+        //             "updateTime": 1707197804748,
+        //             "positionSide": "BOTH",
+        //             "selfTradePreventionMode": "NONE",
+        //             "goodTillDate": 0
+        //         },
+        //     ]
+        //
+        // conditional portfolio margin
+        //
+        //     [
+        //         {
+        //             "newClientStrategyId": "x-xcKtGhcuaf166172ed504cd1bc0396",
+        //             "strategyId": 3733211,
+        //             "strategyStatus": "CANCELLED",
+        //             "strategyType": "STOP",
+        //             "origQty": "0.010",
+        //             "price": "35000",
+        //             "orderId": 0,
+        //             "reduceOnly": false,
+        //             "side": "BUY",
+        //             "positionSide": "BOTH",
+        //             "stopPrice": "50000",
+        //             "symbol": "BTCUSDT",
+        //             "type": "LIMIT",
+        //             "bookTime": 1707270098774,
+        //             "updateTime": 1707270119261,
+        //             "timeInForce": "GTC",
+        //             "triggerTime": 0,
+        //             "workingType": "CONTRACT_PRICE",
+        //             "priceProtect": false,
+        //             "goodTillDate": 0,
+        //             "selfTradePreventionMode": "NONE"
+        //         },
+        //     ]
+        //
+        // spot margin portfolio margin
+        //
+        //     [
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "orderId": 24684460474,
+        //             "clientOrderId": "x-R4BD3S82e9ef29d8346440f0b28b86",
+        //             "price": "35000.00000000",
+        //             "origQty": "0.00100000",
+        //             "executedQty": "0.00000000",
+        //             "cummulativeQuoteQty": "0.00000000",
+        //             "status": "CANCELED",
+        //             "timeInForce": "GTC",
+        //             "type": "LIMIT",
+        //             "side": "BUY",
+        //             "stopPrice": "0.00000000",
+        //             "icebergQty": "0.00000000",
+        //             "time": 1707113538870,
+        //             "updateTime": 1707113797688,
+        //             "isWorking": true,
+        //             "accountId": 200180970,
+        //             "selfTradePreventionMode": "EXPIRE_MAKER",
+        //             "preventedMatchId": null,
+        //             "preventedQuantity": null
+        //         },
         //     ]
         //
         return this.parseOrders(response, market, since, limit);
@@ -6227,13 +6392,23 @@ class binance extends binance$1 {
          * @see https://binance-docs.github.io/apidocs/delivery/en/#all-orders-user_data
          * @see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
          * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-orders-user_data
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
+         * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
+        }
         const orders = await this.fetchOrders(symbol, since, undefined, params);
         const filteredOrders = this.filterBy(orders, 'status', 'closed');
         return this.filterBySinceLimit(filteredOrders, since, limit);
@@ -6246,22 +6421,23 @@ class binance extends binance$1 {
          * @see https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
          * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
          * @see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-orders-user_data
          * @param {string} symbol unified market symbol of the market the orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
+         * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchCanceledOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        if (market['swap'] || market['future']) {
-            throw new errors.NotSupported(this.id + ' fetchCanceledOrders() supports spot, margin and option markets only');
-        }
-        params = this.omit(params, 'type');
         const orders = await this.fetchOrders(symbol, since, undefined, params);
         const filteredOrders = this.filterBy(orders, 'status', 'canceled');
         return this.filterBySinceLimit(filteredOrders, since, limit);
@@ -8010,35 +8186,48 @@ class binance extends binance$1 {
          * @see https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
          * @see https://binance-docs.github.io/apidocs/futures/en/#user-commission-rate-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#user-commission-rate-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-user-commission-rate-for-um-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-user-commission-rate-for-cm-user_data
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch trading fees in a portfolio margin account
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const defaultType = this.safeString2(this.options, 'fetchTradingFee', 'defaultType', 'linear');
-        const type = this.safeString(params, 'type', defaultType);
-        params = this.omit(params, 'type');
+        const type = market['type'];
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchTradingFee', market, params);
-        const isSpotOrMargin = (type === 'spot') || (type === 'margin');
+        let isPortfolioMargin = undefined;
+        [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'fetchTradingFee', 'papi', 'portfolioMargin', false);
         const isLinear = this.isLinear(type, subType);
         const isInverse = this.isInverse(type, subType);
         const request = {
             'symbol': market['id'],
         };
         let response = undefined;
-        if (isSpotOrMargin) {
-            response = await this.sapiGetAssetTradeFee(this.extend(request, params));
-        }
-        else if (isLinear) {
-            response = await this.fapiPrivateGetCommissionRate(this.extend(request, params));
+        if (isLinear) {
+            if (isPortfolioMargin) {
+                response = await this.papiGetUmCommissionRate(this.extend(request, params));
+            }
+            else {
+                response = await this.fapiPrivateGetCommissionRate(this.extend(request, params));
+            }
         }
         else if (isInverse) {
-            response = await this.dapiPrivateGetCommissionRate(this.extend(request, params));
+            if (isPortfolioMargin) {
+                response = await this.papiGetCmCommissionRate(this.extend(request, params));
+            }
+            else {
+                response = await this.dapiPrivateGetCommissionRate(this.extend(request, params));
+            }
+        }
+        else {
+            response = await this.sapiGetAssetTradeFee(this.extend(request, params));
         }
         //
         // spot
+        //
         //     [
         //       {
         //         "symbol": "BTCUSDT",
@@ -8048,6 +8237,7 @@ class binance extends binance$1 {
         //     ]
         //
         // swap
+        //
         //     {
         //         "symbol": "BTCUSD_PERP",
         //         "makerCommissionRate": "0.00015",  // 0.015%
@@ -8058,7 +8248,7 @@ class binance extends binance$1 {
         if (Array.isArray(data)) {
             data = this.safeDict(data, 0, {});
         }
-        return this.parseTradingFee(data);
+        return this.parseTradingFee(data, market);
     }
     async fetchTradingFees(params = {}) {
         /**

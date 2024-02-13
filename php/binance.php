@@ -5042,7 +5042,7 @@ class binance extends Exchange {
         //         "msg" => "Quantity greater than max quantity."
         //     }
         //
-        // createOrder, fetchOpenOrders, fetchOrder, cancelOrder => portfolio margin linear swap and future
+        // createOrder, fetchOpenOrders, fetchOrder, cancelOrder, fetchOrders => portfolio margin linear swap and future
         //
         //     {
         //         "symbol" => "BTCUSDT",
@@ -5065,7 +5065,7 @@ class binance extends Exchange {
         //         "status" => "NEW"
         //     }
         //
-        // createOrder, fetchOpenOrders, fetchOrder, cancelOrder => portfolio margin inverse swap and future
+        // createOrder, fetchOpenOrders, fetchOrder, cancelOrder, fetchOrders => portfolio margin inverse swap and future
         //
         //     {
         //         "symbol" => "ETHUSD_PERP",
@@ -5150,7 +5150,7 @@ class binance extends Exchange {
         //         "type" => "LIMIT"
         //     }
         //
-        // fetchOpenOrders, fetchOrder => portfolio margin spot margin
+        // fetchOpenOrders, fetchOrder, fetchOrders => portfolio margin spot margin
         //
         //     {
         //         "symbol" => "BTCUSDT",
@@ -5194,6 +5194,32 @@ class binance extends Exchange {
         //         "priceRate" => null,      // only return with trailing orders
         //         "bookTime" => 1707270098774,
         //         "updateTime" => 1707270119261,
+        //         "workingType" => "CONTRACT_PRICE",
+        //         "priceProtect" => false,
+        //         "goodTillDate" => 0,
+        //         "selfTradePreventionMode" => "NONE"
+        //     }
+        //
+        // fetchOrders => portfolio margin linear and inverse swap conditional
+        //
+        //     {
+        //         "newClientStrategyId" => "x-xcKtGhcuaf166172ed504cd1bc0396",
+        //         "strategyId" => 3733211,
+        //         "strategyStatus" => "CANCELLED",
+        //         "strategyType" => "STOP",
+        //         "origQty" => "0.010",
+        //         "price" => "35000",
+        //         "orderId" => 0,
+        //         "reduceOnly" => false,
+        //         "side" => "BUY",
+        //         "positionSide" => "BOTH",
+        //         "stopPrice" => "50000",
+        //         "symbol" => "BTCUSDT",
+        //         "type" => "LIMIT",
+        //         "bookTime" => 1707270098774,
+        //         "updateTime" => 1707270119261,
+        //         "timeInForce" => "GTC",
+        //         "triggerTime" => 0,
         //         "workingType" => "CONTRACT_PRICE",
         //         "priceProtect" => false,
         //         "goodTillDate" => 0,
@@ -5257,7 +5283,7 @@ class binance extends Exchange {
         }
         return $this->safe_order(array(
             'info' => $order,
-            'id' => $this->safe_string_2($order, 'orderId', 'strategyId'),
+            'id' => $this->safe_string_2($order, 'strategyId', 'orderId'),
             'clientOrderId' => $this->safe_string_2($order, 'clientOrderId', 'newClientStrategyId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -5837,15 +5863,22 @@ class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
          * @see https://binance-docs.github.io/apidocs/futures/en/#all-orders-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#all-orders-user_data
-         * @see https://binance-docs.github.io/apidocs/voptions/en/#$query-option-order-history-trade
-         * @see https://binance-docs.github.io/apidocs/spot/en/#$query-margin-account-39-s-all-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-orders-user_data
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
          * @param {int} [$params->until] the latest time in ms to fetch orders for
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
+         * @param {boolean} [$params->stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         if ($symbol === null) {
@@ -5858,17 +5891,18 @@ class binance extends Exchange {
             return $this->fetch_paginated_call_dynamic('fetchOrders', $symbol, $since, $limit, $params);
         }
         $market = $this->market($symbol);
-        $defaultType = $this->safe_string_2($this->options, 'fetchOrders', 'defaultType', 'spot');
+        $defaultType = $this->safe_string_2($this->options, 'fetchOrders', 'defaultType', $market['type']);
         $type = $this->safe_string($params, 'type', $defaultType);
-        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrders', $params);
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrders', $params);
+        $isPortfolioMargin = null;
+        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchOrders', 'papi', 'portfolioMargin', false);
+        $isConditional = $this->safe_bool_2($params, 'stop', 'conditional');
+        $params = $this->omit($params, array( 'stop', 'conditional', 'type' ));
         $request = array(
             'symbol' => $market['id'],
         );
-        $until = $this->safe_integer($params, 'until');
-        if ($until !== null) {
-            $params = $this->omit($params, 'until');
-            $request['endTime'] = $until;
-        }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         if ($since !== null) {
             $request['startTime'] = $since;
         }
@@ -5877,18 +5911,38 @@ class binance extends Exchange {
         }
         $response = null;
         if ($market['option']) {
-            $response = $this->eapiPrivateGetHistoryOrders (array_merge($request, $query));
+            $response = $this->eapiPrivateGetHistoryOrders (array_merge($request, $params));
         } elseif ($market['linear']) {
-            $response = $this->fapiPrivateGetAllOrders (array_merge($request, $query));
-        } elseif ($market['inverse']) {
-            $response = $this->dapiPrivateGetAllOrders (array_merge($request, $query));
-        } elseif ($type === 'margin' || $marginMode !== null) {
-            if ($marginMode === 'isolated') {
-                $request['isIsolated'] = true;
+            if ($isPortfolioMargin) {
+                if ($isConditional) {
+                    $response = $this->papiGetUmConditionalAllOrders (array_merge($request, $params));
+                } else {
+                    $response = $this->papiGetUmAllOrders (array_merge($request, $params));
+                }
+            } else {
+                $response = $this->fapiPrivateGetAllOrders (array_merge($request, $params));
             }
-            $response = $this->sapiGetMarginAllOrders (array_merge($request, $query));
+        } elseif ($market['inverse']) {
+            if ($isPortfolioMargin) {
+                if ($isConditional) {
+                    $response = $this->papiGetCmConditionalAllOrders (array_merge($request, $params));
+                } else {
+                    $response = $this->papiGetCmAllOrders (array_merge($request, $params));
+                }
+            } else {
+                $response = $this->dapiPrivateGetAllOrders (array_merge($request, $params));
+            }
         } else {
-            $response = $this->privateGetAllOrders (array_merge($request, $query));
+            if ($isPortfolioMargin) {
+                $response = $this->papiGetMarginAllOrders (array_merge($request, $params));
+            } elseif ($type === 'margin' || $marginMode !== null) {
+                if ($marginMode === 'isolated') {
+                    $request['isIsolated'] = true;
+                }
+                $response = $this->sapiGetMarginAllOrders (array_merge($request, $params));
+            } else {
+                $response = $this->privateGetAllOrders (array_merge($request, $params));
+            }
         }
         //
         //  spot
@@ -5962,6 +6016,112 @@ class binance extends Exchange {
         //             "lastTrade" => array("id":"69","time":"1676084430567","price":"24.9","qty":"1.00"),
         //             "mmp" => false
         //         }
+        //     )
+        //
+        // inverse portfolio margin
+        //
+        //     array(
+        //         array(
+        //             "orderId" => 71328442983,
+        //             "symbol" => "ETHUSD_PERP",
+        //             "pair" => "ETHUSD",
+        //             "status" => "CANCELED",
+        //             "clientOrderId" => "x-xcKtGhcu4b3e3d8515dd4dc5ba9ccc",
+        //             "price" => "2000",
+        //             "avgPrice" => "0.00",
+        //             "origQty" => "1",
+        //             "executedQty" => "0",
+        //             "cumBase" => "0",
+        //             "timeInForce" => "GTC",
+        //             "type" => "LIMIT",
+        //             "reduceOnly" => false,
+        //             "side" => "BUY",
+        //             "origType" => "LIMIT",
+        //             "time" => 1707197843046,
+        //             "updateTime" => 1707197941373,
+        //             "positionSide" => "BOTH"
+        //         ),
+        //     )
+        //
+        // linear portfolio margin
+        //
+        //     array(
+        //         array(
+        //             "orderId" => 259235347005,
+        //             "symbol" => "BTCUSDT",
+        //             "status" => "CANCELED",
+        //             "clientOrderId" => "x-xcKtGhcu402881c9103f42bdb4183b",
+        //             "price" => "35000",
+        //             "avgPrice" => "0.00000",
+        //             "origQty" => "0.010",
+        //             "executedQty" => "0",
+        //             "cumQuote" => "0",
+        //             "timeInForce" => "GTC",
+        //             "type" => "LIMIT",
+        //             "reduceOnly" => false,
+        //             "side" => "BUY",
+        //             "origType" => "LIMIT",
+        //             "time" => 1707194702167,
+        //             "updateTime" => 1707197804748,
+        //             "positionSide" => "BOTH",
+        //             "selfTradePreventionMode" => "NONE",
+        //             "goodTillDate" => 0
+        //         ),
+        //     )
+        //
+        // conditional portfolio margin
+        //
+        //     array(
+        //         array(
+        //             "newClientStrategyId" => "x-xcKtGhcuaf166172ed504cd1bc0396",
+        //             "strategyId" => 3733211,
+        //             "strategyStatus" => "CANCELLED",
+        //             "strategyType" => "STOP",
+        //             "origQty" => "0.010",
+        //             "price" => "35000",
+        //             "orderId" => 0,
+        //             "reduceOnly" => false,
+        //             "side" => "BUY",
+        //             "positionSide" => "BOTH",
+        //             "stopPrice" => "50000",
+        //             "symbol" => "BTCUSDT",
+        //             "type" => "LIMIT",
+        //             "bookTime" => 1707270098774,
+        //             "updateTime" => 1707270119261,
+        //             "timeInForce" => "GTC",
+        //             "triggerTime" => 0,
+        //             "workingType" => "CONTRACT_PRICE",
+        //             "priceProtect" => false,
+        //             "goodTillDate" => 0,
+        //             "selfTradePreventionMode" => "NONE"
+        //         ),
+        //     )
+        //
+        // spot margin portfolio margin
+        //
+        //     array(
+        //         array(
+        //             "symbol" => "BTCUSDT",
+        //             "orderId" => 24684460474,
+        //             "clientOrderId" => "x-R4BD3S82e9ef29d8346440f0b28b86",
+        //             "price" => "35000.00000000",
+        //             "origQty" => "0.00100000",
+        //             "executedQty" => "0.00000000",
+        //             "cummulativeQuoteQty" => "0.00000000",
+        //             "status" => "CANCELED",
+        //             "timeInForce" => "GTC",
+        //             "type" => "LIMIT",
+        //             "side" => "BUY",
+        //             "stopPrice" => "0.00000000",
+        //             "icebergQty" => "0.00000000",
+        //             "time" => 1707113538870,
+        //             "updateTime" => 1707113797688,
+        //             "isWorking" => true,
+        //             "accountId" => 200180970,
+        //             "selfTradePreventionMode" => "EXPIRE_MAKER",
+        //             "preventedMatchId" => null,
+        //             "preventedQuantity" => null
+        //         ),
         //     )
         //
         return $this->parse_orders($response, $market, $since, $limit);
@@ -6075,13 +6235,23 @@ class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/delivery/en/#all-$orders-user_data
          * @see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
          * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-$orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-$orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-$orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-$orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-$orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-$orders-user_data
          * @param {string} $symbol unified market $symbol of the market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch $orders in a portfolio margin account
+         * @param {boolean} [$params->stop] set to true if you would like to fetch portfolio margin account stop or conditional $orders
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
+        }
         $orders = $this->fetch_orders($symbol, $since, null, $params);
         $filteredOrders = $this->filter_by($orders, 'status', 'closed');
         return $this->filter_by_since_limit($filteredOrders, $since, $limit);
@@ -6093,22 +6263,23 @@ class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/spot/en/#all-$orders-user_data
          * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-$orders-user_data
          * @see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
-         * @param {string} $symbol unified $market $symbol of the $market the $orders were made in
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-$orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-$orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-$orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-$orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-$orders-user_data
+         * @param {string} $symbol unified market $symbol of the market the $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch $orders in a portfolio margin account
+         * @param {boolean} [$params->stop] set to true if you would like to fetch portfolio margin account stop or conditional $orders
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchCanceledOrders() requires a $symbol argument');
         }
-        $this->load_markets();
-        $market = $this->market($symbol);
-        if ($market['swap'] || $market['future']) {
-            throw new NotSupported($this->id . ' fetchCanceledOrders() supports spot, margin and option markets only');
-        }
-        $params = $this->omit($params, 'type');
         $orders = $this->fetch_orders($symbol, $since, null, $params);
         $filteredOrders = $this->filter_by($orders, 'status', 'canceled');
         return $this->filter_by_since_limit($filteredOrders, $since, $limit);
@@ -7811,33 +7982,44 @@ class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
          * @see https://binance-docs.github.io/apidocs/futures/en/#user-commission-rate-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#user-commission-rate-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-user-commission-rate-for-um-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-user-commission-rate-for-cm-user_data
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch trading fees in a portfolio margin account
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $defaultType = $this->safe_string_2($this->options, 'fetchTradingFee', 'defaultType', 'linear');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
+        $type = $market['type'];
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchTradingFee', $market, $params);
-        $isSpotOrMargin = ($type === 'spot') || ($type === 'margin');
+        $isPortfolioMargin = null;
+        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchTradingFee', 'papi', 'portfolioMargin', false);
         $isLinear = $this->is_linear($type, $subType);
         $isInverse = $this->is_inverse($type, $subType);
         $request = array(
             'symbol' => $market['id'],
         );
         $response = null;
-        if ($isSpotOrMargin) {
-            $response = $this->sapiGetAssetTradeFee (array_merge($request, $params));
-        } elseif ($isLinear) {
-            $response = $this->fapiPrivateGetCommissionRate (array_merge($request, $params));
+        if ($isLinear) {
+            if ($isPortfolioMargin) {
+                $response = $this->papiGetUmCommissionRate (array_merge($request, $params));
+            } else {
+                $response = $this->fapiPrivateGetCommissionRate (array_merge($request, $params));
+            }
         } elseif ($isInverse) {
-            $response = $this->dapiPrivateGetCommissionRate (array_merge($request, $params));
+            if ($isPortfolioMargin) {
+                $response = $this->papiGetCmCommissionRate (array_merge($request, $params));
+            } else {
+                $response = $this->dapiPrivateGetCommissionRate (array_merge($request, $params));
+            }
+        } else {
+            $response = $this->sapiGetAssetTradeFee (array_merge($request, $params));
         }
         //
         // spot
+        //
         //     array(
         //       {
         //         "symbol" => "BTCUSDT",
@@ -7847,6 +8029,7 @@ class binance extends Exchange {
         //     )
         //
         // swap
+        //
         //     {
         //         "symbol" => "BTCUSD_PERP",
         //         "makerCommissionRate" => "0.00015",  // 0.015%
@@ -7857,7 +8040,7 @@ class binance extends Exchange {
         if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
             $data = $this->safe_dict($data, 0, array());
         }
-        return $this->parse_trading_fee($data);
+        return $this->parse_trading_fee($data, $market);
     }
 
     public function fetch_trading_fees($params = array ()) {

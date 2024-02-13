@@ -3551,14 +3551,7 @@ public partial class coinbase : Exchange
                         payload = body;
                     }
                 }
-                object auth = null;
-                if (isTrue(isEqual(version, "v3")))
-                {
-                    auth = add(add(add(nonce, method), savedPath), payload);
-                } else
-                {
-                    auth = add(add(add(nonce, method), fullPath), payload);
-                }
+                object auth = add(add(add(nonce, method), savedPath), payload);
                 object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 headers = new Dictionary<string, object>() {
                     { "CB-ACCESS-KEY", this.apiKey },
