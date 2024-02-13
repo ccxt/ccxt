@@ -689,10 +689,10 @@ export default class coinbase extends Exchange {
     }
 
     async fetchTransactionsWithMethod (method, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        const request = await this.prepareAccountRequestWithCurrencyCode (code, limit, params);
+        let request = undefined;
+        [ request, params ] = await this.prepareAccountRequestWithCurrencyCode (code, limit, params);
         await this.loadMarkets ();
-        const query = this.omit (params, [ 'account_id', 'accountId' ]);
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, params));
         return this.parseTransactions (response['data'], undefined, since, limit);
     }
 
@@ -1818,12 +1818,12 @@ export default class coinbase extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const request = await this.prepareAccountRequestWithCurrencyCode (code, limit, params);
-        const query = this.omit (params, [ 'account_id', 'accountId' ]);
+        let request = undefined;
+        [ request, params ] = await this.prepareAccountRequestWithCurrencyCode (code, limit, params);
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_json_response.pagination.next_starting_after
-        const response = await this.v2PrivateGetAccountsAccountIdTransactions (this.extend (request, query));
+        const response = await this.v2PrivateGetAccountsAccountIdTransactions (this.extend (request, params));
         return this.parseLedger (response['data'], currency, since, limit);
     }
 
@@ -2186,6 +2186,7 @@ export default class coinbase extends Exchange {
 
     async prepareAccountRequestWithCurrencyCode (code: Str = undefined, limit: Int = undefined, params = {}) {
         let accountId = this.safeString2 (params, 'account_id', 'accountId');
+        params = this.omit (params, [ 'account_id', 'accountId' ]);
         if (accountId === undefined) {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' prepareAccountRequestWithCurrencyCode() method requires an account_id (or accountId) parameter OR a currency code argument');
@@ -2201,7 +2202,7 @@ export default class coinbase extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        return request;
+        return [ request, params ];
     }
 
     async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
