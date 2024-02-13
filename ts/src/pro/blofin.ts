@@ -443,23 +443,23 @@ export default class blofin extends blofinRest {
         }
     }
 
-    async watchMultipleWrapper (channelName: string, methodName: string, symbolsArray, params = {}) {
+    async watchMultipleWrapper (channelName: string, callerMethodName: string, symbolsArray, params = {}) {
         // underlier method for all watch-multiple symbols
         await this.loadMarkets ();
-        [ methodName, params ] = this.handleParam (params, 'callerMethodName', methodName);
+        [ callerMethodName, params ] = this.handleParam (params, 'callerMethodName', callerMethodName);
         // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
         const isOHLCV = (channelName === 'candle');
         let symbols = !isOHLCV ? symbolsArray : this.getListFromObjectValues (symbolsArray, 0);
-        this.requireSymbolsForMultiSubscription (methodName, symbols);
+        this.requireSymbolsForMultiSubscription (callerMethodName, symbols);
         let firstMarket = undefined;
         symbols = this.marketSymbols (symbols, undefined, false, true);
         if (symbols !== undefined) {
             firstMarket = this.market (symbols[0]);
         }
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, firstMarket, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams (callerMethodName, firstMarket, params);
         if (marketType === 'spot') {
-            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for spot markets');
+            throw new NotSupported (this.id + ' ' + callerMethodName + '() is not supported for spot markets');
         }
         const rawSubscriptions = [];
         const messageHashes = [];
