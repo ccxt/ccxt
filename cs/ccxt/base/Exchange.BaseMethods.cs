@@ -2637,9 +2637,57 @@ public partial class Exchange
         return this.safeString(market, "symbol", symbol);
     }
 
+    public virtual object handleParamString(object parameters, object paramName, object defaultValue = null)
+    {
+        object value = this.safeString(parameters, paramName, defaultValue);
+        if (isTrue(!isEqual(value, null)))
+        {
+            parameters = this.omit(parameters, paramName);
+        }
+        return new List<object>() {value, parameters};
+    }
+
     public virtual object resolvePath(object path, object parameters)
     {
         return new List<object> {this.implodeParams(path, parameters), this.omit(parameters, this.extractParams(path))};
+    }
+
+    public virtual object getListFromObjectValues(object objects, object key)
+    {
+        object newArray = this.toArray(objects);
+        object results = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(newArray)); postFixIncrement(ref i))
+        {
+            ((IList<object>)results).Add(getValue(getValue(newArray, i), key));
+        }
+        return results;
+    }
+
+    public virtual object getSymbolsForMarketType(object marketType = null, object subType = null, object symbolWithActiveStatus = null, object symbolWithUnknownStatus = null)
+    {
+        symbolWithActiveStatus ??= true;
+        symbolWithUnknownStatus ??= true;
+        object filteredMarkets = this.markets;
+        if (isTrue(!isEqual(marketType, null)))
+        {
+            filteredMarkets = this.filterBy(filteredMarkets, "type", marketType);
+        }
+        if (isTrue(!isEqual(subType, null)))
+        {
+            this.checkRequiredArgument("getSymbolsForMarketType", subType, "subType", new List<object>() {"linear", "inverse", "quanto"});
+            filteredMarkets = this.filterBy(filteredMarkets, "subType", subType);
+        }
+        object activeStatuses = new List<object>() {};
+        if (isTrue(symbolWithActiveStatus))
+        {
+            ((IList<object>)activeStatuses).Add(true);
+        }
+        if (isTrue(symbolWithUnknownStatus))
+        {
+            ((IList<object>)activeStatuses).Add(null);
+        }
+        filteredMarkets = this.filterByArray(filteredMarkets, "active", activeStatuses, false);
+        return this.getListFromObjectValues(filteredMarkets, "symbol");
     }
 
     public virtual object filterByArray(object objects, object key, object values = null, object indexed = null)
