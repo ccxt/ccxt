@@ -4,7 +4,7 @@
 import blofinRest from '../blofin.js';
 import { NotSupported, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, MarketInterface, Trade, OrderBook, Str, Strings, Ticker, Tickers, OHLCV } from '../base/types.js';
+import type { Int, MarketInterface, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -44,6 +44,10 @@ export default class blofin extends blofinRest {
                 'watchOrderBookForSymbols': {
                     'channel': 'books',
                 },
+            },
+            'streaming': {
+                'ping': this.pingMessage,
+                'keepAlive': 25000, // 30 seconds max
             },
         });
     }
@@ -114,19 +118,25 @@ export default class blofin extends blofinRest {
             'books': this.handleWsOrderBook,
             'tickers': this.handleWsTicker,
             'candle': this.handleWsOHLCV,
+            'pong': this.handleWsPong,
         };
-        const event = this.safeString (message, 'event');
-        if (event === 'subscribe') {
-            return;
-        }
-        const arg = this.safeDict (message, 'arg');
-        const channelName = this.safeString (arg, 'channel');
-        let method = this.safeValue (methods, channelName);
-        if (!method && channelName.indexOf ('candle') >= 0) {
-            method = methods['candle'];
+        let method = undefined;
+        if (message === 'pong') {
+            method = this.safeValue (methods, 'pong');
+        } else {
+            const event = this.safeString (message, 'event');
+            if (event === 'subscribe') {
+                return;
+            }
+            const arg = this.safeDict (message, 'arg');
+            const channelName = this.safeString (arg, 'channel');
+            method = this.safeValue (methods, channelName);
+            if (!method && channelName.indexOf ('candle') >= 0) {
+                method = methods['candle'];
+            }
         }
         if (method) {
-            method.call (this, client, message, channelName);
+            method.call (this, client, message);
         }
     }
 
@@ -136,6 +146,17 @@ export default class blofin extends blofinRest {
             params = this.omit (params, optionName);
         }
         return [ value, params ];
+    }
+
+    pingMessage (client) {
+        return 'ping';
+    }
+
+    handleWsPong (client: Client, message) {
+        //
+        //   'pong
+        //
+        client.lastPong = this.milliseconds ();
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -176,8 +197,7 @@ export default class blofin extends blofinRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleWsTrades (client: Client, message, channelName: Str) {
-        const data = this.safeList (message, 'data');
+    handleWsTrades (client: Client, message) {
         //
         //     {
         //       arg: {
@@ -197,6 +217,9 @@ export default class blofin extends blofinRest {
         //       ]
         //     }
         //
+        const arg = this.safeDict (message, 'arg');
+        const channelName = this.safeString (arg, 'channel');
+        const data = this.safeList (message, 'data');
         if (data === undefined) {
             return;
         }
@@ -272,7 +295,7 @@ export default class blofin extends blofinRest {
         return orderbook.limit ();
     }
 
-    handleWsOrderBook (client: Client, message, channelName: Str) {
+    handleWsOrderBook (client: Client, message) {
         //
         //   {
         //     arg: {
@@ -290,6 +313,8 @@ export default class blofin extends blofinRest {
         // }
         //
         const arg = this.safeDict (message, 'arg');
+        const channelName = this.safeString (arg, 'channel');
+        const data = this.safeList (message, 'data');
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -298,7 +323,6 @@ export default class blofin extends blofinRest {
         if (orderbook === undefined) {
             orderbook = this.orderBook ();
         }
-        const data = this.safeDict (message, 'data');
         const timestamp = this.safeInteger (data, 'ts');
         const action = this.safeString (message, 'action');
         if (action === 'snapshot') {
@@ -353,7 +377,7 @@ export default class blofin extends blofinRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleWsTicker (client: Client, message, channelName: string) {
+    handleWsTicker (client: Client, message) {
         //
         //     {
         //         instId: "ADA-USDT",
@@ -371,7 +395,9 @@ export default class blofin extends blofinRest {
         //         vol24h: "1985601",
         //     }
         //
-        const data = this.safeList (message, 'data', []);
+        const arg = this.safeDict (message, 'arg');
+        const channelName = this.safeString (arg, 'channel');
+        const data = this.safeList (message, 'data');
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseTicker (data[i]);
             const symbol = ticker['symbol'];
@@ -423,7 +449,7 @@ export default class blofin extends blofinRest {
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
-    handleWsOHLCV (client: Client, message, channelName: string) {
+    handleWsOHLCV (client: Client, message) {
         //
         // message
         //
@@ -448,23 +474,25 @@ export default class blofin extends blofinRest {
         //     }
         //
         const arg = this.safeDict (message, 'arg');
+        const channelName = this.safeString (arg, 'channel');
+        const data = this.safeList (message, 'data');
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        let stored = this.safeValue (this.ohlcvs, symbol);
+        const interval = channelName.replace ('candle', '');
+        const unifiedTimeframe = this.findTimeframe (interval);
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.ohlcvs[symbol], unifiedTimeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol] = stored;
+            this.ohlcvs[symbol][unifiedTimeframe] = stored;
         }
-        const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const candle = data[i];
             const parsed = this.parseOHLCV (candle, market);
             stored.append (parsed);
         }
-        const interval = channelName.replace ('candle', '');
-        const unifiedTimeframe = this.findTimeframe (interval);
         const resolveData = [ symbol, unifiedTimeframe, stored ];
         const messageHash = 'candle' + interval + ':' + symbol;
         client.resolve (resolveData, messageHash);
