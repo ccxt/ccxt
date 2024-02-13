@@ -3461,11 +3461,39 @@ class Exchange(object):
         market = self.market(symbol)
         return self.safe_string(market, 'symbol', symbol)
 
+    def handle_param_string(self, params: object, paramName: str, defaultValue=None):
+        value = self.safe_string(params, paramName, defaultValue)
+        if value is not None:
+            params = self.omit(params, paramName)
+        return [value, params]
+
     def resolve_path(self, path, params):
         return [
             self.implode_params(path, params),
             self.omit(params, self.extract_params(path)),
         ]
+
+    def get_list_from_object_values(self, objects, key: IndexType):
+        newArray = self.to_array(objects)
+        results = []
+        for i in range(0, len(newArray)):
+            results.append(newArray[i][key])
+        return results
+
+    def get_symbols_for_market_type(self, marketType: str = None, subType: str = None, symbolWithActiveStatus: bool = True, symbolWithUnknownStatus: bool = True):
+        filteredMarkets = self.markets
+        if marketType is not None:
+            filteredMarkets = self.filter_by(filteredMarkets, 'type', marketType)
+        if subType is not None:
+            self.check_required_argument('getSymbolsForMarketType', subType, 'subType', ['linear', 'inverse', 'quanto'])
+            filteredMarkets = self.filter_by(filteredMarkets, 'subType', subType)
+        activeStatuses = []
+        if symbolWithActiveStatus:
+            activeStatuses.append(True)
+        if symbolWithUnknownStatus:
+            activeStatuses.append(None)
+        filteredMarkets = self.filter_by_array(filteredMarkets, 'active', activeStatuses, False)
+        return self.get_list_from_object_values(filteredMarkets, 'symbol')
 
     def filter_by_array(self, objects, key: IndexType, values=None, indexed=True):
         objects = self.to_array(objects)
