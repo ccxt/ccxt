@@ -4,7 +4,7 @@
 import blofinRest from '../blofin.js';
 import { NotSupported, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, MarketInterface, Trade, OrderBook, Str, Strings, Ticker, Tickers } from '../base/types.js';
+import type { Int, MarketInterface, Trade, OrderBook, Str, Strings, Ticker, Tickers, OHLCV } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -381,24 +381,22 @@ export default class blofin extends blofinRest {
         }
     }
 
-    // async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-    //     /**
-    //      * @method
-    //      * @name blofin#watchOHLCV
-    //      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-    //      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-    //      * @param {string} timeframe the length of time each candle represents
-    //      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-    //      * @param {int} [limit] the maximum amount of candles to fetch
-    //      * @param {object} [params] extra parameters specific to the exchange API endpoint
-    //      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-    //      */
-    //     params['callerMethodName'] = 'watchOHLCV';
-    //     const market = this.market (symbol);
-    //     symbol = market['symbol'];
-    //     const result = await this.watchOHLCVForSymbols ([ symbol, timeframe ], since, limit, params);
-    //     return result[symbol];
-    // }
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name blofin#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        params['callerMethodName'] = 'watchOHLCV';
+        const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
+        return result[symbol][timeframe];
+    }
 
     async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
@@ -417,7 +415,7 @@ export default class blofin extends blofinRest {
             throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
         }
         await this.loadMarkets ();
-        const [ symbol, timeframe, candles ] = await this.watchMultipleWrapper ('candle', 'watchOHLCVForSymbol', symbolsAndTimeframes, params);
+        const [ symbol, timeframe, candles ] = await this.watchMultipleWrapper ('candle', 'watchOHLCVForSymbols', symbolsAndTimeframes, params);
         if (this.newUpdates) {
             limit = candles.getLimit (symbol, limit);
         }
@@ -466,7 +464,9 @@ export default class blofin extends blofinRest {
             stored.append (parsed);
         }
         const interval = channelName.replace ('candle', '');
-        const messageHash = 'ohlcv' + interval + ':' + symbol;
-        client.resolve (stored, messageHash);
+        const unifiedTimeframe = this.findTimeframe (interval);
+        const resolveData = [ symbol, unifiedTimeframe, stored ];
+        const messageHash = 'candle' + interval + ':' + symbol;
+        client.resolve (resolveData, messageHash);
     }
 }
