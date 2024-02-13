@@ -46,7 +46,7 @@ export default class blofin extends blofinRest {
                 },
             },
             'streaming': {
-                'ping': this.pingMessage,
+                'ping': this.ping,
                 'keepAlive': 25000, // 30 seconds max
             },
         });
@@ -148,7 +148,7 @@ export default class blofin extends blofinRest {
         return [ value, params ];
     }
 
-    pingMessage (client) {
+    ping (client) {
         return 'ping';
     }
 
