@@ -92,6 +92,9 @@ export default class binance extends binanceRest {
                 'watchTrades': {
                     'name': 'trade', // 'trade' or 'aggTrade'
                 },
+                'watchTradesForSymbols': {
+                    'name': 'aggTrade', // 'trade' or 'aggTrade'
+                },
                 'watchTicker': {
                     'name': 'ticker', // ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
                 },
