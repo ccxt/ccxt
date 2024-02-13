@@ -192,8 +192,7 @@ export default class delta extends deltaRest {
 
     parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
         const result = this.parseOHLCV (ohlcv, market);
-        const candle_start_time = this.safeInteger (ohlcv, 'candle_start_time');
-        result[0] = candle_start_time / 1000;
+        result[0] = this.safeIntegerProduct (ohlcv, 'candle_start_time', 0.001);
         return result;
     }
 
