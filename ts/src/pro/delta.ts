@@ -208,7 +208,7 @@ export default class delta extends deltaRest {
         const client = this.safeValue (this.clients, url);
         let subscription = {};
         if (client !== undefined) {
-            subscription = this.safeDict (client.subscriptions, subscriptionHash, {});
+            subscription = this.safeDict (client.subscriptions, subscriptionHash);
             if (subscription !== undefined) {
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];
@@ -217,6 +217,8 @@ export default class delta extends deltaRest {
                         client.subscriptions[subscriptionHash] = undefined;
                     }
                 }
+            } else {
+                subscription = {};
             }
         }
         for (let i = 0; i < marketIds.length; i++) {
