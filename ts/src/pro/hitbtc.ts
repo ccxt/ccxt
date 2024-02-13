@@ -419,6 +419,7 @@ export default class hitbtc extends hitbtcRest {
             const messageHash = channel + '::' + symbol;
             client.resolve (newTickers, messageHash);
         }
+        client.resolve (newTickers, 'tickers');
         const messageHashes = this.findMessageHashes (client, 'tickers::');
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];

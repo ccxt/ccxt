@@ -303,13 +303,15 @@ export default class Exchange {
     walletAddress: string; // a wallet address "0x"-prefixed hexstring
 
     balance = {};
-    myTrades: any;
+    bidsasks = {};
+    myTrades: any
     ohlcvs: any;
     orderbooks = {};
     orders = undefined;
     positions = undefined;
+    positions: any
     tickers = {};
-    trades: any;
+    trades: any
     transactions = {};
     triggerOrders = undefined;
     urls: {
@@ -3878,11 +3880,48 @@ export default class Exchange {
         return this.safeString (market, 'symbol', symbol);
     }
 
+    handleParamString (params: object, paramName: string, defaultValue = undefined): [string, object] {
+        const value = this.safeString (params, paramName, defaultValue);
+        if (value !== undefined) {
+            params = this.omit (params, paramName);
+        }
+        return [ value, params ];
+    }
+
     resolvePath (path, params) {
         return [
             this.implodeParams (path, params),
             this.omit (params, this.extractParams (path)),
         ];
+    }
+
+    getListFromObjectValues (objects, key: IndexType) {
+        const newArray = this.toArray (objects);
+        const results = [];
+        for (let i = 0; i < newArray.length; i++) {
+            results.push (newArray[i][key]);
+        }
+        return results;
+    }
+
+    getSymbolsForMarketType (marketType: string = undefined, subType: string = undefined, symbolWithActiveStatus: boolean = true, symbolWithUnknownStatus: boolean = true) {
+        let filteredMarkets = this.markets;
+        if (marketType !== undefined) {
+            filteredMarkets = this.filterBy (filteredMarkets, 'type', marketType);
+        }
+        if (subType !== undefined) {
+            this.checkRequiredArgument ('getSymbolsForMarketType', subType, 'subType', [ 'linear', 'inverse', 'quanto' ]);
+            filteredMarkets = this.filterBy (filteredMarkets, 'subType', subType);
+        }
+        const activeStatuses = [];
+        if (symbolWithActiveStatus) {
+            activeStatuses.push (true);
+        }
+        if (symbolWithUnknownStatus) {
+            activeStatuses.push (undefined);
+        }
+        filteredMarkets = this.filterByArray (filteredMarkets, 'active', activeStatuses, false);
+        return this.getListFromObjectValues (filteredMarkets, 'symbol');
     }
 
     filterByArray (objects, key: IndexType, values = undefined, indexed = true) {

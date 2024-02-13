@@ -4916,7 +4916,7 @@ class binance(Exchange, ImplicitAPI):
         #         "msg": "Quantity greater than max quantity."
         #     }
         #
-        # createOrder, fetchOpenOrders, fetchOrder, cancelOrder: portfolio margin linear swap and future
+        # createOrder, fetchOpenOrders, fetchOrder, cancelOrder, fetchOrders: portfolio margin linear swap and future
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -4939,7 +4939,7 @@ class binance(Exchange, ImplicitAPI):
         #         "status": "NEW"
         #     }
         #
-        # createOrder, fetchOpenOrders, fetchOrder, cancelOrder: portfolio margin inverse swap and future
+        # createOrder, fetchOpenOrders, fetchOrder, cancelOrder, fetchOrders: portfolio margin inverse swap and future
         #
         #     {
         #         "symbol": "ETHUSD_PERP",
@@ -5024,7 +5024,7 @@ class binance(Exchange, ImplicitAPI):
         #         "type": "LIMIT"
         #     }
         #
-        # fetchOpenOrders, fetchOrder: portfolio margin spot margin
+        # fetchOpenOrders, fetchOrder, fetchOrders: portfolio margin spot margin
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -5068,6 +5068,32 @@ class binance(Exchange, ImplicitAPI):
         #         "priceRate": null,      # only return with trailing orders
         #         "bookTime": 1707270098774,
         #         "updateTime": 1707270119261,
+        #         "workingType": "CONTRACT_PRICE",
+        #         "priceProtect": False,
+        #         "goodTillDate": 0,
+        #         "selfTradePreventionMode": "NONE"
+        #     }
+        #
+        # fetchOrders: portfolio margin linear and inverse swap conditional
+        #
+        #     {
+        #         "newClientStrategyId": "x-xcKtGhcuaf166172ed504cd1bc0396",
+        #         "strategyId": 3733211,
+        #         "strategyStatus": "CANCELLED",
+        #         "strategyType": "STOP",
+        #         "origQty": "0.010",
+        #         "price": "35000",
+        #         "orderId": 0,
+        #         "reduceOnly": False,
+        #         "side": "BUY",
+        #         "positionSide": "BOTH",
+        #         "stopPrice": "50000",
+        #         "symbol": "BTCUSDT",
+        #         "type": "LIMIT",
+        #         "bookTime": 1707270098774,
+        #         "updateTime": 1707270119261,
+        #         "timeInForce": "GTC",
+        #         "triggerTime": 0,
         #         "workingType": "CONTRACT_PRICE",
         #         "priceProtect": False,
         #         "goodTillDate": 0,
@@ -5124,7 +5150,7 @@ class binance(Exchange, ImplicitAPI):
             }
         return self.safe_order({
             'info': order,
-            'id': self.safe_string_2(order, 'orderId', 'strategyId'),
+            'id': self.safe_string_2(order, 'strategyId', 'orderId'),
             'clientOrderId': self.safe_string_2(order, 'clientOrderId', 'newClientStrategyId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -5638,13 +5664,20 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/delivery/en/#all-orders-user_data
         :see: https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
         :see: https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-all-um-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-orders-user_data
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
         :param int [params.until]: the latest time in ms to fetch orders for
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.portfolioMargin]: set to True if you would like to fetch orders in a portfolio margin account
+        :param boolean [params.stop]: set to True if you would like to fetch portfolio margin account stop or conditional orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -5655,33 +5688,50 @@ class binance(Exchange, ImplicitAPI):
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, params)
         market = self.market(symbol)
-        defaultType = self.safe_string_2(self.options, 'fetchOrders', 'defaultType', 'spot')
+        defaultType = self.safe_string_2(self.options, 'fetchOrders', 'defaultType', market['type'])
         type = self.safe_string(params, 'type', defaultType)
-        marginMode, query = self.handle_margin_mode_and_params('fetchOrders', params)
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchOrders', params)
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchOrders', 'papi', 'portfolioMargin', False)
+        isConditional = self.safe_bool_2(params, 'stop', 'conditional')
+        params = self.omit(params, ['stop', 'conditional', 'type'])
         request = {
             'symbol': market['id'],
         }
-        until = self.safe_integer(params, 'until')
-        if until is not None:
-            params = self.omit(params, 'until')
-            request['endTime'] = until
+        request, params = self.handle_until_option('endTime', request, params)
         if since is not None:
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
         response = None
         if market['option']:
-            response = await self.eapiPrivateGetHistoryOrders(self.extend(request, query))
+            response = await self.eapiPrivateGetHistoryOrders(self.extend(request, params))
         elif market['linear']:
-            response = await self.fapiPrivateGetAllOrders(self.extend(request, query))
+            if isPortfolioMargin:
+                if isConditional:
+                    response = await self.papiGetUmConditionalAllOrders(self.extend(request, params))
+                else:
+                    response = await self.papiGetUmAllOrders(self.extend(request, params))
+            else:
+                response = await self.fapiPrivateGetAllOrders(self.extend(request, params))
         elif market['inverse']:
-            response = await self.dapiPrivateGetAllOrders(self.extend(request, query))
-        elif type == 'margin' or marginMode is not None:
-            if marginMode == 'isolated':
-                request['isIsolated'] = True
-            response = await self.sapiGetMarginAllOrders(self.extend(request, query))
+            if isPortfolioMargin:
+                if isConditional:
+                    response = await self.papiGetCmConditionalAllOrders(self.extend(request, params))
+                else:
+                    response = await self.papiGetCmAllOrders(self.extend(request, params))
+            else:
+                response = await self.dapiPrivateGetAllOrders(self.extend(request, params))
         else:
-            response = await self.privateGetAllOrders(self.extend(request, query))
+            if isPortfolioMargin:
+                response = await self.papiGetMarginAllOrders(self.extend(request, params))
+            elif type == 'margin' or marginMode is not None:
+                if marginMode == 'isolated':
+                    request['isIsolated'] = True
+                response = await self.sapiGetMarginAllOrders(self.extend(request, params))
+            else:
+                response = await self.privateGetAllOrders(self.extend(request, params))
         #
         #  spot
         #
@@ -5754,6 +5804,112 @@ class binance(Exchange, ImplicitAPI):
         #             "lastTrade": {"id":"69","time":"1676084430567","price":"24.9","qty":"1.00"},
         #             "mmp": False
         #         }
+        #     ]
+        #
+        # inverse portfolio margin
+        #
+        #     [
+        #         {
+        #             "orderId": 71328442983,
+        #             "symbol": "ETHUSD_PERP",
+        #             "pair": "ETHUSD",
+        #             "status": "CANCELED",
+        #             "clientOrderId": "x-xcKtGhcu4b3e3d8515dd4dc5ba9ccc",
+        #             "price": "2000",
+        #             "avgPrice": "0.00",
+        #             "origQty": "1",
+        #             "executedQty": "0",
+        #             "cumBase": "0",
+        #             "timeInForce": "GTC",
+        #             "type": "LIMIT",
+        #             "reduceOnly": False,
+        #             "side": "BUY",
+        #             "origType": "LIMIT",
+        #             "time": 1707197843046,
+        #             "updateTime": 1707197941373,
+        #             "positionSide": "BOTH"
+        #         },
+        #     ]
+        #
+        # linear portfolio margin
+        #
+        #     [
+        #         {
+        #             "orderId": 259235347005,
+        #             "symbol": "BTCUSDT",
+        #             "status": "CANCELED",
+        #             "clientOrderId": "x-xcKtGhcu402881c9103f42bdb4183b",
+        #             "price": "35000",
+        #             "avgPrice": "0.00000",
+        #             "origQty": "0.010",
+        #             "executedQty": "0",
+        #             "cumQuote": "0",
+        #             "timeInForce": "GTC",
+        #             "type": "LIMIT",
+        #             "reduceOnly": False,
+        #             "side": "BUY",
+        #             "origType": "LIMIT",
+        #             "time": 1707194702167,
+        #             "updateTime": 1707197804748,
+        #             "positionSide": "BOTH",
+        #             "selfTradePreventionMode": "NONE",
+        #             "goodTillDate": 0
+        #         },
+        #     ]
+        #
+        # conditional portfolio margin
+        #
+        #     [
+        #         {
+        #             "newClientStrategyId": "x-xcKtGhcuaf166172ed504cd1bc0396",
+        #             "strategyId": 3733211,
+        #             "strategyStatus": "CANCELLED",
+        #             "strategyType": "STOP",
+        #             "origQty": "0.010",
+        #             "price": "35000",
+        #             "orderId": 0,
+        #             "reduceOnly": False,
+        #             "side": "BUY",
+        #             "positionSide": "BOTH",
+        #             "stopPrice": "50000",
+        #             "symbol": "BTCUSDT",
+        #             "type": "LIMIT",
+        #             "bookTime": 1707270098774,
+        #             "updateTime": 1707270119261,
+        #             "timeInForce": "GTC",
+        #             "triggerTime": 0,
+        #             "workingType": "CONTRACT_PRICE",
+        #             "priceProtect": False,
+        #             "goodTillDate": 0,
+        #             "selfTradePreventionMode": "NONE"
+        #         },
+        #     ]
+        #
+        # spot margin portfolio margin
+        #
+        #     [
+        #         {
+        #             "symbol": "BTCUSDT",
+        #             "orderId": 24684460474,
+        #             "clientOrderId": "x-R4BD3S82e9ef29d8346440f0b28b86",
+        #             "price": "35000.00000000",
+        #             "origQty": "0.00100000",
+        #             "executedQty": "0.00000000",
+        #             "cummulativeQuoteQty": "0.00000000",
+        #             "status": "CANCELED",
+        #             "timeInForce": "GTC",
+        #             "type": "LIMIT",
+        #             "side": "BUY",
+        #             "stopPrice": "0.00000000",
+        #             "icebergQty": "0.00000000",
+        #             "time": 1707113538870,
+        #             "updateTime": 1707113797688,
+        #             "isWorking": True,
+        #             "accountId": 200180970,
+        #             "selfTradePreventionMode": "EXPIRE_MAKER",
+        #             "preventedMatchId": null,
+        #             "preventedQuantity": null
+        #         },
         #     ]
         #
         return self.parse_orders(response, market, since, limit)
@@ -5854,13 +6010,22 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/delivery/en/#all-orders-user_data
         :see: https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
         :see: https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-all-um-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-orders-user_data
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.portfolioMargin]: set to True if you would like to fetch orders in a portfolio margin account
+        :param boolean [params.stop]: set to True if you would like to fetch portfolio margin account stop or conditional orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         orders = await self.fetch_orders(symbol, since, None, params)
         filteredOrders = self.filter_by(orders, 'status', 'closed')
         return self.filter_by_since_limit(filteredOrders, since, limit)
@@ -5871,20 +6036,22 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
         :see: https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
         :see: https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-all-um-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-orders-user_data
         :param str symbol: unified market symbol of the market the orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.portfolioMargin]: set to True if you would like to fetch orders in a portfolio margin account
+        :param boolean [params.stop]: set to True if you would like to fetch portfolio margin account stop or conditional orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchCanceledOrders() requires a symbol argument')
-        await self.load_markets()
-        market = self.market(symbol)
-        if market['swap'] or market['future']:
-            raise NotSupported(self.id + ' fetchCanceledOrders() supports spot, margin and option markets only')
-        params = self.omit(params, 'type')
         orders = await self.fetch_orders(symbol, since, None, params)
         filteredOrders = self.filter_by(orders, 'status', 'canceled')
         return self.filter_by_since_limit(filteredOrders, since, limit)
@@ -7453,32 +7620,41 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
         :see: https://binance-docs.github.io/apidocs/futures/en/#user-commission-rate-user_data
         :see: https://binance-docs.github.io/apidocs/delivery/en/#user-commission-rate-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#get-user-commission-rate-for-um-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#get-user-commission-rate-for-cm-user_data
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.portfolioMargin]: set to True if you would like to fetch trading fees in a portfolio margin account
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        defaultType = self.safe_string_2(self.options, 'fetchTradingFee', 'defaultType', 'linear')
-        type = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, 'type')
+        type = market['type']
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchTradingFee', market, params)
-        isSpotOrMargin = (type == 'spot') or (type == 'margin')
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchTradingFee', 'papi', 'portfolioMargin', False)
         isLinear = self.is_linear(type, subType)
         isInverse = self.is_inverse(type, subType)
         request = {
             'symbol': market['id'],
         }
         response = None
-        if isSpotOrMargin:
-            response = await self.sapiGetAssetTradeFee(self.extend(request, params))
-        elif isLinear:
-            response = await self.fapiPrivateGetCommissionRate(self.extend(request, params))
+        if isLinear:
+            if isPortfolioMargin:
+                response = await self.papiGetUmCommissionRate(self.extend(request, params))
+            else:
+                response = await self.fapiPrivateGetCommissionRate(self.extend(request, params))
         elif isInverse:
-            response = await self.dapiPrivateGetCommissionRate(self.extend(request, params))
+            if isPortfolioMargin:
+                response = await self.papiGetCmCommissionRate(self.extend(request, params))
+            else:
+                response = await self.dapiPrivateGetCommissionRate(self.extend(request, params))
+        else:
+            response = await self.sapiGetAssetTradeFee(self.extend(request, params))
         #
         # spot
+        #
         #     [
         #       {
         #         "symbol": "BTCUSDT",
@@ -7488,6 +7664,7 @@ class binance(Exchange, ImplicitAPI):
         #     ]
         #
         # swap
+        #
         #     {
         #         "symbol": "BTCUSD_PERP",
         #         "makerCommissionRate": "0.00015",  # 0.015%
@@ -7497,7 +7674,7 @@ class binance(Exchange, ImplicitAPI):
         data = response
         if isinstance(data, list):
             data = self.safe_dict(data, 0, {})
-        return self.parse_trading_fee(data)
+        return self.parse_trading_fee(data, market)
 
     async def fetch_trading_fees(self, params={}):
         """

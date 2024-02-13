@@ -739,6 +739,11 @@ public partial class binance
     /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#all-orders-user_data"/>  <br/>
     /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade"/>  <br/>
     /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-um-orders-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-orders-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-orders-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-orders-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-orders-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -773,7 +778,19 @@ public partial class binance
     /// <item>
     /// <term>params.paginate</term>
     /// <description>
-    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolioMargin</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch orders in a portfolio margin account
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stop</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch portfolio margin account stop or conditional orders
     /// </description>
     /// </item>
     /// </list>
@@ -860,6 +877,11 @@ public partial class binance
     /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#all-orders-user_data"/>  <br/>
     /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade"/>  <br/>
     /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-um-orders-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-orders-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-orders-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-orders-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-orders-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -882,7 +904,19 @@ public partial class binance
     /// <item>
     /// <term>params.paginate</term>
     /// <description>
-    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolioMargin</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch orders in a portfolio margin account
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stop</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch portfolio margin account stop or conditional orders
     /// </description>
     /// </item>
     /// </list>
@@ -902,6 +936,11 @@ public partial class binance
     /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data"/>  <br/>
     /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data"/>  <br/>
     /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-um-orders-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-orders-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-orders-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-orders-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-orders-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -924,7 +963,19 @@ public partial class binance
     /// <item>
     /// <term>params.paginate</term>
     /// <description>
-    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolioMargin</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch orders in a portfolio margin account
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stop</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch portfolio margin account stop or conditional orders
     /// </description>
     /// </item>
     /// </list>
@@ -1462,11 +1513,19 @@ public partial class binance
     /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data"/>  <br/>
     /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#user-commission-rate-user_data"/>  <br/>
     /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#user-commission-rate-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#get-user-commission-rate-for-um-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#get-user-commission-rate-for-cm-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolioMargin</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch trading fees in a portfolio margin account
     /// </description>
     /// </item>
     /// </list>
