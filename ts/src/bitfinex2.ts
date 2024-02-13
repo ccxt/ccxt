@@ -1531,6 +1531,29 @@ export default class bitfinex2 extends Exchange {
         }, market);
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitfinex#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {string} symbol not used by bitfinex fetchOrder
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.privatePostAuthROrdersSymbolHist (this.extend (request, params));
+        for (let i = 0; i < response.length; i++) {
+            const order = this.parseOrder (response[i]);
+            if (order['id'] === id) {
+                return order;
+            }
+        }
+    }
+
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
