@@ -56,7 +56,7 @@ export default class blofin extends blofinRest {
         return 'ping';
     }
 
-    handleWsPong (client: Client, message) {
+    handlePong (client: Client, message) {
         //
         //   'pong'
         //
@@ -101,7 +101,7 @@ export default class blofin extends blofinRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleWsTrades (client: Client, message) {
+    handleTrades (client: Client, message) {
         //
         //     {
         //       arg: {
@@ -197,7 +197,7 @@ export default class blofin extends blofinRest {
         return orderbook.limit ();
     }
 
-    handleWsOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //   {
         //     arg: {
@@ -232,8 +232,8 @@ export default class blofin extends blofinRest {
             orderBookSnapshot['nonce'] = this.safeInteger (data, 'seqId');
             orderbook.reset (orderBookSnapshot);
         } else {
-            const asks = this.safeValue (data, 'asks', []);
-            const bids = this.safeValue (data, 'bids', []);
+            const asks = this.safeList (data, 'asks', []);
+            const bids = this.safeList (data, 'bids', []);
             this.handleDeltasWithKeys (orderbook['asks'], asks);
             this.handleDeltasWithKeys (orderbook['bids'], bids);
             orderbook['timestamp'] = timestamp;
@@ -279,7 +279,7 @@ export default class blofin extends blofinRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleWsTicker (client: Client, message) {
+    handleTicker (client: Client, message) {
         //
         //     {
         //         instId: "ADA-USDT",
@@ -351,7 +351,7 @@ export default class blofin extends blofinRest {
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
-    handleWsOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message) {
         //
         // message
         //
@@ -383,7 +383,7 @@ export default class blofin extends blofinRest {
         const symbol = market['symbol'];
         const interval = channelName.replace ('candle', '');
         const unifiedTimeframe = this.findTimeframe (interval);
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], unifiedTimeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -415,11 +415,11 @@ export default class blofin extends blofinRest {
         // incoming data updates' examples can be seen under each handler method
         //
         const methods = {
-            'trades': this.handleWsTrades,
-            'books': this.handleWsOrderBook,
-            'tickers': this.handleWsTicker,
-            'candle': this.handleWsOHLCV,
-            'pong': this.handleWsPong,
+            'trades': this.handleTrades,
+            'books': this.handleOrderBook,
+            'tickers': this.handleTicker,
+            'candle': this.handleOHLCV,
+            'pong': this.handlePong,
         };
         let method = undefined;
         if (message === 'pong') {
@@ -441,7 +441,7 @@ export default class blofin extends blofinRest {
         }
     }
 
-    async watchMultipleWrapper (channelName: string, callerMethodName: string, symbolsArray, params = {}) {
+    async watchMultipleWrapper (channelName: string, callerMethodName: string, symbolsArray: [], params = {}) {
         // underlier method for all watch-multiple symbols
         await this.loadMarkets ();
         [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', callerMethodName);
