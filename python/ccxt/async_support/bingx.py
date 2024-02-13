@@ -400,6 +400,7 @@ class bingx(Exchange, ImplicitAPI):
                 'broad': {},
             },
             'commonCurrencies': {
+                'SNOW': 'Snowman',  # Snowman vs SnowSwap conflict
             },
             'options': {
                 'defaultType': 'spot',
@@ -3184,7 +3185,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         return await self.swapV2PrivatePostTradeMarginType(self.extend(request, params))
 
-    async def set_margin(self, symbol: str, amount, params={}):
+    async def set_margin(self, symbol: str, amount: float, params={}):
         """
         Either adds or reduces margin in an isolated position in order to set the margin to a specific value
         :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Adjust%20isolated%20margin

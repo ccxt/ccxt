@@ -2652,9 +2652,11 @@ class binance extends binance$1 {
             const networkList = this.safeList(entry, 'networkList', []);
             const fees = {};
             let fee = undefined;
+            const networks = {};
             for (let j = 0; j < networkList.length; j++) {
                 const networkItem = networkList[j];
                 const network = this.safeString(networkItem, 'network');
+                const networkCode = this.networkIdToCode(network);
                 // const name = this.safeString (networkItem, 'name');
                 const withdrawFee = this.safeNumber(networkItem, 'withdrawFee');
                 const depositEnable = this.safeBool(networkItem, 'depositEnable');
@@ -2672,6 +2674,26 @@ class binance extends binance$1 {
                 if (!Precise["default"].stringEq(precisionTick, '0')) {
                     minPrecision = (minPrecision === undefined) ? precisionTick : Precise["default"].stringMin(minPrecision, precisionTick);
                 }
+                networks[networkCode] = {
+                    'info': networkItem,
+                    'id': network,
+                    'network': networkCode,
+                    'active': depositEnable && withdrawEnable,
+                    'deposit': depositEnable,
+                    'withdraw': withdrawEnable,
+                    'fee': this.parseNumber(fee),
+                    'precision': minPrecision,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(networkItem, 'withdrawMin'),
+                            'max': this.safeNumber(networkItem, 'withdrawMax'),
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                };
             }
             const trading = this.safeBool(entry, 'trading');
             const active = (isWithdrawEnabled && isDepositEnabled && trading);
@@ -2688,7 +2710,7 @@ class binance extends binance$1 {
                 'active': active,
                 'deposit': isDepositEnabled,
                 'withdraw': isWithdrawEnabled,
-                'networks': networkList,
+                'networks': networks,
                 'fee': fee,
                 'fees': fees,
                 'limits': this.limits,
@@ -6212,8 +6234,9 @@ class binance extends binance$1 {
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const orders = await this.fetchOrders(symbol, since, limit, params);
-        return this.filterBy(orders, 'status', 'closed');
+        const orders = await this.fetchOrders(symbol, since, undefined, params);
+        const filteredOrders = this.filterBy(orders, 'status', 'closed');
+        return this.filterBySinceLimit(filteredOrders, since, limit);
     }
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

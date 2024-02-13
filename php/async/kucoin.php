@@ -3862,11 +3862,11 @@ class kucoin extends Exchange {
             }
         }
         $fee = null;
-        $feeCost = $this->safe_number($item, 'fee');
+        $feeCost = $this->safe_string($item, 'fee');
         $feeCurrency = null;
-        if ($feeCost !== 0) {
+        if ($feeCost !== '0') {
             $feeCurrency = $code;
-            $fee = array( 'cost' => $feeCost, 'currency' => $feeCurrency );
+            $fee = array( 'cost' => $this->parse_number($feeCost), 'currency' => $feeCurrency );
         }
         return array(
             'id' => $id,
@@ -3978,8 +3978,12 @@ class kucoin extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data');
-            $items = $this->safe_value($data, 'items', $data);
+            $dataList = $this->safe_list($response, 'data');
+            if ($dataList !== null) {
+                return $this->parse_ledger($dataList, $currency, $since, $limit);
+            }
+            $data = $this->safe_dict($response, 'data');
+            $items = $this->safe_list($data, 'items', array());
             return $this->parse_ledger($items, $currency, $since, $limit);
         }) ();
     }

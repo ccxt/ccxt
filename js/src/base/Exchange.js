@@ -1939,6 +1939,15 @@ export default class Exchange {
     async setPositionMode(hedged, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' setPositionMode() is not supported yet');
     }
+    async addMargin(symbol, amount, params = {}) {
+        throw new NotSupported(this.id + ' addMargin() is not supported yet');
+    }
+    async reduceMargin(symbol, amount, params = {}) {
+        throw new NotSupported(this.id + ' reduceMargin() is not supported yet');
+    }
+    async setMargin(symbol, amount, params = {}) {
+        throw new NotSupported(this.id + ' setMargin() is not supported yet');
+    }
     async setMarginMode(marginMode, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' setMarginMode() is not supported yet');
     }
@@ -3128,6 +3137,9 @@ export default class Exchange {
          * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} exchange-specific network id
          */
+        if (networkCode === undefined) {
+            return undefined;
+        }
         const networkIdsByCodes = this.safeValue(this.options, 'networks', {});
         let networkId = this.safeString(networkIdsByCodes, networkCode);
         // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
@@ -3171,6 +3183,9 @@ export default class Exchange {
          * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} unified network code
          */
+        if (networkId === undefined) {
+            return undefined;
+        }
         const networkCodesByIds = this.safeDict(this.options, 'networksById', {});
         let networkCode = this.safeString(networkCodesByIds, networkId, networkId);
         // replace mainnet network-codes (i.e. ERC20->ETH)

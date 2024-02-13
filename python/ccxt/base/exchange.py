@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.42'
+__version__ = '4.2.43'
 
 # -----------------------------------------------------------------------------
 
@@ -2195,6 +2195,15 @@ class Exchange(object):
     def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' setPositionMode() is not supported yet')
 
+    def add_margin(self, symbol: str, amount: float, params={}):
+        raise NotSupported(self.id + ' addMargin() is not supported yet')
+
+    def reduce_margin(self, symbol: str, amount: float, params={}):
+        raise NotSupported(self.id + ' reduceMargin() is not supported yet')
+
+    def set_margin(self, symbol: str, amount: float, params={}):
+        raise NotSupported(self.id + ' setMargin() is not supported yet')
+
     def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' setMarginMode() is not supported yet')
 
@@ -3204,6 +3213,8 @@ class Exchange(object):
         :param str currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
         :returns str|None: exchange-specific network id
         """
+        if networkCode is None:
+            return None
         networkIdsByCodes = self.safe_value(self.options, 'networks', {})
         networkId = self.safe_string(networkIdsByCodes, networkCode)
         # for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
@@ -3238,6 +3249,8 @@ class Exchange(object):
         :param str|None currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
         :returns str|None: unified network code
         """
+        if networkId is None:
+            return None
         networkCodesByIds = self.safe_dict(self.options, 'networksById', {})
         networkCode = self.safe_string(networkCodesByIds, networkId, networkId)
         # replace mainnet network-codes(i.e. ERC20->ETH)

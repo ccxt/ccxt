@@ -385,7 +385,9 @@ class bingx extends bingx$1 {
                 },
                 'broad': {},
             },
-            'commonCurrencies': {},
+            'commonCurrencies': {
+                'SNOW': 'Snowman', // Snowman vs SnowSwap conflict
+            },
             'options': {
                 'defaultType': 'spot',
                 'accountsByType': {
