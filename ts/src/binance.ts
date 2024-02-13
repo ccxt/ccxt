@@ -5323,7 +5323,7 @@ export default class binance extends Exchange {
         }
         return this.safeOrder ({
             'info': order,
-            'id': this.safeString2 (order, 'orderId', 'strategyId'),
+            'id': this.safeString2 (order, 'strategyId', 'orderId'),
             'clientOrderId': this.safeString2 (order, 'clientOrderId', 'newClientStrategyId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
