@@ -5987,7 +5987,7 @@ export default class Exchange {
         const defaultNetworks = this.safeDict (this.options, 'defaultNetworks');
         const defaultNetwork = this.safeString (defaultNetworks, code);
         const network = this.safeStringN (params, [ 'network', 'defaultNetwork', 'networkCode' ], defaultNetwork);
-        params = this.omit (params, 'network');
+        params = this.omit (params, [ 'network', 'defaultNetwork', 'networkCode' ]);
         return [ network, params ];
     }
 }
