@@ -2270,11 +2270,41 @@
                 ]
             },
             {
-                "description": "swap trading fee",
+                "description": "Linear swap fetch trading fee",
                 "method": "fetchTradingFee",
-                "url": "https://api.binance.com/sapi/v1/asset/tradeFee?timestamp=1706095328067&symbol=BTCUSDT&recvWindow=10000&signature=b24637ac06270ce8d90d3d0835e9bc6a6c56ff389364fec2bce09ee74ef8aef8",
+                "url": "https://testnet.binancefuture.com/fapi/v1/commissionRate?timestamp=1707777580650&symbol=BTCUSDT&recvWindow=10000&signature=c54b25d565695b045323ba483f32e6f07829bc0c19e07c0cb78e54ff415978ee",
                 "input": [
                   "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Inverse swap fetch trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://testnet.binancefuture.com/dapi/v1/commissionRate?timestamp=1707777670336&symbol=ETHUSD_PERP&recvWindow=10000&signature=8c0727960b0de153cb7dbc166fe3e6dfe3d473508909a4a6bfeda06f97dcacbf",
+                "input": [
+                  "ETH/USD:ETH"
+                ]
+            },
+            {
+                "description": "Linear portfolio margin fetch trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://papi.binance.com/papi/v1/um/commissionRate?timestamp=1707777345377&symbol=BTCUSDT&recvWindow=10000&signature=73a49e69c333a1ae5435c90f54eb4a07321c4a33cb7088696dbb4745aeb64db8",
+                "input": [
+                  "BTC/USDT:USDT",
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
+            },
+            {
+                "description": "Inverse portfolio margin fetch trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://papi.binance.com/papi/v1/cm/commissionRate?timestamp=1707777389698&symbol=ETHUSD_PERP&recvWindow=10000&signature=cb22b12993cd61b5ce6db703964ae74e375a100da50d21f81f8c8951370eb639",
+                "input": [
+                  "ETH/USD:ETH",
+                  {
+                    "portfolioMargin": true
+                  }
                 ]
             }
         ],
