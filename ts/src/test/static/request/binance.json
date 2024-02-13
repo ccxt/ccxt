@@ -867,6 +867,73 @@
                         "marginMode": "isolated"
                     }
                 ]
+            },
+            {
+                "description": "Linear swap portfolio margin fetch orders",
+                "method": "fetchOrders",
+                "url": "https://papi.binance.com/papi/v1/um/allOrders?timestamp=1707792652974&symbol=BTCUSDT&recvWindow=10000&signature=73fea37c53ceb88f88dd00ff5b7963bd76a05c3ee51ff978820b5db43d85e6e0",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
+            },
+            {
+                "description": "Inverse swap portfolio margin fetch orders",
+                "method": "fetchOrders",
+                "url": "https://papi.binance.com/papi/v1/cm/allOrders?timestamp=1707792759881&symbol=ETHUSD_PERP&recvWindow=10000&signature=d55ede981e4d2dcfc2436a15dbe088eb41440285d8fb2e7dd20bf96eaaff8776",
+                "input": [
+                  "ETH/USD:ETH",
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
+            },
+            {
+                "description": "Linear swap conditional portfolio margin fetch orders",
+                "method": "fetchOrders",
+                "url": "https://papi.binance.com/papi/v1/um/conditional/allOrders?timestamp=1707792805020&symbol=BTCUSDT&recvWindow=10000&signature=fa5930b499e5a683591142f732b96939815fb42fb1d4c9c1caec2e87368bf5a7",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true,
+                    "stop": true
+                  }
+                ]
+            },
+            {
+                "description": "Inverse swap conditional portfolio margin fetch orders",
+                "method": "fetchOrders",
+                "url": "https://papi.binance.com/papi/v1/cm/conditional/allOrders?timestamp=1707792703391&symbol=ETHUSD_PERP&recvWindow=10000&signature=b8a90970cff0ef5402e2eddb88efef01316b83d1827a7015bdc6e3735ccb711e",
+                "input": [
+                  "ETH/USD:ETH",
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true,
+                    "stop": true
+                  }
+                ]
+            },
+            {
+                "description": "Spot margin portfolio margin fetch orders",
+                "method": "fetchOrders",
+                "url": "https://papi.binance.com/papi/v1/margin/allOrders?timestamp=1707792860318&symbol=BTCUSDT&recvWindow=10000&signature=b8c3ab4decfe00027b3811b0d64cc7dfc5c6c73648ce095078ff805d1b78a1b0",
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
             }
         ],
         "fetchOrder": [
