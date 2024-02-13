@@ -3820,12 +3820,6 @@ export default class Exchange {
         return this.getListFromObjectValues (filteredMarkets, 'symbol');
     }
 
-    requireSymbolsForMultiSubscription (callerMethodName: string, symbols: string[] = undefined) {
-        if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' ' + callerMethodName + '() requires a list of symbols to subscribe to.');
-        }
-    }
-
     filterByArray (objects, key: IndexType, values = undefined, indexed = true) {
         objects = this.toArray (objects);
         // return all of them if no values were passed
