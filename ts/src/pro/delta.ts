@@ -2,7 +2,7 @@
 
 import deltaRest from '../delta.js';
 import { ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Market, OHLCV } from '../base/types.js';
+import type { Int, Market, OHLCV, Strings, Ticker, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -12,8 +12,8 @@ export default class delta extends deltaRest {
             'has': {
                 'ws': true,
                 'watchBalance': false,
-                'watchTicker': false,
-                'watchTickers': false,
+                'watchTicker': true,
+                'watchTickers': true,
                 'watchTrades': false,
                 'watchMyTrades': false,
                 'watchOrders': false,
@@ -29,6 +29,88 @@ export default class delta extends deltaRest {
                 },
             },
         });
+    }
+
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name delta#watchTicker
+         * @see https://docs.delta.exchange/#v2-ticker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        const ticker = await this.watchTickers ([ symbol ], params);
+        return this.safeDict (ticker, symbol, {}) as Ticker;
+    }
+
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name delta#watchTickers
+         * @see https://docs.delta.exchange/#v2-ticker
+         * @description watches price tickers, a statistical calculation with the information for all markets or those specified.
+         * @param {string} symbols unified symbols of the markets to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an array of [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true);
+        const marketIds = this.marketIds (symbols);
+        const subscriptionHash = 'v2/ticker';
+        const messageHash = 'tickers';
+        const request = {
+            'type': 'subscribe',
+            'payload': {
+                'channels': [
+                    {
+                        'name': 'v2/ticker',
+                        'symbols': marketIds,
+                    },
+                ],
+            },
+        };
+        const tickers = await this.watchMany (messageHash, request, subscriptionHash, symbols, params);
+        return this.filterByArray (tickers, 'symbol', symbols);
+    }
+
+    handleTicker (client: Client, message) {
+        //
+        //     {
+        //         "close: 2669.25,
+        //         "contract_type": "spot",
+        //         "greeks": null,
+        //         "high": 2685.65,
+        //         "low": 2484.25,
+        //         "mark_change_24h": "0.0000",
+        //         "mark_price": "3200",
+        //         "oi": "0.0000",
+        //         "oi_change_usd_6h": "0.0000",
+        //         "oi_contracts": "0",
+        //         "oi_value": "0.0000",
+        //         "oi_value_symbol": "ETH",
+        //         "oi_value_usd": "0.0000",
+        //         "open": 2486.3,
+        //         "price_band": null,
+        //         "product_id": 8411,
+        //         "quotes": {},
+        //         "size": 67.1244100000001,
+        //         "spot_price": "2668.12",
+        //         "symbol": "ETH_USDT",
+        //         "timestamp": "1707830745453077",
+        //         "turnover": 67.1244100000001,
+        //         "turnover_symbol": "ETH",
+        //         "turnover_usd": 174972.02068899997,
+        //         "type": "v2/ticker",
+        //         "volume": 67.1244100000001
+        //     }
+        //
+        const marketId = this.safeString (message, 'symbol');
+        const symbol = this.safeSymbol (marketId);
+        this.tickers[symbol] = this.parseTicker (message);
+        client.resolve (this.tickers[symbol], 'ticker.' + symbol);
+        client.resolve (this.tickers, 'tickers');
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -62,7 +144,7 @@ export default class delta extends deltaRest {
         };
         const messageHash = 'ohlcv:' + market['symbol'] + ':' + timeframeId;
         const url = this.urls['api']['ws'];
-        const ohlcv = await this.watch (url, messageHash, request, messageHash);
+        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -92,11 +174,11 @@ export default class delta extends deltaRest {
         const market = this.safeMarket (marketId);
         const symbol = this.safeSymbol (marketId, market);
         const timeframe = this.findTimeframe (timeframeId);
-        const ohlcvsBySymbol = this.safeValue (this.ohlcvs, symbol);
+        const ohlcvsBySymbol = this.safeDict (this.ohlcvs, symbol);
         if (ohlcvsBySymbol === undefined) {
             this.ohlcvs[symbol] = {};
         }
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = this.safeList (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -115,7 +197,45 @@ export default class delta extends deltaRest {
         return result;
     }
 
+    async watchMany (messageHash, request, subscriptionHash, symbols: Strings = [], params = {}) {
+        let marketIds = [];
+        const numSymbols = symbols.length;
+        if (numSymbols === 0) {
+            marketIds = Object.keys (this.markets_by_id);
+        } else {
+            marketIds = this.marketIds (symbols);
+        }
+        const url = this.urls['api']['ws'];
+        const client = this.safeValue (this.clients, url);
+        let subscription = {};
+        if (client !== undefined) {
+            subscription = this.safeDict (client.subscriptions, subscriptionHash, {});
+            if (subscription !== undefined) {
+                for (let i = 0; i < marketIds.length; i++) {
+                    const marketId = marketIds[i];
+                    const marketSubscribed = this.safeBool (subscription, marketId, false);
+                    if (!marketSubscribed) {
+                        client.subscriptions[subscriptionHash] = undefined;
+                    }
+                }
+            }
+        }
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            subscription[marketId] = true;
+        }
+        request['type'] = 'subscribe';
+        request['payload']['channels'][0]['symbols'] = Object.keys (subscription);
+        return await this.watch (url, messageHash, this.deepExtend (request, params), subscriptionHash, subscription);
+    }
+
     handleMessage (client: Client, message) {
-        return this.handleOHLCV (client, message);
+        const type = this.safeString (message, 'type', '');
+        if (type.indexOf ('candlestick') > -1) {
+            return this.handleOHLCV (client, message);
+        }
+        if (type === 'v2/ticker') {
+            return this.handleTicker (client, message);
+        }
     }
 }
