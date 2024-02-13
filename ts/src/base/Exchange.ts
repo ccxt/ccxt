@@ -3776,6 +3776,14 @@ export default class Exchange {
         return this.safeString (market, 'symbol', symbol);
     }
 
+    handleParam (params: object, paramName: string, defaultValue = undefined) {
+        const value = this.safeValue (params, paramName, defaultValue);
+        if (value !== undefined) {
+            params = this.omit (params, paramName);
+        }
+        return [ value, params ];
+    }
+
     resolvePath (path, params) {
         return [
             this.implodeParams (path, params),
