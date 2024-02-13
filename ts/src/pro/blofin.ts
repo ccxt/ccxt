@@ -3,7 +3,7 @@
 
 import blofinRest from '../blofin.js';
 import { NotSupported, ArgumentsRequired } from '../base/errors.js';
-import { ArrayCache } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, MarketInterface, Trade, OrderBook, Str, Strings, Ticker, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -425,7 +425,7 @@ export default class blofin extends blofinRest {
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
-    handleOHLCV (client: Client, message, channelName: string) {
+    handleWsOHLCV (client: Client, message, channelName: string) {
         //
         // message
         //
@@ -449,17 +449,24 @@ export default class blofin extends blofinRest {
         //         ],
         //     }
         //
-        // const marketId = this.safeString (message, 'S');
-        // const symbol = this.safeSymbol (marketId);
-        // let stored = this.safeValue (this.ohlcvs, symbol);
-        // if (stored === undefined) {
-        //     const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-        //     stored = new ArrayCacheByTimestamp (limit);
-        //     this.ohlcvs[symbol] = stored;
-        // }
-        // const parsed = this.parseOHLCV (message);
-        // stored.append (parsed);
-        // const messageHash = 'ohlcv:' + symbol;
-        // client.resolve (stored, messageHash);
+        const arg = this.safeDict (message, 'arg');
+        const marketId = this.safeString (arg, 'instId');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        let stored = this.safeValue (this.ohlcvs, symbol);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol] = stored;
+        }
+        const data = this.safeList (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const candle = data[i];
+            const parsed = this.parseOHLCV (candle, market);
+            stored.append (parsed);
+        }
+        const interval = channelName.replace ('candle', '');
+        const messageHash = 'ohlcv' + interval + ':' + symbol;
+        client.resolve (stored, messageHash);
     }
 }
