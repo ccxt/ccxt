@@ -6455,7 +6455,12 @@ export default class htx extends Exchange {
         if (ecid !== undefined) {
             request['chain'] = this.ecidToNetworkId (ecid, code);
         }
-        amount = parseFloat (this.currencyToPrecision (code, amount, ecid));
+        const networks = this.safeValue (currency, 'networks', {});
+        const networkItem = this.safeValue (networks, ecid, {});
+        let precision = this.safeValue (currency, 'precision');
+        precision = this.safeString (networkItem, 'precision', precision);
+        precision = this.precisionFromString (precision);
+        amount = parseFloat (this.decimalToPrecision (amount, TRUNCATE, precision));
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
         if (this.safeValue (withdrawOptions, 'includeFee', false)) {
             let fee = this.safeNumber (params, 'fee');
