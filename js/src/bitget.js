@@ -2421,7 +2421,10 @@ export default class bitget extends Exchange {
         await this.loadMarkets();
         const networkCode = this.safeString2(params, 'chain', 'network');
         params = this.omit(params, 'network');
-        const networkId = this.networkCodeToId(networkCode, code);
+        let networkId = undefined;
+        if (networkCode !== undefined) {
+            networkId = this.networkCodeToId(networkCode, code);
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['code'],
@@ -2460,11 +2463,15 @@ export default class bitget extends Exchange {
         const currencyId = this.safeString(depositAddress, 'coin');
         const networkId = this.safeString(depositAddress, 'chain');
         const parsedCurrency = this.safeCurrencyCode(currencyId, currency);
+        let network = undefined;
+        if (networkId !== undefined) {
+            network = this.networkIdToCode(networkId, parsedCurrency);
+        }
         return {
             'currency': parsedCurrency,
             'address': this.safeString(depositAddress, 'address'),
             'tag': this.safeString(depositAddress, 'tag'),
-            'network': this.networkIdToCode(networkId, parsedCurrency),
+            'network': network,
             'info': depositAddress,
         };
     }

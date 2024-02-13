@@ -168,6 +168,11 @@ public partial class Exchange
         var res = await this.setPositionMode(hedged, symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
+    public async Task<Dictionary<string, object>> SetMargin(string symbol, double amount, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.setMargin(symbol, amount, parameters);
+        return ((Dictionary<string, object>)res);
+    }
     public async Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.setMarginMode(marginMode, symbol, parameters);
@@ -242,19 +247,19 @@ public partial class Exchange
         var res = await this.fetch2(path, api, method, parameters, headers, body, config);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Order> EditLimitBuyOrder(object id, object symbol, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Order> EditLimitBuyOrder(string id, string symbol, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.editLimitBuyOrder(id, symbol, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> EditLimitSellOrder(object id, object symbol, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Order> EditLimitSellOrder(string id, string symbol, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.editLimitSellOrder(id, symbol, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> EditLimitOrder(object id, object symbol, object side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Order> EditLimitOrder(string id, string symbol, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.editLimitOrder(id, symbol, side, amount, price, parameters);

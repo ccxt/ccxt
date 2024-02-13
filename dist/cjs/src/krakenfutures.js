@@ -861,6 +861,7 @@ class krakenfutures extends krakenfutures$1 {
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
+        symbol = market['symbol'];
         type = this.safeString(params, 'orderType', type);
         const timeInForce = this.safeString(params, 'timeInForce');
         let postOnly = false;
@@ -880,7 +881,7 @@ class krakenfutures extends krakenfutures$1 {
         const request = {
             'symbol': market['id'],
             'side': side,
-            'size': amount,
+            'size': this.amountToPrecision(symbol, amount),
         };
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'cliOrdId');
         if (clientOrderId !== undefined) {
@@ -918,7 +919,7 @@ class krakenfutures extends krakenfutures$1 {
         }
         request['orderType'] = type;
         if (price !== undefined) {
-            request['limitPrice'] = price;
+            request['limitPrice'] = this.priceToPrecision(symbol, price);
         }
         params = this.omit(params, ['clientOrderId', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
         return this.extend(request, params);

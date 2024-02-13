@@ -2478,7 +2478,11 @@ public partial class bitget : Exchange
         await this.loadMarkets();
         object networkCode = this.safeString2(parameters, "chain", "network");
         parameters = this.omit(parameters, "network");
-        object networkId = this.networkCodeToId(networkCode, code);
+        object networkId = null;
+        if (isTrue(!isEqual(networkCode, null)))
+        {
+            networkId = this.networkCodeToId(networkCode, code);
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "code") },
@@ -2520,11 +2524,16 @@ public partial class bitget : Exchange
         object currencyId = this.safeString(depositAddress, "coin");
         object networkId = this.safeString(depositAddress, "chain");
         object parsedCurrency = this.safeCurrencyCode(currencyId, currency);
+        object network = null;
+        if (isTrue(!isEqual(networkId, null)))
+        {
+            network = this.networkIdToCode(networkId, parsedCurrency);
+        }
         return new Dictionary<string, object>() {
             { "currency", parsedCurrency },
             { "address", this.safeString(depositAddress, "address") },
             { "tag", this.safeString(depositAddress, "tag") },
-            { "network", this.networkIdToCode(networkId, parsedCurrency) },
+            { "network", network },
             { "info", depositAddress },
         };
     }
@@ -7378,7 +7387,7 @@ public partial class bitget : Exchange
         };
     }
 
-    public async virtual Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
@@ -7403,7 +7412,7 @@ public partial class bitget : Exchange
         return await this.modifyMarginHelper(symbol, amount, "reduce", parameters);
     }
 
-    public async virtual Task<object> addMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method

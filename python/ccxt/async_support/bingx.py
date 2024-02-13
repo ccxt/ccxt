@@ -400,6 +400,7 @@ class bingx(Exchange, ImplicitAPI):
                 'broad': {},
             },
             'commonCurrencies': {
+                'SNOW': 'Snowman',  # Snowman vs SnowSwap conflict
             },
             'options': {
                 'defaultType': 'spot',
@@ -1719,6 +1720,7 @@ class bingx(Exchange, ImplicitAPI):
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         if timeInForce == 'IOC':
             request['timeInForce'] = 'IOC'
+        triggerPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
         if isSpot:
             postOnly, params = self.handle_post_only(isMarketOrder, timeInForce == 'POC', params)
             if postOnly or (timeInForce == 'POC'):
@@ -1728,7 +1730,7 @@ class bingx(Exchange, ImplicitAPI):
             if cost is not None:
                 request['quoteOrderQty'] = self.parse_to_numeric(self.cost_to_precision(symbol, cost))
             else:
-                if market['spot'] and isMarketOrder and (price is not None):
+                if isMarketOrder and (price is not None):
                     # keep the legacy behavior, to avoid  breaking the old spot-market-buying code
                     calculatedCost = Precise.string_mul(self.number_to_string(amount), self.number_to_string(price))
                     request['quoteOrderQty'] = self.parse_to_numeric(calculatedCost)
@@ -1736,6 +1738,14 @@ class bingx(Exchange, ImplicitAPI):
                     request['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
             if not isMarketOrder:
                 request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
+            if triggerPrice is not None:
+                if isMarketOrder and self.safe_string(request, 'quoteOrderQty') is None:
+                    raise ArgumentsRequired(self.id + ' createOrder() requires the cost parameter(or the amount + price) for placing spot market-buy trigger orders')
+                request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
+                if type == 'LIMIT':
+                    request['type'] = 'TRIGGER_LIMIT'
+                elif type == 'MARKET':
+                    request['type'] = 'TRIGGER_MARKET'
         else:
             postOnly, params = self.handle_post_only(isMarketOrder, timeInForce == 'PostOnly', params)
             if postOnly or (timeInForce == 'PostOnly'):
@@ -1744,7 +1754,6 @@ class bingx(Exchange, ImplicitAPI):
                 request['timeInForce'] = 'GTC'
             elif timeInForce == 'FOK':
                 request['timeInForce'] = 'FOK'
-            triggerPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
             stopLossPrice = self.safe_string(params, 'stopLossPrice')
             takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
             trailingAmount = self.safe_string(params, 'trailingAmount')
@@ -2008,6 +2017,13 @@ class bingx(Exchange, ImplicitAPI):
         }
         return self.safe_string(sides, side, side)
 
+    def parse_order_type(self, type):
+        types = {
+            'trigger_market': 'market',
+            'trigger_limit': 'limit',
+        }
+        return self.safe_string(types, type, type)
+
     def parse_order(self, order, market: Market = None) -> Order:
         #
         # spot
@@ -2259,7 +2275,7 @@ class bingx(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': self.safe_integer(order, 'updateTime'),
-            'type': self.safe_string_lower_2(order, 'type', 'o'),
+            'type': self.parse_order_type(self.safe_string_lower_2(order, 'type', 'o')),
             'timeInForce': self.safe_string(order, 'timeInForce'),
             'postOnly': None,
             'side': self.parse_order_side(side),
@@ -3169,7 +3185,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         return await self.swapV2PrivatePostTradeMarginType(self.extend(request, params))
 
-    async def set_margin(self, symbol: str, amount, params={}):
+    async def set_margin(self, symbol: str, amount: float, params={}):
         """
         Either adds or reduces margin in an isolated position in order to set the margin to a specific value
         :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Adjust%20isolated%20margin

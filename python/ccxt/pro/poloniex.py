@@ -174,7 +174,7 @@ class poloniex(ccxt.async_support.poloniex):
         :returns dict: data from the websocket stream
         """
         url = self.urls['api']['ws']['private']
-        messageHash = self.nonce()
+        messageHash = str(self.nonce())
         subscribe = {
             'id': messageHash,
             'event': name,

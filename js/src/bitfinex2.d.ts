@@ -154,7 +154,7 @@ export default class bitfinex2 extends Exchange {
     parseOpenInterest(interest: any, market?: Market): OpenInterest;
     fetchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     parseLiquidation(liquidation: any, market?: Market): Liquidation;
-    setMargin(symbol: string, amount: any, params?: {}): Promise<{
+    setMargin(symbol: string, amount: number, params?: {}): Promise<{
         info: any;
         type: any;
         amount: any;

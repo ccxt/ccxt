@@ -837,6 +837,7 @@ public partial class krakenfutures : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
+        symbol = getValue(market, "symbol");
         type = this.safeString(parameters, "orderType", type);
         object timeInForce = this.safeString(parameters, "timeInForce");
         object postOnly = false;
@@ -859,7 +860,7 @@ public partial class krakenfutures : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "side", side },
-            { "size", amount },
+            { "size", this.amountToPrecision(symbol, amount) },
         };
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "cliOrdId");
         if (isTrue(!isEqual(clientOrderId, null)))
@@ -903,7 +904,7 @@ public partial class krakenfutures : Exchange
         ((IDictionary<string,object>)request)["orderType"] = type;
         if (isTrue(!isEqual(price, null)))
         {
-            ((IDictionary<string,object>)request)["limitPrice"] = price;
+            ((IDictionary<string,object>)request)["limitPrice"] = this.priceToPrecision(symbol, price);
         }
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice"});
         return this.extend(request, parameters);

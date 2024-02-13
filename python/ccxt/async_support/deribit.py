@@ -1713,7 +1713,7 @@ class deribit(Exchange, ImplicitAPI):
         amount = self.safe_string(order, 'amount')
         cost = Precise.string_mul(filledString, averageString)
         if market['inverse']:
-            if self.parse_number(averageString) != 0:
+            if averageString != '0':
                 cost = Precise.string_div(amount, averageString)
         lastTradeTimestamp = None
         if filledString is not None:

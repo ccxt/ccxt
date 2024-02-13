@@ -974,7 +974,8 @@ class blofin extends Exchange {
             );
             $response = null;
             if ($accountType !== null) {
-                $parsedAccountType = $this->safe_string($this->options, 'accountsByType', $accountType);
+                $options = $this->safe_dict($this->options, 'accountsByType', array());
+                $parsedAccountType = $this->safe_string($options, $accountType, $accountType);
                 $request['accountType'] = $parsedAccountType;
                 $response = Async\await($this->privateGetAssetBalances (array_merge($request, $params)));
             } else {

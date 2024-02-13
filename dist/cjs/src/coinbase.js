@@ -3388,13 +3388,7 @@ class coinbase extends coinbase$1 {
                         payload = body;
                     }
                 }
-                let auth = undefined;
-                if (version === 'v3') {
-                    auth = nonce + method + savedPath + payload;
-                }
-                else {
-                    auth = nonce + method + fullPath + payload;
-                }
+                const auth = nonce + method + savedPath + payload;
                 const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
                 headers = {
                     'CB-ACCESS-KEY': this.apiKey,

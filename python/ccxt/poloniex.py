@@ -713,7 +713,9 @@ class poloniex(Exchange, ImplicitAPI):
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'name')
             networkId = self.safe_string(currency, 'blockchain')
-            networkCode = self.network_id_to_code(networkId, code)
+            networkCode = None
+            if networkId is not None:
+                networkCode = self.network_id_to_code(networkId, code)
             delisted = self.safe_value(currency, 'delisted')
             walletEnabled = self.safe_string(currency, 'walletState') == 'ENABLED'
             depositEnabled = self.safe_string(currency, 'walletDepositState') == 'ENABLED'

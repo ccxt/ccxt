@@ -327,7 +327,11 @@ public partial class gemini : Exchange
             object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 5)));
             object networks = new Dictionary<string, object>() {};
             object networkId = this.safeString(currency, 9);
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = null;
+            if (isTrue(!isEqual(networkId, null)))
+            {
+                networkCode = this.networkIdToCode(networkId);
+            }
             if (isTrue(!isEqual(networkCode, null)))
             {
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
