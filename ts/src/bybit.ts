@@ -3328,7 +3328,6 @@ export default class bybit extends Exchange {
         const id = this.safeString (order, 'orderId');
         const type = this.safeStringLower (order, 'orderType');
         const price = this.safeString (order, 'price');
-        const amount = this.safeString (order, 'qty');
         const cost = this.safeString (order, 'cumExecValue');
         const filled = this.safeString (order, 'cumExecQty');
         const remaining = this.safeString (order, 'leavesQty');
@@ -3336,6 +3335,11 @@ export default class bybit extends Exchange {
         const rawStatus = this.safeString (order, 'orderStatus');
         const status = this.parseOrderStatus (rawStatus);
         const side = this.safeStringLower (order, 'side');
+        let amount = this.safeString (order, 'qty');
+        const avgPrice = this.omitZero (this.safeString (order, 'avgPrice'));
+        if (side === 'buy') {
+            amount = Precise.stringDiv (amount, avgPrice);
+        }
         let fee = undefined;
         const feeCostString = this.safeString (order, 'cumExecFee');
         if (feeCostString !== undefined) {
@@ -3354,7 +3358,6 @@ export default class bybit extends Exchange {
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined;
         }
-        const avgPrice = this.omitZero (this.safeString (order, 'avgPrice'));
         const rawTimeInForce = this.safeString (order, 'timeInForce');
         const timeInForce = this.parseTimeInForce (rawTimeInForce);
         const stopPrice = this.omitZero (this.safeString (order, 'triggerPrice'));
