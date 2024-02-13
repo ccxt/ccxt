@@ -186,7 +186,7 @@ export default class blofin extends blofinRest {
          */
         await this.loadMarkets ();
         let callerMethodName = undefined;
-        [ callerMethodName, params ] = this.handleParam (params, 'callerMethodName', 'watchOrderBookForSymbols');
+        [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchOrderBookForSymbols');
         let channelName = undefined;
         [ channelName, params ] = this.handleOptionAndParams (params, callerMethodName, 'channel', 'books');
         // due to some problem, temporarily disable other channels
@@ -444,7 +444,7 @@ export default class blofin extends blofinRest {
     async watchMultipleWrapper (channelName: string, callerMethodName: string, symbolsArray, params = {}) {
         // underlier method for all watch-multiple symbols
         await this.loadMarkets ();
-        [ callerMethodName, params ] = this.handleParam (params, 'callerMethodName', callerMethodName);
+        [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', callerMethodName);
         // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
         const isOHLCV = (channelName === 'candle');
         let symbols = !isOHLCV ? symbolsArray : this.getListFromObjectValues (symbolsArray, 0);
