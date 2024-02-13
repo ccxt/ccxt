@@ -3776,8 +3776,8 @@ export default class Exchange {
         return this.safeString (market, 'symbol', symbol);
     }
 
-    handleParam (params: object, paramName: string, defaultValue = undefined) {
-        const value = this.safeValue (params, paramName, defaultValue);
+    handleParamString (params: object, paramName: string, defaultValue = undefined): [string, object] {
+        const value = this.safeString (params, paramName, defaultValue);
         if (value !== undefined) {
             params = this.omit (params, paramName);
         }
@@ -3800,7 +3800,7 @@ export default class Exchange {
         return results;
     }
 
-    getSymbolsForMarketType (marketType: string = undefined, subType: string = undefined, activeStatuses = [ true, undefined ]) {
+    getSymbolsForMarketType (marketType: string = undefined, subType: string = undefined, symbolWithActiveStatus: boolean = true, symbolWithUnknownStatus: boolean = true) {
         let filteredMarkets = this.markets;
         if (marketType !== undefined) {
             filteredMarkets = this.filterBy (filteredMarkets, 'type', marketType);
@@ -3808,6 +3808,13 @@ export default class Exchange {
         if (subType !== undefined) {
             this.checkRequiredArgument ('getSymbolsForMarketType', subType, 'subType', [ 'linear', 'inverse', 'quanto' ]);
             filteredMarkets = this.filterBy (filteredMarkets, 'subType', subType);
+        }
+        const activeStatuses = [];
+        if (symbolWithActiveStatus) {
+            activeStatuses.push (true);
+        }
+        if (symbolWithUnknownStatus) {
+            activeStatuses.push (undefined);
         }
         filteredMarkets = this.filterByArray (filteredMarkets, 'active', activeStatuses, false);
         return this.getListFromObjectValues (filteredMarkets, 'symbol');
