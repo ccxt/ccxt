@@ -6295,13 +6295,23 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/delivery/en/#all-orders-user_data
          * @see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
          * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-orders-user_data
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
+         * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
+        }
         const orders = await this.fetchOrders (symbol, since, undefined, params);
         const filteredOrders = this.filterBy (orders, 'status', 'closed');
         return this.filterBySinceLimit (filteredOrders, since, limit);
@@ -6315,22 +6325,23 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
          * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
          * @see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-orders-user_data
          * @param {string} symbol unified market symbol of the market the orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
+         * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchCanceledOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        if (market['swap'] || market['future']) {
-            throw new NotSupported (this.id + ' fetchCanceledOrders() supports spot, margin and option markets only');
-        }
-        params = this.omit (params, 'type');
         const orders = await this.fetchOrders (symbol, since, undefined, params);
         const filteredOrders = this.filterBy (orders, 'status', 'canceled');
         return this.filterBySinceLimit (filteredOrders, since, limit);

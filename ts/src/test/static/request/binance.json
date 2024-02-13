@@ -1173,6 +1173,73 @@
                     null,
                     1
                 ]
+            },
+            {
+                "description": "Spot margin portfolio margin fetch canceled orders",
+                "method": "fetchCanceledOrders",
+                "url": "https://papi.binance.com/papi/v1/margin/allOrders?timestamp=1707794017912&symbol=BTCUSDT&recvWindow=10000&signature=2d3478743a749fe36639cac676194b6926ffd82132fce7dca901caf3b08abcd4",
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
+            },
+            {
+                "description": "Linear portfolio margin fetch canceled orders",
+                "method": "fetchCanceledOrders",
+                "url": "https://papi.binance.com/papi/v1/um/allOrders?timestamp=1707798719391&symbol=BTCUSDT&recvWindow=10000&signature=3ea34eedd573746fe9bad66ea1b8eef8863a273653d408c246b94cc6029fd7bb",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
+            },
+            {
+                "description": "Inverse portfolio margin fetch canceled orders",
+                "method": "fetchCanceledOrders",
+                "url": "https://papi.binance.com/papi/v1/cm/allOrders?timestamp=1707798826314&symbol=ETHUSD_PERP&recvWindow=10000&signature=8fff8802c032c9b55965aa1c2d949cabb5fbb9a6b23316bb03a3631d79af6851",
+                "input": [
+                  "ETH/USD:ETH",
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
+            },
+            {
+                "description": "Linear conditional portfolio margin fetch canceled orders",
+                "method": "fetchCanceledOrders",
+                "url": "https://papi.binance.com/papi/v1/um/conditional/allOrders?timestamp=1707798862888&symbol=BTCUSDT&recvWindow=10000&signature=6492a3f7739ac309e269451258f34bbd16f7c6b247b4fc7ac074cccf1acedcdf",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true,
+                    "stop": true
+                  }
+                ]
+            },
+            {
+                "description": "Inverse conditional portfolio margin fetch canceled orders",
+                "method": "fetchCanceledOrders",
+                "url": "https://papi.binance.com/papi/v1/cm/conditional/allOrders?timestamp=1707798908668&symbol=ETHUSD_PERP&recvWindow=10000&signature=cab4eee248582eb3f6ea432c5b2891afae57c723f8aabeaf047126c95c4fd95e",
+                "input": [
+                  "ETH/USD:ETH",
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true,
+                    "stop": true
+                  }
+                ]
             }
         ],
         "fetchClosedOrders": [
