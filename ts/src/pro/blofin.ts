@@ -52,109 +52,13 @@ export default class blofin extends blofinRest {
         });
     }
 
-    async watchMultipleWrapper (channelName: string, methodName: string, symbolsArray, params = {}) {
-        // underlier method for all watch-multiple symbols
-        await this.loadMarkets ();
-        [ methodName, params ] = this.handleParam (params, 'callerMethodName', methodName);
-        // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
-        const isOHLCV = (channelName === 'candle');
-        let symbols = !isOHLCV ? symbolsArray : this.getListFromObjectValues (symbolsArray, 0);
-        this.requireSymbolsForMultiSubscription (methodName, symbols);
-        let firstMarket = undefined;
-        symbols = this.marketSymbols (symbols, undefined, false, true);
-        if (symbols !== undefined) {
-            firstMarket = this.market (symbols[0]);
-        }
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, firstMarket, params);
-        if (marketType === 'spot') {
-            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for spot markets');
-        }
-        const rawSubscriptions = [];
-        const messageHashes = [];
-        for (let i = 0; i < symbolsArray.length; i++) {
-            const current = symbolsArray[i];
-            let market = undefined;
-            let channel = channelName;
-            if (isOHLCV) {
-                market = this.market (current[0]);
-                const tf = current[1];
-                const interval = this.safeString (this.timeframes, tf, tf);
-                channel += interval;
-            } else {
-                market = this.market (current);
-            }
-            const topic = {
-                'channel': channel,
-                'instId': market['id'],
-            };
-            rawSubscriptions.push (topic);
-            messageHashes.push (channel + ':' + market['symbol']);
-        }
-        const request = {
-            'op': 'subscribe',
-            'args': rawSubscriptions,
-        };
-        const url = this.implodeHostname (this.urls['api']['ws'][marketType]['public']);
-        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
-    }
-
-    handleMessage (client: Client, message) {
-        //
-        // message examples
-        //
-        // {
-        //   arg: {
-        //     channel: "trades",
-        //     instId: "DOGE-USDT",
-        //   },
-        //   event: "subscribe"
-        // }
-        //
-        // incoming data updates' examples can be seen under each handler method
-        //
-        const methods = {
-            'trades': this.handleWsTrades,
-            'books': this.handleWsOrderBook,
-            'tickers': this.handleWsTicker,
-            'candle': this.handleWsOHLCV,
-            'pong': this.handleWsPong,
-        };
-        let method = undefined;
-        if (message === 'pong') {
-            method = this.safeValue (methods, 'pong');
-        } else {
-            const event = this.safeString (message, 'event');
-            if (event === 'subscribe') {
-                return;
-            }
-            const arg = this.safeDict (message, 'arg');
-            const channelName = this.safeString (arg, 'channel');
-            method = this.safeValue (methods, channelName);
-            if (!method && channelName.indexOf ('candle') >= 0) {
-                method = methods['candle'];
-            }
-        }
-        if (method) {
-            method.call (this, client, message);
-        }
-    }
-
-    handleParam (params: object, optionName: string, defaultValue = undefined) {
-        const value = this.safeValue (params, optionName, defaultValue);
-        if (value !== undefined) {
-            params = this.omit (params, optionName);
-        }
-        return [ value, params ];
-    }
-
     ping (client) {
         return 'ping';
     }
 
     handleWsPong (client: Client, message) {
         //
-        //   'pong
+        //   'pong'
         //
         client.lastPong = this.milliseconds ();
     }
@@ -496,5 +400,93 @@ export default class blofin extends blofinRest {
         const resolveData = [ symbol, unifiedTimeframe, stored ];
         const messageHash = 'candle' + interval + ':' + symbol;
         client.resolve (resolveData, messageHash);
+    }
+
+    handleMessage (client: Client, message) {
+        //
+        // message examples
+        //
+        // {
+        //   arg: {
+        //     channel: "trades",
+        //     instId: "DOGE-USDT",
+        //   },
+        //   event: "subscribe"
+        // }
+        //
+        // incoming data updates' examples can be seen under each handler method
+        //
+        const methods = {
+            'trades': this.handleWsTrades,
+            'books': this.handleWsOrderBook,
+            'tickers': this.handleWsTicker,
+            'candle': this.handleWsOHLCV,
+            'pong': this.handleWsPong,
+        };
+        let method = undefined;
+        if (message === 'pong') {
+            method = this.safeValue (methods, 'pong');
+        } else {
+            const event = this.safeString (message, 'event');
+            if (event === 'subscribe') {
+                return;
+            }
+            const arg = this.safeDict (message, 'arg');
+            const channelName = this.safeString (arg, 'channel');
+            method = this.safeValue (methods, channelName);
+            if (!method && channelName.indexOf ('candle') >= 0) {
+                method = methods['candle'];
+            }
+        }
+        if (method) {
+            method.call (this, client, message);
+        }
+    }
+
+    async watchMultipleWrapper (channelName: string, methodName: string, symbolsArray, params = {}) {
+        // underlier method for all watch-multiple symbols
+        await this.loadMarkets ();
+        [ methodName, params ] = this.handleParam (params, 'callerMethodName', methodName);
+        // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
+        const isOHLCV = (channelName === 'candle');
+        let symbols = !isOHLCV ? symbolsArray : this.getListFromObjectValues (symbolsArray, 0);
+        this.requireSymbolsForMultiSubscription (methodName, symbols);
+        let firstMarket = undefined;
+        symbols = this.marketSymbols (symbols, undefined, false, true);
+        if (symbols !== undefined) {
+            firstMarket = this.market (symbols[0]);
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, firstMarket, params);
+        if (marketType === 'spot') {
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for spot markets');
+        }
+        const rawSubscriptions = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbolsArray.length; i++) {
+            const current = symbolsArray[i];
+            let market = undefined;
+            let channel = channelName;
+            if (isOHLCV) {
+                market = this.market (current[0]);
+                const tf = current[1];
+                const interval = this.safeString (this.timeframes, tf, tf);
+                channel += interval;
+            } else {
+                market = this.market (current);
+            }
+            const topic = {
+                'channel': channel,
+                'instId': market['id'],
+            };
+            rawSubscriptions.push (topic);
+            messageHashes.push (channel + ':' + market['symbol']);
+        }
+        const request = {
+            'op': 'subscribe',
+            'args': rawSubscriptions,
+        };
+        const url = this.implodeHostname (this.urls['api']['ws'][marketType]['public']);
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
     }
 }
