@@ -163,8 +163,6 @@ export default class blofin extends blofinRest {
          * @name blofin#watchOrderBook
          * @see https://docs.blofin.com/index.html#ws-order-book-channel
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
-         * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
