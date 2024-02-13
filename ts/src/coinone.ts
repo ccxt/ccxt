@@ -745,7 +745,7 @@ export default class coinone extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name coinone#createOrder
@@ -1078,7 +1078,7 @@ export default class coinone extends Exchange {
         return response;
     }
 
-    async fetchDepositAddresses (codes = undefined, params = {}) {
+    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name coinone#fetchDepositAddresses

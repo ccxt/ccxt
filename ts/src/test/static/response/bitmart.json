@@ -262,6 +262,83 @@
           "stopLossPrice": null
         }
       }
+    ],
+    "fetchMyTrades": [
+      {
+        "description": "spot trades",
+        "method": "fetchMyTrades",
+        "input": [
+          "LTC/USDT",
+          null,
+          1
+        ],
+        "httpResponse": {
+          "code": "1000",
+          "trace": "4c166d073d49475daabf72f27c992525.67.17067043428007529",
+          "message": "success",
+          "data": [
+            {
+              "tradeId": "226559426091255813",
+              "orderId": "229121051960828591",
+              "clientOrderId": "229121051960828591",
+              "symbol": "LTC_USDT",
+              "side": "buy",
+              "orderMode": "spot",
+              "type": "market",
+              "price": "68.2782",
+              "size": "0.087",
+              "notional": "5.94020340",
+              "fee": "0.00594020",
+              "feeCoinName": "USDT",
+              "tradeRole": "taker",
+              "createTime": "1706704336944",
+              "updateTime": "1706704336944"
+            }
+          ]
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "tradeId": "226559426091255813",
+              "orderId": "229121051960828591",
+              "clientOrderId": "229121051960828591",
+              "symbol": "LTC_USDT",
+              "side": "buy",
+              "orderMode": "spot",
+              "type": "market",
+              "price": "68.2782",
+              "size": "0.087",
+              "notional": "5.94020340",
+              "fee": "0.00594020",
+              "feeCoinName": "USDT",
+              "tradeRole": "taker",
+              "createTime": "1706704336944",
+              "updateTime": "1706704336944"
+            },
+            "id": "226559426091255813",
+            "order": "229121051960828591",
+            "timestamp": 1706704336944,
+            "datetime": "2024-01-31T12:32:16.944Z",
+            "symbol": "LTC/USDT",
+            "type": "market",
+            "side": "buy",
+            "price": 68.2782,
+            "amount": 0.087,
+            "cost": 5.9402034,
+            "takerOrMaker": "taker",
+            "fee": {
+              "cost": 0.0059402,
+              "currency": "USDT"
+            },
+            "fees": [
+              {
+                "cost": 0.0059402,
+                "currency": "USDT"
+              }
+            ]
+          }
+        ]
+      }
     ]
   }
 }

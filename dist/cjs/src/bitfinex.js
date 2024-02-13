@@ -475,6 +475,7 @@ class bitfinex extends bitfinex$1 {
          * @method
          * @name bitfinex#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://docs.bitfinex.com/v1/reference/rest-auth-summary
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
@@ -557,6 +558,8 @@ class bitfinex extends bitfinex$1 {
          * @method
          * @name bitfinex#fetchMarkets
          * @description retrieves data on all markets for bitfinex
+         * @see https://docs.bitfinex.com/v1/reference/rest-public-symbols
+         * @see https://docs.bitfinex.com/v1/reference/rest-public-symbol-details
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -681,6 +684,7 @@ class bitfinex extends bitfinex$1 {
          * @method
          * @name bitfinex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.bitfinex.com/v1/reference/rest-auth-wallet-balances
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -738,6 +742,7 @@ class bitfinex extends bitfinex$1 {
          * @method
          * @name bitfinex#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://docs.bitfinex.com/v1/reference/rest-auth-transfer-between-wallets
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -823,6 +828,7 @@ class bitfinex extends bitfinex$1 {
          * @method
          * @name bitfinex#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.bitfinex.com/v1/reference/rest-public-orderbook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -865,6 +871,7 @@ class bitfinex extends bitfinex$1 {
          * @method
          * @name bitfinex#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.bitfinex.com/v1/reference/rest-public-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -981,6 +988,7 @@ class bitfinex extends bitfinex$1 {
          * @method
          * @name bitfinex#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.bitfinex.com/v1/reference/rest-public-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -1016,6 +1024,7 @@ class bitfinex extends bitfinex$1 {
          * @method
          * @name bitfinex#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://docs.bitfinex.com/v1/reference/rest-auth-past-trades
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -1044,6 +1053,7 @@ class bitfinex extends bitfinex$1 {
          * @method
          * @name bitfinex#createOrder
          * @description create a trade order
+         * @see https://docs.bitfinex.com/v1/reference/rest-auth-new-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1054,7 +1064,7 @@ class bitfinex extends bitfinex$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const postOnly = this.safeValue(params, 'postOnly', false);
+        const postOnly = this.safeBool(params, 'postOnly', false);
         type = type.toLowerCase();
         params = this.omit(params, ['postOnly']);
         if (market['spot']) {
@@ -1111,6 +1121,7 @@ class bitfinex extends bitfinex$1 {
          * @method
          * @name bitfinex#cancelOrder
          * @description cancels an open order
+         * @see https://docs.bitfinex.com/v1/reference/rest-auth-cancel-order
          * @param {string} id order id
          * @param {string} symbol not used by bitfinex cancelOrder ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1127,6 +1138,7 @@ class bitfinex extends bitfinex$1 {
          * @method
          * @name bitfinex#cancelAllOrders
          * @description cancel all open orders
+         * @see https://docs.bitfinex.com/v1/reference/rest-auth-cancel-all-orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} response from exchange
@@ -1211,6 +1223,7 @@ class bitfinex extends bitfinex$1 {
          * @method
          * @name bitfinex#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://docs.bitfinex.com/v1/reference/rest-auth-active-orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1235,6 +1248,7 @@ class bitfinex extends bitfinex$1 {
          * @method
          * @name bitfinex#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://docs.bitfinex.com/v1/reference/rest-auth-orders-history
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1260,6 +1274,7 @@ class bitfinex extends bitfinex$1 {
          * @method
          * @name bitfinex#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://docs.bitfinex.com/v1/reference/rest-auth-order-status
          * @param {string} symbol not used by bitfinex fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1296,6 +1311,7 @@ class bitfinex extends bitfinex$1 {
          * @method
          * @name bitfinex#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.bitfinex.com/reference/rest-public-candles#aggregate-funding-currency-candles
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1340,6 +1356,7 @@ class bitfinex extends bitfinex$1 {
          * @method
          * @name bitfinex#createDepositAddress
          * @description create a currency deposit address
+         * @see https://docs.bitfinex.com/v1/reference/rest-auth-deposit
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -1355,6 +1372,7 @@ class bitfinex extends bitfinex$1 {
          * @method
          * @name bitfinex#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://docs.bitfinex.com/v1/reference/rest-auth-deposit
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -1388,6 +1406,7 @@ class bitfinex extends bitfinex$1 {
          * @method
          * @name bitfinex#fetchDepositsWithdrawals
          * @description fetch history of deposits and withdrawals
+         * @see https://docs.bitfinex.com/v1/reference/rest-auth-deposit-withdrawal-history
          * @param {string} code unified currency code for the currency of the deposit/withdrawals
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -1524,6 +1543,7 @@ class bitfinex extends bitfinex$1 {
          * @method
          * @name bitfinex#withdraw
          * @description make a withdrawal
+         * @see https://docs.bitfinex.com/v1/reference/rest-auth-withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -1574,6 +1594,7 @@ class bitfinex extends bitfinex$1 {
          * @method
          * @name bitfinex#fetchPositions
          * @description fetch all open positions
+         * @see https://docs.bitfinex.com/v1/reference/rest-auth-active-positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}

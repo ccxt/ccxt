@@ -859,7 +859,7 @@ export default class woo extends Exchange {
         const stopLoss = this.safeValue(params, 'stopLoss');
         const takeProfit = this.safeValue(params, 'takeProfit');
         const algoType = this.safeString(params, 'algoType');
-        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activatedPrice', price);
+        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activatedPrice', this.numberToString(price));
         const trailingAmount = this.safeString2(params, 'trailingAmount', 'callbackValue');
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRate');
         const isTrailingAmountOrder = trailingAmount !== undefined;
@@ -1068,7 +1068,7 @@ export default class woo extends Exchange {
         if (stopPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision(symbol, stopPrice);
         }
-        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activatedPrice', price);
+        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activatedPrice', this.numberToString(price));
         const trailingAmount = this.safeString2(params, 'trailingAmount', 'callbackValue');
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRate');
         const isTrailingAmountOrder = trailingAmount !== undefined;
@@ -1136,7 +1136,7 @@ export default class woo extends Exchange {
          * @param {boolean} [params.stop] whether the order is a stop/algo order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const stop = this.safeValue(params, 'stop', false);
+        const stop = this.safeBool(params, 'stop', false);
         params = this.omit(params, 'stop');
         if (!stop && (symbol === undefined)) {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
@@ -1304,7 +1304,7 @@ export default class woo extends Exchange {
         const request = {};
         let market = undefined;
         const stop = this.safeValue(params, 'stop');
-        const trailing = this.safeValue(params, 'trailing', false);
+        const trailing = this.safeBool(params, 'trailing', false);
         params = this.omit(params, ['stop', 'trailing']);
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1546,11 +1546,12 @@ export default class woo extends Exchange {
          * @method
          * @name woo#fetchOHLCV
          * @see https://docs.woo.org/#kline-public
+         * @see https://docs.woo.org/#kline-historical-data-public
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {int} [limit] max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms)))
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
@@ -1560,42 +1561,70 @@ export default class woo extends Exchange {
             'symbol': market['id'],
             'type': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        if (limit !== undefined) {
+        let useHistEndpoint = since !== undefined;
+        if ((limit !== undefined) && (since !== undefined)) {
+            const oneThousandCandles = this.parseTimeframe(timeframe) * 1000 * 999; // 999 because there will be delay between this and the request, causing the latest candle to be excluded sometimes
+            const startWithLimit = this.milliseconds() - oneThousandCandles;
+            useHistEndpoint = since < startWithLimit;
+        }
+        if (useHistEndpoint) {
+            request['start_time'] = since;
+        }
+        else if (limit !== undefined) { // the hist endpoint does not accept limit
             request['limit'] = Math.min(limit, 1000);
         }
-        const response = await this.v1PublicGetKline(this.extend(request, params));
-        // {
-        //     "success": true,
-        //     "rows": [
-        //       {
-        //         "open": "0.94238",
-        //         "close": "0.94271",
-        //         "low": "0.94238",
-        //         "high": "0.94296",
-        //         "volume": "73.55",
-        //         "amount": "69.32040520",
-        //         "symbol": "SPOT_WOO_USDT",
-        //         "type": "1m",
-        //         "start_timestamp": "1641584700000",
-        //         "end_timestamp": "1641584760000"
-        //       },
-        //       {
-        //         "open": "0.94186",
-        //         "close": "0.94186",
-        //         "low": "0.94186",
-        //         "high": "0.94186",
-        //         "volume": "64.00",
-        //         "amount": "60.27904000",
-        //         "symbol": "SPOT_WOO_USDT",
-        //         "type": "1m",
-        //         "start_timestamp": "1641584640000",
-        //         "end_timestamp": "1641584700000"
-        //       },
-        //       ...
-        //     ]
-        // }
-        const data = this.safeValue(response, 'rows', []);
-        return this.parseOHLCVs(data, market, timeframe, since, limit);
+        let response = undefined;
+        if (!useHistEndpoint) {
+            response = await this.v1PublicGetKline(this.extend(request, params));
+            //
+            //    {
+            //        "success": true,
+            //        "rows": [
+            //            {
+            //                "open": "0.94238",
+            //                "close": "0.94271",
+            //                "low": "0.94238",
+            //                "high": "0.94296",
+            //                "volume": "73.55",
+            //                "amount": "69.32040520",
+            //                "symbol": "SPOT_WOO_USDT",
+            //                "type": "1m",
+            //                "start_timestamp": "1641584700000",
+            //                "end_timestamp": "1641584760000"
+            //            },
+            //            ...
+            //        ]
+            //    }
+            //
+        }
+        else {
+            response = await this.v1PubGetHistKline(this.extend(request, params));
+            response = this.safeDict(response, 'data');
+            //
+            //    {
+            //        "success": true,
+            //        "data": {
+            //            "rows": [
+            //                {
+            //                    "symbol": "SPOT_BTC_USDT",
+            //                    "open": 44181.40000000,
+            //                    "close": 44174.29000000,
+            //                    "high": 44193.44000000,
+            //                    "low": 44148.34000000,
+            //                    "volume": 110.11930100,
+            //                    "amount": 4863796.24318878,
+            //                    "type": "1m",
+            //                    "start_timestamp": 1704153600000,
+            //                    "end_timestamp": 1704153660000
+            //                },
+            //                ...
+            //            ]
+            //        }
+            //    }
+            //
+        }
+        const rows = this.safeValue(response, 'rows', []);
+        return this.parseOHLCVs(rows, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
         // example response in fetchOHLCV
@@ -2086,7 +2115,7 @@ export default class woo extends Exchange {
         //
         const transfer = this.parseTransfer(response, currency);
         const transferOptions = this.safeValue(this.options, 'transfer', {});
-        const fillResponseFromRequest = this.safeValue(transferOptions, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             transfer['amount'] = amount;
             transfer['fromAccount'] = fromAccount;

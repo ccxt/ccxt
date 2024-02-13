@@ -109,7 +109,7 @@ class timex(Exchange, ImplicitAPI):
                     'rest': 'https://plasma-relay-backend.timex.io',
                 },
                 'www': 'https://timex.io',
-                'doc': 'https://docs.timex.io',
+                'doc': 'https://plasma-relay-backend.timex.io/swagger-ui/index.html',
                 'referral': 'https://timex.io/?refcode=1x27vNkTbP1uwkCck',
             },
             'api': {
@@ -686,7 +686,7 @@ class timex(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -701,7 +701,7 @@ class timex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         uppercaseSide = side.upper()
         uppercaseType = type.upper()
-        postOnly = self.safe_value(params, 'postOnly', False)
+        postOnly = self.safe_bool(params, 'postOnly', False)
         if postOnly:
             uppercaseType = 'POST_ONLY'
             params = self.omit(params, ['postOnly'])
@@ -755,7 +755,7 @@ class timex(Exchange, ImplicitAPI):
         order = self.safe_value(orders, 0, {})
         return self.parse_order(order, market)
 
-    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {

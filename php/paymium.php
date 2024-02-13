@@ -332,7 +332,7 @@ class paymium extends Exchange {
         return $this->parse_deposit_address($response);
     }
 
-    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit addresses for multiple currencies and chain types
          * @see https://paymium.github.io/api-documentation/#tag/User/paths/{1user}1addresses/get
@@ -375,7 +375,7 @@ class paymium extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://paymium.github.io/api-documentation/#tag/Order/paths/{1user}1orders/post
@@ -421,7 +421,7 @@ class paymium extends Exchange {
         return $this->privateDeleteUserOrdersUuidCancel (array_merge($request, $params));
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://paymium.github.io/api-documentation/#tag/Transfer/paths/{1user}1email_transfers/post

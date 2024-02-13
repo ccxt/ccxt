@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -479,7 +479,7 @@ class deribit(Exchange, ImplicitAPI):
         reconstructedDate = day + month + year
         return reconstructedDate
 
-    def create_expired_option_market(self, symbol):
+    def create_expired_option_market(self, symbol: str):
         # support expired option contracts
         quote = 'USD'
         settle = None
@@ -1301,6 +1301,7 @@ class deribit(Exchange, ImplicitAPI):
             request['start_timestamp'] = now - (limit - 1) * duration * 1000
             request['end_timestamp'] = now
         else:
+            since = max(since - 1, 0)
             request['start_timestamp'] = since
             if limit is None:
                 request['end_timestamp'] = now
@@ -1712,7 +1713,7 @@ class deribit(Exchange, ImplicitAPI):
         amount = self.safe_string(order, 'amount')
         cost = Precise.string_mul(filledString, averageString)
         if market['inverse']:
-            if self.parse_number(averageString) != 0:
+            if averageString != '0':
                 cost = Precise.string_div(amount, averageString)
         lastTradeTimestamp = None
         if filledString is not None:
@@ -1807,7 +1808,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result')
         return self.parse_order(result, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://docs.deribit.com/#private-buy
@@ -1963,7 +1964,7 @@ class deribit(Exchange, ImplicitAPI):
         order['trades'] = trades
         return self.parse_order(order, market)
 
-    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         """
         edit a trade order
         :see: https://docs.deribit.com/#private-edit
@@ -2662,7 +2663,7 @@ class deribit(Exchange, ImplicitAPI):
         transfers = self.safe_value(result, 'data', [])
         return self.parse_transfers(transfers, currency, since, limit, params)
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -2749,7 +2750,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

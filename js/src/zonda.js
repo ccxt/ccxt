@@ -1439,7 +1439,7 @@ export default class zonda extends Exchange {
         //     }
         //
         const id = this.safeString2(response, 'offerId', 'stopOfferId');
-        const completed = this.safeValue(response, 'completed', false);
+        const completed = this.safeBool(response, 'completed', false);
         const status = completed ? 'closed' : 'open';
         const transactions = this.safeValue(response, 'transactions');
         return this.safeOrder({
@@ -1501,7 +1501,7 @@ export default class zonda extends Exchange {
             'EUR': true,
             'PLN': true,
         };
-        return this.safeValue(fiatCurrencies, currency, false);
+        return this.safeBool(fiatCurrencies, currency, false);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //
@@ -1638,7 +1638,7 @@ export default class zonda extends Exchange {
         //
         const transfer = this.parseTransfer(response, currency);
         const transferOptions = this.safeValue(this.options, 'transfer', {});
-        const fillResponseFromRequest = this.safeValue(transferOptions, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             transfer['amount'] = amount;
         }

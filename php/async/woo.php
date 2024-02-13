@@ -758,7 +758,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a $market buy order by providing the $symbol and $cost
@@ -830,7 +830,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -868,7 +868,7 @@ class woo extends Exchange {
             $stopLoss = $this->safe_value($params, 'stopLoss');
             $takeProfit = $this->safe_value($params, 'takeProfit');
             $algoType = $this->safe_string($params, 'algoType');
-            $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activatedPrice', $price);
+            $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activatedPrice', $this->number_to_string($price));
             $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'callbackValue');
             $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRate');
             $isTrailingAmountOrder = $trailingAmount !== null;
@@ -1025,7 +1025,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -1067,7 +1067,7 @@ class woo extends Exchange {
             if ($stopPrice !== null) {
                 $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
             }
-            $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activatedPrice', $price);
+            $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activatedPrice', $this->number_to_string($price));
             $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'callbackValue');
             $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRate');
             $isTrailingAmountOrder = $trailingAmount !== null;
@@ -1132,7 +1132,7 @@ class woo extends Exchange {
              * @param {boolean} [$params->stop] whether the order is a stop/algo order
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
-            $stop = $this->safe_value($params, 'stop', false);
+            $stop = $this->safe_bool($params, 'stop', false);
             $params = $this->omit($params, 'stop');
             if (!$stop && ($symbol === null)) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
@@ -1298,7 +1298,7 @@ class woo extends Exchange {
             $request = array();
             $market = null;
             $stop = $this->safe_value($params, 'stop');
-            $trailing = $this->safe_value($params, 'trailing', false);
+            $trailing = $this->safe_bool($params, 'trailing', false);
             $params = $this->omit($params, array( 'stop', 'trailing' ));
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -1542,11 +1542,12 @@ class woo extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * @see https://docs.woo.org/#kline-public
-             * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
+             * @see https://docs.woo.org/#kline-historical-data-public
+             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {int} [$limit] max=1000, max=100 when $since is defined and is less than (now - (999 * (is_array(ms) && array_key_exists($timeframe, ms))))
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
@@ -1556,42 +1557,68 @@ class woo extends Exchange {
                 'symbol' => $market['id'],
                 'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
-            if ($limit !== null) {
+            $useHistEndpoint = $since !== null;
+            if (($limit !== null) && ($since !== null)) {
+                $oneThousandCandles = $this->parse_timeframe($timeframe) * 1000 * 999;  // 999 because there will be delay between this and the $request, causing the latest candle to be excluded sometimes
+                $startWithLimit = $this->milliseconds() - $oneThousandCandles;
+                $useHistEndpoint = $since < $startWithLimit;
+            }
+            if ($useHistEndpoint) {
+                $request['start_time'] = $since;
+            } elseif ($limit !== null) {  // the hist endpoint does not accept $limit
                 $request['limit'] = min ($limit, 1000);
             }
-            $response = Async\await($this->v1PublicGetKline (array_merge($request, $params)));
-            // {
-            //     "success" => true,
-            //     "rows" => array(
-            //       array(
-            //         "open" => "0.94238",
-            //         "close" => "0.94271",
-            //         "low" => "0.94238",
-            //         "high" => "0.94296",
-            //         "volume" => "73.55",
-            //         "amount" => "69.32040520",
-            //         "symbol" => "SPOT_WOO_USDT",
-            //         "type" => "1m",
-            //         "start_timestamp" => "1641584700000",
-            //         "end_timestamp" => "1641584760000"
-            //       ),
-            //       array(
-            //         "open" => "0.94186",
-            //         "close" => "0.94186",
-            //         "low" => "0.94186",
-            //         "high" => "0.94186",
-            //         "volume" => "64.00",
-            //         "amount" => "60.27904000",
-            //         "symbol" => "SPOT_WOO_USDT",
-            //         "type" => "1m",
-            //         "start_timestamp" => "1641584640000",
-            //         "end_timestamp" => "1641584700000"
-            //       ),
-            //       ...
-            //     )
-            // }
-            $data = $this->safe_value($response, 'rows', array());
-            return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+            $response = null;
+            if (!$useHistEndpoint) {
+                $response = Async\await($this->v1PublicGetKline (array_merge($request, $params)));
+                //
+                //    {
+                //        "success" => true,
+                //        "rows" => array(
+                //            array(
+                //                "open" => "0.94238",
+                //                "close" => "0.94271",
+                //                "low" => "0.94238",
+                //                "high" => "0.94296",
+                //                "volume" => "73.55",
+                //                "amount" => "69.32040520",
+                //                "symbol" => "SPOT_WOO_USDT",
+                //                "type" => "1m",
+                //                "start_timestamp" => "1641584700000",
+                //                "end_timestamp" => "1641584760000"
+                //            ),
+                //            ...
+                //        )
+                //    }
+                //
+            } else {
+                $response = Async\await($this->v1PubGetHistKline (array_merge($request, $params)));
+                $response = $this->safe_dict($response, 'data');
+                //
+                //    {
+                //        "success" => true,
+                //        "data" => {
+                //            "rows" => array(
+                //                array(
+                //                    "symbol" => "SPOT_BTC_USDT",
+                //                    "open" => 44181.40000000,
+                //                    "close" => 44174.29000000,
+                //                    "high" => 44193.44000000,
+                //                    "low" => 44148.34000000,
+                //                    "volume" => 110.11930100,
+                //                    "amount" => 4863796.24318878,
+                //                    "type" => "1m",
+                //                    "start_timestamp" => 1704153600000,
+                //                    "end_timestamp" => 1704153660000
+                //                ),
+                //                ...
+                //            )
+                //        }
+                //    }
+                //
+            }
+            $rows = $this->safe_value($response, 'rows', array());
+            return $this->parse_ohlcvs($rows, $market, $timeframe, $since, $limit);
         }) ();
     }
 
@@ -2074,7 +2101,7 @@ class woo extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * $transfer $currency internally between wallets on the same account
@@ -2102,7 +2129,7 @@ class woo extends Exchange {
             //
             $transfer = $this->parse_transfer($response, $currency);
             $transferOptions = $this->safe_value($this->options, 'transfer', array());
-            $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
+            $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
             if ($fillResponseFromRequest) {
                 $transfer['amount'] = $amount;
                 $transfer['fromAccount'] = $fromAccount;
@@ -2204,7 +2231,7 @@ class woo extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2657,7 +2684,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             Async\await($this->load_markets());
             if (($leverage < 1) || ($leverage > 20)) {

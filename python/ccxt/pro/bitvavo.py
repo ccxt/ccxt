@@ -400,7 +400,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #
         response = self.safe_value(message, 'response')
         if response is None:
-            return message
+            return
         marketId = self.safe_string(response, 'market')
         symbol = self.safe_symbol(marketId, None, '-')
         name = 'book'
@@ -502,7 +502,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}) -> Order:
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}) -> Order:
         """
         create a trade order
         :see: https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
@@ -530,7 +530,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         request = self.create_order_request(symbol, type, side, amount, price, params)
         return await self.watch_request('privateCreateOrder', request)
 
-    async def edit_order_ws(self, id: str, symbol, type, side, amount=None, price=None, params={}) -> Order:
+    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}) -> Order:
         """
         edit a trade order
         :see: https://docs.bitvavo.com/#tag/Orders/paths/~1order/put
@@ -1122,7 +1122,7 @@ class bitvavo(ccxt.async_support.bitvavo):
                 method(client, message, subscription)
         return message
 
-    def authenticate(self, params={}):
+    async def authenticate(self, params={}):
         url = self.urls['api']['ws']
         client = self.client(url)
         messageHash = 'authenticated'
@@ -1152,7 +1152,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #     }
         #
         messageHash = 'authenticated'
-        authenticated = self.safe_value(message, 'authenticated', False)
+        authenticated = self.safe_bool(message, 'authenticated', False)
         if authenticated:
             # we resolve the future here permanently so authentication only happens once
             client.resolve(message, messageHash)
@@ -1259,7 +1259,12 @@ class bitvavo(ccxt.async_support.bitvavo):
             'getCandles': self.handle_fetch_ohlcv,
             'getMarkets': self.handle_markets,
         }
-        event = self.safe_string_2(message, 'event', 'action')
+        event = self.safe_string(message, 'event')
         method = self.safe_value(methods, event)
-        if method is not None:
+        if method is None:
+            action = self.safe_string(message, 'action')
+            method = self.safe_value(methods, action)
+            if method is not None:
+                method(client, message)
+        else:
             method(client, message)

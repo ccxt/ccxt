@@ -689,7 +689,7 @@ class tokocrypto extends tokocrypto$1 {
                     break;
                 }
             }
-            const isMarginTradingAllowed = this.safeValue(market, 'isMarginTradingAllowed', false);
+            const isMarginTradingAllowed = this.safeBool(market, 'isMarginTradingAllowed', false);
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1362,9 +1362,9 @@ class tokocrypto extends tokocrypto$1 {
         //         "timestamp":1659666786943
         //     }
         //
-        return this.parseBalance(response, type, marginMode);
+        return this.parseBalanceCustom(response, type, marginMode);
     }
-    parseBalance(response, type = undefined, marginMode = undefined) {
+    parseBalanceCustom(response, type = undefined, marginMode = undefined) {
         const timestamp = this.safeInteger(response, 'updateTime');
         const result = {
             'info': response,
@@ -1588,7 +1588,7 @@ class tokocrypto extends tokocrypto$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'clientId');
-        const postOnly = this.safeValue(params, 'postOnly', false);
+        const postOnly = this.safeBool(params, 'postOnly', false);
         // only supported for spot/margin api
         if (postOnly) {
             type = 'LIMIT_MAKER';
@@ -2462,7 +2462,7 @@ class tokocrypto extends tokocrypto$1 {
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        const success = this.safeValue(response, 'success', true);
+        const success = this.safeBool(response, 'success', true);
         if (!success) {
             const messageInner = this.safeString(response, 'msg');
             let parsedMessage = undefined;

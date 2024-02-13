@@ -98,7 +98,9 @@ export default class bitget extends bitgetRest {
         } else {
             instType = 'SPOT';
         }
-        [ instType, params ] = this.handleOptionAndParams (params, 'getInstType', 'instType', instType);
+        let instypeAux = undefined;
+        [ instypeAux, params ] = this.handleOptionAndParams (params, 'getInstType', 'instType', instType);
+        instType = instypeAux;
         return [ instType, params ];
     }
 
@@ -913,7 +915,7 @@ export default class bitget extends bitgetRest {
         await this.loadMarkets ();
         let market = undefined;
         let marketId = undefined;
-        const isStop = this.safeValue (params, 'stop', false);
+        const isStop = this.safeBool (params, 'stop', false);
         params = this.omit (params, 'stop');
         let messageHash = (isStop) ? 'triggerOrder' : 'order';
         let subscriptionHash = 'order:trades';

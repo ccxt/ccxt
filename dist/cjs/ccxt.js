@@ -44,6 +44,7 @@ var bitteam = require('./src/bitteam.js');
 var bitvavo = require('./src/bitvavo.js');
 var bl3p = require('./src/bl3p.js');
 var blockchaincom = require('./src/blockchaincom.js');
+var blofin = require('./src/blofin.js');
 var btcalpha = require('./src/btcalpha.js');
 var btcbox = require('./src/btcbox.js');
 var btcmarkets = require('./src/btcmarkets.js');
@@ -164,6 +165,7 @@ var ndax$1 = require('./src/pro/ndax.js');
 var okcoin$1 = require('./src/pro/okcoin.js');
 var okx$1 = require('./src/pro/okx.js');
 var onetrading$1 = require('./src/pro/onetrading.js');
+var p2b$1 = require('./src/pro/p2b.js');
 var phemex$1 = require('./src/pro/phemex.js');
 var poloniex$1 = require('./src/pro/poloniex.js');
 var poloniexfutures$1 = require('./src/pro/poloniexfutures.js');
@@ -175,7 +177,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.2.27';
+const version = '4.2.44';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -210,6 +212,7 @@ const exchanges = {
     'bitvavo': bitvavo,
     'bl3p': bl3p,
     'blockchaincom': blockchaincom,
+    'blofin': blofin,
     'btcalpha': btcalpha,
     'btcbox': btcbox,
     'btcmarkets': btcmarkets,
@@ -332,6 +335,7 @@ const pro = {
     'okcoin': okcoin$1,
     'okx': okx$1,
     'onetrading': onetrading$1,
+    'p2b': p2b$1,
     'phemex': phemex$1,
     'poloniex': poloniex$1,
     'poloniexfutures': poloniexfutures$1,
@@ -414,6 +418,7 @@ exports.bitteam = bitteam;
 exports.bitvavo = bitvavo;
 exports.bl3p = bl3p;
 exports.blockchaincom = blockchaincom;
+exports.blofin = blofin;
 exports.btcalpha = btcalpha;
 exports.btcbox = btcbox;
 exports.btcmarkets = btcmarkets;

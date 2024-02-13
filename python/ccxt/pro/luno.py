@@ -191,21 +191,21 @@ class luno(ccxt.async_support.luno):
         symbol = subscription['symbol']
         messageHash = 'orderbook:' + symbol
         timestamp = self.safe_string(message, 'timestamp')
-        storedOrderBook = self.safe_value(self.orderbooks, symbol)
-        if storedOrderBook is None:
-            storedOrderBook = self.indexed_order_book({})
-            self.orderbooks[symbol] = storedOrderBook
+        orderbook = self.safe_value(self.orderbooks, symbol)
+        if orderbook is None:
+            orderbook = self.indexed_order_book({})
+            self.orderbooks[symbol] = orderbook
         asks = self.safe_value(message, 'asks')
         if asks is not None:
             snapshot = self.custom_parse_order_book(message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id')
-            storedOrderBook.reset(snapshot)
+            orderbook.reset(snapshot)
         else:
-            self.handle_delta(storedOrderBook, message)
-            storedOrderBook['timestamp'] = timestamp
-            storedOrderBook['datetime'] = self.iso8601(timestamp)
+            self.handle_delta(orderbook, message)
+            orderbook['timestamp'] = timestamp
+            orderbook['datetime'] = self.iso8601(timestamp)
         nonce = self.safe_integer(message, 'sequence')
-        storedOrderBook['nonce'] = nonce
-        client.resolve(storedOrderBook, messageHash)
+        orderbook['nonce'] = nonce
+        client.resolve(orderbook, messageHash)
 
     def custom_parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey: IndexType = 'asks', priceKey: IndexType = 'price', amountKey: IndexType = 'volume', countOrIdKey: IndexType = 2):
         bids = self.parse_bids_asks(self.safe_value(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey)
@@ -291,9 +291,8 @@ class luno(ccxt.async_support.luno):
         deleteUpdate = self.safe_value(message, 'delete_update')
         if deleteUpdate is not None:
             orderId = self.safe_string(deleteUpdate, 'order_id')
-            asksOrderSide.storeArray(0, 0, orderId)
-            bidsOrderSide.storeArray(0, 0, orderId)
-        return message
+            asksOrderSide.storeArray([0, 0, orderId])
+            bidsOrderSide.storeArray([0, 0, orderId])
 
     def handle_message(self, client: Client, message):
         if message == '':
@@ -303,4 +302,3 @@ class luno(ccxt.async_support.luno):
         for j in range(0, len(handlers)):
             handler = handlers[j]
             handler(client, message, subscriptions[0])
-        return message

@@ -492,7 +492,7 @@ class coinmate(Exchange, ImplicitAPI):
             },
         }
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -530,7 +530,7 @@ class coinmate(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data')
         transaction = self.parse_transaction(data, currency)
-        fillResponseFromRequest = self.safe_value(withdrawOptions, 'fillResponseFromRequest', True)
+        fillResponseFromRequest = self.safe_bool(withdrawOptions, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             transaction['amount'] = amount
             transaction['currency'] = code
@@ -827,7 +827,7 @@ class coinmate(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in

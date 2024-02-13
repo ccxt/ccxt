@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.htx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -2714,7 +2714,7 @@ class htx(Exchange, ImplicitAPI):
             trades = self.safe_value(trades, 'trades')
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit=1000, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = 1000, params={}) -> List[Trade]:
         """
         :see: https://huobiapi.github.io/docs/spot/v1/en/#get-the-most-recent-trades
         :see: https://huobiapi.github.io/docs/dm/v1/en/#query-a-batch-of-trade-records-of-a-contract
@@ -3740,7 +3740,7 @@ class htx(Exchange, ImplicitAPI):
         response = None
         stop = self.safe_value(params, 'stop')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
-        trailing = self.safe_value(params, 'trailing', False)
+        trailing = self.safe_bool(params, 'trailing', False)
         params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing'])
         if stop or stopLossTakeProfit or trailing:
             if limit is not None:
@@ -4064,7 +4064,7 @@ class htx(Exchange, ImplicitAPI):
             request['contract_code'] = market['id']
             stop = self.safe_value(params, 'stop')
             stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
-            trailing = self.safe_value(params, 'trailing', False)
+            trailing = self.safe_bool(params, 'trailing', False)
             params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing'])
             if market['linear']:
                 marginMode = None
@@ -4691,7 +4691,7 @@ class htx(Exchange, ImplicitAPI):
         marketId = self.safe_string_2(order, 'contract_code', 'symbol')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer_n(order, ['created_at', 'created-at', 'create_date'])
-        clientOrderId = self.safe_string_2(order, 'client_order_id', 'client-order-id')
+        clientOrderId = self.safe_string_2(order, 'client_order_id', 'client-or' + 'der-id')  # transpiler regex trick for php issue
         cost = None
         amount = None
         if (type is not None) and (type.find('market') >= 0):
@@ -4752,7 +4752,7 @@ class htx(Exchange, ImplicitAPI):
             'trades': trades,
         }, market)
 
-    def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
         :see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4ee16-7773-11ed-9966-0242ac110003
@@ -4789,7 +4789,7 @@ class htx(Exchange, ImplicitAPI):
         params['trailingTriggerPrice'] = trailingTriggerPrice
         return self.create_order(symbol, type, side, amount, price, params)
 
-    def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
          * @ignore
         helper function to build request
@@ -4893,7 +4893,7 @@ class htx(Exchange, ImplicitAPI):
         params = self.omit(params, ['stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce'])
         return self.extend(request, params)
 
-    def create_contract_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_contract_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
          * @ignore
         helper function to build request
@@ -4974,7 +4974,7 @@ class htx(Exchange, ImplicitAPI):
         params = self.omit(params, ['reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice'])
         return self.extend(request, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   # spot, margin
@@ -5296,7 +5296,7 @@ class htx(Exchange, ImplicitAPI):
                 request['contract_code'] = market['id']
             stop = self.safe_value(params, 'stop')
             stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
-            trailing = self.safe_value(params, 'trailing', False)
+            trailing = self.safe_bool(params, 'trailing', False)
             params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing'])
             if market['linear']:
                 marginMode = None
@@ -5555,7 +5555,7 @@ class htx(Exchange, ImplicitAPI):
             request['contract_code'] = market['id']
             stop = self.safe_value(params, 'stop')
             stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
-            trailing = self.safe_value(params, 'trailing', False)
+            trailing = self.safe_bool(params, 'trailing', False)
             params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing'])
             if market['linear']:
                 marginMode = None
@@ -5946,7 +5946,7 @@ class htx(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -5972,7 +5972,7 @@ class htx(Exchange, ImplicitAPI):
             request['chain'] = self.network_code_to_id(networkCode, code)
         amount = float(self.currency_to_precision(code, amount, networkCode))
         withdrawOptions = self.safe_value(self.options, 'withdraw', {})
-        if self.safe_value(withdrawOptions, 'includeFee', False):
+        if self.safe_bool(withdrawOptions, 'includeFee', False):
             fee = self.safe_number(params, 'fee')
             if fee is None:
                 currencies = self.fetch_currencies()
@@ -6022,7 +6022,7 @@ class htx(Exchange, ImplicitAPI):
             'status': None,
         }
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
@@ -6488,7 +6488,7 @@ class htx(Exchange, ImplicitAPI):
         marginMode = 'cross' if (marketId is None) else 'isolated'
         market = self.safe_market(marketId)
         symbol = self.safe_string(market, 'symbol')
-        timestamp = self.safe_number(info, 'accrued-at')
+        timestamp = self.safe_integer(info, 'accrued-at')
         return {
             'account': symbol if (marginMode == 'isolated') else 'cross',  # deprecated
             'symbol': symbol,
@@ -6715,7 +6715,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_incomes(data, market, since, limit)
 
-    def set_leverage(self, leverage, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :param float leverage: the rate of leverage
@@ -7800,7 +7800,7 @@ class htx(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
+    def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
         :see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
@@ -7833,7 +7833,7 @@ class htx(Exchange, ImplicitAPI):
             'symbol': symbol,
         })
 
-    def borrow_cross_margin(self, code: str, amount, params={}):
+    def borrow_cross_margin(self, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
         :see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
@@ -8356,7 +8356,7 @@ class htx(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         })
 
-    def set_position_mode(self, hedged, symbol: Str = None, params={}):
+    def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         """
         set hedged to True or False
         :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-position-mode

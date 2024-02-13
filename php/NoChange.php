@@ -2,6 +2,6 @@
 
 namespace ccxt;
 
-require_once PATH_TO_CCXT . 'BadRequest.php';
+require_once PATH_TO_CCXT . 'OperationRejected.php';
 
-class NoChange extends BadRequest {};
+class NoChange extends OperationRejected {};

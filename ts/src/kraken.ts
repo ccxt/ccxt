@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
+import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -989,7 +989,9 @@ export default class kraken extends Exchange {
             request['interval'] = timeframe;
         }
         if (since !== undefined) {
-            request['since'] = this.parseToInt ((since - 1) / 1000);
+            // contrary to kraken's api documentation, the since parameter must be passed in nanoseconds
+            // the adding of '000000' is copied from the fetchTrades function
+            request['since'] = this.numberToString (since) + '000000'; // expected to be in nanoseconds
         }
         const response = await this.publicGetOHLC (this.extend (request, params));
         //
@@ -1359,7 +1361,7 @@ export default class kraken extends Exchange {
         return this.parseBalance (response);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name kraken#createOrder
@@ -1530,6 +1532,41 @@ export default class kraken extends Exchange {
         //        "txid": "OTI672-HJFAO-XOIPPK"
         //    }
         //
+        //  {
+        //      "error": [],
+        //      "result": {
+        //          "open": {
+        //              "OXVPSU-Q726F-L3SDEP": {
+        //                  "refid": null,
+        //                  "userref": 0,
+        //                  "status": "open",
+        //                  "opentm": 1706893367.4656649,
+        //                  "starttm": 0,
+        //                  "expiretm": 0,
+        //                  "descr": {
+        //                      "pair": "XRPEUR",
+        //                      "type": "sell",
+        //                      "ordertype": "trailing-stop",
+        //                      "price": "+50.0000%",
+        //                      "price2": "0",
+        //                      "leverage": "none",
+        //                      "order": "sell 10.00000000 XRPEUR @ trailing stop +50.0000%",
+        //                      "close": ""
+        //                  },
+        //                  "vol": "10.00000000",
+        //                  "vol_exec": "0.00000000",
+        //                  "cost": "0.00000000",
+        //                  "fee": "0.00000000",
+        //                  "price": "0.00000000",
+        //                  "stopprice": "0.23424000",
+        //                  "limitprice": "0.46847000",
+        //                  "misc": "",
+        //                  "oflags": "fciq",
+        //                  "trigger": "index"
+        //              }
+        //      }
+        //  }
+        //
         const description = this.safeValue (order, 'descr', {});
         const orderDescription = this.safeString (description, 'order', description);
         let side = undefined;
@@ -1569,6 +1606,10 @@ export default class kraken extends Exchange {
         // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
         // const cost = this.safeString (order, 'cost');
         price = this.safeString (description, 'price', price);
+        // when type = trailling stop returns price = '+50.0000%'
+        if ((price !== undefined) && price.endsWith ('%')) {
+            price = undefined; // this is not the price we want
+        }
         if ((price === undefined) || Precise.stringEquals (price, '0')) {
             price = this.safeString (description, 'price2');
         }
@@ -1731,7 +1772,7 @@ export default class kraken extends Exchange {
         return [ request, params ];
     }
 
-    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
         /**
          * @method
          * @name kraken#editOrder
@@ -2639,7 +2680,7 @@ export default class kraken extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name kraken#withdraw
@@ -2765,7 +2806,7 @@ export default class kraken extends Exchange {
         return await this.transfer (code, amount, 'spot', 'swap', params);
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name kraken#transfer

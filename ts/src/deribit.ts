@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import totp from './base/functions/totp.js';
-import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarketInterface } from './base/types.js';
+import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -473,7 +473,7 @@ export default class deribit extends Exchange {
         return reconstructedDate;
     }
 
-    createExpiredOptionMarket (symbol) {
+    createExpiredOptionMarket (symbol: string) {
         // support expired option contracts
         let quote = 'USD';
         let settle = undefined;
@@ -1348,6 +1348,7 @@ export default class deribit extends Exchange {
             request['start_timestamp'] = now - (limit - 1) * duration * 1000;
             request['end_timestamp'] = now;
         } else {
+            since = Math.max (since - 1, 0);
             request['start_timestamp'] = since;
             if (limit === undefined) {
                 request['end_timestamp'] = now;
@@ -1787,7 +1788,7 @@ export default class deribit extends Exchange {
         const amount = this.safeString (order, 'amount');
         let cost = Precise.stringMul (filledString, averageString);
         if (market['inverse']) {
-            if (this.parseNumber (averageString) !== 0) {
+            if (averageString !== '0') {
                 cost = Precise.stringDiv (amount, averageString);
             }
         }
@@ -1892,7 +1893,7 @@ export default class deribit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name deribit#createOrder
@@ -2064,7 +2065,7 @@ export default class deribit extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
         /**
          * @method
          * @name deribit#editOrder
@@ -2828,7 +2829,7 @@ export default class deribit extends Exchange {
         return this.parseTransfers (transfers, currency, since, limit, params);
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name deribit#transfer
@@ -2922,7 +2923,7 @@ export default class deribit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name deribit#withdraw

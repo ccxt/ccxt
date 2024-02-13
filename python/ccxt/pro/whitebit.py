@@ -698,7 +698,7 @@ class whitebit(ccxt.async_support.whitebit):
             hasSymbolSubscription = True
             market = self.market(symbol)
             marketId = market['id']
-            isSubscribed = self.safe_value(subscription, marketId, False)
+            isSubscribed = self.safe_bool(subscription, marketId, False)
             if not isSubscribed:
                 subscription[marketId] = True
                 hasSymbolSubscription = False

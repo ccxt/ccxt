@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, MarketType, Market, Order, OrderBook, OrderSide, OrderType, Num, Str, Bool, Strings, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, MarketType, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Num, Str, Bool, Strings, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -738,7 +738,7 @@ class woo(Exchange, ImplicitAPI):
             }
         return result
 
-    async def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
         :see: https://docs.woo.org/#send-order
@@ -796,7 +796,7 @@ class woo(Exchange, ImplicitAPI):
         params['trailingTriggerPrice'] = trailingTriggerPrice
         return await self.create_order(symbol, type, side, amount, price, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://docs.woo.org/#send-order
@@ -833,7 +833,7 @@ class woo(Exchange, ImplicitAPI):
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
         algoType = self.safe_string(params, 'algoType')
-        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activatedPrice', price)
+        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activatedPrice', self.number_to_string(price))
         trailingAmount = self.safe_string_2(params, 'trailingAmount', 'callbackValue')
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRate')
         isTrailingAmountOrder = trailingAmount is not None
@@ -971,7 +971,7 @@ class woo(Exchange, ImplicitAPI):
         order['type'] = type
         return order
 
-    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         """
         edit a trade order
         :see: https://docs.woo.org/#edit-order
@@ -1009,7 +1009,7 @@ class woo(Exchange, ImplicitAPI):
         stopPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice'])
         if stopPrice is not None:
             request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
-        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activatedPrice', price)
+        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activatedPrice', self.number_to_string(price))
         trailingAmount = self.safe_string_2(params, 'trailingAmount', 'callbackValue')
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRate')
         isTrailingAmountOrder = trailingAmount is not None
@@ -1065,7 +1065,7 @@ class woo(Exchange, ImplicitAPI):
         :param boolean [params.stop]: whether the order is a stop/algo order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        stop = self.safe_value(params, 'stop', False)
+        stop = self.safe_bool(params, 'stop', False)
         params = self.omit(params, 'stop')
         if not stop and (symbol is None):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
@@ -1214,7 +1214,7 @@ class woo(Exchange, ImplicitAPI):
         request = {}
         market: Market = None
         stop = self.safe_value(params, 'stop')
-        trailing = self.safe_value(params, 'trailing', False)
+        trailing = self.safe_bool(params, 'trailing', False)
         params = self.omit(params, ['stop', 'trailing'])
         if symbol is not None:
             market = self.market(symbol)
@@ -1440,11 +1440,12 @@ class woo(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         :see: https://docs.woo.org/#kline-public
+        :see: https://docs.woo.org/#kline-historical-data-public
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
-        :param int [limit]: the maximum amount of candles to fetch
+        :param int [limit]: max=1000, max=100 when since is defined and is less than(now - (999 * (timeframe in ms)))
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
@@ -1454,41 +1455,65 @@ class woo(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'type': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        if limit is not None:
+        useHistEndpoint = since is not None
+        if (limit is not None) and (since is not None):
+            oneThousandCandles = self.parse_timeframe(timeframe) * 1000 * 999  # 999 because there will be delay between self and the request, causing the latest candle to be excluded sometimes
+            startWithLimit = self.milliseconds() - oneThousandCandles
+            useHistEndpoint = since < startWithLimit
+        if useHistEndpoint:
+            request['start_time'] = since
+        elif limit is not None:  # the hist endpoint does not accept limit
             request['limit'] = min(limit, 1000)
-        response = await self.v1PublicGetKline(self.extend(request, params))
-        # {
-        #     "success": True,
-        #     "rows": [
-        #       {
-        #         "open": "0.94238",
-        #         "close": "0.94271",
-        #         "low": "0.94238",
-        #         "high": "0.94296",
-        #         "volume": "73.55",
-        #         "amount": "69.32040520",
-        #         "symbol": "SPOT_WOO_USDT",
-        #         "type": "1m",
-        #         "start_timestamp": "1641584700000",
-        #         "end_timestamp": "1641584760000"
-        #       },
-        #       {
-        #         "open": "0.94186",
-        #         "close": "0.94186",
-        #         "low": "0.94186",
-        #         "high": "0.94186",
-        #         "volume": "64.00",
-        #         "amount": "60.27904000",
-        #         "symbol": "SPOT_WOO_USDT",
-        #         "type": "1m",
-        #         "start_timestamp": "1641584640000",
-        #         "end_timestamp": "1641584700000"
-        #       },
-        #       ...
-        #     ]
-        # }
-        data = self.safe_value(response, 'rows', [])
-        return self.parse_ohlcvs(data, market, timeframe, since, limit)
+        response = None
+        if not useHistEndpoint:
+            response = await self.v1PublicGetKline(self.extend(request, params))
+            #
+            #    {
+            #        "success": True,
+            #        "rows": [
+            #            {
+            #                "open": "0.94238",
+            #                "close": "0.94271",
+            #                "low": "0.94238",
+            #                "high": "0.94296",
+            #                "volume": "73.55",
+            #                "amount": "69.32040520",
+            #                "symbol": "SPOT_WOO_USDT",
+            #                "type": "1m",
+            #                "start_timestamp": "1641584700000",
+            #                "end_timestamp": "1641584760000"
+            #            },
+            #            ...
+            #        ]
+            #    }
+            #
+        else:
+            response = await self.v1PubGetHistKline(self.extend(request, params))
+            response = self.safe_dict(response, 'data')
+            #
+            #    {
+            #        "success": True,
+            #        "data": {
+            #            "rows": [
+            #                {
+            #                    "symbol": "SPOT_BTC_USDT",
+            #                    "open": 44181.40000000,
+            #                    "close": 44174.29000000,
+            #                    "high": 44193.44000000,
+            #                    "low": 44148.34000000,
+            #                    "volume": 110.11930100,
+            #                    "amount": 4863796.24318878,
+            #                    "type": "1m",
+            #                    "start_timestamp": 1704153600000,
+            #                    "end_timestamp": 1704153660000
+            #                },
+            #                ...
+            #            ]
+            #        }
+            #    }
+            #
+        rows = self.safe_value(response, 'rows', [])
+        return self.parse_ohlcvs(rows, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         # example response in fetchOHLCV
@@ -1920,7 +1945,7 @@ class woo(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -1947,7 +1972,7 @@ class woo(Exchange, ImplicitAPI):
         #
         transfer = self.parse_transfer(response, currency)
         transferOptions = self.safe_value(self.options, 'transfer', {})
-        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             transfer['amount'] = amount
             transfer['fromAccount'] = fromAccount
@@ -2038,7 +2063,7 @@ class woo(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -2444,7 +2469,7 @@ class woo(Exchange, ImplicitAPI):
             'leverage': leverage,
         }
 
-    async def set_leverage(self, leverage, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         await self.load_markets()
         if (leverage < 1) or (leverage > 20):
             raise BadRequest(self.id + ' leverage should be between 1 and 20')

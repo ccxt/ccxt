@@ -199,7 +199,7 @@ class cex extends \ccxt\async\cex {
             $trade = explode(':', $trade);
         }
         $side = $this->safe_string($trade, 0);
-        $timestamp = $this->safe_number($trade, 1);
+        $timestamp = $this->safe_integer($trade, 1);
         $amount = $this->safe_string($trade, 2);
         $price = $this->safe_string($trade, 3);
         $id = $this->safe_string($trade, 4);
@@ -744,7 +744,7 @@ class cex extends \ccxt\async\cex {
             $order = $this->parse_ws_order_update($data, $market);
         }
         $order['remaining'] = $remains;
-        $canceled = $this->safe_value($data, 'cancel', false);
+        $canceled = $this->safe_bool($data, 'cancel', false);
         if ($canceled) {
             $order['status'] = 'canceled';
         }
@@ -834,7 +834,7 @@ class cex extends \ccxt\async\cex {
         if ($isTransaction) {
             $timestamp = $this->parse8601($time);
         }
-        $canceled = $this->safe_value($order, 'cancel', false);
+        $canceled = $this->safe_bool($order, 'cancel', false);
         $status = 'open';
         if ($canceled) {
             $status = 'canceled';
@@ -992,15 +992,15 @@ class cex extends \ccxt\async\cex {
         $messageHash = 'orderbook:' . $symbol;
         $timestamp = $this->safe_integer_2($data, 'timestamp_ms', 'timestamp');
         $incrementalId = $this->safe_number($data, 'id');
-        $storedOrderBook = $this->order_book(array());
+        $orderbook = $this->order_book(array());
         $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks');
         $snapshot['nonce'] = $incrementalId;
-        $storedOrderBook->reset ($snapshot);
+        $orderbook->reset ($snapshot);
         $this->options['orderbook'][$symbol] = array(
             'incrementalId' => $incrementalId,
         );
-        $this->orderbooks[$symbol] = $storedOrderBook;
-        $client->resolve ($storedOrderBook, $messageHash);
+        $this->orderbooks[$symbol] = $orderbook;
+        $client->resolve ($orderbook, $messageHash);
     }
 
     public function pair_to_symbol($pair) {
@@ -1306,7 +1306,7 @@ class cex extends \ccxt\async\cex {
         }) ();
     }
 
-    public function edit_order_ws(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()): PromiseInterface {
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -1379,7 +1379,7 @@ class cex extends \ccxt\async\cex {
         }) ();
     }
 
-    public function cancel_orders_ws($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
@@ -1483,7 +1483,8 @@ class cex extends \ccxt\async\cex {
     public function handle_message(Client $client, $message) {
         $ok = $this->safe_string($message, 'ok');
         if ($ok === 'error') {
-            return $this->handle_error_message($client, $message);
+            $this->handle_error_message($client, $message);
+            return;
         }
         $event = $this->safe_string($message, 'e');
         $handlers = array(
@@ -1511,9 +1512,8 @@ class cex extends \ccxt\async\cex {
         );
         $handler = $this->safe_value($handlers, $event);
         if ($handler !== null) {
-            return $handler($client, $message);
+            $handler($client, $message);
         }
-        return $message;
     }
 
     public function handle_authentication_message(Client $client, $message) {

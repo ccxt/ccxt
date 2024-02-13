@@ -311,13 +311,36 @@
                   "LTC/USDT",
                   "market",
                   "sell",
-                  null,
+                  0,
                   null,
                   {
                     "cost": 3
                   }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"spot\",\"marketUnit\":\"quoteCoin\",\"qty\":\"3\"}"
+            },
+            {
+                "description": "Create swap limit order with tp+sl limit orders attached",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  1,
+                  50,
+                  {
+                    "takeProfit": {
+                      "stopPrice": 100,
+                      "price": 90
+                    },
+                    "stopLoss": {
+                      "stopPrice": 50,
+                      "price": 49
+                    }
+                  }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"1\",\"price\":\"50\",\"stopLoss\":\"50\",\"tpslMode\":\"Partial\",\"slOrderType\":\"Limit\",\"slLimitPrice\":\"49\",\"takeProfit\":\"100\",\"tpOrderType\":\"Limit\",\"tpLimitPrice\":\"90\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -703,6 +726,41 @@
                   ]
                 ]
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "basic call",
+                "method": "fetchOHLCV",
+                "url": "https://api.bybit.com/v5/market/kline?symbol=BTCUSDT&limit=200&interval=1&category=spot",
+                "input": [
+                  "BTC/USDT"
+                ]
+            },
+            {
+                "description": "limit and interval set",
+                "method": "fetchOHLCV",
+                "url": "https://api.bybit.com/v5/market/kline?symbol=BTCUSDT&limit=5&interval=60&category=spot",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  5
+                ]
+            },
+            {
+                "description": "since and until set",
+                "method": "fetchOHLCV",
+                "url": "https://api.bybit.com/v5/market/kline?symbol=BTCUSDT&start=1704067200000&limit=200&end=1704067800000&interval=1&category=spot",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1704067200000,
+                  null,
+                  {
+                    "until": 1704067800000
+                  }
+                ]
+              }
         ]
     },
     "disabled": []

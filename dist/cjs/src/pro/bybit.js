@@ -184,7 +184,7 @@ class bybit extends bybit$1 {
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'ticker:' + symbol;
-        const url = this.getUrlByMarketType(symbol, false, params);
+        const url = this.getUrlByMarketType(symbol, false, 'watchTicker', params);
         params = this.cleanParams(params);
         const options = this.safeValue(this.options, 'watchTicker', {});
         let topic = this.safeString(options, 'name', 'tickers');
@@ -209,7 +209,7 @@ class bybit extends bybit$1 {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, false);
         const messageHashes = [];
-        const url = this.getUrlByMarketType(symbols[0], false, params);
+        const url = this.getUrlByMarketType(symbols[0], false, 'watchTickers', params);
         params = this.cleanParams(params);
         const options = this.safeValue(this.options, 'watchTickers', {});
         const topic = this.safeString(options, 'name', 'tickers');
@@ -376,7 +376,7 @@ class bybit extends bybit$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
-        const url = this.getUrlByMarketType(symbol, false, params);
+        const url = this.getUrlByMarketType(symbol, false, 'watchOHLCV', params);
         params = this.cleanParams(params);
         let ohlcv = undefined;
         const timeframeId = this.safeString(this.timeframes, timeframe, timeframe);
@@ -494,7 +494,7 @@ class bybit extends bybit$1 {
             throw new errors.ArgumentsRequired(this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
         symbols = this.marketSymbols(symbols);
-        const url = this.getUrlByMarketType(symbols[0], false, params);
+        const url = this.getUrlByMarketType(symbols[0], false, 'watchOrderBook', params);
         params = this.cleanParams(params);
         const market = this.market(symbols[0]);
         if (limit === undefined) {
@@ -626,7 +626,7 @@ class bybit extends bybit$1 {
             throw new errors.ArgumentsRequired(this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         params = this.cleanParams(params);
-        const url = this.getUrlByMarketType(symbols[0], false, params);
+        const url = this.getUrlByMarketType(symbols[0], false, 'watchTrades', params);
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -906,7 +906,7 @@ class bybit extends bybit$1 {
          * @name bybit#watchPositions
          * @see https://bybit-exchange.github.io/docs/v5/websocket/private/position
          * @description watch all open positions
-         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {string[]} [symbols] list of unified market symbols
          * @param {object} params extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
@@ -939,7 +939,7 @@ class bybit extends bybit$1 {
     }
     setPositionsCache(client, symbols = undefined) {
         if (this.positions !== undefined) {
-            return this.positions;
+            return;
         }
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
         if (fetchPositionsSnapshot) {
@@ -1072,7 +1072,7 @@ class bybit extends bybit$1 {
         }
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
-    handleOrder(client, message, subscription = undefined) {
+    handleOrder(client, message) {
         //
         //     spot
         //     {
@@ -1342,8 +1342,8 @@ class bybit extends bybit$1 {
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('watchBalance', undefined, params);
         const unified = await this.isUnifiedEnabled();
-        const isUnifiedMargin = this.safeValue(unified, 0, false);
-        const isUnifiedAccount = this.safeValue(unified, 1, false);
+        const isUnifiedMargin = this.safeBool(unified, 0, false);
+        const isUnifiedAccount = this.safeBool(unified, 1, false);
         const url = this.getUrlByMarketType(undefined, true, method, params);
         await this.authenticate(url);
         const topicByMarket = {
@@ -1638,7 +1638,7 @@ class bybit extends bybit$1 {
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const expiresInt = this.milliseconds() + 10000;
-            const expires = expiresInt.toString();
+            const expires = this.numberToString(expiresInt);
             const path = 'GET/realtime';
             const auth = path + expires;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256, 'hex');
@@ -1651,7 +1651,7 @@ class bybit extends bybit$1 {
             const message = this.extend(request, params);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
     handleErrorMessage(client, message) {
         //

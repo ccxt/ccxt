@@ -1103,7 +1103,7 @@ class kucoinfutures extends kucoin {
         ));
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * Create an order on the exchange
@@ -1133,7 +1133,7 @@ class kucoinfutures extends kucoin {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $testOrder = $this->safe_value($params, 'test', false);
+            $testOrder = $this->safe_bool($params, 'test', false);
             $params = $this->omit($params, 'test');
             $orderRequest = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $params);
             $response = null;
@@ -1205,7 +1205,7 @@ class kucoinfutures extends kucoin {
         }) ();
     }
 
-    public function create_contract_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_contract_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
         // required param, cannot be used twice
         $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId', $this->uuid());
@@ -1634,7 +1634,7 @@ class kucoinfutures extends kucoin {
         }) ();
     }
 
-    public function fetch_order($id = null, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(?string $id = null, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -1796,7 +1796,7 @@ class kucoinfutures extends kucoin {
         // $average = Precise::string_div($cost, Precise::string_mul($filled, $market['contractSize']));
         // bool
         $isActive = $this->safe_value($order, 'isActive');
-        $cancelExist = $this->safe_value($order, 'cancelExist', false);
+        $cancelExist = $this->safe_bool($order, 'cancelExist', false);
         $status = null;
         if ($isActive !== null) {
             $status = $isActive ? 'open' : 'closed';
@@ -1949,7 +1949,7 @@ class kucoinfutures extends kucoin {
         }) ();
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -2533,7 +2533,7 @@ class kucoinfutures extends kucoin {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
-            $testOrder = $this->safe_value($params, 'test', false);
+            $testOrder = $this->safe_bool($params, 'test', false);
             $params = $this->omit($params, array( 'test', 'clientOrderId' ));
             if ($clientOrderId === null) {
                 $clientOrderId = $this->number_to_string($this->nonce());

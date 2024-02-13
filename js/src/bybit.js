@@ -299,8 +299,6 @@ export default class bybit extends Exchange {
                         // account
                         'v5/account/wallet-balance': 1,
                         'v5/account/borrow-history': 1,
-                        'v5/account/set-collateral-switch': 5,
-                        'v5/account/set-collateral-switch-batch': 5,
                         'v5/account/collateral-info': 1,
                         'v5/asset/coin-greeks': 1,
                         'v5/account/fee-rate': 10,
@@ -493,6 +491,8 @@ export default class bybit extends Exchange {
                         'v5/lending/purchase': 5,
                         'v5/lending/redeem': 5,
                         'v5/lending/redeem-cancel': 5,
+                        'v5/account/set-collateral-switch': 5,
+                        'v5/account/set-collateral-switch-batch': 5,
                     },
                 },
             },
@@ -857,6 +857,7 @@ export default class bybit extends Exchange {
                     '181003': InvalidOrder,
                     '181004': InvalidOrder,
                     '182000': InvalidOrder,
+                    '181017': BadRequest,
                     '20001': OrderNotFound,
                     '20003': InvalidOrder,
                     '20004': InvalidOrder,
@@ -2219,6 +2220,7 @@ export default class bybit extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch orders for
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
@@ -2232,7 +2234,7 @@ export default class bybit extends Exchange {
             return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1000);
         }
         const market = this.market(symbol);
-        const request = {
+        let request = {
             'symbol': market['id'],
         };
         if (limit === undefined) {
@@ -2244,6 +2246,7 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 1000, default 1000
         }
+        [request, params] = this.handleUntilOption('end', request, params);
         request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
         let response = undefined;
         if (market['spot']) {
@@ -3349,16 +3352,31 @@ export default class bybit extends Exchange {
         let fee = undefined;
         const feeCostString = this.safeString(order, 'cumExecFee');
         if (feeCostString !== undefined) {
-            let feeCurrency = undefined;
+            let feeCurrencyCode = undefined;
             if (market['spot']) {
-                feeCurrency = (side === 'buy') ? market['quote'] : market['base'];
+                if (Precise.stringGt(feeCostString, '0')) {
+                    if (side === 'buy') {
+                        feeCurrencyCode = market['base'];
+                    }
+                    else {
+                        feeCurrencyCode = market['quote'];
+                    }
+                }
+                else {
+                    if (side === 'buy') {
+                        feeCurrencyCode = market['quote'];
+                    }
+                    else {
+                        feeCurrencyCode = market['base'];
+                    }
+                }
             }
             else {
-                feeCurrency = market['settle'];
+                feeCurrencyCode = market['inverse'] ? market['base'] : market['settle'];
             }
             fee = {
                 'cost': feeCostString,
-                'currency': feeCurrency,
+                'currency': feeCurrencyCode,
             };
         }
         let clientOrderId = this.safeString(order, 'orderLinkId');
@@ -3446,7 +3464,7 @@ export default class bybit extends Exchange {
         const result = await this.fetchOrders(symbol, undefined, undefined, this.extend(request, params));
         const length = result.length;
         if (length === 0) {
-            const isTrigger = this.safeValueN(params, ['trigger', 'stop'], false);
+            const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
             const extra = isTrigger ? '' : 'If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound('Order ' + id.toString() + ' was not found.' + extra);
         }
@@ -3679,7 +3697,7 @@ export default class bybit extends Exchange {
         const takeProfitTriggerPrice = this.safeValue(params, 'takeProfitPrice');
         const stopLoss = this.safeValue(params, 'stopLoss');
         const takeProfit = this.safeValue(params, 'takeProfit');
-        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activePrice', price);
+        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activePrice', this.numberToString(price));
         const trailingAmount = this.safeString2(params, 'trailingAmount', 'trailingStop');
         const isTrailingAmountOrder = trailingAmount !== undefined;
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
@@ -3725,10 +3743,22 @@ export default class bybit extends Exchange {
             if (isStopLoss) {
                 const slTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
                 request['stopLoss'] = this.priceToPrecision(symbol, slTriggerPrice);
+                const slLimitPrice = this.safeValue(stopLoss, 'price');
+                if (slLimitPrice !== undefined) {
+                    request['tpslMode'] = 'Partial';
+                    request['slOrderType'] = 'Limit';
+                    request['slLimitPrice'] = this.priceToPrecision(symbol, slLimitPrice);
+                }
             }
             if (isTakeProfit) {
                 const tpTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
                 request['takeProfit'] = this.priceToPrecision(symbol, tpTriggerPrice);
+                const tpLimitPrice = this.safeValue(takeProfit, 'price');
+                if (tpLimitPrice !== undefined) {
+                    request['tpslMode'] = 'Partial';
+                    request['tpOrderType'] = 'Limit';
+                    request['tpLimitPrice'] = this.priceToPrecision(symbol, tpLimitPrice);
+                }
             }
         }
         if (market['spot']) {
@@ -4518,7 +4548,7 @@ export default class bybit extends Exchange {
             return await this.fetchUsdcOrders(symbol, since, limit, params);
         }
         request['category'] = type;
-        const isStop = this.safeValueN(params, ['trigger', 'stop'], false);
+        const isStop = this.safeBoolN(params, ['trigger', 'stop'], false);
         params = this.omit(params, ['trigger', 'stop']);
         if (isStop) {
             request['orderFilter'] = 'StopOrder';
@@ -5676,10 +5706,10 @@ export default class bybit extends Exchange {
         //         "time": 1672280219169
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const positions = this.safeValue2(result, 'list', 'dataList', []);
+        const result = this.safeDict(response, 'result', {});
+        const positions = this.safeList2(result, 'list', 'dataList', []);
         const timestamp = this.safeInteger(response, 'time');
-        const first = this.safeValue(positions, 0, {});
+        const first = this.safeDict(positions, 0, {});
         const position = this.parsePosition(first, market);
         position['timestamp'] = timestamp;
         position['datetime'] = this.iso8601(timestamp);
@@ -6010,9 +6040,6 @@ export default class bybit extends Exchange {
         if (timestamp === undefined) {
             timestamp = this.safeIntegerN(position, ['updatedTime', 'updatedAt']);
         }
-        // default to cross of USDC margined positions
-        const tradeMode = this.safeInteger(position, 'tradeMode', 0);
-        const marginMode = tradeMode ? 'isolated' : 'cross';
         let collateralString = this.safeString(position, 'positionBalance');
         const entryPrice = this.omitZero(this.safeString2(position, 'entryPrice', 'avgPrice'));
         const liquidationPrice = this.omitZero(this.safeString(position, 'liqPrice'));
@@ -6076,7 +6103,7 @@ export default class bybit extends Exchange {
             'markPrice': this.safeNumber(position, 'markPrice'),
             'lastPrice': undefined,
             'collateral': this.parseNumber(collateralString),
-            'marginMode': marginMode,
+            'marginMode': undefined,
             'side': side,
             'percentage': undefined,
             'stopLossPrice': this.safeNumber2(position, 'stop_loss', 'stopLoss'),
@@ -6425,7 +6452,7 @@ export default class bybit extends Exchange {
             throw new BadRequest(this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
         }
         await this.loadMarkets();
-        const paginate = this.safeValue(params, 'paginate');
+        const paginate = this.safeBool(params, 'paginate');
         if (paginate) {
             params = this.omit(params, 'paginate');
             return await this.fetchPaginatedCallDeterministic('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 500);

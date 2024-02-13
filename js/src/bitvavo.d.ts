@@ -34,10 +34,10 @@ export default class bitvavo extends Exchange {
         network: any;
         info: any;
     }>;
-    createOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
-    createOrder(symbol: Str, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): any;
+    createOrder(symbol: Str, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     editOrderRequest(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): {};
-    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
     cancelOrderRequest(id: Str, symbol?: Str, params?: {}): any;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
@@ -50,7 +50,7 @@ export default class bitvavo extends Exchange {
     fetchMyTradesRequest(symbol?: Str, since?: Int, limit?: Int, params?: {}): any;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     withdrawRequest(code: Str, amount: any, address: any, tag?: any, params?: {}): any;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
     fetchWithdrawalsRequest(code?: Str, since?: Int, limit?: Int, params?: {}): any;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDepositsRequest(code?: Str, since?: Int, limit?: Int, params?: {}): any;

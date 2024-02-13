@@ -467,7 +467,7 @@ class deribit extends Exchange {
         return $reconstructedDate;
     }
 
-    public function create_expired_option_market($symbol) {
+    public function create_expired_option_market(string $symbol) {
         // support expired option contracts
         $quote = 'USD';
         $settle = null;
@@ -1320,6 +1320,7 @@ class deribit extends Exchange {
             $request['start_timestamp'] = $now - ($limit - 1) * $duration * 1000;
             $request['end_timestamp'] = $now;
         } else {
+            $since = max ($since - 1, 0);
             $request['start_timestamp'] = $since;
             if ($limit === null) {
                 $request['end_timestamp'] = $now;
@@ -1753,7 +1754,7 @@ class deribit extends Exchange {
         $amount = $this->safe_string($order, 'amount');
         $cost = Precise::string_mul($filledString, $averageString);
         if ($market['inverse']) {
-            if ($this->parse_number($averageString) !== 0) {
+            if ($averageString !== '0') {
                 $cost = Precise::string_div($amount, $averageString);
             }
         }
@@ -1856,7 +1857,7 @@ class deribit extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @see https://docs.deribit.com/#private-buy
@@ -2026,7 +2027,7 @@ class deribit extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * edit a trade $order
          * @see https://docs.deribit.com/#private-edit
@@ -2764,7 +2765,7 @@ class deribit extends Exchange {
         return $this->parse_transfers($transfers, $currency, $since, $limit, $params);
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code
@@ -2856,7 +2857,7 @@ class deribit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code

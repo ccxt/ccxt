@@ -1939,7 +1939,7 @@ export default class currencycom extends Exchange {
         //
         market = this.safeMarket(this.safeString(position, 'symbol'), market);
         const symbol = market['symbol'];
-        const timestamp = this.safeNumber(position, 'createdTimestamp');
+        const timestamp = this.safeInteger(position, 'createdTimestamp');
         const quantityRaw = this.safeString(position, 'openQuantity');
         const side = Precise.stringGt(quantityRaw, '0') ? 'long' : 'short';
         const quantity = Precise.stringAbs(quantityRaw);

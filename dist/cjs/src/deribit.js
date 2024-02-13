@@ -1343,6 +1343,7 @@ class deribit extends deribit$1 {
             request['end_timestamp'] = now;
         }
         else {
+            since = Math.max(since - 1, 0);
             request['start_timestamp'] = since;
             if (limit === undefined) {
                 request['end_timestamp'] = now;
@@ -1780,7 +1781,7 @@ class deribit extends deribit$1 {
         const amount = this.safeString(order, 'amount');
         let cost = Precise["default"].stringMul(filledString, averageString);
         if (market['inverse']) {
-            if (this.parseNumber(averageString) !== 0) {
+            if (averageString !== '0') {
                 cost = Precise["default"].stringDiv(amount, averageString);
             }
         }

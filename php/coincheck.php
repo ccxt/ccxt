@@ -556,7 +556,7 @@ class coincheck extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -820,7 +820,7 @@ class coincheck extends Exchange {
         //     array("success":false,"error":"disabled API Key")'
         //     array("success":false,"error":"invalid authentication")
         //
-        $success = $this->safe_value($response, 'success', true);
+        $success = $this->safe_bool($response, 'success', true);
         if (!$success) {
             $error = $this->safe_string($response, 'error');
             $feedback = $this->id . ' ' . $this->json($response);

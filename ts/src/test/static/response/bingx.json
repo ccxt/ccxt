@@ -277,6 +277,7 @@
       {
         "description": "Create order with tp and sl",
         "method": "createOrder",
+        "disabledCS": true,
         "input": [
           "LTC/USDT:USDT",
           "market",
@@ -329,7 +330,7 @@
           "lastUpdateTimestamp": null,
           "symbol": "LTC/USDT:USDT",
           "type": "market",
-          "timeInForce": "IOC",
+          "timeInForce": "GTC",
           "postOnly": null,
           "side": "buy",
           "price": null,
@@ -339,7 +340,7 @@
           "takeProfitPrice": 100,
           "average": null,
           "cost": null,
-          "amount": null,
+          "amount": 1,
           "filled": null,
           "remaining": null,
           "status": null,
@@ -420,7 +421,7 @@
           "lastUpdateTimestamp": null,
           "symbol": "LTC/USDT:USDT",
           "type": "market",
-          "timeInForce": "IOC",
+          "timeInForce": "GTC",
           "postOnly": null,
           "side": "buy",
           "price": null,
@@ -430,7 +431,7 @@
           "takeProfitPrice": null,
           "average": null,
           "cost": null,
-          "amount": null,
+          "amount": 0.1,
           "filled": null,
           "remaining": null,
           "status": null,
@@ -977,6 +978,96 @@
                 "rate": null
               }
             ]
+          }
+        ]
+      }
+    ],
+    "fetchOpenOrders": [
+      {
+        "description": "spot open orders",
+        "method": "fetchOpenOrders",
+        "input": [
+          "LTC/USDT"
+        ],
+        "httpResponse": {
+          "code": "0",
+          "msg": "",
+          "debugMsg": "",
+          "data": {
+            "orders": [
+              {
+                "symbol": "LTC-USDT",
+                "orderId": "1752456208763060224",
+                "price": "50",
+                "StopPrice": "0",
+                "origQty": "0.1",
+                "executedQty": "0",
+                "cummulativeQuoteQty": "0",
+                "status": "PENDING",
+                "type": "LIMIT",
+                "side": "BUY",
+                "time": "1706653093888",
+                "updateTime": "1706653093888",
+                "origQuoteOrderQty": "0",
+                "clientOrderID": "",
+                "fee": "0"
+              }
+            ]
+          }
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "symbol": "LTC-USDT",
+              "orderId": "1752456208763060224",
+              "price": "50",
+              "StopPrice": "0",
+              "origQty": "0.1",
+              "executedQty": "0",
+              "cummulativeQuoteQty": "0",
+              "status": "PENDING",
+              "type": "LIMIT",
+              "side": "BUY",
+              "time": "1706653093888",
+              "updateTime": "1706653093888",
+              "origQuoteOrderQty": "0",
+              "clientOrderID": "",
+              "fee": "0"
+            },
+            "id": "1752456208763060224",
+            "clientOrderId": null,
+            "timestamp": 1706653093888,
+            "datetime": "2024-01-30T22:18:13.888Z",
+            "lastTradeTimestamp": 1706653093888,
+            "lastUpdateTimestamp": 1706653093888,
+            "symbol": "LTC/USDT",
+            "type": "limit",
+            "timeInForce": null,
+            "postOnly": null,
+            "side": "buy",
+            "price": 50,
+            "stopPrice": null,
+            "triggerPrice": null,
+            "stopLossPrice": null,
+            "takeProfitPrice": null,
+            "average": null,
+            "cost": 0,
+            "amount": 0.1,
+            "filled": 0,
+            "remaining": 0.1,
+            "status": "open",
+            "fee": {
+              "currency": "LTC",
+              "cost": "0"
+            },
+            "trades": [],
+            "fees": [
+              {
+                "currency": "LTC",
+                "cost": 0
+              }
+            ],
+            "reduceOnly": null
           }
         ]
       }

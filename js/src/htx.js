@@ -3984,7 +3984,7 @@ export default class htx extends Exchange {
         let response = undefined;
         const stop = this.safeValue(params, 'stop');
         const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
-        const trailing = this.safeValue(params, 'trailing', false);
+        const trailing = this.safeBool(params, 'trailing', false);
         params = this.omit(params, ['stop', 'stopLossTakeProfit', 'trailing']);
         if (stop || stopLossTakeProfit || trailing) {
             if (limit !== undefined) {
@@ -4359,7 +4359,7 @@ export default class htx extends Exchange {
             request['contract_code'] = market['id'];
             const stop = this.safeValue(params, 'stop');
             const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
-            const trailing = this.safeValue(params, 'trailing', false);
+            const trailing = this.safeBool(params, 'trailing', false);
             params = this.omit(params, ['stop', 'stopLossTakeProfit', 'trailing']);
             if (market['linear']) {
                 let marginMode = undefined;
@@ -5012,7 +5012,7 @@ export default class htx extends Exchange {
         const marketId = this.safeString2(order, 'contract_code', 'symbol');
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeIntegerN(order, ['created_at', 'created-at', 'create_date']);
-        const clientOrderId = this.safeString2(order, 'client_order_id', 'client-order-id');
+        const clientOrderId = this.safeString2(order, 'client_order_id', 'client-or' + 'der-id'); // transpiler regex trick for php issue
         let cost = undefined;
         let amount = undefined;
         if ((type !== undefined) && (type.indexOf('market') >= 0)) {
@@ -5738,7 +5738,7 @@ export default class htx extends Exchange {
             }
             const stop = this.safeValue(params, 'stop');
             const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
-            const trailing = this.safeValue(params, 'trailing', false);
+            const trailing = this.safeBool(params, 'trailing', false);
             params = this.omit(params, ['stop', 'stopLossTakeProfit', 'trailing']);
             if (market['linear']) {
                 let marginMode = undefined;
@@ -6063,7 +6063,7 @@ export default class htx extends Exchange {
             request['contract_code'] = market['id'];
             const stop = this.safeValue(params, 'stop');
             const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
-            const trailing = this.safeValue(params, 'trailing', false);
+            const trailing = this.safeBool(params, 'trailing', false);
             params = this.omit(params, ['stop', 'stopLossTakeProfit', 'trailing']);
             if (market['linear']) {
                 let marginMode = undefined;
@@ -6529,7 +6529,7 @@ export default class htx extends Exchange {
         }
         amount = parseFloat(this.currencyToPrecision(code, amount, networkCode));
         const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
-        if (this.safeValue(withdrawOptions, 'includeFee', false)) {
+        if (this.safeBool(withdrawOptions, 'includeFee', false)) {
             let fee = this.safeNumber(params, 'fee');
             if (fee === undefined) {
                 const currencies = await this.fetchCurrencies();
@@ -7091,7 +7091,7 @@ export default class htx extends Exchange {
         const marginMode = (marketId === undefined) ? 'cross' : 'isolated';
         market = this.safeMarket(marketId);
         const symbol = this.safeString(market, 'symbol');
-        const timestamp = this.safeNumber(info, 'accrued-at');
+        const timestamp = this.safeInteger(info, 'accrued-at');
         return {
             'account': (marginMode === 'isolated') ? symbol : 'cross',
             'symbol': symbol,

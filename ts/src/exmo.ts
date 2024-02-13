@@ -251,7 +251,7 @@ export default class exmo extends Exchange {
         //
         const margin = this.parseMarginModification (response, market);
         const options = this.safeValue (this.options, 'margin', {});
-        const fillResponseFromRequest = this.safeValue (options, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool (options, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             margin['type'] = type;
             margin['amount'] = amount;
@@ -429,7 +429,7 @@ export default class exmo extends Exchange {
         return result;
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name exmo#fetchTransactionFees
@@ -1398,7 +1398,7 @@ export default class exmo extends Exchange {
         return this.filterBySinceLimit (result, since, limit) as Trade[];
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name exmo#createOrder
@@ -2039,7 +2039,7 @@ export default class exmo extends Exchange {
         }
     }
 
-    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
         /**
          * @method
          * @name exmo#editOrder
@@ -2134,7 +2134,7 @@ export default class exmo extends Exchange {
         return undefined;
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name exmo#withdraw
@@ -2631,7 +2631,7 @@ export default class exmo extends Exchange {
             //     {"result":false,"error":"Error 50052: Insufficient funds"}
             //     {"s":"error","errmsg":"strconv.ParseInt: parsing \"\": invalid syntax"}
             //
-            let success = this.safeValue (response, 'result', false);
+            let success = this.safeBool (response, 'result', false);
             if (typeof success === 'string') {
                 if ((success === 'true') || (success === '1')) {
                     success = true;

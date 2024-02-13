@@ -5,7 +5,7 @@
 
 from ccxt.kucoin import kucoin
 from ccxt.abstract.kucoinfutures import ImplicitAPI
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction
 from typing import List
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
@@ -1060,7 +1060,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         Create an order on the exchange
         :see: https://docs.kucoin.com/futures/#place-an-order
@@ -1089,7 +1089,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        testOrder = self.safe_value(params, 'test', False)
+        testOrder = self.safe_bool(params, 'test', False)
         params = self.omit(params, 'test')
         orderRequest = self.create_contract_order_request(symbol, type, side, amount, price, params)
         response = None
@@ -1154,7 +1154,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_orders(data)
 
-    def create_contract_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_contract_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         market = self.market(symbol)
         # required param, cannot be used twice
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId', self.uuid())
@@ -1544,7 +1544,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             return self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, params)
         return self.fetch_orders_by_status('done', symbol, since, limit, params)
 
-    def fetch_order(self, id=None, symbol: Str = None, params={}):
+    def fetch_order(self, id: str = None, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://docs.kucoin.com/futures/#get-details-of-a-single-order
@@ -1699,7 +1699,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         # average = Precise.string_div(cost, Precise.string_mul(filled, market['contractSize']))
         # bool
         isActive = self.safe_value(order, 'isActive')
-        cancelExist = self.safe_value(order, 'cancelExist', False)
+        cancelExist = self.safe_bool(order, 'cancelExist', False)
         status = None
         if isActive is not None:
             status = 'open' if isActive else 'closed'
@@ -1842,7 +1842,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -2376,7 +2376,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         clientOrderId = self.safe_string(params, 'clientOrderId')
-        testOrder = self.safe_value(params, 'test', False)
+        testOrder = self.safe_bool(params, 'test', False)
         params = self.omit(params, ['test', 'clientOrderId'])
         if clientOrderId is None:
             clientOrderId = self.number_to_string(self.nonce())

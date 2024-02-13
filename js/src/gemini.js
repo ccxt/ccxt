@@ -346,7 +346,10 @@ export default class gemini extends Exchange {
             const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 5)));
             const networks = {};
             const networkId = this.safeString(currency, 9);
-            const networkCode = this.networkIdToCode(networkId);
+            let networkCode = undefined;
+            if (networkId !== undefined) {
+                networkCode = this.networkIdToCode(networkId);
+            }
             if (networkCode !== undefined) {
                 networks[networkCode] = {
                     'info': currency,
@@ -515,7 +518,7 @@ export default class gemini extends Exchange {
             'post_only': true,
             'limit_only': true,
         };
-        return this.safeValue(statuses, status, true);
+        return this.safeBool(statuses, status, true);
     }
     async fetchUSDTMarkets(params = {}) {
         // these markets can't be scrapped and fetchMarketsFrom api does an extra call
@@ -554,7 +557,7 @@ export default class gemini extends Exchange {
             result[marketId] = this.parseMarket(market);
         }
         const options = this.safeValue(this.options, 'fetchMarketsFromAPI', {});
-        const fetchDetailsForAllSymbols = this.safeValue(options, 'fetchDetailsForAllSymbols', false);
+        const fetchDetailsForAllSymbols = this.safeBool(options, 'fetchDetailsForAllSymbols', false);
         const fetchDetailsForMarketIds = this.safeValue(options, 'fetchDetailsForMarketIds', []);
         let promises = [];
         let marketIds = [];
@@ -1371,7 +1374,7 @@ export default class gemini extends Exchange {
                     request['options'] = ['maker-or-cancel'];
                 }
             }
-            const postOnly = this.safeValue(params, 'postOnly', false);
+            const postOnly = this.safeBool(params, 'postOnly', false);
             params = this.omit(params, 'postOnly');
             if (postOnly) {
                 request['options'] = ['maker-or-cancel'];

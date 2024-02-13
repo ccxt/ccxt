@@ -54,8 +54,8 @@ export default class binance extends binanceRest {
                 },
                 'api': {
                     'ws': {
-                        'spot': 'wss://stream.binance.com/ws',
-                        'margin': 'wss://stream.binance.com/ws',
+                        'spot': 'wss://stream.binance.com:9443/ws',
+                        'margin': 'wss://stream.binance.com:9443/ws',
                         'future': 'wss://fstream.binance.com/ws',
                         'delivery': 'wss://dstream.binance.com/ws',
                         'ws': 'wss://ws-api.binance.com:443/ws-api/v3',
@@ -540,7 +540,7 @@ export default class binance extends binanceRest {
          */
         return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
-    parseTrade(trade, market = undefined) {
+    parseWsTrade(trade, market = undefined) {
         //
         // public watchTrades
         //
@@ -648,7 +648,7 @@ export default class binance extends binanceRest {
         const executionType = this.safeString(trade, 'x');
         const isTradeExecution = (executionType === 'TRADE');
         if (!isTradeExecution) {
-            return super.parseTrade(trade, market);
+            return this.parseTrade(trade, market);
         }
         const id = this.safeString2(trade, 't', 'a');
         const timestamp = this.safeInteger(trade, 'T');
@@ -713,7 +713,7 @@ export default class binance extends binanceRest {
         const lowerCaseId = this.safeStringLower(message, 's');
         const event = this.safeString(message, 'e');
         const messageHash = lowerCaseId + '@' + event;
-        const trade = this.parseTrade(message, market);
+        const trade = this.parseWsTrade(message, market);
         let tradesArray = this.safeValue(this.trades, symbol);
         if (tradesArray === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -1263,17 +1263,18 @@ export default class binance extends binanceRest {
             for (let j = 0; j < subscriptionKeys.length; j++) {
                 const subscribeType = subscriptionKeys[j];
                 if (subscribeType === type) {
-                    return this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
+                    this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
+                    return;
                 }
             }
         }
     }
     setBalanceCache(client, type) {
         if (type in client.subscriptions) {
-            return undefined;
+            return;
         }
         const options = this.safeValue(this.options, 'watchBalance');
-        const fetchBalanceSnapshot = this.safeValue(options, 'fetchBalanceSnapshot', false);
+        const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
         if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
@@ -1371,7 +1372,7 @@ export default class binance extends binanceRest {
         //
         const messageHash = this.safeString(message, 'id');
         const result = this.safeValue(message, 'result', {});
-        const parsedBalances = this.parseBalance(result, 'spot');
+        const parsedBalances = this.parseBalance(result);
         client.resolve(parsedBalances, messageHash);
     }
     async watchBalance(params = {}) {
@@ -1399,8 +1400,8 @@ export default class binance extends binanceRest {
         this.setBalanceCache(client, type);
         this.setPositionsCache(client, type);
         const options = this.safeValue(this.options, 'watchBalance');
-        const fetchBalanceSnapshot = this.safeValue(options, 'fetchBalanceSnapshot', false);
-        const awaitBalanceSnapshot = this.safeValue(options, 'awaitBalanceSnapshot', true);
+        const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
+        const awaitBalanceSnapshot = this.safeBool(options, 'awaitBalanceSnapshot', true);
         if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
             await client.future(type + ':fetchBalanceSnapshot');
         }
@@ -1561,7 +1562,7 @@ export default class binance extends binanceRest {
         let returnRateLimits = false;
         [returnRateLimits, params] = this.handleOptionAndParams(params, 'createOrderWs', 'returnRateLimits', false);
         payload['returnRateLimits'] = returnRateLimits;
-        const test = this.safeValue(params, 'test', false);
+        const test = this.safeBool(params, 'test', false);
         params = this.omit(params, 'test');
         const message = {
             'id': messageHash,
@@ -2441,7 +2442,7 @@ export default class binance extends binanceRest {
         return this.safePosition({
             'info': position,
             'id': undefined,
-            'symbol': this.safeSymbol(marketId, undefined, undefined, 'future'),
+            'symbol': this.safeSymbol(marketId, undefined, undefined, 'contract'),
             'notional': undefined,
             'marginMode': this.safeString(position, 'mt'),
             'liquidationPrice': undefined,
@@ -2595,9 +2596,9 @@ export default class binance extends binanceRest {
         const messageHash = 'myTrades';
         const executionType = this.safeString(message, 'x');
         if (executionType === 'TRADE') {
-            const trade = this.parseTrade(message);
+            const trade = this.parseWsTrade(message);
             const orderId = this.safeString(trade, 'order');
-            let tradeFee = this.safeValue(trade, 'fee');
+            let tradeFee = this.safeValue(trade, 'fee', {});
             tradeFee = this.extend({}, tradeFee);
             const symbol = this.safeString(trade, 'symbol');
             if (orderId !== undefined && tradeFee !== undefined && symbol !== undefined) {
@@ -2744,13 +2745,15 @@ export default class binance extends binanceRest {
         const status = this.safeString(message, 'status');
         const error = this.safeValue(message, 'error');
         if ((error !== undefined) || (status !== undefined && status !== '200')) {
-            return this.handleWsError(client, message);
+            this.handleWsError(client, message);
+            return;
         }
         const id = this.safeString(message, 'id');
         const subscriptions = this.safeValue(client.subscriptions, id);
         let method = this.safeValue(subscriptions, 'method');
         if (method !== undefined) {
-            return method.call(this, client, message);
+            method.call(this, client, message);
+            return;
         }
         // handle other APIs
         const methods = {
@@ -2780,7 +2783,8 @@ export default class binance extends binanceRest {
         if (method === undefined) {
             const requestId = this.safeString(message, 'id');
             if (requestId !== undefined) {
-                return this.handleSubscriptionStatus(client, message);
+                this.handleSubscriptionStatus(client, message);
+                return;
             }
             // special case for the real-time bookTicker, since it comes without an event identifier
             //
@@ -2799,7 +2803,7 @@ export default class binance extends binanceRest {
             }
         }
         else {
-            return method.call(this, client, message);
+            method.call(this, client, message);
         }
     }
 }

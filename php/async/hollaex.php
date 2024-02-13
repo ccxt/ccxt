@@ -1113,7 +1113,7 @@ class hollaex extends Exchange {
         $filled = $this->safe_string($order, 'filled');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $meta = $this->safe_value($order, 'meta', array());
-        $postOnly = $this->safe_value($meta, 'post_only', false);
+        $postOnly = $this->safe_bool($meta, 'post_only', false);
         return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
@@ -1140,7 +1140,7 @@ class hollaex extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1167,7 +1167,7 @@ class hollaex extends Exchange {
             );
             $stopPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop' ));
             $meta = $this->safe_value($params, 'meta', array());
-            $exchangeSpecificParam = $this->safe_value($meta, 'post_only', false);
+            $exchangeSpecificParam = $this->safe_bool($meta, 'post_only', false);
             $isMarketOrder = $type === 'market';
             $postOnly = $this->is_post_only($isMarketOrder, $exchangeSpecificParam, $params);
             if (!$isMarketOrder) {
@@ -1359,7 +1359,7 @@ class hollaex extends Exchange {
         );
     }
 
-    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit $addresses for multiple currencies and chain types
@@ -1689,7 +1689,7 @@ class hollaex extends Exchange {
         );
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
