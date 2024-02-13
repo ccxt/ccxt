@@ -448,11 +448,8 @@ export default class blofin extends blofinRest {
         // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
         const isOHLCV = (channelName === 'candle');
         let symbols = !isOHLCV ? symbolsArray : this.getListFromObjectValues (symbolsArray, 0);
-        let firstMarket = undefined;
         symbols = this.marketSymbols (symbols, undefined, false, true);
-        if (symbols !== undefined) {
-            firstMarket = this.market (symbols[0]);
-        }
+        const firstMarket = this.market (symbols[0]);
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams (callerMethodName, firstMarket, params);
         if (marketType === 'spot') {
