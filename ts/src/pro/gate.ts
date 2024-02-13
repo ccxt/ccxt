@@ -364,7 +364,7 @@ export default class gate extends gateRest {
 
     async subscribeWatchTickersAndBidsAsks (symbols: Strings = undefined, callerMethodName: Str = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        [ callerMethodName, params ] = this.handleParam (params, 'callerMethodName', callerMethodName);
+        [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', callerMethodName);
         this.requireSymbolsForMultiSubscription (callerMethodName, symbols);
         symbols = this.marketSymbols (symbols);
         const market = this.market (symbols[0]);
