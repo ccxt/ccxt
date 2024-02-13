@@ -278,6 +278,7 @@ export default class gate extends gateRest {
         /**
          * @method
          * @name gate#watchTicker
+         * @see https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -286,20 +287,16 @@ export default class gate extends gateRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const marketId = market['id'];
-        const url = this.getUrlByMarket (market);
-        const messageType = this.getTypeByMarket (market);
-        const [ topic, query ] = this.handleOptionAndParams (params, 'watchTicker', 'name', 'tickers');
-        const channel = messageType + '.' + topic;
-        const messageHash = 'ticker:' + symbol;
-        const payload = [ marketId ];
-        return await this.subscribePublic (url, messageHash, payload, channel, query);
+        params['callerMethodName'] = 'watchTicker';
+        const result = await this.watchTickers ([ symbol ], params);
+        return this.safeValue (result, symbol);
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name gate#watchTickers
+         * @see https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -334,6 +331,7 @@ export default class gate extends gateRest {
         /**
          * @method
          * @name gate#watchBidsAsks
+         * @see https://www.gate.io/docs/developers/apiv4/ws/en/#best-bid-or-ask-price
          * @see https://www.gate.io/docs/developers/apiv4/ws/en/#order-book-channel
          * @description watches best bid & ask for symbols
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
@@ -364,18 +362,19 @@ export default class gate extends gateRest {
         this.handleTickerAndBidAsk ('bidask', client, message);
     }
 
-    async subscribeWatchTickersAndBidsAsks (symbols: Strings = undefined, methodName: Str = undefined, params = {}): Promise<Tickers> {
+    async subscribeWatchTickersAndBidsAsks (symbols: Strings = undefined, callerMethodName: Str = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        this.requireSymbolsForMultiSubscription (methodName, symbols);
+        [ callerMethodName, params ] = this.handleParam (params, 'callerMethodName', callerMethodName);
+        this.requireSymbolsForMultiSubscription (callerMethodName, symbols);
         symbols = this.marketSymbols (symbols);
         const market = this.market (symbols[0]);
         const messageType = this.getTypeByMarket (market);
         const marketIds = this.marketIds (symbols);
         let channelName = undefined;
-        [ channelName, params ] = this.handleOptionAndParams (params, methodName, 'method');
+        [ channelName, params ] = this.handleOptionAndParams (params, callerMethodName, 'method');
         const url = this.getUrlByMarket (market);
         const channel = messageType + '.' + channelName;
-        const isWatchTickers = (methodName === 'watchTickers');
+        const isWatchTickers = callerMethodName.indexOf ('watchTicker') >= 0;
         const prefix = isWatchTickers ? 'ticker' : 'bidask';
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
