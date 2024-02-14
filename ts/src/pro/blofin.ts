@@ -216,7 +216,7 @@ export default class blofin extends blofinRest {
         //
         const arg = this.safeDict (message, 'arg');
         const channelName = this.safeString (arg, 'channel');
-        const data = this.safeList (message, 'data');
+        const data = this.safeDict (message, 'data');
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -441,7 +441,7 @@ export default class blofin extends blofinRest {
         }
     }
 
-    async watchMultipleWrapper (channelName: string, callerMethodName: string, symbolsArray: [], params = {}) {
+    async watchMultipleWrapper (channelName: string, callerMethodName: string, symbolsArray: any[], params = {}) {
         // underlier method for all watch-multiple symbols
         await this.loadMarkets ();
         [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', callerMethodName);
