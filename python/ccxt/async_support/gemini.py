@@ -353,7 +353,9 @@ class gemini(Exchange, ImplicitAPI):
             precision = self.parse_number(self.parse_precision(self.safe_string(currency, 5)))
             networks = {}
             networkId = self.safe_string(currency, 9)
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = None
+            if networkId is not None:
+                networkCode = self.network_id_to_code(networkId)
             if networkCode is not None:
                 networks[networkCode] = {
                     'info': currency,

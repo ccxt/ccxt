@@ -388,7 +388,9 @@ export default class bingx extends Exchange {
                 },
                 'broad': {},
             },
-            'commonCurrencies': {},
+            'commonCurrencies': {
+                'SNOW': 'Snowman', // Snowman vs SnowSwap conflict
+            },
             'options': {
                 'defaultType': 'spot',
                 'accountsByType': {
@@ -1800,6 +1802,7 @@ export default class bingx extends Exchange {
         if (timeInForce === 'IOC') {
             request['timeInForce'] = 'IOC';
         }
+        const triggerPrice = this.safeString2(params, 'stopPrice', 'triggerPrice');
         if (isSpot) {
             [postOnly, params] = this.handlePostOnly(isMarketOrder, timeInForce === 'POC', params);
             if (postOnly || (timeInForce === 'POC')) {
@@ -1811,7 +1814,7 @@ export default class bingx extends Exchange {
                 request['quoteOrderQty'] = this.parseToNumeric(this.costToPrecision(symbol, cost));
             }
             else {
-                if (market['spot'] && isMarketOrder && (price !== undefined)) {
+                if (isMarketOrder && (price !== undefined)) {
                     // keep the legacy behavior, to avoid  breaking the old spot-market-buying code
                     const calculatedCost = Precise.stringMul(this.numberToString(amount), this.numberToString(price));
                     request['quoteOrderQty'] = this.parseToNumeric(calculatedCost);
@@ -1822,6 +1825,18 @@ export default class bingx extends Exchange {
             }
             if (!isMarketOrder) {
                 request['price'] = this.parseToNumeric(this.priceToPrecision(symbol, price));
+            }
+            if (triggerPrice !== undefined) {
+                if (isMarketOrder && this.safeString(request, 'quoteOrderQty') === undefined) {
+                    throw new ArgumentsRequired(this.id + ' createOrder() requires the cost parameter (or the amount + price) for placing spot market-buy trigger orders');
+                }
+                request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
+                if (type === 'LIMIT') {
+                    request['type'] = 'TRIGGER_LIMIT';
+                }
+                else if (type === 'MARKET') {
+                    request['type'] = 'TRIGGER_MARKET';
+                }
             }
         }
         else {
@@ -1835,7 +1850,6 @@ export default class bingx extends Exchange {
             else if (timeInForce === 'FOK') {
                 request['timeInForce'] = 'FOK';
             }
-            const triggerPrice = this.safeString2(params, 'stopPrice', 'triggerPrice');
             const stopLossPrice = this.safeString(params, 'stopLossPrice');
             const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
             const trailingAmount = this.safeString(params, 'trailingAmount');
@@ -2135,6 +2149,13 @@ export default class bingx extends Exchange {
         };
         return this.safeString(sides, side, side);
     }
+    parseOrderType(type) {
+        const types = {
+            'trigger_market': 'market',
+            'trigger_limit': 'limit',
+        };
+        return this.safeString(types, type, type);
+    }
     parseOrder(order, market = undefined) {
         //
         // spot
@@ -2399,7 +2420,7 @@ export default class bingx extends Exchange {
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': this.safeInteger(order, 'updateTime'),
-            'type': this.safeStringLower2(order, 'type', 'o'),
+            'type': this.parseOrderType(this.safeStringLower2(order, 'type', 'o')),
             'timeInForce': this.safeString(order, 'timeInForce'),
             'postOnly': undefined,
             'side': this.parseOrderSide(side),

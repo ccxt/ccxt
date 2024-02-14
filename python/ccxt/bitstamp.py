@@ -814,7 +814,7 @@ class bitstamp(Exchange, ImplicitAPI):
         for i in range(0, len(ids)):
             id = ids[i]
             if id.find('_') < 0:
-                value = self.safe_number(transaction, id)
+                value = self.safe_integer(transaction, id)
                 if (value is not None) and (value != 0):
                     return id
         return None

@@ -958,7 +958,8 @@ export default class blofin extends Exchange {
         const request = {};
         let response = undefined;
         if (accountType !== undefined) {
-            const parsedAccountType = this.safeString(this.options, 'accountsByType', accountType);
+            const options = this.safeDict(this.options, 'accountsByType', {});
+            const parsedAccountType = this.safeString(options, accountType, accountType);
             request['accountType'] = parsedAccountType;
             response = await this.privateGetAssetBalances(this.extend(request, params));
         }

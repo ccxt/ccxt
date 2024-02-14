@@ -805,7 +805,7 @@ public partial class bitstamp : Exchange
             object id = getValue(ids, i);
             if (isTrue(isLessThan(getIndexOf(id, "_"), 0)))
             {
-                object value = this.safeNumber(transaction, id);
+                object value = this.safeInteger(transaction, id);
                 if (isTrue(isTrue((!isEqual(value, null))) && isTrue((!isEqual(value, 0)))))
                 {
                     return id;

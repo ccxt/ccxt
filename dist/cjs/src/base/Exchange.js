@@ -71,6 +71,7 @@ class Exchange {
         this.balance = {};
         this.orderbooks = {};
         this.tickers = {};
+        this.bidsasks = {};
         this.orders = undefined;
         this.triggerOrders = undefined;
         this.transactions = {};
@@ -1942,6 +1943,15 @@ class Exchange {
     async setPositionMode(hedged, symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' setPositionMode() is not supported yet');
     }
+    async addMargin(symbol, amount, params = {}) {
+        throw new errors.NotSupported(this.id + ' addMargin() is not supported yet');
+    }
+    async reduceMargin(symbol, amount, params = {}) {
+        throw new errors.NotSupported(this.id + ' reduceMargin() is not supported yet');
+    }
+    async setMargin(symbol, amount, params = {}) {
+        throw new errors.NotSupported(this.id + ' setMargin() is not supported yet');
+    }
     async setMarginMode(marginMode, symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' setMarginMode() is not supported yet');
     }
@@ -3131,6 +3141,9 @@ class Exchange {
          * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} exchange-specific network id
          */
+        if (networkCode === undefined) {
+            return undefined;
+        }
         const networkIdsByCodes = this.safeValue(this.options, 'networks', {});
         let networkId = this.safeString(networkIdsByCodes, networkCode);
         // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
@@ -3174,6 +3187,9 @@ class Exchange {
          * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} unified network code
          */
+        if (networkId === undefined) {
+            return undefined;
+        }
         const networkCodesByIds = this.safeDict(this.options, 'networksById', {});
         let networkCode = this.safeString(networkCodesByIds, networkId, networkId);
         // replace mainnet network-codes (i.e. ERC20->ETH)
@@ -3415,11 +3431,45 @@ class Exchange {
         const market = this.market(symbol);
         return this.safeString(market, 'symbol', symbol);
     }
+    handleParamString(params, paramName, defaultValue = undefined) {
+        const value = this.safeString(params, paramName, defaultValue);
+        if (value !== undefined) {
+            params = this.omit(params, paramName);
+        }
+        return [value, params];
+    }
     resolvePath(path, params) {
         return [
             this.implodeParams(path, params),
             this.omit(params, this.extractParams(path)),
         ];
+    }
+    getListFromObjectValues(objects, key) {
+        const newArray = this.toArray(objects);
+        const results = [];
+        for (let i = 0; i < newArray.length; i++) {
+            results.push(newArray[i][key]);
+        }
+        return results;
+    }
+    getSymbolsForMarketType(marketType = undefined, subType = undefined, symbolWithActiveStatus = true, symbolWithUnknownStatus = true) {
+        let filteredMarkets = this.markets;
+        if (marketType !== undefined) {
+            filteredMarkets = this.filterBy(filteredMarkets, 'type', marketType);
+        }
+        if (subType !== undefined) {
+            this.checkRequiredArgument('getSymbolsForMarketType', subType, 'subType', ['linear', 'inverse', 'quanto']);
+            filteredMarkets = this.filterBy(filteredMarkets, 'subType', subType);
+        }
+        const activeStatuses = [];
+        if (symbolWithActiveStatus) {
+            activeStatuses.push(true);
+        }
+        if (symbolWithUnknownStatus) {
+            activeStatuses.push(undefined);
+        }
+        filteredMarkets = this.filterByArray(filteredMarkets, 'active', activeStatuses, false);
+        return this.getListFromObjectValues(filteredMarkets, 'symbol');
     }
     filterByArray(objects, key, values = undefined, indexed = true) {
         objects = this.toArray(objects);

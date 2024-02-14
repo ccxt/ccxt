@@ -3617,11 +3617,11 @@ class kucoin(Exchange, ImplicitAPI):
             except Exception as exc:
                 referenceId = context
         fee = None
-        feeCost = self.safe_number(item, 'fee')
+        feeCost = self.safe_string(item, 'fee')
         feeCurrency = None
-        if feeCost != 0:
+        if feeCost != '0':
             feeCurrency = code
-            fee = {'cost': feeCost, 'currency': feeCurrency}
+            fee = {'cost': self.parse_number(feeCost), 'currency': feeCurrency}
         return {
             'id': id,
             'direction': direction,
@@ -3725,8 +3725,11 @@ class kucoin(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data')
-        items = self.safe_value(data, 'items', data)
+        dataList = self.safe_list(response, 'data')
+        if dataList is not None:
+            return self.parse_ledger(dataList, currency, since, limit)
+        data = self.safe_dict(response, 'data')
+        items = self.safe_list(data, 'items', [])
         return self.parse_ledger(items, currency, since, limit)
 
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}):

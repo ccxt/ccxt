@@ -3198,11 +3198,7 @@ class coinbase(Exchange, ImplicitAPI):
                     if query:
                         body = self.json(query)
                         payload = body
-                auth = None
-                if version == 'v3':
-                    auth = nonce + method + savedPath + payload
-                else:
-                    auth = nonce + method + fullPath + payload
+                auth = nonce + method + savedPath + payload
                 signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
                 headers = {
                     'CB-ACCESS-KEY': self.apiKey,

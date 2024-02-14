@@ -605,7 +605,7 @@ class gemini(ccxt.async_support.gemini):
         #         "socket_sequence": 139
         #     }
         #
-        timestamp = self.safe_number(order, 'timestampms')
+        timestamp = self.safe_integer(order, 'timestampms')
         status = self.safe_string(order, 'type')
         marketId = self.safe_string(order, 'symbol')
         typeId = self.safe_string(order, 'order_type')
