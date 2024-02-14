@@ -2418,6 +2418,45 @@
                 "input": [
                   "LTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "Spot margin portfolio margin fetch my liquidations",
+                "method": "fetchMyLiquidations",
+                "url": "https://papi.binance.com/papi/v1/margin/forceOrders?timestamp=1707878056633&recvWindow=10000&signature=c1391185fe60a089f125a9e6b36015ee98a04d4e7e507ad3cd24143c479b6d5d",
+                "input": [
+                  null,
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
+            },
+            {
+                "description": "Linear swap portfolio margin fetch my liquidations",
+                "method": "fetchMyLiquidations",
+                "url": "https://papi.binance.com/papi/v1/um/forceOrders?timestamp=1707878995904&autoCloseType=LIQUIDATION&recvWindow=10000&signature=6ced6b47b0c81862f3713d5830784fc4897bdfac50bc357907d1e6a489cd83cd",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
+            },
+            {
+                "description": "Inverse swap portfolio margin fetch my liquidations",
+                "method": "fetchMyLiquidations",
+                "url": "https://papi.binance.com/papi/v1/cm/forceOrders?timestamp=1707879051093&autoCloseType=LIQUIDATION&recvWindow=10000&signature=46ebc9bfc482820fb8246d4643a2b33c0733ab15c6c1efd7a852b5f2992dc638",
+                "input": [
+                  "ETH/USD:ETH",
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
             }
         ],
         "fetchOrderBook": [
