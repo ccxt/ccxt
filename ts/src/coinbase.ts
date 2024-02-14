@@ -64,8 +64,8 @@ export default class coinbase extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
-                'fetchDeposits': true,
                 'fetchDepositAddressesByNetwork': true,
+                'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -3430,7 +3430,7 @@ export default class coinbase extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    async fetchDepositAddressesByNetwork (code: string, params?: {}): Promise<{}> {
+    async fetchDepositAddressesByNetwork (code: string, params = {}) {
         /**
          * @method
          * @name ascendex#fetchDepositAddress
