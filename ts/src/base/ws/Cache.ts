@@ -133,6 +133,7 @@ class ArrayCacheByTimestamp extends BaseCache {
         if (item[0] in this.hashmap) {
             const reference = this.hashmap[item[0]]
             if (reference !== item) {
+                // eslint-disable-next-line
                 for (const prop in item) {
                     reference[prop] = item[prop]
                 }
