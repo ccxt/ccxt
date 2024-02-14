@@ -1355,7 +1355,7 @@ export default class coinbase extends Exchange {
                 'info': currency, // the original payload
                 'id': id,
                 'code': code,
-                'type': (assetId !== undefined) ? 'fiat' : 'crypto',
+                'type': (assetId !== undefined) ? 'crypto' : 'fiat',
                 'name': this.safeString (currency, 'name'),
                 'active': true,
                 'deposit': undefined,
