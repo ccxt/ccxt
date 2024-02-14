@@ -1436,7 +1436,6 @@ export default class binance extends Exchange {
             },
             'exceptions': {
                 'spot': {
-                    // https://binance-docs.github.io/apidocs/spot/en/#error-codes
                     'exact': {
                         //
                         //        1xxx
@@ -1771,7 +1770,6 @@ export default class binance extends Exchange {
                     },
                 },
                 'linear': {
-                    // https://binance-docs.github.io/apidocs/futures/en/#error-codes
                     'exact': {
                         //
                         //        1xxx
@@ -1875,7 +1873,6 @@ export default class binance extends Exchange {
                     },
                 },
                 'inverse': {
-                    // https://binance-docs.github.io/apidocs/delivery/en/#error-codes
                     'exact': {
                         //
                         //        1xxx
@@ -1935,7 +1932,6 @@ export default class binance extends Exchange {
                     },
                 },
                 'option': {
-                    // https://binance-docs.github.io/apidocs/voptions/en/#error-codes
                     'exact': {
                         //
                         //        1xxx
