@@ -730,6 +730,7 @@
         "fetchOpenOrder": [
             {
                 "description": "Spot fetch open order",
+                "options": {"defaultType": "spot"},
                 "method": "fetchOpenOrder",
                 "url": "https://api-testnet.bybit.com/v5/order/realtime?category=spot&orderId=1620279018815488768",
                 "input": [
@@ -749,6 +750,7 @@
         "fetchClosedOrder": [
             {
                 "description": "Spot fetch closed order",
+                "options": {"defaultType": "spot"},
                 "method": "fetchClosedOrder",
                 "url": "https://api-testnet.bybit.com/v5/order/history?category=spot&orderStatus=Filled&orderId=1620280083321455360",
                 "input": [
