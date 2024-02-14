@@ -3439,10 +3439,9 @@ export default class coinbase extends Exchange {
          * @method
          * @name ascendex#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @see https://ascendex.github.io/ascendex-pro-api/#query-deposit-addresses
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.network] unified network code for deposit chain
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
