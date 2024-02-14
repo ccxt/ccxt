@@ -2294,7 +2294,7 @@ export default class binance extends Exchange {
                     '-4026': BadRequest, // COMMISSION_INVALID
                     '-4027': BadRequest, // INVALID_ACCOUNT_TYPE
                     '-4028': BadRequest, // INVALID_LEVERAGE
-                    '-4029': BadRequest, // INVALID_TICK_SIZE_PRECISION
+                    '-4029': BadRequest, // INVALID_TICK SIZE_PRECISION
                     '-4030': BadRequest, // INVALID_STEP_SIZE_PRECISION
                     '-4031': BadRequest, // INVALID_WORKING_TYPE
                     '-4032': OperationRejected, // EXCEED_MAX_CANCEL_ORDER_SIZE (or Invalid parameter working type: %s)
