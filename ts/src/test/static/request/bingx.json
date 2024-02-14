@@ -704,9 +704,30 @@
         ],
         "fetchDepositAddress": [
             {
-                "description": "fetch USDT deposit address",
+                "description": "call without params['network']",
                 "method": "fetchDepositAddress",
-                "url": "https://open-api.bingx.com/openApi/wallets/v1/capital/deposit/address?coin=USDT&limit=1000&offset=0&recvWindow=5000&timestamp=1699460638640&signature=e5942598ddd9d11cceec8f7e2acb3269c8c2dfe237642314eca3b5d8a5c308e0",
+                "url": "https://open-api.bingx.com/openApi/wallets/v1/capital/deposit/address?coin=USDT&limit=1000&offset=0&recvWindow=5000&timestamp=1707439622493&signature=5a8a671eaaf15e5dfeb21d88e73b979ae6baf1b166cb9f0a21c4ccb73e6662d1",
+                "input": [
+                    "USDT"
+                ]
+            },
+            {
+                "description": "call with params['network']",
+                "method": "fetchDepositAddress",
+                "url": "https://open-api.bingx.com/openApi/wallets/v1/capital/deposit/address?coin=USDT&limit=1000&offset=0&recvWindow=5000&timestamp=1707439682909&signature=163735031e089055bf663eb52b57942021a8876a0abd14f8c6b7805478e4f56b",
+                "input": [
+                    "USDT",
+                    {
+                    "network": "TRC20"
+                    }
+                ]
+            }
+        ],
+        "fetchDepositAddressesByNetwork": [
+            {
+                "description": "basic call",
+                "method": "fetchDepositAddressesByNetwork",
+                "url": "https://open-api.bingx.com/openApi/wallets/v1/capital/deposit/address?coin=USDT&limit=1000&offset=0&recvWindow=5000&timestamp=1707439590326&signature=0736d7b95d80300a63dec4f2d5e5bac7cc33c21605f46b89e9e2a8d527dbb800",
                 "input": [
                     "USDT"
                 ]
