@@ -1693,7 +1693,7 @@ export default class binance extends Exchange {
                         '-7001': BadRequest, // Date range is not supported.
                         '-7002': BadRequest, // Data request type is not supported.
                         //
-                        //        10^xxx
+                        //        1xxxx
                         //
                         '-10001': OperationFailed, // The system is under maintenance, please try again later.
                         '-10002': BadRequest, // Invalid input parameters.
@@ -1751,18 +1751,8 @@ export default class binance extends Exchange {
                         '-18006': OperationRejected, // The amount is too small, please re-enter
                         '-18007': OperationRejected, // This token is not currently supported, please re-enter
                         //
-                        //        20^xxx
+                        //        2xxxx
                         //
-                        // spot & futures algo (TBD for OPTIONS & PORTFOLIO MARGIN)
-                        '-20121': BadSymbol, // Invalid symbol.
-                        '-20124': BadRequest, // Invalid algo id or it has been completed.
-                        '-20130': BadRequest, // Invalid data sent for a parameter
-                        '-20132': BadRequest, // The client algo id is duplicated
-                        '-20194': BadRequest, // Duration is too short to execute all required quantity.
-                        '-20195': BadRequest, // The total size is too small.
-                        '-20196': BadRequest, // The total size is too large.
-                        '-20198': OperationRejected, // Reach the max open orders allowed.
-                        '-20204': BadRequest, // The notional of USD is less or more than the limit.
                         // 21xxx - PORTFOLIO MARGIN
                         '-21001': BadRequest, // Request ID is not a Portfolio Margin Account.
                         '-21002': BadRequest, // Portfolio Margin Account doesn't support transfer from margin to futures.
@@ -1882,21 +1872,6 @@ export default class binance extends Exchange {
                         '-5039': BadRequest, // Invalid self trade prevention mode
                         '-5040': BadRequest, // The goodTillDate timestamp must be greater than the current time plus 600 seconds and smaller than 253402300799000
                         '-5041': OperationFailed, // No depth matches this BBO order
-                        //
-                        //        20^xxx
-                        //
-                        //
-                        // spot & futures algo (TBD for OPTIONS & PORTFOLIO MARGIN)
-                        //
-                        '-20121': BadSymbol, // Invalid symbol.
-                        '-20124': BadRequest, // Invalid algo id or it has been completed.
-                        '-20130': BadRequest, // Invalid data sent for a parameter
-                        '-20132': BadRequest, // The client algo id is duplicated
-                        '-20194': BadRequest, // Duration is too short to execute all required quantity.
-                        '-20195': BadRequest, // The total size is too small.
-                        '-20196': BadRequest, // The total size is too large.
-                        '-20198': OperationRejected, // Reach the max open orders allowed.
-                        '-20204': BadRequest, // The notional of USD is less or more than the limit.
                     },
                 },
                 'inverse': {
@@ -1957,21 +1932,6 @@ export default class binance extends Exchange {
                         '-4200': PermissionDenied, // More than 20x leverage is available %s days after Futures account registration.
                         '-4201': PermissionDenied, // Users in your location/country can only access a maximum leverage of %s
                         '-4202': OperationRejected, // Current symbol leverage cannot exceed 20 when using position limit adjustment service.
-                        //
-                        //        20^xxx
-                        //
-                        //
-                        // spot & futures algo (TBD for OPTIONS & PORTFOLIO MARGIN)
-                        //
-                        '-20121': BadSymbol, // Invalid symbol.
-                        '-20124': BadRequest, // Invalid algo id or it has been completed.
-                        '-20130': BadRequest, // Invalid data sent for a parameter
-                        '-20132': BadRequest, // The client algo id is duplicated
-                        '-20194': BadRequest, // Duration is too short to execute all required quantity.
-                        '-20195': BadRequest, // The total size is too small.
-                        '-20196': BadRequest, // The total size is too large.
-                        '-20198': OperationRejected, // Reach the max open orders allowed.
-                        '-20204': BadRequest, // The notional of USD is less or more than the limit.
                     },
                 },
                 'option': {
@@ -2152,6 +2112,18 @@ export default class binance extends Exchange {
                         '-4148': ExchangeError, // override commons
                         '-4149': ExchangeError, // override commons
                         '-4150': ExchangeError, // override commons
+                        //
+                        //        2xxxx
+                        //
+                        '-20121': ExchangeError, // override commons
+                        '-20124': ExchangeError, // override commons
+                        '-20130': ExchangeError, // override commons
+                        '-20132': ExchangeError, // override commons
+                        '-20194': ExchangeError, // override commons
+                        '-20195': ExchangeError, // override commons
+                        '-20196': ExchangeError, // override commons
+                        '-20198': ExchangeError, // override commons
+                        '-20204': ExchangeError, // override commons
                     },
                 },
                 'portfolioMargin': {
@@ -2223,6 +2195,18 @@ export default class binance extends Exchange {
                         //
                         '-5021': OrderNotFillable, // Due to the order could not be filled immediately, the FOK order has been rejected.
                         '-5022': OrderNotFillable, // Due to the order could not be executed as maker, the Post Only order will be rejected.
+                        //
+                        //        2xxxx
+                        //
+                        '-20121': ExchangeError, // override commons
+                        '-20124': ExchangeError, // override commons
+                        '-20130': ExchangeError, // override commons
+                        '-20132': ExchangeError, // override commons
+                        '-20194': ExchangeError, // override commons
+                        '-20195': ExchangeError, // override commons
+                        '-20196': ExchangeError, // override commons
+                        '-20198': ExchangeError, // override commons
+                        '-20204': ExchangeError, // override commons
                     },
                 },
                 'exact': {
@@ -2341,6 +2325,19 @@ export default class binance extends Exchange {
                     '-4138': BadRequest, // Reduce only must be true with closePosition equals true
                     '-4139': BadRequest, // Order type can not be market if it's unable to cancel
                     '-4142': OrderImmediatelyFillable, // REJECT: take profit or stop order will be triggered immediately
+                    //
+                    //        2xxxx
+                    //
+                    // 20xxx - spot & futures algo (TBD for OPTIONS & PORTFOLIO MARGIN)
+                    '-20121': BadSymbol, // Invalid symbol.
+                    '-20124': BadRequest, // Invalid algo id or it has been completed.
+                    '-20130': BadRequest, // Invalid data sent for a parameter
+                    '-20132': BadRequest, // The client algo id is duplicated
+                    '-20194': BadRequest, // Duration is too short to execute all required quantity.
+                    '-20195': BadRequest, // The total size is too small.
+                    '-20196': BadRequest, // The total size is too large.
+                    '-20198': OperationRejected, // Reach the max open orders allowed.
+                    '-20204': BadRequest, // The notional of USD is less or more than the limit.
                     //
                     // strings
                     //
