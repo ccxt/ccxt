@@ -1219,7 +1219,7 @@ class currencycom(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1849,7 +1849,7 @@ class currencycom(Exchange, ImplicitAPI):
         #
         market = self.safe_market(self.safe_string(position, 'symbol'), market)
         symbol = market['symbol']
-        timestamp = self.safe_number(position, 'createdTimestamp')
+        timestamp = self.safe_integer(position, 'createdTimestamp')
         quantityRaw = self.safe_string(position, 'openQuantity')
         side = 'long' if Precise.string_gt(quantityRaw, '0') else 'short'
         quantity = Precise.string_abs(quantityRaw)

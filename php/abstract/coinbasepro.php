@@ -142,6 +142,9 @@ abstract class coinbasepro extends \ccxt\Exchange {
     public function private_get_conversions_conversion_id($params = array()) {
         return $this->request('conversions/{conversion_id}', 'private', 'GET', $params, null, null, array());
     }
+    public function private_get_conversions_fees($params = array()) {
+        return $this->request('conversions/fees', 'private', 'GET', $params, null, null, array());
+    }
     public function private_post_conversions($params = array()) {
         return $this->request('conversions', 'private', 'POST', $params, null, null, array());
     }
@@ -327,6 +330,9 @@ abstract class coinbasepro extends \ccxt\Exchange {
     }
     public function privateGetConversionsConversionId($params = array()) {
         return $this->request('conversions/{conversion_id}', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetConversionsFees($params = array()) {
+        return $this->request('conversions/fees', 'private', 'GET', $params, null, null, array());
     }
     public function privatePostConversions($params = array()) {
         return $this->request('conversions', 'private', 'POST', $params, null, null, array());

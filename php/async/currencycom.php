@@ -1275,7 +1275,7 @@ class currencycom extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1976,7 +1976,7 @@ class currencycom extends Exchange {
         //
         $market = $this->safe_market($this->safe_string($position, 'symbol'), $market);
         $symbol = $market['symbol'];
-        $timestamp = $this->safe_number($position, 'createdTimestamp');
+        $timestamp = $this->safe_integer($position, 'createdTimestamp');
         $quantityRaw = $this->safe_string($position, 'openQuantity');
         $side = Precise::string_gt($quantityRaw, '0') ? 'long' : 'short';
         $quantity = Precise::string_abs($quantityRaw);

@@ -135,7 +135,6 @@ export default class bitfinex extends bitfinexRest {
             stored.append(trade);
         }
         client.resolve(stored, messageHash);
-        return message;
     }
     parseTrade(trade, market = undefined) {
         //
@@ -325,8 +324,9 @@ export default class bitfinex extends bitfinexRest {
                     const delta = deltas[i];
                     const id = this.safeString(delta, 0);
                     const price = this.safeFloat(delta, 1);
-                    const size = (delta[2] < 0) ? -delta[2] : delta[2];
-                    const side = (delta[2] < 0) ? 'asks' : 'bids';
+                    const delta2Value = delta[2];
+                    const size = (delta2Value < 0) ? -delta2Value : delta2Value;
+                    const side = (delta2Value < 0) ? 'asks' : 'bids';
                     const bookside = orderbook[side];
                     bookside.store(price, size, id);
                 }
@@ -335,10 +335,11 @@ export default class bitfinex extends bitfinexRest {
                 const deltas = message[1];
                 for (let i = 0; i < deltas.length; i++) {
                     const delta = deltas[i];
-                    const size = (delta[2] < 0) ? -delta[2] : delta[2];
-                    const side = (delta[2] < 0) ? 'asks' : 'bids';
-                    const bookside = orderbook[side];
-                    bookside.store(delta[0], size, delta[1]);
+                    const delta2 = delta[2];
+                    const size = (delta2 < 0) ? -delta2 : delta2;
+                    const side = (delta2 < 0) ? 'asks' : 'bids';
+                    const countedBookSide = orderbook[side];
+                    countedBookSide.store(delta[0], size, delta[1]);
                 }
             }
             client.resolve(orderbook, messageHash);
@@ -348,18 +349,20 @@ export default class bitfinex extends bitfinexRest {
             if (isRaw) {
                 const id = this.safeString(message, 1);
                 const price = this.safeString(message, 2);
-                const size = (message[3] < 0) ? -message[3] : message[3];
-                const side = (message[3] < 0) ? 'asks' : 'bids';
+                const message3 = message[3];
+                const size = (message3 < 0) ? -message3 : message3;
+                const side = (message3 < 0) ? 'asks' : 'bids';
                 const bookside = orderbook[side];
                 // price = 0 means that you have to remove the order from your book
                 const amount = Precise.stringGt(price, '0') ? size : '0';
                 bookside.store(this.parseNumber(price), this.parseNumber(amount), id);
             }
             else {
-                const size = (message[3] < 0) ? -message[3] : message[3];
-                const side = (message[3] < 0) ? 'asks' : 'bids';
-                const bookside = orderbook[side];
-                bookside.store(message[1], size, message[2]);
+                const message3Value = message[3];
+                const size = (message3Value < 0) ? -message3Value : message3Value;
+                const side = (message3Value < 0) ? 'asks' : 'bids';
+                const countedBookSide = orderbook[side];
+                countedBookSide.store(message[1], size, message[2]);
             }
             client.resolve(orderbook, messageHash);
         }
@@ -620,7 +623,7 @@ export default class bitfinex extends bitfinexRest {
             //     ]
             //
             if (message[1] === 'hb') {
-                return message; // skip heartbeats within subscription channels for now
+                return; // skip heartbeats within subscription channels for now
             }
             const subscription = this.safeValue(client.subscriptions, channelId, {});
             const channel = this.safeString(subscription, 'channel');
@@ -635,11 +638,8 @@ export default class bitfinex extends bitfinexRest {
                 'oc': this.handleOrders,
             };
             const method = this.safeValue2(methods, channel, name);
-            if (method === undefined) {
-                return message;
-            }
-            else {
-                return method.call(this, client, message, subscription);
+            if (method !== undefined) {
+                method.call(this, client, message, subscription);
             }
         }
         else {
@@ -661,11 +661,8 @@ export default class bitfinex extends bitfinexRest {
                     'auth': this.handleAuthenticationMessage,
                 };
                 const method = this.safeValue(methods, event);
-                if (method === undefined) {
-                    return message;
-                }
-                else {
-                    return method.call(this, client, message);
+                if (method !== undefined) {
+                    method.call(this, client, message);
                 }
             }
         }

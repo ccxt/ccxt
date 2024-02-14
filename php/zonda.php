@@ -652,7 +652,7 @@ class zonda extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * v1_01PublicGetTradingTickerSymbol retrieves timestamp, datetime, bid, ask, close, last, previousClose, v1_01PublicGetTradingStatsSymbol retrieves high, low, volume and opening price of an asset
          * @see https://docs.zondacrypto.exchange/reference/market-statistics
@@ -1321,7 +1321,7 @@ class zonda extends Exchange {
         return $this->parse_trades($items, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1422,7 +1422,7 @@ class zonda extends Exchange {
         //     }
         //
         $id = $this->safe_string_2($response, 'offerId', 'stopOfferId');
-        $completed = $this->safe_value($response, 'completed', false);
+        $completed = $this->safe_bool($response, 'completed', false);
         $status = $completed ? 'closed' : 'open';
         $transactions = $this->safe_value($response, 'transactions');
         return $this->safe_order(array(
@@ -1484,7 +1484,7 @@ class zonda extends Exchange {
             'EUR' => true,
             'PLN' => true,
         );
-        return $this->safe_value($fiatCurrencies, $currency, false);
+        return $this->safe_bool($fiatCurrencies, $currency, false);
     }
 
     public function parse_deposit_address($depositAddress, ?array $currency = null) {
@@ -1542,7 +1542,7 @@ class zonda extends Exchange {
         return $this->parse_deposit_address($first, $currency);
     }
 
-    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         /**
          * @see https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto
          * fetch deposit addresses for multiple currencies and chain types
@@ -1569,7 +1569,7 @@ class zonda extends Exchange {
         return $this->parse_deposit_addresses($data, $codes);
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
         /**
          * @see https://docs.zondacrypto.exchange/reference/internal-$transfer
          * $transfer $currency internally between wallets on the same account
@@ -1619,7 +1619,7 @@ class zonda extends Exchange {
         //
         $transfer = $this->parse_transfer($response, $currency);
         $transferOptions = $this->safe_value($this->options, 'transfer', array());
-        $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
+        $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
         if ($fillResponseFromRequest) {
             $transfer['amount'] = $amount;
         }
@@ -1682,7 +1682,7 @@ class zonda extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * @see https://docs.zondacrypto.exchange/reference/crypto-withdrawal-1
          * make a withdrawal

@@ -753,7 +753,7 @@ class luno extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * @see https://www.luno.com/en/developers/api#tag/Market/operation/GetCandles
@@ -772,7 +772,7 @@ class luno extends Exchange {
                 'pair' => $market['id'],
             );
             if ($since !== null) {
-                $request['since'] = intval($since);
+                $request['since'] = $this->parse_to_int($since);
             } else {
                 $duration = 1000 * 1000 * $this->parse_timeframe($timeframe);
                 $request['since'] = $this->milliseconds() - $duration;
@@ -899,7 +899,7 @@ class luno extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order

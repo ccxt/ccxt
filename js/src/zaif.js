@@ -728,7 +728,7 @@ export default class zaif extends Exchange {
             this.throwBroadlyMatchedException(this.exceptions['broad'], error, feedback);
             throw new ExchangeError(feedback); // unknown message
         }
-        const success = this.safeValue(response, 'success', true);
+        const success = this.safeBool(response, 'success', true);
         if (!success) {
             throw new ExchangeError(feedback);
         }

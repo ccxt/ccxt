@@ -216,9 +216,12 @@
                 "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.001\",\"price\":\"41000\",\"triggerDirection\":1,\"triggerPrice\":\"40000\",\"stopLoss\":\"39500\"}"
             },
             {
-                "description": "Spot market buy order with createMarketBuyOrderRequiresPrice set to false on the testnet",
+                "description": "Spot market buy order with createMarketBuyOrderRequiresPrice set to false on the testnet (classic only)",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/order/create",
+                "options": {
+                    "enableUnifiedAccount": false
+                },
                 "input": [
                     "BTC/USDT",
                     "market",
@@ -274,6 +277,70 @@
                   }
                 ],
                 "output": "{\"symbol\":\"BTCUSD\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"inverse\",\"qty\":\"1\",\"reduceOnly\":true}"
+            },
+            {
+                "description": "Create market buy with base amount (UTA only)",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "buy",
+                  0.2
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"marketUnit\":\"baseCoin\",\"qty\":\"0.2\"}"
+            },
+            {
+                "description": "Create market sell with cost (UTA only)",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "sell",
+                  0.2,
+                  10
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"spot\",\"marketUnit\":\"quoteCoin\",\"qty\":\"2\"}"
+            },
+            {
+                "description": "market sell with cost in params (UTA only)",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "sell",
+                  0,
+                  null,
+                  {
+                    "cost": 3
+                  }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"spot\",\"marketUnit\":\"quoteCoin\",\"qty\":\"3\"}"
+            },
+            {
+                "description": "Create swap limit order with tp+sl limit orders attached",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  1,
+                  50,
+                  {
+                    "takeProfit": {
+                      "stopPrice": 100,
+                      "price": 90
+                    },
+                    "stopLoss": {
+                      "stopPrice": 50,
+                      "price": 49
+                    }
+                  }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"1\",\"price\":\"50\",\"stopLoss\":\"50\",\"tpslMode\":\"Partial\",\"slOrderType\":\"Limit\",\"slLimitPrice\":\"49\",\"takeProfit\":\"100\",\"tpOrderType\":\"Limit\",\"tpLimitPrice\":\"90\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -286,6 +353,18 @@
                   10
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"qty\":\"10\"}"
+            }
+        ],
+        "createMarketSellOrderWithCost": [
+            {
+                "description": "market sell order with cost (UTA only)",
+                "method": "createMarkeSellOrderWithCost",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                  "LTC/USDT",
+                  5
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"spot\",\"marketUnit\":\"quoteCoin\",\"qty\":\"5\"}"
             }
         ],
         "createOrders": [
@@ -647,6 +726,41 @@
                   ]
                 ]
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "basic call",
+                "method": "fetchOHLCV",
+                "url": "https://api.bybit.com/v5/market/kline?symbol=BTCUSDT&limit=200&interval=1&category=spot",
+                "input": [
+                  "BTC/USDT"
+                ]
+            },
+            {
+                "description": "limit and interval set",
+                "method": "fetchOHLCV",
+                "url": "https://api.bybit.com/v5/market/kline?symbol=BTCUSDT&limit=5&interval=60&category=spot",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  5
+                ]
+            },
+            {
+                "description": "since and until set",
+                "method": "fetchOHLCV",
+                "url": "https://api.bybit.com/v5/market/kline?symbol=BTCUSDT&start=1704067200000&limit=200&end=1704067800000&interval=1&category=spot",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1704067200000,
+                  null,
+                  {
+                    "until": 1704067800000
+                  }
+                ]
+              }
         ]
     },
     "disabled": []

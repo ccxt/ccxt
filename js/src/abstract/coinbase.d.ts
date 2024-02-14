@@ -61,16 +61,27 @@ interface Exchange {
     v3PrivateGetBrokerageBestBidAsk(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageConvertTradeTradeId(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageTime(params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetBrokerageCfmBalanceSummary(params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetBrokerageCfmPositions(params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetBrokerageCfmPositionsProductId(params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetBrokerageCfmSweeps(params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetBrokerageIntxPortfolioPortfolioUuid(params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetBrokerageIntxPositionsPortfolioUuid(params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrders(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersBatchCancel(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersEdit(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersEditPreview(params?: {}): Promise<implicitReturnType>;
+    v3PrivatePostBrokerageOrdersPreview(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokeragePortfolios(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokeragePortfoliosMoveFunds(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageConvertQuote(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageConvertTradeTradeId(params?: {}): Promise<implicitReturnType>;
+    v3PrivatePostBrokerageCfmSweepsSchedule(params?: {}): Promise<implicitReturnType>;
+    v3PrivatePostBrokerageIntxAllocate(params?: {}): Promise<implicitReturnType>;
     v3PrivatePutBrokeragePortfoliosPortfolioUuid(params?: {}): Promise<implicitReturnType>;
     v3PrivateDeleteBrokeragePortfoliosPortfolioUuid(params?: {}): Promise<implicitReturnType>;
+    v3PrivateDeleteBrokerageCfmSweeps(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

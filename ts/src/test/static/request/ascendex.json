@@ -321,6 +321,34 @@
                 ],
                 "output":"{\"symbol\":\"BTC-PERP\",\"time\":1701161145825}"
             }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://ascendex.com/api/pro/v1/wallet/deposit/address?asset=USDT&blockchain=TRC20&network=TRC20",
+                "input": [
+                  "USDT",
+                  {
+                    "network": "TRC20"
+                  }
+                ]
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer from spot to futures",
+                "method": "transfer",
+                "disabled": true,
+                "url": "https://ascendex.com/3/api/pro/v1/transfer",
+                "input": [
+                  "USDT",
+                  1,
+                  "cash",
+                  "futures"
+                ],
+                "output": "{\"amount\":\"1\",\"asset\":\"USDT\",\"fromAccount\":\"cash\",\"toAccount\":\"futures\"}"
+            }
         ]
     }
 }

@@ -710,7 +710,7 @@ class okx(ccxt.async_support.okx):
             }
             message = self.extend(request, params)
             self.watch(url, messageHash, message, messageHash)
-        return future
+        return await future
 
     async def watch_balance(self, params={}) -> Balances:
         """
@@ -801,19 +801,21 @@ class okx(ccxt.async_support.okx):
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel
         watches information on multiple trades made by the user
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel
         :param str [symbol]: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.stop]: True if fetching trigger or conditional trades
+        :param str [params.type]: 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
+        :param str [params.marginMode]: 'cross' or 'isolated', for automatically setting the type to spot margin
         :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         """
         # By default, receive order updates from any instrument type
         type = None
         type, params = self.handle_option_and_params(params, 'watchMyTrades', 'type', 'ANY')
-        isStop = self.safe_value(params, 'stop', False)
+        isStop = self.safe_bool(params, 'stop', False)
         params = self.omit(params, ['stop'])
         await self.load_markets()
         await self.authenticate({'access': 'business' if isStop else 'private'})
@@ -828,6 +830,11 @@ class okx(ccxt.async_support.okx):
         if type == 'future':
             type = 'futures'
         uppercaseType = type.upper()
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('watchMyTrades', params)
+        if uppercaseType == 'SPOT':
+            if marginMode is not None:
+                uppercaseType = 'MARGIN'
         request = {
             'instType': uppercaseType,
         }
@@ -949,13 +956,15 @@ class okx(ccxt.async_support.okx):
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel
         watches information on multiple orders made by the user
-        :param str [symbol]: unified market symbol of the market orders were made in
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel
+        :param str [symbol]: unified market symbol of the market the orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.stop]: True if fetching trigger or conditional orders
+        :param str [params.type]: 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
+        :param str [params.marginMode]: 'cross' or 'isolated', for automatically setting the type to spot margin
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         type = None
@@ -973,6 +982,11 @@ class okx(ccxt.async_support.okx):
         if type == 'future':
             type = 'futures'
         uppercaseType = type.upper()
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('watchOrders', params)
+        if uppercaseType == 'SPOT':
+            if marginMode is not None:
+                uppercaseType = 'MARGIN'
         request = {
             'instType': uppercaseType,
         }
@@ -1439,7 +1453,8 @@ class okx(ccxt.async_support.okx):
         #
         #
         if message == 'pong':
-            return self.handle_pong(client, message)
+            self.handle_pong(client, message)
+            return
         # table = self.safe_string(message, 'table')
         # if table is None:
         event = self.safe_string_2(message, 'event', 'op')
@@ -1457,10 +1472,8 @@ class okx(ccxt.async_support.okx):
                 'mass-cancel': self.handle_cancel_all_orders,
             }
             method = self.safe_value(methods, event)
-            if method is None:
-                return message
-            else:
-                return method(client, message)
+            if method is not None:
+                method(client, message)
         else:
             arg = self.safe_value(message, 'arg', {})
             channel = self.safe_string(arg, 'channel')
@@ -1485,7 +1498,5 @@ class okx(ccxt.async_support.okx):
             if method is None:
                 if channel.find('candle') == 0:
                     self.handle_ohlcv(client, message)
-                else:
-                    return message
             else:
-                return method(client, message)
+                method(client, message)

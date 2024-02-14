@@ -750,7 +750,7 @@ export default class luno extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name luno#fetchOHLCV
@@ -770,7 +770,7 @@ export default class luno extends Exchange {
             'pair': market['id'],
         };
         if (since !== undefined) {
-            request['since'] = parseInt (since);
+            request['since'] = this.parseToInt (since);
         } else {
             const duration = 1000 * 1000 * this.parseTimeframe (timeframe);
             request['since'] = this.milliseconds () - duration;
@@ -896,7 +896,7 @@ export default class luno extends Exchange {
         };
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name luno#createOrder

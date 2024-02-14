@@ -25,7 +25,7 @@ function stringValue (value) {
 
 function assertType (exchange, skippedProperties, entry, key, format) {
     if (key in skippedProperties) {
-        return;
+        return undefined;
     }
     // because "typeof" string is not transpilable without === 'name', we list them manually at this moment
     const entryKeyVal = exchange.safeValue (entry, key);

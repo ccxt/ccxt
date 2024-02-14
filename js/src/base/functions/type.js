@@ -98,6 +98,9 @@ const safeFloatN = (o, k, $default) => {
     return isNumber(n) ? n : $default;
 };
 const safeIntegerN = (o, k, $default) => {
+    if (o === undefined) {
+        return $default;
+    }
     const n = asInteger(getValueFromKeysInArray(o, k));
     return isNumber(n) ? n : $default;
 };
@@ -110,14 +113,23 @@ const safeTimestampN = (o, k, $default) => {
     return isNumber(n) ? parseInt(n * 1000) : $default;
 };
 const safeValueN = (o, k, $default) => {
+    if (o === undefined) {
+        return $default;
+    }
     const x = getValueFromKeysInArray(o, k);
     return hasProps(x) ? x : $default;
 };
 const safeStringN = (o, k, $default) => {
+    if (o === undefined) {
+        return $default;
+    }
     const x = getValueFromKeysInArray(o, k);
     return isStringCoercible(x) ? String(x) : $default;
 };
 const safeStringLowerN = (o, k, $default) => {
+    if (o === undefined) {
+        return $default;
+    }
     const x = getValueFromKeysInArray(o, k);
     return isStringCoercible(x) ? String(x).toLowerCase() : $default;
 };

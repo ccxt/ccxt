@@ -9,6 +9,16 @@
                 "method": "fetchDeposits",
                 "url": "https://api.bitvavo.com/v2/depositHistory",
                 "input": []
+            },
+            {
+                "description": "fetch usdt deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.bitvavo.com/v2/depositHistory?symbol=USDT&limit=2",
+                "input": [
+                  "USDT",
+                  null,
+                  2
+                ]
             }
         ],
         "fetchWithdrawals": [
@@ -125,7 +135,7 @@
                 "output": "{\"price\":\"32000\",\"orderId\":\"24bcd0e3-43f7-43f3-97f0-04df043e2d45\",\"market\":\"BTC-EUR\"}"
             },
             {
-                "description": "Edit Order, edit price",
+                "description": "Edit Order, edit price with clientOrderId",
                 "method": "editOrder",
                 "url": "https://api.bitvavo.com/v2/order",
                 "input": [
@@ -165,6 +175,16 @@
               ]
             }
         ],
+        "fetchOrders": [
+            {
+                "description": "fetch orders",
+                "method": "fetchOrders",
+                "url": "https://api.bitvavo.com/v2/orders?market=BTC-EUR",
+                "input": [
+                  "BTC/EUR"
+                ]
+            }
+        ],
         "cancelAllOrders": [
             {
                 "description": "Cancel all orders",
@@ -181,6 +201,16 @@
                 "input": [
                   "BTC/EUR"
                 ]
+            },
+            {
+                "description": "fetch my trades limit 2",
+                "method": "fetchMyTrades",
+                "url": "https://api.bitvavo.com/v2/trades?market=BTC-EUR&start=0&limit=2",
+                "input": [
+                  "BTC/EUR",
+                  0,
+                  2
+                ]
             }
         ],
         "fetchOpenOrders": [
@@ -189,6 +219,19 @@
                 "method": "fetchOpenOrders",
                 "url": "https://api.bitvavo.com/v2/ordersOpen",
                 "input": []
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitvavo.com/v2/BTC-EUR/candles?interval=1m&limit=5",
+                "input": [
+                  "BTC/EUR",
+                  "1m",
+                  null,
+                  5
+                ]
             }
         ]
     }

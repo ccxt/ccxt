@@ -517,9 +517,10 @@ class currencycom(ccxt.async_support.currencycom):
                         }
                         method = self.safe_value(methods, subscriptionDestination)
                         if method is None:
-                            return message
+                            return
                         else:
-                            return method(client, message, subscription)
+                            method(client, message, subscription)
+                            return
         destination = self.safe_string(message, 'destination')
         if destination is not None:
             methods = {
@@ -529,7 +530,5 @@ class currencycom(ccxt.async_support.currencycom):
                 'ping': self.handle_pong,
             }
             method = self.safe_value(methods, destination)
-            if method is None:
-                return message
-            else:
-                return method(client, message)
+            if method is not None:
+                method(client, message)

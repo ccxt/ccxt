@@ -21,9 +21,9 @@ class novadax extends Exchange {
             'id' => 'novadax',
             'name' => 'NovaDAX',
             'countries' => array( 'BR' ), // Brazil
-            // 60 requests per second = 1000ms / 60 = 16.6667ms between requests (public endpoints, limited by IP address)
-            // 20 requests per second => cost = 60 / 20 = 3 (private endpoints, limited by API Key)
-            'rateLimit' => 16.6667,
+            // 6000 weight per min => 100 weight per second => min weight = 1
+            // 100 requests per second => ( 1000ms / 100 ) = 10 ms between requests on average
+            'rateLimit' => 10,
             'version' => 'v1',
             // new metainfo interface
             'has' => array(
@@ -121,33 +121,37 @@ class novadax extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'common/symbol' => 1.2,
-                        'common/symbols' => 1.2,
-                        'common/timestamp' => 1.2,
-                        'market/tickers' => 1.2,
-                        'market/ticker' => 1.2,
-                        'market/depth' => 1.2,
-                        'market/trades' => 1.2,
-                        'market/kline/history' => 1.2,
+                        'common/symbol' => 1,
+                        'common/symbols' => 1,
+                        'common/timestamp' => 1,
+                        'market/tickers' => 5,
+                        'market/ticker' => 1,
+                        'market/depth' => 1,
+                        'market/trades' => 5,
+                        'market/kline/history' => 5,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'orders/get' => 3,
-                        'orders/list' => 3,
-                        'orders/fill' => 3,
-                        'orders/fills' => 3,
-                        'account/getBalance' => 3,
-                        'account/subs' => 3,
-                        'account/subs/balance' => 3,
-                        'account/subs/transfer/record' => 3,
+                        'orders/get' => 1,
+                        'orders/list' => 10,
+                        'orders/fill' => 3, // not found in doc
+                        'orders/fills' => 10,
+                        'account/getBalance' => 1,
+                        'account/subs' => 1,
+                        'account/subs/balance' => 1,
+                        'account/subs/transfer/record' => 10,
                         'wallet/query/deposit-withdraw' => 3,
                     ),
                     'post' => array(
-                        'orders/create' => 3,
-                        'orders/cancel' => 3,
-                        'account/withdraw/coin' => 3,
-                        'account/subs/transfer' => 3,
+                        'orders/create' => 5,
+                        'orders/batch-create' => 50,
+                        'orders/cancel' => 1,
+                        'orders/batch-cancel' => 10,
+                        'orders/cancel-by-symbol' => 10,
+                        'account/subs/transfer' => 5,
+                        'wallet/withdraw/coin' => 3,
+                        'account/withdraw/coin' => 3, // not found in doc
                     ),
                 ),
             ),
@@ -736,7 +740,7 @@ class novadax extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1139,7 +1143,7 @@ class novadax extends Exchange {
         ), $market);
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * $transfer $currency internally between wallets on the same account
@@ -1175,7 +1179,7 @@ class novadax extends Exchange {
             //
             $transfer = $this->parse_transfer($response, $currency);
             $transferOptions = $this->safe_value($this->options, 'transfer', array());
-            $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
+            $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
             if ($fillResponseFromRequest) {
                 $transfer['fromAccount'] = $fromAccount;
                 $transfer['toAccount'] = $toAccount;
@@ -1217,7 +1221,7 @@ class novadax extends Exchange {
         return $this->safe_string($statuses, $status, 'failed');
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

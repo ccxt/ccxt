@@ -206,22 +206,33 @@ export default class coinbase extends Exchange {
                             'brokerage/best_bid_ask',
                             'brokerage/convert/trade/{trade_id}',
                             'brokerage/time',
+                            'brokerage/cfm/balance_summary',
+                            'brokerage/cfm/positions',
+                            'brokerage/cfm/positions/{product_id}',
+                            'brokerage/cfm/sweeps',
+                            'brokerage/intx/portfolio/{portfolio_uuid}',
+                            'brokerage/intx/positions/{portfolio_uuid}',
+                            'brokerage/intx/positions/{portfolio_uuid}/{symbol}',
                         ],
                         'post': [
                             'brokerage/orders',
                             'brokerage/orders/batch_cancel',
                             'brokerage/orders/edit',
                             'brokerage/orders/edit_preview',
+                            'brokerage/orders/preview',
                             'brokerage/portfolios',
                             'brokerage/portfolios/move_funds',
                             'brokerage/convert/quote',
                             'brokerage/convert/trade/{trade_id}',
+                            'brokerage/cfm/sweeps/schedule',
+                            'brokerage/intx/allocate',
                         ],
                         'put': [
                             'brokerage/portfolios/{portfolio_uuid}',
                         ],
                         'delete': [
                             'brokerage/portfolios/{portfolio_uuid}',
+                            'brokerage/cfm/sweeps',
                         ],
                     },
                 },
@@ -421,11 +432,12 @@ export default class coinbase extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const pagination = this.safeValue (response, 'pagination', {});
+        const data = this.safeList (response, 'data', []);
+        const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeString (pagination, 'next_starting_after');
-        const accounts = this.safeValue (response, 'data', []);
-        const lastIndex = accounts.length - 1;
+        const accounts = this.safeList (response, 'data', []);
+        const length = accounts.length;
+        const lastIndex = length - 1;
         const last = this.safeValue (accounts, lastIndex);
         if ((cursor !== undefined) && (cursor !== '')) {
             last['next_starting_after'] = cursor;
@@ -725,7 +737,7 @@ export default class coinbase extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined) {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fiat deposit
         //
@@ -884,7 +896,7 @@ export default class coinbase extends Exchange {
                 'cost': this.safeNumber (feeObject, 'amount'),
                 'currency': this.safeCurrencyCode (feeCurrencyId),
             },
-        };
+        } as Transaction;
     }
 
     parseTrade (trade, market: Market = undefined): Trade {
@@ -1388,7 +1400,11 @@ export default class coinbase extends Exchange {
     async fetchTickersV3 (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.v3PrivateGetBrokerageProducts (params);
+        const request = {};
+        if (symbols !== undefined) {
+            request['product_ids'] = this.marketIds (symbols);
+        }
+        const response = await this.v3PrivateGetBrokerageProducts (this.extend (request, params));
         //
         //     {
         //         "products": [
@@ -1640,7 +1656,7 @@ export default class coinbase extends Exchange {
         }, market);
     }
 
-    parseBalance (response, params = {}) {
+    parseCustomBalance (response, params = {}) {
         const balances = response;
         const accounts = this.safeValue (params, 'type', this.options['accounts']);
         const v3Accounts = this.safeValue (params, 'type', this.options['v3Accounts']);
@@ -1761,7 +1777,7 @@ export default class coinbase extends Exchange {
             const result = this.safeValue (accountsResponse, 'data', []);
             accounts = accounts.concat (result);
         }
-        return this.parseBalance (accounts, params);
+        return this.parseCustomBalance (accounts, params);
     }
 
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2167,7 +2183,7 @@ export default class coinbase extends Exchange {
         return request;
     }
 
-    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name coinbase#createMarketBuyOrderWithCost
@@ -2187,7 +2203,7 @@ export default class coinbase extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#createOrder
@@ -2208,11 +2224,12 @@ export default class coinbase extends Exchange {
          * @param {string} [params.stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
          * @param {string} [params.end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
          * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+         * @param {boolean} [params.preview] default to false, wether to use the test/preview endpoint or not
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        let request = {
             'client_order_id': this.uuid (),
             'product_id': market['id'],
             'side': side.toUpperCase (),
@@ -2337,7 +2354,15 @@ export default class coinbase extends Exchange {
             }
         }
         params = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time' ]);
-        const response = await this.v3PrivatePostBrokerageOrders (this.extend (request, params));
+        const preview = this.safeValue2 (params, 'preview', 'test', false);
+        let response = undefined;
+        if (preview) {
+            params = this.omit (params, [ 'preview', 'test' ]);
+            request = this.omit (request, 'client_order_id');
+            response = await this.v3PrivatePostBrokerageOrdersPreview (this.extend (request, params));
+        } else {
+            response = await this.v3PrivatePostBrokerageOrders (this.extend (request, params));
+        }
         //
         // successful order
         //
@@ -2612,7 +2637,7 @@ export default class coinbase extends Exchange {
         return this.parseOrders (orders, market);
     }
 
-    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#editOrder
@@ -2722,7 +2747,7 @@ export default class coinbase extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit = 100, params = {}): Promise<Order[]> {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = 100, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinbase#fetchOrders
@@ -3210,8 +3235,11 @@ export default class coinbase extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        // the 'product_ids' param isn't working properly and returns {"pricebooks":[]} when defined
-        const response = await this.v3PrivateGetBrokerageBestBidAsk (params);
+        const request = {};
+        if (symbols !== undefined) {
+            request['product_ids'] = this.marketIds (symbols);
+        }
+        const response = await this.v3PrivateGetBrokerageBestBidAsk (this.extend (request, params));
         //
         //     {
         //         "pricebooks": [
@@ -3238,7 +3266,7 @@ export default class coinbase extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#withdraw
@@ -3342,7 +3370,7 @@ export default class coinbase extends Exchange {
         const savedPath = fullPath;
         if (method === 'GET') {
             if (Object.keys (query).length) {
-                fullPath += '?' + this.urlencode (query);
+                fullPath += '?' + this.urlencodeWithArrayRepeat (query);
             }
         }
         const url = this.urls['api']['rest'] + fullPath;
@@ -3378,12 +3406,7 @@ export default class coinbase extends Exchange {
                         payload = body;
                     }
                 }
-                let auth = undefined;
-                if (version === 'v3') {
-                    auth = nonce + method + savedPath + payload;
-                } else {
-                    auth = nonce + method + fullPath + payload;
-                }
+                const auth = nonce + method + savedPath + payload;
                 const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
                 headers = {
                     'CB-ACCESS-KEY': this.apiKey,
