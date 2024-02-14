@@ -95,7 +95,8 @@ export default class bingx extends Exchange {
         toAccount: string;
         status: string;
     };
-    fetchDepositAddress(code: string, params?: {}): Promise<{}>;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
+    fetchDepositAddress(code: string, params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         currency: string;
         address: string;

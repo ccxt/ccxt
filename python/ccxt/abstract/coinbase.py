@@ -3,6 +3,7 @@ from ccxt.base.types import Entry
 
 class ImplicitAPI:
     v2_public_get_currencies = v2PublicGetCurrencies = Entry('currencies', ['v2', 'public'], 'GET', {})
+    v2_public_get_currencies_crypto = v2PublicGetCurrenciesCrypto = Entry('currencies/crypto', ['v2', 'public'], 'GET', {})
     v2_public_get_time = v2PublicGetTime = Entry('time', ['v2', 'public'], 'GET', {})
     v2_public_get_exchange_rates = v2PublicGetExchangeRates = Entry('exchange-rates', ['v2', 'public'], 'GET', {})
     v2_public_get_users_user_id = v2PublicGetUsersUserId = Entry('users/{user_id}', ['v2', 'public'], 'GET', {})

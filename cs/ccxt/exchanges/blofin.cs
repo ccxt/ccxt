@@ -134,11 +134,12 @@ public partial class blofin : Exchange
                 { "2h", "2H" },
                 { "4h", "4H" },
                 { "6h", "6H" },
+                { "8h", "8H" },
                 { "12h", "12H" },
                 { "1d", "1D" },
+                { "3d", "3D" },
                 { "1w", "1W" },
                 { "1M", "1M" },
-                { "3M", "3M" },
             } },
             { "hostname", "www.blofin.com" },
             { "urls", new Dictionary<string, object>() {
@@ -564,7 +565,7 @@ public partial class blofin : Exchange
     public override object parseTrade(object trade, object market = null)
     {
         //
-        // fetch trades
+        // fetch trades & ws trades
         //   {
         //       "tradeId": "3263934920",
         //       "instId": "LTC-USDT",
@@ -573,6 +574,7 @@ public partial class blofin : Exchange
         //       "side": "buy",
         //       "ts": "1707232020854"
         //   }
+        //
         // my trades
         //   {
         //       "instId": "LTC-USDT",

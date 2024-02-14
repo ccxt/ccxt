@@ -72,7 +72,17 @@ function extractMethodsInfo(filePath: string): Record<string, string> {
 
       node.parameters.forEach((param) => {
         const paramName = param.name.getText(sourceFile);
-        const paramType = checker.typeToString(checker.getTypeAtLocation(param));
+        let paramType: string;
+        const param2 = param as any;
+        var customType = param2?.type?.typeName?.escapedText;
+        if (customType && customType.startsWith('Int'))  { // right now handle only the difference between Int and Number, and let
+            // the rest be handled by the default typeToString, like Str vs string, Strings vs string[], etc
+            paramType = param2?.type?.typeName?.escapedText;
+        } else {
+            const typeNode = checker.getTypeAtLocation(param);
+            paramType = checker.typeToString(typeNode);
+        }
+
         methods[methodName]['parameters'][paramName] = paramType;
       });
     }

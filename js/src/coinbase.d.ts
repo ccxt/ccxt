@@ -33,7 +33,7 @@ export default class coinbase extends Exchange {
     fetchMarkets(params?: {}): Promise<any>;
     fetchMarketsV2(params?: {}): Promise<any[]>;
     fetchMarketsV3(params?: {}): Promise<any[]>;
-    fetchCurrenciesFromCache(params?: {}): Promise<any>;
+    fetchCurrenciesFromCache(params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTickersV2(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
@@ -68,9 +68,7 @@ export default class coinbase extends Exchange {
     prepareAccountRequest(limit?: Int, params?: {}): {
         account_id: string;
     };
-    prepareAccountRequestWithCurrencyCode(code?: Str, limit?: Int, params?: {}): Promise<{
-        account_id: string;
-    }>;
+    prepareAccountRequestWithCurrencyCode(code?: Str, limit?: Int, params?: {}): Promise<{}[]>;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     parseOrder(order: any, market?: Market): Order;
@@ -93,6 +91,14 @@ export default class coinbase extends Exchange {
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchBidsAsks(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
     withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): {
+        info: any;
+        currency: string;
+        address: string;
+        tag: string;
+        network: string;
+    };
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
