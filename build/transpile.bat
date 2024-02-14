@@ -21,5 +21,3 @@ if "%is_ws%" == "--ws" (
 )
 
 dotnet build cs\ccxt\ccxt.csproj
-
-endlocal
