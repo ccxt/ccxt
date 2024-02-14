@@ -536,7 +536,6 @@ export default class bitmart extends Exchange {
                     'BRC20': 'BTC',
                     'ARC20': 'AVAX',
                     'ARBI': 'ARBI',
-                    'ARBI(BRIDGED)': 'ARBI',
                     'BSC_BNB': 'BSC',
                 },
                 'networks': {
@@ -587,7 +586,6 @@ export default class bitmart extends Exchange {
                     'XTZ': 'XTZ',
                     'MINA': 'MINA',
                     'BEP20': 'BSC',
-                    'ARBI(BRIDGED)': 'ARBI',
                     // 'BEP20': [ 'BEP20', 'BSC_BNB', 'bep20' ], // todo: after unification
                     'THETA': 'THETA',
                     'AKT': 'AKT',

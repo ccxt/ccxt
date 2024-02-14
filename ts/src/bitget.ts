@@ -1364,6 +1364,7 @@ export default class bitget extends Exchange {
                     'ERC20': 'ETH',
                     'BRC20': 'BTC',
                     'BEP20': 'BSC',
+                    'POLYGON': 'Polygon',
                 },
                 'fetchPositions': {
                     'method': 'privateMixGetV2MixPositionAllPosition', // or privateMixGetV2MixPositionHistoryPosition
