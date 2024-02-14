@@ -1354,7 +1354,6 @@ export default class coinbase extends Exchange {
             result[code] = {
                 'info': currency, // the original payload
                 'id': id,
-                'assetId': assetId,
                 'code': code,
                 'type': (assetId !== undefined) ? 'fiat' : 'crypto',
                 'name': this.safeString (currency, 'name'),
