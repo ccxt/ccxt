@@ -4439,11 +4439,11 @@ export default class bybit extends Exchange {
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
-        throw new NotSupported (this.id + ' fetchOrder() is not supported on bybit, please use fetchOpenOrder or fetchClosedOrder');
+        throw new NotSupported (this.id + ' fetchOrder() is not supported after the 5/02 update, please use fetchOpenOrder or fetchClosedOrder');
     }
 
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        throw new NotSupported (this.id + ' fetchOrders() is not supported on bybit, please use fetchOpenOrders, fetchClosedOrders or fetchCanceledOrders');
+        throw new NotSupported (this.id + ' fetchOrders() is not supported after the 5/02 update, please use fetchOpenOrders, fetchClosedOrders or fetchCanceledOrders');
     }
 
     async fetchClosedOrder (id: string, symbol: Str = undefined, params = {}) {
