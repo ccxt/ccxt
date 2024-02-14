@@ -326,6 +326,10 @@ export default class coinbase extends Exchange {
                     'ACCOUNT_TYPE_CRYPTO',
                     'ACCOUNT_TYPE_FIAT',
                 ],
+                'networks': {
+                    'ERC20': 'ethereum',
+                    'XLM': 'stellar',
+                },
                 'createMarketBuyOrderRequiresPrice': true,
                 'advanced': true, // set to true if using any v3 endpoints from the advanced trade API
                 'fetchMarkets': 'fetchMarketsV3', // 'fetchMarketsV3' or 'fetchMarketsV2'
@@ -1336,11 +1340,16 @@ export default class coinbase extends Exchange {
         //     }
         //
         const result = {};
+        const networks = {};
+        const networksById = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const assetId = this.safeString (currency, 'asset_id');
             const id = this.safeString2 (currency, 'id', 'code');
             const code = this.safeCurrencyCode (id);
+            const name = this.safeString (currency, 'name');
+            this.options['networks'][code] = name.toLowerCase ();
+            this.options['networksById'][code] = name.toLowerCase ();
             result[code] = {
                 'info': currency, // the original payload
                 'id': id,
@@ -1364,7 +1373,14 @@ export default class coinbase extends Exchange {
                     },
                 },
             };
+            if (assetId !== undefined) {
+                const lowerCaseName = name.toLowerCase ();
+                networks[code] = lowerCaseName;
+                networksById[lowerCaseName] = code;
+            }
         }
+        this.options['networks'] = this.extend (networks, this.options['networks']);
+        this.options['networksById'] = this.extend (networksById, this.options['networksById']);
         return result;
     }
 
@@ -3413,7 +3429,7 @@ export default class coinbase extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddressesByNetwork (code: string, params?: {}): Promise<{}> {
         /**
          * @method
          * @name ascendex#fetchDepositAddress
@@ -3425,70 +3441,128 @@ export default class coinbase extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
+        const currency = this.currency (code);
         let request = undefined;
-        [ request, params ] = await this.prepareAccountRequestWithCurrencyCode (code);
+        [ request, params ] = await this.prepareAccountRequestWithCurrencyCode (currency['code']);
         const response = await this.v2PrivateGetAccountsAccountIdAddresses (this.extend (request, params));
         //
         //    {
-        //        "id": "dd3183eb-af1d-5f5d-a90d-cbff946435ff",
-        //        "address": "mswUGcPHp1YnkLCgF1TtoryqSc5E9Q8xFa",
-        //        "name": "One off payment",
-        //        "created_at": "2015-01-31T20:49:02Z",
-        //        "updated_at": "2015-03-31T17:25:29-07:00",
-        //        "network": "bitcoin",
-        //        "resource": "address",
-        //        "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/addresses/dd3183eb-af1d-5f5d-a90d-cbff946435ff"
+        //        pagination: {
+        //            ending_before: null,
+        //            starting_after: null,
+        //            previous_ending_before: null,
+        //            next_starting_after: null,
+        //            limit: '25',
+        //            order: 'desc',
+        //            previous_uri: null,
+        //            next_uri: null
+        //        },
+        //        data: [
+        //            {
+        //                id: '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        //                address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        //                address_info: { address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk' },
+        //                name: null,
+        //                created_at: '2023-05-29T21:12:12Z',
+        //                updated_at: '2023-05-29T21:12:12Z',
+        //                network: 'solana',
+        //                uri_scheme: 'solana',
+        //                resource: 'address',
+        //                resource_path: '/v2/accounts/a7b3d387-bfb8-5ce7-b8da-1f507e81cf25/addresses/64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        //                warnings: [
+        //                    {
+        //                    type: 'correct_address_warning',
+        //                    title: 'This is an ERC20 USDC address.',
+        //                    details: 'Only send ERC20 USD Coin (USDC) to this address.',
+        //                    image_url: 'https://www.coinbase.com/assets/addresses/global-receive-warning-a3d91807e61c717e5a38d270965003dcc025ca8a3cea40ec3d7835b7c86087fa.png',
+        //                    options: [ { text: 'I understand', style: 'primary', id: 'dismiss' } ]
+        //                    }
+        //                ],
+        //                qr_code_image_url: 'https://static-assets.coinbase.com/p2p/l2/asset_network_combinations/v5/usdc-solana.png',
+        //                address_label: 'USDC address (Solana)',
+        //                default_receive: true,
+        //                deposit_uri: 'solana:5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk?spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        //                callback_url: null,
+        //                share_address_copy: {
+        //                    line1: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        //                    line2: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.'
+        //                },
+        //                receive_subtitle: 'ERC-20',
+        //                inline_warning: {
+        //                    text: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.',
+        //                    tooltip: {
+        //                    title: 'USDC (Solana)',
+        //                    subtitle: 'This address can only receive USDC-SPL from Solana network.'
+        //                    }
+        //                }
+        //            },
+        //            ...
+        //        ]
         //    }
         //
-        const data = this.safeDict (response, 'data', {});
-        const addresses = this.safeList (data, 'address', []);
-        const numAddresses = addresses.length;
-        let address = undefined;
-        if (numAddresses > 1) {
-            const addressesByChainName = this.indexBy (addresses, 'chainName');
-            if (networkId === undefined) {
-                const chainNames = Object.keys (addressesByChainName);
-                const chains = chainNames.join (', ');
-                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() returned more than one address, a chainName parameter is required, one of ' + chains);
-            }
-            address = this.safeDict (addressesByChainName, networkId, {});
-        } else {
-            // first address
-            address = this.safeDict (addresses, 0, {});
-        }
-        const result = this.parseDepositAddress (address, currency);
-        return this.extend (result, {
-            'info': response,
-        });
+        const data = this.safeDict (response, 'data');
+        const addressStructures = this.parseDepositAddresses (data, undefined, false);
+        return this.indexBy (addressStructures, 'network');
     }
 
     parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
-        //     {
-        //         "address": "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
-        //         "destTag": "",
-        //         "tagType": "",
-        //         "tagId": "",
-        //         "chainName": "ERC20",
-        //         "numConfirmations": 20,
-        //         "withdrawalFee": 1,
-        //         "nativeScale": 4,
-        //         "tips": []
-        //     }
+        //    {
+        //        id: '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        //        address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        //        address_info: {
+        //            address: 'GCF74576I7AQ56SLMKBQAP255EGUOWCRVII3S44KEXVNJEOIFVBDMXVL',
+        //            destination_tag: '3722061866'
+        //        },
+        //        name: null,
+        //        created_at: '2023-05-29T21:12:12Z',
+        //        updated_at: '2023-05-29T21:12:12Z',
+        //        network: 'solana',
+        //        uri_scheme: 'solana',
+        //        resource: 'address',
+        //        resource_path: '/v2/accounts/a7b3d387-bfb8-5ce7-b8da-1f507e81cf25/addresses/64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        //        warnings: [
+        //            {
+        //            type: 'correct_address_warning',
+        //            title: 'This is an ERC20 USDC address.',
+        //            details: 'Only send ERC20 USD Coin (USDC) to this address.',
+        //            image_url: 'https://www.coinbase.com/assets/addresses/global-receive-warning-a3d91807e61c717e5a38d270965003dcc025ca8a3cea40ec3d7835b7c86087fa.png',
+        //            options: [ { text: 'I understand', style: 'primary', id: 'dismiss' } ]
+        //            }
+        //        ],
+        //        qr_code_image_url: 'https://static-assets.coinbase.com/p2p/l2/asset_network_combinations/v5/usdc-solana.png',
+        //        address_label: 'USDC address (Solana)',
+        //        default_receive: true,
+        //        deposit_uri: 'solana:5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk?spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        //        callback_url: null,
+        //        share_address_copy: {
+        //            line1: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        //            line2: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.'
+        //        },
+        //        receive_subtitle: 'ERC-20',
+        //        inline_warning: {
+        //            text: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.',
+        //            tooltip: {
+        //            title: 'USDC (Solana)',
+        //            subtitle: 'This address can only receive USDC-SPL from Solana network.'
+        //            }
+        //        }
+        //    }
         //
         const address = this.safeString (depositAddress, 'address');
-        const tagId = this.safeString (depositAddress, 'tagId');
-        const tag = this.safeString (depositAddress, tagId);
         this.checkAddress (address);
-        const code = (currency === undefined) ? undefined : currency['code'];
-        const chainName = this.safeString (depositAddress, 'blockchain');
-        const network = this.networkIdToCode (chainName, code);
+        const networkId = this.safeString (depositAddress, 'network');
+        const code = this.safeCurrencyCode (undefined, currency);
+        const addressLabel = this.safeString (depositAddress, 'address_label');
+        const splitAddressLabel = addressLabel.split (' ');
+        const marketId = this.safeString (splitAddressLabel, 0);
+        const addressInfo = this.safeDict (depositAddress, 'address_info');
         return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'network': network,
             'info': depositAddress,
+            'currency': this.safeCurrencyCode (marketId, currency),
+            'address': address,
+            'tag': this.safeString (addressInfo, 'destination_tag'),
+            'network': this.networkIdToCode (networkId, code),
         };
     }
 
