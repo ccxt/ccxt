@@ -966,4 +966,9 @@ public partial class coinbase
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
     }
+    public async Task<Dictionary<string, object>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositAddressesByNetwork(code, parameters);
+        return ((Dictionary<string, object>)res);
+    }
 }
