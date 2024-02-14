@@ -1752,7 +1752,7 @@ export default class binance extends Exchange {
                         //
                         //        2xxxx
                         //
-                        // 21xxx - PORTFOLIO MARGIN
+                        //   21xxx - PORTFOLIO MARGIN (documented in spot docs)
                         '-21001': BadRequest, // Request ID is not a Portfolio Margin Account.
                         '-21002': BadRequest, // Portfolio Margin Account doesn't support transfer from margin to futures.
                         '-21003': BadResponse, // Fail to retrieve margin assets.
@@ -2203,6 +2203,14 @@ export default class binance extends Exchange {
                         '-20196': ExchangeError, // override commons
                         '-20198': ExchangeError, // override commons
                         '-20204': ExchangeError, // override commons
+                        //   21xxx - PORTFOLIO MARGIN (documented in spot docs)
+                        '-21001': BadRequest, // Request ID is not a Portfolio Margin Account.
+                        '-21002': BadRequest, // Portfolio Margin Account doesn't support transfer from margin to futures.
+                        '-21003': BadResponse, // Fail to retrieve margin assets.
+                        '-21004': OperationRejected, // User doesn’t have portfolio margin bankruptcy loan
+                        '-21005': InsufficientFunds, // User’s spot wallet doesn’t have enough BUSD to repay portfolio margin bankruptcy loan
+                        '-21006': OperationFailed, // User had portfolio margin bankruptcy loan repayment in process
+                        '-21007': OperationFailed, // User failed to repay portfolio margin bankruptcy loan since liquidation was in process
                     },
                 },
                 'exact': {
