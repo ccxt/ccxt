@@ -1255,7 +1255,12 @@ export default class coinbase extends Exchange {
         const expires = this.safeInteger (options, 'expires', 1000);
         const now = this.milliseconds ();
         if ((timestamp === undefined) || ((now - timestamp) > expires)) {
-            const fiatResponse = await this.v2PublicGetCurrencies (params);
+            const promises = [
+                this.v2PublicGetCurrencies (params),
+                this.v2PublicGetCurrenciesCrypto (params),
+            ];
+            const promisesResult = await Promise.all (promises);
+            const fiatResponse = this.safeDict (promisesResult, 0, {});
             //
             //    [
             //        "data": {
@@ -1266,7 +1271,7 @@ export default class coinbase extends Exchange {
             //        ...
             //    ]
             //
-            const cryptoResponse = await this.v2PublicGetCurrenciesCrypto (params);
+            const cryptoResponse = this.safeDict (promisesResult, 1, {});
             //
             //    {
             //        asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
@@ -1279,8 +1284,8 @@ export default class coinbase extends Exchange {
             //        address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
             //    }
             //
-            const fiatData = this.safeValue (fiatResponse, 'data', []);
-            const cryptoData = this.safeValue (cryptoResponse, 'data', []);
+            const fiatData = this.safeList (fiatResponse, 'data', []);
+            const cryptoData = this.safeList (cryptoResponse, 'data', []);
             const exchangeRates = await this.v2PublicGetExchangeRates (params);
             this.options['fetchCurrencies'] = this.extend (options, {
                 'currencies': this.arrayConcat (fiatData, cryptoData),
@@ -1288,7 +1293,7 @@ export default class coinbase extends Exchange {
                 'timestamp': now,
             });
         }
-        return this.safeValue (this.options, 'fetchCurrencies', {});
+        return this.safeDict (this.options, 'fetchCurrencies', {});
     }
 
     async fetchCurrencies (params = {}) {
