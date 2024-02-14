@@ -30,6 +30,6 @@ if %ws% == 1 (
   node --loader ts-node/esm .\build\csharpTranspiler.ts %exchange_name%
 )
 
-::dotnet build cs\ccxt\ccxt.csproj
+dotnet build cs\ccxt\ccxt.csproj
 
 endlocal
