@@ -19,6 +19,9 @@ class BaseCache extends Array {
 
 class ArrayCache extends BaseCache {
 
+
+    hashmap = {} // make it visible so in the code we can do this.orders.hashmap using a typed structure
+
     constructor (maxSize = undefined) {
         super (maxSize);
         Object.defineProperty (this, 'nestedNewUpdatesBySymbol', {
@@ -156,11 +159,11 @@ class ArrayCacheBySymbolById extends ArrayCache {
     constructor (maxSize = undefined) {
         super (maxSize)
         this.nestedNewUpdatesBySymbol = true
-        Object.defineProperty (this, 'hashmap', {
-            __proto__: null, // make it invisible
-            value: {},
-            writable: true,
-        })
+        // Object.defineProperty (this, 'hashmap', {
+        //     __proto__: null, // make it invisible
+        //     value: {},
+        //     writable: true,
+        // })
     }
 
     append (item) {

@@ -1,5 +1,5 @@
 /* eslint-disable max-classes-per-file */
-// @ts-nocheck 
+// @ts-nocheck
 
 import { iso8601 } from '../../base/functions/time.js';
 import { extend, deepExtend } from '../../base/functions/generic.js';
@@ -22,13 +22,15 @@ import {
 
 class OrderBook {
 
+    cache = [] // make prop visible so we use typed OrderBooks
+
     constructor (snapshot = {}, depth = undefined) {
 
-        Object.defineProperty (this, 'cache', {
-            __proto__: null, // make it invisible
-            value: [],
-            writable: true,
-        })
+        // Object.defineProperty (this, 'cache', {
+        //     __proto__: null, // make it invisible
+        //     value: [],
+        //     writable: true,
+        // })
 
         depth = depth || Number.MAX_SAFE_INTEGER
 
