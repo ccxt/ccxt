@@ -434,6 +434,7 @@ public partial class hitbtc : ccxt.hitbtc
             object messageHash = add(add(channel, "::"), symbol);
             callDynamically(client as WebSocketClient, "resolve", new object[] {newTickers, messageHash});
         }
+        callDynamically(client as WebSocketClient, "resolve", new object[] {newTickers, "tickers"});
         object messageHashes = this.findMessageHashes(client as WebSocketClient, "tickers::");
         for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {

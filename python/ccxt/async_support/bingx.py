@@ -400,6 +400,7 @@ class bingx(Exchange, ImplicitAPI):
                 'broad': {},
             },
             'commonCurrencies': {
+                'SNOW': 'Snowman',  # Snowman vs SnowSwap conflict
             },
             'options': {
                 'defaultType': 'spot',

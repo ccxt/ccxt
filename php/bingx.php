@@ -383,6 +383,7 @@ class bingx extends Exchange {
                 'broad' => array(),
             ),
             'commonCurrencies' => array(
+                'SNOW' => 'Snowman', // Snowman vs SnowSwap conflict
             ),
             'options' => array(
                 'defaultType' => 'spot',

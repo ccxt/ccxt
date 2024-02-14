@@ -391,6 +391,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             newTickers[symbol] = ticker
             messageHash = channel + '::' + symbol
             client.resolve(newTickers, messageHash)
+        client.resolve(newTickers, 'tickers')
         messageHashes = self.find_message_hashes(client, 'tickers::')
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]

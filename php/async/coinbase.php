@@ -3451,12 +3451,7 @@ class coinbase extends Exchange {
                         $payload = $body;
                     }
                 }
-                $auth = null;
-                if ($version === 'v3') {
-                    $auth = $nonce . $method . $savedPath . $payload;
-                } else {
-                    $auth = $nonce . $method . $fullPath . $payload;
-                }
+                $auth = $nonce . $method . $savedPath . $payload;
                 $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
                 $headers = array(
                     'CB-ACCESS-KEY' => $this->apiKey,

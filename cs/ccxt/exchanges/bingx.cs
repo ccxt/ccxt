@@ -377,7 +377,9 @@ public partial class bingx : Exchange
                 } },
                 { "broad", new Dictionary<string, object>() {} },
             } },
-            { "commonCurrencies", new Dictionary<string, object>() {} },
+            { "commonCurrencies", new Dictionary<string, object>() {
+                { "SNOW", "Snowman" },
+            } },
             { "options", new Dictionary<string, object>() {
                 { "defaultType", "spot" },
                 { "accountsByType", new Dictionary<string, object>() {

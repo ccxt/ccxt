@@ -1015,7 +1015,8 @@ public partial class blofin : Exchange
         object response = null;
         if (isTrue(!isEqual(accountType, null)))
         {
-            object parsedAccountType = this.safeString(this.options, "accountsByType", accountType);
+            object options = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
+            object parsedAccountType = this.safeString(options, accountType, accountType);
             ((IDictionary<string,object>)request)["accountType"] = parsedAccountType;
             response = await this.privateGetAssetBalances(this.extend(request, parameters));
         } else

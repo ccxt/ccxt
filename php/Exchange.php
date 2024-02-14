@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.2.43';
+$version = '4.2.44';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.43';
+    const VERSION = '4.2.44';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -143,6 +143,7 @@ class Exchange {
     public $balance = array();
     public $orderbooks = array();
     public $tickers = array();
+    public $bidsasks = array();
     public $fees = array('trading' => array(), 'funding' => array());
     public $precision = array();
     public $orders = null;
@@ -3969,6 +3970,9 @@ class Exchange {
          * @param {string} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
          * @return {string|null} exchange-specific network id
          */
+        if ($networkCode === null) {
+            return null;
+        }
         $networkIdsByCodes = $this->safe_value($this->options, 'networks', array());
         $networkId = $this->safe_string($networkIdsByCodes, $networkCode);
         // for example, if 'ETH' is passed for $networkCode, but 'ETH' $key not defined in `options->networks` object
@@ -4010,6 +4014,9 @@ class Exchange {
          * @param {string|null} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
          * @return {string|null} unified network code
          */
+        if ($networkId === null) {
+            return null;
+        }
         $networkCodesByIds = $this->safe_dict($this->options, 'networksById', array());
         $networkCode = $this->safe_string($networkCodesByIds, $networkId, $networkId);
         // replace mainnet network-codes (i.e. ERC20->ETH)
@@ -4267,11 +4274,48 @@ class Exchange {
         return $this->safe_string($market, 'symbol', $symbol);
     }
 
+    public function handle_param_string(array $params, string $paramName, $defaultValue = null) {
+        $value = $this->safe_string($params, $paramName, $defaultValue);
+        if ($value !== null) {
+            $params = $this->omit ($params, $paramName);
+        }
+        return array( $value, $params );
+    }
+
     public function resolve_path($path, $params) {
         return array(
             $this->implode_params($path, $params),
             $this->omit ($params, $this->extract_params($path)),
         );
+    }
+
+    public function get_list_from_object_values($objects, int|string $key) {
+        $newArray = $this->to_array($objects);
+        $results = array();
+        for ($i = 0; $i < count($newArray); $i++) {
+            $results[] = $newArray[$i][$key];
+        }
+        return $results;
+    }
+
+    public function get_symbols_for_market_type(?string $marketType = null, ?string $subType = null, bool $symbolWithActiveStatus = true, bool $symbolWithUnknownStatus = true) {
+        $filteredMarkets = $this->markets;
+        if ($marketType !== null) {
+            $filteredMarkets = $this->filter_by($filteredMarkets, 'type', $marketType);
+        }
+        if ($subType !== null) {
+            $this->check_required_argument('getSymbolsForMarketType', $subType, 'subType', array( 'linear', 'inverse', 'quanto' ));
+            $filteredMarkets = $this->filter_by($filteredMarkets, 'subType', $subType);
+        }
+        $activeStatuses = array();
+        if ($symbolWithActiveStatus) {
+            $activeStatuses[] = true;
+        }
+        if ($symbolWithUnknownStatus) {
+            $activeStatuses[] = null;
+        }
+        $filteredMarkets = $this->filter_by_array($filteredMarkets, 'active', $activeStatuses, false);
+        return $this->get_list_from_object_values($filteredMarkets, 'symbol');
     }
 
     public function filter_by_array($objects, int|string $key, $values = null, $indexed = true) {
