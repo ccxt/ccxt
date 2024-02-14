@@ -1438,6 +1438,9 @@ export default class binance extends Exchange {
                 'spot': {
                     // https://binance-docs.github.io/apidocs/spot/en/#error-codes
                     'exact': {
+                        //
+                        // 1xxx
+                        //
                         '-1004': OperationFailed, // {"code":-1004,"msg":"Server is busy, please wait and try again"}
                         '-1008': OperationFailed, // undocumented, but mentioned: This is sent whenever the servers are overloaded with requests.
                         '-1099': AuthenticationError, // {"code":-1099,"msg":"Not found, authenticated, or authorized"}
@@ -1447,12 +1450,17 @@ export default class binance extends Exchange {
                         '-1135': BadRequest, // undocumented, but mentioned: This error code will occur if a parameter requiring a JSON object is invalid.
                         '-1145': BadRequest, // cancelRestrictions has to be either ONLY_NEW or ONLY_PARTIALLY_FILLED.
                         '-1151': BadSymbol, // Symbol is present multiple times in the list.
+                        //
+                        // 2xxx
+                        //
                         '-2008': AuthenticationError, // undocumented, Invalid Api-Key ID
                         '-2016': OperationRejected, // {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
                         '-2021': BadResponse, // This code is sent when either the cancellation of the order failed or the new order placement failed but not both.
                         '-2022': BadResponse, // This code is sent when both the cancellation of the order failed and the new order placement failed.
                         '-2026': InvalidOrder, // Order was canceled or expired with no executed qty over 90 days ago and has been archived.
-                        // 3xxx errors are available only for spot
+                        //
+                        // 3xxx (these errors are available only for spot atm)
+                        //
                         '-3000': OperationFailed, // {"code":-3000,"msg":"Internal server error."}
                         '-3001': AuthenticationError, // {"code":-3001,"msg":"Please enable 2FA first."}
                         '-3002': BadSymbol, // {"code":-3002,"msg":"We don't have this asset."}
@@ -1492,6 +1500,9 @@ export default class binance extends Exchange {
                         '-3044': OperationFailed, // {"code":-3044,"msg":"System busy."}
                         '-3045': OperationFailed, // {"code":-3045,"msg":"The system doesn't have enough asset now."}
                         '-3999': PermissionDenied, // {"code":-3999,"msg":"This function is only available for invited users."}
+                        //
+                        // 4xxx (different from contract markets)
+                        //
                         '-4001': BadRequest, // {"code":-4001 ,"msg":"Invalid operation."}
                         '-4002': BadRequest, // {"code":-4002 ,"msg":"Invalid get."}
                         '-4003': BadRequest, // {"code":-4003 ,"msg":"Your input email is invalid."}
@@ -1538,7 +1549,108 @@ export default class binance extends Exchange {
                         '-4045': OperationFailed, // {"code":-4045,"msg":"Failure to acquire assets."}
                         '-4046': AuthenticationError, // {"code":-4046,"msg":"Agreement not confirmed."}
                         '-4047': BadRequest, // {"code":-4047,"msg":"Time interval must be within 0-90 days"}
+                        '-4048': ExchangeError, // override commons
+                        '-4049': ExchangeError, // override commons
+                        '-4050': ExchangeError, // override commons
+                        '-4051': ExchangeError, // override commons
+                        '-4052': ExchangeError, // override commons
+                        '-4053': ExchangeError, // override commons
+                        '-4054': ExchangeError, // override commons
+                        '-4055': ExchangeError, // override commons
+                        '-4056': ExchangeError, // override commons
+                        '-4057': ExchangeError, // override commons
+                        '-4058': ExchangeError, // override commons
+                        '-4059': ExchangeError, // override commons
                         '-4060': OperationFailed, // As your deposit has not reached the required block confirmations, we have temporarily locked {0} asset
+                        '-4061': ExchangeError, // override commons
+                        '-4062': ExchangeError, // override commons
+                        '-4063': ExchangeError, // override commons
+                        '-4064': ExchangeError, // override commons
+                        '-4065': ExchangeError, // override commons
+                        '-4066': ExchangeError, // override commons
+                        '-4067': ExchangeError, // override commons
+                        '-4068': ExchangeError, // override commons
+                        '-4069': ExchangeError, // override commons
+                        '-4070': ExchangeError, // override commons
+                        '-4071': ExchangeError, // override commons
+                        '-4072': ExchangeError, // override commons
+                        '-4073': ExchangeError, // override commons
+                        '-4074': ExchangeError, // override commons
+                        '-4075': ExchangeError, // override commons
+                        '-4076': ExchangeError, // override commons
+                        '-4077': ExchangeError, // override commons
+                        '-4078': ExchangeError, // override commons
+                        '-4079': ExchangeError, // override commons
+                        '-4080': ExchangeError, // override commons
+                        '-4081': ExchangeError, // override commons
+                        '-4082': ExchangeError, // override commons
+                        '-4083': ExchangeError, // override commons
+                        '-4084': ExchangeError, // override commons
+                        '-4085': ExchangeError, // override commons
+                        '-4086': ExchangeError, // override commons
+                        '-4087': ExchangeError, // override commons
+                        '-4088': ExchangeError, // override commons
+                        '-4089': ExchangeError, // override commons
+                        '-4091': ExchangeError, // override commons
+                        '-4092': ExchangeError, // override commons
+                        '-4093': ExchangeError, // override commons
+                        '-4094': ExchangeError, // override commons
+                        '-4095': ExchangeError, // override commons
+                        '-4096': ExchangeError, // override commons
+                        '-4097': ExchangeError, // override commons
+                        '-4098': ExchangeError, // override commons
+                        '-4099': ExchangeError, // override commons
+                        '-4101': ExchangeError, // override commons
+                        '-4102': ExchangeError, // override commons
+                        '-4103': ExchangeError, // override commons
+                        '-4104': ExchangeError, // override commons
+                        '-4105': ExchangeError, // override commons
+                        '-4106': ExchangeError, // override commons
+                        '-4107': ExchangeError, // override commons
+                        '-4108': ExchangeError, // override commons
+                        '-4109': ExchangeError, // override commons
+                        '-4110': ExchangeError, // override commons
+                        '-4112': ExchangeError, // override commons
+                        '-4113': ExchangeError, // override commons
+                        '-4114': ExchangeError, // override commons
+                        '-4115': ExchangeError, // override commons
+                        '-4116': ExchangeError, // override commons
+                        '-4117': ExchangeError, // override commons
+                        '-4118': ExchangeError, // override commons
+                        '-4119': ExchangeError, // override commons
+                        '-4120': ExchangeError, // override commons
+                        '-4121': ExchangeError, // override commons
+                        '-4122': ExchangeError, // override commons
+                        '-4123': ExchangeError, // override commons
+                        '-4124': ExchangeError, // override commons
+                        '-4125': ExchangeError, // override commons
+                        '-4126': ExchangeError, // override commons
+                        '-4127': ExchangeError, // override commons
+                        '-4128': ExchangeError, // override commons
+                        '-4129': ExchangeError, // override commons
+                        '-4130': ExchangeError, // override commons
+                        '-4131': ExchangeError, // override commons
+                        '-4132': ExchangeError, // override commons
+                        '-4133': ExchangeError, // override commons
+                        '-4134': ExchangeError, // override commons
+                        '-4135': ExchangeError, // override commons
+                        '-4136': ExchangeError, // override commons
+                        '-4137': ExchangeError, // override commons
+                        '-4138': ExchangeError, // override commons
+                        '-4139': ExchangeError, // override commons
+                        '-4141': ExchangeError, // override commons
+                        '-4142': ExchangeError, // override commons
+                        '-4143': ExchangeError, // override commons
+                        '-4144': ExchangeError, // override commons
+                        '-4145': ExchangeError, // override commons
+                        '-4146': ExchangeError, // override commons
+                        '-4147': ExchangeError, // override commons
+                        '-4148': ExchangeError, // override commons
+                        '-4149': ExchangeError, // override commons
+                        '-4150': ExchangeError, // override commons
+                        //
+                        // 5xxx
+                        //
                         '-5001': BadRequest, // Don't allow transfer to micro assets.
                         '-5002': InsufficientFunds, // You have insufficient balance.
                         '-5003': InsufficientFunds, // You don't have this asset.
@@ -1554,6 +1666,9 @@ export default class binance extends Exchange {
                         '-5013': InsufficientFunds, // {"code":-5013,"msg":"Asset transfer failed: insufficient balance""} // undocumented
                         '-5021': BadRequest, // This parent sub have no relation
                         '-5022': BadRequest, // future account or sub relation not exists.
+                        //
+                        // 6xxx
+                        //
                         '-6001': BadSymbol, // Daily product not exists.
                         '-6003': PermissionDenied, // Product not exist or you don't have permission
                         '-6004': BadRequest, // Product not in purchase status
@@ -1572,8 +1687,14 @@ export default class binance extends Exchange {
                         '-6018': InsufficientFunds, // Asset not enough
                         '-6019': OperationRejected, // Need confirm
                         '-6020': BadRequest, // Project not exists
+                        //
+                        // 7xxx
+                        //
                         '-7001': BadRequest, // Date range is not supported.
                         '-7002': BadRequest, // Data request type is not supported.
+                        //
+                        // 10^xxx
+                        //
                         '-10001': OperationFailed, // The system is under maintenance, please try again later.
                         '-10002': BadRequest, // Invalid input parameters.
                         '-10005': BadResponse, // No records found.
@@ -1629,6 +1750,9 @@ export default class binance extends Exchange {
                         '-18005': PermissionDenied, // Too many invalid verify attempts, please try later
                         '-18006': OperationRejected, // The amount is too small, please re-enter
                         '-18007': OperationRejected, // This token is not currently supported, please re-enter
+                        //
+                        // 20^xxx
+                        //
                         // spot & futures algo (TBD for OPTIONS & PORTFOLIO MARGIN)
                         '-20121': BadSymbol, // Invalid symbol.
                         '-20124': BadRequest, // Invalid algo id or it has been completed.
@@ -1647,6 +1771,9 @@ export default class binance extends Exchange {
                         '-21005': InsufficientFunds, // User’s spot wallet doesn’t have enough BUSD to repay portfolio margin bankruptcy loan
                         '-21006': OperationFailed, // User had portfolio margin bankruptcy loan repayment in process
                         '-21007': OperationFailed, // User failed to repay portfolio margin bankruptcy loan since liquidation was in process
+                        //
+                        // misc
+                        //
                         '-32603': BadRequest, // undocumented, Filter failure: LOT_SIZE & precision
                         '400002': BadRequest, // undocumented, { “status”: “FAIL”, “code”: “400002”, “errorMessage”: “Signature for this request is not valid.” }
                         '100001003': AuthenticationError, // undocumented, {"code":100001003,"msg":"Verification failed"}
@@ -1656,6 +1783,9 @@ export default class binance extends Exchange {
                 'linear': {
                     // https://binance-docs.github.io/apidocs/futures/en/#error-codes
                     'exact': {
+                        //
+                        // 1xxx
+                        //
                         '-1005': PermissionDenied, // {"code":-1005,"msg":"No such IP has been white listed"}
                         '-1008': OperationFailed, // -1008 SERVER_BUSY: Server is currently overloaded with other requests. Please try again in a few minutes.
                         '-1011': PermissionDenied, // {"code":-1011,"msg":"This IP cannot access this route."}
@@ -1667,6 +1797,9 @@ export default class binance extends Exchange {
                         '-1122': BadRequest, // INVALID_SYMBOL_STATUS
                         '-1126': BadSymbol, // ASSET_NOT_SUPPORTED
                         '-1136': BadRequest, // {"code":-1136,"msg":"Invalid newOrderRespType"}
+                        //
+                        // 2xxx
+                        //
                         '-2012': OperationFailed, // CANCEL_ALL_FAIL
                         '-2016': OperationRejected, // {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
                         '-2017': PermissionDenied, // API Keys are locked on this account.
@@ -1681,7 +1814,9 @@ export default class binance extends Exchange {
                         '-2026': InvalidOrder, // {"code":-2026,"msg":"This OrderType is not supported when reduceOnly."}
                         '-2027': OperationRejected, // {"code":-2027,"msg":"Exceeded the maximum allowable position at current leverage."}
                         '-2028': OperationRejected, // {"code":-2028,"msg":"Leverage is smaller than permitted: insufficient margin balance"}
-
+                        //
+                        // 4xxx
+                        //
                         '-4063': BadRequest, // INVALID_OPTIONS_REQUEST_TYPE
                         '-4064': BadRequest, // INVALID_OPTIONS_TIME_FRAME
                         '-4065': BadRequest, // INVALID_OPTIONS_AMOUNT
@@ -1732,6 +1867,9 @@ export default class binance extends Exchange {
                         '-4401': PermissionDenied, // Compliance restricted account permission: can only place reduceOnly order.
                         '-4402': PermissionDenied, // Dear user, as per our Terms of Use and compliance with local regulations, this feature is currently not available in your region.
                         '-4403': PermissionDenied, // Dear user, as per our Terms of Use and compliance with local regulations, the leverage can only up to %sx in your region
+                        //
+                        // 5xxx
+                        //
                         '-5021': OrderNotFillable, // Due to the order could not be filled immediately, the FOK order has been rejected.
                         '-5022': OrderNotFillable, // Due to the order could not be executed as maker, the Post Only order will be rejected.
                         '-5024': OperationRejected, // Symbol is not in trading status. Order amendment is not permitted.
@@ -1761,6 +1899,9 @@ export default class binance extends Exchange {
                 'inverse': {
                     // https://binance-docs.github.io/apidocs/delivery/en/#error-codes
                     'exact': {
+                        //
+                        // 1xxx
+                        //
                         '-1005': PermissionDenied, // {"code":-1005,"msg":"No such IP has been white listed"}
                         '-1011': PermissionDenied, // {"code":-1011,"msg":"This IP cannot access this route."}
                         '-1023': BadRequest, // {"code":-1023,"msg":"Start time is greater than end time."}
@@ -1769,6 +1910,9 @@ export default class binance extends Exchange {
                         '-1113': BadRequest, // {"code":-1113,"msg":"Withdrawal amount must be negative."}
                         '-1128': BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
                         '-1136': BadRequest, // {"code":-1136,"msg":"Invalid newOrderRespType"}
+                        //
+                        // 2xxx
+                        //
                         '-2016': OperationRejected, // {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
                         '-2018': InsufficientFunds, // {"code":-2018,"msg":"Balance is insufficient"}
                         '-2019': InsufficientFunds, // {"code":-2019,"msg":"Margin is insufficient."}
@@ -1781,6 +1925,8 @@ export default class binance extends Exchange {
                         '-2026': InvalidOrder, // {"code":-2026,"msg":"This OrderType is not supported when reduceOnly."}
                         '-2027': OperationRejected, // {"code":-2027,"msg":"Exceeded the maximum allowable position at current leverage."}
                         '-2028': OperationRejected, // {"code":-2028,"msg":"Leverage is smaller than permitted: insufficient margin balance"}
+                        //
+                        // 4xxx
                         //
                         '-4086': BadRequest, // Invalid price spread threshold.
                         '-4087': BadSymbol, // Invalid pair
@@ -1809,7 +1955,7 @@ export default class binance extends Exchange {
                         '-4201': PermissionDenied, // Users in your location/country can only access a maximum leverage of %s
                         '-4202': OperationRejected, // Current symbol leverage cannot exceed 20 when using position limit adjustment service.
                         //
-                        // spot & futures algo
+                        // spot & futures algo (TBD for OPTIONS & PORTFOLIO MARGIN)
                         //
                         '-20121': BadSymbol, // Invalid symbol.
                         '-20124': BadRequest, // Invalid algo id or it has been completed.
@@ -1825,6 +1971,9 @@ export default class binance extends Exchange {
                 'option': {
                     // https://binance-docs.github.io/apidocs/voptions/en/#error-codes
                     'exact': {
+                        //
+                        // 1xxx
+                        //
                         '-1003': ExchangeError, // override common
                         '-1004': ExchangeError, // override common
                         '-1006': ExchangeError, // override common
@@ -1838,18 +1987,163 @@ export default class binance extends Exchange {
                         '-1128': BadSymbol, // BAD_CONTRACT
                         '-1129': BadSymbol, // BAD_CURRENCY
                         '-1131': BadRequest, // {"code":-1131,"msg":"recvWindow must be less than 60000"}
+                        //
+                        // 2xxx
+                        //
                         '-2011': ExchangeError, // override common
                         '-2018': InsufficientFunds, // BALANCE_NOT_SUFFICIENT
                         '-2027': InsufficientFunds, // OPTION_MARGIN_NOT_SUFFICIENT
                         '-3029': OperationFailed, // {"code":-3029,"msg":"Transfer failed."}
-                        '-4001': BadRequest, // PRICE_LESS_THAN_ZERO
-                        '-4002': BadRequest, // PRICE_GREATER_THAN_MAX_PRICE
-                        '-4003': BadRequest, // QTY_LESS_THAN_ZERO
-                        '-4004': BadRequest, // QTY_LESS_THAN_MIN_QTY
-                        '-4005': BadRequest, // QTY_GREATER_THAN_MAX_QTY
-                        '-4013': BadRequest, // PRICE_LESS_THAN_MIN_PRICE
-                        '-4029': BadRequest, // INVALID TICK SIZE PRECISION
-                        '-4030': BadRequest, // INVALID_QTY_PRECISION
+                        //
+                        // 4xxx
+                        //
+                        // -4001 inherited
+                        // -4002 inherited
+                        // -4003 inherited
+                        // -4004 inherited
+                        // -4005 inherited
+                        '-4006': ExchangeError, // override commons
+                        '-4006': ExchangeError, // override commons
+                        '-4007': ExchangeError, // override commons
+                        '-4008': ExchangeError, // override commons
+                        '-4009': ExchangeError, // override commons
+                        '-4010': ExchangeError, // override commons
+                        '-4011': ExchangeError, // override commons
+                        '-4012': ExchangeError, // override commons
+                        // -4013 inherited
+                        '-4014': ExchangeError, // override commons
+                        '-4015': ExchangeError, // override commons
+                        '-4016': ExchangeError, // override commons
+                        '-4017': ExchangeError, // override commons
+                        '-4018': ExchangeError, // override commons
+                        '-4019': ExchangeError, // override commons
+                        '-4020': ExchangeError, // override commons
+                        '-4021': ExchangeError, // override commons
+                        '-4022': ExchangeError, // override commons
+                        '-4023': ExchangeError, // override commons
+                        '-4024': ExchangeError, // override commons
+                        '-4025': ExchangeError, // override commons
+                        '-4026': ExchangeError, // override commons
+                        '-4027': ExchangeError, // override commons
+                        '-4028': ExchangeError, // override commons
+                        // -4029 inherited
+                        // -4030 inherited
+                        '-4031': ExchangeError, // override commons
+                        '-4032': ExchangeError, // override commons
+                        '-4033': ExchangeError, // override commons
+                        '-4034': ExchangeError, // override commons
+                        '-4035': ExchangeError, // override commons
+                        '-4036': ExchangeError, // override commons
+                        '-4037': ExchangeError, // override commons
+                        '-4038': ExchangeError, // override commons
+                        '-4039': ExchangeError, // override commons
+                        '-4040': ExchangeError, // override commons
+                        '-4041': ExchangeError, // override commons
+                        '-4042': ExchangeError, // override commons
+                        '-4043': ExchangeError, // override commons
+                        '-4044': ExchangeError, // override commons
+                        '-4045': ExchangeError, // override commons
+                        '-4046': ExchangeError, // override commons
+                        '-4047': ExchangeError, // override commons
+                        '-4048': ExchangeError, // override commons
+                        '-4049': ExchangeError, // override commons
+                        '-4050': ExchangeError, // override commons
+                        '-4051': ExchangeError, // override commons
+                        '-4052': ExchangeError, // override commons
+                        '-4053': ExchangeError, // override commons
+                        '-4054': ExchangeError, // override commons
+                        // -4055 inherited
+                        '-4056': ExchangeError, // override commons
+                        '-4057': ExchangeError, // override commons
+                        '-4058': ExchangeError, // override commons
+                        '-4059': ExchangeError, // override commons
+                        '-4060': ExchangeError, // override commons
+                        '-4061': ExchangeError, // override commons
+                        '-4062': ExchangeError, // override commons
+                        '-4063': ExchangeError, // override commons
+                        '-4064': ExchangeError, // override commons
+                        '-4065': ExchangeError, // override commons
+                        '-4066': ExchangeError, // override commons
+                        '-4067': ExchangeError, // override commons
+                        '-4068': ExchangeError, // override commons
+                        '-4069': ExchangeError, // override commons
+                        '-4070': ExchangeError, // override commons
+                        '-4071': ExchangeError, // override commons
+                        '-4072': ExchangeError, // override commons
+                        '-4073': ExchangeError, // override commons
+                        '-4074': ExchangeError, // override commons
+                        '-4075': ExchangeError, // override commons
+                        '-4076': ExchangeError, // override commons
+                        '-4077': ExchangeError, // override commons
+                        '-4078': ExchangeError, // override commons
+                        '-4079': ExchangeError, // override commons
+                        '-4080': ExchangeError, // override commons
+                        '-4081': ExchangeError, // override commons
+                        '-4082': ExchangeError, // override commons
+                        '-4083': ExchangeError, // override commons
+                        '-4084': ExchangeError, // override commons
+                        '-4085': ExchangeError, // override commons
+                        '-4086': ExchangeError, // override commons
+                        '-4087': ExchangeError, // override commons
+                        '-4088': ExchangeError, // override commons
+                        '-4089': ExchangeError, // override commons
+                        '-4091': ExchangeError, // override commons
+                        '-4092': ExchangeError, // override commons
+                        '-4093': ExchangeError, // override commons
+                        '-4094': ExchangeError, // override commons
+                        '-4095': ExchangeError, // override commons
+                        '-4096': ExchangeError, // override commons
+                        '-4097': ExchangeError, // override commons
+                        '-4098': ExchangeError, // override commons
+                        '-4099': ExchangeError, // override commons
+                        '-4101': ExchangeError, // override commons
+                        '-4102': ExchangeError, // override commons
+                        '-4103': ExchangeError, // override commons
+                        '-4104': ExchangeError, // override commons
+                        '-4105': ExchangeError, // override commons
+                        '-4106': ExchangeError, // override commons
+                        '-4107': ExchangeError, // override commons
+                        '-4108': ExchangeError, // override commons
+                        '-4109': ExchangeError, // override commons
+                        '-4110': ExchangeError, // override commons
+                        '-4112': ExchangeError, // override commons
+                        '-4113': ExchangeError, // override commons
+                        '-4114': ExchangeError, // override commons
+                        '-4115': ExchangeError, // override commons
+                        '-4116': ExchangeError, // override commons
+                        '-4117': ExchangeError, // override commons
+                        '-4118': ExchangeError, // override commons
+                        '-4119': ExchangeError, // override commons
+                        '-4120': ExchangeError, // override commons
+                        '-4121': ExchangeError, // override commons
+                        '-4122': ExchangeError, // override commons
+                        '-4123': ExchangeError, // override commons
+                        '-4124': ExchangeError, // override commons
+                        '-4125': ExchangeError, // override commons
+                        '-4126': ExchangeError, // override commons
+                        '-4127': ExchangeError, // override commons
+                        '-4128': ExchangeError, // override commons
+                        '-4129': ExchangeError, // override commons
+                        '-4130': ExchangeError, // override commons
+                        '-4131': ExchangeError, // override commons
+                        '-4132': ExchangeError, // override commons
+                        '-4133': ExchangeError, // override commons
+                        '-4134': ExchangeError, // override commons
+                        '-4135': ExchangeError, // override commons
+                        '-4136': ExchangeError, // override commons
+                        '-4137': ExchangeError, // override commons
+                        '-4138': ExchangeError, // override commons
+                        '-4139': ExchangeError, // override commons
+                        '-4141': ExchangeError, // override commons
+                        '-4142': ExchangeError, // override commons
+                        '-4143': ExchangeError, // override commons
+                        '-4144': ExchangeError, // override commons
+                        '-4145': ExchangeError, // override commons
+                        '-4146': ExchangeError, // override commons
+                        '-4147': ExchangeError, // override commons
+                        '-4148': ExchangeError, // override commons
+                        '-4149': ExchangeError, // override commons
+                        '-4150': ExchangeError, // override commons
                     },
                 },
                 'portfolioMargin': {
@@ -1874,7 +2168,6 @@ export default class binance extends Exchange {
                         '-2026': InvalidOrder, // This OrderType is not supported when reduceOnly.
                         '-2027': OperationRejected, // Exceeded the maximum allowable position at current leverage.
                         '-2028': OperationRejected, // Leverage is smaller than permitted: insufficient margin balance.
-
                         '-4063': BadRequest, // INVALID_OPTIONS_REQUEST_TYPE
                         '-4064': BadRequest, // INVALID_OPTIONS_TIME_FRAME
                         '-4065': BadRequest, // INVALID_OPTIONS_AMOUNT
@@ -1988,7 +2281,7 @@ export default class binance extends Exchange {
                     '-4026': BadRequest, // COMMISSION_INVALID
                     '-4027': BadRequest, // INVALID_ACCOUNT_TYPE
                     '-4028': BadRequest, // INVALID_LEVERAGE
-                    '-4029': BadRequest, // INVALID TICK SIZE PRECISION
+                    '-4029': BadRequest, // INVALID_TICK_SIZE_PRECISION
                     '-4030': BadRequest, // INVALID_STEP_SIZE_PRECISION
                     '-4031': BadRequest, // INVALID_WORKING_TYPE
                     '-4032': OperationRejected, // EXCEED_MAX_CANCEL_ORDER_SIZE (or Invalid parameter working type: %s)
