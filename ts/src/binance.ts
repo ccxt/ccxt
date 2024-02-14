@@ -1439,7 +1439,7 @@ export default class binance extends Exchange {
                     // https://binance-docs.github.io/apidocs/spot/en/#error-codes
                     'exact': {
                         //
-                        // 1xxx
+                        //        1xxx
                         //
                         '-1004': OperationFailed, // {"code":-1004,"msg":"Server is busy, please wait and try again"}
                         '-1008': OperationFailed, // undocumented, but mentioned: This is sent whenever the servers are overloaded with requests.
@@ -1451,7 +1451,7 @@ export default class binance extends Exchange {
                         '-1145': BadRequest, // cancelRestrictions has to be either ONLY_NEW or ONLY_PARTIALLY_FILLED.
                         '-1151': BadSymbol, // Symbol is present multiple times in the list.
                         //
-                        // 2xxx
+                        //        2xxx
                         //
                         '-2008': AuthenticationError, // undocumented, Invalid Api-Key ID
                         '-2016': OperationRejected, // {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
@@ -1459,7 +1459,7 @@ export default class binance extends Exchange {
                         '-2022': BadResponse, // This code is sent when both the cancellation of the order failed and the new order placement failed.
                         '-2026': InvalidOrder, // Order was canceled or expired with no executed qty over 90 days ago and has been archived.
                         //
-                        // 3xxx (these errors are available only for spot atm)
+                        //        3xxx (these errors are available only for spot atm)
                         //
                         '-3000': OperationFailed, // {"code":-3000,"msg":"Internal server error."}
                         '-3001': AuthenticationError, // {"code":-3001,"msg":"Please enable 2FA first."}
@@ -1501,7 +1501,7 @@ export default class binance extends Exchange {
                         '-3045': OperationFailed, // {"code":-3045,"msg":"The system doesn't have enough asset now."}
                         '-3999': PermissionDenied, // {"code":-3999,"msg":"This function is only available for invited users."}
                         //
-                        // 4xxx (different from contract markets)
+                        //        4xxx (different from contract markets)
                         //
                         '-4001': BadRequest, // {"code":-4001 ,"msg":"Invalid operation."}
                         '-4002': BadRequest, // {"code":-4002 ,"msg":"Invalid get."}
@@ -1649,7 +1649,7 @@ export default class binance extends Exchange {
                         '-4149': ExchangeError, // override commons
                         '-4150': ExchangeError, // override commons
                         //
-                        // 5xxx
+                        //        5xxx
                         //
                         '-5001': BadRequest, // Don't allow transfer to micro assets.
                         '-5002': InsufficientFunds, // You have insufficient balance.
@@ -1667,7 +1667,7 @@ export default class binance extends Exchange {
                         '-5021': BadRequest, // This parent sub have no relation
                         '-5022': BadRequest, // future account or sub relation not exists.
                         //
-                        // 6xxx
+                        //        6xxx
                         //
                         '-6001': BadSymbol, // Daily product not exists.
                         '-6003': PermissionDenied, // Product not exist or you don't have permission
@@ -1688,12 +1688,12 @@ export default class binance extends Exchange {
                         '-6019': OperationRejected, // Need confirm
                         '-6020': BadRequest, // Project not exists
                         //
-                        // 7xxx
+                        //        7xxx
                         //
                         '-7001': BadRequest, // Date range is not supported.
                         '-7002': BadRequest, // Data request type is not supported.
                         //
-                        // 10^xxx
+                        //        10^xxx
                         //
                         '-10001': OperationFailed, // The system is under maintenance, please try again later.
                         '-10002': BadRequest, // Invalid input parameters.
@@ -1751,7 +1751,7 @@ export default class binance extends Exchange {
                         '-18006': OperationRejected, // The amount is too small, please re-enter
                         '-18007': OperationRejected, // This token is not currently supported, please re-enter
                         //
-                        // 20^xxx
+                        //        20^xxx
                         //
                         // spot & futures algo (TBD for OPTIONS & PORTFOLIO MARGIN)
                         '-20121': BadSymbol, // Invalid symbol.
@@ -1772,7 +1772,7 @@ export default class binance extends Exchange {
                         '-21006': OperationFailed, // User had portfolio margin bankruptcy loan repayment in process
                         '-21007': OperationFailed, // User failed to repay portfolio margin bankruptcy loan since liquidation was in process
                         //
-                        // misc
+                        //        misc
                         //
                         '-32603': BadRequest, // undocumented, Filter failure: LOT_SIZE & precision
                         '400002': BadRequest, // undocumented, { “status”: “FAIL”, “code”: “400002”, “errorMessage”: “Signature for this request is not valid.” }
@@ -1784,7 +1784,7 @@ export default class binance extends Exchange {
                     // https://binance-docs.github.io/apidocs/futures/en/#error-codes
                     'exact': {
                         //
-                        // 1xxx
+                        //        1xxx
                         //
                         '-1005': PermissionDenied, // {"code":-1005,"msg":"No such IP has been white listed"}
                         '-1008': OperationFailed, // -1008 SERVER_BUSY: Server is currently overloaded with other requests. Please try again in a few minutes.
@@ -1798,7 +1798,7 @@ export default class binance extends Exchange {
                         '-1126': BadSymbol, // ASSET_NOT_SUPPORTED
                         '-1136': BadRequest, // {"code":-1136,"msg":"Invalid newOrderRespType"}
                         //
-                        // 2xxx
+                        //        2xxx
                         //
                         '-2012': OperationFailed, // CANCEL_ALL_FAIL
                         '-2016': OperationRejected, // {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
@@ -1815,7 +1815,7 @@ export default class binance extends Exchange {
                         '-2027': OperationRejected, // {"code":-2027,"msg":"Exceeded the maximum allowable position at current leverage."}
                         '-2028': OperationRejected, // {"code":-2028,"msg":"Leverage is smaller than permitted: insufficient margin balance"}
                         //
-                        // 4xxx
+                        //        4xxx
                         //
                         '-4063': BadRequest, // INVALID_OPTIONS_REQUEST_TYPE
                         '-4064': BadRequest, // INVALID_OPTIONS_TIME_FRAME
@@ -1868,7 +1868,7 @@ export default class binance extends Exchange {
                         '-4402': PermissionDenied, // Dear user, as per our Terms of Use and compliance with local regulations, this feature is currently not available in your region.
                         '-4403': PermissionDenied, // Dear user, as per our Terms of Use and compliance with local regulations, the leverage can only up to %sx in your region
                         //
-                        // 5xxx
+                        //        5xxx
                         //
                         '-5021': OrderNotFillable, // Due to the order could not be filled immediately, the FOK order has been rejected.
                         '-5022': OrderNotFillable, // Due to the order could not be executed as maker, the Post Only order will be rejected.
@@ -1882,6 +1882,9 @@ export default class binance extends Exchange {
                         '-5039': BadRequest, // Invalid self trade prevention mode
                         '-5040': BadRequest, // The goodTillDate timestamp must be greater than the current time plus 600 seconds and smaller than 253402300799000
                         '-5041': OperationFailed, // No depth matches this BBO order
+                        //
+                        //        20^xxx
+                        //
                         //
                         // spot & futures algo (TBD for OPTIONS & PORTFOLIO MARGIN)
                         //
@@ -1900,7 +1903,7 @@ export default class binance extends Exchange {
                     // https://binance-docs.github.io/apidocs/delivery/en/#error-codes
                     'exact': {
                         //
-                        // 1xxx
+                        //        1xxx
                         //
                         '-1005': PermissionDenied, // {"code":-1005,"msg":"No such IP has been white listed"}
                         '-1011': PermissionDenied, // {"code":-1011,"msg":"This IP cannot access this route."}
@@ -1911,7 +1914,7 @@ export default class binance extends Exchange {
                         '-1128': BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
                         '-1136': BadRequest, // {"code":-1136,"msg":"Invalid newOrderRespType"}
                         //
-                        // 2xxx
+                        //        2xxx
                         //
                         '-2016': OperationRejected, // {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
                         '-2018': InsufficientFunds, // {"code":-2018,"msg":"Balance is insufficient"}
@@ -1926,7 +1929,7 @@ export default class binance extends Exchange {
                         '-2027': OperationRejected, // {"code":-2027,"msg":"Exceeded the maximum allowable position at current leverage."}
                         '-2028': OperationRejected, // {"code":-2028,"msg":"Leverage is smaller than permitted: insufficient margin balance"}
                         //
-                        // 4xxx
+                        //        4xxx
                         //
                         '-4086': BadRequest, // Invalid price spread threshold.
                         '-4087': BadSymbol, // Invalid pair
@@ -1955,6 +1958,9 @@ export default class binance extends Exchange {
                         '-4201': PermissionDenied, // Users in your location/country can only access a maximum leverage of %s
                         '-4202': OperationRejected, // Current symbol leverage cannot exceed 20 when using position limit adjustment service.
                         //
+                        //        20^xxx
+                        //
+                        //
                         // spot & futures algo (TBD for OPTIONS & PORTFOLIO MARGIN)
                         //
                         '-20121': BadSymbol, // Invalid symbol.
@@ -1972,7 +1978,7 @@ export default class binance extends Exchange {
                     // https://binance-docs.github.io/apidocs/voptions/en/#error-codes
                     'exact': {
                         //
-                        // 1xxx
+                        //        1xxx
                         //
                         '-1003': ExchangeError, // override common
                         '-1004': ExchangeError, // override common
@@ -1988,21 +1994,23 @@ export default class binance extends Exchange {
                         '-1129': BadSymbol, // BAD_CURRENCY
                         '-1131': BadRequest, // {"code":-1131,"msg":"recvWindow must be less than 60000"}
                         //
-                        // 2xxx
+                        //        2xxx
                         //
                         '-2011': ExchangeError, // override common
                         '-2018': InsufficientFunds, // BALANCE_NOT_SUFFICIENT
                         '-2027': InsufficientFunds, // OPTION_MARGIN_NOT_SUFFICIENT
+                        //
+                        //        3xxx
+                        //
                         '-3029': OperationFailed, // {"code":-3029,"msg":"Transfer failed."}
                         //
-                        // 4xxx
+                        //        4xxx
                         //
                         // -4001 inherited
                         // -4002 inherited
                         // -4003 inherited
                         // -4004 inherited
                         // -4005 inherited
-                        '-4006': ExchangeError, // override commons
                         '-4006': ExchangeError, // override commons
                         '-4007': ExchangeError, // override commons
                         '-4008': ExchangeError, // override commons
@@ -2148,6 +2156,9 @@ export default class binance extends Exchange {
                 },
                 'portfolioMargin': {
                     'exact': {
+                        //
+                        //        1xxx
+                        //
                         '-1005': PermissionDenied, // {"code":-1005,"msg":"No such IP has been white listed"}
                         '-1011': PermissionDenied, // {"code":-1011,"msg":"This IP cannot access this route."}
                         '-1023': BadRequest, // START_TIME_GREATER_THAN_END_TIME
@@ -2156,6 +2167,9 @@ export default class binance extends Exchange {
                         '-1113': BadRequest, // {"code":-1113,"msg":"Withdrawal amount must be negative."}
                         '-1128': BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
                         '-1136': BadRequest, // INVALID_NEW_ORDER_RESP_TYPE
+                        //
+                        //        2xxx
+                        //
                         '-2016': OperationRejected, // {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
                         '-2018': InsufficientFunds, // {"code":-2018,"msg":"Balance is insufficient"}
                         '-2019': InsufficientFunds, // Margin is insufficient
@@ -2168,11 +2182,14 @@ export default class binance extends Exchange {
                         '-2026': InvalidOrder, // This OrderType is not supported when reduceOnly.
                         '-2027': OperationRejected, // Exceeded the maximum allowable position at current leverage.
                         '-2028': OperationRejected, // Leverage is smaller than permitted: insufficient margin balance.
+                        //
+                        //        4xxx
+                        //
                         '-4063': BadRequest, // INVALID_OPTIONS_REQUEST_TYPE
                         '-4064': BadRequest, // INVALID_OPTIONS_TIME_FRAME
                         '-4065': BadRequest, // INVALID_OPTIONS_AMOUNT
                         '-4066': BadRequest, // INVALID_OPTIONS_EVENT_TYPE
-                       '-4069': BadRequest, // Position INVALID_OPTIONS_PREMIUM_FEE
+                        '-4069': BadRequest, // Position INVALID_OPTIONS_PREMIUM_FEE
                         '-4070': BadRequest, // Client options id is not valid.
                         '-4071': BadRequest, // Invalid options direction
                         '-4072': OperationRejected, // premium fee is not updated, reject order
@@ -2201,13 +2218,17 @@ export default class binance extends Exchange {
                         '-4165': BadRequest, // Invalid time interval
                         '-4183': BadRequest, // Price is higher than stop price multiplier cap.
                         '-4184': BadRequest, // Price is lower than stop price multiplier floor.
+                        //
+                        //        5xxx
+                        //
                         '-5021': OrderNotFillable, // Due to the order could not be filled immediately, the FOK order has been rejected.
                         '-5022': OrderNotFillable, // Due to the order could not be executed as maker, the Post Only order will be rejected.
                     },
                 },
                 'exact': {
+                    // error codes to cover ALL market types (however, specific market type might have override)
                     //
-                    // error codes that are same for ALL market types (but, specific market type can override)
+                    //        1xxx
                     //
                     '-1000': OperationFailed, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
                     '-1001': OperationFailed, // {"code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'"}
@@ -2245,13 +2266,17 @@ export default class binance extends Exchange {
                     '-1125': AuthenticationError, // {"code":-1125,"msg":"This listenKey does not exist."}
                     '-1127': BadRequest, // {"code":-1127,"msg":"More than %s hours between startTime and endTime."}
                     '-1128': BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
-                    '-1130': BadRequest, // {"code":-1130,"msg":"Data sent for paramter %s is not valid."}'-2010': InvalidOrder, // NEW_ORDER_REJECTED
+                    '-1130': BadRequest, // {"code":-1130,"msg":"Data sent for paramter %s is not valid."}
+                    //
+                    //        2xxx
+                    //
+                    '-2010': InvalidOrder, // NEW_ORDER_REJECTED
                     '-2011': OrderNotFound, // {"code":-2011,"msg":"cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'"}
                     '-2013': OrderNotFound, // {"code":-2013,"msg":"fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'"}
                     '-2014': AuthenticationError, // {"code":-2014,"msg":"API-key format invalid."}
                     '-2015': AuthenticationError, // {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
                     //
-                    // common for linear, inverse, pm (and some option)
+                    //        4xxx (common for linear, inverse, pm)
                     //
                     '-4000': InvalidOrder, // INVALID_ORDER_STATUS
                     '-4001': BadRequest, // PRICE_LESS_THAN_ZERO
@@ -2297,8 +2322,7 @@ export default class binance extends Exchange {
                     '-4052': OperationRejected, // No need to change auto add margin.
                     '-4053': BadRequest, // Auto add margin only support for isolated position.
                     '-4054': OperationRejected, // Cannot add position margin: position is 0.
-                    '-4055': BadRequest, // Amount must be positive.     
-                    ----------- only spot not exists
+                    '-4055': BadRequest, // Amount must be positive.
                     '-4056': AuthenticationError, // INVALID_API_KEY_TYPE
                     '-4057': AuthenticationError, // INVALID_RSA_PUBLIC_KEY: Invalid api public key
                     '-4058': BadRequest, // MAX_PRICE_TOO_LARGE
@@ -2308,8 +2332,8 @@ export default class binance extends Exchange {
                     '-4062': BadRequest, // REDUCE_ONLY_CONFLICT: Invalid or improper reduceOnly value.
                     '-4067': OperationRejected, // Position side cannot be changed if there exists open orders.
                     '-4068': OperationRejected, // Position side cannot be changed if there exists position.
-                    '-4082': BadRequest, // Invalid number of batch place orders.     
-                    '-4083': OperationRejected, // PLACE_BATCH_ORDERS_FAIL : Fail to place batch orders.          
+                    '-4082': BadRequest, // Invalid number of batch place orders.
+                    '-4083': OperationRejected, // PLACE_BATCH_ORDERS_FAIL : Fail to place batch orders.
                     '-4084': BadRequest, // UPCOMING_METHOD : Method is not allowed currently. Upcoming soon.
                     '-4086': BadRequest, // Invalid price spread threshold.
                     '-4104': BadRequest, // INVALID_CONTRACT_TYPE
