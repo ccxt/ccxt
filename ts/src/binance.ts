@@ -6343,7 +6343,7 @@ export default class binance extends Exchange {
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchOpenOrders', 'papi', 'portfolioMargin', false);
-        const isConditional = this.safeBool2 (params, 'stop', 'conditional');
+        const isConditional = this.safeBoolN (params, [ 'stop', 'conditional', 'trigger' ]);
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -6361,7 +6361,7 @@ export default class binance extends Exchange {
         }
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
-        params = this.omit (params, [ 'type', 'stop', 'conditional' ]);
+        params = this.omit (params, [ 'type', 'stop', 'conditional', 'trigger' ]);
         let response = undefined;
         if (type === 'option') {
             if (since !== undefined) {
@@ -6423,6 +6423,7 @@ export default class binance extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.trigger] set to true if you would like to fetch portfolio margin account stop or conditional orders
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -6435,8 +6436,8 @@ export default class binance extends Exchange {
         };
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchOpenOrder', 'papi', 'portfolioMargin', false);
-        const isConditional = this.safeBool2 (params, 'stop', 'conditional');
-        params = this.omit (params, [ 'stop', 'conditional' ]);
+        const isConditional = this.safeBoolN (params, [ 'stop', 'conditional', 'trigger' ]);
+        params = this.omit (params, [ 'stop', 'conditional', 'trigger' ]);
         const isPortfolioMarginConditional = (isPortfolioMargin && isConditional);
         const orderIdRequest = isPortfolioMarginConditional ? 'strategyId' : 'orderId';
         request[orderIdRequest] = id;
