@@ -3501,7 +3501,7 @@ export default class coinbase extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeList (response, 'data', []);
         const addressStructures = this.parseDepositAddresses (data, undefined, false);
         return this.indexBy (addressStructures, 'network');
     }
