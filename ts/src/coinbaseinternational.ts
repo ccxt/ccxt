@@ -1,16 +1,12 @@
 
 // ----------------------------------------------------------------------------
 
-import { traceDeprecation } from 'process';
 import Exchange from './abstract/coinbaseinternational.js';
-import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, InvalidOrder, NotSupported, OrderNotFound, RateLimitExceeded, InvalidNonce } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, MarketInterface, CurrencyInterface, FundingRateHistory, TransferEntry } from './base/types.js';
-import { uuid } from './base/functions.js';
-import testFetchDeposits from './test/Exchange/test.fetchDeposits.js';
-import { request } from 'http';
+import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, MarketInterface, CurrencyInterface, FundingRateHistory, TransferEntry, Position } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -186,6 +182,9 @@ export default class coinbaseinternational extends Exchange {
                     },
                 },
             },
+            // 'proxyURL': 'http://oqDC2qbE92ubjog:EPCorco2sZKFUMr@194.135.30.249:44795',
+            // 'httpsProxy': 'https://oqDC2qbE92ubjog:EPCorco2sZKFUMr@194.135.30.249:44795',
+            'httpProxy': 'http://oqDC2qbE92ubjog:EPCorco2sZKFUMr@194.135.30.249:44795',
             'fees': {
                 'trading': {
                     'taker': this.parseNumber ('0.004'),
@@ -235,6 +234,8 @@ export default class coinbaseinternational extends Exchange {
                 'CGLD': 'CELO',
             },
             'options': {
+                'clientOrderId': 'ccxt',
+                'portfolio': '1wp37qsc-1-0',
                 'withdraw': {
                     'method': 'v1PrivateTransfersWithdraw', // use v1PrivateTransfersWithdrawCounterparty for counterparty withdrawals
                 },
@@ -258,19 +259,42 @@ export default class coinbaseinternational extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.v1PrivateGetPortfolios (params);
+        //
+        //    [
+        //        {
+        //           "portfolio_id":"1ap32qsc-1-0",
+        //           "portfolio_uuid":"028d7f6c-b92c-7361-8b7e-2932711e5a22",
+        //           "name":"CCXT Portfolio 030624-17:16",
+        //           "user_uuid":"e6cf46b6-a32f-5fa7-addb-3324d4526fbd",
+        //           "maker_fee_rate":"0",
+        //           "taker_fee_rate":"0.0002",
+        //           "trading_lock":false,
+        //           "borrow_disabled":false,
+        //           "is_lsp":false,
+        //           "is_default":true,
+        //           "cross_collateral_enabled":false
+        //        }
+        //    ]
+        //
         return this.parseAccounts (response, params);
     }
 
     parseAccount (account) {
         //
+        //    {
+        //       "portfolio_id":"1ap32qsc-1-0",
+        //       "portfolio_uuid":"028d7f6c-b92c-7361-8b7e-2932711e5a22",
+        //       "name":"CCXT Portfolio 030624-17:16",
+        //       "user_uuid":"e6cf46b6-a32f-5fa7-addb-3324d4526fbd",
+        //       "maker_fee_rate":"0",
+        //       "taker_fee_rate":"0.0002",
+        //       "trading_lock":false,
+        //       "borrow_disabled":false,
+        //       "is_lsp":false,
+        //       "is_default":true,
+        //       "cross_collateral_enabled":false
+        //    }
         //
-        const active = this.safeValue (account, 'active');
-        const currencyIdV3 = this.safeString (account, 'currency');
-        const currency = this.safeDict (account, 'currency', {});
-        const currencyId = this.safeString (currency, 'code', currencyIdV3);
-        const typeV3 = this.safeString (account, 'name');
-        const typeV2 = this.safeString (account, 'type');
-        const parts = typeV3.split (' ');
         return {
             'id': this.safeString2 (account, 'portfolio_id', 'portfolio_uuid'),
             'type': undefined,
@@ -520,7 +544,7 @@ export default class coinbaseinternational extends Exchange {
         });
     }
 
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
          * @name binance#fetchPositions
@@ -912,11 +936,41 @@ export default class coinbaseinternational extends Exchange {
             'portfolio': portfolio,
         };
         const balances = await this.v1PrivateGetPortfoliosPortfolioBalances (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //           "asset_id":"0-0-1",
+        //           "asset_name":"USDC",
+        //           "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
+        //           "quantity":"500000.0000000000",
+        //           "hold":"0",
+        //           "hold_available_for_collateral":"0",
+        //           "transfer_hold":"0",
+        //           "collateral_value":"500000.0",
+        //           "max_withdraw_amount":"500000.0000000000",
+        //           "loan":"0",
+        //           "loan_collateral_requirement":"0.0"
+        //        }
+        //    ]
+        //
         return this.parseBalance (balances);
     }
 
     parseBalance (response): Balances {
         //
+        //    {
+        //       "asset_id":"0-0-1",
+        //       "asset_name":"USDC",
+        //       "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
+        //       "quantity":"500000.0000000000",
+        //       "hold":"0",
+        //       "hold_available_for_collateral":"0",
+        //       "transfer_hold":"0",
+        //       "collateral_value":"500000.0",
+        //       "max_withdraw_amount":"500000.0000000000",
+        //       "loan":"0",
+        //       "loan_collateral_requirement":"0.0"
+        //    }
         //
         for (let i = 0; i < response.length; i++) {
             const rawBalance = response[i];
@@ -926,8 +980,8 @@ export default class coinbaseinternational extends Exchange {
             account['total'] = this.safeString (rawBalance, 'quantity');
             account['used'] = this.safeString (rawBalance, 'hold');
             this.balance[code] = account;
-            return this.safeBalance (this.balance);
         }
+        return this.safeBalance (this.balance);
     }
 
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
@@ -971,7 +1025,7 @@ export default class coinbaseinternational extends Exchange {
          * @method
          * @name coinbaseinternational#createOrder
          * @description create a trade order
-         * @see https://docs.cloud.coinbaseinternational.com/advanced-trade-api/reference/retailbrokerageapi_postorder
+         * @see https://docs.cloud.coinbase.com/intx/reference/createorder
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -991,8 +1045,9 @@ export default class coinbaseinternational extends Exchange {
         const market = this.market (symbol);
         let typeId = type.toUpperCase ();
         const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        const clientOrderIdprefix = this.safeString (this.options, 'clientOrderId');
         const request = {
-            'client_order_id': this.options['client_id'],
+            'client_order_id': clientOrderIdprefix,
             'side': side.toUpperCase (),
             'instrument': market['id'],
             'size': this.amountToPrecision (market['symbol'], amount),
@@ -1019,16 +1074,64 @@ export default class coinbaseinternational extends Exchange {
         }
         let postOnly = undefined;
         [ postOnly, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'postOnly', 'post_only');
-        if (postOnly !== undefined) {
+        let tif = undefined;
+        [ tif, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'tif', 'timeInForce', 'GTC');
+        if (postOnly !== undefined || tif === 'PO') {
             request['post_only'] = postOnly;
+        } else {
+            request['tif'] = tif;
         }
         params = this.omit (params, [ 'client_order_id', 'user' ]);
         const response = await this.v1PrivatePostOrders (this.extend (request, params));
+        //
+        //    {
+        //        "order_id":"1x96skvg-1-0",
+        //        "client_order_id":"ccxt",
+        //        "side":"BUY",
+        //        "instrument_id":"114jqr89-0-0",
+        //        "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
+        //        "symbol":"BTC-PERP",
+        //        "portfolio_id":"1wp37qsc-1-0",
+        //        "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
+        //        "type":"LIMIT",
+        //        "price":"10000",
+        //        "size":"0.001",
+        //        "tif":"GTC",
+        //        "stp_mode":"BOTH",
+        //        "event_type":"NEW",
+        //        "order_status":"WORKING",
+        //        "leaves_qty":"0.001",
+        //        "exec_qty":"0",
+        //        "avg_price":"0",
+        //        "fee":"0"
+        //    }
+        //
         return this.parseOrder (response, market);
     }
 
     parseOrder (order, market: Market = undefined): Order {
         //
+        //    {
+        //        "order_id":"1x96skvg-1-0",
+        //        "client_order_id":"ccxt",
+        //        "side":"BUY",
+        //        "instrument_id":"114jqr89-0-0",
+        //        "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
+        //        "symbol":"BTC-PERP",
+        //        "portfolio_id":"1wp37qsc-1-0",
+        //        "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
+        //        "type":"LIMIT",
+        //        "price":"10000",
+        //        "size":"0.001",
+        //        "tif":"GTC",
+        //        "stp_mode":"BOTH",
+        //        "event_type":"NEW",
+        //        "order_status":"WORKING",
+        //        "leaves_qty":"0.001",
+        //        "exec_qty":"0",
+        //        "avg_price":"0",
+        //        "fee":"0"
+        //    }
         //
         const marketId = this.safeString (order, 'symbol');
         const feeCost = this.safeNumber (order, 'fee');
@@ -1038,12 +1141,13 @@ export default class coinbaseinternational extends Exchange {
                 'cost': feeCost,
             };
         }
+        const datetime = this.safeString2 (order, 'submit_time', 'event_time');
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'order_id'),
             'clientOrderId': this.safeString (order, 'client_order_id'),
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
             'lastTradeTimestamp': undefined,
             'symbol': this.safeSymbol (marketId, market),
             'type': this.parseOrderType (this.safeString (order, 'type')),
@@ -1098,7 +1202,7 @@ export default class coinbaseinternational extends Exchange {
          * @method
          * @name coinbaseinternational#cancelOrder
          * @description cancels an open order
-         * @see https://docs.cloud.coinbase.com/intx/reference/cancelorders
+         * @see https://docs.cloud.coinbase.com/intx/reference/cancelorder
          * @param {string} id order id
          * @param {string} symbol not used by coinbaseinternational cancelOrder()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1108,7 +1212,7 @@ export default class coinbaseinternational extends Exchange {
         let portfolio = undefined;
         [ portfolio, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'portfolio');
         if (portfolio === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a portfolioId parameter');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a portfolio parameter');
         }
         const request = {
             'portfolio': portfolio,
@@ -1119,6 +1223,29 @@ export default class coinbaseinternational extends Exchange {
             market = this.market (symbol);
         }
         const orders = await this.v1PrivateDeleteOrdersId (this.extend (request, params));
+        //
+        //    {
+        //        "order_id":"1x96skvg-1-0",
+        //        "client_order_id":"ccxt",
+        //        "side":"BUY",
+        //        "instrument_id":"114jqr89-0-0",
+        //        "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
+        //        "symbol":"BTC-PERP",
+        //        "portfolio_id":"1wp37qsc-1-0",
+        //        "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
+        //        "type":"LIMIT",
+        //        "price":"10000",
+        //        "size":"0.001",
+        //        "tif":"GTC",
+        //        "stp_mode":"BOTH",
+        //        "event_type":"CANCELED",
+        //        "order_status":"DONE",
+        //        "leaves_qty":"0.001",
+        //        "exec_qty":"0",
+        //        "avg_price":"0",
+        //        "fee":"0"
+        //    }
+        //
         return this.parseOrder (orders, market);
     }
 
@@ -1199,7 +1326,7 @@ export default class coinbaseinternational extends Exchange {
         }
         let portfolio = undefined;
         [ portfolio, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'portfolio');
-        if (portfolio !== undefined) {
+        if (portfolio === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a portfolio parameter');
         }
         const request = {
@@ -1207,6 +1334,31 @@ export default class coinbaseinternational extends Exchange {
             'portfolio': portfolio,
         };
         const order = await this.v1PrivateGetOrdersId (this.extend (request, params));
+        //
+        //    {
+        //        "order_id":"1x96skvg-1-0",
+        //        "client_order_id":"ccxt",
+        //        "side":"BUY",
+        //        "instrument_id":"114jqr89-0-0",
+        //        "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
+        //        "symbol":"BTC-PERP",
+        //        "portfolio_id":"1wp37qsc-1-0",
+        //        "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
+        //        "type":"LIMIT",
+        //        "price":"10000",
+        //        "size":"0.001",
+        //        "tif":"GTC",
+        //        "stp_mode":"BOTH",
+        //        "event_type":"NEW",
+        //        "event_time":"2024-02-14T03:25:14Z",
+        //        "submit_time":"2024-02-14T03:25:13.999Z",
+        //        "order_status":"WORKING",
+        //        "leaves_qty":"0.001",
+        //        "exec_qty":"0",
+        //        "avg_price":"0",
+        //        "fee":"0"
+        //    }
+        //
         return this.parseOrder (order, market);
     }
 
@@ -1338,7 +1490,7 @@ export default class coinbaseinternational extends Exchange {
         let fullPath = '/' + version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const savedPath = '/api' + fullPath;
-        if (method === 'GET') {
+        if (method === 'GET' || method === 'DELETE') {
             if (Object.keys (query).length) {
                 fullPath += '?' + this.urlencodeWithArrayRepeat (query);
             }
@@ -1355,10 +1507,10 @@ export default class coinbaseinternational extends Exchange {
                 }
             }
             const auth = nonce + method + savedPath + payload;
-            const signature = this.hmac (this.encode (auth), this.stringToBase64 (this.secret), sha256, 'base64');
+            const signature = this.hmac (this.encode (auth), this.base64ToBinary (this.secret), sha256, 'base64');
             headers = {
                 'CB-ACCESS-TIMESTAMP': nonce,
-                'CB-ACCESS-SIGN': this.stringToBase64 (signature),
+                'CB-ACCESS-SIGN': signature,
                 'CB-ACCESS-PASSPHRASE': this.password,
                 'CB-ACCESS-KEY': this.apiKey,
             };
@@ -1367,12 +1519,16 @@ export default class coinbaseinternational extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        //
+        //    {
+        //        "title":"io.javalin.http.BadRequestResponse: Order rejected (DUPLICATE_CLIENT_ORDER_ID - duplicate client order id detected)",
+        //        "status":400
+        //    }
+        //
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         const feedback = this.id + ' ' + body;
-        //
-        //
         let errorCode = this.safeString (response, 'error');
         if (errorCode !== undefined) {
             const errorMessage = this.safeString (response, 'error_description');
