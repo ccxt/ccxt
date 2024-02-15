@@ -40,6 +40,9 @@ export default class timex extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -1541,6 +1544,67 @@ export default class timex extends Exchange {
             'fee': undefined,
             'trades': rawTrades,
         }, market);
+    }
+
+    async fetchDepositAddress (code: string, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account, does not accept params["network"]
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'symbol': currency['code'],
+        };
+        const response = await this.currenciesGetSSymbol (this.extend (request, params));
+        //
+        //    {
+        //        id: '1',
+        //        currency: {
+        //            symbol: 'BTC',
+        //            name: 'Bitcoin',
+        //            address: '0x8370fbc6ddec1e18b4e41e72ed943e238458487c',
+        //            decimals: '8',
+        //            tradeDecimals: '20',
+        //            fiatSymbol: 'BTC',
+        //            depositEnabled: true,
+        //            withdrawalEnabled: true,
+        //            transferEnabled: true,
+        //            active: true
+        //        }
+        //    }
+        //
+        const data = this.safeValue (response, 'currency', {});
+        return this.parseDepositAddress (data, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+        //
+        //    {
+        //        symbol: 'BTC',
+        //        name: 'Bitcoin',
+        //        address: '0x8370fbc6ddec1e18b4e41e72ed943e238458487c',
+        //        decimals: '8',
+        //        tradeDecimals: '20',
+        //        fiatSymbol: 'BTC',
+        //        depositEnabled: true,
+        //        withdrawalEnabled: true,
+        //        transferEnabled: true,
+        //        active: true
+        //    }
+        //
+        const currencyId = this.safeString (depositAddress, 'symbol');
+        return {
+            'info': depositAddress,
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'address': this.safeString (depositAddress, 'address'),
+            'tag': undefined,
+            'network': undefined,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
