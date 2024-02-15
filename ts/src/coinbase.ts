@@ -1765,17 +1765,18 @@ export default class coinbase extends Exchange {
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
+         * @param {object} [params.type] "spot" (default) or "swap"
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        const request = {
-            'limit': 250,
-        };
+        const request = {};
         let response = undefined;
         const isV3 = this.safeBool (params, 'v3', false);
-        params = this.omit (params, 'v3');
+        const type = this.safeString (params, 'type');
+        params = this.omit (params, [ 'v3', 'type' ]);
         const method = this.safeString (this.options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts');
         if ((isV3) || (method === 'v3PrivateGetBrokerageAccounts')) {
+            request['limit'] = 250;
             response = await this.v3PrivateGetBrokerageAccounts (this.extend (request, params));
         } else {
             response = await this.v2PrivateGetAccounts (this.extend (request, params));
@@ -1851,6 +1852,7 @@ export default class coinbase extends Exchange {
         //         "size": 9
         //     }
         //
+        params['type'] = type;
         return this.parseCustomBalance (response, params);
     }
 
