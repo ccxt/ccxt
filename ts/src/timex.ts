@@ -1544,6 +1544,8 @@ export default class timex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        path = this.implodeParams (path, params);
+        params = this.omit (params, this.extractParams (path));
         let url = this.urls['api']['rest'] + '/' + api + '/' + path;
         if (Object.keys (params).length) {
             url += '?' + this.urlencodeWithArrayRepeat (params);
