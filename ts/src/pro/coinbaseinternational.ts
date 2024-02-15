@@ -1,8 +1,7 @@
 //  ---------------------------------------------------------------------------
 
-import { time } from 'console';
 import coinbaseinternationalRest from '../coinbaseinternational.js';
-import { ExchangeError } from '../base/errors.js';
+import { ExchangeError, NotSupported } from '../base/errors.js';
 import { Ticker, Int, Trade, OrderBook, Market } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
@@ -67,14 +66,17 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             productIds = [ market['id'] ];
         }
         const url = this.urls['api']['ws'];
+        if (url === undefined) {
+            throw new NotSupported (this.id + ' is not supported in sandbox environment');
+        }
         const timestamp = this.numberToString (this.seconds ());
         const auth = timestamp + this.apiKey + 'CBINTLMD' + this.password;
-        const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
+        const signature = this.hmac (this.encode (auth), this.base64ToBinary (this.secret), sha256, 'base64');
         const subscribe = {
             'type': 'SUBSCRIBE',
-            'time': time,
-            'productIds': productIds,
+            'product_ids': productIds,
             'channels': [ name ],
+            'time': timestamp,
             'key': this.apiKey,
             'passphrase': this.password,
             'signature': signature,
@@ -107,13 +109,16 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             messageHashes.push (name + '::' + marketId);
         }
         const url = this.urls['api']['ws'];
+        if (url === undefined) {
+            throw new NotSupported (this.id + ' is not supported in sandbox environment')
+        }
         const timestamp = this.numberToString (this.seconds ());
         const auth = timestamp + this.apiKey + 'CBINTLMD' + this.password;
-        const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
+        const signature = this.hmac (this.encode (auth), this.base64ToBinary (this.secret), sha256, 'base64');
         const subscribe = {
             'type': 'SUBSCRIBE',
-            'time': time,
-            'productIds': productIds,
+            'time': timestamp,
+            'product_ids': productIds,
             'channels': [ name ],
             'key': this.apiKey,
             'passphrase': this.password,
@@ -132,7 +137,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        const channel = this.handleOptionAndParams ('watchTicker', symbol, params, 'LEVEL1');
+        let channel = undefined;
+        [ channel, params ] = this.handleOptionAndParams (params, 'watchTicker', 'channel', 'LEVEL1');
         return await this.subscribe (channel, symbol, params);
     }
 
