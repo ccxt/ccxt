@@ -64,6 +64,8 @@ export default class coinbase extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': 'emulated',
+                'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
@@ -3437,7 +3439,7 @@ export default class coinbase extends Exchange {
     async fetchDepositAddressesByNetwork (code: string, params = {}) {
         /**
          * @method
-         * @name ascendex#fetchDepositAddress
+         * @name coinbase#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
          * @param {string} code unified currency code
