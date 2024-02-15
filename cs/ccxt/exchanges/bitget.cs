@@ -1350,7 +1350,7 @@ public partial class bitget : Exchange
 
     public virtual object convertSymbolForSandbox(object symbol)
     {
-        if (isTrue(((string)symbol).StartsWith("S")))
+        if (isTrue(((string)symbol).StartsWith(((string)"S"))))
         {
             // handle using the exchange specified sandbox symbols
             return symbol;
@@ -2478,7 +2478,11 @@ public partial class bitget : Exchange
         await this.loadMarkets();
         object networkCode = this.safeString2(parameters, "chain", "network");
         parameters = this.omit(parameters, "network");
-        object networkId = this.networkCodeToId(networkCode, code);
+        object networkId = null;
+        if (isTrue(!isEqual(networkCode, null)))
+        {
+            networkId = this.networkCodeToId(networkCode, code);
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "code") },
@@ -2520,11 +2524,16 @@ public partial class bitget : Exchange
         object currencyId = this.safeString(depositAddress, "coin");
         object networkId = this.safeString(depositAddress, "chain");
         object parsedCurrency = this.safeCurrencyCode(currencyId, currency);
+        object network = null;
+        if (isTrue(!isEqual(networkId, null)))
+        {
+            network = this.networkIdToCode(networkId, parsedCurrency);
+        }
         return new Dictionary<string, object>() {
             { "currency", parsedCurrency },
             { "address", this.safeString(depositAddress, "address") },
             { "tag", this.safeString(depositAddress, "tag") },
-            { "network", this.networkIdToCode(networkId, parsedCurrency) },
+            { "network", network },
             { "info", depositAddress },
         };
     }
@@ -3405,6 +3414,7 @@ public partial class bitget : Exchange
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] timestamp in ms of the latest candle to fetch
         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {string} [params.price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
         */
         timeframe ??= "1m";
@@ -3441,71 +3451,57 @@ public partial class bitget : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object options = this.safeValue(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
-        object spotOptions = this.safeValue(options, "spot", new Dictionary<string, object>() {});
-        object defaultSpotMethod = this.safeString(spotOptions, "method", "publicSpotGetV2SpotMarketCandles");
-        object method = this.safeString(parameters, "method", defaultSpotMethod);
-        parameters = this.omit(parameters, "method");
-        if (isTrue(!isEqual(method, "publicSpotGetV2SpotMarketHistoryCandles")))
+        if (isTrue(!isEqual(since, null)))
         {
-            if (isTrue(!isEqual(since, null)))
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            if (isTrue(isEqual(limit, null)))
             {
-                ((IDictionary<string,object>)request)["startTime"] = since;
+                limit = 100; // exchange default
             }
-            if (isTrue(!isEqual(until, null)))
-            {
-                ((IDictionary<string,object>)request)["endTime"] = until;
-            }
+            object duration = multiply(this.parseTimeframe(timeframe), 1000);
+            ((IDictionary<string,object>)request)["endTime"] = subtract(this.sum(since, multiply(duration, (add(limit, 1)))), 1); // limit + 1)) - 1 is needed for when since is not the exact timestamp of a candle
+        } else if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["endTime"] = until;
+        } else
+        {
+            ((IDictionary<string,object>)request)["endTime"] = this.milliseconds();
         }
         object response = null;
+        object thirtyOneDaysAgo = subtract(this.milliseconds(), 2678400000);
         if (isTrue(getValue(market, "spot")))
         {
-            if (isTrue(isEqual(method, "publicSpotGetV2SpotMarketCandles")))
+            if (isTrue(isTrue((!isEqual(since, null))) && isTrue((isLessThan(since, thirtyOneDaysAgo)))))
+            {
+                response = await this.publicSpotGetV2SpotMarketHistoryCandles(this.extend(request, parameters));
+            } else
             {
                 response = await this.publicSpotGetV2SpotMarketCandles(this.extend(request, parameters));
-            } else if (isTrue(isEqual(method, "publicSpotGetV2SpotMarketHistoryCandles")))
-            {
-                if (isTrue(!isEqual(since, null)))
-                {
-                    if (isTrue(isEqual(limit, null)))
-                    {
-                        limit = 100; // exchange default
-                    }
-                    object duration = multiply(this.parseTimeframe(timeframe), 1000);
-                    ((IDictionary<string,object>)request)["endTime"] = this.sum(since, multiply(duration, limit));
-                } else if (isTrue(!isEqual(until, null)))
-                {
-                    ((IDictionary<string,object>)request)["endTime"] = until;
-                } else
-                {
-                    ((IDictionary<string,object>)request)["endTime"] = this.milliseconds();
-                }
-                response = await this.publicSpotGetV2SpotMarketHistoryCandles(this.extend(request, parameters));
             }
         } else
         {
-            object swapOptions = this.safeValue(options, "swap", new Dictionary<string, object>() {});
-            object defaultSwapMethod = this.safeString(swapOptions, "method", "publicMixGetV2MixMarketCandles");
-            object swapMethod = this.safeString(parameters, "method", defaultSwapMethod);
             object priceType = this.safeString(parameters, "price");
-            parameters = this.omit(parameters, new List<object>() {"method", "price"});
+            parameters = this.omit(parameters, new List<object>() {"price"});
             object productType = null;
             var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
             productType = ((IList<object>)productTypeparametersVariable)[0];
             parameters = ((IList<object>)productTypeparametersVariable)[1];
             ((IDictionary<string,object>)request)["productType"] = productType;
-            if (isTrue(isTrue((isEqual(priceType, "mark"))) || isTrue((isEqual(swapMethod, "publicMixGetV2MixMarketHistoryMarkCandles")))))
+            if (isTrue(isEqual(priceType, "mark")))
             {
                 response = await this.publicMixGetV2MixMarketHistoryMarkCandles(this.extend(request, parameters));
-            } else if (isTrue(isTrue((isEqual(priceType, "index"))) || isTrue((isEqual(swapMethod, "publicMixGetV2MixMarketHistoryIndexCandles")))))
+            } else if (isTrue(isEqual(priceType, "index")))
             {
                 response = await this.publicMixGetV2MixMarketHistoryIndexCandles(this.extend(request, parameters));
-            } else if (isTrue(isEqual(swapMethod, "publicMixGetV2MixMarketCandles")))
-            {
-                response = await this.publicMixGetV2MixMarketCandles(this.extend(request, parameters));
-            } else if (isTrue(isEqual(swapMethod, "publicMixGetV2MixMarketHistoryCandles")))
+            } else if (isTrue(isTrue((!isEqual(since, null))) && isTrue((isLessThan(since, thirtyOneDaysAgo)))))
             {
                 response = await this.publicMixGetV2MixMarketHistoryCandles(this.extend(request, parameters));
+            } else
+            {
+                response = await this.publicMixGetV2MixMarketCandles(this.extend(request, parameters));
             }
         }
         if (isTrue(isEqual(response, "")))
@@ -3513,7 +3509,7 @@ public partial class bitget : Exchange
             return new List<object>() {};  // happens when a new token is listed
         }
         //  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]
-        object data = this.safeValue(response, "data", response);
+        object data = this.safeList(response, "data", response);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -4141,6 +4137,12 @@ public partial class bitget : Exchange
             size = this.safeString(order, "size");
             filled = this.safeString(order, "baseVolume");
         }
+        object side = this.safeString(order, "side");
+        object posMode = this.safeString(order, "posMode");
+        if (isTrue(isTrue(isEqual(posMode, "hedge_mode")) && isTrue(reduceOnly)))
+        {
+            side = ((bool) isTrue((isEqual(side, "buy")))) ? "sell" : "buy";
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", this.safeString2(order, "orderId", "data") },
@@ -4151,7 +4153,7 @@ public partial class bitget : Exchange
             { "lastUpdateTimestamp", updateTimestamp },
             { "symbol", getValue(market, "symbol") },
             { "type", this.safeString(order, "orderType") },
-            { "side", this.safeString(order, "side") },
+            { "side", side },
             { "price", price },
             { "amount", size },
             { "cost", this.safeString2(order, "quoteVolume", "quoteSize") },
@@ -4750,7 +4752,7 @@ public partial class bitget : Exchange
         object takeProfit = this.safeValue(parameters, "takeProfit");
         object isStopLoss = !isEqual(stopLoss, null);
         object isTakeProfit = !isEqual(takeProfit, null);
-        object trailingTriggerPrice = this.safeString(parameters, "trailingTriggerPrice", price);
+        object trailingTriggerPrice = this.safeString(parameters, "trailingTriggerPrice", this.numberToString(price));
         object trailingPercent = this.safeString2(parameters, "trailingPercent", "newCallbackRatio");
         object isTrailingPercentOrder = !isEqual(trailingPercent, null);
         if (isTrue(isGreaterThan(this.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder, isTrailingPercentOrder), 1)))
@@ -7385,7 +7387,7 @@ public partial class bitget : Exchange
         };
     }
 
-    public async virtual Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
@@ -7410,7 +7412,7 @@ public partial class bitget : Exchange
         return await this.modifyMarginHelper(symbol, amount, "reduce", parameters);
     }
 
-    public async virtual Task<object> addMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
@@ -7431,7 +7433,7 @@ public partial class bitget : Exchange
         return await this.modifyMarginHelper(symbol, amount, "add", parameters);
     }
 
-    public async virtual Task<object> fetchLeverage(object symbol, object parameters = null)
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
         /**
         * @method
@@ -7550,7 +7552,7 @@ public partial class bitget : Exchange
         return response;
     }
 
-    public async virtual Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
     {
         /**
         * @method
@@ -7615,7 +7617,7 @@ public partial class bitget : Exchange
         return response;
     }
 
-    public async virtual Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
+    public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
         /**
         * @method
@@ -8988,6 +8990,11 @@ public partial class bitget : Exchange
                 if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
                 {
                     object queryInner = add("?", this.urlencode(this.keysort(parameters)));
+                    // check #21169 pr
+                    if (isTrue(isGreaterThan(getIndexOf(queryInner, "%24"), -1)))
+                    {
+                        queryInner = ((string)queryInner).Replace((string)"%24", (string)"$");
+                    }
                     url = add(url, queryInner);
                     auth = add(auth, queryInner);
                 }

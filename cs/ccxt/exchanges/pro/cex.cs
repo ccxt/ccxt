@@ -206,7 +206,7 @@ public partial class cex : ccxt.cex
             trade = ((string)trade).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         }
         object side = this.safeString(trade, 0);
-        object timestamp = this.safeNumber(trade, 1);
+        object timestamp = this.safeInteger(trade, 1);
         object amount = this.safeString(trade, 2);
         object price = this.safeString(trade, 3);
         object id = this.safeString(trade, 4);

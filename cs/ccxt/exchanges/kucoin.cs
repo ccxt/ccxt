@@ -1665,7 +1665,7 @@ public partial class kucoin : Exchange
         };
     }
 
-    public async virtual Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
+    public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
     {
         /**
         * @method
@@ -4002,13 +4002,13 @@ public partial class kucoin : Exchange
             }
         }
         object fee = null;
-        object feeCost = this.safeNumber(item, "fee");
+        object feeCost = this.safeString(item, "fee");
         object feeCurrency = null;
-        if (isTrue(!isEqual(feeCost, 0)))
+        if (isTrue(!isEqual(feeCost, "0")))
         {
             feeCurrency = code;
             fee = new Dictionary<string, object>() {
-                { "cost", feeCost },
+                { "cost", this.parseNumber(feeCost) },
                 { "currency", feeCurrency },
             };
         }
@@ -4132,8 +4132,13 @@ public partial class kucoin : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data");
-        object items = this.safeValue(data, "items", data);
+        object dataList = this.safeList(response, "data");
+        if (isTrue(!isEqual(dataList, null)))
+        {
+            return this.parseLedger(dataList, currency, since, limit);
+        }
+        object data = this.safeDict(response, "data");
+        object items = this.safeList(data, "items", new List<object>() {});
         return this.parseLedger(items, currency, since, limit);
     }
 

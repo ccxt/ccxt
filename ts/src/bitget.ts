@@ -2417,7 +2417,10 @@ export default class bitget extends Exchange {
         await this.loadMarkets ();
         const networkCode = this.safeString2 (params, 'chain', 'network');
         params = this.omit (params, 'network');
-        const networkId = this.networkCodeToId (networkCode, code);
+        let networkId = undefined;
+        if (networkCode !== undefined) {
+            networkId = this.networkCodeToId (networkCode, code);
+        }
         const currency = this.currency (code);
         const request = {
             'coin': currency['code'],
@@ -2457,11 +2460,15 @@ export default class bitget extends Exchange {
         const currencyId = this.safeString (depositAddress, 'coin');
         const networkId = this.safeString (depositAddress, 'chain');
         const parsedCurrency = this.safeCurrencyCode (currencyId, currency);
+        let network = undefined;
+        if (networkId !== undefined) {
+            network = this.networkIdToCode (networkId, parsedCurrency);
+        }
         return {
             'currency': parsedCurrency,
             'address': this.safeString (depositAddress, 'address'),
             'tag': this.safeString (depositAddress, 'tag'),
-            'network': this.networkIdToCode (networkId, parsedCurrency),
+            'network': network,
             'info': depositAddress,
         };
     }
@@ -3267,6 +3274,7 @@ export default class bitget extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {string} [params.price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -3295,61 +3303,49 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const options = this.safeValue (this.options, 'fetchOHLCV', {});
-        const spotOptions = this.safeValue (options, 'spot', {});
-        const defaultSpotMethod = this.safeString (spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles');
-        const method = this.safeString (params, 'method', defaultSpotMethod);
-        params = this.omit (params, 'method');
-        if (method !== 'publicSpotGetV2SpotMarketHistoryCandles') {
-            if (since !== undefined) {
-                request['startTime'] = since;
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (since !== undefined) {
+            if (limit === undefined) {
+                limit = 100; // exchange default
             }
-            if (until !== undefined) {
-                request['endTime'] = until;
-            }
+            const duration = this.parseTimeframe (timeframe) * 1000;
+            request['endTime'] = this.sum (since, duration * (limit + 1)) - 1;  // limit + 1)) - 1 is needed for when since is not the exact timestamp of a candle
+        } else if (until !== undefined) {
+            request['endTime'] = until;
+        } else {
+            request['endTime'] = this.milliseconds ();
         }
         let response = undefined;
+        const thirtyOneDaysAgo = this.milliseconds () - 2678400000;
         if (market['spot']) {
-            if (method === 'publicSpotGetV2SpotMarketCandles') {
-                response = await this.publicSpotGetV2SpotMarketCandles (this.extend (request, params));
-            } else if (method === 'publicSpotGetV2SpotMarketHistoryCandles') {
-                if (since !== undefined) {
-                    if (limit === undefined) {
-                        limit = 100; // exchange default
-                    }
-                    const duration = this.parseTimeframe (timeframe) * 1000;
-                    request['endTime'] = this.sum (since, duration * limit);
-                } else if (until !== undefined) {
-                    request['endTime'] = until;
-                } else {
-                    request['endTime'] = this.milliseconds ();
-                }
+            if ((since !== undefined) && (since < thirtyOneDaysAgo)) {
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles (this.extend (request, params));
+            } else {
+                response = await this.publicSpotGetV2SpotMarketCandles (this.extend (request, params));
             }
         } else {
-            const swapOptions = this.safeValue (options, 'swap', {});
-            const defaultSwapMethod = this.safeString (swapOptions, 'method', 'publicMixGetV2MixMarketCandles');
-            const swapMethod = this.safeString (params, 'method', defaultSwapMethod);
             const priceType = this.safeString (params, 'price');
-            params = this.omit (params, [ 'method', 'price' ]);
+            params = this.omit (params, [ 'price' ]);
             let productType = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
-            if ((priceType === 'mark') || (swapMethod === 'publicMixGetV2MixMarketHistoryMarkCandles')) {
+            if (priceType === 'mark') {
                 response = await this.publicMixGetV2MixMarketHistoryMarkCandles (this.extend (request, params));
-            } else if ((priceType === 'index') || (swapMethod === 'publicMixGetV2MixMarketHistoryIndexCandles')) {
+            } else if (priceType === 'index') {
                 response = await this.publicMixGetV2MixMarketHistoryIndexCandles (this.extend (request, params));
-            } else if (swapMethod === 'publicMixGetV2MixMarketCandles') {
-                response = await this.publicMixGetV2MixMarketCandles (this.extend (request, params));
-            } else if (swapMethod === 'publicMixGetV2MixMarketHistoryCandles') {
+            } else if ((since !== undefined) && (since < thirtyOneDaysAgo)) {
                 response = await this.publicMixGetV2MixMarketHistoryCandles (this.extend (request, params));
+            } else {
+                response = await this.publicMixGetV2MixMarketCandles (this.extend (request, params));
             }
         }
         if (response === '') {
             return []; // happens when a new token is listed
         }
         //  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]
-        const data = this.safeValue (response, 'data', response);
+        const data = this.safeList (response, 'data', response);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -3942,6 +3938,13 @@ export default class bitget extends Exchange {
             size = this.safeString (order, 'size');
             filled = this.safeString (order, 'baseVolume');
         }
+        let side = this.safeString (order, 'side');
+        const posMode = this.safeString (order, 'posMode');
+        if (posMode === 'hedge_mode' && reduceOnly) {
+            side = (side === 'buy') ? 'sell' : 'buy';
+            // on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
+            // so the side of the reduceOnly order is inversed
+        }
         return this.safeOrder ({
             'info': order,
             'id': this.safeString2 (order, 'orderId', 'data'),
@@ -3952,7 +3955,7 @@ export default class bitget extends Exchange {
             'lastUpdateTimestamp': updateTimestamp,
             'symbol': market['symbol'],
             'type': this.safeString (order, 'orderType'),
-            'side': this.safeString (order, 'side'),
+            'side': side,
             'price': price,
             'amount': size,
             'cost': this.safeString2 (order, 'quoteVolume', 'quoteSize'),
@@ -3972,7 +3975,7 @@ export default class bitget extends Exchange {
         }, market);
     }
 
-    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name bitget#createMarketBuyOrderWithCost
@@ -4397,7 +4400,7 @@ export default class bitget extends Exchange {
         return this.parseOrders (both, market);
     }
 
-    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
         /**
          * @method
          * @name bitget#editOrder
@@ -4452,7 +4455,7 @@ export default class bitget extends Exchange {
         const takeProfit = this.safeValue (params, 'takeProfit');
         const isStopLoss = stopLoss !== undefined;
         const isTakeProfit = takeProfit !== undefined;
-        const trailingTriggerPrice = this.safeString (params, 'trailingTriggerPrice', price);
+        const trailingTriggerPrice = this.safeString (params, 'trailingTriggerPrice', this.numberToString (price));
         const trailingPercent = this.safeString2 (params, 'trailingPercent', 'newCallbackRatio');
         const isTrailingPercentOrder = trailingPercent !== undefined;
         if (this.sum (isTriggerOrder, isStopLossOrder, isTakeProfitOrder, isTrailingPercentOrder) > 1) {
@@ -6914,7 +6917,7 @@ export default class bitget extends Exchange {
         return response;
     }
 
-    async setMarginMode (marginMode, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitget#setMarginMode
@@ -6970,7 +6973,7 @@ export default class bitget extends Exchange {
         return response;
     }
 
-    async setPositionMode (hedged, symbol: Str = undefined, params = {}) {
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitget#setPositionMode
@@ -7149,7 +7152,7 @@ export default class bitget extends Exchange {
         return this.parseTransfers (data, currency, since, limit);
     }
 
-    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name bitget#transfer
@@ -8224,7 +8227,11 @@ export default class bitget extends Exchange {
                 auth += body;
             } else {
                 if (Object.keys (params).length) {
-                    const queryInner = '?' + this.urlencode (this.keysort (params));
+                    let queryInner = '?' + this.urlencode (this.keysort (params));
+                    // check #21169 pr
+                    if (queryInner.indexOf ('%24') > -1) {
+                        queryInner = queryInner.replace ('%24', '$');
+                    }
                     url += queryInner;
                     auth += queryInner;
                 }

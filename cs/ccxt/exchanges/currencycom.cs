@@ -1878,7 +1878,7 @@ public partial class currencycom : Exchange
         return this.safeString(types, type, type);
     }
 
-    public async virtual Task<object> fetchLeverage(object symbol, object parameters = null)
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
         /**
         * @method
@@ -2070,7 +2070,7 @@ public partial class currencycom : Exchange
         //
         market = this.safeMarket(this.safeString(position, "symbol"), market);
         object symbol = getValue(market, "symbol");
-        object timestamp = this.safeNumber(position, "createdTimestamp");
+        object timestamp = this.safeInteger(position, "createdTimestamp");
         object quantityRaw = this.safeString(position, "openQuantity");
         object side = ((bool) isTrue(Precise.stringGt(quantityRaw, "0"))) ? "long" : "short";
         object quantity = Precise.stringAbs(quantityRaw);

@@ -1574,7 +1574,11 @@ public partial class gate : Exchange
             object currency = getValue(parts, 0);
             object code = this.safeCurrencyCode(currency);
             object networkId = this.safeString(entry, "chain");
-            object networkCode = this.networkIdToCode(networkId, code);
+            object networkCode = null;
+            if (isTrue(!isEqual(networkId, null)))
+            {
+                networkCode = this.networkIdToCode(networkId, code);
+            }
             object delisted = this.safeValue(entry, "delisted");
             object withdrawDisabled = this.safeBool(entry, "withdraw_disabled", false);
             object depositDisabled = this.safeBool(entry, "deposit_disabled", false);
@@ -6552,7 +6556,7 @@ public partial class gate : Exchange
         };
     }
 
-    public async virtual Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
@@ -6569,7 +6573,7 @@ public partial class gate : Exchange
         return await this.modifyMarginHelper(symbol, prefixUnaryNeg(ref amount), parameters);
     }
 
-    public async virtual Task<object> addMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
@@ -7155,7 +7159,7 @@ public partial class gate : Exchange
         return this.safeString(ledgerType, type, type);
     }
 
-    public async virtual Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
+    public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
         /**
         * @method

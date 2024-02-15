@@ -168,7 +168,7 @@ public partial class hitbtc : ccxt.hitbtc
         await this.loadMarkets();
         await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
-        object messageHash = this.nonce();
+        object messageHash = ((object)this.nonce()).ToString();
         object subscribe = new Dictionary<string, object>() {
             { "method", name },
             { "params", parameters },
@@ -434,6 +434,7 @@ public partial class hitbtc : ccxt.hitbtc
             object messageHash = add(add(channel, "::"), symbol);
             callDynamically(client as WebSocketClient, "resolve", new object[] {newTickers, messageHash});
         }
+        callDynamically(client as WebSocketClient, "resolve", new object[] {newTickers, "tickers"});
         object messageHashes = this.findMessageHashes(client as WebSocketClient, "tickers::");
         for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {

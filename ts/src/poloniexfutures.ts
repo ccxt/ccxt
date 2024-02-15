@@ -1405,7 +1405,7 @@ export default class poloniexfutures extends Exchange {
         return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
     }
 
-    async fetchOrder (id = undefined, symbol: Str = undefined, params = {}) {
+    async fetchOrder (id: string = undefined, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchOrder
@@ -1720,13 +1720,13 @@ export default class poloniexfutures extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async setMarginMode (marginMode, symbol, params = {}) {
+    async setMarginMode (marginMode: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#setMarginMode
          * @description set margin mode to 'cross' or 'isolated'
          * @see https://futures-docs.poloniex.com/#change-margin-mode
-         * @param {int} marginMode 0 (isolated) or 1 (cross)
+         * @param {string} marginMode "0" (isolated) or "1" (cross)
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} response from the exchange
@@ -1734,14 +1734,20 @@ export default class poloniexfutures extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
-        if ((marginMode !== 0) && (marginMode !== 1)) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() marginMode must be 0 (isolated) or 1 (cross)');
+        if ((marginMode !== '0') && (marginMode !== '1') && (marginMode !== 'isolated') && (marginMode !== 'cross')) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() marginMode must be 0/isolated or 1/cross');
         }
         await this.loadMarkets ();
+        if (marginMode === 'isolated') {
+            marginMode = '0';
+        }
+        if (marginMode === 'cross') {
+            marginMode = '1';
+        }
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'marginType': marginMode,
+            'marginType': this.parseToInt (marginMode),
         };
         return await this.privatePostMarginTypeChange (request);
     }

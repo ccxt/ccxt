@@ -314,7 +314,11 @@ public partial class digifinex : Exchange
             object minFoundPrecision = Precise.stringMin(feeString, Precise.stringMin(minDepositString, minWithdrawString));
             object precision = this.parseNumber(minFoundPrecision);
             object networkId = this.safeString(currency, "chain");
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = null;
+            if (isTrue(!isEqual(networkId, null)))
+            {
+                networkCode = this.networkIdToCode(networkId);
+            }
             object network = new Dictionary<string, object>() {
                 { "info", currency },
                 { "id", networkId },
@@ -4349,7 +4353,7 @@ public partial class digifinex : Exchange
         return depositWithdrawFees;
     }
 
-    public async virtual Task<object> addMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
@@ -4368,7 +4372,7 @@ public partial class digifinex : Exchange
         return await this.modifyMarginHelper(symbol, amount, 1, parameters);
     }
 
-    public async virtual Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
@@ -4518,7 +4522,7 @@ public partial class digifinex : Exchange
         };
     }
 
-    public async virtual Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
     {
         /**
         * @method

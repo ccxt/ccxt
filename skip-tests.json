@@ -213,6 +213,8 @@
         }
     },
     "bitflyer": {
+        "skip": true,
+        "until": "2024-02-14",
         "skipMethods": {
             "loadMarkets": "contract is true, but contractSize is undefined",
             "fetchTrades": {
@@ -393,6 +395,7 @@
         }
     },
     "bitstamp": {
+        "skipWs": true,
         "skipMethods": {
             "fetchOrderBook": "bid/ask might be 0",
             "fetchL2OrderBook": "same",

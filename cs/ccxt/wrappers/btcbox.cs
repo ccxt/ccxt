@@ -10,6 +10,7 @@ public partial class btcbox
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://blog.btcbox.jp/en/archives/8762#toc13"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -29,6 +30,7 @@ public partial class btcbox
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://blog.btcbox.jp/en/archives/8762#toc6"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -55,6 +57,7 @@ public partial class btcbox
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://blog.btcbox.jp/en/archives/8762#toc5"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -74,6 +77,7 @@ public partial class btcbox
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://blog.btcbox.jp/en/archives/8762#toc7"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -107,6 +111,7 @@ public partial class btcbox
     /// create a trade order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://blog.btcbox.jp/en/archives/8762#toc18"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -133,6 +138,7 @@ public partial class btcbox
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://blog.btcbox.jp/en/archives/8762#toc17"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -152,6 +158,7 @@ public partial class btcbox
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://blog.btcbox.jp/en/archives/8762#toc16"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -178,6 +185,7 @@ public partial class btcbox
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://blog.btcbox.jp/en/archives/8762#toc15"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -211,6 +219,7 @@ public partial class btcbox
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://blog.btcbox.jp/en/archives/8762#toc15"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

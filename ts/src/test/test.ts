@@ -32,7 +32,7 @@ const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
 
 const [ processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
-const sanitizedSymnol = exchangeSymbol !== undefined && exchangeSymbol.includes ('/') ? exchangeSymbol : undefined;
+// const sanitizedSymnol = exchangeSymbol !== undefined && exchangeSymbol.includes ('/') ? exchangeSymbol : undefined;
 // non-transpiled part, but shared names among langs
 function getCliArgValue (arg) {
     return process.argv.includes (arg) || false;
@@ -325,7 +325,9 @@ export default class testMainClass extends baseMainTestClass {
             }
         }
         // credentials
-        this.loadCredentialsFromEnv (exchange);
+        if (this.loadKeys) {
+            this.loadCredentialsFromEnv (exchange);
+        }
         // skipped tests
         const skippedFile = this.rootDirForSkips + 'skip-tests.json';
         const skippedSettings = ioFileRead (skippedFile);
@@ -969,10 +971,10 @@ export default class testMainClass extends baseMainTestClass {
         //  --- Init of static tests functions------------------------------------------
         //  -----------------------------------------------------------------------------
         const calculatedString = jsonStringify (calculatedOutput);
-        const outputString = jsonStringify (storedOutput);
-        let errorMessage = message + ' expected ' + outputString + ' received: ' + calculatedString;
+        const storedString = jsonStringify (storedOutput);
+        let errorMessage = message + ' computed ' + storedString + ' stored: ' + calculatedString;
         if (key !== undefined) {
-            errorMessage = ' | ' + key + ' | ' + 'computed value: ' + outputString + ' stored value: ' + calculatedString;
+            errorMessage = ' | ' + key + ' | ' + 'computed value: ' + storedString + ' stored value: ' + calculatedString;
         }
         assert (cond, errorMessage);
     }
@@ -1263,7 +1265,7 @@ export default class testMainClass extends baseMainTestClass {
     initOfflineExchange (exchangeName: string) {
         const markets = this.loadMarketsFromFile (exchangeName);
         const currencies = this.loadCurrenciesFromFile (exchangeName);
-        const exchange = initExchange (exchangeName, { 'markets': markets, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'uid': 'uid', 'token': 'token', 'accounts': [ { 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
+        const exchange = initExchange (exchangeName, { 'markets': markets, 'currencies': currencies, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'uid': 'uid', 'token': 'token', 'accounts': [ { 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
         exchange.currencies = currencies; // not working in python if assigned  in the config dict
         return exchange;
     }
@@ -1340,7 +1342,10 @@ export default class testMainClass extends baseMainTestClass {
         return true; // in c# methods that will be used with promiseAll need to return something
     }
 
-    getNumberOfTestsFromExchange (exchange, exchangeData: object) {
+    getNumberOfTestsFromExchange (exchange, exchangeData: object, testName: string = undefined) {
+        if (testName !== undefined) {
+            return 1;
+        }
         let sum = 0;
         const methods = exchangeData['methods'];
         const methodsNames = Object.keys (methods);
@@ -1376,7 +1381,7 @@ export default class testMainClass extends baseMainTestClass {
         for (let i = 0; i < exchanges.length; i++) {
             const exchangeName = exchanges[i];
             const exchangeData = staticData[exchangeName];
-            const numberOfTests = this.getNumberOfTestsFromExchange (exchange, exchangeData);
+            const numberOfTests = this.getNumberOfTestsFromExchange (exchange, exchangeData, testName);
             sum = exchange.sum (sum, numberOfTests);
             if (type === 'request') {
                 promises.push (this.testExchangeRequestStatically (exchangeName, exchangeData, testName));
@@ -1419,6 +1424,7 @@ export default class testMainClass extends baseMainTestClass {
             this.testCoinex (),
             this.testBingx (),
             this.testPhemex (),
+            this.testBlofin ()
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1696,7 +1702,21 @@ export default class testMainClass extends baseMainTestClass {
         assert (clientOrderId.startsWith (id.toString ()), 'clOrdID does not start with id');
         await close (exchange);
     }
+
+    async testBlofin () {
+        const exchange = this.initOfflineExchange ('blofin');
+        const id = 'ec6dd3a7dd982d0b';
+        let request = undefined;
+        try {
+            await exchange.createOrder ('LTC/USDT:USDT', 'market', 'buy', 1);
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        const brokerId = request['brokerId'];
+        assert (brokerId.startsWith (id.toString ()), 'brokerId does not start with id');
+        await close (exchange);
+    }
 }
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-(new testMainClass ()).init (exchangeIdFromArgv, sanitizedSymnol);
+(new testMainClass ()).init (exchangeIdFromArgv, exchangeSymbol);

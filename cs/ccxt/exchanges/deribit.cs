@@ -547,7 +547,7 @@ public partial class deribit : Exchange
 
     public override object safeMarket(object marketId, object market = null, object delimiter = null, object marketType = null)
     {
-        object isOption = isTrue((!isEqual(marketId, null))) && isTrue((isTrue((((string)marketId).EndsWith("-C"))) || isTrue((((string)marketId).EndsWith("-P")))));
+        object isOption = isTrue((!isEqual(marketId, null))) && isTrue((isTrue((((string)marketId).EndsWith(((string)"-C")))) || isTrue((((string)marketId).EndsWith(((string)"-P"))))));
         if (isTrue(isTrue(isOption) && !isTrue((inOp(this.markets_by_id, marketId)))))
         {
             // handle expired option contracts
@@ -1857,7 +1857,7 @@ public partial class deribit : Exchange
         object cost = Precise.stringMul(filledString, averageString);
         if (isTrue(getValue(market, "inverse")))
         {
-            if (isTrue(!isEqual(this.parseNumber(averageString), 0)))
+            if (isTrue(!isEqual(averageString, "0")))
             {
                 cost = Precise.stringDiv(amount, averageString);
             }

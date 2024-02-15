@@ -623,8 +623,8 @@ class bitforex(Exchange, ImplicitAPI):
 
     def parse_order(self, order, market: Market = None) -> Order:
         id = self.safe_string(order, 'orderId')
-        timestamp = self.safe_number(order, 'createTime')
-        lastTradeTimestamp = self.safe_number(order, 'lastTime')
+        timestamp = self.safe_integer(order, 'createTime')
+        lastTradeTimestamp = self.safe_integer(order, 'lastTime')
         symbol = market['symbol']
         sideId = self.safe_integer(order, 'tradeType')
         side = self.parse_side(sideId)

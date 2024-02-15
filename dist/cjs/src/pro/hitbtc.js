@@ -171,7 +171,7 @@ class hitbtc extends hitbtc$1 {
         await this.loadMarkets();
         await this.authenticate();
         const url = this.urls['api']['ws']['private'];
-        const messageHash = this.nonce();
+        const messageHash = this.nonce().toString();
         const subscribe = {
             'method': name,
             'params': params,
@@ -408,6 +408,7 @@ class hitbtc extends hitbtc$1 {
             const messageHash = channel + '::' + symbol;
             client.resolve(newTickers, messageHash);
         }
+        client.resolve(newTickers, 'tickers');
         const messageHashes = this.findMessageHashes(client, 'tickers::');
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];

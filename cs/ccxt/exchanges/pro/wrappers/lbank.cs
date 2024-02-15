@@ -103,7 +103,7 @@ public partial class lbank
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}.</returns>
-    public async Task<Ticker> WatchTicker(object symbol, Dictionary<string, object> parameters = null)
+    public async Task<Ticker> WatchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchTicker(symbol, parameters);
         return new Ticker(res);

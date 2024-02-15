@@ -346,7 +346,10 @@ export default class gemini extends Exchange {
             const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 5)));
             const networks = {};
             const networkId = this.safeString(currency, 9);
-            const networkCode = this.networkIdToCode(networkId);
+            let networkCode = undefined;
+            if (networkId !== undefined) {
+                networkCode = this.networkIdToCode(networkId);
+            }
             if (networkCode !== undefined) {
                 networks[networkCode] = {
                     'info': currency,

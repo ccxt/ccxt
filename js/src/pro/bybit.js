@@ -187,7 +187,7 @@ export default class bybit extends bybitRest {
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'ticker:' + symbol;
-        const url = this.getUrlByMarketType(symbol, false, params);
+        const url = this.getUrlByMarketType(symbol, false, 'watchTicker', params);
         params = this.cleanParams(params);
         const options = this.safeValue(this.options, 'watchTicker', {});
         let topic = this.safeString(options, 'name', 'tickers');
@@ -212,7 +212,7 @@ export default class bybit extends bybitRest {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, false);
         const messageHashes = [];
-        const url = this.getUrlByMarketType(symbols[0], false, params);
+        const url = this.getUrlByMarketType(symbols[0], false, 'watchTickers', params);
         params = this.cleanParams(params);
         const options = this.safeValue(this.options, 'watchTickers', {});
         const topic = this.safeString(options, 'name', 'tickers');
@@ -379,7 +379,7 @@ export default class bybit extends bybitRest {
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
-        const url = this.getUrlByMarketType(symbol, false, params);
+        const url = this.getUrlByMarketType(symbol, false, 'watchOHLCV', params);
         params = this.cleanParams(params);
         let ohlcv = undefined;
         const timeframeId = this.safeString(this.timeframes, timeframe, timeframe);
@@ -497,7 +497,7 @@ export default class bybit extends bybitRest {
             throw new ArgumentsRequired(this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
         symbols = this.marketSymbols(symbols);
-        const url = this.getUrlByMarketType(symbols[0], false, params);
+        const url = this.getUrlByMarketType(symbols[0], false, 'watchOrderBook', params);
         params = this.cleanParams(params);
         const market = this.market(symbols[0]);
         if (limit === undefined) {
@@ -629,7 +629,7 @@ export default class bybit extends bybitRest {
             throw new ArgumentsRequired(this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         params = this.cleanParams(params);
-        const url = this.getUrlByMarketType(symbols[0], false, params);
+        const url = this.getUrlByMarketType(symbols[0], false, 'watchTrades', params);
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
