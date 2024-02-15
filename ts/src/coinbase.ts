@@ -1766,14 +1766,13 @@ export default class coinbase extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        const request = {
-            'limit': 250,
-        };
+        const request = {};
         let response = undefined;
         const isV3 = this.safeBool (params, 'v3', false);
         params = this.omit (params, 'v3');
         const method = this.safeString (this.options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts');
         if ((isV3) || (method === 'v3PrivateGetBrokerageAccounts')) {
+            request['limit'] = 250;
             response = await this.v3PrivateGetBrokerageAccounts (this.extend (request, params));
         } else {
             response = await this.v2PrivateGetAccounts (this.extend (request, params));
