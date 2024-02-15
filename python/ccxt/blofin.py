@@ -926,7 +926,8 @@ class blofin(Exchange, ImplicitAPI):
         }
         response = None
         if accountType is not None:
-            parsedAccountType = self.safe_string(self.options, 'accountsByType', accountType)
+            options = self.safe_dict(self.options, 'accountsByType', {})
+            parsedAccountType = self.safe_string(options, accountType, accountType)
             request['accountType'] = parsedAccountType
             response = self.privateGetAssetBalances(self.extend(request, params))
         else:

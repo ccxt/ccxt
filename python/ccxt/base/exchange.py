@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.41'
+__version__ = '4.2.45'
 
 # -----------------------------------------------------------------------------
 
@@ -254,6 +254,7 @@ class Exchange(object):
     transactions = None
     ohlcvs = None
     tickers = None
+    bidsasks = None
     base_currencies = None
     quote_currencies = None
     currencies = None
@@ -425,6 +426,7 @@ class Exchange(object):
         self.balance = dict() if self.balance is None else self.balance
         self.orderbooks = dict() if self.orderbooks is None else self.orderbooks
         self.tickers = dict() if self.tickers is None else self.tickers
+        self.bidsasks = dict() if self.bidsasks is None else self.bidsasks
         self.trades = dict() if self.trades is None else self.trades
         self.transactions = dict() if self.transactions is None else self.transactions
         self.ohlcvs = dict() if self.ohlcvs is None else self.ohlcvs
@@ -2195,6 +2197,15 @@ class Exchange(object):
     def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' setPositionMode() is not supported yet')
 
+    def add_margin(self, symbol: str, amount: float, params={}):
+        raise NotSupported(self.id + ' addMargin() is not supported yet')
+
+    def reduce_margin(self, symbol: str, amount: float, params={}):
+        raise NotSupported(self.id + ' reduceMargin() is not supported yet')
+
+    def set_margin(self, symbol: str, amount: float, params={}):
+        raise NotSupported(self.id + ' setMargin() is not supported yet')
+
     def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' setMarginMode() is not supported yet')
 
@@ -3204,6 +3215,8 @@ class Exchange(object):
         :param str currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
         :returns str|None: exchange-specific network id
         """
+        if networkCode is None:
+            return None
         networkIdsByCodes = self.safe_value(self.options, 'networks', {})
         networkId = self.safe_string(networkIdsByCodes, networkCode)
         # for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
@@ -3238,6 +3251,8 @@ class Exchange(object):
         :param str|None currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
         :returns str|None: unified network code
         """
+        if networkId is None:
+            return None
         networkCodesByIds = self.safe_dict(self.options, 'networksById', {})
         networkCode = self.safe_string(networkCodesByIds, networkId, networkId)
         # replace mainnet network-codes(i.e. ERC20->ETH)
@@ -3446,11 +3461,39 @@ class Exchange(object):
         market = self.market(symbol)
         return self.safe_string(market, 'symbol', symbol)
 
+    def handle_param_string(self, params: object, paramName: str, defaultValue=None):
+        value = self.safe_string(params, paramName, defaultValue)
+        if value is not None:
+            params = self.omit(params, paramName)
+        return [value, params]
+
     def resolve_path(self, path, params):
         return [
             self.implode_params(path, params),
             self.omit(params, self.extract_params(path)),
         ]
+
+    def get_list_from_object_values(self, objects, key: IndexType):
+        newArray = self.to_array(objects)
+        results = []
+        for i in range(0, len(newArray)):
+            results.append(newArray[i][key])
+        return results
+
+    def get_symbols_for_market_type(self, marketType: str = None, subType: str = None, symbolWithActiveStatus: bool = True, symbolWithUnknownStatus: bool = True):
+        filteredMarkets = self.markets
+        if marketType is not None:
+            filteredMarkets = self.filter_by(filteredMarkets, 'type', marketType)
+        if subType is not None:
+            self.check_required_argument('getSymbolsForMarketType', subType, 'subType', ['linear', 'inverse', 'quanto'])
+            filteredMarkets = self.filter_by(filteredMarkets, 'subType', subType)
+        activeStatuses = []
+        if symbolWithActiveStatus:
+            activeStatuses.append(True)
+        if symbolWithUnknownStatus:
+            activeStatuses.append(None)
+        filteredMarkets = self.filter_by_array(filteredMarkets, 'active', activeStatuses, False)
+        return self.get_list_from_object_values(filteredMarkets, 'symbol')
 
     def filter_by_array(self, objects, key: IndexType, values=None, indexed=True):
         objects = self.to_array(objects)
@@ -4246,6 +4289,16 @@ class Exchange(object):
                 raise InvalidAddress(self.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website')
             else:
                 return depositAddress
+        elif self.has['fetchDepositAddressesByNetwork']:
+            network = self.safe_string(params, 'network')
+            params = self.omit(params, 'network')
+            addressStructures = self.fetchDepositAddressesByNetwork(code, params)
+            if network is not None:
+                return self.safe_dict(addressStructures, network)
+            else:
+                keys = list(addressStructures.keys())
+                key = self.safe_string(keys, 0)
+                return self.safe_dict(addressStructures, key)
         else:
             raise NotSupported(self.id + ' fetchDepositAddress() is not supported yet')
 

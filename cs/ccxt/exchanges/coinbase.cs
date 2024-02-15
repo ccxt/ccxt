@@ -55,6 +55,7 @@ public partial class coinbase : Exchange
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
+                { "fetchDepositAddressesByNetwork", true },
                 { "fetchDeposits", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
@@ -114,7 +115,7 @@ public partial class coinbase : Exchange
             { "api", new Dictionary<string, object>() {
                 { "v2", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"currencies", "time", "exchange-rates", "users/{user_id}", "prices/{symbol}/buy", "prices/{symbol}/sell", "prices/{symbol}/spot"} },
+                        { "get", new List<object>() {"currencies", "currencies/crypto", "time", "exchange-rates", "users/{user_id}", "prices/{symbol}/buy", "prices/{symbol}/sell", "prices/{symbol}/spot"} },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "get", new List<object>() {"accounts", "accounts/{account_id}", "accounts/{account_id}/addresses", "accounts/{account_id}/addresses/{address_id}", "accounts/{account_id}/addresses/{address_id}/transactions", "accounts/{account_id}/transactions", "accounts/{account_id}/transactions/{transaction_id}", "accounts/{account_id}/buys", "accounts/{account_id}/buys/{buy_id}", "accounts/{account_id}/sells", "accounts/{account_id}/sells/{sell_id}", "accounts/{account_id}/deposits", "accounts/{account_id}/deposits/{deposit_id}", "accounts/{account_id}/withdrawals", "accounts/{account_id}/withdrawals/{withdrawal_id}", "payment-methods", "payment-methods/{payment_method_id}", "user", "user/auth"} },
@@ -193,6 +194,10 @@ public partial class coinbase : Exchange
                 } },
                 { "accounts", new List<object>() {"wallet", "fiat"} },
                 { "v3Accounts", new List<object>() {"ACCOUNT_TYPE_CRYPTO", "ACCOUNT_TYPE_FIAT"} },
+                { "networks", new Dictionary<string, object>() {
+                    { "ERC20", "ethereum" },
+                    { "XLM", "stellar" },
+                } },
                 { "createMarketBuyOrderRequiresPrice", true },
                 { "advanced", true },
                 { "fetchMarkets", "fetchMarketsV3" },
@@ -587,10 +592,12 @@ public partial class coinbase : Exchange
     public async virtual Task<object> fetchTransactionsWithMethod(object method, object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object request = await this.prepareAccountRequestWithCurrencyCode(code, limit, parameters);
+        object request = null;
+        var requestparametersVariable = await this.prepareAccountRequestWithCurrencyCode(code, limit, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         await this.loadMarkets();
-        object query = this.omit(parameters, new List<object>() {"account_id", "accountId"});
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, query) }));
+        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         return this.parseTransactions(getValue(response, "data"), null, since, limit);
     }
 
@@ -1179,15 +1186,42 @@ public partial class coinbase : Exchange
         object now = this.milliseconds();
         if (isTrue(isTrue((isEqual(timestamp, null))) || isTrue((isGreaterThan((subtract(now, timestamp)), expires)))))
         {
-            object currencies = await this.v2PublicGetCurrencies(parameters);
+            object promises = new List<object> {this.v2PublicGetCurrencies(parameters), this.v2PublicGetCurrenciesCrypto(parameters)};
+            object promisesResult = await promiseAll(promises);
+            object fiatResponse = this.safeDict(promisesResult, 0, new Dictionary<string, object>() {});
+            //
+            //    [
+            //        "data": {
+            //            id: 'IMP',
+            //            name: 'Isle of Man Pound',
+            //            min_size: '0.01'
+            //        },
+            //        ...
+            //    ]
+            //
+            object cryptoResponse = this.safeDict(promisesResult, 1, new Dictionary<string, object>() {});
+            //
+            //    {
+            //        asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
+            //        code: 'AERO',
+            //        name: 'Aerodrome Finance',
+            //        color: '#0433FF',
+            //        sort_index: '340',
+            //        exponent: '8',
+            //        type: 'crypto',
+            //        address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
+            //    }
+            //
+            object fiatData = this.safeList(fiatResponse, "data", new List<object>() {});
+            object cryptoData = this.safeList(cryptoResponse, "data", new List<object>() {});
             object exchangeRates = await this.v2PublicGetExchangeRates(parameters);
             ((IDictionary<string,object>)this.options)["fetchCurrencies"] = this.extend(options, new Dictionary<string, object>() {
-                { "currencies", currencies },
+                { "currencies", this.arrayConcat(fiatData, cryptoData) },
                 { "exchangeRates", exchangeRates },
                 { "timestamp", now },
             });
         }
-        return this.safeValue(this.options, "fetchCurrencies", new Dictionary<string, object>() {});
+        return this.safeDict(this.options, "fetchCurrencies", new Dictionary<string, object>() {});
     }
 
     public async override Task<object> fetchCurrencies(object parameters = null)
@@ -1205,18 +1239,27 @@ public partial class coinbase : Exchange
         object response = await this.fetchCurrenciesFromCache(parameters);
         object currencies = this.safeValue(response, "currencies", new Dictionary<string, object>() {});
         //
-        //     {
-        //         "data":[
-        //             {"id":"AED","name":"United Arab Emirates Dirham","min_size":"0.01000000"},
-        //             {"id":"AFN","name":"Afghan Afghani","min_size":"0.01000000"},
-        //             {"id":"ALL","name":"Albanian Lek","min_size":"0.01000000"},
-        //             {"id":"AMD","name":"Armenian Dram","min_size":"0.01000000"},
-        //             {"id":"ANG","name":"Netherlands Antillean Gulden","min_size":"0.01000000"},
-        //             ...
-        //         ],
-        //     }
+        // fiat
         //
-        object exchangeRates = this.safeValue(response, "exchangeRates", new Dictionary<string, object>() {});
+        //    {
+        //        id: 'IMP',
+        //        name: 'Isle of Man Pound',
+        //        min_size: '0.01'
+        //    },
+        //
+        // crypto
+        //
+        //    {
+        //        asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
+        //        code: 'AERO',
+        //        name: 'Aerodrome Finance',
+        //        color: '#0433FF',
+        //        sort_index: '340',
+        //        exponent: '8',
+        //        type: 'crypto',
+        //        address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
+        //    }
+        //
         //
         //     {
         //         "data":{
@@ -1232,25 +1275,24 @@ public partial class coinbase : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(currencies, "data", new List<object>() {});
-        object dataById = this.indexBy(data, "id");
-        object rates = this.safeValue(this.safeValue(exchangeRates, "data", new Dictionary<string, object>() {}), "rates", new Dictionary<string, object>() {});
-        object keys = new List<object>(((IDictionary<string,object>)rates).Keys);
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        object networks = new Dictionary<string, object>() {};
+        object networksById = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
         {
-            object key = getValue(keys, i);
-            object type = ((bool) isTrue((inOp(dataById, key)))) ? "fiat" : "crypto";
-            object currency = this.safeValue(dataById, key, new Dictionary<string, object>() {});
-            object id = this.safeString(currency, "id", key);
-            object name = this.safeString(currency, "name");
+            object currency = getValue(currencies, i);
+            object assetId = this.safeString(currency, "asset_id");
+            object id = this.safeString2(currency, "id", "code");
             object code = this.safeCurrencyCode(id);
+            object name = this.safeString(currency, "name");
+            ((IDictionary<string,object>)getValue(this.options, "networks"))[(string)code] = ((string)name).ToLower();
+            ((IDictionary<string,object>)getValue(this.options, "networksById"))[(string)code] = ((string)name).ToLower();
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                { "info", currency },
                 { "id", id },
                 { "code", code },
-                { "info", currency },
-                { "type", type },
-                { "name", name },
+                { "type", ((bool) isTrue((!isEqual(assetId, null)))) ? "crypto" : "fiat" },
+                { "name", this.safeString(currency, "name") },
                 { "active", true },
                 { "deposit", null },
                 { "withdraw", null },
@@ -1267,7 +1309,15 @@ public partial class coinbase : Exchange
                     } },
                 } },
             };
+            if (isTrue(!isEqual(assetId, null)))
+            {
+                object lowerCaseName = ((string)name).ToLower();
+                ((IDictionary<string,object>)networks)[(string)code] = lowerCaseName;
+                ((IDictionary<string,object>)networksById)[(string)lowerCaseName] = code;
+            }
         }
+        ((IDictionary<string,object>)this.options)["networks"] = this.extend(networks, getValue(this.options, "networks"));
+        ((IDictionary<string,object>)this.options)["networksById"] = this.extend(networksById, getValue(this.options, "networksById"));
         return result;
     }
 
@@ -1788,12 +1838,14 @@ public partial class coinbase : Exchange
         {
             currency = this.currency(code);
         }
-        object request = await this.prepareAccountRequestWithCurrencyCode(code, limit, parameters);
-        object query = this.omit(parameters, new List<object>() {"account_id", "accountId"});
+        object request = null;
+        var requestparametersVariable = await this.prepareAccountRequestWithCurrencyCode(code, limit, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_json_response.pagination.next_starting_after
-        object response = await this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, query));
+        object response = await this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, parameters));
         return this.parseLedger(getValue(response, "data"), currency, since, limit);
     }
 
@@ -2173,6 +2225,7 @@ public partial class coinbase : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object accountId = this.safeString2(parameters, "account_id", "accountId");
+        parameters = this.omit(parameters, new List<object>() {"account_id", "accountId"});
         if (isTrue(isEqual(accountId, null)))
         {
             if (isTrue(isEqual(code, null)))
@@ -2192,7 +2245,7 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        return request;
+        return new List<object>() {request, parameters};
     }
 
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
@@ -3497,6 +3550,147 @@ public partial class coinbase : Exchange
         return this.parseTransaction(data, currency);
     }
 
+    public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
+    {
+        /**
+        * @method
+        * @name ascendex#fetchDepositAddress
+        * @description fetch the deposit address for a currency associated with this account
+        * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
+        * @param {string} code unified currency code
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = null;
+        var requestparametersVariable = await this.prepareAccountRequestWithCurrencyCode(getValue(currency, "code"));
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object response = await this.v2PrivateGetAccountsAccountIdAddresses(this.extend(request, parameters));
+        //
+        //    {
+        //        pagination: {
+        //            ending_before: null,
+        //            starting_after: null,
+        //            previous_ending_before: null,
+        //            next_starting_after: null,
+        //            limit: '25',
+        //            order: 'desc',
+        //            previous_uri: null,
+        //            next_uri: null
+        //        },
+        //        data: [
+        //            {
+        //                id: '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        //                address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        //                address_info: { address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk' },
+        //                name: null,
+        //                created_at: '2023-05-29T21:12:12Z',
+        //                updated_at: '2023-05-29T21:12:12Z',
+        //                network: 'solana',
+        //                uri_scheme: 'solana',
+        //                resource: 'address',
+        //                resource_path: '/v2/accounts/a7b3d387-bfb8-5ce7-b8da-1f507e81cf25/addresses/64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        //                warnings: [
+        //                    {
+        //                    type: 'correct_address_warning',
+        //                    title: 'This is an ERC20 USDC address.',
+        //                    details: 'Only send ERC20 USD Coin (USDC) to this address.',
+        //                    image_url: 'https://www.coinbase.com/assets/addresses/global-receive-warning-a3d91807e61c717e5a38d270965003dcc025ca8a3cea40ec3d7835b7c86087fa.png',
+        //                    options: [ { text: 'I understand', style: 'primary', id: 'dismiss' } ]
+        //                    }
+        //                ],
+        //                qr_code_image_url: 'https://static-assets.coinbase.com/p2p/l2/asset_network_combinations/v5/usdc-solana.png',
+        //                address_label: 'USDC address (Solana)',
+        //                default_receive: true,
+        //                deposit_uri: 'solana:5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk?spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        //                callback_url: null,
+        //                share_address_copy: {
+        //                    line1: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        //                    line2: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.'
+        //                },
+        //                receive_subtitle: 'ERC-20',
+        //                inline_warning: {
+        //                    text: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.',
+        //                    tooltip: {
+        //                    title: 'USDC (Solana)',
+        //                    subtitle: 'This address can only receive USDC-SPL from Solana network.'
+        //                    }
+        //                }
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        object addressStructures = this.parseDepositAddresses(data, null, false);
+        return this.indexBy(addressStructures, "network");
+    }
+
+    public override object parseDepositAddress(object depositAddress, object currency = null)
+    {
+        //
+        //    {
+        //        id: '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        //        address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        //        address_info: {
+        //            address: 'GCF74576I7AQ56SLMKBQAP255EGUOWCRVII3S44KEXVNJEOIFVBDMXVL',
+        //            destination_tag: '3722061866'
+        //        },
+        //        name: null,
+        //        created_at: '2023-05-29T21:12:12Z',
+        //        updated_at: '2023-05-29T21:12:12Z',
+        //        network: 'solana',
+        //        uri_scheme: 'solana',
+        //        resource: 'address',
+        //        resource_path: '/v2/accounts/a7b3d387-bfb8-5ce7-b8da-1f507e81cf25/addresses/64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        //        warnings: [
+        //            {
+        //            type: 'correct_address_warning',
+        //            title: 'This is an ERC20 USDC address.',
+        //            details: 'Only send ERC20 USD Coin (USDC) to this address.',
+        //            image_url: 'https://www.coinbase.com/assets/addresses/global-receive-warning-a3d91807e61c717e5a38d270965003dcc025ca8a3cea40ec3d7835b7c86087fa.png',
+        //            options: [ { text: 'I understand', style: 'primary', id: 'dismiss' } ]
+        //            }
+        //        ],
+        //        qr_code_image_url: 'https://static-assets.coinbase.com/p2p/l2/asset_network_combinations/v5/usdc-solana.png',
+        //        address_label: 'USDC address (Solana)',
+        //        default_receive: true,
+        //        deposit_uri: 'solana:5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk?spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        //        callback_url: null,
+        //        share_address_copy: {
+        //            line1: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        //            line2: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.'
+        //        },
+        //        receive_subtitle: 'ERC-20',
+        //        inline_warning: {
+        //            text: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.',
+        //            tooltip: {
+        //            title: 'USDC (Solana)',
+        //            subtitle: 'This address can only receive USDC-SPL from Solana network.'
+        //            }
+        //        }
+        //    }
+        //
+        object address = this.safeString(depositAddress, "address");
+        this.checkAddress(address);
+        object networkId = this.safeString(depositAddress, "network");
+        object code = this.safeCurrencyCode(null, currency);
+        object addressLabel = this.safeString(depositAddress, "address_label");
+        object splitAddressLabel = ((string)addressLabel).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
+        object marketId = this.safeString(splitAddressLabel, 0);
+        object addressInfo = this.safeDict(depositAddress, "address_info");
+        return new Dictionary<string, object>() {
+            { "info", depositAddress },
+            { "currency", this.safeCurrencyCode(marketId, currency) },
+            { "address", address },
+            { "tag", this.safeString(addressInfo, "destination_tag") },
+            { "network", this.networkIdToCode(networkId, code) },
+        };
+    }
+
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= new List<object>();
@@ -3551,14 +3745,7 @@ public partial class coinbase : Exchange
                         payload = body;
                     }
                 }
-                object auth = null;
-                if (isTrue(isEqual(version, "v3")))
-                {
-                    auth = add(add(add(nonce, method), savedPath), payload);
-                } else
-                {
-                    auth = add(add(add(nonce, method), fullPath), payload);
-                }
+                object auth = add(add(add(nonce, method), savedPath), payload);
                 object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 headers = new Dictionary<string, object>() {
                     { "CB-ACCESS-KEY", this.apiKey },

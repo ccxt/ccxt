@@ -59,6 +59,7 @@ class coinbase extends Exchange {
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
+                'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
@@ -126,6 +127,7 @@ class coinbase extends Exchange {
                     'public' => array(
                         'get' => array(
                             'currencies',
+                            'currencies/crypto',
                             'time',
                             'exchange-rates',
                             'users/{user_id}',
@@ -319,6 +321,10 @@ class coinbase extends Exchange {
                 'v3Accounts' => array(
                     'ACCOUNT_TYPE_CRYPTO',
                     'ACCOUNT_TYPE_FIAT',
+                ),
+                'networks' => array(
+                    'ERC20' => 'ethereum',
+                    'XLM' => 'stellar',
                 ),
                 'createMarketBuyOrderRequiresPrice' => true,
                 'advanced' => true, // set to true if using any v3 endpoints from the advanced trade API
@@ -674,10 +680,10 @@ class coinbase extends Exchange {
     }
 
     public function fetch_transactions_with_method($method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
-        $request = $this->prepare_account_request_with_currency_code($code, $limit, $params);
+        $request = null;
+        list($request, $params) = $this->prepare_account_request_with_currency_code($code, $limit, $params);
         $this->load_markets();
-        $query = $this->omit($params, array( 'account_id', 'accountId' ));
-        $response = $this->$method (array_merge($request, $query));
+        $response = $this->$method (array_merge($request, $params));
         return $this->parse_transactions($response['data'], null, $since, $limit);
     }
 
@@ -1228,40 +1234,79 @@ class coinbase extends Exchange {
         $expires = $this->safe_integer($options, 'expires', 1000);
         $now = $this->milliseconds();
         if (($timestamp === null) || (($now - $timestamp) > $expires)) {
-            $currencies = $this->v2PublicGetCurrencies ($params);
+            $promises = array(
+                $this->v2PublicGetCurrencies ($params),
+                $this->v2PublicGetCurrenciesCrypto ($params),
+            );
+            $promisesResult = $promises;
+            $fiatResponse = $this->safe_dict($promisesResult, 0, array());
+            //
+            //    array(
+            //        "data" => array(
+            //            id => 'IMP',
+            //            name => 'Isle of Man Pound',
+            //            min_size => '0.01'
+            //        ),
+            //        ...
+            //    )
+            //
+            $cryptoResponse = $this->safe_dict($promisesResult, 1, array());
+            //
+            //    {
+            //        asset_id => '9476e3be-b731-47fa-82be-347fabc573d9',
+            //        code => 'AERO',
+            //        name => 'Aerodrome Finance',
+            //        color => '#0433FF',
+            //        sort_index => '340',
+            //        exponent => '8',
+            //        type => 'crypto',
+            //        address_regex => '^(?:0x)?[0-9a-fA-F]{40}$'
+            //    }
+            //
+            $fiatData = $this->safe_list($fiatResponse, 'data', array());
+            $cryptoData = $this->safe_list($cryptoResponse, 'data', array());
             $exchangeRates = $this->v2PublicGetExchangeRates ($params);
             $this->options['fetchCurrencies'] = array_merge($options, array(
-                'currencies' => $currencies,
+                'currencies' => $this->array_concat($fiatData, $cryptoData),
                 'exchangeRates' => $exchangeRates,
                 'timestamp' => $now,
             ));
         }
-        return $this->safe_value($this->options, 'fetchCurrencies', array());
+        return $this->safe_dict($this->options, 'fetchCurrencies', array());
     }
 
     public function fetch_currencies($params = array ()) {
         /**
          * fetches all available $currencies on an exchange
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-$currencies#get-fiat-$currencies
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-$rates#get-exchange-$rates
+         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of $currencies
          */
         $response = $this->fetch_currencies_from_cache($params);
         $currencies = $this->safe_value($response, 'currencies', array());
         //
-        //     {
-        //         "data":array(
-        //             array("id":"AED","name":"United Arab Emirates Dirham","min_size":"0.01000000"),
-        //             array("id":"AFN","name":"Afghan Afghani","min_size":"0.01000000"),
-        //             array("id":"ALL","name":"Albanian Lek","min_size":"0.01000000"),
-        //             array("id":"AMD","name":"Armenian Dram","min_size":"0.01000000"),
-        //             array("id":"ANG","name":"Netherlands Antillean Gulden","min_size":"0.01000000"),
-        //             ...
-        //         ),
-        //     }
+        // fiat
         //
-        $exchangeRates = $this->safe_value($response, 'exchangeRates', array());
+        //    array(
+        //        $id => 'IMP',
+        //        $name => 'Isle of Man Pound',
+        //        min_size => '0.01'
+        //    ),
+        //
+        // crypto
+        //
+        //    {
+        //        asset_id => '9476e3be-b731-47fa-82be-347fabc573d9',
+        //        $code => 'AERO',
+        //        $name => 'Aerodrome Finance',
+        //        color => '#0433FF',
+        //        sort_index => '340',
+        //        exponent => '8',
+        //        type => 'crypto',
+        //        address_regex => '^(?:0x)?[0-9a-fA-F]{40}$'
+        //    }
+        //
         //
         //     {
         //         "data":{
@@ -1277,24 +1322,23 @@ class coinbase extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($currencies, 'data', array());
-        $dataById = $this->index_by($data, 'id');
-        $rates = $this->safe_value($this->safe_value($exchangeRates, 'data', array()), 'rates', array());
-        $keys = is_array($rates) ? array_keys($rates) : array();
         $result = array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            $type = (is_array($dataById) && array_key_exists($key, $dataById)) ? 'fiat' : 'crypto';
-            $currency = $this->safe_value($dataById, $key, array());
-            $id = $this->safe_string($currency, 'id', $key);
-            $name = $this->safe_string($currency, 'name');
+        $networks = array();
+        $networksById = array();
+        for ($i = 0; $i < count($currencies); $i++) {
+            $currency = $currencies[$i];
+            $assetId = $this->safe_string($currency, 'asset_id');
+            $id = $this->safe_string_2($currency, 'id', 'code');
             $code = $this->safe_currency_code($id);
+            $name = $this->safe_string($currency, 'name');
+            $this->options['networks'][$code] = strtolower($name);
+            $this->options['networksById'][$code] = strtolower($name);
             $result[$code] = array(
+                'info' => $currency, // the original payload
                 'id' => $id,
                 'code' => $code,
-                'info' => $currency, // the original payload
-                'type' => $type,
-                'name' => $name,
+                'type' => ($assetId !== null) ? 'crypto' : 'fiat',
+                'name' => $this->safe_string($currency, 'name'),
                 'active' => true,
                 'deposit' => null,
                 'withdraw' => null,
@@ -1311,7 +1355,14 @@ class coinbase extends Exchange {
                     ),
                 ),
             );
+            if ($assetId !== null) {
+                $lowerCaseName = strtolower($name);
+                $networks[$code] = $lowerCaseName;
+                $networksById[$lowerCaseName] = $code;
+            }
         }
+        $this->options['networks'] = array_merge($networks, $this->options['networks']);
+        $this->options['networksById'] = array_merge($networksById, $this->options['networksById']);
         return $result;
     }
 
@@ -1787,12 +1838,12 @@ class coinbase extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $request = $this->prepare_account_request_with_currency_code($code, $limit, $params);
-        $query = $this->omit($params, array( 'account_id', 'accountId' ));
+        $request = null;
+        list($request, $params) = $this->prepare_account_request_with_currency_code($code, $limit, $params);
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg => instance.last_json_response.pagination.next_starting_after
-        $response = $this->v2PrivateGetAccountsAccountIdTransactions (array_merge($request, $query));
+        $response = $this->v2PrivateGetAccountsAccountIdTransactions (array_merge($request, $params));
         return $this->parse_ledger($response['data'], $currency, $since, $limit);
     }
 
@@ -2155,6 +2206,7 @@ class coinbase extends Exchange {
 
     public function prepare_account_request_with_currency_code(?string $code = null, ?int $limit = null, $params = array ()) {
         $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
+        $params = $this->omit($params, array( 'account_id', 'accountId' ));
         if ($accountId === null) {
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . ' prepareAccountRequestWithCurrencyCode() method requires an account_id (or $accountId) parameter OR a currency $code argument');
@@ -2170,7 +2222,7 @@ class coinbase extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        return $request;
+        return array( $request, $params );
     }
 
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
@@ -3319,6 +3371,140 @@ class coinbase extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
+        /**
+         * fetch the deposit address for a $currency associated with this account
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
+         * @param {string} $code unified $currency $code
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = null;
+        list($request, $params) = $this->prepare_account_request_with_currency_code($currency['code']);
+        $response = $this->v2PrivateGetAccountsAccountIdAddresses (array_merge($request, $params));
+        //
+        //    {
+        //        pagination => array(
+        //            ending_before => null,
+        //            starting_after => null,
+        //            previous_ending_before => null,
+        //            next_starting_after => null,
+        //            limit => '25',
+        //            order => 'desc',
+        //            previous_uri => null,
+        //            next_uri => null
+        //        ),
+        //        $data => array(
+        //            {
+        //                id => '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        //                address => '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        //                address_info => array( address => '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk' ),
+        //                name => null,
+        //                created_at => '2023-05-29T21:12:12Z',
+        //                updated_at => '2023-05-29T21:12:12Z',
+        //                network => 'solana',
+        //                uri_scheme => 'solana',
+        //                resource => 'address',
+        //                resource_path => '/v2/accounts/a7b3d387-bfb8-5ce7-b8da-1f507e81cf25/addresses/64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        //                warnings => array(
+        //                    {
+        //                    type => 'correct_address_warning',
+        //                    title => 'This is an ERC20 USDC address.',
+        //                    details => 'Only send ERC20 USD Coin (USDC) to this address.',
+        //                    image_url => 'https://www.coinbase.com/assets/addresses/global-receive-warning-a3d91807e61c717e5a38d270965003dcc025ca8a3cea40ec3d7835b7c86087fa.png',
+        //                    options => array( array( text => 'I understand', style => 'primary', id => 'dismiss' ) )
+        //                    }
+        //                ),
+        //                qr_code_image_url => 'https://static-assets.coinbase.com/p2p/l2/asset_network_combinations/v5/usdc-solana.png',
+        //                address_label => 'USDC address (Solana)',
+        //                default_receive => true,
+        //                deposit_uri => 'solana:5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk?spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        //                callback_url => null,
+        //                share_address_copy => array(
+        //                    line1 => '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        //                    line2 => 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.'
+        //                ),
+        //                receive_subtitle => 'ERC-20',
+        //                inline_warning => {
+        //                    text => 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.',
+        //                    tooltip => array(
+        //                    title => 'USDC (Solana)',
+        //                    subtitle => 'This address can only receive USDC-SPL from Solana network.'
+        //                    }
+        //                }
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        $addressStructures = $this->parse_deposit_addresses($data, null, false);
+        return $this->index_by($addressStructures, 'network');
+    }
+
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+        //
+        //    {
+        //        id => '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        //        $address => '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        //        address_info => array(
+        //            $address => 'GCF74576I7AQ56SLMKBQAP255EGUOWCRVII3S44KEXVNJEOIFVBDMXVL',
+        //            destination_tag => '3722061866'
+        //        ),
+        //        name => null,
+        //        created_at => '2023-05-29T21:12:12Z',
+        //        updated_at => '2023-05-29T21:12:12Z',
+        //        network => 'solana',
+        //        uri_scheme => 'solana',
+        //        resource => 'address',
+        //        resource_path => '/v2/accounts/a7b3d387-bfb8-5ce7-b8da-1f507e81cf25/addresses/64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        //        warnings => array(
+        //            {
+        //            type => 'correct_address_warning',
+        //            title => 'This is an ERC20 USDC $address->',
+        //            details => 'Only send ERC20 USD Coin (USDC) to this $address->',
+        //            image_url => 'https://www.coinbase.com/assets/addresses/global-receive-warning-a3d91807e61c717e5a38d270965003dcc025ca8a3cea40ec3d7835b7c86087fa.png',
+        //            options => array( array( text => 'I understand', style => 'primary', id => 'dismiss' ) )
+        //            }
+        //        ),
+        //        qr_code_image_url => 'https://static-assets.coinbase.com/p2p/l2/asset_network_combinations/v5/usdc-solana.png',
+        //        address_label => 'USDC $address (Solana)',
+        //        default_receive => true,
+        //        deposit_uri => 'solana:5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk?spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        //        callback_url => null,
+        //        share_address_copy => array(
+        //            line1 => '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        //            line2 => 'This $address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.'
+        //        ),
+        //        receive_subtitle => 'ERC-20',
+        //        inline_warning => {
+        //            text => 'This $address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.',
+        //            tooltip => {
+        //            title => 'USDC (Solana)',
+        //            subtitle => 'This $address can only receive USDC-SPL from Solana network.'
+        //            }
+        //        }
+        //    }
+        //
+        $address = $this->safe_string($depositAddress, 'address');
+        $this->check_address($address);
+        $networkId = $this->safe_string($depositAddress, 'network');
+        $code = $this->safe_currency_code(null, $currency);
+        $addressLabel = $this->safe_string($depositAddress, 'address_label');
+        $splitAddressLabel = explode(' ', $addressLabel);
+        $marketId = $this->safe_string($splitAddressLabel, 0);
+        $addressInfo = $this->safe_dict($depositAddress, 'address_info');
+        return array(
+            'info' => $depositAddress,
+            'currency' => $this->safe_currency_code($marketId, $currency),
+            'address' => $address,
+            'tag' => $this->safe_string($addressInfo, 'destination_tag'),
+            'network' => $this->network_id_to_code($networkId, $code),
+        );
+    }
+
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
         $version = $api[0];
         $signed = $api[1] === 'private';
@@ -3359,12 +3545,7 @@ class coinbase extends Exchange {
                         $payload = $body;
                     }
                 }
-                $auth = null;
-                if ($version === 'v3') {
-                    $auth = $nonce . $method . $savedPath . $payload;
-                } else {
-                    $auth = $nonce . $method . $fullPath . $payload;
-                }
+                $auth = $nonce . $method . $savedPath . $payload;
                 $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
                 $headers = array(
                     'CB-ACCESS-KEY' => $this->apiKey,

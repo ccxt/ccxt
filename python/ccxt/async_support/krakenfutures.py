@@ -837,6 +837,7 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         market = self.market(symbol)
+        symbol = market['symbol']
         type = self.safe_string(params, 'orderType', type)
         timeInForce = self.safe_string(params, 'timeInForce')
         postOnly = False
@@ -852,7 +853,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
             'side': side,
-            'size': amount,
+            'size': self.amount_to_precision(symbol, amount),
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'cliOrdId')
         if clientOrderId is not None:
@@ -883,7 +884,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             request['reduceOnly'] = True
         request['orderType'] = type
         if price is not None:
-            request['limitPrice'] = price
+            request['limitPrice'] = self.price_to_precision(symbol, price)
         params = self.omit(params, ['clientOrderId', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
         return self.extend(request, params)
 

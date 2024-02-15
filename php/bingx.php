@@ -47,6 +47,7 @@ class bingx extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
@@ -383,6 +384,7 @@ class bingx extends Exchange {
                 'broad' => array(),
             ),
             'commonCurrencies' => array(
+                'SNOW' => 'Snowman', // Snowman vs SnowSwap conflict
             ),
             'options' => array(
                 'defaultType' => 'spot',
@@ -398,6 +400,13 @@ class bingx extends Exchange {
                 ),
                 'recvWindow' => 5 * 1000, // 5 sec
                 'broker' => 'CCXT',
+                'defaultNetworks' => array(
+                    'ETH' => 'ETH',
+                    'USDT' => 'ERC20',
+                    'USDC' => 'ERC20',
+                    'BTC' => 'BTC',
+                    'LTC' => 'LTC',
+                ),
             ),
         ));
     }
@@ -3029,13 +3038,13 @@ class bingx extends Exchange {
         );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
         /**
-         * fetch the deposit address for a $currency associated with this account
-         * @see https://bingx-api.github.io/docs/#/common/sub-account#Query%20Main%20Account%20Deposit%20Address
+         * fetch the deposit addresses for a $currency associated with this account
+         * @see https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+         * @return {array} a dictionary ~@link https://docs.ccxt.com/#/?id=address-structure address structures~, indexed by the network
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -3069,6 +3078,33 @@ class bingx extends Exchange {
         $data = $this->safe_value($this->safe_value($response, 'data'), 'data');
         $parsed = $this->parse_deposit_addresses($data, [ $currency['code'] ], false);
         return $this->index_by($parsed, 'network');
+    }
+
+    public function fetch_deposit_address(string $code, $params = array ()) {
+        /**
+         * fetch the deposit address for a currency associated with this account
+         * @see https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address
+         * @param {string} $code unified currency $code
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->network] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+         */
+        $network = $this->safe_string($params, 'network');
+        $params = $this->omit($params, array( 'network' ));
+        $addressStructures = $this->fetch_deposit_addresses_by_network($code, $params);
+        if ($network !== null) {
+            return $this->safe_dict($addressStructures, $network);
+        } else {
+            $options = $this->safe_dict($this->options, 'defaultNetworks');
+            $defaultNetworkForCurrency = $this->safe_string($options, $code);
+            if ($defaultNetworkForCurrency !== null) {
+                return $this->safe_dict($addressStructures, $defaultNetworkForCurrency);
+            } else {
+                $keys = is_array($addressStructures) ? array_keys($addressStructures) : array();
+                $key = $this->safe_string($keys, 0);
+                return $this->safe_dict($addressStructures, $key);
+            }
+        }
     }
 
     public function parse_deposit_address($depositAddress, ?array $currency = null) {
@@ -3337,7 +3373,7 @@ class bingx extends Exchange {
         return $this->swapV2PrivatePostTradeMarginType (array_merge($request, $params));
     }
 
-    public function set_margin(string $symbol, $amount, $params = array ()) {
+    public function set_margin(string $symbol, float $amount, $params = array ()) {
         /**
          * Either adds or reduces margin in an isolated position in order to set the margin to a specific value
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Adjust%20isolated%20margin

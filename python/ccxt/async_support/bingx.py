@@ -64,6 +64,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
@@ -400,6 +401,7 @@ class bingx(Exchange, ImplicitAPI):
                 'broad': {},
             },
             'commonCurrencies': {
+                'SNOW': 'Snowman',  # Snowman vs SnowSwap conflict
             },
             'options': {
                 'defaultType': 'spot',
@@ -415,6 +417,13 @@ class bingx(Exchange, ImplicitAPI):
                 },
                 'recvWindow': 5 * 1000,  # 5 sec
                 'broker': 'CCXT',
+                'defaultNetworks': {
+                    'ETH': 'ETH',
+                    'USDT': 'ERC20',
+                    'USDC': 'ERC20',
+                    'BTC': 'BTC',
+                    'LTC': 'LTC',
+                },
             },
         })
 
@@ -2896,13 +2905,13 @@ class bingx(Exchange, ImplicitAPI):
             'status': status,
         }
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}):
         """
-        fetch the deposit address for a currency associated with self account
-        :see: https://bingx-api.github.io/docs/#/common/sub-account#Query%20Main%20Account%20Deposit%20Address
+        fetch the deposit addresses for a currency associated with self account
+        :see: https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: a dictionary `address structures <https://docs.ccxt.com/#/?id=address-structure>`, indexed by the network
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -2936,6 +2945,30 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_value(self.safe_value(response, 'data'), 'data')
         parsed = self.parse_deposit_addresses(data, [currency['code']], False)
         return self.index_by(parsed, 'network')
+
+    async def fetch_deposit_address(self, code: str, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :see: https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        network = self.safe_string(params, 'network')
+        params = self.omit(params, ['network'])
+        addressStructures = await self.fetch_deposit_addresses_by_network(code, params)
+        if network is not None:
+            return self.safe_dict(addressStructures, network)
+        else:
+            options = self.safe_dict(self.options, 'defaultNetworks')
+            defaultNetworkForCurrency = self.safe_string(options, code)
+            if defaultNetworkForCurrency is not None:
+                return self.safe_dict(addressStructures, defaultNetworkForCurrency)
+            else:
+                keys = list(addressStructures.keys())
+                key = self.safe_string(keys, 0)
+                return self.safe_dict(addressStructures, key)
 
     def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
@@ -3184,7 +3217,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         return await self.swapV2PrivatePostTradeMarginType(self.extend(request, params))
 
-    async def set_margin(self, symbol: str, amount, params={}):
+    async def set_margin(self, symbol: str, amount: float, params={}):
         """
         Either adds or reduces margin in an isolated position in order to set the margin to a specific value
         :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Adjust%20isolated%20margin

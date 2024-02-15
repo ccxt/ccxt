@@ -1391,7 +1391,7 @@ public partial class kucoinfutures : kucoin
         return this.safeValue(response, "data");
     }
 
-    public async virtual Task<object> addMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method

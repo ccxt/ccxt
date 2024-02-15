@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.41'
+__version__ = '4.2.45'
 
 # -----------------------------------------------------------------------------
 
@@ -657,6 +657,15 @@ class Exchange(BaseExchange):
     async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' setPositionMode() is not supported yet')
 
+    async def add_margin(self, symbol: str, amount: float, params={}):
+        raise NotSupported(self.id + ' addMargin() is not supported yet')
+
+    async def reduce_margin(self, symbol: str, amount: float, params={}):
+        raise NotSupported(self.id + ' reduceMargin() is not supported yet')
+
+    async def set_margin(self, symbol: str, amount: float, params={}):
+        raise NotSupported(self.id + ' setMargin() is not supported yet')
+
     async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' setMarginMode() is not supported yet')
 
@@ -1298,6 +1307,16 @@ class Exchange(BaseExchange):
                 raise InvalidAddress(self.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website')
             else:
                 return depositAddress
+        elif self.has['fetchDepositAddressesByNetwork']:
+            network = self.safe_string(params, 'network')
+            params = self.omit(params, 'network')
+            addressStructures = await self.fetchDepositAddressesByNetwork(code, params)
+            if network is not None:
+                return self.safe_dict(addressStructures, network)
+            else:
+                keys = list(addressStructures.keys())
+                key = self.safe_string(keys, 0)
+                return self.safe_dict(addressStructures, key)
         else:
             raise NotSupported(self.id + ' fetchDepositAddress() is not supported yet')
 

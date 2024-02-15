@@ -65,6 +65,7 @@ export default class coinbase extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
+                'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -132,6 +133,7 @@ export default class coinbase extends Exchange {
                     'public': {
                         'get': [
                             'currencies',
+                            'currencies/crypto',
                             'time',
                             'exchange-rates',
                             'users/{user_id}',
@@ -326,6 +328,10 @@ export default class coinbase extends Exchange {
                     'ACCOUNT_TYPE_CRYPTO',
                     'ACCOUNT_TYPE_FIAT',
                 ],
+                'networks': {
+                    'ERC20': 'ethereum',
+                    'XLM': 'stellar',
+                },
                 'createMarketBuyOrderRequiresPrice': true,
                 'advanced': true,
                 'fetchMarkets': 'fetchMarketsV3',
@@ -681,10 +687,10 @@ export default class coinbase extends Exchange {
         return this.parseTrades(buys['data'], undefined, since, limit);
     }
     async fetchTransactionsWithMethod(method, code = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = await this.prepareAccountRequestWithCurrencyCode(code, limit, params);
+        let request = undefined;
+        [request, params] = await this.prepareAccountRequestWithCurrencyCode(code, limit, params);
         await this.loadMarkets();
-        const query = this.omit(params, ['account_id', 'accountId']);
-        const response = await this[method](this.extend(request, query));
+        const response = await this[method](this.extend(request, params));
         return this.parseTransactions(response['data'], undefined, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1236,15 +1242,45 @@ export default class coinbase extends Exchange {
         const expires = this.safeInteger(options, 'expires', 1000);
         const now = this.milliseconds();
         if ((timestamp === undefined) || ((now - timestamp) > expires)) {
-            const currencies = await this.v2PublicGetCurrencies(params);
+            const promises = [
+                this.v2PublicGetCurrencies(params),
+                this.v2PublicGetCurrenciesCrypto(params),
+            ];
+            const promisesResult = await Promise.all(promises);
+            const fiatResponse = this.safeDict(promisesResult, 0, {});
+            //
+            //    [
+            //        "data": {
+            //            id: 'IMP',
+            //            name: 'Isle of Man Pound',
+            //            min_size: '0.01'
+            //        },
+            //        ...
+            //    ]
+            //
+            const cryptoResponse = this.safeDict(promisesResult, 1, {});
+            //
+            //    {
+            //        asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
+            //        code: 'AERO',
+            //        name: 'Aerodrome Finance',
+            //        color: '#0433FF',
+            //        sort_index: '340',
+            //        exponent: '8',
+            //        type: 'crypto',
+            //        address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
+            //    }
+            //
+            const fiatData = this.safeList(fiatResponse, 'data', []);
+            const cryptoData = this.safeList(cryptoResponse, 'data', []);
             const exchangeRates = await this.v2PublicGetExchangeRates(params);
             this.options['fetchCurrencies'] = this.extend(options, {
-                'currencies': currencies,
+                'currencies': this.arrayConcat(fiatData, cryptoData),
                 'exchangeRates': exchangeRates,
                 'timestamp': now,
             });
         }
-        return this.safeValue(this.options, 'fetchCurrencies', {});
+        return this.safeDict(this.options, 'fetchCurrencies', {});
     }
     async fetchCurrencies(params = {}) {
         /**
@@ -1259,18 +1295,27 @@ export default class coinbase extends Exchange {
         const response = await this.fetchCurrenciesFromCache(params);
         const currencies = this.safeValue(response, 'currencies', {});
         //
-        //     {
-        //         "data":[
-        //             {"id":"AED","name":"United Arab Emirates Dirham","min_size":"0.01000000"},
-        //             {"id":"AFN","name":"Afghan Afghani","min_size":"0.01000000"},
-        //             {"id":"ALL","name":"Albanian Lek","min_size":"0.01000000"},
-        //             {"id":"AMD","name":"Armenian Dram","min_size":"0.01000000"},
-        //             {"id":"ANG","name":"Netherlands Antillean Gulden","min_size":"0.01000000"},
-        //             ...
-        //         ],
-        //     }
+        // fiat
         //
-        const exchangeRates = this.safeValue(response, 'exchangeRates', {});
+        //    {
+        //        id: 'IMP',
+        //        name: 'Isle of Man Pound',
+        //        min_size: '0.01'
+        //    },
+        //
+        // crypto
+        //
+        //    {
+        //        asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
+        //        code: 'AERO',
+        //        name: 'Aerodrome Finance',
+        //        color: '#0433FF',
+        //        sort_index: '340',
+        //        exponent: '8',
+        //        type: 'crypto',
+        //        address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
+        //    }
+        //
         //
         //     {
         //         "data":{
@@ -1286,24 +1331,23 @@ export default class coinbase extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(currencies, 'data', []);
-        const dataById = this.indexBy(data, 'id');
-        const rates = this.safeValue(this.safeValue(exchangeRates, 'data', {}), 'rates', {});
-        const keys = Object.keys(rates);
         const result = {};
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const type = (key in dataById) ? 'fiat' : 'crypto';
-            const currency = this.safeValue(dataById, key, {});
-            const id = this.safeString(currency, 'id', key);
-            const name = this.safeString(currency, 'name');
+        const networks = {};
+        const networksById = {};
+        for (let i = 0; i < currencies.length; i++) {
+            const currency = currencies[i];
+            const assetId = this.safeString(currency, 'asset_id');
+            const id = this.safeString2(currency, 'id', 'code');
             const code = this.safeCurrencyCode(id);
+            const name = this.safeString(currency, 'name');
+            this.options['networks'][code] = name.toLowerCase();
+            this.options['networksById'][code] = name.toLowerCase();
             result[code] = {
+                'info': currency,
                 'id': id,
                 'code': code,
-                'info': currency,
-                'type': type,
-                'name': name,
+                'type': (assetId !== undefined) ? 'crypto' : 'fiat',
+                'name': this.safeString(currency, 'name'),
                 'active': true,
                 'deposit': undefined,
                 'withdraw': undefined,
@@ -1320,7 +1364,14 @@ export default class coinbase extends Exchange {
                     },
                 },
             };
+            if (assetId !== undefined) {
+                const lowerCaseName = name.toLowerCase();
+                networks[code] = lowerCaseName;
+                networksById[lowerCaseName] = code;
+            }
         }
+        this.options['networks'] = this.extend(networks, this.options['networks']);
+        this.options['networksById'] = this.extend(networksById, this.options['networksById']);
         return result;
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -1798,12 +1849,12 @@ export default class coinbase extends Exchange {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const request = await this.prepareAccountRequestWithCurrencyCode(code, limit, params);
-        const query = this.omit(params, ['account_id', 'accountId']);
+        let request = undefined;
+        [request, params] = await this.prepareAccountRequestWithCurrencyCode(code, limit, params);
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_json_response.pagination.next_starting_after
-        const response = await this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, query));
+        const response = await this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, params));
         return this.parseLedger(response['data'], currency, since, limit);
     }
     parseLedgerEntryStatus(status) {
@@ -2161,6 +2212,7 @@ export default class coinbase extends Exchange {
     }
     async prepareAccountRequestWithCurrencyCode(code = undefined, limit = undefined, params = {}) {
         let accountId = this.safeString2(params, 'account_id', 'accountId');
+        params = this.omit(params, ['account_id', 'accountId']);
         if (accountId === undefined) {
             if (code === undefined) {
                 throw new ArgumentsRequired(this.id + ' prepareAccountRequestWithCurrencyCode() method requires an account_id (or accountId) parameter OR a currency code argument');
@@ -2176,7 +2228,7 @@ export default class coinbase extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        return request;
+        return [request, params];
     }
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
         /**
@@ -3349,6 +3401,140 @@ export default class coinbase extends Exchange {
         const data = this.safeValue(response, 'data', {});
         return this.parseTransaction(data, currency);
     }
+    async fetchDepositAddressesByNetwork(code, params = {}) {
+        /**
+         * @method
+         * @name ascendex#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        let request = undefined;
+        [request, params] = await this.prepareAccountRequestWithCurrencyCode(currency['code']);
+        const response = await this.v2PrivateGetAccountsAccountIdAddresses(this.extend(request, params));
+        //
+        //    {
+        //        pagination: {
+        //            ending_before: null,
+        //            starting_after: null,
+        //            previous_ending_before: null,
+        //            next_starting_after: null,
+        //            limit: '25',
+        //            order: 'desc',
+        //            previous_uri: null,
+        //            next_uri: null
+        //        },
+        //        data: [
+        //            {
+        //                id: '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        //                address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        //                address_info: { address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk' },
+        //                name: null,
+        //                created_at: '2023-05-29T21:12:12Z',
+        //                updated_at: '2023-05-29T21:12:12Z',
+        //                network: 'solana',
+        //                uri_scheme: 'solana',
+        //                resource: 'address',
+        //                resource_path: '/v2/accounts/a7b3d387-bfb8-5ce7-b8da-1f507e81cf25/addresses/64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        //                warnings: [
+        //                    {
+        //                    type: 'correct_address_warning',
+        //                    title: 'This is an ERC20 USDC address.',
+        //                    details: 'Only send ERC20 USD Coin (USDC) to this address.',
+        //                    image_url: 'https://www.coinbase.com/assets/addresses/global-receive-warning-a3d91807e61c717e5a38d270965003dcc025ca8a3cea40ec3d7835b7c86087fa.png',
+        //                    options: [ { text: 'I understand', style: 'primary', id: 'dismiss' } ]
+        //                    }
+        //                ],
+        //                qr_code_image_url: 'https://static-assets.coinbase.com/p2p/l2/asset_network_combinations/v5/usdc-solana.png',
+        //                address_label: 'USDC address (Solana)',
+        //                default_receive: true,
+        //                deposit_uri: 'solana:5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk?spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        //                callback_url: null,
+        //                share_address_copy: {
+        //                    line1: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        //                    line2: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.'
+        //                },
+        //                receive_subtitle: 'ERC-20',
+        //                inline_warning: {
+        //                    text: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.',
+        //                    tooltip: {
+        //                    title: 'USDC (Solana)',
+        //                    subtitle: 'This address can only receive USDC-SPL from Solana network.'
+        //                    }
+        //                }
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const data = this.safeList(response, 'data', []);
+        const addressStructures = this.parseDepositAddresses(data, undefined, false);
+        return this.indexBy(addressStructures, 'network');
+    }
+    parseDepositAddress(depositAddress, currency = undefined) {
+        //
+        //    {
+        //        id: '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        //        address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        //        address_info: {
+        //            address: 'GCF74576I7AQ56SLMKBQAP255EGUOWCRVII3S44KEXVNJEOIFVBDMXVL',
+        //            destination_tag: '3722061866'
+        //        },
+        //        name: null,
+        //        created_at: '2023-05-29T21:12:12Z',
+        //        updated_at: '2023-05-29T21:12:12Z',
+        //        network: 'solana',
+        //        uri_scheme: 'solana',
+        //        resource: 'address',
+        //        resource_path: '/v2/accounts/a7b3d387-bfb8-5ce7-b8da-1f507e81cf25/addresses/64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        //        warnings: [
+        //            {
+        //            type: 'correct_address_warning',
+        //            title: 'This is an ERC20 USDC address.',
+        //            details: 'Only send ERC20 USD Coin (USDC) to this address.',
+        //            image_url: 'https://www.coinbase.com/assets/addresses/global-receive-warning-a3d91807e61c717e5a38d270965003dcc025ca8a3cea40ec3d7835b7c86087fa.png',
+        //            options: [ { text: 'I understand', style: 'primary', id: 'dismiss' } ]
+        //            }
+        //        ],
+        //        qr_code_image_url: 'https://static-assets.coinbase.com/p2p/l2/asset_network_combinations/v5/usdc-solana.png',
+        //        address_label: 'USDC address (Solana)',
+        //        default_receive: true,
+        //        deposit_uri: 'solana:5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk?spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        //        callback_url: null,
+        //        share_address_copy: {
+        //            line1: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        //            line2: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.'
+        //        },
+        //        receive_subtitle: 'ERC-20',
+        //        inline_warning: {
+        //            text: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.',
+        //            tooltip: {
+        //            title: 'USDC (Solana)',
+        //            subtitle: 'This address can only receive USDC-SPL from Solana network.'
+        //            }
+        //        }
+        //    }
+        //
+        const address = this.safeString(depositAddress, 'address');
+        this.checkAddress(address);
+        const networkId = this.safeString(depositAddress, 'network');
+        const code = this.safeCurrencyCode(undefined, currency);
+        const addressLabel = this.safeString(depositAddress, 'address_label');
+        const splitAddressLabel = addressLabel.split(' ');
+        const marketId = this.safeString(splitAddressLabel, 0);
+        const addressInfo = this.safeDict(depositAddress, 'address_info');
+        return {
+            'info': depositAddress,
+            'currency': this.safeCurrencyCode(marketId, currency),
+            'address': address,
+            'tag': this.safeString(addressInfo, 'destination_tag'),
+            'network': this.networkIdToCode(networkId, code),
+        };
+    }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = api[0];
         const signed = api[1] === 'private';
@@ -3391,13 +3577,7 @@ export default class coinbase extends Exchange {
                         payload = body;
                     }
                 }
-                let auth = undefined;
-                if (version === 'v3') {
-                    auth = nonce + method + savedPath + payload;
-                }
-                else {
-                    auth = nonce + method + fullPath + payload;
-                }
+                const auth = nonce + method + savedPath + payload;
                 const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 headers = {
                     'CB-ACCESS-KEY': this.apiKey,

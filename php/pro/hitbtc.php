@@ -423,6 +423,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $messageHash = $channel . '::' . $symbol;
             $client->resolve ($newTickers, $messageHash);
         }
+        $client->resolve ($newTickers, 'tickers');
         $messageHashes = $this->find_message_hashes($client, 'tickers::');
         for ($i = 0; $i < count($messageHashes); $i++) {
             $messageHash = $messageHashes[$i];

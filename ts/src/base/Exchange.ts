@@ -241,6 +241,7 @@ export default class Exchange {
     balance      = {}
     orderbooks   = {}
     tickers      = {}
+    bidsasks     = {}
     orders       = undefined
     triggerOrders = undefined
     trades: any
@@ -2290,6 +2291,18 @@ export default class Exchange {
         throw new NotSupported (this.id + ' setPositionMode() is not supported yet');
     }
 
+    async addMargin (symbol: string, amount: number, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' addMargin() is not supported yet');
+    }
+
+    async reduceMargin (symbol: string, amount: number, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' reduceMargin() is not supported yet');
+    }
+
+    async setMargin (symbol: string, amount: number, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' setMargin() is not supported yet');
+    }
+
     async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' setMarginMode() is not supported yet');
     }
@@ -3487,7 +3500,7 @@ export default class Exchange {
         return ohlcv;
     }
 
-    networkCodeToId (networkCode: string, currencyCode: string = undefined) {
+    networkCodeToId (networkCode: string, currencyCode: string = undefined): string {
         /**
          * @ignore
          * @method
@@ -3497,6 +3510,9 @@ export default class Exchange {
          * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} exchange-specific network id
          */
+        if (networkCode === undefined) {
+            return undefined;
+        }
         const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
         let networkId = this.safeString (networkIdsByCodes, networkCode);
         // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
@@ -3540,6 +3556,9 @@ export default class Exchange {
          * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} unified network code
          */
+        if (networkId === undefined) {
+            return undefined;
+        }
         const networkCodesByIds = this.safeDict (this.options, 'networksById', {});
         let networkCode = this.safeString (networkCodesByIds, networkId, networkId);
         // replace mainnet network-codes (i.e. ERC20->ETH)
@@ -3698,7 +3717,7 @@ export default class Exchange {
             contractSize = this.safeNumber (market, 'contractSize');
             position['contractSize'] = contractSize;
         }
-        return position as any;
+        return position as Position;
     }
 
     parsePositions (positions: any[], symbols: string[] = undefined, params = {}): Position[] {
@@ -3797,11 +3816,48 @@ export default class Exchange {
         return this.safeString (market, 'symbol', symbol);
     }
 
+    handleParamString (params: object, paramName: string, defaultValue = undefined): [string, object] {
+        const value = this.safeString (params, paramName, defaultValue);
+        if (value !== undefined) {
+            params = this.omit (params, paramName);
+        }
+        return [ value, params ];
+    }
+
     resolvePath (path, params) {
         return [
             this.implodeParams (path, params),
             this.omit (params, this.extractParams (path)),
         ];
+    }
+
+    getListFromObjectValues (objects, key: IndexType) {
+        const newArray = this.toArray (objects);
+        const results = [];
+        for (let i = 0; i < newArray.length; i++) {
+            results.push (newArray[i][key]);
+        }
+        return results;
+    }
+
+    getSymbolsForMarketType (marketType: string = undefined, subType: string = undefined, symbolWithActiveStatus: boolean = true, symbolWithUnknownStatus: boolean = true) {
+        let filteredMarkets = this.markets;
+        if (marketType !== undefined) {
+            filteredMarkets = this.filterBy (filteredMarkets, 'type', marketType);
+        }
+        if (subType !== undefined) {
+            this.checkRequiredArgument ('getSymbolsForMarketType', subType, 'subType', [ 'linear', 'inverse', 'quanto' ]);
+            filteredMarkets = this.filterBy (filteredMarkets, 'subType', subType);
+        }
+        const activeStatuses = [];
+        if (symbolWithActiveStatus) {
+            activeStatuses.push (true);
+        }
+        if (symbolWithUnknownStatus) {
+            activeStatuses.push (undefined);
+        }
+        filteredMarkets = this.filterByArray (filteredMarkets, 'active', activeStatuses, false);
+        return this.getListFromObjectValues (filteredMarkets, 'symbol');
     }
 
     filterByArray (objects, key: IndexType, values = undefined, indexed = true) {
@@ -4819,6 +4875,17 @@ export default class Exchange {
                 throw new InvalidAddress (this.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
             } else {
                 return depositAddress;
+            }
+        } else if (this.has['fetchDepositAddressesByNetwork']) {
+            const network = this.safeString (params, 'network');
+            params = this.omit (params, 'network');
+            const addressStructures = await this.fetchDepositAddressesByNetwork (code, params);
+            if (network !== undefined) {
+                return this.safeDict (addressStructures, network);
+            } else {
+                const keys = Object.keys (addressStructures);
+                const key = this.safeString (keys, 0);
+                return this.safeDict (addressStructures, key);
             }
         } else {
             throw new NotSupported (this.id + ' fetchDepositAddress() is not supported yet');

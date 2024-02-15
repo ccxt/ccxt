@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.2.41';
+$version = '4.2.45';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.2.41';
+    const VERSION = '4.2.45';
 
     public $browser;
     public $marketsLoading = null;
@@ -917,6 +917,18 @@ class Exchange extends \ccxt\Exchange {
 
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' setPositionMode() is not supported yet');
+    }
+
+    public function add_margin(string $symbol, float $amount, $params = array ()) {
+        throw new NotSupported($this->id . ' addMargin() is not supported yet');
+    }
+
+    public function reduce_margin(string $symbol, float $amount, $params = array ()) {
+        throw new NotSupported($this->id . ' reduceMargin() is not supported yet');
+    }
+
+    public function set_margin(string $symbol, float $amount, $params = array ()) {
+        throw new NotSupported($this->id . ' setMargin() is not supported yet');
     }
 
     public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
@@ -2128,6 +2140,9 @@ class Exchange extends \ccxt\Exchange {
          * @param {string} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
          * @return {string|null} exchange-specific network id
          */
+        if ($networkCode === null) {
+            return null;
+        }
         $networkIdsByCodes = $this->safe_value($this->options, 'networks', array());
         $networkId = $this->safe_string($networkIdsByCodes, $networkCode);
         // for example, if 'ETH' is passed for $networkCode, but 'ETH' $key not defined in `options->networks` object
@@ -2169,6 +2184,9 @@ class Exchange extends \ccxt\Exchange {
          * @param {string|null} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
          * @return {string|null} unified network code
          */
+        if ($networkId === null) {
+            return null;
+        }
         $networkCodesByIds = $this->safe_dict($this->options, 'networksById', array());
         $networkCode = $this->safe_string($networkCodesByIds, $networkId, $networkId);
         // replace mainnet network-codes (i.e. ERC20->ETH)
@@ -2428,11 +2446,48 @@ class Exchange extends \ccxt\Exchange {
         return $this->safe_string($market, 'symbol', $symbol);
     }
 
+    public function handle_param_string(array $params, string $paramName, $defaultValue = null) {
+        $value = $this->safe_string($params, $paramName, $defaultValue);
+        if ($value !== null) {
+            $params = $this->omit ($params, $paramName);
+        }
+        return array( $value, $params );
+    }
+
     public function resolve_path($path, $params) {
         return array(
             $this->implode_params($path, $params),
             $this->omit ($params, $this->extract_params($path)),
         );
+    }
+
+    public function get_list_from_object_values($objects, int|string $key) {
+        $newArray = $this->to_array($objects);
+        $results = array();
+        for ($i = 0; $i < count($newArray); $i++) {
+            $results[] = $newArray[$i][$key];
+        }
+        return $results;
+    }
+
+    public function get_symbols_for_market_type(?string $marketType = null, ?string $subType = null, bool $symbolWithActiveStatus = true, bool $symbolWithUnknownStatus = true) {
+        $filteredMarkets = $this->markets;
+        if ($marketType !== null) {
+            $filteredMarkets = $this->filter_by($filteredMarkets, 'type', $marketType);
+        }
+        if ($subType !== null) {
+            $this->check_required_argument('getSymbolsForMarketType', $subType, 'subType', array( 'linear', 'inverse', 'quanto' ));
+            $filteredMarkets = $this->filter_by($filteredMarkets, 'subType', $subType);
+        }
+        $activeStatuses = array();
+        if ($symbolWithActiveStatus) {
+            $activeStatuses[] = true;
+        }
+        if ($symbolWithUnknownStatus) {
+            $activeStatuses[] = null;
+        }
+        $filteredMarkets = $this->filter_by_array($filteredMarkets, 'active', $activeStatuses, false);
+        return $this->get_list_from_object_values($filteredMarkets, 'symbol');
     }
 
     public function filter_by_array($objects, int|string $key, $values = null, $indexed = true) {
@@ -3498,6 +3553,17 @@ class Exchange extends \ccxt\Exchange {
                     throw new InvalidAddress($this->id . ' fetchDepositAddress() could not find a deposit address for ' . $code . ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
                 } else {
                     return $depositAddress;
+                }
+            } elseif ($this->has['fetchDepositAddressesByNetwork']) {
+                $network = $this->safe_string($params, 'network');
+                $params = $this->omit ($params, 'network');
+                $addressStructures = Async\await($this->fetchDepositAddressesByNetwork ($code, $params));
+                if ($network !== null) {
+                    return $this->safe_dict($addressStructures, $network);
+                } else {
+                    $keys = is_array($addressStructures) ? array_keys($addressStructures) : array();
+                    $key = $this->safe_string($keys, 0);
+                    return $this->safe_dict($addressStructures, $key);
                 }
             } else {
                 throw new NotSupported($this->id . ' fetchDepositAddress() is not supported yet');

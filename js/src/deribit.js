@@ -1784,7 +1784,7 @@ export default class deribit extends Exchange {
         const amount = this.safeString(order, 'amount');
         let cost = Precise.stringMul(filledString, averageString);
         if (market['inverse']) {
-            if (this.parseNumber(averageString) !== 0) {
+            if (averageString !== '0') {
                 cost = Precise.stringDiv(amount, averageString);
             }
         }

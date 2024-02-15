@@ -818,7 +818,7 @@ class bitstamp extends bitstamp$1 {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             if (id.indexOf('_') < 0) {
-                const value = this.safeNumber(transaction, id);
+                const value = this.safeInteger(transaction, id);
                 if ((value !== undefined) && (value !== 0)) {
                     return id;
                 }

@@ -99,7 +99,7 @@ export default class phemex extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     };
-    setMargin(symbol: string, amount: any, params?: {}): Promise<any>;
+    setMargin(symbol: string, amount: number, params?: {}): Promise<any>;
     parseMarginStatus(status: any): string;
     parseMarginModification(data: any, market?: Market): {
         info: any;

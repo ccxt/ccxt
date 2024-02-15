@@ -1857,7 +1857,7 @@ public partial class deribit : Exchange
         object cost = Precise.stringMul(filledString, averageString);
         if (isTrue(getValue(market, "inverse")))
         {
-            if (isTrue(!isEqual(this.parseNumber(averageString), 0)))
+            if (isTrue(!isEqual(averageString, "0")))
             {
                 cost = Precise.stringDiv(amount, averageString);
             }

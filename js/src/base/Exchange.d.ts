@@ -75,6 +75,7 @@ export default class Exchange {
     balance: {};
     orderbooks: {};
     tickers: {};
+    bidsasks: {};
     orders: any;
     triggerOrders: any;
     trades: any;
@@ -640,6 +641,9 @@ export default class Exchange {
     setLeverage(leverage: Int, symbol?: string, params?: {}): Promise<{}>;
     fetchLeverage(symbol: string, params?: {}): Promise<{}>;
     setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<{}>;
+    addMargin(symbol: string, amount: number, params?: {}): Promise<{}>;
+    reduceMargin(symbol: string, amount: number, params?: {}): Promise<{}>;
+    setMargin(symbol: string, amount: number, params?: {}): Promise<{}>;
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<{}>;
     fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OpenInterest[]>;
@@ -741,7 +745,10 @@ export default class Exchange {
     setHeaders(headers: any): any;
     marketId(symbol: string): string;
     symbol(symbol: string): string;
+    handleParamString(params: object, paramName: string, defaultValue?: any): [string, object];
     resolvePath(path: any, params: any): any[];
+    getListFromObjectValues(objects: any, key: IndexType): any[];
+    getSymbolsForMarketType(marketType?: string, subType?: string, symbolWithActiveStatus?: boolean, symbolWithUnknownStatus?: boolean): any[];
     filterByArray(objects: any, key: IndexType, values?: any, indexed?: boolean): any;
     fetch2(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}): Promise<any>;
     request(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}): Promise<any>;
