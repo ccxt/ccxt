@@ -143,7 +143,7 @@ export default class blofin extends blofinRest {
         }
     }
 
-    parseWsTrade (trade, market?: Market): Trade {
+    parseWsTrade (trade, market: Market = undefined): Trade {
         //
         //     {
         //       instId: "DOGE-USDT",
