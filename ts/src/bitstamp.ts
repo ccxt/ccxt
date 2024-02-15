@@ -830,7 +830,7 @@ export default class bitstamp extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             if (id.indexOf ('_') < 0) {
-                const value = this.safeInteger (transaction, id);
+                const value = this.safeNumber (transaction, id);
                 if ((value !== undefined) && (value !== 0)) {
                     return id;
                 }
@@ -2152,8 +2152,9 @@ export default class bitstamp extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         amount = this.currencyToPrecision (code, amount);
+        amount = this.parseToNumeric (amount);
         const request = {
-            'amount': this.parseToNumeric (amount),
+            'amount': amount,
             'currency': currency['id'],
         };
         let response = undefined;
@@ -2170,6 +2171,9 @@ export default class bitstamp extends Exchange {
         //    { status: 'ok' }
         //
         const transfer = this.parseTransfer (response, currency);
+        transfer['amount'] = amount;
+        transfer['fromAccount'] = fromAccount;
+        transfer['toAccount'] = toAccount;
         return transfer;
     }
 
