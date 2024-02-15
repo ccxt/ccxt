@@ -87,6 +87,7 @@ export default class bitstamp extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'urls': {
@@ -2134,7 +2135,7 @@ export default class bitstamp extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name bitstamp#transfer
@@ -2163,7 +2164,7 @@ export default class bitstamp extends Exchange {
             request['subAccount'] = fromAccount;
             response = await this.privatePostTransferToMain (this.extend (request, params));
         } else {
-            throw new ExchangeError (this.id + ' transfer() only supports from or to main');
+            throw new BadRequest (this.id + ' transfer() only supports from or to main');
         }
         //
         //    { status: 'ok' }
