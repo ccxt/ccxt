@@ -4,7 +4,7 @@
 import blofinRest from '../blofin.js';
 import { NotSupported, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, MarketInterface, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV } from '../base/types.js';
+import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -143,7 +143,7 @@ export default class blofin extends blofinRest {
         }
     }
 
-    parseWsTrade (trade: any, market?: MarketInterface): Trade {
+    parseWsTrade (trade, market?: Market): Trade {
         //
         //     {
         //       instId: "DOGE-USDT",
