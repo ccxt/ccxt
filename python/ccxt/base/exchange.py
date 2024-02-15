@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.106.20'
+__version__ = '4.0.106.21'
 
 # -----------------------------------------------------------------------------
 import random
@@ -2271,6 +2271,15 @@ class Exchange(object):
         result = self.index_by(result, 'currency') if indexed else result
         return result
 
+    def parse_market(self, market):
+        raise NotSupported(self.id + ' parseMarket() is not supported yet')
+
+    def parse_markets(self, markets):
+        result = []
+        for i in range(0, len(markets)):
+            result.append(self.parse_market(markets[i]))
+        return result
+
     def parse_tickers(self, tickers, symbols=None, params={}):
         result = []
         values = self.to_array(tickers)
@@ -3239,3 +3248,10 @@ class Exchange(object):
         if marginMode is not None:
             params = self.omit(params, ['marginMode', 'defaultMarginMode'])
         return [marginMode, params]
+
+    def handle_until_option(self, key, request, params, multiplier=1):
+        until = self.safe_value_2(params, 'until', 'till')
+        if until is not None:
+            request[key] = self.parseToInt(until * multiplier)
+            params = self.omit(params, ['until', 'till'])
+        return [request, params]

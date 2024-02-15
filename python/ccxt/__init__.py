@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.0.106.20'
+__version__ = '4.0.106.21'
 
 # ----------------------------------------------------------------------------
 
@@ -87,7 +87,9 @@ from ccxt.bitfinex import bitfinex                          # noqa: F401
 from ccxt.bitfinex2 import bitfinex2                        # noqa: F401
 from ccxt.bitflyer import bitflyer                          # noqa: F401
 from ccxt.bitforex import bitforex                          # noqa: F401
-from ccxt.bitget import bitget                              # noqa: F401
+from ccxt.bitget_spot import bitget_spot                    # noqa: F401
+from ccxt.bitget_inverse import bitget_inverse              # noqa: F401
+from ccxt.bitget_futures import bitget_futures              # noqa: F401
 from ccxt.bithumb import bithumb                            # noqa: F401
 from ccxt.bitkk import bitkk                                # noqa: F401
 from ccxt.bitmart import bitmart                            # noqa: F401
@@ -212,7 +214,9 @@ exchanges = [
     'bitfinex2',
     'bitflyer',
     'bitforex',
-    'bitget',
+    'bitget_spot',
+    'bitget_inverse',
+    'bitget_linear',
     'bithumb',
     'bitkk',
     'bitmart',
