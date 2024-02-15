@@ -407,7 +407,6 @@ export default class hitbtc extends hitbtcRest {
         //
         const data = this.safeValue (message, 'data', {});
         const marketIds = Object.keys (data);
-        const channel = this.safeString (message, 'ch');
         const newTickers = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -416,8 +415,6 @@ export default class hitbtc extends hitbtcRest {
             const ticker = this.parseWsTicker (data[marketId], market);
             this.tickers[symbol] = ticker;
             newTickers[symbol] = ticker;
-            const messageHash = 'tickers::' + symbol;
-            client.resolve (newTickers, messageHash);
         }
         client.resolve (newTickers, 'tickers');
         const messageHashes = this.findMessageHashes (client, 'tickers::');
@@ -433,7 +430,6 @@ export default class hitbtc extends hitbtcRest {
                 client.resolve (tickers, messageHash);
             }
         }
-        client.resolve (this.tickers, channel);
         return message;
     }
 
