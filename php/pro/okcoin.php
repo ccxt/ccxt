@@ -97,7 +97,7 @@ class okcoin extends \ccxt\async\okcoin {
              * watches information on multiple orders made by the user
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -473,32 +473,30 @@ class okcoin extends \ccxt\async\okcoin {
     }
 
     public function authenticate($params = array ()) {
-        return Async\async(function () use ($params) {
-            $this->check_required_credentials();
-            $url = $this->urls['api']['ws'];
-            $messageHash = 'login';
-            $client = $this->client($url);
-            $future = $this->safe_value($client->subscriptions, $messageHash);
-            if ($future === null) {
-                $future = $client->future ('authenticated');
-                $timestamp = (string) $this->seconds();
-                $method = 'GET';
-                $path = '/users/self/verify';
-                $auth = $timestamp . $method . $path;
-                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
-                $request = array(
-                    'op' => $messageHash,
-                    'args' => array(
-                        $this->apiKey,
-                        $this->password,
-                        $timestamp,
-                        $signature,
-                    ),
-                );
-                $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
-            }
-            return Async\await($future);
-        }) ();
+        $this->check_required_credentials();
+        $url = $this->urls['api']['ws'];
+        $messageHash = 'login';
+        $client = $this->client($url);
+        $future = $this->safe_value($client->subscriptions, $messageHash);
+        if ($future === null) {
+            $future = $client->future ('authenticated');
+            $timestamp = (string) $this->seconds();
+            $method = 'GET';
+            $path = '/users/self/verify';
+            $auth = $timestamp . $method . $path;
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
+            $request = array(
+                'op' => $messageHash,
+                'args' => array(
+                    $this->apiKey,
+                    $this->password,
+                    $timestamp,
+                    $signature,
+                ),
+            );
+            $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
+        }
+        return $future;
     }
 
     public function watch_balance($params = array ()): PromiseInterface {
@@ -738,7 +736,8 @@ class okcoin extends \ccxt\async\okcoin {
         // }
         //
         if ($message === 'pong') {
-            return $this->handle_pong($client, $message);
+            $this->handle_pong($client, $message);
+            return;
         }
         $table = $this->safe_string($message, 'table');
         if ($table === null) {
@@ -751,10 +750,8 @@ class okcoin extends \ccxt\async\okcoin {
                     'subscribe' => array($this, 'handle_subscription_status'),
                 );
                 $method = $this->safe_value($methods, $event);
-                if ($method === null) {
-                    return $message;
-                } else {
-                    return $method($client, $message);
+                if ($method !== null) {
+                    $method($client, $message);
                 }
             }
         } else {
@@ -775,10 +772,8 @@ class okcoin extends \ccxt\async\okcoin {
             if (mb_strpos($name, 'candle') !== false) {
                 $method = array($this, 'handle_ohlcv');
             }
-            if ($method === null) {
-                return $message;
-            } else {
-                return $method($client, $message);
+            if ($method !== null) {
+                $method($client, $message);
             }
         }
     }

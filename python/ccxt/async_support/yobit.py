@@ -749,7 +749,7 @@ class yobit(Exchange, ImplicitAPI):
             }
         return result
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         :see: https://yobit.net/en/api
         create a trade order
@@ -1125,14 +1125,32 @@ class yobit(Exchange, ImplicitAPI):
         address = self.safe_string(response['return'], 'address')
         self.check_address(address)
         return {
+            'id': None,
             'currency': code,
             'address': address,
             'tag': None,
             'network': None,
             'info': response,
+            'txid': None,
+            'type': None,
+            'amount': None,
+            'status': None,
+            'timestamp': None,
+            'datetime': None,
+            'addressFrom': None,
+            'addressTo': None,
+            'tagFrom': None,
+            'tagTo': None,
+            'updated': None,
+            'comment': None,
+            'fee': {
+                'currency': None,
+                'cost': None,
+                'rate': None,
+            },
         }
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         :see: https://yobit.net/en/api
         make a withdrawal
@@ -1159,6 +1177,27 @@ class yobit(Exchange, ImplicitAPI):
         return {
             'info': response,
             'id': None,
+            'txid': None,
+            'type': None,
+            'currency': None,
+            'network': None,
+            'amount': None,
+            'status': None,
+            'timestamp': None,
+            'datetime': None,
+            'address': None,
+            'addressFrom': None,
+            'addressTo': None,
+            'tag': None,
+            'tagFrom': None,
+            'tagTo': None,
+            'updated': None,
+            'comment': None,
+            'fee': {
+                'currency': None,
+                'cost': None,
+                'rate': None,
+            },
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -1224,7 +1263,7 @@ class yobit(Exchange, ImplicitAPI):
             #
             # To cover points 1, 2, 3 and 4 combined self handler should work like self:
             #
-            success = self.safe_value(response, 'success', False)
+            success = self.safe_bool(response, 'success', False)
             if isinstance(success, str):
                 if (success == 'true') or (success == '1'):
                     success = True

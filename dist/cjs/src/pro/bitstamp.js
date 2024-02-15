@@ -498,10 +498,10 @@ class bitstamp extends bitstamp$1 {
         //
         const event = this.safeString(message, 'event');
         if (event === 'bts:subscription_succeeded') {
-            return this.handleSubscriptionStatus(client, message);
+            this.handleSubscriptionStatus(client, message);
         }
         else {
-            return this.handleSubject(client, message);
+            this.handleSubject(client, message);
         }
     }
     async authenticate(params = {}) {
@@ -524,7 +524,6 @@ class bitstamp extends bitstamp$1 {
                 this.options['expiresIn'] = this.sum(time, validity);
                 this.options['userId'] = userId;
                 this.options['wsSessionToken'] = sessionToken;
-                return response;
             }
         }
     }

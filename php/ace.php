@@ -581,7 +581,7 @@ class ace extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---new-order
@@ -690,7 +690,7 @@ class ace extends Exchange {
          * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-list
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
-         * @param {int} [$limit] the maximum number of  orde structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
@@ -1041,8 +1041,9 @@ class ace extends Exchange {
         $feedback = $this->id . ' ' . $body;
         $status = $this->safe_number($response, 'status', 200);
         if ($status > 200) {
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $status, $feedback);
-            $this->throw_broadly_matched_exception($this->exceptions['broad'], $status, $feedback);
+            $statusStr = (string) $status;
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $statusStr, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $statusStr, $feedback);
         }
         return null;
     }

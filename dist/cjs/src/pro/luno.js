@@ -191,28 +191,28 @@ class luno extends luno$1 {
         const symbol = subscription['symbol'];
         const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeString(message, 'timestamp');
-        let storedOrderBook = this.safeValue(this.orderbooks, symbol);
-        if (storedOrderBook === undefined) {
-            storedOrderBook = this.indexedOrderBook({});
-            this.orderbooks[symbol] = storedOrderBook;
+        let orderbook = this.safeValue(this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.indexedOrderBook({});
+            this.orderbooks[symbol] = orderbook;
         }
         const asks = this.safeValue(message, 'asks');
         if (asks !== undefined) {
             const snapshot = this.customParseOrderBook(message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id');
-            storedOrderBook.reset(snapshot);
+            orderbook.reset(snapshot);
         }
         else {
-            this.handleDelta(storedOrderBook, message);
-            storedOrderBook['timestamp'] = timestamp;
-            storedOrderBook['datetime'] = this.iso8601(timestamp);
+            this.handleDelta(orderbook, message);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601(timestamp);
         }
         const nonce = this.safeInteger(message, 'sequence');
-        storedOrderBook['nonce'] = nonce;
-        client.resolve(storedOrderBook, messageHash);
+        orderbook['nonce'] = nonce;
+        client.resolve(orderbook, messageHash);
     }
-    customParseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 'price', amountKey = 'volume', thirdKey = undefined) {
-        const bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, thirdKey);
-        const asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, thirdKey);
+    customParseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 'price', amountKey = 'volume', countOrIdKey = 2) {
+        const bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
+        const asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy(bids, 0, true),
@@ -222,7 +222,7 @@ class luno extends luno$1 {
             'nonce': undefined,
         };
     }
-    parseBidsAsks(bidasks, priceKey = 'price', amountKey = 'volume', thirdKey = undefined) {
+    parseBidsAsks(bidasks, priceKey = 'price', amountKey = 'volume', thirdKey = 2) {
         bidasks = this.toArray(bidasks);
         const result = [];
         for (let i = 0; i < bidasks.length; i++) {
@@ -230,7 +230,7 @@ class luno extends luno$1 {
         }
         return result;
     }
-    customParseBidAsk(bidask, priceKey = 'price', amountKey = 'volume', thirdKey = undefined) {
+    customParseBidAsk(bidask, priceKey = 'price', amountKey = 'volume', thirdKey = 2) {
         const price = this.safeNumber(bidask, priceKey);
         const amount = this.safeNumber(bidask, amountKey);
         const result = [price, amount];
@@ -300,10 +300,9 @@ class luno extends luno$1 {
         const deleteUpdate = this.safeValue(message, 'delete_update');
         if (deleteUpdate !== undefined) {
             const orderId = this.safeString(deleteUpdate, 'order_id');
-            asksOrderSide.storeArray(0, 0, orderId);
-            bidsOrderSide.storeArray(0, 0, orderId);
+            asksOrderSide.storeArray([0, 0, orderId]);
+            bidsOrderSide.storeArray([0, 0, orderId]);
         }
-        return message;
     }
     handleMessage(client, message) {
         if (message === '') {
@@ -315,7 +314,6 @@ class luno extends luno$1 {
             const handler = handlers[j];
             handler.call(this, client, message, subscriptions[0]);
         }
-        return message;
     }
 }
 

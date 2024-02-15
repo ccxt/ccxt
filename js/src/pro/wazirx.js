@@ -723,7 +723,8 @@ export default class wazirx extends wazirxRest {
     handleMessage(client, message) {
         const status = this.safeString(message, 'status');
         if (status === 'error') {
-            return this.handleError(client, message);
+            this.handleError(client, message);
+            return;
         }
         const event = this.safeString(message, 'event');
         const eventHandlers = {
@@ -733,7 +734,8 @@ export default class wazirx extends wazirxRest {
         };
         const eventHandler = this.safeValue(eventHandlers, event);
         if (eventHandler !== undefined) {
-            return eventHandler.call(this, client, message);
+            eventHandler.call(this, client, message);
+            return;
         }
         const stream = this.safeString(message, 'stream', '');
         const streamHandlers = {
@@ -749,7 +751,8 @@ export default class wazirx extends wazirxRest {
         for (let i = 0; i < streams.length; i++) {
             if (this.inArray(streams[i], stream)) {
                 const handler = streamHandlers[streams[i]];
-                return handler.call(this, client, message);
+                handler.call(this, client, message);
+                return;
             }
         }
         throw new NotSupported(this.id + ' this message type is not supported yet. Message: ' + this.json(message));

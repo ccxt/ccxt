@@ -78,7 +78,7 @@ export default class coinone extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'ws': false,
+                'ws': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -720,7 +720,7 @@ export default class coinone extends Exchange {
             'target_currency': market['base'],
         };
         if (limit !== undefined) {
-            request['size'] = limit; // only support 10, 50, 100, 150, 200
+            request['size'] = Math.min (limit, 200);
         }
         const response = await this.v2PublicGetTradesQuoteCurrencyTargetCurrency (this.extend (request, params));
         //
@@ -745,7 +745,7 @@ export default class coinone extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name coinone#createOrder
@@ -1078,7 +1078,7 @@ export default class coinone extends Exchange {
         return response;
     }
 
-    async fetchDepositAddresses (codes = undefined, params = {}) {
+    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name coinone#fetchDepositAddresses

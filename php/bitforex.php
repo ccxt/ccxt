@@ -25,6 +25,7 @@ class bitforex extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
@@ -38,6 +39,9 @@ class bitforex extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchDepositAddress' => false,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -634,8 +638,8 @@ class bitforex extends Exchange {
 
     public function parse_order($order, ?array $market = null): array {
         $id = $this->safe_string($order, 'orderId');
-        $timestamp = $this->safe_number($order, 'createTime');
-        $lastTradeTimestamp = $this->safe_number($order, 'lastTime');
+        $timestamp = $this->safe_integer($order, 'createTime');
+        $lastTradeTimestamp = $this->safe_integer($order, 'lastTime');
         $symbol = $market['symbol'];
         $sideId = $this->safe_integer($order, 'tradeType');
         $side = $this->parse_side($sideId);
@@ -675,6 +679,33 @@ class bitforex extends Exchange {
             'fee' => $fee,
             'trades' => null,
         ), $market);
+    }
+
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+        /**
+         * @see https://github.com/githubdev2020/API_Doc_en/wiki/Cancle-all-orders
+         * cancel all open orders in a $market
+         * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders () requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->privatePostApiV1TradeCancelAllOrder (array_merge($request, $params));
+        //
+        //    {
+        //        'data' => True,
+        //        'success' => True,
+        //        'time' => '1706542995252'
+        //    }
+        //
+        return $response;
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -740,7 +771,7 @@ class bitforex extends Exchange {
         return $this->parse_orders($response['data'], $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://apidoc.bitforex.com/#new-order-trade

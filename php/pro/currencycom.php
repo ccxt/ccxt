@@ -559,9 +559,10 @@ class currencycom extends \ccxt\async\currencycom {
                         );
                         $method = $this->safe_value($methods, $subscriptionDestination);
                         if ($method === null) {
-                            return $message;
+                            return;
                         } else {
-                            return $method($client, $message, $subscription);
+                            $method($client, $message, $subscription);
+                            return;
                         }
                     }
                 }
@@ -576,10 +577,8 @@ class currencycom extends \ccxt\async\currencycom {
                 'ping' => array($this, 'handle_pong'),
             );
             $method = $this->safe_value($methods, $destination);
-            if ($method === null) {
-                return $message;
-            } else {
-                return $method($client, $message);
+            if ($method !== null) {
+                $method($client, $message);
             }
         }
     }

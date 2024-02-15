@@ -509,7 +509,7 @@ class deribit extends deribit$1 {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
@@ -757,16 +757,16 @@ class deribit extends deribit$1 {
             };
             const handler = this.safeValue(handlers, channelId);
             if (handler !== undefined) {
-                return handler.call(this, client, message);
+                handler.call(this, client, message);
+                return;
             }
             throw new errors.NotSupported(this.id + ' no handler found for this message ' + this.json(message));
         }
         const result = this.safeValue(message, 'result', {});
         const accessToken = this.safeString(result, 'access_token');
         if (accessToken !== undefined) {
-            return this.handleAuthenticationMessage(client, message);
+            this.handleAuthenticationMessage(client, message);
         }
-        return message;
     }
     handleAuthenticationMessage(client, message) {
         //
@@ -790,7 +790,7 @@ class deribit extends deribit$1 {
         client.resolve(message, messageHash);
         return message;
     }
-    authenticate(params = {}) {
+    async authenticate(params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const time = this.milliseconds();

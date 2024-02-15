@@ -28,7 +28,7 @@ class bitget extends bitget$1 {
                 'watchBalance': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
-                'watchOHLCVForSymbols': true,
+                'watchOHLCVForSymbols': false,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
@@ -95,7 +95,9 @@ class bitget extends bitget$1 {
         else {
             instType = 'SPOT';
         }
-        [instType, params] = this.handleOptionAndParams(params, 'getInstType', 'instType', instType);
+        let instypeAux = undefined;
+        [instypeAux, params] = this.handleOptionAndParams(params, 'getInstType', 'instType', instType);
+        instType = instypeAux;
         return [instType, params];
     }
     async watchTicker(symbol, params = {}) {
@@ -153,7 +155,9 @@ class bitget extends bitget$1 {
         }
         const tickers = await this.watchPublicMultiple(messageHashes, topics, params);
         if (this.newUpdates) {
-            return tickers;
+            const result = {};
+            result[tickers['symbol']] = tickers;
+            return result;
         }
         return this.filterByArray(this.tickers, 'symbol', symbols);
     }
@@ -444,7 +448,7 @@ class bitget extends bitget$1 {
         symbols = this.marketSymbols(symbols);
         let channel = 'books';
         let incrementalFeed = true;
-        if ((limit === 5) || (limit === 15)) {
+        if ((limit === 1) || (limit === 5) || (limit === 15)) {
             channel += limit.toString();
             incrementalFeed = false;
         }
@@ -890,7 +894,7 @@ class bitget extends bitget$1 {
         await this.loadMarkets();
         let market = undefined;
         let marketId = undefined;
-        const isStop = this.safeValue(params, 'stop', false);
+        const isStop = this.safeBool(params, 'stop', false);
         params = this.omit(params, 'stop');
         let messageHash = (isStop) ? 'triggerOrder' : 'order';
         let subscriptionHash = 'order:trades';
@@ -1243,7 +1247,7 @@ class bitget extends bitget$1 {
             'price': this.safeString(order, 'price'),
             'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
-            'amount': this.safeString2(order, 'size', 'baseSize'),
+            'amount': this.safeString(order, 'baseVolume'),
             'cost': this.safeStringN(order, ['notional', 'notionalUsd', 'quoteSize']),
             'average': this.omitZero(this.safeString2(order, 'priceAvg', 'fillPrice')),
             'filled': this.safeString2(order, 'accBaseVolume', 'baseVolume'),

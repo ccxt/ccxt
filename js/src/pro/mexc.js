@@ -472,7 +472,7 @@ export default class mexc extends mexcRest {
         }
         try {
             this.handleDelta(storedOrderBook, data);
-            const timestamp = this.safeInteger(message, 't');
+            const timestamp = this.safeInteger2(message, 't', 'ts');
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601(timestamp);
         }
@@ -740,7 +740,7 @@ export default class mexc extends mexcRest {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string|undefined} params.type the type of orders to retrieve, can be 'spot' or 'margin'
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1109,7 +1109,7 @@ export default class mexc extends mexcRest {
         //
         const msg = this.safeString(message, 'msg');
         if (msg === 'PONG') {
-            return this.handlePong(client, message);
+            this.handlePong(client, message);
         }
         else if (msg.indexOf('@') > -1) {
             const parts = msg.split('@');
@@ -1132,7 +1132,8 @@ export default class mexc extends mexcRest {
             return;
         }
         if ('msg' in message) {
-            return this.handleSubscriptionStatus(client, message);
+            this.handleSubscriptionStatus(client, message);
+            return;
         }
         const c = this.safeString(message, 'c');
         let channel = undefined;

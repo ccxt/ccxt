@@ -1,5 +1,5 @@
 import coinbaseproRest from '../coinbasepro.js';
-import type { Int, Ticker, Str, Strings, OrderBook, Trade, Order } from '../base/types.js';
+import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class coinbasepro extends coinbaseproRest {
     describe(): any;
@@ -12,7 +12,7 @@ export default class coinbasepro extends coinbaseproRest {
     subscribe(name: any, symbol?: any, messageHashStart?: any, params?: {}): Promise<any>;
     subscribeMultiple(name: any, symbols?: any[], messageHashStart?: any, params?: {}): Promise<any>;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    watchTickers(symbols?: Strings, params?: {}): Promise<any>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -34,5 +34,5 @@ export default class coinbasepro extends coinbaseproRest {
     handleOrderBook(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleErrorMessage(client: Client, message: any): boolean;
-    handleMessage(client: Client, message: any): any;
+    handleMessage(client: Client, message: any): void;
 }

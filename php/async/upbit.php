@@ -265,11 +265,11 @@ class upbit extends Exchange {
             } elseif (($locked !== null) && $locked) {
                 $active = false;
             }
-            $maxOnetimeWithdrawal = $this->safe_number($withdrawLimits, 'onetime');
-            $maxDailyWithdrawal = $this->safe_number($withdrawLimits, 'daily', $maxOnetimeWithdrawal);
-            $remainingDailyWithdrawal = $this->safe_number($withdrawLimits, 'remaining_daily', $maxDailyWithdrawal);
+            $maxOnetimeWithdrawal = $this->safe_string($withdrawLimits, 'onetime');
+            $maxDailyWithdrawal = $this->safe_string($withdrawLimits, 'daily', $maxOnetimeWithdrawal);
+            $remainingDailyWithdrawal = $this->safe_string($withdrawLimits, 'remaining_daily', $maxDailyWithdrawal);
             $maxWithdrawLimit = null;
-            if ($remainingDailyWithdrawal > 0) {
+            if (Precise::string_gt($remainingDailyWithdrawal, '0')) {
                 $maxWithdrawLimit = $remainingDailyWithdrawal;
             } else {
                 $maxWithdrawLimit = $maxDailyWithdrawal;
@@ -287,7 +287,7 @@ class upbit extends Exchange {
                 'limits' => array(
                     'withdraw' => array(
                         'min' => $this->safe_number($withdrawLimits, 'minimum'),
-                        'max' => $maxWithdrawLimit,
+                        'max' => $this->parse_number($maxWithdrawLimit),
                     ),
                 ),
             );
@@ -353,10 +353,10 @@ class upbit extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $state = $this->safe_string($marketInfo, 'state');
-            $bidFee = $this->safe_number($response, 'bid_fee');
-            $askFee = $this->safe_number($response, 'ask_fee');
-            $fee = max ($bidFee, $askFee);
-            return array(
+            $bidFee = $this->safe_string($response, 'bid_fee');
+            $askFee = $this->safe_string($response, 'ask_fee');
+            $fee = $this->parse_number(Precise::string_max($bidFee, $askFee));
+            return $this->safe_market_structure(array(
                 'id' => $marketId,
                 'symbol' => $base . '/' . $quote,
                 'base' => $base,
@@ -405,7 +405,7 @@ class upbit extends Exchange {
                     ),
                     'info' => $response,
                 ),
-            );
+            ));
         }) ();
     }
 
@@ -437,7 +437,7 @@ class upbit extends Exchange {
         list($quoteId, $baseId) = explode('-', $id);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $base . '/' . $quote,
             'base' => $base,
@@ -487,7 +487,7 @@ class upbit extends Exchange {
             ),
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
     public function parse_balance($response): array {
@@ -1040,7 +1040,7 @@ class upbit extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1545,7 +1545,7 @@ class upbit extends Exchange {
              * fetches information on multiple closed orders made by the user
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -1629,7 +1629,7 @@ class upbit extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
              * @see https://docs.upbit.com/reference/%EC%A0%84%EC%B2%B4-%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%A1%B0%ED%9A%8C
@@ -1665,22 +1665,24 @@ class upbit extends Exchange {
 
     public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
-        //     {
-        //         "currency" => "BTC",
-        //         "deposit_address" => "3EusRwybuZUhVDeHL7gh3HSLmbhLcy7NqD",
-        //         "secondary_address" => null
-        //     }
+        //    {
+        //        $currency => 'XRP',
+        //        net_type => 'XRP',
+        //        deposit_address => 'raQwCVAJVqjrVm1Nj5SFRcX8i22BhdC9WA',
+        //        secondary_address => '167029435'
+        //    }
         //
         $address = $this->safe_string($depositAddress, 'deposit_address');
         $tag = $this->safe_string($depositAddress, 'secondary_address');
         $currencyId = $this->safe_string($depositAddress, 'currency');
         $code = $this->safe_currency_code($currencyId);
+        $networkId = $this->safe_string($depositAddress, 'net_type');
         $this->check_address($address);
         return array(
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'network' => null,
+            'network' => $this->network_id_to_code($networkId),
             'info' => $depositAddress,
         );
     }
@@ -1692,19 +1694,27 @@ class upbit extends Exchange {
              * fetch the deposit address for a $currency associated with this account
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} $params->network deposit chain, can view all chains via $this->publicGetWalletAssets, default is eth, unless the $currency has a default chain within $this->options['networks']
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
+            $networkCode = null;
+            list($networkCode, $params) = $this->handle_network_code_and_params($params);
+            if ($networkCode === null) {
+                throw new ArgumentsRequired($this->id . ' fetchDepositAddress requires $params["network"]');
+            }
             $response = Async\await($this->privateGetDepositsCoinAddress (array_merge(array(
                 'currency' => $currency['id'],
+                'net_type' => $this->network_code_to_id($networkCode, $currency['code']),
             ), $params)));
             //
-            //     {
-            //         "currency" => "BTC",
-            //         "deposit_address" => "3EusRwybuZUhVDeHL7gh3HSLmbhLcy7NqD",
-            //         "secondary_address" => null
-            //     }
+            //    {
+            //        $currency => 'XRP',
+            //        net_type => 'XRP',
+            //        deposit_address => 'raQwCVAJVqjrVm1Nj5SFRcX8i22BhdC9WA',
+            //        secondary_address => '167029435'
+            //    }
             //
             return $this->parse_deposit_address($response);
         }) ();
@@ -1749,7 +1759,7 @@ class upbit extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * @see https://docs.upbit.com/reference/디지털자산-출금하기

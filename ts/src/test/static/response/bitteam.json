@@ -1,0 +1,243 @@
+{
+  "exchange": "bitteam",
+  "skipKeys": [],
+  "options": {
+  },
+  "methods": {
+    "fetchMyTrades":[
+      {
+        "description": "Spot trade",
+        "method": "fetchMyTrades",
+        "input": [],
+        "httpResponse": {
+          "ok": true,
+          "result": {
+            "count": "1",
+            "trades": [
+              {
+                "id": "36378860",
+                "tradeId": "3782738",
+                "makerOrderId": "111374643",
+                "takerOrderId": "111374644",
+                "pairId": "24",
+                "quantity": "10",
+                "price": "0.014475",
+                "isBuyerMaker": false,
+                "baseDecimals": "18",
+                "quoteDecimals": "6",
+                "side": "buy",
+                "timestamp": "1703587485",
+                "rewarded": true,
+                "makerUserId": "11249",
+                "takerUserId": "21641",
+                "baseCurrencyId": "9",
+                "quoteCurrencyId": "3",
+                "feeMaker": {
+                  "amount": "0",
+                  "symbol": "usdt",
+                  "userId": "11249",
+                  "decimals": "6",
+                  "symbolId": "3",
+                  "discountAmount": "0",
+                  "discountSymbol": "btt",
+                  "discountDecimals": "18",
+                  "discountSymbolId": "5"
+                },
+                "feeTaker": {
+                  "amount": "0.02",
+                  "symbol": "del",
+                  "userId": "21641",
+                  "decimals": "18",
+                  "symbolId": "9"
+                },
+                "pair": "del_usdt",
+                "createdAt": "2023-12-26T10:44:45.364Z",
+                "updatedAt": "2023-12-26T10:45:00.076Z",
+                "isCurrentSide": "taker"
+              }
+            ]
+          }
+        },
+        "parsedResponse": [
+          {
+            "id": "36378860",
+            "order": "111374644",
+            "timestamp": 1703587485000,
+            "datetime": "2023-12-26T10:44:45.000Z",
+            "symbol": "DEL/USDT",
+            "type": null,
+            "side": "buy",
+            "takerOrMaker": "taker",
+            "price": 0.014475,
+            "amount": 10,
+            "cost": 0.14475,
+            "fee": {
+              "currency": "DEL",
+              "cost": 0.02,
+              "rate": null
+            },
+            "info": {
+              "id": "36378860",
+              "tradeId": "3782738",
+              "makerOrderId": "111374643",
+              "takerOrderId": "111374644",
+              "pairId": "24",
+              "quantity": "10",
+              "price": "0.014475",
+              "isBuyerMaker": false,
+              "baseDecimals": "18",
+              "quoteDecimals": "6",
+              "side": "buy",
+              "timestamp": "1703587485",
+              "rewarded": true,
+              "makerUserId": "11249",
+              "takerUserId": "21641",
+              "baseCurrencyId": "9",
+              "quoteCurrencyId": "3",
+              "feeMaker": {
+                "amount": "0",
+                "symbol": "usdt",
+                "userId": "11249",
+                "decimals": "6",
+                "symbolId": "3",
+                "discountAmount": "0",
+                "discountSymbol": "btt",
+                "discountDecimals": "18",
+                "discountSymbolId": "5"
+              },
+              "feeTaker": {
+                "amount": "0.02",
+                "symbol": "del",
+                "userId": "21641",
+                "decimals": "18",
+                "symbolId": "9"
+              },
+              "pair": "del_usdt",
+              "createdAt": "2023-12-26T10:44:45.364Z",
+              "updatedAt": "2023-12-26T10:45:00.076Z",
+              "isCurrentSide": "taker"
+            },
+            "fees": [
+              {
+                "currency": "DEL",
+                "cost": 0.02,
+                "rate": null
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "fetchClosedOrders": [
+      {
+        "description": "Closed orders",
+        "method": "fetchClosedOrders",
+        "input": [],
+        "httpResponse": {
+          "ok": true,
+          "result": {
+            "count": "1",
+            "orders": [
+              {
+                "id": "111374644",
+                "orderId": "7914463",
+                "userId": "21641",
+                "pair": "del_usdt",
+                "pairId": "24",
+                "quantity": "10",
+                "price": "0.014476",
+                "executedPrice": "0.014475",
+                "fee": {
+                  "amount": "0.02",
+                  "symbol": "del",
+                  "userId": "21641",
+                  "decimals": "18",
+                  "symbolId": "9"
+                },
+                "orderCid": null,
+                "executed": "10",
+                "expires": null,
+                "baseDecimals": "18",
+                "quoteDecimals": "6",
+                "timestamp": "1703587485",
+                "status": "executed",
+                "side": "buy",
+                "type": "market",
+                "createdAt": "2023-12-26T10:44:45.227Z",
+                "updatedAt": "2023-12-26T10:44:45.227Z"
+              }
+            ]
+          }
+        },
+        "parsedResponse": [
+          {
+            "id": "111374644",
+            "clientOrderId": null,
+            "timestamp": 1703587485227,
+            "datetime": "2023-12-26T10:44:45.227Z",
+            "lastTradeTimestamp": null,
+            "lastUpdateTimestamp": 1703587485227,
+            "status": "closed",
+            "symbol": "DEL/USDT",
+            "type": "market",
+            "timeInForce": "GTC",
+            "side": "buy",
+            "price": 0.014476,
+            "stopPrice": null,
+            "triggerPrice": null,
+            "average": null,
+            "amount": 10,
+            "cost": 0.14476,
+            "filled": 10,
+            "remaining": 0,
+            "fee": {
+              "currency": "DEL",
+              "cost": "0.02",
+              "rate": null
+            },
+            "trades": [],
+            "info": {
+              "id": "111374644",
+              "orderId": "7914463",
+              "userId": "21641",
+              "pair": "del_usdt",
+              "pairId": "24",
+              "quantity": "10",
+              "price": "0.014476",
+              "executedPrice": "0.014475",
+              "fee": {
+                "amount": "0.02",
+                "symbol": "del",
+                "userId": "21641",
+                "decimals": "18",
+                "symbolId": "9"
+              },
+              "orderCid": null,
+              "executed": "10",
+              "expires": null,
+              "baseDecimals": "18",
+              "quoteDecimals": "6",
+              "timestamp": "1703587485",
+              "status": "executed",
+              "side": "buy",
+              "type": "market",
+              "createdAt": "2023-12-26T10:44:45.227Z",
+              "updatedAt": "2023-12-26T10:44:45.227Z"
+            },
+            "postOnly": false,
+            "fees": [
+              {
+                "currency": "DEL",
+                "cost": 0.02,
+                "rate": null
+              }
+            ],
+            "reduceOnly": null,
+            "takeProfitPrice": null,
+            "stopLossPrice": null
+          }
+        ]
+      }
+    ]
+  }
+}

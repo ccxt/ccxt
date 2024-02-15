@@ -18,6 +18,20 @@
                     1699457638000,
                     5
                 ]
+            },
+            {
+                "description": "spot-margin trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.coinex.com/v1/order/user/deals?access_id=85D9FDDCA1914FB78E2F2448A0EF812A&account_id=6&limit=100&market=LTCUSDT&offset=0&page=1&tonce=1706032695073",
+                "input": [
+                  "LTC/USDT",
+                  null,
+                  null,
+                  {
+                    "marginMode": "isolated",
+                    "account_id": 6
+                  }
+                ]
             }
         ],
         "fetchOpenOrders": [
@@ -61,6 +75,20 @@
                     {
                         "stop": true
                     }
+                ]
+            },
+            {
+                "description": "spot margin open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.coinex.com/v1/order/pending?access_id=85D9FDDCA1914FB78E2F2448A0EF812A&account_id=6&limit=100&marginMode=isolated&market=LTCUSDT&page=1&tonce=1706032720402",
+                "input": [
+                  "LTC/USDT",
+                  null,
+                  null,
+                  {
+                    "marginMode": "isolated",
+                    "account_id": 6
+                  }
                 ]
             }
         ],
@@ -147,6 +175,17 @@
                         "type": "swap"
                     }
                 ]
+            },
+            {
+                "description": "fetch spot-margin balance",
+                "method": "fetchBalance",
+                "url": "https://api.coinex.com/v1/margin/account?access_id=85D9FDDCA1914FB78E2F2448A0EF812A&market=LTCUSDT&tonce=1706032524583",
+                "input": [
+                  {
+                    "marginMode": "isolated",
+                    "symbol": "LTC/USDT"
+                  }
+                ]
             }
         ],
         "fetchPositions": [
@@ -158,6 +197,19 @@
                     [
                         "LTC/USDT:USDT"
                     ]
+                ]
+            },
+            {
+                "description": "Fetch positions using history endpoiunt",
+                "method": "fetchPositions",
+                "url": "https://api.coinex.com/perpetual/v1/position/finished?access_id=85D9FDDCA1914FB78E2F2448A0EF812A&limit=100&market=LTCUSDT&side=0&timestamp=1706265378027",
+                "input": [
+                  [
+                    "LTC/USDT:USDT"
+                  ],
+                  {
+                    "method": "perpetualPrivateGetPositionFinished"
+                  }
                 ]
             }
         ],
@@ -349,6 +401,58 @@
                     }
                 ],
                 "output": "access_id=86AC33D5904F432C9C9DDD4708233F38&market=BTCUSDT&order_id=115940250059&timestamp=1701233531405"
+            },
+            {
+                "description": "Spot cancel order by clientOid",
+                "method": "cancelOrder",
+                "url": "https://api.coinex.com/v1/order/pending/by_client_id?access_id=86AC33D5904F432C9C9DDD4708233F38&client_id=client01&market=BTCUSDT&tonce=1701228187975",
+                "input": [
+                    "",
+                    "BTC/USDT",
+                    {
+                        "clientOrderId": "client01"
+                    }
+                ]
+            },
+            {
+                "description": "Spot cancel trigger order by clientOid",
+                "method": "cancelOrder",
+                "url": "https://api.coinex.com/v1/order/stop/pending/by_client_id?access_id=86AC33D5904F432C9C9DDD4708233F38&client_id=client01&market=BTCUSDT&tonce=1701228118229",
+                "input": [
+                    "",
+                    "BTC/USDT",
+                    {
+                        "stop": true,
+                        "clientOrderId": "client01"
+                    }
+                ]
+            },
+            {
+                "description": "Swap cancel order by clientOid",
+                "method": "cancelOrder",
+                "url": "https://api.coinex.com/perpetual/v1/order/cancel/by_client_id",
+                "input": [
+                    "",
+                    "BTC/USDT:USDT",
+                    {
+                        "clientOrderId": "client01"
+                    }
+                ],
+                "output": "access_id=86AC33D5904F432C9C9DDD4708233F38&market=BTCUSDT&client_id=client01&timestamp=1701232671805"
+            },
+            {
+                "description": "Swap cancel trigger order by clientOid",
+                "method": "cancelOrder",
+                "url": "https://api.coinex.com/perpetual/v1/order/cancel_stop/by_client_id",
+                "input": [
+                    "",
+                    "BTC/USDT:USDT",
+                    {
+                        "stop": true,
+                        "clientOrderId": "client01"
+                    }
+                ],
+                "output": "access_id=86AC33D5904F432C9C9DDD4708233F38&market=BTCUSDT&client_id=client01&timestamp=1701233531405"
             }
         ],
         "fetchIsolatedBorrowRate": [
@@ -526,6 +630,19 @@
                 "url": "https://api.coinex.com/v1/contract/transfer/history?access_id=key&page=1&tonce=1702016708915&asset=BTC&limit=100",
                 "input": [
                     "BTC"
+                ]
+            },
+            {
+                "description": "Spot-margin transfers",
+                "method": "fetchTransfers",
+                "url": "https://api.coinex.com/v1/margin/transfer/history?access_id=85D9FDDCA1914FB78E2F2448A0EF812A&limit=100&page=1&tonce=1706032791206",
+                "input": [
+                  null,
+                  null,
+                  null,
+                  {
+                    "marginMode": "isolated"
+                  }
                 ]
             }
         ]

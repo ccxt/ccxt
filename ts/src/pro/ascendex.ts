@@ -489,7 +489,7 @@ export default class ascendex extends ascendexRest {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -902,7 +902,6 @@ export default class ascendex extends ascendexRest {
                 this.handleBalance (client, message);
             }
         }
-        return message;
     }
 
     handleSubscriptionStatus (client: Client, message) {
@@ -946,7 +945,7 @@ export default class ascendex extends ascendexRest {
         this.spawn (this.pong, client, message);
     }
 
-    authenticate (url, params = {}) {
+    async authenticate (url, params = {}) {
         this.checkRequiredCredentials ();
         const messageHash = 'authenticated';
         const client = this.client (url);

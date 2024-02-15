@@ -5,11 +5,17 @@
 
 from ccxt.pro.binance import binance
 
+import ccxt.async_support.binanceus as binanceusRest
+
 
 class binanceus(binance):
 
     def describe(self):
-        return self.deep_extend(super(binanceus, self).describe(), {
+        # eslint-disable-next-line new-cap
+        restInstance = binanceusRest()
+        restDescribe = restInstance.describe()
+        extended = self.deep_extend(restDescribe, super(binanceus, self).describe())
+        return self.deep_extend(extended, {
             'id': 'binanceus',
             'name': 'Binance US',
             'countries': ['US'],  # US

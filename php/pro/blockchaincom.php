@@ -110,7 +110,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         //
         $event = $this->safe_string($message, 'event');
         if ($event === 'subscribed') {
-            return $message;
+            return;
         }
         $result = array( 'info' => $message );
         $balances = $this->safe_value($message, 'balances', array());
@@ -182,10 +182,9 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         //     }
         //
         $event = $this->safe_string($message, 'event');
-        if ($event === 'subscribed') {
-            return $message;
-        } elseif ($event === 'rejected') {
-            throw new ExchangeError($this->id . ' ' . $this->json($message));
+        if ($event === 'rejected') {
+            $jsonMessage = $this->json($message);
+            throw new ExchangeError($this->id . ' ' . $jsonMessage);
         } elseif ($event === 'updated') {
             $marketId = $this->safe_string($message, 'symbol');
             $symbol = $this->safe_symbol($marketId, null, '-');
@@ -203,7 +202,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             }
             $stored->append ($ohlcv);
             $client->resolve ($stored, $messageHash);
-        } else {
+        } elseif ($event !== 'subscribed') {
             throw new NotSupported($this->id . ' ' . $this->json($message));
         }
     }
@@ -267,7 +266,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $symbol = $market['symbol'];
         $ticker = null;
         if ($event === 'subscribed') {
-            return $message;
+            return;
         } elseif ($event === 'snapshot') {
             $ticker = $this->parse_ticker($message, $market);
         } elseif ($event === 'updated') {
@@ -367,7 +366,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         //
         $event = $this->safe_string($message, 'event');
         if ($event !== 'updated') {
-            return $message;
+            return;
         }
         $marketId = $this->safe_string($message, 'symbol');
         $symbol = $this->safe_symbol($marketId);
@@ -425,7 +424,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
              * @see https://exchange.blockchain.com/api/#mass-order-status-$request-ordermassstatusrequest
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -532,7 +531,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             $this->orders = new ArrayCacheBySymbolById ($limit);
         }
         if ($event === 'subscribed') {
-            return $message;
+            return;
         } elseif ($event === 'rejected') {
             throw new ExchangeError($this->id . ' ' . $this->json($message));
         } elseif ($event === 'snapshot') {
@@ -703,60 +702,31 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $messageHash = 'orderbook:' . $symbol . ':' . $type;
         $datetime = $this->safe_string($message, 'timestamp');
         $timestamp = $this->parse8601($datetime);
-        $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
-        if ($storedOrderBook === null) {
-            $storedOrderBook = $this->counted_order_book(array());
-            $this->orderbooks[$symbol] = $storedOrderBook;
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook === null) {
+            $orderbook = $this->counted_order_book(array());
+            $this->orderbooks[$symbol] = $orderbook;
         }
         if ($event === 'subscribed') {
-            return $message;
+            return;
         } elseif ($event === 'snapshot') {
-            $snapshot = $this->parse_counted_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'px', 'qty', 'num');
-            $storedOrderBook->reset ($snapshot);
+            $snapshot = $this->parse_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'px', 'qty', 'num');
+            $orderbook->reset ($snapshot);
         } elseif ($event === 'updated') {
             $asks = $this->safe_value($message, 'asks', array());
             $bids = $this->safe_value($message, 'bids', array());
-            $this->handle_deltas($storedOrderBook['asks'], $asks);
-            $this->handle_deltas($storedOrderBook['bids'], $bids);
-            $storedOrderBook['timestamp'] = $timestamp;
-            $storedOrderBook['datetime'] = $datetime;
+            $this->handle_deltas($orderbook['asks'], $asks);
+            $this->handle_deltas($orderbook['bids'], $bids);
+            $orderbook['timestamp'] = $timestamp;
+            $orderbook['datetime'] = $datetime;
         } else {
             throw new NotSupported($this->id . ' watchOrderBook() does not support ' . $event . ' yet');
         }
-        $client->resolve ($storedOrderBook, $messageHash);
-    }
-
-    public function parse_counted_bid_ask($bidAsk, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countKey = 2) {
-        $price = $this->safe_number($bidAsk, $priceKey);
-        $amount = $this->safe_number($bidAsk, $amountKey);
-        $count = $this->safe_number($bidAsk, $countKey);
-        return array( $price, $amount, $count );
-    }
-
-    public function parse_counted_bids_asks($bidasks, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countKey = 2) {
-        $bidasks = $this->to_array($bidasks);
-        $result = array();
-        for ($i = 0; $i < count($bidasks); $i++) {
-            $result[] = $this->parse_counted_bid_ask($bidasks[$i], $priceKey, $amountKey, $countKey);
-        }
-        return $result;
-    }
-
-    public function parse_counted_order_book($orderbook, string $symbol, ?int $timestamp = null, int|string $bidsKey = 'bids', int|string $asksKey = 'asks', int|string $priceKey = 0, int|string $amountKey = 1, int|string $countKey = 2) {
-        $bids = $this->parse_counted_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey, $countKey);
-        $asks = $this->parse_counted_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey, $countKey);
-        return array(
-            'symbol' => $symbol,
-            'bids' => $this->sort_by($bids, 0, true),
-            'asks' => $this->sort_by($asks, 0),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'nonce' => null,
-        );
+        $client->resolve ($orderbook, $messageHash);
     }
 
     public function handle_delta($bookside, $delta) {
-        $bookArray = $this->parse_counted_bid_ask($delta, 'px', 'qty', 'num');
+        $bookArray = $this->parse_bid_ask($delta, 'px', 'qty', 'num');
         $bookside->storeArray ($bookArray);
     }
 
@@ -796,7 +766,8 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         );
         $handler = $this->safe_value($handlers, $channel);
         if ($handler !== null) {
-            return $handler($client, $message);
+            $handler($client, $message);
+            return;
         }
         throw new NotSupported($this->id . ' received an unsupported $message => ' . $this->json($message));
     }

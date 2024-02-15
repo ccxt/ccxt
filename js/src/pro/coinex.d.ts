@@ -16,7 +16,7 @@ export default class coinex extends coinexRest {
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    fetchOHLCVWs(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCVWs(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBook(client: Client, message: any): void;
@@ -24,8 +24,8 @@ export default class coinex extends coinexRest {
     handleOrders(client: Client, message: any): void;
     parseWsOrder(order: any, market?: any): Order;
     parseWsOrderStatus(status: any): string;
-    handleMessage(client: Client, message: any): any;
+    handleMessage(client: Client, message: any): void;
     handleAuthenticationMessage(client: Client, message: any): any;
     handleSubscriptionStatus(client: Client, message: any): void;
-    authenticate(params?: {}): any;
+    authenticate(params?: {}): Promise<any>;
 }

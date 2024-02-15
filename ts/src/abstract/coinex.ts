@@ -72,6 +72,8 @@ interface Exchange {
     privatePostSubAccountFrozen (params?: {}): Promise<implicitReturnType>;
     privatePostSubAccountAuthApi (params?: {}): Promise<implicitReturnType>;
     privatePutBalanceDepositAddressCoinType (params?: {}): Promise<implicitReturnType>;
+    privatePutSubAccountUnfrozen (params?: {}): Promise<implicitReturnType>;
+    privatePutSubAccountFrozen (params?: {}): Promise<implicitReturnType>;
     privatePutSubAccountAuthApiUserAuthId (params?: {}): Promise<implicitReturnType>;
     privatePutV1AccountSettings (params?: {}): Promise<implicitReturnType>;
     privateDeleteBalanceCoinWithdraw (params?: {}): Promise<implicitReturnType>;
@@ -79,7 +81,10 @@ interface Exchange {
     privateDeleteOrderPending (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrderStopPending (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrderStopPendingId (params?: {}): Promise<implicitReturnType>;
+    privateDeleteOrderPendingByClientId (params?: {}): Promise<implicitReturnType>;
+    privateDeleteOrderStopPendingByClientId (params?: {}): Promise<implicitReturnType>;
     privateDeleteSubAccountAuthApiUserAuthId (params?: {}): Promise<implicitReturnType>;
+    privateDeleteSubAccountAuthorizeId (params?: {}): Promise<implicitReturnType>;
     perpetualPublicGetPing (params?: {}): Promise<implicitReturnType>;
     perpetualPublicGetTime (params?: {}): Promise<implicitReturnType>;
     perpetualPublicGetMarketList (params?: {}): Promise<implicitReturnType>;
@@ -89,8 +94,8 @@ interface Exchange {
     perpetualPublicGetMarketDepth (params?: {}): Promise<implicitReturnType>;
     perpetualPublicGetMarketDeals (params?: {}): Promise<implicitReturnType>;
     perpetualPublicGetMarketFundingHistory (params?: {}): Promise<implicitReturnType>;
-    perpetualPublicGetMarketUserDeals (params?: {}): Promise<implicitReturnType>;
     perpetualPublicGetMarketKline (params?: {}): Promise<implicitReturnType>;
+    perpetualPrivateGetMarketUserDeals (params?: {}): Promise<implicitReturnType>;
     perpetualPrivateGetAssetQuery (params?: {}): Promise<implicitReturnType>;
     perpetualPrivateGetOrderPending (params?: {}): Promise<implicitReturnType>;
     perpetualPrivateGetOrderFinished (params?: {}): Promise<implicitReturnType>;
@@ -98,8 +103,13 @@ interface Exchange {
     perpetualPrivateGetOrderStopPending (params?: {}): Promise<implicitReturnType>;
     perpetualPrivateGetOrderStatus (params?: {}): Promise<implicitReturnType>;
     perpetualPrivateGetOrderStopStatus (params?: {}): Promise<implicitReturnType>;
+    perpetualPrivateGetPositionFinished (params?: {}): Promise<implicitReturnType>;
     perpetualPrivateGetPositionPending (params?: {}): Promise<implicitReturnType>;
     perpetualPrivateGetPositionFunding (params?: {}): Promise<implicitReturnType>;
+    perpetualPrivateGetPositionAdlHistory (params?: {}): Promise<implicitReturnType>;
+    perpetualPrivateGetMarketPreference (params?: {}): Promise<implicitReturnType>;
+    perpetualPrivateGetPositionMarginHistory (params?: {}): Promise<implicitReturnType>;
+    perpetualPrivateGetPositionSettleHistory (params?: {}): Promise<implicitReturnType>;
     perpetualPrivatePostMarketAdjustLeverage (params?: {}): Promise<implicitReturnType>;
     perpetualPrivatePostMarketPositionExpect (params?: {}): Promise<implicitReturnType>;
     perpetualPrivatePostOrderPutLimit (params?: {}): Promise<implicitReturnType>;
@@ -119,6 +129,9 @@ interface Exchange {
     perpetualPrivatePostPositionStopLoss (params?: {}): Promise<implicitReturnType>;
     perpetualPrivatePostPositionTakeProfit (params?: {}): Promise<implicitReturnType>;
     perpetualPrivatePostPositionMarketClose (params?: {}): Promise<implicitReturnType>;
+    perpetualPrivatePostOrderCancelByClientId (params?: {}): Promise<implicitReturnType>;
+    perpetualPrivatePostOrderCancelStopByClientId (params?: {}): Promise<implicitReturnType>;
+    perpetualPrivatePostMarketPreference (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

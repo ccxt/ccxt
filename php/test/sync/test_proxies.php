@@ -1,6 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
 
 // ----------------------------------------------------------------------------
 
@@ -61,7 +60,7 @@ function test_proxy_for_exceptions($exchange, $skipped_properties) {
                 $exception_caught = false;
                 try {
                     $exchange->fetch('http://example.com'); // url does not matter, it will not be called
-                } catch(Exception $e) {
+                } catch(\Throwable $e) {
                     $exception_caught = true;
                 }
                 assert($exception_caught, $exchange->id . ' ' . $method . ' test failed. No exception was thrown, while ' . $proxy_first . ' and ' . $proxy_second . ' were set together');

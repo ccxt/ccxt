@@ -412,7 +412,7 @@ class mercado(Exchange, ImplicitAPI):
         response = self.privatePostGetAccountInfo(params)
         return self.parse_balance(response)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -591,7 +591,7 @@ class mercado(Exchange, ImplicitAPI):
         order = self.safe_value(responseData, 'order')
         return self.parse_order(order, market)
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

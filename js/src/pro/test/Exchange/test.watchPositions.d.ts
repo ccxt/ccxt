@@ -1,2 +1,2 @@
-declare const _default: (exchange: any, symbol: string) => Promise<any>;
-export default _default;
+declare function testWatchPositions(exchange: any, skippedProperties: any, symbol: any): Promise<void>;
+export default testWatchPositions;

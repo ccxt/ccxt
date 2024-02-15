@@ -12,9 +12,7 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_open_interest  # noqa E402
-
 
 async def test_fetch_open_interest_history(exchange, skipped_properties, symbol):
     method = 'fetchOpenInterestHistory'

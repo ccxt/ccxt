@@ -767,7 +767,7 @@ class yobit extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @see https://yobit.net/en/api
          * create a trade order
@@ -1161,15 +1161,33 @@ class yobit extends Exchange {
         $address = $this->safe_string($response['return'], 'address');
         $this->check_address($address);
         return array(
+            'id' => null,
             'currency' => $code,
             'address' => $address,
             'tag' => null,
             'network' => null,
             'info' => $response,
+            'txid' => null,
+            'type' => null,
+            'amount' => null,
+            'status' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'addressFrom' => null,
+            'addressTo' => null,
+            'tagFrom' => null,
+            'tagTo' => null,
+            'updated' => null,
+            'comment' => null,
+            'fee' => array(
+                'currency' => null,
+                'cost' => null,
+                'rate' => null,
+            ),
         );
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * @see https://yobit.net/en/api
          * make a withdrawal
@@ -1197,6 +1215,27 @@ class yobit extends Exchange {
         return array(
             'info' => $response,
             'id' => null,
+            'txid' => null,
+            'type' => null,
+            'currency' => null,
+            'network' => null,
+            'amount' => null,
+            'status' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'address' => null,
+            'addressFrom' => null,
+            'addressTo' => null,
+            'tag' => null,
+            'tagFrom' => null,
+            'tagTo' => null,
+            'updated' => null,
+            'comment' => null,
+            'fee' => array(
+                'currency' => null,
+                'cost' => null,
+                'rate' => null,
+            ),
         );
     }
 
@@ -1270,7 +1309,7 @@ class yobit extends Exchange {
             //
             // To cover points 1, 2, 3 and 4 combined this handler should work like this:
             //
-            $success = $this->safe_value($response, 'success', false);
+            $success = $this->safe_bool($response, 'success', false);
             if (gettype($success) === 'string') {
                 if (($success === 'true') || ($success === '1')) {
                     $success = true;

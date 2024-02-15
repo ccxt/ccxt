@@ -29,6 +29,7 @@ class bitbns extends bitbns$1 {
                 'swap': false,
                 'future': false,
                 'option': undefined,
+                'cancelAllOrders': false,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,

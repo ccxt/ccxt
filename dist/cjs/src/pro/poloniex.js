@@ -172,7 +172,7 @@ class poloniex extends poloniex$1 {
          * @returns {object} data from the websocket stream
          */
         const url = this.urls['api']['ws']['private'];
-        const messageHash = this.nonce();
+        const messageHash = this.nonce().toString();
         const subscribe = {
             'id': messageHash,
             'event': name,
@@ -539,7 +539,8 @@ class poloniex extends poloniex$1 {
         const marketId = this.safeString(data, 'symbol');
         const symbol = this.safeSymbol(marketId);
         const market = this.safeMarket(symbol);
-        const timeframe = this.findTimeframe(channel);
+        const timeframes = this.safeValue(this.options, 'timeframes', {});
+        const timeframe = this.findTimeframe(channel, timeframes);
         const messageHash = channel + '::' + symbol;
         const parsed = this.parseWsOHLCV(data, market);
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
@@ -939,7 +940,7 @@ class poloniex extends poloniex$1 {
         //    }
         //
         const data = this.safeValue(message, 'data', []);
-        const newTickers = [];
+        const newTickers = {};
         for (let i = 0; i < data.length; i++) {
             const item = data[i];
             const marketId = this.safeString(item, 'symbol');
@@ -947,7 +948,7 @@ class poloniex extends poloniex$1 {
                 const ticker = this.parseTicker(item);
                 const symbol = ticker['symbol'];
                 this.tickers[symbol] = ticker;
-                newTickers.push(ticker);
+                newTickers[symbol] = ticker;
             }
         }
         const messageHashes = this.findMessageHashes(client, 'ticker::');
@@ -1038,7 +1039,8 @@ class poloniex extends poloniex$1 {
                         const bid = this.safeValue(bids, j);
                         const price = this.safeNumber(bid, 0);
                         const amount = this.safeNumber(bid, 1);
-                        orderbook['bids'].store(price, amount);
+                        const bidsSide = orderbook['bids'];
+                        bidsSide.store(price, amount);
                     }
                 }
                 if (asks !== undefined) {
@@ -1046,7 +1048,8 @@ class poloniex extends poloniex$1 {
                         const ask = this.safeValue(asks, j);
                         const price = this.safeNumber(ask, 0);
                         const amount = this.safeNumber(ask, 1);
-                        orderbook['asks'].store(price, amount);
+                        const asksSide = orderbook['asks'];
+                        asksSide.store(price, amount);
                     }
                 }
                 orderbook['symbol'] = symbol;
@@ -1180,14 +1183,14 @@ class poloniex extends poloniex$1 {
                 this.handleErrorMessage(client, item);
             }
             else {
-                return this.handleOrderRequest(client, message);
+                this.handleOrderRequest(client, message);
             }
         }
         else {
             const data = this.safeValue(message, 'data', []);
             const dataLength = data.length;
             if (dataLength > 0) {
-                return method.call(this, client, message);
+                method.call(this, client, message);
             }
         }
     }

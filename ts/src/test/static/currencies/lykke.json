@@ -1,0 +1,84 @@
+{
+    "USDT": {
+        "id": "c3e8b0bd-072c-42a0-b4fe-4af9f7c72214",
+        "code": "USDT",
+        "info": {
+            "assetId": "c3e8b0bd-072c-42a0-b4fe-4af9f7c72214",
+            "name": "USDT",
+            "symbol": "USDT",
+            "accuracy": "6",
+            "multiplierPower": "6",
+            "assetAddress": null,
+            "blockchainIntegrationLayerId": "",
+            "blockchain": "ethereum",
+            "type": "erc20Token",
+            "isTradable": true,
+            "isTrusted": true,
+            "kycNeeded": true,
+            "blockchainWithdrawal": true,
+            "cashoutMinimalAmount": "50.0",
+            "lowVolumeAmount": null,
+            "lykkeEntityId": "LYKKE UK",
+            "siriusAssetId": "300000052",
+            "siriusBlockchainId": "ethereum",
+            "blockchainIntegrationType": "sirius",
+            "blockchainDepositEnabled": true,
+            "isDisabled": false
+        },
+        "type": "crypto",
+        "name": "USDT",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "precision": 0.000001,
+        "limits": {
+            "withdraw": {
+                "min": "50.0"
+            },
+            "amount": {}
+        },
+        "networks": {}
+    },
+    "BTC": {
+        "id": "BTC",
+        "code": "BTC",
+        "info": {
+            "assetId": "BTC",
+            "name": "BTC",
+            "symbol": "BTC",
+            "accuracy": "8",
+            "multiplierPower": "8",
+            "assetAddress": null,
+            "blockchainIntegrationLayerId": "Bitcoin",
+            "blockchain": "ethereum",
+            "type": "erc20Token",
+            "isTradable": true,
+            "isTrusted": true,
+            "kycNeeded": true,
+            "blockchainWithdrawal": true,
+            "cashoutMinimalAmount": "0.0007",
+            "lowVolumeAmount": "0.0055",
+            "lykkeEntityId": "LYKKE UK",
+            "siriusAssetId": "300000037",
+            "siriusBlockchainId": "bitcoin",
+            "blockchainIntegrationType": "sirius",
+            "blockchainDepositEnabled": true,
+            "isDisabled": false
+        },
+        "type": "crypto",
+        "name": "BTC",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "precision": 1e-8,
+        "limits": {
+            "withdraw": {
+                "min": "0.0007"
+            },
+            "amount": {
+                "min": "0.0055"
+            }
+        },
+        "networks": {}
+    }
+}

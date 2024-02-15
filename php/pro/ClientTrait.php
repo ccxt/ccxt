@@ -4,6 +4,7 @@ namespace ccxt\pro;
 
 use ccxt\async\Throttler;
 use ccxt\BaseError;
+use ccxt\ExchangeClosedByUser;
 use ccxt\ExchangeError;
 use Exception;
 use React\Async;
@@ -60,6 +61,7 @@ trait ClientTrait {
                 'throttle' => new Throttler($this->tokenBucket),
             ), $this->streaming, $ws_options);
             $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $on_connected, $options);
+            $this->configure_proxy_client($this->clients[$url]);
         }
         return $this->clients[$url];
     }
@@ -84,14 +86,11 @@ trait ClientTrait {
         });
     }
 
-    private function checkProxyClient($client) {
+    private function configure_proxy_client($client) {
         [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_ws_proxy_settings();
-        $connector = $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
-        if ($connector) {
-            $client->set_ws_connector($connector);
-        } else {
-            $client->set_ws_connector($client->default_connector);
-        }
+        $selected_proxy_address = $httpProxy ? $httpProxy : ($httpsProxy ? $httpsProxy : $socksProxy );
+        $proxy_connector = $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
+        $client->set_ws_connector($selected_proxy_address, $proxy_connector);
     }
 
     public function watch_multiple($url, $message_hashes, $message = null, $subscribe_hashes = null, $subscription = null) {
@@ -130,20 +129,14 @@ trait ClientTrait {
                                 try {
                                     Async\await($client->send($message));
                                 } catch (Exception $error) {
-                                    $future->reject($error);
-                                    foreach ($subscribe_hashes as $subscribe_hash) {
-                                        unset($client->subscriptions[$subscribe_hash]);
-                                    }
+                                    $client->on_error($error);
                                 }
                             });
                         } else {
                             try {
                                 Async\await($client->send($message));
                             } catch (Exception $error) {
-                                $future->reject($error);
-                                foreach ($subscribe_hashes as $subscribe_hash) {
-                                    unset($client->subscriptions[$subscribe_hash]);
-                                }
+                                $client->on_error($error);
                             }
                         }
                     }
@@ -189,16 +182,14 @@ trait ClientTrait {
                                 try {
                                     Async\await($client->send($message));
                                 } catch (Exception $error) {
-                                    $client->reject($error, $message_hash);
-                                    unset($client->subscriptions[$subscribe_hash]);
+                                    $client->on_error($error);
                                 }
                             });
                         } else {
                             try {
                                 Async\await($client->send($message));
                             } catch (Exception $error) {
-                                $client->reject($error, $message_hash);
-                                unset($client->subscriptions[$subscribe_hash]);
+                                $client->on_error($error);
                             }
                         }
                     }
@@ -225,7 +216,7 @@ trait ClientTrait {
 
     public function on_close(Client $client, $message) {
         if ($client->error) {
-            // connection closed due to an error, do nothing
+            // connection closed by the user or due to an error, do nothing
         } else {
             // server disconnected a working connection
             if (array_key_exists($client->url, $this->clients)) {
@@ -238,7 +229,10 @@ trait ClientTrait {
         // make sure to close the exchange once you are finished using the websocket connections
         // so that the event loop can complete it's work and go to sleep
         foreach ($this->clients as $client) {
+            $client->error = new ExchangeClosedByUser ($this->id . ' closed by user');
             $client->close();
+            $url = $client->url;
+            unset($this->clients[$url]);
         }
     }
 

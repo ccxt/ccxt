@@ -558,7 +558,7 @@ export default class zaif extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -728,7 +728,7 @@ export default class zaif extends Exchange {
             this.throwBroadlyMatchedException(this.exceptions['broad'], error, feedback);
             throw new ExchangeError(feedback); // unknown message
         }
-        const success = this.safeValue(response, 'success', true);
+        const success = this.safeBool(response, 'success', true);
         if (!success) {
             throw new ExchangeError(feedback);
         }

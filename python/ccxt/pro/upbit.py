@@ -161,15 +161,15 @@ class upbit(ccxt.async_support.upbit):
         limit = self.safe_integer(options, 'limit', 15)
         if type == 'SNAPSHOT':
             self.orderbooks[symbol] = self.order_book({}, limit)
-        orderBook = self.orderbooks[symbol]
+        orderbook = self.orderbooks[symbol]
         # upbit always returns a snapshot of 15 topmost entries
         # the "REALTIME" deltas are not incremental
         # therefore we reset the orderbook on each update
         # and reinitialize it again with new bidasks
-        orderBook.reset({})
-        orderBook['symbol'] = symbol
-        bids = orderBook['bids']
-        asks = orderBook['asks']
+        orderbook.reset({})
+        orderbook['symbol'] = symbol
+        bids = orderbook['bids']
+        asks = orderbook['asks']
         data = self.safe_value(message, 'orderbook_units', [])
         for i in range(0, len(data)):
             entry = data[i]
@@ -181,10 +181,10 @@ class upbit(ccxt.async_support.upbit):
             bids.store(bid_price, bid_size)
         timestamp = self.safe_integer(message, 'timestamp')
         datetime = self.iso8601(timestamp)
-        orderBook['timestamp'] = timestamp
-        orderBook['datetime'] = datetime
+        orderbook['timestamp'] = timestamp
+        orderbook['datetime'] = datetime
         messageHash = 'orderbook:' + marketId
-        client.resolve(orderBook, messageHash)
+        client.resolve(orderbook, messageHash)
 
     def handle_trades(self, client: Client, message):
         # {type: "trade",

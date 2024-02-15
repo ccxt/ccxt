@@ -210,6 +210,16 @@ class Transaction(TypedDict):
     comment: Str
     internal: Bool
 
+class TransferEntry(TypedDict):
+    info: Dict[str, any]
+    id: Str
+    timestamp: Int
+    datetime: Str
+    currency: Str
+    amount: Num
+    fromAccount: Str
+    toAccount: Str
+    status: Str
 
 class Ticker(TypedDict):
     info: Dict[str, Any]

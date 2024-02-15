@@ -526,24 +526,24 @@ export default class exmo extends exmoRest {
         const orderBook = this.safeValue (message, 'data', {});
         const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeInteger (message, 'ts');
-        let storedOrderBook = this.safeValue (this.orderbooks, symbol);
-        if (storedOrderBook === undefined) {
-            storedOrderBook = this.orderBook ({});
-            this.orderbooks[symbol] = storedOrderBook;
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook ({});
+            this.orderbooks[symbol] = orderbook;
         }
         const event = this.safeString (message, 'event');
         if (event === 'snapshot') {
             const snapshot = this.parseOrderBook (orderBook, symbol, timestamp, 'bid', 'ask');
-            storedOrderBook.reset (snapshot);
+            orderbook.reset (snapshot);
         } else {
             const asks = this.safeValue (orderBook, 'ask', []);
             const bids = this.safeValue (orderBook, 'bid', []);
-            this.handleDeltas (storedOrderBook['asks'], asks);
-            this.handleDeltas (storedOrderBook['bids'], bids);
-            storedOrderBook['timestamp'] = timestamp;
-            storedOrderBook['datetime'] = this.iso8601 (timestamp);
+            this.handleDeltas (orderbook['asks'], asks);
+            this.handleDeltas (orderbook['bids'], bids);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
         }
-        client.resolve (storedOrderBook, messageHash);
+        client.resolve (orderbook, messageHash);
     }
 
     handleDelta (bookside, delta) {
@@ -581,7 +581,8 @@ export default class exmo extends exmoRest {
         };
         const eventHandler = this.safeValue (events, event);
         if (eventHandler !== undefined) {
-            return eventHandler.call (this, client, message);
+            eventHandler.call (this, client, message);
+            return;
         }
         if ((event === 'update') || (event === 'snapshot')) {
             const topic = this.safeString (message, 'topic');
@@ -603,7 +604,8 @@ export default class exmo extends exmoRest {
                 };
                 const handler = this.safeValue (handlers, channel);
                 if (handler !== undefined) {
-                    return handler.call (this, client, message);
+                    handler.call (this, client, message);
+                    return;
                 }
             }
         }
@@ -648,7 +650,7 @@ export default class exmo extends exmoRest {
         client.resolve (message, messageHash);
     }
 
-    authenticate (params = {}) {
+    async authenticate (params = {}) {
         const messageHash = 'authenticated';
         const [ type, query ] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
         const url = this.urls['api']['ws'][type];

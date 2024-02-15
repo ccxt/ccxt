@@ -76,7 +76,7 @@ class coinone extends coinone$1 {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'ws': false,
+                'ws': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -709,7 +709,7 @@ class coinone extends coinone$1 {
             'target_currency': market['base'],
         };
         if (limit !== undefined) {
-            request['size'] = limit; // only support 10, 50, 100, 150, 200
+            request['size'] = Math.min(limit, 200);
         }
         const response = await this.v2PublicGetTradesQuoteCurrencyTargetCurrency(this.extend(request, params));
         //

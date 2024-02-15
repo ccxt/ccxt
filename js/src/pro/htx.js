@@ -472,6 +472,7 @@ export default class htx extends htxRest {
             delete client.subscriptions[messageHash];
             client.reject(e, messageHash);
         }
+        return undefined;
     }
     handleDelta(bookside, delta) {
         const price = this.safeFloat(delta, 0);
@@ -770,7 +771,7 @@ export default class htx extends htxRest {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -933,11 +934,16 @@ export default class htx extends htxRest {
                 // inject trade in existing order by faking an order object
                 const orderId = this.safeString(parsedTrade, 'order');
                 const trades = [parsedTrade];
+                const status = this.parseOrderStatus(this.safeString2(data, 'orderStatus', 'status', 'closed'));
+                const filled = this.safeString(data, 'execAmt');
+                const remaining = this.safeString(data, 'remainAmt');
                 const order = {
                     'id': orderId,
                     'trades': trades,
-                    'status': 'closed',
+                    'status': status,
                     'symbol': market['symbol'],
+                    'filled': this.parseNumber(filled),
+                    'remaining': this.parseNumber(remaining),
                 };
                 parsedOrder = order;
             }
@@ -1687,14 +1693,14 @@ export default class htx extends htxRest {
         if (subscription !== undefined) {
             const method = this.safeValue(subscription, 'method');
             if (method !== undefined) {
-                return method.call(this, client, message, subscription);
+                method.call(this, client, message, subscription);
+                return;
             }
             // clean up
             if (id in client.subscriptions) {
                 delete client.subscriptions[id];
             }
         }
-        return message;
     }
     handleSystemStatus(client, message) {
         //
@@ -1803,11 +1809,9 @@ export default class htx extends htxRest {
                 'kline': this.handleOHLCV,
             };
             const method = this.safeValue(methods, methodName);
-            if (method === undefined) {
-                return message;
-            }
-            else {
-                return method.call(this, client, message);
+            if (method !== undefined) {
+                method.call(this, client, message);
+                return;
             }
         }
         // private spot subjects

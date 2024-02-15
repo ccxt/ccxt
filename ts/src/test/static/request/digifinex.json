@@ -82,7 +82,7 @@
                   "BTC/USDT",
                   "market",
                   "buy",
-                  null,
+                  0,
                   null,
                   {
                     "cost": 2
@@ -437,14 +437,6 @@
                 "input": []
             }
         ],
-        "fetchMarkets": [
-            {
-                "description": "Fetch markets",
-                "method": "fetchMarkets",
-                "url": "https://openapi.digifinex.com/swap/v2/public/instruments",
-                "input": []
-            }
-        ],
         "fetchOrderBook": [
             {
                 "description": "Fetch orderbook - spot",
@@ -484,6 +476,26 @@
                     {
                         "type": "swap"
                     }
+                ]
+            },
+            {
+                "description": "Spot market fetch tickers",
+                "method": "fetchTickers",
+                "url": "https://openapi.digifinex.com/v3/ticker",
+                "input": [
+                  [
+                    "BTC/USDT"
+                  ]
+                ]
+            },
+            {
+                "description": "Swap market fetch tickers",
+                "method": "fetchTickers",
+                "url": "https://openapi.digifinex.com/swap/v2/public/tickers",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ]
                 ]
             }
         ],

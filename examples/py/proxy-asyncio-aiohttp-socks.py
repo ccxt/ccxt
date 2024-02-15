@@ -1,5 +1,6 @@
 # pip install aiohttp_socks
 
+import asyncio
 import ccxt.async_support as ccxt
 import aiohttp
 import aiohttp_socks
@@ -16,8 +17,9 @@ async def test():
 
     # ...
 
+    await exchange.close()  # Close the exchange
     await session.close()  # don't forget to close the session
 
     # ...
 
-test()
+asyncio.run(test())

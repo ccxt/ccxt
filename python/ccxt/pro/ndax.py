@@ -370,12 +370,12 @@ class ndax(ccxt.async_support.ndax):
         firstBidAsk = self.safe_value(payload, 0, [])
         marketId = self.safe_string(firstBidAsk, 7)
         if marketId is None:
-            return message
+            return
         market = self.safe_market(marketId)
         symbol = market['symbol']
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
-            return message
+            return
         timestamp = None
         nonce = None
         for i in range(0, len(payload)):
@@ -460,10 +460,8 @@ class ndax(ccxt.async_support.ndax):
         subscription = self.safe_value(subscriptionsById, id)
         if subscription is not None:
             method = self.safe_value(subscription, 'method')
-            if method is None:
-                return message
-            else:
-                return method(client, message, subscription)
+            if method is not None:
+                method(client, message, subscription)
 
     def handle_message(self, client: Client, message):
         #
@@ -490,7 +488,7 @@ class ndax(ccxt.async_support.ndax):
         #
         payload = self.safe_string(message, 'o')
         if payload is None:
-            return message
+            return
         message['o'] = json.loads(payload)
         methods = {
             'SubscribeLevel2': self.handle_subscription_status,
@@ -504,7 +502,5 @@ class ndax(ccxt.async_support.ndax):
         }
         event = self.safe_string(message, 'n')
         method = self.safe_value(methods, event)
-        if method is None:
-            return message
-        else:
-            return method(client, message)
+        if method is not None:
+            method(client, message)

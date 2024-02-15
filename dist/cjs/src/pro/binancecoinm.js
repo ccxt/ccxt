@@ -1,12 +1,17 @@
 'use strict';
 
 var binance = require('./binance.js');
+var binancecoinm$1 = require('../binancecoinm.js');
 
 //  ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 class binancecoinm extends binance {
     describe() {
-        return this.deepExtend(super.describe(), {
+        // eslint-disable-next-line new-cap
+        const restInstance = new binancecoinm$1();
+        const restDescribe = restInstance.describe();
+        const extended = this.deepExtend(super.describe(), restDescribe);
+        return this.deepExtend(extended, {
             'id': 'binancecoinm',
             'name': 'Binance COIN-M',
             'urls': {

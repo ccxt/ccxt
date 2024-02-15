@@ -1,6 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
 
 // ----------------------------------------------------------------------------
 
@@ -8,7 +7,7 @@ use \ccxt\Precise;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once __DIR__ . '/../base/test_transaction.php';
+include_once PATH_TO_CCXT . '/test/base/test_deposit_withdrawal.php';
 
 function test_fetch_deposits_withdrawals($exchange, $skipped_properties, $code) {
     $method = 'fetchTransactions';
@@ -16,7 +15,7 @@ function test_fetch_deposits_withdrawals($exchange, $skipped_properties, $code) 
     assert(gettype($transactions) === 'array' && array_keys($transactions) === array_keys(array_keys($transactions)), $exchange->id . ' ' . $method . ' ' . $code . ' must return an array. ' . $exchange->json($transactions));
     $now = $exchange->milliseconds();
     for ($i = 0; $i < count($transactions); $i++) {
-        test_transaction($exchange, $skipped_properties, $method, $transactions[$i], $code, $now);
+        test_deposit_withdrawal($exchange, $skipped_properties, $method, $transactions[$i], $code, $now);
     }
     assert_timestamp_order($exchange, $method, $code, $transactions);
 }

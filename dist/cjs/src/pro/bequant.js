@@ -1,12 +1,17 @@
 'use strict';
 
 var hitbtc = require('./hitbtc.js');
+var bequant$1 = require('../bequant.js');
 
 //  ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 class bequant extends hitbtc {
     describe() {
-        return this.deepExtend(super.describe(), {
+        // eslint-disable-next-line new-cap
+        const restInstance = new bequant$1();
+        const restDescribe = restInstance.describe();
+        const extended = this.deepExtend(super.describe(), restDescribe);
+        return this.deepExtend(extended, {
             'id': 'bequant',
             'name': 'Bequant',
             'countries': ['MT'],

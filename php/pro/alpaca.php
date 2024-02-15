@@ -239,7 +239,7 @@ class alpaca extends \ccxt\async\alpaca {
         $symbol = $this->safe_symbol($marketId);
         $datetime = $this->safe_string($message, 't');
         $timestamp = $this->parse8601($datetime);
-        $isSnapshot = $this->safe_value($message, 'r', false);
+        $isSnapshot = $this->safe_bool($message, 'r', false);
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
             $orderbook = $this->order_book();
@@ -364,7 +364,7 @@ class alpaca extends \ccxt\async\alpaca {
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
@@ -640,13 +640,16 @@ class alpaca extends \ccxt\async\alpaca {
             $T = $this->safe_string($data, 'T');
             $msg = $this->safe_value($data, 'msg', array());
             if ($T === 'subscription') {
-                return $this->handle_subscription($client, $data);
+                $this->handle_subscription($client, $data);
+                return;
             }
             if ($T === 'success' && $msg === 'connected') {
-                return $this->handle_connected($client, $data);
+                $this->handle_connected($client, $data);
+                return;
             }
             if ($T === 'success' && $msg === 'authenticated') {
-                return $this->handle_authenticate($client, $data);
+                $this->handle_authenticate($client, $data);
+                return;
             }
             $methods = array(
                 'error' => array($this, 'handle_error_message'),
@@ -677,7 +680,8 @@ class alpaca extends \ccxt\async\alpaca {
 
     public function handle_message(Client $client, $message) {
         if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {
-            return $this->handle_crypto_message($client, $message);
+            $this->handle_crypto_message($client, $message);
+            return;
         }
         $this->handle_trading_message($client, $message);
     }

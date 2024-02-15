@@ -492,7 +492,7 @@ class deribit(ccxt.async_support.deribit):
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
@@ -728,13 +728,13 @@ class deribit(ccxt.async_support.deribit):
             }
             handler = self.safe_value(handlers, channelId)
             if handler is not None:
-                return handler(client, message)
+                handler(client, message)
+                return
             raise NotSupported(self.id + ' no handler found for self message ' + self.json(message))
         result = self.safe_value(message, 'result', {})
         accessToken = self.safe_string(result, 'access_token')
         if accessToken is not None:
-            return self.handle_authentication_message(client, message)
-        return message
+            self.handle_authentication_message(client, message)
 
     def handle_authentication_message(self, client: Client, message):
         #
@@ -758,7 +758,7 @@ class deribit(ccxt.async_support.deribit):
         client.resolve(message, messageHash)
         return message
 
-    def authenticate(self, params={}):
+    async def authenticate(self, params={}):
         url = self.urls['api']['ws']
         client = self.client(url)
         time = self.milliseconds()

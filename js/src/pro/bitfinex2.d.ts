@@ -11,7 +11,7 @@ export default class bitfinex2 extends bitfinex2Rest {
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     handleMyTrade(client: Client, message: any, subscription?: {}): void;
-    handleTrades(client: Client, message: any, subscription: any): any;
+    handleTrades(client: Client, message: any, subscription: any): void;
     parseWsTrade(trade: any, market?: any): Trade;
     handleTicker(client: Client, message: any, subscription: any): void;
     parseWsTicker(ticker: any, market?: any): Ticker;
@@ -29,5 +29,5 @@ export default class bitfinex2 extends bitfinex2Rest {
     handleOrders(client: Client, message: any, subscription: any): void;
     parseWsOrderStatus(status: any): string;
     parseWsOrder(order: any, market?: any): Order;
-    handleMessage(client: Client, message: any): any;
+    handleMessage(client: Client, message: any): void;
 }

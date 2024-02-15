@@ -249,7 +249,7 @@ class exmo extends exmo$1 {
         //
         const margin = this.parseMarginModification(response, market);
         const options = this.safeValue(this.options, 'margin', {});
-        const fillResponseFromRequest = this.safeValue(options, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool(options, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             margin['type'] = type;
             margin['amount'] = amount;
@@ -2613,7 +2613,7 @@ class exmo extends exmo$1 {
             //     {"result":false,"error":"Error 50052: Insufficient funds"}
             //     {"s":"error","errmsg":"strconv.ParseInt: parsing \"\": invalid syntax"}
             //
-            let success = this.safeValue(response, 'result', false);
+            let success = this.safeBool(response, 'result', false);
             if (typeof success === 'string') {
                 if ((success === 'true') || (success === '1')) {
                     success = true;

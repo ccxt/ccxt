@@ -9,6 +9,16 @@
                 "method": "fetchDeposits",
                 "url": "https://api.bitvavo.com/v2/depositHistory",
                 "input": []
+            },
+            {
+                "description": "fetch usdt deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.bitvavo.com/v2/depositHistory?symbol=USDT&limit=2",
+                "input": [
+                  "USDT",
+                  null,
+                  2
+                ]
             }
         ],
         "fetchWithdrawals": [
@@ -68,6 +78,22 @@
                   }
                 ],
                 "output": "{\"market\":\"BTC-EUR\",\"side\":\"buy\",\"orderType\":\"stopLoss\",\"amount\":\"0.0002\",\"triggerAmount\":\"30000\",\"triggerType\":\"price\",\"triggerReference\":\"lastTrade\"}"
+              },
+              {
+                "description": "Create order with clientOrderId",
+                "method": "createOrder",
+                "url": "https://api.bitvavo.com/v2/order",
+                "input": [
+                  "LTC/EUR",
+                  "market",
+                  "buy",
+                  0.05,
+                  null,
+                  {
+                    "clientOrderId": "2be7d0df-d8dc-7b93-a550-8876f3b393e9"
+                  }
+                ],
+                "output": "{\"market\":\"LTC-EUR\",\"side\":\"buy\",\"orderType\":\"market\",\"amount\":\"0.05\",\"clientOrderId\":\"2be7d0df-d8dc-7b93-a550-8876f3b393e9\"}"
               }
         ],
         "cancelOrder": [
@@ -78,6 +104,18 @@
                 "input": [
                   "42a876f3-400d-4686-980f-3d6983f251c2",
                   "BTC/EUR"
+                ]
+            },
+            {
+                "description": "Cancel Order",
+                "method": "cancelOrder",
+                "url": "https://api.bitvavo.com/v2/order?clientOrderId=42a876f3-400d-4686-980f-3d6983f251c2&market=BTC-EUR",
+                "input": [
+                  "",
+                  "BTC/EUR",
+                  {
+                    "clientOrderId": "42a876f3-400d-4686-980f-3d6983f251c2"
+                  }
                 ]
             }
         ],
@@ -95,15 +133,54 @@
                   32000
                 ],
                 "output": "{\"price\":\"32000\",\"orderId\":\"24bcd0e3-43f7-43f3-97f0-04df043e2d45\",\"market\":\"BTC-EUR\"}"
+            },
+            {
+                "description": "Edit Order, edit price with clientOrderId",
+                "method": "editOrder",
+                "url": "https://api.bitvavo.com/v2/order",
+                "input": [
+                  "",
+                  "BTC/EUR",
+                  "limit",
+                  "buy",
+                  null,
+                  32000,
+                  {
+                    "clientOrderId": "24bcd0e3-43f7-43f3-97f0-04df043e2d45"
+                  }
+                ],
+                "output": "{\"price\":\"32000\",\"clientOrderId\":\"24bcd0e3-43f7-43f3-97f0-04df043e2d45\",\"market\":\"BTC-EUR\"}"
             }
         ],
         "fetchOrder": [
             {
-                "description": "Fill this with a description of the method call",
+                "description": "fetch order",
                 "method": "fetchOrder",
                 "url": "https://api.bitvavo.com/v2/order?orderId=24bcd0e3-43f7-43f3-97f0-04df043e2d45&market=BTC-EUR",
                 "input": [
                   "24bcd0e3-43f7-43f3-97f0-04df043e2d45",
+                  "BTC/EUR"
+                ]
+            },
+            {
+              "description": "fetch order with clientOrderId",
+              "method": "fetchOrder",
+              "url": "https://api.bitvavo.com/v2/order?market=LTC-EUR&clientOrderId=2be7d0df-d8dc-7b93-a550-8876f3b393e9",
+              "input": [
+                "random",
+                "LTC/EUR",
+                {
+                  "clientOrderId": "2be7d0df-d8dc-7b93-a550-8876f3b393e9"
+                }
+              ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetch orders",
+                "method": "fetchOrders",
+                "url": "https://api.bitvavo.com/v2/orders?market=BTC-EUR",
+                "input": [
                   "BTC/EUR"
                 ]
             }
@@ -124,6 +201,16 @@
                 "input": [
                   "BTC/EUR"
                 ]
+            },
+            {
+                "description": "fetch my trades limit 2",
+                "method": "fetchMyTrades",
+                "url": "https://api.bitvavo.com/v2/trades?market=BTC-EUR&start=0&limit=2",
+                "input": [
+                  "BTC/EUR",
+                  0,
+                  2
+                ]
             }
         ],
         "fetchOpenOrders": [
@@ -132,6 +219,19 @@
                 "method": "fetchOpenOrders",
                 "url": "https://api.bitvavo.com/v2/ordersOpen",
                 "input": []
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitvavo.com/v2/BTC-EUR/candles?interval=1m&limit=5",
+                "input": [
+                  "BTC/EUR",
+                  "1m",
+                  null,
+                  5
+                ]
             }
         ]
     }

@@ -61,15 +61,15 @@ export default class phemex extends phemexRest {
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    handleDelta(bookside: any, delta: any, market?: any): void;
-    handleDeltas(bookside: any, deltas: any, market?: any): void;
+    customHandleDelta(bookside: any, delta: any, market?: any): void;
+    customHandleDeltas(bookside: any, deltas: any, market?: any): void;
     handleOrderBook(client: Client, message: any): void;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleMyTrades(client: Client, message: any): void;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrders(client: Client, message: any): void;
     parseWSSwapOrder(order: any, market?: any): Order;
-    handleMessage(client: Client, message: any): any;
+    handleMessage(client: Client, message: any): void;
     handleAuthenticate(client: Client, message: any): void;
     subscribePrivate(type: any, messageHash: any, params?: {}): Promise<any>;
     authenticate(params?: {}): Promise<any>;

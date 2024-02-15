@@ -47,6 +47,7 @@ class ImplicitAPI:
     private_get_users_self_trailing_volume = privateGetUsersSelfTrailingVolume = Entry('users/self/trailing-volume', 'private', 'GET', {})
     private_get_withdrawals_fee_estimate = privateGetWithdrawalsFeeEstimate = Entry('withdrawals/fee-estimate', 'private', 'GET', {})
     private_get_conversions_conversion_id = privateGetConversionsConversionId = Entry('conversions/{conversion_id}', 'private', 'GET', {})
+    private_get_conversions_fees = privateGetConversionsFees = Entry('conversions/fees', 'private', 'GET', {})
     private_post_conversions = privatePostConversions = Entry('conversions', 'private', 'POST', {})
     private_post_deposits_coinbase_account = privatePostDepositsCoinbaseAccount = Entry('deposits/coinbase-account', 'private', 'POST', {})
     private_post_deposits_payment_method = privatePostDepositsPaymentMethod = Entry('deposits/payment-method', 'private', 'POST', {})

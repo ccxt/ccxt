@@ -11,6 +11,7 @@ from ccxt.test.base.test_borrow_rate import test_borrow_rate # noqa E402
 from ccxt.test.base.test_currency import test_currency # noqa E402
 from ccxt.test.base.test_deposit_withdrawal import test_deposit_withdrawal # noqa E402
 from ccxt.test.base.test_funding_rate_history import test_funding_rate_history # noqa E402
+from ccxt.test.base.test_last_price import test_last_price # noqa E402
 from ccxt.test.base.test_ledger_entry import test_ledger_entry # noqa E402
 from ccxt.test.base.test_leverage_tier import test_leverage_tier # noqa E402
 from ccxt.test.base.test_margin_modification import test_margin_modification # noqa E402

@@ -5,11 +5,17 @@
 
 from ccxt.pro.binance import binance
 
+import ccxt.async_support.binancecoinm as binancecoinmRest
+
 
 class binancecoinm(binance):
 
     def describe(self):
-        return self.deep_extend(super(binancecoinm, self).describe(), {
+        # eslint-disable-next-line new-cap
+        restInstance = binancecoinmRest()
+        restDescribe = restInstance.describe()
+        extended = self.deep_extend(super(binancecoinm, self).describe(), restDescribe)
+        return self.deep_extend(extended, {
             'id': 'binancecoinm',
             'name': 'Binance COIN-M',
             'urls': {

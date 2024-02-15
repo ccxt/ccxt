@@ -45,6 +45,45 @@
                   }
                 ],
                 "output": "{\"clientOid\":\"7417761e-9fa9-4030-8863-66fba6487b24\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"limit\",\"size\":\"0.1\",\"price\":\"55\",\"stopPrice\":\"60\"}"
+            },
+            {
+                "description": "Create hf order",
+                "method": "createOrder",
+                "url": "https://api.kucoin.com/api/v1/hf/orders",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "buy",
+                  0.1,
+                  null,
+                  {
+                    "hf": true
+                  }
+                ],
+                "output": "{\"clientOid\":\"5d7a8110-1ea6-46e7-8d8f-1ba53267f20c\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"market\",\"size\":\"0.1\",\"hf\":true}"
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "method": "market buy with cost",
+                "url": "https://api.kucoin.com/api/v1/orders",
+                "input": [
+                  "LTC/USDT",
+                  5
+                ],
+                "output": "{\"clientOid\":\"161d6deb-6d83-4f94-a47d-95b4cdf8a239\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"market\",\"funds\":\"5\"}"
+            }
+        ],
+        "createMarketSellOrderWithCost": [
+            {
+                "description": "market sell with cost",
+                "method": "createMarketSellOrderWithCost",
+                "url": "https://api.kucoin.com/api/v1/orders",
+                "input": [
+                  "LTC/USDT",
+                  5
+                ],
+                "output": "{\"clientOid\":\"8c981786-2534-4bd8-b3ee-fea9ecaf5b8c\",\"side\":\"sell\",\"symbol\":\"LTC-USDT\",\"type\":\"market\",\"funds\":\"5\"}"
             }
         ],
         "fetchOpenOrders": [
@@ -74,6 +113,39 @@
                 "url": "https://api.kucoin.com/api/v1/orders?symbol=LTC-USDT",
                 "input": [
                     "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Cancel spot orders - stop order",
+                "method": "cancelAllOrders",
+                "url": "https://api.kucoin.com/api/v1/stop-order/cancel?symbol=LTC-USDT",
+                "input": [
+                    "LTC/USDT",
+                    {
+                        "stop": true
+                    }
+                ]
+            },
+            {
+                "description": "Cancel spot orders - hf order with symbol",
+                "method": "cancelAllOrders",
+                "url": "https://api.kucoin.com/api/v1/hf/orders?symbol=LTC-USDT",
+                "input": [
+                    "LTC/USDT",
+                    {
+                        "hf": true
+                    }
+                ]
+            },
+            {
+                "description": "Cancel spot orders - hf order",
+                "method": "cancelAllOrders",
+                "url": "https://api.kucoin.com/api/v1/hf/orders/cancelAll",
+                "input": [
+                    null,
+                    {
+                        "hf": true
+                    }
                 ]
             }
         ],
@@ -122,6 +194,16 @@
                         "type": "spot"
                     }
                 ]
+            },
+            {
+                "description": "fetch spot hf balance",
+                "method": "fetchBalance",
+                "url": "https://api.kucoin.com/api/v1/accounts?type=trade_hf",
+                "input": [
+                  {
+                    "hf": true
+                  }
+                ]
             }
         ],
         "fetchDeposits": [
@@ -152,6 +234,18 @@
                     "swap"
                 ],
                 "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"from\":\"trade\",\"to\":\"contract\",\"clientOid\":\"eac5ee3a-c116-4109-9a47-29c4b1aa6567\"}"
+            },
+            {
+                "description": "transfer from trade to hf account",
+                "method": "transfer",
+                "url": "https://api.kucoin.com/api/v2/accounts/inner-transfer",
+                "input": [
+                  "USDT",
+                  5,
+                  "trade",
+                  "trade_hf"
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"from\":\"trade\",\"to\":\"trade_hf\",\"clientOid\":\"d0da1feb-d76c-4562-b727-ddfabec6ca45\"}"
             }
         ],
         "fetchLedger": [
@@ -161,6 +255,19 @@
                 "url": "https://api.kucoin.com/api/v1/accounts/ledgers?currency=USDT",
                 "input": [
                     "USDT"
+                ]
+            },
+            {
+                "description": "fetch hf ledger",
+                "method": "fetchLedger",
+                "url": "https://api.kucoin.com/api/v1/hf/accounts/ledgers?currency=USDT",
+                "input": [
+                  "USDT",
+                  null,
+                  null,
+                  {
+                    "hf": true
+                  }
                 ]
             }
         ]

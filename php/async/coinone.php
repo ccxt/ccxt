@@ -78,7 +78,7 @@ class coinone extends Exchange {
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
-                'ws' => false,
+                'ws' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -719,7 +719,7 @@ class coinone extends Exchange {
                 'target_currency' => $market['base'],
             );
             if ($limit !== null) {
-                $request['size'] = $limit; // only support 10, 50, 100, 150, 200
+                $request['size'] = min ($limit, 200);
             }
             $response = Async\await($this->v2PublicGetTradesQuoteCurrencyTargetCurrency (array_merge($request, $params)));
             //
@@ -745,7 +745,7 @@ class coinone extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1078,7 +1078,7 @@ class coinone extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit addresses for multiple currencies and chain types

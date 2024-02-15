@@ -327,7 +327,7 @@ export default class idex extends idexRest {
                         const symbol = this.safeSymbol(marketId);
                         if (!(symbol in this.orderbooks)) {
                             const orderbook = this.countedOrderBook({});
-                            orderbook.cache = [];
+                            // orderbook.cache = []; // cache is never used?
                             this.orderbooks[symbol] = orderbook;
                         }
                         this.spawn(this.fetchOrderBookSnapshot, client, symbol);
@@ -512,7 +512,7 @@ export default class idex extends idexRest {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

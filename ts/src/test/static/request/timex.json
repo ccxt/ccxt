@@ -56,6 +56,16 @@
                     }
                 ]
             }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Basic call",
+                "method": "fetchDepositAddress",
+                "url": "https://plasma-relay-backend.timex.io/currencies/s/BTC",
+                "input": [
+                    "BTC"
+                ]
+            }
         ]
     }
 }

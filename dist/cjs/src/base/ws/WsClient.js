@@ -1,17 +1,19 @@
 'use strict';
 
+var WebSocket = require('ws');
 var Client = require('./Client.js');
 var platform = require('../functions/platform.js');
 require('../functions/encode.js');
 require('../functions/crypto.js');
 var time = require('../functions/time.js');
-var WebSocket = require('ws');
 var Future = require('./Future.js');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
 var WebSocket__default = /*#__PURE__*/_interopDefaultLegacy(WebSocket);
 
+// eslint-disable-next-line no-shadow
+// eslint-disable-next-line no-restricted-globals
 const WebSocketPlatform = platform.isNode ? WebSocket__default["default"] : self.WebSocket;
 class WsClient extends Client {
     createConnection() {

@@ -12,9 +12,7 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_order_book  # noqa E402
-
 
 async def test_fetch_l2_order_book(exchange, skipped_properties, symbol):
     method = 'fetchL2OrderBook'

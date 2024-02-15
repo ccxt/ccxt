@@ -16,6 +16,14 @@
                     "LTC/USDT"
                 ],
                 "output": "{\"key\":\"X6IegCdOnRhIT8yETezmQ9Y6mc\",\"signature\":\"E0FF3BC8F3993A914F01E91E51DAB61B5DFEA42694B2C66D35FA0312BF00DB17\",\"nonce\":\"1699458293441\"}"
+            },
+            {
+                "description": "Spot open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://cex.io/api/open_orders/",
+                "input": [
+                ],
+                "output": "{\"key\":\"X6IegCdOnRhIT8yETezmQ9Y6mc\",\"signature\":\"E0FF3BC8F3993A914F01E91E51DAB61B5DFEA42694B2C66D35FA0312BF00DB17\",\"nonce\":\"1699458293441\"}"
             }
         ],
         "fetchClosedOrders": [

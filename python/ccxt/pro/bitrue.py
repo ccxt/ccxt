@@ -341,7 +341,11 @@ class bitrue(ccxt.async_support.bitrue):
         symbol = market['symbol']
         timestamp = self.safe_integer(message, 'ts')
         tick = self.safe_value(message, 'tick', {})
-        orderbook = self.parse_order_book(tick, symbol, timestamp, 'buys', 'asks')
+        orderbook = self.safe_value(self.orderbooks, symbol)
+        if orderbook is None:
+            orderbook = self.order_book()
+        snapshot = self.parse_order_book(tick, symbol, timestamp, 'buys', 'asks')
+        orderbook.reset(snapshot)
         self.orderbooks[symbol] = orderbook
         messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
@@ -404,7 +408,7 @@ class bitrue(ccxt.async_support.bitrue):
             except Exception as error:
                 self.options['listenKey'] = None
                 self.options['listenKeyUrl'] = None
-                return
+                return None
             #
             #     {
             #         "msg": "succ",

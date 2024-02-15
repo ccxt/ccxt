@@ -20,7 +20,7 @@ export default class huobijp extends huobijpRest {
     handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleSystemStatus(client: Client, message: any): any;
-    handleSubject(client: Client, message: any): any;
+    handleSubject(client: Client, message: any): void;
     pong(client: any, message: any): Promise<void>;
     handlePing(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): any;

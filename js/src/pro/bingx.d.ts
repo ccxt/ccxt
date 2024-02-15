@@ -1,8 +1,11 @@
 import bingxRest from '../bingx.js';
-import type { Int, OHLCV, Str, OrderBook, Order, Trade, Balances } from '../base/types.js';
+import type { Int, OHLCV, Str, OrderBook, Order, Trade, Balances, Ticker } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bingx extends bingxRest {
     describe(): any;
+    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    handleTicker(client: Client, message: any): void;
+    parseWsTicker(message: any, market?: any): Ticker;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: Client, message: any): void;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
@@ -14,7 +17,7 @@ export default class bingx extends bingxRest {
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchBalance(params?: {}): Promise<Balances>;
-    setBalanceCache(client: Client, type: any, subscriptionHash: any, params: any): any;
+    setBalanceCache(client: Client, type: any, subscriptionHash: any, params: any): void;
     loadBalanceSnapshot(client: any, messageHash: any, type: any): Promise<void>;
     handleErrorMessage(client: any, message: any): boolean;
     authenticate(params?: {}): Promise<void>;

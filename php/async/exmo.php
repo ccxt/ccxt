@@ -253,7 +253,7 @@ class exmo extends Exchange {
             //
             $margin = $this->parse_margin_modification($response, $market);
             $options = $this->safe_value($this->options, 'margin', array());
-            $fillResponseFromRequest = $this->safe_value($options, 'fillResponseFromRequest', true);
+            $fillResponseFromRequest = $this->safe_bool($options, 'fillResponseFromRequest', true);
             if ($fillResponseFromRequest) {
                 $margin['type'] = $type;
                 $margin['amount'] = $amount;
@@ -436,7 +436,7 @@ class exmo extends Exchange {
         return $result;
     }
 
-    public function fetch_transaction_fees($codes = null, $params = array ()) {
+    public function fetch_transaction_fees(?array $codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
              * @deprecated
@@ -1405,7 +1405,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -2046,7 +2046,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * *margin only* edit a trade order
@@ -2141,7 +2141,7 @@ class exmo extends Exchange {
         return null;
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2638,7 +2638,7 @@ class exmo extends Exchange {
             //     array("result":false,"error":"Error 50052 => Insufficient funds")
             //     array("s":"error","errmsg":"strconv.ParseInt => parsing \"\" => invalid syntax")
             //
-            $success = $this->safe_value($response, 'result', false);
+            $success = $this->safe_bool($response, 'result', false);
             if (gettype($success) === 'string') {
                 if (($success === 'true') || ($success === '1')) {
                     $success = true;

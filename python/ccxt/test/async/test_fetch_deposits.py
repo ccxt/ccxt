@@ -12,10 +12,8 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
-from ccxt.test.base import test_transaction  # noqa E402
+from ccxt.test.base import test_deposit_withdrawal  # noqa E402
 from ccxt.test.base import test_shared_methods  # noqa E402
-
 
 async def test_fetch_deposits(exchange, skipped_properties, code):
     method = 'fetchDeposits'
@@ -23,5 +21,5 @@ async def test_fetch_deposits(exchange, skipped_properties, code):
     assert isinstance(transactions, list), exchange.id + ' ' + method + ' ' + code + ' must return an array. ' + exchange.json(transactions)
     now = exchange.milliseconds()
     for i in range(0, len(transactions)):
-        test_transaction(exchange, skipped_properties, method, transactions[i], code, now)
+        test_deposit_withdrawal(exchange, skipped_properties, method, transactions[i], code, now)
     test_shared_methods.assert_timestamp_order(exchange, method, code, transactions)

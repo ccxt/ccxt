@@ -165,6 +165,7 @@ interface Exchange {
     privateFuturesGetSettleLiquidates(params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettleAutoDeleverages(params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettleFee(params?: {}): Promise<implicitReturnType>;
+    privateFuturesGetSettleRiskLimitTiers(params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettlePriceOrders(params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettlePriceOrdersOrderId(params?: {}): Promise<implicitReturnType>;
     privateFuturesPostSettlePositionsContractMargin(params?: {}): Promise<implicitReturnType>;
@@ -177,6 +178,7 @@ interface Exchange {
     privateFuturesPostSettleOrders(params?: {}): Promise<implicitReturnType>;
     privateFuturesPostSettleBatchOrders(params?: {}): Promise<implicitReturnType>;
     privateFuturesPostSettleCountdownCancelAll(params?: {}): Promise<implicitReturnType>;
+    privateFuturesPostSettleBatchCancelOrders(params?: {}): Promise<implicitReturnType>;
     privateFuturesPostSettlePriceOrders(params?: {}): Promise<implicitReturnType>;
     privateFuturesPutSettleOrdersOrderId(params?: {}): Promise<implicitReturnType>;
     privateFuturesDeleteSettleOrders(params?: {}): Promise<implicitReturnType>;
@@ -233,9 +235,20 @@ interface Exchange {
     privateLoanGetCollateralTotalAmount(params?: {}): Promise<implicitReturnType>;
     privateLoanGetCollateralLtv(params?: {}): Promise<implicitReturnType>;
     privateLoanGetCollateralCurrencies(params?: {}): Promise<implicitReturnType>;
+    privateLoanGetMultiCollateralOrders(params?: {}): Promise<implicitReturnType>;
+    privateLoanGetMultiCollateralOrdersOrderId(params?: {}): Promise<implicitReturnType>;
+    privateLoanGetMultiCollateralRepay(params?: {}): Promise<implicitReturnType>;
+    privateLoanGetMultiCollateralMortgage(params?: {}): Promise<implicitReturnType>;
+    privateLoanGetMultiCollateralCurrencyQuota(params?: {}): Promise<implicitReturnType>;
+    privateLoanGetMultiCollateralCurrencies(params?: {}): Promise<implicitReturnType>;
+    privateLoanGetMultiCollateralLtv(params?: {}): Promise<implicitReturnType>;
+    privateLoanGetMultiCollateralFixedRate(params?: {}): Promise<implicitReturnType>;
     privateLoanPostCollateralOrders(params?: {}): Promise<implicitReturnType>;
     privateLoanPostCollateralRepay(params?: {}): Promise<implicitReturnType>;
     privateLoanPostCollateralCollaterals(params?: {}): Promise<implicitReturnType>;
+    privateLoanPostMultiCollateralOrders(params?: {}): Promise<implicitReturnType>;
+    privateLoanPostMultiCollateralRepay(params?: {}): Promise<implicitReturnType>;
+    privateLoanPostMultiCollateralMortgage(params?: {}): Promise<implicitReturnType>;
     privateAccountGetDetail(params?: {}): Promise<implicitReturnType>;
     privateAccountGetStpGroups(params?: {}): Promise<implicitReturnType>;
     privateAccountGetStpGroupsStpIdUsers(params?: {}): Promise<implicitReturnType>;

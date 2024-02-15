@@ -12,9 +12,7 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_shared_methods  # noqa E402
-
 
 async def test_proxies(exchange, skipped_properties):
     await test_proxy_url(exchange, skipped_properties)
