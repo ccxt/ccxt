@@ -1549,7 +1549,7 @@ export default class timex extends Exchange {
     async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
-         * @name bitget#fetchDepositAddress
+         * @name timex#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account, does not accept params["network"]
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1578,7 +1578,7 @@ export default class timex extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'currency', {});
+        const data = this.safeDict (response, 'currency', {});
         return this.parseDepositAddress (data, currency);
     }
 
@@ -1608,8 +1608,9 @@ export default class timex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const paramsToExtract = this.extractParams (path);
         path = this.implodeParams (path, params);
-        params = this.omit (params, this.extractParams (path));
+        params = this.omit (params, paramsToExtract);
         let url = this.urls['api']['rest'] + '/' + api + '/' + path;
         if (Object.keys (params).length) {
             url += '?' + this.urlencodeWithArrayRepeat (params);
