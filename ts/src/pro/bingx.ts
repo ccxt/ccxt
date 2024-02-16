@@ -443,14 +443,12 @@ export default class bingx extends bingxRest {
         const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ();
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
+            this.orderbooks[symbol] = this.orderBook ();
         }
         const snapshot = this.parseOrderBook (data, symbol, undefined, 'bids', 'asks', 0, 1);
-        orderbook.reset (snapshot);
-        this.orderbooks[symbol] = orderbook;
-        client.resolve (orderbook, messageHash);
+        this.orderbooks[symbol].reset (snapshot);
+        client.resolve (this.orderbooks[symbol], messageHash);
     }
 
     parseWsOHLCV (ohlcv, market = undefined): OHLCV {
