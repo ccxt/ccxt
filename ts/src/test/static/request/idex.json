@@ -24,6 +24,14 @@
                     "USDT"
                 ]
             }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch Deposit Address",
+                "method": "fetchDepositAddress",
+                "url": "https://api-matic.idex.io/v1/wallets?nonce=1ab69e90cbbc11ee9696ffffffffffff",
+                "input": []
+            }
         ]
     }
 }

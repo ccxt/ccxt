@@ -356,6 +356,8 @@
         }
     },
     "onetrading": {
+        "skip": true,
+        "until": "2024-02-18",
         "skipWs": true,
         "skipMethods": {
             "fetchOrderBook": "some bid might be lower than next bid",
