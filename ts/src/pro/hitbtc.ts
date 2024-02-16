@@ -256,7 +256,6 @@ export default class hitbtc extends hitbtcRest {
         //
         const data = this.safeValue2 (message, 'snapshot', 'update', {});
         const marketIds = Object.keys (data);
-        const channel = this.safeString (message, 'ch');
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
