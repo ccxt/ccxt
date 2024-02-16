@@ -94,14 +94,11 @@ export default class coincheck extends coincheckRest {
         const data = this.safeValue (message, 1, {});
         const timestamp = this.safeTimestamp (data, 'last_update_at');
         const snapshot = this.parseOrderBook (data, symbol, timestamp);
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook (snapshot);
-            this.orderbooks[symbol] = orderbook;
-        } else {
-            orderbook = this.orderbooks[symbol];
-            orderbook.reset (snapshot);
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
+            this.orderbooks[symbol] = this.orderBook (snapshot);
         }
+        const orderbook = this.orderbooks[symbol];
+        orderbook.reset (snapshot);
         const messageHash = 'orderbook:' + symbol;
         client.resolve (orderbook, messageHash);
     }
