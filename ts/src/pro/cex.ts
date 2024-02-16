@@ -1028,7 +1028,10 @@ export default class cex extends cexRest {
         const incrementalId = this.safeNumber (data, 'id');
         const pair = this.safeString (data, 'pair', '');
         const symbol = this.pairToSymbol (pair);
-        const storedOrderBook = this.safeValue (this.orderbooks, symbol);
+        if (!(symbol in this.orderbooks)) {
+            return;
+        }
+        const storedOrderBook = this.orderbooks[symbol];
         const messageHash = 'orderbook:' + symbol;
         if (incrementalId !== storedOrderBook['nonce'] + 1) {
             delete client.subscriptions[messageHash];
