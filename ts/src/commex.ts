@@ -1,7 +1,11 @@
+/* eslint-disable indent */
 import Exchange from './abstract/commex.js';
+import type { Int, OHLCV, Trade, Market, Ticker, Str, Tickers, Strings, Balances } from './base/types.js';
+import { ArgumentsRequired } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Int, OHLCV, Trade, Market, Ticker } from './base/types.js';
+import { rsa } from './base/functions/rsa.js';
+import { eddsa } from './base/functions/crypto.js';
+import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 
 /**
  * @class Commex
@@ -75,6 +79,9 @@ export default class commex extends Exchange {
                 'transfer': true,
                 'withdraw': true,
             },
+            'options': {
+                'recvWindow': 5 * 1000, // 5 sec
+            },
             // https://www.commex.com/api-docs/en/?shell#public-api-definitions
             'timeframes': {
                 '1m': '1m',
@@ -121,6 +128,7 @@ export default class commex extends Exchange {
                 'logo': 'https://example.com/image.jpg',
                 'api': {
                     'public': 'https://api.commex.com/api',
+                    'private': 'https://api.commex.com/api',
                 },
                 'www': 'https://www.commex.com',
                 'doc': [
@@ -139,6 +147,12 @@ export default class commex extends Exchange {
                         'trades',
                         'aggTrades',
                         'ticker/24hr',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'allOrders',
+                        'account',
                     ],
                 },
             },
@@ -251,29 +265,38 @@ export default class commex extends Exchange {
                 url += '?' + this.urlencodeNested (params);
             }
         } else if (api === 'private') {
-            const isCancelOrderBatch = (path === 'CancelOrderBatch');
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
-            // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
-            if (isCancelOrderBatch) {
-                body = this.json (this.extend ({ 'nonce': nonce }, params));
-            } else {
-                body = this.urlencodeNested (this.extend ({ 'nonce': nonce }, params));
+            let query = undefined;
+            const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
+            const extendedParams = this.extend ({
+                'timestamp': this.nonce () * 1000,
+            }, params);
+            if (defaultRecvWindow !== undefined) {
+                extendedParams['recvWindow'] = defaultRecvWindow;
             }
-            const auth = this.encode (nonce + body);
-            const hash = this.hash (auth, sha256, 'binary');
-            const binary = this.encode (url);
-            const binhash = this.binaryConcat (binary, hash);
-            const secret = this.base64ToBinary (this.secret);
-            const signature = this.hmac (binhash, secret, sha512, 'base64');
-            headers = {
-                'API-Key': this.apiKey,
-                'API-Sign': signature,
-                // 'Content-Type': 'application/x-www-form-urlencoded',
-            };
-            if (isCancelOrderBatch) {
-                headers['Content-Type'] = 'application/json';
+            const recvWindow = this.safeInteger (params, 'recvWindow');
+            if (recvWindow !== undefined) {
+                extendedParams['recvWindow'] = recvWindow;
+            }
+            query = this.urlencode (extendedParams);
+            let signature = undefined;
+            if (this.secret.indexOf ('PRIVATE KEY') > -1) {
+                if (this.secret.length > 120) {
+                    signature = this.encodeURIComponent (rsa (query, this.secret, sha256));
+                } else {
+                    signature = this.encodeURIComponent (eddsa (this.encode (query), this.secret, ed25519));
+                }
             } else {
+                signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
+            }
+            query += '&' + 'signature=' + signature;
+            headers = {
+                'X-MBX-APIKEY': this.apiKey,
+            };
+            if ((method === 'GET') || (method === 'DELETE')) {
+                url += '?' + query;
+            } else {
+                body = query;
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         } else {
@@ -659,9 +682,117 @@ export default class commex extends Exchange {
         return this.parseTicker (response, market);
     }
 
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name commex#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @see https://www.commex.com/api-docs/en/#all-orders
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
+        }
+        const request = {};
+        let market = undefined;
+        let method = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        [ params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
+        [ params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
+        method = 'privateGetMyTrades';
+        let endTime = this.safeInteger2 (params, 'until', 'endTime');
+        // ????
+        if (since !== undefined) {
+            const startTime = since;
+            request['startTime'] = startTime;
+            // https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
+            // If startTime and endTime are both not sent, then the last 7 days' data will be returned.
+            // The time between startTime and endTime cannot be longer than 7 days.
+            // The parameter fromId cannot be sent with startTime or endTime.
+            const currentTimestamp = this.milliseconds ();
+            const oneWeek = 7 * 24 * 60 * 60 * 1000;
+            if ((currentTimestamp - startTime) >= oneWeek) {
+                if ((endTime === undefined) && market['linear']) {
+                    endTime = this.sum (startTime, oneWeek);
+                    endTime = Math.min (endTime, currentTimestamp);
+                }
+            }
+        }
+        if (endTime !== undefined) {
+            request['endTime'] = endTime;
+            params = this.omit (params, [ 'endTime', 'until' ]);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this[method] (this.extend (request, params));
+        // Commex
+        // [  {    "symbol": "LTCBTC",    "orderId": 1,    "clientOrderId": "myOrder1",    "price": "0.1",    "origQty": "1.0",    "executedQty": "0.0",
+        //    "cumulativeQuoteQty": "0.0",    "status": "NEW",    "timeInForce": "GTC",    "type": "LIMIT",    "side": "BUY",    "stopPrice": "0.0",
+        //  "time": 1499827319559,    "updateTime": 1499827319559,    "isWorking": true,    "origQuoteOrderQty": "0.000000"  }]
+        //
+        // Binance
+        // spot trade
+        //
+        //     [
+        //         {
+        //             "symbol": "BNBBTC",
+        //             "id": 28457,
+        //             "orderId": 100234,
+        //             "price": "4.00000100",
+        //             "qty": "12.00000000",
+        //             "commission": "10.10000000",
+        //             "commissionAsset": "BNB",
+        //             "time": 1499865549590,
+        //             "isBuyer": true,
+        //             "isMaker": false,
+        //             "isBestMatch": true,
+        //         }
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name binance#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         // spot
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        const response = await this.publicGetTicker24hr (this.extend (request, params));
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const ticker = this.parseTicker (response[i]);
+            const symbol = ticker['symbol'];
+            result[symbol] = ticker;
+        }
+        return this.filterByArrayTickers (result, 'symbol', symbols);
+    }
+
     parseTicker (ticker, market: Market = undefined): Ticker {
         const timestamp = this.safeInteger (ticker, 'closeTime');
-        const marketType = 'Spot';
+        const marketType = 'spot';
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         const last = this.safeString (ticker, 'lastPrice');
@@ -690,5 +821,67 @@ export default class commex extends Exchange {
             'info': ticker,
         }, market);
     }
-}
 
+    parseBalance (response, type = undefined, marginMode = undefined): Balances {
+        const result = {
+            'info': response,
+        };
+        let timestamp = undefined;
+        timestamp = this.safeInteger (response, 'updateTime');
+        const balances = this.safeValue2 (response, 'balances', 'userAssets', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'free');
+            account['used'] = this.safeString (balance, 'locked');
+            result[code] = account;
+        }
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601 (timestamp);
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name commex#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://www.commex.com/api-docs/en/#symbol-price-ticker                  // spot
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+         * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+         * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        await this.loadMarkets ();
+        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        [ params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
+        const method = 'privateGetAccount';
+        const request = {};
+        const requestParams = this.omit (query, [ 'type', 'symbols' ]);
+        const response = await this[method] (this.extend (request, requestParams));
+        //
+        // spot
+        //
+        //     {
+        //         "makerCommission": 10,
+        //         "takerCommission": 10,
+        //         "buyerCommission": 0,
+        //         "sellerCommission": 0,
+        //         "canTrade": true,
+        //         "canWithdraw": true,
+        //         "canDeposit": true,
+        //         "updateTime": 1575357359602,
+        //         "accountType": "MARGIN",
+        //         "balances": [
+        //             { asset: "BTC", free: "0.00219821", locked: "0.00000000"  },
+        //         ]
+        //     }
+        //
+        return this.parseBalance (response, type, marginMode);
+    }
+}
