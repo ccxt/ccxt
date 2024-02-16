@@ -310,7 +310,9 @@ public class CountedOrderBookSide : OrderBookSide, IOrderBookSide
             var deltaArray = (IList<object>)deltaArra2;
             var price = deltaArray[0];
             var size = Convert.ToDecimal(deltaArray[1]);
-            var count = Convert.ToInt32(deltaArray[2]);
+            // var count = Convert.ToInt32(deltaArray[2]);
+            int count = 0;
+            int.TryParse(deltaArray[2].ToString(), out count);
             var decimalPrice = Convert.ToDecimal(price);
             var index_price = (this.side) ? -decimalPrice : decimalPrice;
             var index = bisectLeft(this._index, index_price);
