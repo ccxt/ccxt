@@ -38,6 +38,7 @@ public partial class kucoin : ccxt.kucoin
                 { "watchOrderBook", new Dictionary<string, object>() {
                     { "snapshotDelay", 5 },
                     { "snapshotMaxRetries", 3 },
+                    { "method", "/market/level2" },
                 } },
             } },
             { "streaming", new Dictionary<string, object>() {
@@ -477,10 +478,15 @@ public partial class kucoin : ccxt.kucoin
         /**
         * @method
         * @name kucoin#watchOrderBook
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
         */
         //
@@ -507,10 +513,15 @@ public partial class kucoin : ccxt.kucoin
         /**
         * @method
         * @name kucoin#watchOrderBookForSymbols
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
         * @param {string[]} symbols unified array of symbols
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
@@ -521,16 +532,24 @@ public partial class kucoin : ccxt.kucoin
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            if (isTrue(isTrue((!isEqual(limit, 20))) && isTrue((!isEqual(limit, 100)))))
+            if (isTrue(isTrue(isTrue(isTrue((!isEqual(limit, 20))) && isTrue((!isEqual(limit, 100)))) && isTrue((!isEqual(limit, 50)))) && isTrue((!isEqual(limit, 5)))))
             {
-                throw new ExchangeError ((string)add(this.id, " watchOrderBook \'limit\' argument must be undefined, 20 or 100")) ;
+                throw new ExchangeError ((string)add(this.id, " watchOrderBook \'limit\' argument must be undefined, 5, 20, 50 or 100")) ;
             }
         }
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         object marketIds = this.marketIds(symbols);
         object url = await this.negotiate(false);
-        object topic = add("/market/level2:", String.Join(",", ((IList<object>)marketIds).ToArray()));
+        object method = null;
+        var methodparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "method", "/market/level2");
+        method = ((IList<object>)methodparametersVariable)[0];
+        parameters = ((IList<object>)methodparametersVariable)[1];
+        if (isTrue(isTrue((isEqual(limit, 5))) || isTrue((isEqual(limit, 50)))))
+        {
+            method = add("/spotMarket/level2Depth", ((object)limit).ToString());
+        }
+        object topic = add(add(method, ":"), String.Join(",", ((IList<object>)marketIds).ToArray()));
         object messageHashes = new List<object>() {};
         object subscriptionHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -538,13 +557,17 @@ public partial class kucoin : ccxt.kucoin
             object symbol = getValue(symbols, i);
             ((IList<object>)messageHashes).Add(add("orderbook:", symbol));
             object marketId = getValue(marketIds, i);
-            ((IList<object>)subscriptionHashes).Add(add("/market/level2:", marketId));
+            ((IList<object>)subscriptionHashes).Add(add(add(method, ":"), marketId));
         }
-        object subscription = new Dictionary<string, object>() {
-            { "method", this.handleOrderBookSubscription },
-            { "symbols", symbols },
-            { "limit", limit },
-        };
+        object subscription = new Dictionary<string, object>() {};
+        if (isTrue(isEqual(method, "/market/level2")))
+        {
+            subscription = new Dictionary<string, object>() {
+                { "method", this.handleOrderBookSubscription },
+                { "symbols", symbols },
+                { "limit", limit },
+            };
+        }
         object orderbook = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, parameters, subscription);
         return (orderbook as IOrderBook).limit();
     }
@@ -570,45 +593,80 @@ public partial class kucoin : ccxt.kucoin
         //         }
         //     }
         //
+        //     {
+        //         "topic": "/spotMarket/level2Depth5:BTC-USDT",
+        //         "type": "message",
+        //         "data": {
+        //             "asks": [
+        //                 [
+        //                     "42815.6",
+        //                     "1.24016245"
+        //                 ]
+        //             ],
+        //             "bids": [
+        //                 [
+        //                     "42815.5",
+        //                     "0.08652716"
+        //                 ]
+        //             ],
+        //             "timestamp": 1707204474018
+        //         },
+        //         "subject": "level2"
+        //     }
+        //
         object data = this.safeValue(message, "data");
-        object marketId = this.safeString(data, "symbol");
+        object subject = this.safeString(message, "subject");
+        object topic = this.safeString(message, "topic");
+        object topicParts = ((string)topic).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+        object topicSymbol = this.safeString(topicParts, 1);
+        object topicChannel = this.safeString(topicParts, 0);
+        object marketId = this.safeString(data, "symbol", topicSymbol);
         object symbol = this.safeSymbol(marketId, null, "-");
         object messageHash = add("orderbook:", symbol);
-        object storedOrderBook = getValue(this.orderbooks, symbol);
-        object nonce = this.safeInteger(storedOrderBook, "nonce");
-        object deltaEnd = this.safeInteger(data, "sequenceEnd");
-        if (isTrue(isEqual(nonce, null)))
+        object orderbook = this.safeDict(this.orderbooks, symbol);
+        if (isTrue(isEqual(subject, "level2")))
         {
-            object cacheLength = getArrayLength((storedOrderBook as ccxt.pro.OrderBook).cache);
-            object topic = this.safeString(message, "topic");
-            object topicParts = ((string)topic).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
-            object topicSymbol = this.safeString(topicParts, 1);
-            object topicChannel = this.safeString(topicParts, 0);
-            object subscriptions = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
-            object subscription = null;
-            for (object i = 0; isLessThan(i, getArrayLength(subscriptions)); postFixIncrement(ref i))
+            if (isTrue(isEqual(orderbook, null)))
             {
-                object key = getValue(subscriptions, i);
-                if (isTrue(isTrue((isGreaterThanOrEqual(getIndexOf(key, topicSymbol), 0))) && isTrue((isGreaterThanOrEqual(getIndexOf(key, topicChannel), 0)))))
+                orderbook = this.orderBook();
+            } else
+            {
+                (orderbook as IOrderBook).reset();
+            }
+            ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
+        } else
+        {
+            object nonce = this.safeInteger(orderbook, "nonce");
+            object deltaEnd = this.safeInteger2(data, "sequenceEnd", "timestamp");
+            if (isTrue(isEqual(nonce, null)))
+            {
+                object cacheLength = getArrayLength((orderbook as ccxt.pro.OrderBook).cache);
+                object subscriptions = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
+                object subscription = null;
+                for (object i = 0; isLessThan(i, getArrayLength(subscriptions)); postFixIncrement(ref i))
                 {
-                    subscription = getValue(((WebSocketClient)client).subscriptions, key);
-                    break;
+                    object key = getValue(subscriptions, i);
+                    if (isTrue(isTrue((isGreaterThanOrEqual(getIndexOf(key, topicSymbol), 0))) && isTrue((isGreaterThanOrEqual(getIndexOf(key, topicChannel), 0)))))
+                    {
+                        subscription = getValue(((WebSocketClient)client).subscriptions, key);
+                        break;
+                    }
                 }
-            }
-            object limit = this.safeInteger(subscription, "limit");
-            object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 5);
-            if (isTrue(isEqual(cacheLength, snapshotDelay)))
+                object limit = this.safeInteger(subscription, "limit");
+                object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 5);
+                if (isTrue(isEqual(cacheLength, snapshotDelay)))
+                {
+                    this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol, limit, new Dictionary<string, object>() {}});
+                }
+                ((IList<object>)(orderbook as ccxt.pro.OrderBook).cache).Add(data);
+                return;
+            } else if (isTrue(isGreaterThanOrEqual(nonce, deltaEnd)))
             {
-                this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol, limit, new Dictionary<string, object>() {}});
+                return;
             }
-            ((IList<object>)(storedOrderBook as ccxt.pro.OrderBook).cache).Add(data);
-            return;
-        } else if (isTrue(isGreaterThanOrEqual(nonce, deltaEnd)))
-        {
-            return;
         }
-        this.handleDelta(storedOrderBook, data);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {storedOrderBook, messageHash});
+        this.handleDelta(orderbook, data);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
     }
 
     public override object getCacheIndex(object orderbook, object cache)
@@ -635,11 +693,11 @@ public partial class kucoin : ccxt.kucoin
 
     public override void handleDelta(object orderbook, object delta)
     {
-        ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(delta, "sequenceEnd");
-        object timestamp = this.safeInteger(delta, "time");
+        object timestamp = this.safeInteger2(delta, "time", "timestamp");
+        ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(delta, "sequenceEnd", timestamp);
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
         ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
-        object changes = this.safeValue(delta, "changes");
+        object changes = this.safeValue(delta, "changes", delta);
         object bids = this.safeValue(changes, "bids", new List<object>() {});
         object asks = this.safeValue(changes, "asks", new List<object>() {});
         object storedBids = getValue(orderbook, "bids");
@@ -1097,6 +1155,7 @@ public partial class kucoin : ccxt.kucoin
         }
         object subject = this.safeString(message, "subject");
         object methods = new Dictionary<string, object>() {
+            { "level2", this.handleOrderBook },
             { "trade.l2update", this.handleOrderBook },
             { "trade.ticker", this.handleTicker },
             { "trade.snapshot", this.handleTicker },

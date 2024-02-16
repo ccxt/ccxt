@@ -726,7 +726,10 @@ class poloniex extends Exchange {
                 $code = $this->safe_currency_code($id);
                 $name = $this->safe_string($currency, 'name');
                 $networkId = $this->safe_string($currency, 'blockchain');
-                $networkCode = $this->network_id_to_code($networkId, $code);
+                $networkCode = null;
+                if ($networkId !== null) {
+                    $networkCode = $this->network_id_to_code($networkId, $code);
+                }
                 $delisted = $this->safe_value($currency, 'delisted');
                 $walletEnabled = $this->safe_string($currency, 'walletState') === 'ENABLED';
                 $depositEnabled = $this->safe_string($currency, 'walletDepositState') === 'ENABLED';
@@ -1363,7 +1366,7 @@ class poloniex extends Exchange {
         return array( $request, $params );
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -1856,7 +1859,7 @@ class poloniex extends Exchange {
         }) ();
     }
 
-    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): PromiseInterface {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account

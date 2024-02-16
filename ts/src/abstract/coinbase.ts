@@ -10,6 +10,7 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     v2PublicGetCurrencies (params?: {}): Promise<implicitReturnType>;
+    v2PublicGetCurrenciesCrypto (params?: {}): Promise<implicitReturnType>;
     v2PublicGetTime (params?: {}): Promise<implicitReturnType>;
     v2PublicGetExchangeRates (params?: {}): Promise<implicitReturnType>;
     v2PublicGetUsersUserId (params?: {}): Promise<implicitReturnType>;
@@ -80,6 +81,7 @@ interface Exchange {
     v3PrivatePostBrokerageOrdersBatchCancel (params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersEdit (params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersEditPreview (params?: {}): Promise<implicitReturnType>;
+    v3PrivatePostBrokerageOrdersPreview (params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokeragePortfolios (params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokeragePortfoliosMoveFunds (params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageConvertQuote (params?: {}): Promise<implicitReturnType>;

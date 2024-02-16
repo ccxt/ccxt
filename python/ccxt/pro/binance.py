@@ -56,8 +56,8 @@ class binance(ccxt.async_support.binance):
                 },
                 'api': {
                     'ws': {
-                        'spot': 'wss://stream.binance.com/ws',
-                        'margin': 'wss://stream.binance.com/ws',
+                        'spot': 'wss://stream.binance.com:9443/ws',
+                        'margin': 'wss://stream.binance.com:9443/ws',
                         'future': 'wss://fstream.binance.com/ws',
                         'delivery': 'wss://dstream.binance.com/ws',
                         'ws': 'wss://ws-api.binance.com:443/ws-api/v3',
@@ -2239,7 +2239,7 @@ class binance(ccxt.async_support.binance):
         return self.safe_position({
             'info': position,
             'id': None,
-            'symbol': self.safe_symbol(marketId, None, None, 'future'),
+            'symbol': self.safe_symbol(marketId, None, None, 'contract'),
             'notional': None,
             'marginMode': self.safe_string(position, 'mt'),
             'liquidationPrice': None,
@@ -2379,9 +2379,9 @@ class binance(ccxt.async_support.binance):
         messageHash = 'myTrades'
         executionType = self.safe_string(message, 'x')
         if executionType == 'TRADE':
-            trade = self.parse_trade(message)
+            trade = self.parse_ws_trade(message)
             orderId = self.safe_string(trade, 'order')
-            tradeFee = self.safe_value(trade, 'fee')
+            tradeFee = self.safe_value(trade, 'fee', {})
             tradeFee = self.extend({}, tradeFee)
             symbol = self.safe_string(trade, 'symbol')
             if orderId is not None and tradeFee is not None and symbol is not None:

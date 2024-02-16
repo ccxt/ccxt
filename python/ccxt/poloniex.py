@@ -713,7 +713,9 @@ class poloniex(Exchange, ImplicitAPI):
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'name')
             networkId = self.safe_string(currency, 'blockchain')
-            networkCode = self.network_id_to_code(networkId, code)
+            networkCode = None
+            if networkId is not None:
+                networkCode = self.network_id_to_code(networkId, code)
             delisted = self.safe_value(currency, 'delisted')
             walletEnabled = self.safe_string(currency, 'walletState') == 'ENABLED'
             depositEnabled = self.safe_string(currency, 'walletDepositState') == 'ENABLED'
@@ -1300,7 +1302,7 @@ class poloniex(Exchange, ImplicitAPI):
         # remember the timestamp before issuing the request
         return [request, params]
 
-    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         """
         edit a trade order
         :see: https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
@@ -1736,7 +1738,7 @@ class poloniex(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://docs.poloniex.com/#authenticated-endpoints-accounts-accounts-transfer

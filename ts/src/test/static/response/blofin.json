@@ -1,0 +1,823 @@
+{
+  "exchange": "blofin",
+  "skipKeys": [],
+  "options": {
+  },
+  "methods": {
+    "fetchClosedOrders": [
+      {
+        "description": "fetch closed orders",
+        "method": "fetchClosedOrders",
+        "input": [
+          "LTC/USDT:USDT",
+          null,
+          1
+        ],
+        "httpResponse": {
+          "code": "0",
+          "msg": "success",
+          "data": [
+            {
+              "orderId": "2075628533",
+              "clientOrderId": "",
+              "instId": "LTC-USDT",
+              "marginMode": "cross",
+              "positionSide": "net",
+              "side": "buy",
+              "orderType": "market",
+              "price": "0.000000000000000000",
+              "size": "1.000000000000000000",
+              "reduceOnly": "true",
+              "leverage": "3",
+              "state": "filled",
+              "filledSize": "1.000000000000000000",
+              "pnl": "-0.050000000000000000",
+              "averagePrice": "68.110000000000000000",
+              "fee": "0.040866000000000000",
+              "createTime": "1706891359010",
+              "updateTime": "1706891359098",
+              "orderCategory": "normal",
+              "tpTriggerPrice": null,
+              "tpOrderPrice": null,
+              "slTriggerPrice": null,
+              "slOrderPrice": null,
+              "cancelSource": "not_canceled",
+              "cancelSourceReason": null,
+              "brokerId": "ec6dd3a7dd982d0b"
+            }
+          ]
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "orderId": "2075628533",
+              "clientOrderId": "",
+              "instId": "LTC-USDT",
+              "marginMode": "cross",
+              "positionSide": "net",
+              "side": "buy",
+              "orderType": "market",
+              "price": "0.000000000000000000",
+              "size": "1.000000000000000000",
+              "reduceOnly": "true",
+              "leverage": "3",
+              "state": "filled",
+              "filledSize": "1.000000000000000000",
+              "pnl": "-0.050000000000000000",
+              "averagePrice": "68.110000000000000000",
+              "fee": "0.040866000000000000",
+              "createTime": "1706891359010",
+              "updateTime": "1706891359098",
+              "orderCategory": "normal",
+              "tpTriggerPrice": null,
+              "tpOrderPrice": null,
+              "slTriggerPrice": null,
+              "slOrderPrice": null,
+              "cancelSource": "not_canceled",
+              "cancelSourceReason": null,
+              "brokerId": "ec6dd3a7dd982d0b"
+            },
+            "id": "2075628533",
+            "clientOrderId": null,
+            "timestamp": 1706891359010,
+            "datetime": "2024-02-02T16:29:19.010Z",
+            "lastTradeTimestamp": null,
+            "lastUpdateTimestamp": 1706891359098,
+            "symbol": "LTC/USDT:USDT",
+            "type": "market",
+            "timeInForce": "IOC",
+            "postOnly": null,
+            "side": "buy",
+            "price": 68.11,
+            "stopLossTriggerPrice": null,
+            "takeProfitTriggerPrice": null,
+            "stopLossPrice": null,
+            "takeProfitPrice": null,
+            "average": 68.11,
+            "cost": 22.703333333333333,
+            "amount": 1,
+            "filled": 1,
+            "remaining": 0,
+            "status": "closed",
+            "fee": {
+              "cost": 0.040866,
+              "currency": "USDT"
+            },
+            "trades": [],
+            "reduceOnly": true,
+            "fees": [
+              {
+                "cost": 0.040866,
+                "currency": "USDT"
+              }
+            ],
+            "stopPrice": null,
+            "triggerPrice": null
+          }
+        ]
+      }
+    ],
+    "fetchOpenOrders": [
+      {
+        "description": "open orders",
+        "method": "fetchOpenOrders",
+        "input": [
+          "LTC/USDT:USDT",
+          null,
+          1
+        ],
+        "httpResponse": {
+          "code": "0",
+          "msg": "success",
+          "data": [
+            {
+              "orderId": "2075704519",
+              "clientOrderId": "",
+              "instId": "LTC-USDT",
+              "marginMode": "cross",
+              "positionSide": "net",
+              "side": "buy",
+              "orderType": "limit",
+              "price": "50.000000000000000000",
+              "size": "1.000000000000000000",
+              "reduceOnly": "false",
+              "leverage": "1",
+              "state": "live",
+              "filledSize": "0.000000000000000000",
+              "filled_amount": "0.000000000000000000",
+              "averagePrice": "0.000000000000000000",
+              "fee": "0.000000000000000000",
+              "pnl": "0.000000000000000000",
+              "createTime": "1707222888921",
+              "updateTime": "1707222888960",
+              "orderCategory": "normal",
+              "tpTriggerPrice": null,
+              "slTriggerPrice": null,
+              "slOrderPrice": null,
+              "tpOrderPrice": null,
+              "brokerId": "ec6dd3a7dd982d0b"
+            }
+          ]
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "orderId": "2075704519",
+              "clientOrderId": "",
+              "instId": "LTC-USDT",
+              "marginMode": "cross",
+              "positionSide": "net",
+              "side": "buy",
+              "orderType": "limit",
+              "price": "50.000000000000000000",
+              "size": "1.000000000000000000",
+              "reduceOnly": "false",
+              "leverage": "1",
+              "state": "live",
+              "filledSize": "0.000000000000000000",
+              "filled_amount": "0.000000000000000000",
+              "averagePrice": "0.000000000000000000",
+              "fee": "0.000000000000000000",
+              "pnl": "0.000000000000000000",
+              "createTime": "1707222888921",
+              "updateTime": "1707222888960",
+              "orderCategory": "normal",
+              "tpTriggerPrice": null,
+              "slTriggerPrice": null,
+              "slOrderPrice": null,
+              "tpOrderPrice": null,
+              "brokerId": "ec6dd3a7dd982d0b"
+            },
+            "id": "2075704519",
+            "clientOrderId": null,
+            "timestamp": 1707222888921,
+            "datetime": "2024-02-06T12:34:48.921Z",
+            "lastTradeTimestamp": null,
+            "lastUpdateTimestamp": 1707222888960,
+            "symbol": "LTC/USDT:USDT",
+            "type": "limit",
+            "timeInForce": null,
+            "postOnly": null,
+            "side": "buy",
+            "price": 50,
+            "stopLossTriggerPrice": null,
+            "takeProfitTriggerPrice": null,
+            "stopLossPrice": null,
+            "takeProfitPrice": null,
+            "average": null,
+            "cost": 0,
+            "amount": 1,
+            "filled": 0,
+            "remaining": 1,
+            "status": "open",
+            "fee": {
+              "cost": 0,
+              "currency": "USDT"
+            },
+            "trades": [],
+            "reduceOnly": false,
+            "fees": [
+              {
+                "cost": 0,
+                "currency": "USDT"
+              }
+            ],
+            "stopPrice": null,
+            "triggerPrice": null
+          }
+        ]
+      }
+    ],
+    "fetchMyTrades": [
+      {
+        "description": "user trades",
+        "method": "fetchMyTrades",
+        "input": [
+          "LTC/USDT:USDT",
+          null,
+          1
+        ],
+        "httpResponse": {
+          "code": "0",
+          "msg": "success",
+          "data": [
+            {
+              "instId": "LTC-USDT",
+              "tradeId": "1440847",
+              "orderId": "2075705202",
+              "fillPrice": "67.850000000000000000",
+              "fillSize": "1.000000000000000000",
+              "fillPnl": "0.000000000000000000",
+              "side": "buy",
+              "positionSide": "net",
+              "fee": "0.040710000000000000",
+              "ts": "1707224678878",
+              "brokerId": ""
+            }
+          ]
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "instId": "LTC-USDT",
+              "tradeId": "1440847",
+              "orderId": "2075705202",
+              "fillPrice": "67.850000000000000000",
+              "fillSize": "1.000000000000000000",
+              "fillPnl": "0.000000000000000000",
+              "side": "buy",
+              "positionSide": "net",
+              "fee": "0.040710000000000000",
+              "ts": "1707224678878",
+              "brokerId": ""
+            },
+            "timestamp": 1707224678878,
+            "datetime": "2024-02-06T13:04:38.878Z",
+            "symbol": "LTC/USDT:USDT",
+            "id": "1440847",
+            "order": "2075705202",
+            "type": null,
+            "takerOrMaker": null,
+            "side": "buy",
+            "price": 67.85,
+            "amount": 1,
+            "cost": 67.85,
+            "fee": {
+              "cost": 0.04071,
+              "currency": "USDT"
+            },
+            "fees": [
+              {
+                "cost": 0.04071,
+                "currency": "USDT"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "fetchDeposits": [
+      {
+        "description": "fetch deposits",
+        "method": "fetchDeposits",
+        "input": [],
+        "httpResponse": {
+          "code": "0",
+          "msg": "success",
+          "data": [
+            {
+              "currency": "USDT",
+              "chain": "TRC20",
+              "address": "TGfJLtnsh3B9EqekBi",
+              "txId": "892f4e0c32268b29b2e541ef30d32a30bbf10f902adcc",
+              "type": "0",
+              "amount": "86.975843",
+              "state": "1",
+              "ts": "1703163304153",
+              "tag": null,
+              "confirm": "16",
+              "depositId": "36c8e2a7ea184a219de72215a696acaf"
+            }
+          ]
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "currency": "USDT",
+              "chain": "TRC20",
+              "address": "TGfJLtnsh3B9EqekBi",
+              "txId": "892f4e0c32268b29b2e541ef30d32a30bbf10f902adcc",
+              "type": "0",
+              "amount": "86.975843",
+              "state": "1",
+              "ts": "1703163304153",
+              "tag": null,
+              "confirm": "16",
+              "depositId": "36c8e2a7ea184a219de72215a696acaf"
+            },
+            "id": "36c8e2a7ea184a219de72215a696acaf",
+            "currency": "USDT",
+            "amount": 86.975843,
+            "network": null,
+            "addressFrom": null,
+            "addressTo": "TGfJLtnsh3B9EqekBi",
+            "address": "TGfJLtnsh3B9EqekBi",
+            "tagFrom": null,
+            "tagTo": null,
+            "tag": null,
+            "status": "ok",
+            "type": "deposit",
+            "updated": null,
+            "txid": "892f4e0c32268b29b2e541ef30d32a30bbf10f902adcc",
+            "timestamp": 1703163304153,
+            "datetime": "2023-12-21T12:55:04.153Z",
+            "internal": null,
+            "comment": null,
+            "fee": {
+              "currency": null,
+              "cost": null
+            }
+          }
+        ]
+      }
+    ],
+    "fetchWithdrawals": [
+      {
+        "description": "fetch withdrawals",
+        "method": "fetchWithdrawals",
+        "input": [],
+        "httpResponse": {
+          "code": "0",
+          "msg": "success",
+          "data": [
+            {
+              "currency": "USDT",
+              "chain": "TRC20",
+              "address": "TYgB3sVXHPfslkdsfjkldsfjgW",
+              "txId": "1fd5ac5dsfkldfjsdkfl207f9858fd96",
+              "type": "0",
+              "amount": "9",
+              "fee": "1",
+              "feeCurrency": "USDT",
+              "state": "3",
+              "clientId": null,
+              "ts": "1707217439351",
+              "tag": null,
+              "memo": null,
+              "withdrawId": "e0768698cfdf4aee8e54654c3775914b"
+            }
+          ]
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "currency": "USDT",
+              "chain": "TRC20",
+              "address": "TYgB3sVXHPfslkdsfjkldsfjgW",
+              "txId": "1fd5ac5dsfkldfjsdkfl207f9858fd96",
+              "type": "0",
+              "amount": "9",
+              "fee": "1",
+              "feeCurrency": "USDT",
+              "state": "3",
+              "clientId": null,
+              "ts": "1707217439351",
+              "tag": null,
+              "memo": null,
+              "withdrawId": "e0768698cfdf4aee8e54654c3775914b"
+            },
+            "id": "e0768698cfdf4aee8e54654c3775914b",
+            "currency": "USDT",
+            "amount": 9,
+            "network": null,
+            "addressFrom": null,
+            "addressTo": "TYgB3sVXHPfslkdsfjkldsfjgW",
+            "address": "TYgB3sVXHPfslkdsfjkldsfjgW",
+            "tagFrom": null,
+            "tagTo": null,
+            "tag": null,
+            "status": "pending",
+            "type": "withdrawal",
+            "updated": null,
+            "txid": "1fd5ac5dsfkldfjsdkfl207f9858fd96",
+            "timestamp": 1707217439351,
+            "datetime": "2024-02-06T11:03:59.351Z",
+            "internal": null,
+            "comment": null,
+            "fee": {
+              "currency": "USDT",
+              "cost": 1
+            }
+          }
+        ]
+      }
+    ],
+    "fetchBalance": [
+      {
+        "description": "fetch trading balance",
+        "method": "fetchBalance",
+        "input": [],
+        "httpResponse": {
+          "code": "0",
+          "msg": "success",
+          "data": {
+            "ts": "1707224258236",
+            "totalEquity": "61.268633591516234455",
+            "isolatedEquity": "0.000000000000000000",
+            "details": [
+              {
+                "currency": "USDT",
+                "equity": "61.338743775651804468",
+                "balance": "61.338743775651804468",
+                "ts": "1707224258236",
+                "isolatedEquity": "0",
+                "available": "61.338743775651804459",
+                "availableEquity": "61.338743775651804459",
+                "frozen": "0.000000000000000009",
+                "orderFrozen": "0.000000000000000009",
+                "equityUsd": "61.268633591516234455",
+                "isolatedUnrealizedPnl": "0",
+                "bonus": "0"
+              }
+            ]
+          }
+        },
+        "parsedResponse": {
+          "info": {
+            "code": "0",
+            "msg": "success",
+            "data": {
+              "ts": "1707224258236",
+              "totalEquity": "61.268633591516234455",
+              "isolatedEquity": "0.000000000000000000",
+              "details": [
+                {
+                  "currency": "USDT",
+                  "equity": "61.338743775651804468",
+                  "balance": "61.338743775651804468",
+                  "ts": "1707224258236",
+                  "isolatedEquity": "0",
+                  "available": "61.338743775651804459",
+                  "availableEquity": "61.338743775651804459",
+                  "frozen": "0.000000000000000009",
+                  "orderFrozen": "0.000000000000000009",
+                  "equityUsd": "61.268633591516234455",
+                  "isolatedUnrealizedPnl": "0",
+                  "bonus": "0"
+                }
+              ]
+            }
+          },
+          "USDT": {
+            "free": 61.33874377565181,
+            "used": 9e-18,
+            "total": 61.33874377565181
+          },
+          "timestamp": 1707224258236,
+          "datetime": "2024-02-06T12:57:38.236Z",
+          "free": {
+            "USDT": 61.33874377565181
+          },
+          "used": {
+            "USDT": 9e-18
+          },
+          "total": {
+            "USDT": 61.33874377565181
+          }
+        }
+      },
+      {
+        "description": "fetch futures balance",
+        "method": "fetchBalance",
+        "input": [
+          {
+            "accountType": "futures"
+          }
+        ],
+        "httpResponse": {
+          "code": "0",
+          "msg": "success",
+          "data": [
+            {
+              "currency": "USDT",
+              "balance": "59.031464560798605211",
+              "available": "38.965448294131938533",
+              "frozen": "0.000000000000000012",
+              "bonus": "0.000000000000000000"
+            }
+          ]
+        },
+        "parsedResponse": {
+          "info": {
+            "code": "0",
+            "msg": "success",
+            "data": [
+              {
+                "currency": "USDT",
+                "balance": "59.031464560798605211",
+                "available": "38.965448294131938533",
+                "frozen": "0.000000000000000012",
+                "bonus": "0.000000000000000000"
+              }
+            ]
+          },
+          "USDT": {
+            "free": 38.96544829413194,
+            "used": 1.2e-17,
+            "total": 59.031464560798604
+          },
+          "free": {
+            "USDT": 38.96544829413194
+          },
+          "used": {
+            "USDT": 1.2e-17
+          },
+          "total": {
+            "USDT": 59.031464560798604
+          }
+        }
+      }
+    ],
+    "fetchPositions": [
+      {
+        "description": "fetch position",
+        "method": "fetchPositions",
+        "input": [
+          [
+            "LTC/USDT:USDT"
+          ]
+        ],
+        "httpResponse": {
+          "code": "0",
+          "msg": "success",
+          "data": [
+            {
+              "positionId": "644159",
+              "instId": "LTC-USDT",
+              "instType": "SWAP",
+              "marginMode": "cross",
+              "positionSide": "net",
+              "adl": "1",
+              "positions": "1",
+              "availablePositions": "1",
+              "averagePrice": "67.850000000000000000",
+              "markPrice": "67.83143340000001",
+              "marginRatio": "161.322877125756096924",
+              "liquidationPrice": "6.588863861975256971",
+              "unrealizedPnl": "-0.01856659999999",
+              "unrealizedPnlRatio": "-0.000820925571112306",
+              "initialMargin": "22.610477800000003333",
+              "maintenanceMargin": "0.33915716700000005",
+              "createTime": "1707224678837",
+              "updateTime": "1707224678837",
+              "leverage": "3"
+            }
+          ]
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "positionId": "644159",
+              "instId": "LTC-USDT",
+              "instType": "SWAP",
+              "marginMode": "cross",
+              "positionSide": "net",
+              "adl": "1",
+              "positions": "1",
+              "availablePositions": "1",
+              "averagePrice": "67.850000000000000000",
+              "markPrice": "67.83143340000001",
+              "marginRatio": "161.322877125756096924",
+              "liquidationPrice": "6.588863861975256971",
+              "unrealizedPnl": "-0.01856659999999",
+              "unrealizedPnlRatio": "-0.000820925571112306",
+              "initialMargin": "22.610477800000003333",
+              "maintenanceMargin": "0.33915716700000005",
+              "createTime": "1707224678837",
+              "updateTime": "1707224678837",
+              "leverage": "3"
+            },
+            "id": null,
+            "symbol": "LTC/USDT:USDT",
+            "notional": null,
+            "marginMode": "cross",
+            "liquidationPrice": 6.588863861975257,
+            "entryPrice": 67.85,
+            "unrealizedPnl": -0.01856659999999,
+            "percentage": -0.0820925571112306,
+            "contracts": 1,
+            "contractSize": 1,
+            "markPrice": 67.83143340000001,
+            "lastPrice": null,
+            "side": "long",
+            "hedged": false,
+            "timestamp": 1707224678837,
+            "datetime": "2024-02-06T13:04:38.837Z",
+            "lastUpdateTimestamp": null,
+            "maintenanceMargin": 0.33915716700000004,
+            "maintenanceMarginPercentage": 0,
+            "collateral": 22.591911200000013,
+            "initialMargin": 22.6104778,
+            "initialMarginPercentage": null,
+            "leverage": 3,
+            "marginRatio": 0.015,
+            "stopLossPrice": null,
+            "takeProfitPrice": null
+          }
+        ]
+      }
+    ],
+    "fetchOrderBook": [
+      {
+        "description": "fetch orderbook",
+        "method": "fetchOrderBook",
+        "input": [
+          "BTC/USDT:USDT",
+          1
+        ],
+        "httpResponse": {
+          "code": "0",
+          "msg": "success",
+          "data": [
+            {
+              "asks": [
+                [
+                  "42973.1",
+                  "1274"
+                ]
+              ],
+              "bids": [
+                [
+                  "42973",
+                  "616"
+                ]
+              ],
+              "ts": "1707231904444"
+            }
+          ]
+        },
+        "parsedResponse": {
+          "symbol": "BTC/USDT:USDT",
+          "bids": [
+            [
+              42973,
+              616
+            ]
+          ],
+          "asks": [
+            [
+              42973.1,
+              1274
+            ]
+          ],
+          "timestamp": 1707231904444,
+          "datetime": "2024-02-06T15:05:04.444Z",
+          "nonce": null
+        }
+      }
+    ],
+    "fetchOHLCV": [
+      {
+        "description": "fetch 1d ohlcv",
+        "method": "fetchOHLCV",
+        "input": [
+          "BTC/USDT:USDT",
+          "1d",
+          null,
+          1
+        ],
+        "httpResponse": {
+          "code": "0",
+          "msg": "success",
+          "data": [
+            [
+              "1707177600000",
+              "42694.4",
+              "43136.8",
+              "42558.2",
+              "42981.1",
+              "13302089",
+              "13302.089",
+              "570190549.3752",
+              "0"
+            ]
+          ]
+        },
+        "parsedResponse": [
+          [
+            1707177600000,
+            42694.4,
+            43136.8,
+            42558.2,
+            42981.1,
+            13302.089
+          ]
+        ]
+      }
+    ],
+    "fetchTrades": [
+      {
+        "description": "public trades",
+        "method": "fetchTrades",
+        "input": [
+          "LTC/USDT:USDT",
+          null,
+          1
+        ],
+        "httpResponse": {
+          "code": "0",
+          "msg": "success",
+          "data": [
+            {
+              "tradeId": "3263954569",
+              "instId": "LTC-USDT",
+              "price": "67.88",
+              "size": "3",
+              "side": "buy",
+              "ts": "1707232231298"
+            }
+          ]
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "tradeId": "3263954569",
+              "instId": "LTC-USDT",
+              "price": "67.88",
+              "size": "3",
+              "side": "buy",
+              "ts": "1707232231298"
+            },
+            "timestamp": 1707232231298,
+            "datetime": "2024-02-06T15:10:31.298Z",
+            "symbol": "LTC/USDT:USDT",
+            "id": "3263954569",
+            "order": null,
+            "type": null,
+            "takerOrMaker": null,
+            "side": "buy",
+            "price": 67.88,
+            "amount": 3,
+            "cost": 203.64,
+            "fee": null,
+            "fees": []
+          }
+        ]
+      }
+    ],
+    "transfer": [
+      {
+        "description": "transfer",
+        "method": "transfer",
+        "input": [
+          "USDT",
+          1,
+          "swap",
+          "funding"
+        ],
+        "httpResponse": {
+          "code": "0",
+          "msg": "success",
+          "data": {
+            "transferId": "49719",
+            "clientTransferId": ""
+          }
+        },
+        "parsedResponse": {
+          "info": {
+            "transferId": "49719",
+            "clientTransferId": ""
+          },
+          "id": "49719",
+          "timestamp": null,
+          "datetime": null,
+          "currency": null,
+          "amount": null,
+          "fromAccount": null,
+          "toAccount": null,
+          "status": null
+        }
+      }
+    ]
+  }
+}

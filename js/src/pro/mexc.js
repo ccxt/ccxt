@@ -472,7 +472,7 @@ export default class mexc extends mexcRest {
         }
         try {
             this.handleDelta(storedOrderBook, data);
-            const timestamp = this.safeInteger(message, 't');
+            const timestamp = this.safeInteger2(message, 't', 'ts');
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601(timestamp);
         }

@@ -144,9 +144,12 @@ class Client {
                 this.onError(new errors.RequestTimeout('Connection to ' + this.url + ' timed out due to a ping-pong keepalive missing on time'));
             }
             else {
+                let message;
                 if (this.ping) {
-                    this.send(this.ping(this))
-                        .catch((error) => {
+                    message = this.ping(this);
+                }
+                if (message) {
+                    this.send(message).catch((error) => {
                         this.onError(error);
                     });
                 }

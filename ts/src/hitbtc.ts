@@ -137,6 +137,8 @@ export default class hitbtc extends Exchange {
                         'public/orderbook/{symbol}': 10,
                         'public/candles': 10,
                         'public/candles/{symbol}': 10,
+                        'public/converted/candles': 10,
+                        'public/converted/candles/{symbol}': 10,
                         'public/futures/info': 10,
                         'public/futures/info/{symbol}': 10,
                         'public/futures/history/funding': 10,
@@ -2208,7 +2210,7 @@ export default class hitbtc extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         const request = {
@@ -2566,7 +2568,7 @@ export default class hitbtc extends Exchange {
         return this.safeValue (filteredMargin, 0) as MarginMode;
     }
 
-    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name hitbtc#transfer

@@ -4062,7 +4062,7 @@ public partial class coinex : Exchange
         });
     }
 
-    public async virtual Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
     {
         /**
         * @method
@@ -4352,7 +4352,7 @@ public partial class coinex : Exchange
         };
     }
 
-    public async virtual Task<object> addMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
@@ -4368,7 +4368,7 @@ public partial class coinex : Exchange
         return await this.modifyMarginHelper(symbol, amount, 1, parameters);
     }
 
-    public async virtual Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method

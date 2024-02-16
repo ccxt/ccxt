@@ -193,6 +193,20 @@
                 "input": [],
                 "output": "{\"id\":\"1700840923278\",\"method\":\"private/get-positions\",\"params\":{},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"c8406ac9040f04fbbc337b956a50c3bf030f24b4249717e03eac6f905ea3c4a5\",\"nonce\":\"1700840923278\"}"
             }
+        ],
+        "fetchDepositWithdrawFees": [
+            {
+                "description": "Fetch deposit and withdraw fees",
+                "method": "fetchDepositWithdrawFees",
+                "url": "https://api.crypto.com/exchange/v1/private/get-currency-networks",
+                "input": [
+                  [
+                    "USDT",
+                    "BTC"
+                  ]
+                ],
+                "output": "{\"id\":\"1708079230296\",\"method\":\"private/get-currency-networks\",\"params\":{},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"2b1eac4ba696b41ce2726139c63a145368f2c66ca97e090cf3361ab60b7637da\",\"nonce\":\"1708079230296\"}"
+            }
         ]
     }
 }

@@ -10,9 +10,9 @@
   <PropertyGroup>
     <PackageId>ccxt</PackageId>
     <Authors>Carlos, Kroitor, Carlo</Authors>
-    <PackageVersion>4.2.31</PackageVersion>
-    <AssemblyVersion>4.2.31</AssemblyVersion>
-    <FileVersion>4.2.31</FileVersion>
+    <PackageVersion>4.2.45</PackageVersion>
+    <AssemblyVersion>4.2.45</AssemblyVersion>
+    <FileVersion>4.2.45</FileVersion>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>Cryptocurrency trading API with support for more than 100 bitcoin/altcoin exchanges</Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
@@ -20,7 +20,7 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/ccxt/ccxt</RepositoryUrl>
     <PackageProjectUrl>https://github.com/ccxt/ccxt</PackageProjectUrl>
-    <PackageIcon>ccxt.png</PackageIcon>
+    <PackageIcon>ccxt4.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -31,7 +31,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="*" />
           </ItemGroup>
   <ItemGroup>
-    <None Include="img/ccxt.png" Pack="true" PackagePath="" />
+    <None Include="img/ccxt4.png" Pack="true" PackagePath="" />
     <None Include="../../README.md" Pack="true" PackagePath="" />
 </ItemGroup>
 

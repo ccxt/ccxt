@@ -43,6 +43,9 @@ export default class latoken extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': false,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFees': false,
                 'fetchIsolatedBorrowRate': false,
@@ -1587,7 +1590,7 @@ export default class latoken extends Exchange {
         return this.parseTransfers (transfers, currency, since, limit);
     }
 
-    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name latoken#transfer

@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.2.31';
+const version = '4.2.45';
 
 (Exchange as any).ccxtVersion = version
 
@@ -78,6 +78,7 @@ import bitteam from  './src/bitteam.js'
 import bitvavo from  './src/bitvavo.js'
 import bl3p from  './src/bl3p.js'
 import blockchaincom from  './src/blockchaincom.js'
+import blofin from  './src/blofin.js'
 import btcalpha from  './src/btcalpha.js'
 import btcbox from  './src/btcbox.js'
 import btcmarkets from  './src/btcmarkets.js'
@@ -244,6 +245,7 @@ const exchanges = {
     'bitvavo':                bitvavo,
     'bl3p':                   bl3p,
     'blockchaincom':          blockchaincom,
+    'blofin':                 blofin,
     'btcalpha':               btcalpha,
     'btcbox':                 btcbox,
     'btcmarkets':             btcmarkets,
@@ -488,6 +490,7 @@ export {
     bitvavo,
     bl3p,
     blockchaincom,
+    blofin,
     btcalpha,
     btcbox,
     btcmarkets,

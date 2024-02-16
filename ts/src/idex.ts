@@ -55,6 +55,9 @@ export default class idex extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': true,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -114,7 +117,7 @@ export default class idex extends Exchange {
                 },
                 'www': 'https://idex.io',
                 'doc': [
-                    'https://docs.idex.io/',
+                    'https://api-docs-v3.idex.io/',
                 ],
             },
             'api': {
@@ -1723,6 +1726,64 @@ export default class idex extends Exchange {
         const defaultCost = this.safeValue (config, 'cost', 1);
         const authenticated = hasApiKey && hasSecret && hasWalletAddress && hasPrivateKey;
         return authenticated ? (defaultCost / 2) : defaultCost;
+    }
+
+    async fetchDepositAddress (code: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name idex#fetchDepositAddress
+         * @description fetch the Polygon address of the wallet
+         * @see https://api-docs-v3.idex.io/#get-wallets
+         * @param {string} code not used by idex
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        const request = {};
+        request['nonce'] = this.uuidv1 ();
+        const response = await this.privateGetWallets (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            address: "0x37A1827CA64C94A26028bDCb43FBDCB0bf6DAf5B",
+        //            totalPortfolioValueUsd: "0.00",
+        //            time: "1678342148086"
+        //        },
+        //        {
+        //            address: "0x0Ef3456E616552238B0c562d409507Ed6051A7b3",
+        //            totalPortfolioValueUsd: "15.90",
+        //            time: "1691697811659"
+        //        }
+        //    ]
+        //
+        return this.parseDepositAddress (response);
+    }
+
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+        //
+        //    [
+        //        {
+        //            address: "0x37A1827CA64C94A26028bDCb43FBDCB0bf6DAf5B",
+        //            totalPortfolioValueUsd: "0.00",
+        //            time: "1678342148086"
+        //        },
+        //        {
+        //            address: "0x0Ef3456E616552238B0c562d409507Ed6051A7b3",
+        //            totalPortfolioValueUsd: "15.90",
+        //            time: "1691697811659"
+        //        }
+        //    ]
+        //
+        const length = depositAddress.length;
+        const entry = this.safeDict (depositAddress, length - 1);
+        const address = this.safeString (entry, 'address');
+        this.checkAddress (address);
+        return {
+            'info': depositAddress,
+            'currency': undefined,
+            'address': address,
+            'tag': undefined,
+            'network': 'MATIC',
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

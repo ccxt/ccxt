@@ -183,7 +183,7 @@ class cex(ccxt.async_support.cex):
         if not isinstance(trade, list):
             trade = trade.split(':')
         side = self.safe_string(trade, 0)
-        timestamp = self.safe_number(trade, 1)
+        timestamp = self.safe_integer(trade, 1)
         amount = self.safe_string(trade, 2)
         price = self.safe_string(trade, 3)
         id = self.safe_string(trade, 4)
@@ -1196,7 +1196,7 @@ class cex(ccxt.async_support.cex):
         rawOrder = await self.watch(url, messageHash, request, messageHash)
         return self.parse_order(rawOrder, market)
 
-    async def edit_order_ws(self, id: str, symbol, type, side, amount=None, price=None, params={}) -> Order:
+    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}) -> Order:
         """
         edit a trade order
         :see: https://docs.cex.io/#ws-api-cancel-replace
@@ -1260,7 +1260,7 @@ class cex(ccxt.async_support.cex):
         response = await self.watch(url, messageHash, request, messageHash, messageHash)
         return self.parse_order(response, market)
 
-    async def cancel_orders_ws(self, ids, symbol: str = None, params={}):
+    async def cancel_orders_ws(self, ids: List[str], symbol: str = None, params={}):
         """
         cancel multiple orders
         :see: https://docs.cex.io/#ws-api-mass-cancel-place

@@ -21,7 +21,7 @@ public partial class bitfinex
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTransactionFees(object codes = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> FetchTransactionFees(List<string> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTransactionFees(codes, parameters);
         return ((Dictionary<string, object>)res);
@@ -50,6 +50,7 @@ public partial class bitfinex
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitfinex.com/v1/reference/rest-auth-summary"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -69,6 +70,8 @@ public partial class bitfinex
     /// retrieves data on all markets for bitfinex
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitfinex.com/v1/reference/rest-public-symbols"/>  <br/>
+    /// See <see href="https://docs.bitfinex.com/v1/reference/rest-public-symbol-details"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -88,6 +91,7 @@ public partial class bitfinex
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitfinex.com/v1/reference/rest-auth-wallet-balances"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -107,6 +111,7 @@ public partial class bitfinex
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitfinex.com/v1/reference/rest-auth-transfer-between-wallets"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -117,7 +122,7 @@ public partial class bitfinex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
-    public async Task<TransferEntry> Transfer(string code, double amount, object fromAccount, object toAccount, Dictionary<string, object> parameters = null)
+    public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
     {
         var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
         return new TransferEntry(res);
@@ -126,6 +131,7 @@ public partial class bitfinex
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitfinex.com/v1/reference/rest-public-orderbook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -171,6 +177,7 @@ public partial class bitfinex
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitfinex.com/v1/reference/rest-public-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -190,6 +197,7 @@ public partial class bitfinex
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitfinex.com/v1/reference/rest-public-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -222,6 +230,7 @@ public partial class bitfinex
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitfinex.com/v1/reference/rest-auth-past-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -255,6 +264,7 @@ public partial class bitfinex
     /// create a trade order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitfinex.com/v1/reference/rest-auth-new-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -277,8 +287,10 @@ public partial class bitfinex
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> EditOrder(string id, object symbol, object type, object side, object amount = null, object price = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var price = price2 == 0 ? null : (object)price2;
         var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
@@ -286,6 +298,7 @@ public partial class bitfinex
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitfinex.com/v1/reference/rest-auth-cancel-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -305,6 +318,7 @@ public partial class bitfinex
     /// cancel all open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitfinex.com/v1/reference/rest-auth-cancel-all-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -324,6 +338,7 @@ public partial class bitfinex
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitfinex.com/v1/reference/rest-auth-active-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -357,6 +372,7 @@ public partial class bitfinex
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitfinex.com/v1/reference/rest-auth-orders-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -390,6 +406,7 @@ public partial class bitfinex
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitfinex.com/v1/reference/rest-auth-order-status"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -409,6 +426,7 @@ public partial class bitfinex
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitfinex.com/reference/rest-public-candles#aggregate-funding-currency-candles"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -442,6 +460,7 @@ public partial class bitfinex
     /// create a currency deposit address
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitfinex.com/v1/reference/rest-auth-deposit"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -461,6 +480,7 @@ public partial class bitfinex
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitfinex.com/v1/reference/rest-auth-deposit"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -480,6 +500,7 @@ public partial class bitfinex
     /// fetch history of deposits and withdrawals
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitfinex.com/v1/reference/rest-auth-deposit-withdrawal-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -513,6 +534,7 @@ public partial class bitfinex
     /// make a withdrawal
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitfinex.com/v1/reference/rest-auth-withdrawal"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -532,6 +554,7 @@ public partial class bitfinex
     /// fetch all open positions
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitfinex.com/v1/reference/rest-auth-active-positions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

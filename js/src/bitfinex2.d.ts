@@ -22,7 +22,7 @@ export default class bitfinex2 extends Exchange {
     fetchCurrencies(params?: {}): Promise<{}>;
     safeNetwork(networkId: any): string;
     fetchBalance(params?: {}): Promise<Balances>;
-    transfer(code: string, amount: number, fromAccount: any, toAccount: any, params?: {}): Promise<TransferEntry>;
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: any, currency?: Currency): {
         id: any;
         timestamp: number;
@@ -154,7 +154,7 @@ export default class bitfinex2 extends Exchange {
     parseOpenInterest(interest: any, market?: Market): OpenInterest;
     fetchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     parseLiquidation(liquidation: any, market?: Market): Liquidation;
-    setMargin(symbol: string, amount: any, params?: {}): Promise<{
+    setMargin(symbol: string, amount: number, params?: {}): Promise<{
         info: any;
         type: any;
         amount: any;
@@ -171,5 +171,5 @@ export default class bitfinex2 extends Exchange {
         status: string;
     };
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
-    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
 }

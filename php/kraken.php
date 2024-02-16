@@ -1503,6 +1503,41 @@ class kraken extends Exchange {
         //        "txid" => "OTI672-HJFAO-XOIPPK"
         //    }
         //
+        //  {
+        //      "error" => array(),
+        //      "result" => {
+        //          "open" => {
+        //              "OXVPSU-Q726F-L3SDEP" => {
+        //                  "refid" => null,
+        //                  "userref" => 0,
+        //                  "status" => "open",
+        //                  "opentm" => 1706893367.4656649,
+        //                  "starttm" => 0,
+        //                  "expiretm" => 0,
+        //                  "descr" => array(
+        //                      "pair" => "XRPEUR",
+        //                      "type" => "sell",
+        //                      "ordertype" => "trailing-stop",
+        //                      "price" => "+50.0000%",
+        //                      "price2" => "0",
+        //                      "leverage" => "none",
+        //                      "order" => "sell 10.00000000 XRPEUR @ trailing stop +50.0000%",
+        //                      "close" => ""
+        //                  ),
+        //                  "vol" => "10.00000000",
+        //                  "vol_exec" => "0.00000000",
+        //                  "cost" => "0.00000000",
+        //                  "fee" => "0.00000000",
+        //                  "price" => "0.00000000",
+        //                  "stopprice" => "0.23424000",
+        //                  "limitprice" => "0.46847000",
+        //                  "misc" => "",
+        //                  "oflags" => "fciq",
+        //                  "trigger" => "index"
+        //              }
+        //      }
+        //  }
+        //
         $description = $this->safe_value($order, 'descr', array());
         $orderDescription = $this->safe_string($description, 'order', $description);
         $side = null;
@@ -1542,6 +1577,10 @@ class kraken extends Exchange {
         // kraken truncates the $cost in the api response so we will ignore it and calculate it from $average & $filled
         // $cost = $this->safe_string($order, 'cost');
         $price = $this->safe_string($description, 'price', $price);
+        // when $type = trailling stop returns $price = '+50.0000%'
+        if (($price !== null) && str_ends_with($price, '%')) {
+            $price = null; // this is not the $price we want
+        }
         if (($price === null) || Precise::string_equals($price, '0')) {
             $price = $this->safe_string($description, 'price2');
         }
@@ -1704,7 +1743,7 @@ class kraken extends Exchange {
         return array( $request, $params );
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * edit a trade order
          * @see https://docs.kraken.com/rest/#tag/Trading/operation/editOrder
@@ -2702,7 +2741,7 @@ class kraken extends Exchange {
         return $this->transfer($code, $amount, 'spot', 'swap', $params);
     }
 
-    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
         /**
          * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
          * transfers currencies between sub-accounts (only spot->swap direction is supported)

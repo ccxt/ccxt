@@ -1083,7 +1083,7 @@ class novadax(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://doc.novadax.com/en-US/#get-sub-account-transfer

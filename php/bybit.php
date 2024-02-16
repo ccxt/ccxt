@@ -52,7 +52,9 @@ class bybit extends Exchange {
                 'fetchBorrowInterest' => false, // temporarily disabled, doesn't work
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchCanceledAndClosedOrders' => true,
                 'fetchCanceledOrders' => true,
+                'fetchClosedOrder' => true,
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => true,
                 'fetchCrossBorrowRates' => false,
@@ -80,10 +82,11 @@ class bybit extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => true,
+                'fetchOpenOrder' => true,
                 'fetchOpenOrders' => true,
-                'fetchOrder' => true,
+                'fetchOrder' => false,
                 'fetchOrderBook' => true,
-                'fetchOrders' => true,
+                'fetchOrders' => false,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
@@ -1177,7 +1180,7 @@ class bybit extends Exchange {
         return $reconstructedDate;
     }
 
-    public function create_expired_option_market($symbol) {
+    public function create_expired_option_market(string $symbol) {
         // support expired option contracts
         $quote = 'USD';
         $settle = 'USDC';
@@ -2197,6 +2200,7 @@ class bybit extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch orders for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
@@ -2222,6 +2226,7 @@ class bybit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // max 1000, default 1000
         }
+        list($request, $params) = $this->handle_until_option('end', $request, $params);
         $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $response = null;
         if ($market['spot']) {
@@ -3394,35 +3399,7 @@ class bybit extends Exchange {
         ), $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
-        /**
-         * fetches information on an order made by the user
-         * @see https://bybit-exchange.github.io/docs/v5/order/order-list
-         * @param {string} $symbol unified $symbol of the market the order was made in
-         * @param {array} [$params] $extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
-        }
-        $this->load_markets();
-        $request = array(
-            'orderId' => $id,
-        );
-        $result = $this->fetch_orders($symbol, null, null, array_merge($request, $params));
-        $length = count($result);
-        if ($length === 0) {
-            $isTrigger = $this->safe_bool_n($params, array( 'trigger', 'stop' ), false);
-            $extra = $isTrigger ? '' : 'If you are trying to fetch SL/TP conditional order, you might try setting $params["trigger"] = true';
-            throw new OrderNotFound('Order ' . (string) $id . ' was not found.' . $extra);
-        }
-        if ($length > 1) {
-            throw new InvalidOrder($this->id . ' returned more than one order');
-        }
-        return $this->safe_value($result, 0);
-    }
-
-    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * @see https://bybit-exchange.github.io/docs/v5/order/create-order
          * create a $market buy order by providing the $symbol and $cost
@@ -3439,7 +3416,7 @@ class bybit extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, 1, $params);
     }
 
-    public function create_market_sell_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * @see https://bybit-exchange.github.io/docs/v5/order/create-order
          * create a $market sell order by providing the $symbol and $cost
@@ -3672,10 +3649,22 @@ class bybit extends Exchange {
             if ($isStopLoss) {
                 $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
                 $request['stopLoss'] = $this->price_to_precision($symbol, $slTriggerPrice);
+                $slLimitPrice = $this->safe_value($stopLoss, 'price');
+                if ($slLimitPrice !== null) {
+                    $request['tpslMode'] = 'Partial';
+                    $request['slOrderType'] = 'Limit';
+                    $request['slLimitPrice'] = $this->price_to_precision($symbol, $slLimitPrice);
+                }
             }
             if ($isTakeProfit) {
                 $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
                 $request['takeProfit'] = $this->price_to_precision($symbol, $tpTriggerPrice);
+                $tpLimitPrice = $this->safe_value($takeProfit, 'price');
+                if ($tpLimitPrice !== null) {
+                    $request['tpslMode'] = 'Partial';
+                    $request['tpOrderType'] = 'Limit';
+                    $request['tpLimitPrice'] = $this->price_to_precision($symbol, $tpLimitPrice);
+                }
             }
         }
         if ($market['spot']) {
@@ -3963,7 +3952,7 @@ class bybit extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * edit a trade order
          * @see https://bybit-exchange.github.io/docs/v5/order/amend-order
@@ -4407,27 +4396,97 @@ class bybit extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()): array {
+        throw new NotSupported($this->id . ' fetchOrder() is not supported after the 5/02 update, please use fetchOpenOrder or fetchClosedOrder');
+    }
+
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        throw new NotSupported($this->id . ' fetchOrders() is not supported after the 5/02 update, please use fetchOpenOrders, fetchClosedOrders or fetchCanceledOrders');
+    }
+
+    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
-         * fetches information on multiple orders made by the user
+         * fetches information on a closed order made by the user
          * @see https://bybit-exchange.github.io/docs/v5/order/order-list
-         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {string} $id order $id
+         * @param {string} [$symbol] unified $symbol of the market the order was made in
+         * @param {array} [$params] $extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stop] set to true for fetching a closed stop order
+         * @param {string} [$params->type] market type, ['swap', 'option', 'spot']
+         * @param {string} [$params->subType] market subType, ['linear', 'inverse']
+         * @param {string} [$params->orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         */
+        $this->load_markets();
+        $request = array(
+            'orderId' => $id,
+        );
+        $result = $this->fetch_closed_orders($symbol, null, null, array_merge($request, $params));
+        $length = count($result);
+        if ($length === 0) {
+            $isTrigger = $this->safe_bool_n($params, array( 'trigger', 'stop' ), false);
+            $extra = $isTrigger ? '' : 'If you are trying to fetch SL/TP conditional order, you might try setting $params["trigger"] = true';
+            throw new OrderNotFound('Order ' . (string) $id . ' was not found.' . $extra);
+        }
+        if ($length > 1) {
+            throw new InvalidOrder($this->id . ' returned more than one order');
+        }
+        return $this->safe_value($result, 0);
+    }
+
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an open order made by the user
+         * @see https://bybit-exchange.github.io/docs/v5/order/open-order
+         * @param {string} $id order $id
+         * @param {string} [$symbol] unified $symbol of the market the order was made in
+         * @param {array} [$params] $extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stop] set to true for fetching an open stop order
+         * @param {string} [$params->type] market type, ['swap', 'option', 'spot']
+         * @param {string} [$params->subType] market subType, ['linear', 'inverse']
+         * @param {string} [$params->baseCoin] Base coin. Supports linear, inverse & option
+         * @param {string} [$params->settleCoin] Settle coin. Supports linear, inverse & option
+         * @param {string} [$params->orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         */
+        $this->load_markets();
+        $request = array(
+            'orderId' => $id,
+        );
+        $result = $this->fetch_open_orders($symbol, null, null, array_merge($request, $params));
+        $length = count($result);
+        if ($length === 0) {
+            $isTrigger = $this->safe_bool_n($params, array( 'trigger', 'stop' ), false);
+            $extra = $isTrigger ? '' : 'If you are trying to fetch SL/TP conditional order, you might try setting $params["trigger"] = true';
+            throw new OrderNotFound('Order ' . (string) $id . ' was not found.' . $extra);
+        }
+        if ($length > 1) {
+            throw new InvalidOrder($this->id . ' returned more than one order');
+        }
+        return $this->safe_value($result, 0);
+    }
+
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetches information on multiple canceled and closed orders made by the user
+         * @see https://bybit-exchange.github.io/docs/v5/order/order-list
+         * @param {string} [$symbol] unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->stop] true if stop order
+         * @param {boolean} [$params->stop] set to true for fetching stop orders
          * @param {string} [$params->type] $market $type, ['swap', 'option', 'spot']
          * @param {string} [$params->subType] $market subType, ['linear', 'inverse']
          * @param {string} [$params->orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
          * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchCanceledAndClosedOrders', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchOrders', $symbol, $since, $limit, $params, 'nextPageCursor', 'nextPageCursor', null, 50);
+            return $this->fetch_paginated_call_cursor('fetchCanceledAndClosedOrders', $symbol, $since, $limit, $params, 'nextPageCursor', 'nextPageCursor', null, 50);
         }
         list($enableUnifiedMargin, $enableUnifiedAccount) = $this->is_unified_enabled();
         $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
@@ -4440,7 +4499,7 @@ class bybit extends Exchange {
             $request['symbol'] = $market['id'];
         }
         $type = null;
-        list($type, $params) = $this->get_bybit_type('fetchOrders', $market, $params);
+        list($type, $params) = $this->get_bybit_type('fetchCanceledAndClosedOrders', $market, $params);
         if ((($type === 'option') || $isUsdcSettled) && !$isUnifiedAccount) {
             return $this->fetch_usdc_orders($symbol, $since, $limit, $params);
         }
@@ -4521,37 +4580,46 @@ class bybit extends Exchange {
         /**
          * fetches information on multiple closed orders made by the user
          * @see https://bybit-exchange.github.io/docs/v5/order/order-list
-         * @param {string} $symbol unified market $symbol of the market orders were made in
+         * @param {string} [$symbol] unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stop] set to true for fetching closed stop orders
+         * @param {string} [$params->type] market type, ['swap', 'option', 'spot']
+         * @param {string} [$params->subType] market subType, ['linear', 'inverse']
+         * @param {string} [$params->orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
+         * @param {int} [$params->until] the latest time in ms to fetch entries for
+         * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $request = array(
             'orderStatus' => 'Filled',
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_canceled_and_closed_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple canceled orders made by the user
          * @see https://bybit-exchange.github.io/docs/v5/order/order-list
-         * @param {string} $symbol unified market $symbol of the market orders were made in
+         * @param {string} [$symbol] unified market $symbol of the market orders were made in
          * @param {int} [$since] timestamp in ms of the earliest order, default is null
          * @param {int} [$limit] max number of orders to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->stop] true if stop order
          * @param {string} [$params->type] market type, ['swap', 'option', 'spot']
          * @param {string} [$params->subType] market subType, ['linear', 'inverse']
+         * @param {string} [$params->orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
+         * @param {int} [$params->until] the latest time in ms to fetch entries for
+         * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $request = array(
             'orderStatus' => 'Cancelled',
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_canceled_and_closed_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_usdc_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -5922,9 +5990,6 @@ class bybit extends Exchange {
         if ($timestamp === null) {
             $timestamp = $this->safe_integer_n($position, array( 'updatedTime', 'updatedAt' ));
         }
-        // default to cross of USDC margined positions
-        $tradeMode = $this->safe_integer($position, 'tradeMode', 0);
-        $marginMode = $tradeMode ? 'isolated' : 'cross';
         $collateralString = $this->safe_string($position, 'positionBalance');
         $entryPrice = $this->omit_zero($this->safe_string_2($position, 'entryPrice', 'avgPrice'));
         $liquidationPrice = $this->omit_zero($this->safe_string($position, 'liqPrice'));
@@ -5986,7 +6051,7 @@ class bybit extends Exchange {
             'markPrice' => $this->safe_number($position, 'markPrice'),
             'lastPrice' => null,
             'collateral' => $this->parse_number($collateralString),
-            'marginMode' => $marginMode,
+            'marginMode' => null,
             'side' => $side,
             'percentage' => null,
             'stopLossPrice' => $this->safe_number_2($position, 'stop_loss', 'stopLoss'),
@@ -5994,7 +6059,7 @@ class bybit extends Exchange {
         ));
     }
 
-    public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
         /**
          * set margin mode (account) or trade mode ($symbol)
          * @see https://bybit-exchange.github.io/docs/v5/account/set-margin-mode
@@ -6135,7 +6200,7 @@ class bybit extends Exchange {
         return $response;
     }
 
-    public function set_position_mode($hedged, ?string $symbol = null, $params = array ()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
         /**
          * set $hedged to true or false for a $market
          * @see https://bybit-exchange.github.io/docs/v5/position/position-$mode
@@ -6477,7 +6542,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
         /**
          * $transfer $currency internally between wallets on the same account
          * @see https://bybit-exchange.github.io/docs/v5/asset/create-inter-$transfer

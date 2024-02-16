@@ -44,6 +44,7 @@ var bitteam = require('./src/bitteam.js');
 var bitvavo = require('./src/bitvavo.js');
 var bl3p = require('./src/bl3p.js');
 var blockchaincom = require('./src/blockchaincom.js');
+var blofin = require('./src/blofin.js');
 var btcalpha = require('./src/btcalpha.js');
 var btcbox = require('./src/btcbox.js');
 var btcmarkets = require('./src/btcmarkets.js');
@@ -176,7 +177,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.2.31';
+const version = '4.2.45';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -211,6 +212,7 @@ const exchanges = {
     'bitvavo': bitvavo,
     'bl3p': bl3p,
     'blockchaincom': blockchaincom,
+    'blofin': blofin,
     'btcalpha': btcalpha,
     'btcbox': btcbox,
     'btcmarkets': btcmarkets,
@@ -416,6 +418,7 @@ exports.bitteam = bitteam;
 exports.bitvavo = bitvavo;
 exports.bl3p = bl3p;
 exports.blockchaincom = blockchaincom;
+exports.blofin = blofin;
 exports.btcalpha = btcalpha;
 exports.btcbox = btcbox;
 exports.btcmarkets = btcmarkets;

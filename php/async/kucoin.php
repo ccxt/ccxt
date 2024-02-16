@@ -1974,7 +1974,7 @@ class kucoin extends Exchange {
         }) ();
     }
 
-    public function create_market_order_with_cost(string $symbol, string $side, $cost, $params = array ()) {
+    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array ()) {
         return Async\async(function () use ($symbol, $side, $cost, $params) {
             /**
              * create a market order by providing the $symbol, $side and $cost
@@ -1991,7 +1991,7 @@ class kucoin extends Exchange {
         }) ();
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a market buy order by providing the $symbol and $cost
@@ -2006,7 +2006,7 @@ class kucoin extends Exchange {
         }) ();
     }
 
-    public function create_market_sell_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()) {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a market sell order by providing the $symbol and $cost
@@ -2171,7 +2171,7 @@ class kucoin extends Exchange {
         return array_merge($request, $params);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit an order, kucoin currently only supports the modification of HF orders
@@ -3601,7 +3601,7 @@ class kucoin extends Exchange {
         }) ();
     }
 
-    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): PromiseInterface {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -3862,11 +3862,11 @@ class kucoin extends Exchange {
             }
         }
         $fee = null;
-        $feeCost = $this->safe_number($item, 'fee');
+        $feeCost = $this->safe_string($item, 'fee');
         $feeCurrency = null;
-        if ($feeCost !== 0) {
+        if ($feeCost !== '0') {
             $feeCurrency = $code;
-            $fee = array( 'cost' => $feeCost, 'currency' => $feeCurrency );
+            $fee = array( 'cost' => $this->parse_number($feeCost), 'currency' => $feeCurrency );
         }
         return array(
             'id' => $id,
@@ -3978,8 +3978,12 @@ class kucoin extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data');
-            $items = $this->safe_value($data, 'items', $data);
+            $dataList = $this->safe_list($response, 'data');
+            if ($dataList !== null) {
+                return $this->parse_ledger($dataList, $currency, $since, $limit);
+            }
+            $data = $this->safe_dict($response, 'data');
+            $items = $this->safe_list($data, 'items', array());
             return $this->parse_ledger($items, $currency, $since, $limit);
         }) ();
     }

@@ -61,6 +61,19 @@ public struct Limits
     }
 }
 
+public struct NetworkLimits
+{
+    public MinMax? withdraw;
+    public MinMax? deposit;
+
+    public NetworkLimits(object limits2)
+    {
+        var limits = (Dictionary<string, object>)limits2;
+        withdraw = limits.ContainsKey("withdraw") ? new MinMax(limits["withdraw"]) : null;
+        deposit = limits.ContainsKey("deposit") ? new MinMax(limits["deposit"]) : null;
+    }
+}
+
 public struct Market
 {
     public string? id;
@@ -97,6 +110,8 @@ public struct Market
     public Limits? limits;
     public Dictionary<string, object> info;
 
+    public Int64? created;
+
     public Market(object market2)
     {
         var market = (Dictionary<string, object>)market2;
@@ -131,6 +146,7 @@ public struct Market
         precision = market.ContainsKey("precision") ? new Precision(market["precision"]) : null;
         limits = market.ContainsKey("limits") ? new Limits(market["limits"]) : null;
         info = market;
+        created = Exchange.SafeInteger(market, "created");
     }
 }
 
@@ -183,6 +199,12 @@ public struct Order
     public double? average;
     public double? amount;
     public double? filled;
+
+    public double? triggerPrice;
+
+    public double? stopLossPrice;
+
+    public double? takeProfitPrice;
     public double? remaining;
     public string? status;
     public Fee? fee;
@@ -208,6 +230,9 @@ public struct Order
         status = Exchange.SafeString(order, "status");
         fee = order.ContainsKey("fee") ? new Fee(order["fee"]) : null;
         trades = order.ContainsKey("trades") ? ((IEnumerable<object>)order["trades"]).Select(x => new Trade(x)) : null;
+        triggerPrice = Exchange.SafeFloat(order, "triggerPrice");
+        stopLossPrice = Exchange.SafeFloat(order, "stopLossPrice");
+        takeProfitPrice = Exchange.SafeFloat(order, "takeProfitPrice");
         info = order.ContainsKey("info") ? (Dictionary<string, object>)order["info"] : null;
     }
 }
@@ -676,10 +701,16 @@ public struct Position
     public double? notional;
     public double? leverage;
     public double? unrealizedPnl;
+
+    public double? realizedPnl;
     public double? collateral;
     public double? entryPrice;
     public double? markPrice;
     public double? liquidationPrice;
+
+    public double? stopLossPrice;
+
+    public double? takeProfitPrice;
     public string? marginMode;
     public bool? hedged;
     public double? maintenenceMargin;
@@ -704,6 +735,7 @@ public struct Position
         notional = Exchange.SafeFloat(position, "notional");
         leverage = Exchange.SafeFloat(position, "leverage");
         unrealizedPnl = Exchange.SafeFloat(position, "unrealizedPnl");
+        realizedPnl = Exchange.SafeFloat(position, "realizedPnl");
         collateral = Exchange.SafeFloat(position, "collateral");
         entryPrice = Exchange.SafeFloat(position, "entryPrice");
         markPrice = Exchange.SafeFloat(position, "markPrice");
@@ -718,6 +750,8 @@ public struct Position
         lastUpdateTimestamp = Exchange.SafeFloat(position, "lastUpdateTimestamp");
         lastPrice = Exchange.SafeFloat(position, "lastPrice");
         percentage = Exchange.SafeFloat(position, "percentage");
+        takeProfitPrice = Exchange.SafeFloat(position, "takeProfitPrice");
+        stopLossPrice = Exchange.SafeFloat(position, "stopLossPrice");
     }
 
 }
@@ -987,6 +1021,10 @@ public struct MarketInterface
     public double? taker;
     public double? maker;
 
+    public Limits? limits;
+
+    public Int64? created;
+
     public MarketInterface(object market)
     {
         info = Exchange.SafeValue(market, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(market, "info") : null;
@@ -1017,6 +1055,75 @@ public struct MarketInterface
         optionType = Exchange.SafeString(market, "optionType");
         taker = Exchange.SafeFloat(market, "taker");
         maker = Exchange.SafeFloat(market, "maker");
+        created = Exchange.SafeInteger(market, "created");
+        limits = (market as IDictionary<string, object>).ContainsKey("limits") ? new Limits((market as IDictionary<string, object>)["limits"]) : null;
+    }
+
+}
+
+
+public struct Currency
+{
+    public Dictionary<string, object>? info;
+    public string? id;
+    public string? code;
+    public double? precision;
+    public string? name;
+
+    public double? fee;
+
+    public bool? active;
+
+    public bool? deposit;
+    public bool? withdraw;
+    public Dictionary<string, Network>? networks;
+
+    public Currency(object currency)
+    {
+        info = Exchange.SafeValue(currency, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(currency, "info") : null;
+        id = Exchange.SafeString(currency, "id");
+        code = Exchange.SafeString(currency, "code");
+        precision = Exchange.SafeFloat(currency, "precision");
+        name = Exchange.SafeString(currency, "name");
+        fee = Exchange.SafeFloat(currency, "fee");
+        active = Exchange.SafeValue(currency, "active") != null ? (bool)Exchange.SafeValue(currency, "active") : null;
+        deposit = Exchange.SafeValue(currency, "deposit") != null ? (bool)Exchange.SafeValue(currency, "deposit") : null;
+        withdraw = Exchange.SafeValue(currency, "withdraw") != null ? (bool)Exchange.SafeValue(currency, "withdraw") : null;
+        networks = new Dictionary<string, Network>();
+        if (Exchange.SafeValue(currency, "networks") != null)
+        {
+            var networks2 = (Dictionary<string, object>)Exchange.SafeValue(currency, "networks");
+            foreach (var network in networks2)
+            {
+                networks.Add(network.Key, new Network(network.Value));
+            }
+        }
+
+    }
+}
+
+public struct Network
+{
+    public Dictionary<string, object>? info;
+    public string? id;
+    public double? fee;
+    public bool? active;
+    public bool? deposit;
+    public bool? withdraw;
+    public double? precision;
+
+    public NetworkLimits? limits;
+
+    public Network(object network)
+    {
+        info = Exchange.SafeValue(network, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(network, "info") : null;
+        id = Exchange.SafeString(network, "id");
+        fee = Exchange.SafeFloat(network, "fee");
+        active = Exchange.SafeValue(network, "active") != null ? (bool)Exchange.SafeValue(network, "active") : null;
+        deposit = Exchange.SafeValue(network, "deposit") != null ? (bool)Exchange.SafeValue(network, "deposit") : null;
+        withdraw = Exchange.SafeValue(network, "withdraw") != null ? (bool)Exchange.SafeValue(network, "withdraw") : null;
+        precision = Exchange.SafeFloat(network, "precision");
+        limits = (network as IDictionary<string, object>).ContainsKey("limits") ? new NetworkLimits((network as IDictionary<string, object>)["limits"]) : null;
     }
 }
 // }

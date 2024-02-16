@@ -1166,7 +1166,8 @@ class coinmetro extends coinmetro$1 {
         }
         let type = undefined;
         let referenceId = undefined;
-        if (descriptionArray.length > 1) {
+        const length = descriptionArray.length;
+        if (length > 1) {
             type = this.parseLedgerEntryType(descriptionArray[0]);
             if (descriptionArray[1] !== '-') {
                 referenceId = descriptionArray[1];

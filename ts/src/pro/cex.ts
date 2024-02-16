@@ -180,7 +180,7 @@ export default class cex extends cexRest {
             stored.append (parsed);
         }
         const messageHash = 'trades';
-        this.trades = stored;
+        this.trades = stored as any; // trades don't have symbol
         client.resolve (this.trades, messageHash);
     }
 
@@ -195,7 +195,7 @@ export default class cex extends cexRest {
             trade = trade.split (':');
         }
         const side = this.safeString (trade, 0);
-        const timestamp = this.safeNumber (trade, 1);
+        const timestamp = this.safeInteger (trade, 1);
         const amount = this.safeString (trade, 2);
         const price = this.safeString (trade, 3);
         const id = this.safeString (trade, 4);
@@ -226,7 +226,7 @@ export default class cex extends cexRest {
         //     }
         //
         const data = this.safeValue (message, 'data', []);
-        const stored = this.trades;
+        const stored = this.trades as any; // to do fix this, this.trades is not meant to be used like this
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
             const parsed = this.parseWsOldTrade (rawTrade);
@@ -1302,7 +1302,7 @@ export default class cex extends cexRest {
         return this.parseOrder (rawOrder, market);
     }
 
-    async editOrderWs (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}): Promise<Order> {
+    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name cex#editOrderWs
@@ -1375,7 +1375,7 @@ export default class cex extends cexRest {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrdersWs (ids, symbol: string = undefined, params = {}) {
+    async cancelOrdersWs (ids: string[], symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name cex#cancelOrdersWs

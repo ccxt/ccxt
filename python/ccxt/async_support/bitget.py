@@ -2362,7 +2362,9 @@ class bitget(Exchange, ImplicitAPI):
         await self.load_markets()
         networkCode = self.safe_string_2(params, 'chain', 'network')
         params = self.omit(params, 'network')
-        networkId = self.network_code_to_id(networkCode, code)
+        networkId = None
+        if networkCode is not None:
+            networkId = self.network_code_to_id(networkCode, code)
         currency = self.currency(code)
         request = {
             'coin': currency['code'],
@@ -2400,11 +2402,14 @@ class bitget(Exchange, ImplicitAPI):
         currencyId = self.safe_string(depositAddress, 'coin')
         networkId = self.safe_string(depositAddress, 'chain')
         parsedCurrency = self.safe_currency_code(currencyId, currency)
+        network = None
+        if networkId is not None:
+            network = self.network_id_to_code(networkId, parsedCurrency)
         return {
             'currency': parsedCurrency,
             'address': self.safe_string(depositAddress, 'address'),
             'tag': self.safe_string(depositAddress, 'tag'),
-            'network': self.network_id_to_code(networkId, parsedCurrency),
+            'network': network,
             'info': depositAddress,
         }
 
@@ -3161,6 +3166,7 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param str [params.price]: *swap only* "mark"(to fetch mark price candles) or "index"(to fetch index price candles)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -3186,52 +3192,42 @@ class bitget(Exchange, ImplicitAPI):
         params = self.omit(params, ['until', 'till'])
         if limit is not None:
             request['limit'] = limit
-        options = self.safe_value(self.options, 'fetchOHLCV', {})
-        spotOptions = self.safe_value(options, 'spot', {})
-        defaultSpotMethod = self.safe_string(spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles')
-        method = self.safe_string(params, 'method', defaultSpotMethod)
-        params = self.omit(params, 'method')
-        if method != 'publicSpotGetV2SpotMarketHistoryCandles':
-            if since is not None:
-                request['startTime'] = since
-            if until is not None:
-                request['endTime'] = until
-        response = None
-        if market['spot']:
-            if method == 'publicSpotGetV2SpotMarketCandles':
-                response = await self.publicSpotGetV2SpotMarketCandles(self.extend(request, params))
-            elif method == 'publicSpotGetV2SpotMarketHistoryCandles':
-                if since is not None:
-                    if limit is None:
-                        limit = 100  # exchange default
-                    duration = self.parse_timeframe(timeframe) * 1000
-                    request['endTime'] = self.sum(since, duration * limit)
-                elif until is not None:
-                    request['endTime'] = until
-                else:
-                    request['endTime'] = self.milliseconds()
-                response = await self.publicSpotGetV2SpotMarketHistoryCandles(self.extend(request, params))
+        if since is not None:
+            request['startTime'] = since
+        if since is not None:
+            if limit is None:
+                limit = 100  # exchange default
+            duration = self.parse_timeframe(timeframe) * 1000
+            request['endTime'] = self.sum(since, duration * (limit + 1)) - 1  # limit + 1)) - 1 is needed for when since is not the exact timestamp of a candle
+        elif until is not None:
+            request['endTime'] = until
         else:
-            swapOptions = self.safe_value(options, 'swap', {})
-            defaultSwapMethod = self.safe_string(swapOptions, 'method', 'publicMixGetV2MixMarketCandles')
-            swapMethod = self.safe_string(params, 'method', defaultSwapMethod)
+            request['endTime'] = self.milliseconds()
+        response = None
+        thirtyOneDaysAgo = self.milliseconds() - 2678400000
+        if market['spot']:
+            if (since is not None) and (since < thirtyOneDaysAgo):
+                response = await self.publicSpotGetV2SpotMarketHistoryCandles(self.extend(request, params))
+            else:
+                response = await self.publicSpotGetV2SpotMarketCandles(self.extend(request, params))
+        else:
             priceType = self.safe_string(params, 'price')
-            params = self.omit(params, ['method', 'price'])
+            params = self.omit(params, ['price'])
             productType = None
             productType, params = self.handle_product_type_and_params(market, params)
             request['productType'] = productType
-            if (priceType == 'mark') or (swapMethod == 'publicMixGetV2MixMarketHistoryMarkCandles'):
+            if priceType == 'mark':
                 response = await self.publicMixGetV2MixMarketHistoryMarkCandles(self.extend(request, params))
-            elif (priceType == 'index') or (swapMethod == 'publicMixGetV2MixMarketHistoryIndexCandles'):
+            elif priceType == 'index':
                 response = await self.publicMixGetV2MixMarketHistoryIndexCandles(self.extend(request, params))
-            elif swapMethod == 'publicMixGetV2MixMarketCandles':
-                response = await self.publicMixGetV2MixMarketCandles(self.extend(request, params))
-            elif swapMethod == 'publicMixGetV2MixMarketHistoryCandles':
+            elif (since is not None) and (since < thirtyOneDaysAgo):
                 response = await self.publicMixGetV2MixMarketHistoryCandles(self.extend(request, params))
+            else:
+                response = await self.publicMixGetV2MixMarketCandles(self.extend(request, params))
         if response == '':
             return []  # happens when a new token is listed
         #  [["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"]]
-        data = self.safe_value(response, 'data', response)
+        data = self.safe_list(response, 'data', response)
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -3804,6 +3800,12 @@ class bitget(Exchange, ImplicitAPI):
         else:
             size = self.safe_string(order, 'size')
             filled = self.safe_string(order, 'baseVolume')
+        side = self.safe_string(order, 'side')
+        posMode = self.safe_string(order, 'posMode')
+        if posMode == 'hedge_mode' and reduceOnly:
+            side = 'sell' if (side == 'buy') else 'buy'
+            # on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
+            # so the side of the reduceOnly order is inversed
         return self.safe_order({
             'info': order,
             'id': self.safe_string_2(order, 'orderId', 'data'),
@@ -3814,7 +3816,7 @@ class bitget(Exchange, ImplicitAPI):
             'lastUpdateTimestamp': updateTimestamp,
             'symbol': market['symbol'],
             'type': self.safe_string(order, 'orderType'),
-            'side': self.safe_string(order, 'side'),
+            'side': side,
             'price': price,
             'amount': size,
             'cost': self.safe_string_2(order, 'quoteVolume', 'quoteSize'),
@@ -3833,7 +3835,7 @@ class bitget(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    async def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
         :see: https://www.bitget.com/api-doc/spot/trade/Place-Order
@@ -4203,7 +4205,7 @@ class bitget(Exchange, ImplicitAPI):
         both = self.array_concat(orderInfo, failure)
         return self.parse_orders(both, market)
 
-    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         """
         edit a trade order
         :see: https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order
@@ -4255,7 +4257,7 @@ class bitget(Exchange, ImplicitAPI):
         takeProfit = self.safe_value(params, 'takeProfit')
         isStopLoss = stopLoss is not None
         isTakeProfit = takeProfit is not None
-        trailingTriggerPrice = self.safe_string(params, 'trailingTriggerPrice', price)
+        trailingTriggerPrice = self.safe_string(params, 'trailingTriggerPrice', self.number_to_string(price))
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'newCallbackRatio')
         isTrailingPercentOrder = trailingPercent is not None
         if self.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder, isTrailingPercentOrder) > 1:
@@ -6505,7 +6507,7 @@ class bitget(Exchange, ImplicitAPI):
         #
         return response
 
-    async def set_margin_mode(self, marginMode, symbol: Str = None, params={}):
+    async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :see: https://www.bitget.com/api-doc/contract/account/Change-Margin-Mode
@@ -6554,7 +6556,7 @@ class bitget(Exchange, ImplicitAPI):
         #
         return response
 
-    async def set_position_mode(self, hedged, symbol: Str = None, params={}):
+    async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         """
         set hedged to True or False for a market
         :see: https://www.bitget.com/api-doc/contract/account/Change-Hold-Mode
@@ -6716,7 +6718,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_transfers(data, currency, since, limit)
 
-    async def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://www.bitget.com/api-doc/spot/account/Wallet-Transfer
@@ -7721,6 +7723,9 @@ class bitget(Exchange, ImplicitAPI):
             else:
                 if params:
                     queryInner = '?' + self.urlencode(self.keysort(params))
+                    # check  #21169 pr
+                    if queryInner.find('%24') > -1:
+                        queryInner = queryInner.replace('%24', '$')
                     url += queryInner
                     auth += queryInner
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')

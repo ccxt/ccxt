@@ -4999,7 +4999,7 @@ export default class htx extends Exchange {
         }, market);
     }
 
-    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name htx#createMarketBuyOrderWithCost
@@ -6422,7 +6422,7 @@ export default class htx extends Exchange {
         };
     }
 
-    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name huobi#transfer
@@ -6925,7 +6925,7 @@ export default class htx extends Exchange {
         const marginMode = (marketId === undefined) ? 'cross' : 'isolated';
         market = this.safeMarket (marketId);
         const symbol = this.safeString (market, 'symbol');
-        const timestamp = this.safeNumber (info, 'accrued-at');
+        const timestamp = this.safeInteger (info, 'accrued-at');
         return {
             'account': (marginMode === 'isolated') ? symbol : 'cross',  // deprecated
             'symbol': symbol,
@@ -8932,7 +8932,7 @@ export default class htx extends Exchange {
         });
     }
 
-    async setPositionMode (hedged, symbol: Str = undefined, params = {}) {
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name htx#setPositionMode

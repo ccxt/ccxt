@@ -59,7 +59,9 @@ export default class bybit extends Exchange {
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchCanceledAndClosedOrders': true,
                 'fetchCanceledOrders': true,
+                'fetchClosedOrder': true,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': true,
                 'fetchCrossBorrowRates': false,
@@ -87,10 +89,11 @@ export default class bybit extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': true,
+                'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
-                'fetchOrder': true,
+                'fetchOrder': false,
                 'fetchOrderBook': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositions': true,
@@ -2220,6 +2223,7 @@ export default class bybit extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch orders for
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
@@ -2233,7 +2237,7 @@ export default class bybit extends Exchange {
             return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1000);
         }
         const market = this.market(symbol);
-        const request = {
+        let request = {
             'symbol': market['id'],
         };
         if (limit === undefined) {
@@ -2245,6 +2249,7 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 1000, default 1000
         }
+        [request, params] = this.handleUntilOption('end', request, params);
         request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
         let response = undefined;
         if (market['spot']) {
@@ -3442,35 +3447,6 @@ export default class bybit extends Exchange {
             'trades': undefined,
         }, market);
     }
-    async fetchOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name bybit#fetchOrder
-         * @description fetches information on an order made by the user
-         * @see https://bybit-exchange.github.io/docs/v5/order/order-list
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
-        }
-        await this.loadMarkets();
-        const request = {
-            'orderId': id,
-        };
-        const result = await this.fetchOrders(symbol, undefined, undefined, this.extend(request, params));
-        const length = result.length;
-        if (length === 0) {
-            const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
-            const extra = isTrigger ? '' : 'If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
-            throw new OrderNotFound('Order ' + id.toString() + ' was not found.' + extra);
-        }
-        if (length > 1) {
-            throw new InvalidOrder(this.id + ' returned more than one order');
-        }
-        return this.safeValue(result, 0);
-    }
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
         /**
          * @method
@@ -3741,10 +3717,22 @@ export default class bybit extends Exchange {
             if (isStopLoss) {
                 const slTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
                 request['stopLoss'] = this.priceToPrecision(symbol, slTriggerPrice);
+                const slLimitPrice = this.safeValue(stopLoss, 'price');
+                if (slLimitPrice !== undefined) {
+                    request['tpslMode'] = 'Partial';
+                    request['slOrderType'] = 'Limit';
+                    request['slLimitPrice'] = this.priceToPrecision(symbol, slLimitPrice);
+                }
             }
             if (isTakeProfit) {
                 const tpTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
                 request['takeProfit'] = this.priceToPrecision(symbol, tpTriggerPrice);
+                const tpLimitPrice = this.safeValue(takeProfit, 'price');
+                if (tpLimitPrice !== undefined) {
+                    request['tpslMode'] = 'Partial';
+                    request['tpOrderType'] = 'Limit';
+                    request['tpLimitPrice'] = this.priceToPrecision(symbol, tpLimitPrice);
+                }
             }
         }
         if (market['spot']) {
@@ -4494,29 +4482,99 @@ export default class bybit extends Exchange {
         const data = this.safeValue(result, 'dataList', []);
         return this.parseOrders(data, market, since, limit);
     }
+    async fetchOrder(id, symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchOrder() is not supported after the 5/02 update, please use fetchOpenOrder or fetchClosedOrder');
+    }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchOrders() is not supported after the 5/02 update, please use fetchOpenOrders, fetchClosedOrders or fetchCanceledOrders');
+    }
+    async fetchClosedOrder(id, symbol = undefined, params = {}) {
         /**
          * @method
-         * @name bybit#fetchOrders
-         * @description fetches information on multiple orders made by the user
+         * @name bybit#fetchClosedOrder
+         * @description fetches information on a closed order made by the user
          * @see https://bybit-exchange.github.io/docs/v5/order/order-list
-         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {string} id order id
+         * @param {string} [symbol] unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.stop] set to true for fetching a closed stop order
+         * @param {string} [params.type] market type, ['swap', 'option', 'spot']
+         * @param {string} [params.subType] market subType, ['linear', 'inverse']
+         * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const request = {
+            'orderId': id,
+        };
+        const result = await this.fetchClosedOrders(symbol, undefined, undefined, this.extend(request, params));
+        const length = result.length;
+        if (length === 0) {
+            const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
+            const extra = isTrigger ? '' : 'If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
+            throw new OrderNotFound('Order ' + id.toString() + ' was not found.' + extra);
+        }
+        if (length > 1) {
+            throw new InvalidOrder(this.id + ' returned more than one order');
+        }
+        return this.safeValue(result, 0);
+    }
+    async fetchOpenOrder(id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchOpenOrder
+         * @description fetches information on an open order made by the user
+         * @see https://bybit-exchange.github.io/docs/v5/order/open-order
+         * @param {string} id order id
+         * @param {string} [symbol] unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.stop] set to true for fetching an open stop order
+         * @param {string} [params.type] market type, ['swap', 'option', 'spot']
+         * @param {string} [params.subType] market subType, ['linear', 'inverse']
+         * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
+         * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
+         * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const request = {
+            'orderId': id,
+        };
+        const result = await this.fetchOpenOrders(symbol, undefined, undefined, this.extend(request, params));
+        const length = result.length;
+        if (length === 0) {
+            const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
+            const extra = isTrigger ? '' : 'If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
+            throw new OrderNotFound('Order ' + id.toString() + ' was not found.' + extra);
+        }
+        if (length > 1) {
+            throw new InvalidOrder(this.id + ' returned more than one order');
+        }
+        return this.safeValue(result, 0);
+    }
+    async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchCanceledAndClosedOrders
+         * @description fetches information on multiple canceled and closed orders made by the user
+         * @see https://bybit-exchange.github.io/docs/v5/order/order-list
+         * @param {string} [symbol] unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] true if stop order
+         * @param {boolean} [params.stop] set to true for fetching stop orders
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate');
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchCanceledAndClosedOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchOrders', symbol, since, limit, params, 'nextPageCursor', 'nextPageCursor', undefined, 50);
+            return await this.fetchPaginatedCallCursor('fetchCanceledAndClosedOrders', symbol, since, limit, params, 'nextPageCursor', 'nextPageCursor', undefined, 50);
         }
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
@@ -4529,7 +4587,7 @@ export default class bybit extends Exchange {
             request['symbol'] = market['id'];
         }
         let type = undefined;
-        [type, params] = this.getBybitType('fetchOrders', market, params);
+        [type, params] = this.getBybitType('fetchCanceledAndClosedOrders', market, params);
         if (((type === 'option') || isUsdcSettled) && !isUnifiedAccount) {
             return await this.fetchUsdcOrders(symbol, since, limit, params);
         }
@@ -4611,17 +4669,23 @@ export default class bybit extends Exchange {
          * @name bybit#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
          * @see https://bybit-exchange.github.io/docs/v5/order/order-list
-         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {string} [symbol] unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.stop] set to true for fetching closed stop orders
+         * @param {string} [params.type] market type, ['swap', 'option', 'spot']
+         * @param {string} [params.subType] market subType, ['linear', 'inverse']
+         * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
             'orderStatus': 'Filled',
         };
-        return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
+        return await this.fetchCanceledAndClosedOrders(symbol, since, limit, this.extend(request, params));
     }
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -4629,20 +4693,23 @@ export default class bybit extends Exchange {
          * @name bybit#fetchCanceledOrders
          * @description fetches information on multiple canceled orders made by the user
          * @see https://bybit-exchange.github.io/docs/v5/order/order-list
-         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {string} [symbol] unified market symbol of the market orders were made in
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
          * @param {int} [limit] max number of orders to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.stop] true if stop order
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
+         * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
             'orderStatus': 'Cancelled',
         };
-        return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
+        return await this.fetchCanceledAndClosedOrders(symbol, since, limit, this.extend(request, params));
     }
     async fetchUsdcOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -6026,9 +6093,6 @@ export default class bybit extends Exchange {
         if (timestamp === undefined) {
             timestamp = this.safeIntegerN(position, ['updatedTime', 'updatedAt']);
         }
-        // default to cross of USDC margined positions
-        const tradeMode = this.safeInteger(position, 'tradeMode', 0);
-        const marginMode = tradeMode ? 'isolated' : 'cross';
         let collateralString = this.safeString(position, 'positionBalance');
         const entryPrice = this.omitZero(this.safeString2(position, 'entryPrice', 'avgPrice'));
         const liquidationPrice = this.omitZero(this.safeString(position, 'liqPrice'));
@@ -6092,7 +6156,7 @@ export default class bybit extends Exchange {
             'markPrice': this.safeNumber(position, 'markPrice'),
             'lastPrice': undefined,
             'collateral': this.parseNumber(collateralString),
-            'marginMode': marginMode,
+            'marginMode': undefined,
             'side': side,
             'percentage': undefined,
             'stopLossPrice': this.safeNumber2(position, 'stop_loss', 'stopLoss'),

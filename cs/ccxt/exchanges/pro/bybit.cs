@@ -202,7 +202,7 @@ public partial class bybit : ccxt.bybit
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageHash = add("ticker:", symbol);
-        object url = this.getUrlByMarketType(symbol, false, parameters);
+        object url = this.getUrlByMarketType(symbol, false, "watchTicker", parameters);
         parameters = this.cleanParams(parameters);
         object options = this.safeValue(this.options, "watchTicker", new Dictionary<string, object>() {});
         object topic = this.safeString(options, "name", "tickers");
@@ -231,7 +231,7 @@ public partial class bybit : ccxt.bybit
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, null, false);
         object messageHashes = new List<object>() {};
-        object url = this.getUrlByMarketType(getValue(symbols, 0), false, parameters);
+        object url = this.getUrlByMarketType(getValue(symbols, 0), false, "watchTickers", parameters);
         parameters = this.cleanParams(parameters);
         object options = this.safeValue(this.options, "watchTickers", new Dictionary<string, object>() {});
         object topic = this.safeString(options, "name", "tickers");
@@ -407,7 +407,7 @@ public partial class bybit : ccxt.bybit
         await this.loadMarkets();
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        object url = this.getUrlByMarketType(symbol, false, parameters);
+        object url = this.getUrlByMarketType(symbol, false, "watchOHLCV", parameters);
         parameters = this.cleanParams(parameters);
         object ohlcv = null;
         object timeframeId = this.safeString(this.timeframes, timeframe, timeframe);
@@ -533,7 +533,7 @@ public partial class bybit : ccxt.bybit
             throw new ArgumentsRequired ((string)add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
         }
         symbols = this.marketSymbols(symbols);
-        object url = this.getUrlByMarketType(getValue(symbols, 0), false, parameters);
+        object url = this.getUrlByMarketType(getValue(symbols, 0), false, "watchOrderBook", parameters);
         parameters = this.cleanParams(parameters);
         object market = this.market(getValue(symbols, 0));
         if (isTrue(isEqual(limit, null)))
@@ -685,7 +685,7 @@ public partial class bybit : ccxt.bybit
             throw new ArgumentsRequired ((string)add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
         }
         parameters = this.cleanParams(parameters);
-        object url = this.getUrlByMarketType(getValue(symbols, 0), false, parameters);
+        object url = this.getUrlByMarketType(getValue(symbols, 0), false, "watchTrades", parameters);
         object topics = new List<object>() {};
         object messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))

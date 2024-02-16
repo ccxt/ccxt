@@ -430,7 +430,9 @@ class digifinex(Exchange, ImplicitAPI):
             minFoundPrecision = Precise.string_min(feeString, Precise.string_min(minDepositString, minWithdrawString))
             precision = self.parse_number(minFoundPrecision)
             networkId = self.safe_string(currency, 'chain')
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = None
+            if networkId is not None:
+                networkCode = self.network_id_to_code(networkId)
             network = {
                 'info': currency,
                 'id': networkId,
@@ -1726,7 +1728,7 @@ class digifinex(Exchange, ImplicitAPI):
         params = self.omit(params, ['postOnly'])
         return self.extend(request, params)
 
-    def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
         :see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-new-order
@@ -2722,7 +2724,7 @@ class digifinex(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(self.safe_string(transfer, 'code')),
         }
 
-    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -3912,7 +3914,7 @@ class digifinex(Exchange, ImplicitAPI):
             'amount': self.safe_number(income, 'amount'),
         }
 
-    def set_margin_mode(self, marginMode, symbol: Str = None, params={}):
+    def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmode

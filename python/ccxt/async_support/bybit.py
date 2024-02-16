@@ -71,7 +71,9 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchBorrowInterest': False,  # temporarily disabled, doesn't work
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchCanceledAndClosedOrders': True,
                 'fetchCanceledOrders': True,
+                'fetchClosedOrder': True,
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': True,
                 'fetchCrossBorrowRates': False,
@@ -99,10 +101,11 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': True,
+                'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
-                'fetchOrder': True,
+                'fetchOrder': False,
                 'fetchOrderBook': True,
-                'fetchOrders': True,
+                'fetchOrders': False,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
                 'fetchPositions': True,
@@ -1185,7 +1188,7 @@ class bybit(Exchange, ImplicitAPI):
         reconstructedDate = day + month + year
         return reconstructedDate
 
-    def create_expired_option_market(self, symbol):
+    def create_expired_option_market(self, symbol: str):
         # support expired option contracts
         quote = 'USD'
         settle = 'USDC'
@@ -2155,6 +2158,7 @@ class bybit(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch orders for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
@@ -2175,6 +2179,7 @@ class bybit(Exchange, ImplicitAPI):
             request['start'] = since
         if limit is not None:
             request['limit'] = limit  # max 1000, default 1000
+        request, params = self.handle_until_option('end', request, params)
         request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
         response = None
         if market['spot']:
@@ -3275,31 +3280,7 @@ class bybit(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}):
-        """
-        fetches information on an order made by the user
-        :see: https://bybit-exchange.github.io/docs/v5/order/order-list
-        :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
-        """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-        await self.load_markets()
-        request = {
-            'orderId': id,
-        }
-        result = await self.fetch_orders(symbol, None, None, self.extend(request, params))
-        length = len(result)
-        if length == 0:
-            isTrigger = self.safe_bool_n(params, ['trigger', 'stop'], False)
-            extra = '' if isTrigger else 'If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
-            raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
-        if length > 1:
-            raise InvalidOrder(self.id + ' returned more than one order')
-        return self.safe_value(result, 0)
-
-    async def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         :see: https://bybit-exchange.github.io/docs/v5/order/create-order
         create a market buy order by providing the symbol and cost
@@ -3314,7 +3295,7 @@ class bybit(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         return await self.create_order(symbol, 'market', 'buy', cost, 1, params)
 
-    async def create_market_sell_order_with_cost(self, symbol: str, cost, params={}):
+    async def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         :see: https://bybit-exchange.github.io/docs/v5/order/create-order
         create a market sell order by providing the symbol and cost
@@ -3526,9 +3507,19 @@ class bybit(Exchange, ImplicitAPI):
             if isStopLoss:
                 slTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
                 request['stopLoss'] = self.price_to_precision(symbol, slTriggerPrice)
+                slLimitPrice = self.safe_value(stopLoss, 'price')
+                if slLimitPrice is not None:
+                    request['tpslMode'] = 'Partial'
+                    request['slOrderType'] = 'Limit'
+                    request['slLimitPrice'] = self.price_to_precision(symbol, slLimitPrice)
             if isTakeProfit:
                 tpTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
                 request['takeProfit'] = self.price_to_precision(symbol, tpTriggerPrice)
+                tpLimitPrice = self.safe_value(takeProfit, 'price')
+                if tpLimitPrice is not None:
+                    request['tpslMode'] = 'Partial'
+                    request['tpOrderType'] = 'Limit'
+                    request['tpLimitPrice'] = self.price_to_precision(symbol, tpLimitPrice)
         if market['spot']:
             # only works for spot market
             if triggerPrice is not None:
@@ -3786,7 +3777,7 @@ class bybit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
 
-    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         """
         edit a trade order
         :see: https://bybit-exchange.github.io/docs/v5/order/amend-order
@@ -4189,27 +4180,89 @@ class bybit(Exchange, ImplicitAPI):
         data = self.safe_value(result, 'dataList', [])
         return self.parse_orders(data, market, since, limit)
 
+    async def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
+        raise NotSupported(self.id + ' fetchOrder() is not supported after the 5/02 update, please use fetchOpenOrder or fetchClosedOrder')
+
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        raise NotSupported(self.id + ' fetchOrders() is not supported after the 5/02 update, please use fetchOpenOrders, fetchClosedOrders or fetchCanceledOrders')
+
+    async def fetch_closed_order(self, id: str, symbol: Str = None, params={}):
         """
-        fetches information on multiple orders made by the user
+        fetches information on a closed order made by the user
         :see: https://bybit-exchange.github.io/docs/v5/order/order-list
-        :param str symbol: unified market symbol of the market orders were made in
+        :param str id: order id
+        :param str [symbol]: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.stop]: set to True for fetching a closed stop order
+        :param str [params.type]: market type, ['swap', 'option', 'spot']
+        :param str [params.subType]: market subType, ['linear', 'inverse']
+        :param str [params.orderFilter]: 'Order' or 'StopOrder' or 'tpslOrder'
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        request = {
+            'orderId': id,
+        }
+        result = await self.fetch_closed_orders(symbol, None, None, self.extend(request, params))
+        length = len(result)
+        if length == 0:
+            isTrigger = self.safe_bool_n(params, ['trigger', 'stop'], False)
+            extra = '' if isTrigger else 'If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
+            raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
+        if length > 1:
+            raise InvalidOrder(self.id + ' returned more than one order')
+        return self.safe_value(result, 0)
+
+    async def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+        """
+        fetches information on an open order made by the user
+        :see: https://bybit-exchange.github.io/docs/v5/order/open-order
+        :param str id: order id
+        :param str [symbol]: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.stop]: set to True for fetching an open stop order
+        :param str [params.type]: market type, ['swap', 'option', 'spot']
+        :param str [params.subType]: market subType, ['linear', 'inverse']
+        :param str [params.baseCoin]: Base coin. Supports linear, inverse & option
+        :param str [params.settleCoin]: Settle coin. Supports linear, inverse & option
+        :param str [params.orderFilter]: 'Order' or 'StopOrder' or 'tpslOrder'
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        request = {
+            'orderId': id,
+        }
+        result = await self.fetch_open_orders(symbol, None, None, self.extend(request, params))
+        length = len(result)
+        if length == 0:
+            isTrigger = self.safe_bool_n(params, ['trigger', 'stop'], False)
+            extra = '' if isTrigger else 'If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
+            raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
+        if length > 1:
+            raise InvalidOrder(self.id + ' returned more than one order')
+        return self.safe_value(result, 0)
+
+    async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetches information on multiple canceled and closed orders made by the user
+        :see: https://bybit-exchange.github.io/docs/v5/order/order-list
+        :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: True if stop order
+        :param boolean [params.stop]: set to True for fetching stop orders
         :param str [params.type]: market type, ['swap', 'option', 'spot']
         :param str [params.subType]: market subType, ['linear', 'inverse']
         :param str [params.orderFilter]: 'Order' or 'StopOrder' or 'tpslOrder'
         :param int [params.until]: the latest time in ms to fetch entries for
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        paginate, params = self.handle_option_and_params(params, 'fetchCanceledAndClosedOrders', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, params, 'nextPageCursor', 'nextPageCursor', None, 50)
+            return await self.fetch_paginated_call_cursor('fetchCanceledAndClosedOrders', symbol, since, limit, params, 'nextPageCursor', 'nextPageCursor', None, 50)
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
         request = {}
@@ -4220,7 +4273,7 @@ class bybit(Exchange, ImplicitAPI):
             isUsdcSettled = market['settle'] == 'USDC'
             request['symbol'] = market['id']
         type = None
-        type, params = self.get_bybit_type('fetchOrders', market, params)
+        type, params = self.get_bybit_type('fetchCanceledAndClosedOrders', market, params)
         if ((type == 'option') or isUsdcSettled) and not isUnifiedAccount:
             return await self.fetch_usdc_orders(symbol, since, limit, params)
         request['category'] = type
@@ -4295,36 +4348,45 @@ class bybit(Exchange, ImplicitAPI):
         """
         fetches information on multiple closed orders made by the user
         :see: https://bybit-exchange.github.io/docs/v5/order/order-list
-        :param str symbol: unified market symbol of the market orders were made in
+        :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.stop]: set to True for fetching closed stop orders
+        :param str [params.type]: market type, ['swap', 'option', 'spot']
+        :param str [params.subType]: market subType, ['linear', 'inverse']
+        :param str [params.orderFilter]: 'Order' or 'StopOrder' or 'tpslOrder'
+        :param int [params.until]: the latest time in ms to fetch entries for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
             'orderStatus': 'Filled',
         }
-        return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
+        return await self.fetch_canceled_and_closed_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on multiple canceled orders made by the user
         :see: https://bybit-exchange.github.io/docs/v5/order/order-list
-        :param str symbol: unified market symbol of the market orders were made in
+        :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: timestamp in ms of the earliest order, default is None
         :param int [limit]: max number of orders to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.stop]: True if stop order
         :param str [params.type]: market type, ['swap', 'option', 'spot']
         :param str [params.subType]: market subType, ['linear', 'inverse']
+        :param str [params.orderFilter]: 'Order' or 'StopOrder' or 'tpslOrder'
+        :param int [params.until]: the latest time in ms to fetch entries for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
             'orderStatus': 'Cancelled',
         }
-        return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
+        return await self.fetch_canceled_and_closed_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_usdc_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
@@ -5622,9 +5684,6 @@ class bybit(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(position, 'updated_at'))
         if timestamp is None:
             timestamp = self.safe_integer_n(position, ['updatedTime', 'updatedAt'])
-        # default to cross of USDC margined positions
-        tradeMode = self.safe_integer(position, 'tradeMode', 0)
-        marginMode = 'isolated' if tradeMode else 'cross'
         collateralString = self.safe_string(position, 'positionBalance')
         entryPrice = self.omit_zero(self.safe_string_2(position, 'entryPrice', 'avgPrice'))
         liquidationPrice = self.omit_zero(self.safe_string(position, 'liqPrice'))
@@ -5681,14 +5740,14 @@ class bybit(Exchange, ImplicitAPI):
             'markPrice': self.safe_number(position, 'markPrice'),
             'lastPrice': None,
             'collateral': self.parse_number(collateralString),
-            'marginMode': marginMode,
+            'marginMode': None,
             'side': side,
             'percentage': None,
             'stopLossPrice': self.safe_number_2(position, 'stop_loss', 'stopLoss'),
             'takeProfitPrice': self.safe_number_2(position, 'take_profit', 'takeProfit'),
         })
 
-    async def set_margin_mode(self, marginMode, symbol: Str = None, params={}):
+    async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode(account) or trade mode(symbol)
         :see: https://bybit-exchange.github.io/docs/v5/account/set-margin-mode
@@ -5814,7 +5873,7 @@ class bybit(Exchange, ImplicitAPI):
             response = await self.privatePostV5PositionSetLeverage(self.extend(request, params))
         return response
 
-    async def set_position_mode(self, hedged, symbol: Str = None, params={}):
+    async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         """
         set hedged to True or False for a market
         :see: https://bybit-exchange.github.io/docs/v5/position/position-mode
@@ -6133,7 +6192,7 @@ class bybit(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://bybit-exchange.github.io/docs/v5/asset/create-inter-transfer
