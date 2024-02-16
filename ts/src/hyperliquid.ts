@@ -673,7 +673,7 @@ export default class hyperliquid extends Exchange {
             const side = this.safeStringUpper (rawOrder, 'side');
             const isBuy = (side === 'BUY');
             const amount = this.safeValue (rawOrder, 'amount');
-            const price = this.safeValue (rawOrder, 'price');
+            const price = this.safeString (rawOrder, 'price');
             let orderParams = this.safeValue (rawOrder, 'params', {});
             orderParams = this.extend (params, orderParams);
             const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
@@ -1118,11 +1118,11 @@ export default class hyperliquid extends Exchange {
         params = this.omit (params, [ 'slippage', 'vaultAddress', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id' ]);
         // TODO: round px to 5 significant figures and 6 decimals
         // TODO: cloid
-        let px = price;
+        let px = price.toString ();
         if (isMarket) {
-            px = (isBuy) ? Precise.stringMul (price, Precise.stringAdd ('1', slippage)) : Precise.stringMul (price, Precise.stringSub ('1', slippage));
+            px = (isBuy) ? Precise.stringMul (price.toString (), Precise.stringAdd ('1', slippage)) : Precise.stringMul (price.toString (), Precise.stringSub ('1', slippage));
         } else {
-            px = this.priceToPrecision (symbol, price);
+            px = this.priceToPrecision (symbol, price.toString ());
         }
         const sz = this.amountToPrecision (symbol, amount);
         const reduceOnly = this.safeValue (params, 'reduceOnly', false);
