@@ -159,8 +159,10 @@ export default class hyperliquid extends Exchange {
                 },
             },
             'requiredCredentials': {
-                'apiKey': true,
-                'secret': true,
+                'apiKey': false,
+                'secret': false,
+                'walletAddress': true,
+                'privateKey': true,
             },
             'exceptions': {
                 'exact': {
@@ -397,15 +399,12 @@ export default class hyperliquid extends Exchange {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-state
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.user] *required* Onchain address in 42-character hexadecimal format; e.g. 0x0000000000000000000000000000000000000000
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
-        const user = this.safeString (params, 'user');
-        if (user === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchBalance() requires a user argument');
-        }
+        this.checkRequiredCredentials ();
         const request = {
             'type': 'clearinghouseState',
+            'user': this.walletAddress,
         };
         const response = await this.publicPostInfo (this.extend (request, params));
         //
@@ -634,6 +633,7 @@ export default class hyperliquid extends Exchange {
          * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         let defaultSlippage = this.safeValue (this.options, 'defaultSlippage');
         defaultSlippage = this.safeValue (params, 'slippage', defaultSlippage);
@@ -880,17 +880,14 @@ export default class hyperliquid extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.user] *required* Onchain address in 42-character hexadecimal format; e.g. 0x0000000000000000000000000000000000000000
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const user = this.safeString (params, 'user');
-        if (user === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a user argument');
-        }
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'type': 'openOrders',
+            'user': this.walletAddress,
         };
         const response = await this.publicPostInfo (this.extend (request, params));
         //
@@ -917,18 +914,15 @@ export default class hyperliquid extends Exchange {
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-order-status-by-oid-or-cloid
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.user] *required* Onchain address in 42-character hexadecimal format; e.g. 0x0000000000000000000000000000000000000000
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const user = this.safeString (params, 'user');
-        if (user === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a user argument');
-        }
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'type': 'orderStatus',
             'oid': this.parseToNumeric (id),
+            'user': this.walletAddress,
         };
         const response = await this.publicPostInfo (this.extend (request, params));
         //
@@ -991,6 +985,7 @@ export default class hyperliquid extends Exchange {
          * @param {string|string[]} [params.clientOrderId] client order ids (default undefined)
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const vaultAddress = this.safeString (params, 'vaultAddress');
@@ -1094,6 +1089,7 @@ export default class hyperliquid extends Exchange {
          * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        this.checkRequiredCredentials ();
         if (id === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an id argument');
         }
@@ -1356,17 +1352,15 @@ export default class hyperliquid extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.user] *required* Onchain address in 42-character hexadecimal format; e.g. 0x0000000000000000000000000000000000000000
          * @param {int} [params.until] timestamp in ms of the latest trade
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        const user = this.safeString (params, 'user');
-        if (user === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a user argument');
-        }
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {};
+        const request = {
+            'user': this.walletAddress,
+        };
         if (since !== undefined) {
             request['type'] = 'userFillsByTime';
             request['startTime'] = since;
@@ -1459,7 +1453,6 @@ export default class hyperliquid extends Exchange {
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-state
          * @param {string} symbol unified market symbol of the market the position is held in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.user] *required* Onchain address in 42-character hexadecimal format; e.g. 0x0000000000000000000000000000000000000000
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         const positions = await this.fetchPositions ([ symbol ], params);
@@ -1474,17 +1467,13 @@ export default class hyperliquid extends Exchange {
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-state
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.user] *required* Onchain address in 42-character hexadecimal format; e.g. 0x0000000000000000000000000000000000000000
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
-        const user = this.safeString (params, 'user');
-        if (user === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchBalance() requires a user argument');
-        }
         symbols = this.marketSymbols (symbols);
         const request = {
             'type': 'clearinghouseState',
+            'user': this.walletAddress,
         };
         const response = await this.publicPostInfo (this.extend (request, params));
         //
@@ -1809,6 +1798,7 @@ export default class hyperliquid extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         this.checkAddress (toAccount);
         if (code !== undefined) {
@@ -1851,6 +1841,7 @@ export default class hyperliquid extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         this.checkAddress (address);
         if (code !== undefined) {
