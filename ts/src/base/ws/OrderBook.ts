@@ -20,17 +20,22 @@ import {
 // ----------------------------------------------------------------------------
 // overwrites absolute volumes at price levels
 
-class OrderBook {
+interface CustomOrderBookProp  {
+    cache: any[];
+}
+
+class OrderBook implements CustomOrderBookProp {
 
     cache = [] // make prop visible so we use typed OrderBooks
 
     constructor (snapshot = {}, depth = undefined) {
 
-        // Object.defineProperty (this, 'cache', {
-        //     __proto__: null, // make it invisible
-        //     value: [],
-        //     writable: true,
-        // })
+        Object.defineProperty (this, 'cache', {
+            __proto__: null, // make it invisible
+            value: [],
+            writable: true,
+            enumerable: false,
+        })
 
         depth = depth || Number.MAX_SAFE_INTEGER
 

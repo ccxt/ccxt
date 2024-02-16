@@ -1,6 +1,10 @@
 /* eslint-disable max-classes-per-file */
 // @ts-nocheck
 
+interface CustomArray extends Array {
+    hashmap: object;
+}
+
 class BaseCache extends Array {
 
     constructor (maxSize = undefined) {
@@ -17,10 +21,9 @@ class BaseCache extends Array {
     }
 }
 
-class ArrayCache extends BaseCache {
+class ArrayCache extends BaseCache implements CustomArray {
 
-
-    hashmap = {} // make it visible so in the code we can do this.orders.hashmap using a typed structure
+    hashmap: object = {};
 
     constructor (maxSize = undefined) {
         super (maxSize);
@@ -48,6 +51,12 @@ class ArrayCache extends BaseCache {
             __proto__: null, // make it invisible
             value: false,
             writable: true,
+        })
+        Object.defineProperty (this, 'hashmap', {
+            __proto__: null, // make it invisible
+            value: {},
+            writable: true,
+            enumerable: false,
         })
     }
 
