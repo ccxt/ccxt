@@ -148,7 +148,7 @@
             {
                 "description": "Fetch spot Balance",
                 "method": "fetchBalance",
-                "url": "https://api.coinbase.com/v2/accounts?limit=250&type=spot",
+                "url": "https://api.coinbase.com/v2/accounts",
                 "input": [
                     {
                         "type": "spot"
@@ -168,7 +168,7 @@
             {
                 "description": "Fetch swap Balance",
                 "method": "fetchBalance",
-                "url": "https://api.coinbase.com/v2/accounts?limit=250&type=swap",
+                "url": "https://api.coinbase.com/v2/accounts",
                 "input": [
                     {
                         "type": "swap"
