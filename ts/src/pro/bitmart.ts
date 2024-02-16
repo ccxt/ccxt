@@ -1342,9 +1342,8 @@ export default class bitmart extends bitmartRest {
                 const marketId = this.safeString (update, 'symbol');
                 const symbol = this.safeSymbol (marketId);
                 if (!(symbol in this.orderbooks)) {
-                    const ob = this.orderBook ({}, limit);
-                    ob['symbol'] = symbol;
-                    this.orderbooks[symbol] = ob;
+                    this.orderbooks[symbol] = this.orderBook ({}, limit);
+                    this.orderbooks[symbol]['symbol'] = symbol;
                 }
                 const orderbook = this.orderbooks[symbol];
                 const type = this.safeString (update, 'type');
@@ -1371,9 +1370,8 @@ export default class bitmart extends bitmartRest {
             const marketId = this.safeString (data, 'symbol');
             const symbol = this.safeSymbol (marketId);
             if (!(symbol in this.orderbooks)) {
-                const ob = this.orderBook ({}, limit);
-                ob['symbol'] = symbol;
-                this.orderbooks[symbol] = ob;
+                this.orderbooks[symbol] = this.orderBook ({}, limit);
+                this.orderbooks[symbol]['symbol'] = symbol;
             }
             const orderbook = this.orderbooks[symbol];
             const way = this.safeNumber (data, 'way');
