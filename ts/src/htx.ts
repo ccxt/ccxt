@@ -6459,7 +6459,7 @@ export default class htx extends Exchange {
         const networkItem = this.safeValue (networks, ecid, {});
         let precision = this.safeValue (currency, 'precision');
         precision = this.safeString (networkItem, 'precision', precision);
-        precision = this.precisionFromString (precision);
+        precision = this.precisionFromString (String (precision));
         amount = parseFloat (this.decimalToPrecision (amount, TRUNCATE, precision));
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
         if (this.safeBool (withdrawOptions, 'includeFee', false)) {
