@@ -534,9 +534,8 @@ export default class bitget extends bitgetRest {
             // storedOrderBook = this.safeValue (this.orderbooks, symbol);
             if (!(symbol in this.orderbooks)) {
                 // const ob = this.orderBook ({});
-                const ob = this.countedOrderBook ({});
-                ob['symbol'] = symbol;
-                this.orderbooks[symbol] = ob;
+                this.orderbooks[symbol] = this.countedOrderBook ({});
+                this.orderbooks[symbol]['symbol'] = symbol;
             }
             const storedOrderBook = this.orderbooks[symbol];
             const asks = this.safeValue (rawOrderBook, 'asks', []);
