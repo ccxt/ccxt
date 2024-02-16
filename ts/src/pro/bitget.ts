@@ -555,20 +555,12 @@ export default class bitget extends bitgetRest {
                 const payloadArray = [];
                 for (let i = 0; i < 25; i++) {
                     if (i < bidsLength) {
-                        const priceString = this.numberToString (storedBids[i][0]);
-                        const amountString = this.numberToString (storedBids[i][1]);
-                        // payloadArray.push (storedBids[i][2][0]);
-                        payloadArray.push (priceString);
-                        payloadArray.push (amountString);
-                        // payloadArray.push (storedBids[i][2][1]);
+                        payloadArray.push (storedBids[i][2][0]);
+                        payloadArray.push (storedBids[i][2][1]);
                     }
                     if (i < asksLength) {
-                        const askPriceString = this.numberToString (storedAsks[i][0]);
-                        const askAmountString = this.numberToString (storedAsks[i][1]);
-                        payloadArray.push (askPriceString);
-                        payloadArray.push (askAmountString);
-                        // payloadArray.push (storedAsks[i][2][0]);
-                        // payloadArray.push (storedAsks[i][2][1]);q
+                        payloadArray.push (storedAsks[i][2][0]);
+                        payloadArray.push (storedAsks[i][2][1]);
                     }
                 }
                 const payload = payloadArray.join (':');
