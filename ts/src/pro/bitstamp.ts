@@ -100,7 +100,10 @@ export default class bitstamp extends bitstampRest {
         const parts = channel.split ('_');
         const marketId = this.safeString (parts, 3);
         const symbol = this.safeSymbol (marketId);
-        const storedOrderBook = this.safeValue (this.orderbooks, symbol);
+        if (!(symbol in this.orderbooks)) {
+            return;
+        }
+        const storedOrderBook = this.orderbooks[symbol];
         const nonce = this.safeValue (storedOrderBook, 'nonce');
         const delta = this.safeValue (message, 'data');
         const deltaNonce = this.safeInteger (delta, 'microtimestamp');
