@@ -1011,7 +1011,7 @@ class Transpiler {
             libraries.push ('from typing import List')
         }
 
-        if (bodyAsString.match (/-> Any/)) {
+        if (bodyAsString.match (/-> Any/) || bodyAsString.match (/: Any/)) {
             libraries.push ('from typing import Any')
         }
 
