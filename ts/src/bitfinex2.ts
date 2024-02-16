@@ -1699,7 +1699,7 @@ export default class bitfinex2 extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
+        const request = await this.createOrderRequest (symbol, type, side, amount, price, params);
         const response = await this.privatePostAuthWOrderSubmit (request);
         //
         //      [
