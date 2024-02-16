@@ -6,7 +6,7 @@ import { ExchangeError, InvalidOrder, OrderNotFound, RateLimitExceeded, Insuffic
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -386,7 +386,84 @@ export default class coinmate extends Exchange {
             'currencyPair': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
-        const ticker = this.safeValue (response, 'data');
+        //
+        //     {
+        //         "error": false,
+        //         "errorMessage": null,
+        //         "data": {
+        //             "last": 0.55105,
+        //             "high": 0.56439,
+        //             "low": 0.54358,
+        //             "amount": 37038.993381,
+        //             "bid": 0.54595,
+        //             "ask": 0.55324,
+        //             "change": 3.03659243,
+        //             "open": 0.53481,
+        //             "timestamp": 1708074779
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseTicker (data, market);
+    }
+
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name coinmate#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://coinmate.docs.apiary.io/#reference/ticker/get-ticker-all/get
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.publicGetTickerAll (params);
+        //
+        //     {
+        //         "error": false,
+        //         "errorMessage": null,
+        //         "data": {
+        //             "LTC_BTC": {
+        //                 "last": "0.001337",
+        //                 "high": "0.001348",
+        //                 "low": "0.001332",
+        //                 "amount": "34.75472959",
+        //                 "bid": "0.001348",
+        //                 "ask": "0.001356",
+        //                 "change": "-0.74239050",
+        //                 "open": "0.001347",
+        //                 "timestamp": "1708074485"
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const keys = Object.keys (data);
+        const result = {};
+        for (let i = 0; i < keys.length; i++) {
+            const market = this.market (keys[i]);
+            const ticker = this.parseTicker (this.safeValue (data, keys[i]), market);
+            result[market['symbol']] = ticker;
+        }
+        return this.filterByArrayTickers (result, 'symbol', symbols);
+    }
+
+    parseTicker (ticker, market: Market = undefined): Ticker {
+        //
+        //     {
+        //         "last": "0.001337",
+        //         "high": "0.001348",
+        //         "low": "0.001332",
+        //         "amount": "34.75472959",
+        //         "bid": "0.001348",
+        //         "ask": "0.001356",
+        //         "change": "-0.74239050",
+        //         "open": "0.001347",
+        //         "timestamp": "1708074485"
+        //     }
+        //
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const last = this.safeNumber (ticker, 'last');
         return this.safeTicker ({
