@@ -236,7 +236,7 @@ export default class alpaca extends alpacaRest {
         const datetime = this.safeString (message, 't');
         const timestamp = this.parse8601 (datetime);
         const isSnapshot = this.safeBool (message, 'r', false);
-        if (!(symbol in this.orderbooks)) {
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
             this.orderbooks[symbol] = this.orderBook ();
         }
         const orderbook = this.orderbooks[symbol];

@@ -393,7 +393,7 @@ export default class gemini extends geminiRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
-        if (!(symbol in this.orderbooks)) {
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
             this.orderbooks[symbol] = this.orderBook ();
         }
         const orderbook = this.orderbooks[symbol];

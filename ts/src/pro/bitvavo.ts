@@ -371,7 +371,7 @@ export default class bitvavo extends bitvavoRest {
         const market = this.safeMarket (marketId, undefined, '-');
         const symbol = market['symbol'];
         const messageHash = event + '@' + market['id'];
-        if (!(symbol in this.orderbooks)) {
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
             return;
         }
         const orderbook = this.orderbooks[symbol];
