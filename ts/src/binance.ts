@@ -3302,6 +3302,7 @@ export default class binance extends Exchange {
             } else if (this.isInverse (type, subType)) {
                 type = 'inverse';
             }
+            isPortfolioMargin = true;
             response = await this.papiGetBalance (this.extend (request, query));
         } else if (this.isLinear (type, subType)) {
             type = 'linear';
