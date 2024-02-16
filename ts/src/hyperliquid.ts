@@ -225,10 +225,10 @@ export default class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        const meta = this.safeValue (response, 'universe', []);
+        const meta = this.safeList (response, 'universe', []);
         const result = {};
         for (let i = 0; i < meta.length; i++) {
-            const data = this.safeValue (meta, i, {});
+            const data = this.safeDict (meta, i, {});
             const id = i;
             const name = this.safeString (data, 'name');
             const code = this.safeCurrencyCode (name);
@@ -293,8 +293,8 @@ export default class hyperliquid extends Exchange {
         //         ]
         //     ]
         //
-        let meta = this.safeValue (response, 0, {});
-        meta = this.safeValue (meta, 'universe', []);
+        let meta = this.safeDict (response, 0, {});
+        meta = this.safeList (meta, 'universe', []);
         const assetCtxs = this.safeValue (response, 1, {});
         const result = [];
         for (let i = 0; i < meta.length; i++) {
@@ -329,7 +329,7 @@ export default class hyperliquid extends Exchange {
         //         "prevDayPx": "2381.5"
         //     }
         //
-        const quoteId = 'USD';
+        const quoteId = 'USDC';
         const base = this.safeString (market, 'name');
         const quote = this.safeCurrencyCode (quoteId);
         const baseId = this.safeString (market, 'baseId');
