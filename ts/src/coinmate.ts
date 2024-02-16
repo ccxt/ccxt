@@ -215,6 +215,7 @@ export default class coinmate extends Exchange {
          * @method
          * @name coinmate#fetchMarkets
          * @description retrieves data on all markets for coinmate
+         * @see https://coinmate.docs.apiary.io/#reference/trading-pairs/get-trading-pairs/get
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -323,6 +324,7 @@ export default class coinmate extends Exchange {
          * @method
          * @name coinmate#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://coinmate.docs.apiary.io/#reference/balance/get-balances/post
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -336,6 +338,7 @@ export default class coinmate extends Exchange {
          * @method
          * @name coinmate#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://coinmate.docs.apiary.io/#reference/order-book/get-order-book/get
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -358,6 +361,7 @@ export default class coinmate extends Exchange {
          * @method
          * @name coinmate#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://coinmate.docs.apiary.io/#reference/ticker/get-ticker/get
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -400,6 +404,7 @@ export default class coinmate extends Exchange {
          * @method
          * @name coinmate#fetchDepositsWithdrawals
          * @description fetch history of deposits and withdrawals
+         * @see https://coinmate.docs.apiary.io/#reference/transfers/get-transfer-history/post
          * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -515,6 +520,12 @@ export default class coinmate extends Exchange {
          * @method
          * @name coinmate#withdraw
          * @description make a withdrawal
+         * @see https://coinmate.docs.apiary.io/#reference/bitcoin-withdrawal-and-deposit/withdraw-bitcoins/post
+         * @see https://coinmate.docs.apiary.io/#reference/litecoin-withdrawal-and-deposit/withdraw-litecoins/post
+         * @see https://coinmate.docs.apiary.io/#reference/ethereum-withdrawal-and-deposit/withdraw-ethereum/post
+         * @see https://coinmate.docs.apiary.io/#reference/ripple-withdrawal-and-deposit/withdraw-ripple/post
+         * @see https://coinmate.docs.apiary.io/#reference/cardano-withdrawal-and-deposit/withdraw-cardano/post
+         * @see https://coinmate.docs.apiary.io/#reference/solana-withdrawal-and-deposit/withdraw-solana/post
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -569,6 +580,7 @@ export default class coinmate extends Exchange {
          * @method
          * @name coinmate#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://coinmate.docs.apiary.io/#reference/trade-history/get-trade-history/post
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -663,6 +675,7 @@ export default class coinmate extends Exchange {
          * @method
          * @name coinmate#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://coinmate.docs.apiary.io/#reference/transactions/transactions/get
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -701,6 +714,7 @@ export default class coinmate extends Exchange {
          * @method
          * @name coinmate#fetchTradingFee
          * @description fetch the trading fees for a market
+         * @see https://coinmate.docs.apiary.io/#reference/trader-fees/get-trading-fees/post
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -738,6 +752,7 @@ export default class coinmate extends Exchange {
          * @method
          * @name coinmate#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://coinmate.docs.apiary.io/#reference/order/get-open-orders/post
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -754,6 +769,7 @@ export default class coinmate extends Exchange {
          * @method
          * @name coinmate#fetchOrders
          * @description fetches information on multiple orders made by the user
+         * @see https://coinmate.docs.apiary.io/#reference/order/order-history/post
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -881,6 +897,10 @@ export default class coinmate extends Exchange {
          * @method
          * @name coinmate#createOrder
          * @description create a trade order
+         * @see https://coinmate.docs.apiary.io/#reference/order/buy-limit-order/post
+         * @see https://coinmate.docs.apiary.io/#reference/order/sell-limit-order/post
+         * @see https://coinmate.docs.apiary.io/#reference/order/buy-instant-order/post
+         * @see https://coinmate.docs.apiary.io/#reference/order/sell-instant-order/post
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -920,6 +940,8 @@ export default class coinmate extends Exchange {
          * @method
          * @name coinmate#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://coinmate.docs.apiary.io/#reference/order/get-order-by-orderid/post
+         * @see https://coinmate.docs.apiary.io/#reference/order/get-order-by-clientorderid/post
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -942,6 +964,7 @@ export default class coinmate extends Exchange {
          * @method
          * @name coinmate#cancelOrder
          * @description cancels an open order
+         * @see https://coinmate.docs.apiary.io/#reference/order/cancel-order/post
          * @param {string} id order id
          * @param {string} symbol not used by coinmate cancelOrder ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
