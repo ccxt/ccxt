@@ -446,9 +446,10 @@ export default class bingx extends bingxRest {
         if (this.safeValue (this.orderbooks, symbol) === undefined) {
             this.orderbooks[symbol] = this.orderBook ();
         }
+        const orderbook = this.orderbooks[symbol];
         const snapshot = this.parseOrderBook (data, symbol, undefined, 'bids', 'asks', 0, 1);
-        this.orderbooks[symbol].reset (snapshot);
-        client.resolve (this.orderbooks[symbol], messageHash);
+        orderbook.reset (snapshot);
+        client.resolve (orderbook, messageHash);
     }
 
     parseWsOHLCV (ohlcv, market = undefined): OHLCV {
