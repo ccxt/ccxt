@@ -441,7 +441,7 @@ export default class blofin extends blofinRest {
         }
     }
 
-    async watchMultipleWrapper (channelName: string, callerMethodName: string, symbolsArray: any[], params = {}) {
+    async watchMultipleWrapper (channelName: string, callerMethodName: string, symbolsArray: any[] = undefined, params = {}) {
         // underlier method for all watch-multiple symbols
         await this.loadMarkets ();
         [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', callerMethodName);
