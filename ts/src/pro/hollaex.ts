@@ -104,7 +104,7 @@ export default class hollaex extends hollaexRest {
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook (snapshot);
         } else {
-            this.orderbooks[symbol].reset (snapshot);
+            (this.orderbooks[symbol]).reset (snapshot);
         }
         const messageHash = channel + ':' + marketId;
         client.resolve (this.orderbooks[symbol], messageHash);
