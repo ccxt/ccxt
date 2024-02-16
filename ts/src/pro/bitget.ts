@@ -572,10 +572,10 @@ export default class bitget extends bitgetRest {
                 }
             }
         } else {
-            const newOrderbook = this.orderBook ({});
+            const orderbook = this.orderBook ({});
             const parsedOrderbook = this.parseOrderBook (rawOrderBook, symbol, timestamp);
-            newOrderbook.reset (parsedOrderbook);
-            this.orderbooks[symbol] = newOrderbook;
+            orderbook.reset (parsedOrderbook);
+            this.orderbooks[symbol] = orderbook;
         }
         client.resolve (this.orderbooks[symbol], messageHash);
     }
