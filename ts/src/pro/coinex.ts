@@ -682,19 +682,17 @@ export default class coinex extends coinexRest {
         const name = 'orderbook';
         const messageHash = name + ':' + symbol;
         const timestamp = this.safeInteger (orderbook, 'time');
-        const currentOrderBook = this.safeValue (this.orderbooks, symbol);
         if (fullOrderBook) {
             const snapshot = this.parseOrderBook (orderbook, symbol, timestamp);
-            if (currentOrderBook === undefined) {
-                orderbook = this.orderBook (snapshot);
-                this.orderbooks[symbol] = orderbook;
+            if (this.safeValue (this.orderbooks, symbol) === undefined) {
+                this.orderbooks[symbol] = this.orderBook (snapshot);
             } else {
-                orderbook = this.orderbooks[symbol];
-                orderbook.reset (snapshot);
+                (this.orderbooks[symbol]).reset (snapshot);
             }
         } else {
             const asks = this.safeValue (orderbook, 'asks', []);
             const bids = this.safeValue (orderbook, 'bids', []);
+            const currentOrderBook = this.orderbooks[symbol];
             this.handleDeltas (currentOrderBook['asks'], asks);
             this.handleDeltas (currentOrderBook['bids'], bids);
             currentOrderBook['nonce'] = timestamp;
