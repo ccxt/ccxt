@@ -530,13 +530,15 @@ export default class bitget extends bitgetRest {
         const rawOrderBook = this.safeValue (data, 0);
         const timestamp = this.safeInteger (rawOrderBook, 'ts');
         const incrementalBook = channel === 'books';
-        let storedOrderBook = undefined;
         if (incrementalBook) {
-            storedOrderBook = this.safeValue (this.orderbooks, symbol);
-            if (storedOrderBook === undefined) {
-                storedOrderBook = this.countedOrderBook ({});
-                storedOrderBook['symbol'] = symbol;
+            // storedOrderBook = this.safeValue (this.orderbooks, symbol);
+            if (!(symbol in this.orderbooks)) {
+                // const ob = this.orderBook ({});
+                const ob = this.countedOrderBook ({});
+                ob['symbol'] = symbol;
+                this.orderbooks[symbol] = ob;
             }
+            const storedOrderBook = this.orderbooks[symbol];
             const asks = this.safeValue (rawOrderBook, 'asks', []);
             const bids = this.safeValue (rawOrderBook, 'bids', []);
             this.handleDeltas (storedOrderBook['asks'], asks);
@@ -553,12 +555,20 @@ export default class bitget extends bitgetRest {
                 const payloadArray = [];
                 for (let i = 0; i < 25; i++) {
                     if (i < bidsLength) {
-                        payloadArray.push (storedBids[i][2][0]);
-                        payloadArray.push (storedBids[i][2][1]);
+                        const priceString = this.numberToString (storedBids[i][0]);
+                        const amountString = this.numberToString (storedBids[i][1]);
+                        // payloadArray.push (storedBids[i][2][0]);
+                        payloadArray.push (priceString);
+                        payloadArray.push (amountString);
+                        // payloadArray.push (storedBids[i][2][1]);
                     }
                     if (i < asksLength) {
-                        payloadArray.push (storedAsks[i][2][0]);
-                        payloadArray.push (storedAsks[i][2][1]);
+                        const askPriceString = this.numberToString (storedAsks[i][0]);
+                        const askAmountString = this.numberToString (storedAsks[i][1]);
+                        payloadArray.push (askPriceString);
+                        payloadArray.push (askAmountString);
+                        // payloadArray.push (storedAsks[i][2][0]);
+                        // payloadArray.push (storedAsks[i][2][1]);q
                     }
                 }
                 const payload = payloadArray.join (':');
@@ -570,10 +580,12 @@ export default class bitget extends bitgetRest {
                 }
             }
         } else {
-            storedOrderBook = this.parseOrderBook (rawOrderBook, symbol, timestamp);
+            const newOrderbook = this.orderBook ({});
+            const parsedOrderbook = this.parseOrderBook (rawOrderBook, symbol, timestamp);
+            newOrderbook.reset (parsedOrderbook);
+            this.orderbooks[symbol] = newOrderbook;
         }
-        this.orderbooks[symbol] = storedOrderBook;
-        client.resolve (storedOrderBook, messageHash);
+        client.resolve (this.orderbooks[symbol], messageHash);
     }
 
     handleDelta (bookside, delta) {
