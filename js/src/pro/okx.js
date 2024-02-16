@@ -758,7 +758,7 @@ export default class okx extends okxRest {
             const message = this.extend(request, params);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
     async watchBalance(params = {}) {
         /**
@@ -853,19 +853,21 @@ export default class okx extends okxRest {
         /**
          * @method
          * @name okx#watchMyTrades
-         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel
          * @description watches information on multiple trades made by the user
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel
          * @param {string} [symbol] unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.stop] true if fetching trigger or conditional trades
+         * @param {string} [params.type] 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
+         * @param {string} [params.marginMode] 'cross' or 'isolated', for automatically setting the type to spot margin
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         // By default, receive order updates from any instrument type
         let type = undefined;
         [type, params] = this.handleOptionAndParams(params, 'watchMyTrades', 'type', 'ANY');
-        const isStop = this.safeValue(params, 'stop', false);
+        const isStop = this.safeBool(params, 'stop', false);
         params = this.omit(params, ['stop']);
         await this.loadMarkets();
         await this.authenticate({ 'access': isStop ? 'business' : 'private' });
@@ -881,7 +883,14 @@ export default class okx extends okxRest {
         if (type === 'future') {
             type = 'futures';
         }
-        const uppercaseType = type.toUpperCase();
+        let uppercaseType = type.toUpperCase();
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('watchMyTrades', params);
+        if (uppercaseType === 'SPOT') {
+            if (marginMode !== undefined) {
+                uppercaseType = 'MARGIN';
+            }
+        }
         const request = {
             'instType': uppercaseType,
         };
@@ -1014,13 +1023,15 @@ export default class okx extends okxRest {
         /**
          * @method
          * @name okx#watchOrders
-         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel
          * @description watches information on multiple orders made by the user
-         * @param {string} [symbol] unified market symbol of the market orders were made in
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel
+         * @param {string} [symbol] unified market symbol of the market the orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.stop] true if fetching trigger or conditional orders
+         * @param {string} [params.type] 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
+         * @param {string} [params.marginMode] 'cross' or 'isolated', for automatically setting the type to spot margin
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         let type = undefined;
@@ -1039,7 +1050,14 @@ export default class okx extends okxRest {
         if (type === 'future') {
             type = 'futures';
         }
-        const uppercaseType = type.toUpperCase();
+        let uppercaseType = type.toUpperCase();
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('watchOrders', params);
+        if (uppercaseType === 'SPOT') {
+            if (marginMode !== undefined) {
+                uppercaseType = 'MARGIN';
+            }
+        }
         const request = {
             'instType': uppercaseType,
         };
@@ -1546,7 +1564,8 @@ export default class okx extends okxRest {
         //
         //
         if (message === 'pong') {
-            return this.handlePong(client, message);
+            this.handlePong(client, message);
+            return;
         }
         // const table = this.safeString (message, 'table');
         // if (table === undefined) {
@@ -1565,11 +1584,8 @@ export default class okx extends okxRest {
                 'mass-cancel': this.handleCancelAllOrders,
             };
             const method = this.safeValue(methods, event);
-            if (method === undefined) {
-                return message;
-            }
-            else {
-                return method.call(this, client, message);
+            if (method !== undefined) {
+                method.call(this, client, message);
             }
         }
         else {
@@ -1597,12 +1613,9 @@ export default class okx extends okxRest {
                 if (channel.indexOf('candle') === 0) {
                     this.handleOHLCV(client, message);
                 }
-                else {
-                    return message;
-                }
             }
             else {
-                return method.call(this, client, message);
+                method.call(this, client, message);
             }
         }
     }

@@ -738,7 +738,7 @@ class whitebit extends whitebit$1 {
             let hasSymbolSubscription = true;
             const market = this.market(symbol);
             const marketId = market['id'];
-            const isSubscribed = this.safeValue(subscription, marketId, false);
+            const isSubscribed = this.safeBool(subscription, marketId, false);
             if (!isSubscribed) {
                 subscription[marketId] = true;
                 hasSymbolSubscription = false;

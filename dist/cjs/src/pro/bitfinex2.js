@@ -339,7 +339,6 @@ class bitfinex2 extends bitfinex2$1 {
             stored.append(parsed);
         }
         client.resolve(stored, messageHash);
-        return message;
     }
     parseWsTrade(trade, market = undefined) {
         //
@@ -591,8 +590,9 @@ class bitfinex2 extends bitfinex2$1 {
                 const deltas = message[1];
                 for (let i = 0; i < deltas.length; i++) {
                     const delta = deltas[i];
-                    const size = (delta[2] < 0) ? -delta[2] : delta[2];
-                    const side = (delta[2] < 0) ? 'asks' : 'bids';
+                    const delta2 = delta[2];
+                    const size = (delta2 < 0) ? -delta2 : delta2;
+                    const side = (delta2 < 0) ? 'asks' : 'bids';
                     const bookside = orderbook[side];
                     const idString = this.safeString(delta, 0);
                     const price = this.safeFloat(delta, 1);
@@ -620,8 +620,9 @@ class bitfinex2 extends bitfinex2$1 {
             const orderbookItem = this.orderbooks[symbol];
             if (isRaw) {
                 const price = this.safeString(deltas, 1);
-                const size = (deltas[2] < 0) ? -deltas[2] : deltas[2];
-                const side = (deltas[2] < 0) ? 'asks' : 'bids';
+                const deltas2 = deltas[2];
+                const size = (deltas2 < 0) ? -deltas2 : deltas2;
+                const side = (deltas2 < 0) ? 'asks' : 'bids';
                 const bookside = orderbookItem[side];
                 // price = 0 means that you have to remove the order from your book
                 const amount = Precise["default"].stringGt(price, '0') ? size : '0';
@@ -669,7 +670,8 @@ class bitfinex2 extends bitfinex2$1 {
             }
             if (ask !== undefined) {
                 stringArray.push(this.numberToString(asks[i][idToCheck]));
-                stringArray.push(this.numberToString(-asks[i][1]));
+                const aski1 = asks[i][1];
+                stringArray.push(this.numberToString(-aski1));
             }
         }
         const payload = stringArray.join(':');
@@ -1101,7 +1103,7 @@ class bitfinex2 extends bitfinex2$1 {
         //
         if (Array.isArray(message)) {
             if (message[1] === 'hb') {
-                return message; // skip heartbeats within subscription channels for now
+                return; // skip heartbeats within subscription channels for now
             }
             const subscription = this.safeValue(client.subscriptions, channelId, {});
             const channel = this.safeString(subscription, 'channel');
@@ -1129,11 +1131,8 @@ class bitfinex2 extends bitfinex2$1 {
             else {
                 method = this.safeValue2(publicMethods, name, channel);
             }
-            if (method === undefined) {
-                return message;
-            }
-            else {
-                return method.call(this, client, message, subscription);
+            if (method !== undefined) {
+                method.call(this, client, message, subscription);
             }
         }
         else {
@@ -1145,11 +1144,8 @@ class bitfinex2 extends bitfinex2$1 {
                     'auth': this.handleAuthenticationMessage,
                 };
                 const method = this.safeValue(methods, event);
-                if (method === undefined) {
-                    return message;
-                }
-                else {
-                    return method.call(this, client, message);
+                if (method !== undefined) {
+                    method.call(this, client, message);
                 }
             }
         }

@@ -685,7 +685,7 @@ export default class lbank extends lbankRest {
         };
         const request = this.deepExtend(subscribe, params);
         const orderbook = await this.watch(url, messageHash, request, messageHash);
-        return orderbook.limit(limit);
+        return orderbook.limit();
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -779,17 +779,17 @@ export default class lbank extends lbankRest {
         const orderBook = this.safeValue(message, 'depth', message);
         const datetime = this.safeString(message, 'TS');
         const timestamp = this.parse8601(datetime);
-        let storedOrderBook = this.safeValue(this.orderbooks, symbol);
-        if (storedOrderBook === undefined) {
-            storedOrderBook = this.orderBook({});
-            this.orderbooks[symbol] = storedOrderBook;
+        let orderbook = this.safeValue(this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook({});
+            this.orderbooks[symbol] = orderbook;
         }
         const snapshot = this.parseOrderBook(orderBook, symbol, timestamp, 'bids', 'asks');
-        storedOrderBook.reset(snapshot);
+        orderbook.reset(snapshot);
         let messageHash = 'orderbook:' + symbol;
-        client.resolve(storedOrderBook, messageHash);
+        client.resolve(orderbook, messageHash);
         messageHash = 'fetchOrderbook:' + symbol;
-        client.resolve(storedOrderBook, messageHash);
+        client.resolve(orderbook, messageHash);
     }
     handleErrorMessage(client, message) {
         //
@@ -817,7 +817,8 @@ export default class lbank extends lbankRest {
     handleMessage(client, message) {
         const status = this.safeString(message, 'status');
         if (status === 'error') {
-            return this.handleErrorMessage(client, message);
+            this.handleErrorMessage(client, message);
+            return;
         }
         const type = this.safeString2(message, 'type', 'action');
         if (type === 'ping') {
@@ -833,9 +834,8 @@ export default class lbank extends lbankRest {
         };
         const handler = this.safeValue(handlers, type);
         if (handler !== undefined) {
-            return handler.call(this, client, message);
+            handler.call(this, client, message);
         }
-        return message;
     }
     async authenticate(params = {}) {
         // when we implement more private streams, we need to refactor the authentication

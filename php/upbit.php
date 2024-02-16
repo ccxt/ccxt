@@ -1007,7 +1007,7 @@ class upbit extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
@@ -1578,7 +1578,7 @@ class upbit extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         /**
          * @see https://docs.upbit.com/reference/%EC%A0%84%EC%B2%B4-%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%A1%B0%ED%9A%8C
          * fetch deposit addresses for multiple currencies and chain types
@@ -1612,22 +1612,24 @@ class upbit extends Exchange {
 
     public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
-        //     {
-        //         "currency" => "BTC",
-        //         "deposit_address" => "3EusRwybuZUhVDeHL7gh3HSLmbhLcy7NqD",
-        //         "secondary_address" => null
-        //     }
+        //    {
+        //        $currency => 'XRP',
+        //        net_type => 'XRP',
+        //        deposit_address => 'raQwCVAJVqjrVm1Nj5SFRcX8i22BhdC9WA',
+        //        secondary_address => '167029435'
+        //    }
         //
         $address = $this->safe_string($depositAddress, 'deposit_address');
         $tag = $this->safe_string($depositAddress, 'secondary_address');
         $currencyId = $this->safe_string($depositAddress, 'currency');
         $code = $this->safe_currency_code($currencyId);
+        $networkId = $this->safe_string($depositAddress, 'net_type');
         $this->check_address($address);
         return array(
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'network' => null,
+            'network' => $this->network_id_to_code($networkId),
             'info' => $depositAddress,
         );
     }
@@ -1638,19 +1640,27 @@ class upbit extends Exchange {
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} $params->network deposit chain, can view all chains via $this->publicGetWalletAssets, default is eth, unless the $currency has a default chain within $this->options['networks']
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        if ($networkCode === null) {
+            throw new ArgumentsRequired($this->id . ' fetchDepositAddress requires $params["network"]');
+        }
         $response = $this->privateGetDepositsCoinAddress (array_merge(array(
             'currency' => $currency['id'],
+            'net_type' => $this->network_code_to_id($networkCode, $currency['code']),
         ), $params));
         //
-        //     {
-        //         "currency" => "BTC",
-        //         "deposit_address" => "3EusRwybuZUhVDeHL7gh3HSLmbhLcy7NqD",
-        //         "secondary_address" => null
-        //     }
+        //    {
+        //        $currency => 'XRP',
+        //        net_type => 'XRP',
+        //        deposit_address => 'raQwCVAJVqjrVm1Nj5SFRcX8i22BhdC9WA',
+        //        secondary_address => '167029435'
+        //    }
         //
         return $this->parse_deposit_address($response);
     }
@@ -1692,7 +1702,7 @@ class upbit extends Exchange {
         return $this->parse_deposit_address($response);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * @see https://docs.upbit.com/reference/디지털자산-출금하기
          * @see https://docs.upbit.com/reference/%EC%9B%90%ED%99%94-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0

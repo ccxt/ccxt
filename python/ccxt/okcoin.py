@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.okcoin import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -67,6 +67,9 @@ class okcoin(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,  # see below
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
                 'fetchLedger': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -857,7 +860,7 @@ class okcoin(Exchange, ImplicitAPI):
         symbol = market['symbol']
         last = self.safe_string(ticker, 'last')
         open = self.safe_string(ticker, 'open24h')
-        spot = self.safe_value(market, 'spot', False)
+        spot = self.safe_bool(market, 'spot', False)
         quoteVolume = self.safe_string(ticker, 'volCcy24h') if spot else None
         baseVolume = self.safe_string(ticker, 'vol24h')
         high = self.safe_string(ticker, 'high24h')
@@ -1241,7 +1244,7 @@ class okcoin(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
@@ -1258,7 +1261,7 @@ class okcoin(Exchange, ImplicitAPI):
         params['tgtCcy'] = 'quote_ccy'
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-algo-order
@@ -1313,7 +1316,7 @@ class okcoin(Exchange, ImplicitAPI):
         order['side'] = side
         return order
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -1361,7 +1364,7 @@ class okcoin(Exchange, ImplicitAPI):
             margin = True
         else:
             marginMode = defaultMarginMode
-            margin = self.safe_value(params, 'margin', False)
+            margin = self.safe_bool(params, 'margin', False)
         if margin:
             defaultCurrency = market['quote'] if (side == 'buy') else market['base']
             currency = self.safe_string(params, 'ccy', defaultCurrency)
@@ -2140,7 +2143,7 @@ class okcoin(Exchange, ImplicitAPI):
         parsed = self.parse_deposit_addresses(filtered, [currency['code']], False)
         return self.index_by(parsed, 'network')
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-funding-funds-transfer
         transfer currency internally between wallets on the same account
@@ -2279,7 +2282,7 @@ class okcoin(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-funding-withdrawal
         make a withdrawal

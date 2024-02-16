@@ -483,7 +483,7 @@ export default class mexc extends mexcRest {
         }
         try {
             this.handleDelta (storedOrderBook, data);
-            const timestamp = this.safeInteger (message, 't');
+            const timestamp = this.safeInteger2 (message, 't', 'ts');
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601 (timestamp);
         } catch (e) {
@@ -1129,7 +1129,7 @@ export default class mexc extends mexcRest {
         //
         const msg = this.safeString (message, 'msg');
         if (msg === 'PONG') {
-            return this.handlePong (client, message);
+            this.handlePong (client, message);
         } else if (msg.indexOf ('@') > -1) {
             const parts = msg.split ('@');
             const channel = this.safeString (parts, 1);
@@ -1152,7 +1152,8 @@ export default class mexc extends mexcRest {
             return;
         }
         if ('msg' in message) {
-            return this.handleSubscriptionStatus (client, message);
+            this.handleSubscriptionStatus (client, message);
+            return;
         }
         const c = this.safeString (message, 'c');
         let channel = undefined;

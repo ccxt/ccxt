@@ -659,7 +659,7 @@ class alpaca(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'v'),  # volume
         ]
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://docs.alpaca.markets/reference/postorder

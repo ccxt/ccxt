@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, InsufficientFunds, PermissionDenied
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { TransferEntry, Balances, Bool, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -45,6 +45,7 @@ export default class bigone extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingRate': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -522,6 +523,7 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchMarkets
          * @description retrieves data on all markets for bigone
+         * @see https://open.big.one/docs/spot_asset_pair.html
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -786,6 +788,7 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://open.big.one/docs/spot_tickers.html
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -828,6 +831,7 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://open.big.one/docs/spot_tickers.html
          * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -915,6 +919,7 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://open.big.one/docs/spot_ping.html
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -936,6 +941,7 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://open.big.one/docs/contract_misc.html#get-orderbook-snapshot
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1170,6 +1176,7 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://open.big.one/docs/spot_asset_pair_trade.html
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -1236,6 +1243,7 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://open.big.one/docs/spot_asset_pair_candle.html
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1314,6 +1322,8 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://open.big.one/docs/fund_accounts.html
+         * @see https://open.big.one/docs/spot_accounts.html
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -1425,7 +1435,7 @@ export default class bigone extends Exchange {
         }, market);
     }
 
-    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name bigone#createMarketBuyOrderWithCost
@@ -1445,7 +1455,7 @@ export default class bigone extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name bigone#createOrder
@@ -1473,7 +1483,7 @@ export default class bigone extends Exchange {
         const requestSide = isBuy ? 'BID' : 'ASK';
         let uppercaseType = type.toUpperCase ();
         const isLimit = uppercaseType === 'LIMIT';
-        const exchangeSpecificParam = this.safeValue (params, 'post_only', false);
+        const exchangeSpecificParam = this.safeBool (params, 'post_only', false);
         let postOnly = undefined;
         [ postOnly, params ] = this.handlePostOnly ((uppercaseType === 'MARKET'), exchangeSpecificParam, params);
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
@@ -1556,6 +1566,7 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#cancelOrder
          * @description cancels an open order
+         * @see https://open.big.one/docs/spot_orders.html#cancel-order
          * @param {string} id order id
          * @param {string} symbol Not used by bigone cancelOrder ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1585,6 +1596,7 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#cancelAllOrders
          * @description cancel all open orders
+         * @see https://open.big.one/docs/spot_orders.html#cancel-all-orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1615,6 +1627,7 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://open.big.one/docs/spot_orders.html#get-one-order
          * @param {string} symbol not used by bigone fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1631,6 +1644,7 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchOrders
          * @description fetches information on multiple orders made by the user
+         * @see https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1682,6 +1696,7 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://open.big.one/docs/spot_trade.html#trades-of-user
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -1753,6 +1768,7 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1770,6 +1786,7 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1825,6 +1842,7 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://open.big.one/docs/spot_deposit.html#get-deposite-address-of-one-asset-of-user
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -1978,6 +1996,7 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://open.big.one/docs/spot_deposit.html#deposit-of-user
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -2030,6 +2049,7 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://open.big.one/docs/spot_withdrawal.html#get-withdrawals-of-user
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -2077,7 +2097,7 @@ export default class bigone extends Exchange {
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name bigone#transfer
@@ -2114,7 +2134,7 @@ export default class bigone extends Exchange {
         //
         const transfer = this.parseTransfer (response, currency);
         const transferOptions = this.safeValue (this.options, 'transfer', {});
-        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
@@ -2137,7 +2157,7 @@ export default class bigone extends Exchange {
             'id': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'currency': code,
+            'currency': undefined,
             'amount': undefined,
             'fromAccount': undefined,
             'toAccount': undefined,
@@ -2152,11 +2172,12 @@ export default class bigone extends Exchange {
         return this.safeString (statuses, status, 'failed');
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bigone#withdraw
          * @description make a withdrawal
+         * @see https://open.big.one/docs/spot_withdrawal.html#create-withdrawal-of-user
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to

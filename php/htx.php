@@ -2786,7 +2786,7 @@ class htx extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, $limit = 1000, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = 1000, $params = array ()): array {
         /**
          * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-most-recent-$trades
          * @see https://huobiapi.github.io/docs/dm/v1/en/#query-a-batch-of-$trade-records-of-a-contract
@@ -3897,7 +3897,7 @@ class htx extends Exchange {
         $response = null;
         $stop = $this->safe_value($params, 'stop');
         $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
-        $trailing = $this->safe_value($params, 'trailing', false);
+        $trailing = $this->safe_bool($params, 'trailing', false);
         $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing' ));
         if ($stop || $stopLossTakeProfit || $trailing) {
             if ($limit !== null) {
@@ -4251,7 +4251,7 @@ class htx extends Exchange {
             $request['contract_code'] = $market['id'];
             $stop = $this->safe_value($params, 'stop');
             $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
-            $trailing = $this->safe_value($params, 'trailing', false);
+            $trailing = $this->safe_bool($params, 'trailing', false);
             $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing' ));
             if ($market['linear']) {
                 $marginMode = null;
@@ -4891,7 +4891,7 @@ class htx extends Exchange {
         $marketId = $this->safe_string_2($order, 'contract_code', 'symbol');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer_n($order, array( 'created_at', 'created-at', 'create_date' ));
-        $clientOrderId = $this->safe_string_2($order, 'client_order_id', 'client-$order-id');
+        $clientOrderId = $this->safe_string_2($order, 'client_order_id', 'client-or' . 'der-id'); // transpiler regex trick for php issue
         $cost = null;
         $amount = null;
         if (($type !== null) && (mb_strpos($type, 'market') !== false)) {
@@ -4958,7 +4958,7 @@ class htx extends Exchange {
         ), $market);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * create a $market buy order by providing the $symbol and $cost
          * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4ee16-7773-11ed-9966-0242ac110003
@@ -5000,7 +5000,7 @@ class htx extends Exchange {
         return $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
 
-    public function create_spot_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_spot_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @ignore
          * helper function to build $request
@@ -5116,7 +5116,7 @@ class htx extends Exchange {
         return array_merge($request, $params);
     }
 
-    public function create_contract_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_contract_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @ignore
          * helper function to build $request
@@ -5210,7 +5210,7 @@ class htx extends Exchange {
         return array_merge($request, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   // spot, margin
@@ -5561,7 +5561,7 @@ class htx extends Exchange {
             }
             $stop = $this->safe_value($params, 'stop');
             $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
-            $trailing = $this->safe_value($params, 'trailing', false);
+            $trailing = $this->safe_bool($params, 'trailing', false);
             $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing' ));
             if ($market['linear']) {
                 $marginMode = null;
@@ -5849,7 +5849,7 @@ class htx extends Exchange {
             $request['contract_code'] = $market['id'];
             $stop = $this->safe_value($params, 'stop');
             $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
-            $trailing = $this->safe_value($params, 'trailing', false);
+            $trailing = $this->safe_bool($params, 'trailing', false);
             $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing' ));
             if ($market['linear']) {
                 $marginMode = null;
@@ -6270,7 +6270,7 @@ class htx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -6298,7 +6298,7 @@ class htx extends Exchange {
         }
         $amount = floatval($this->currency_to_precision($code, $amount, $networkCode));
         $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
-        if ($this->safe_value($withdrawOptions, 'includeFee', false)) {
+        if ($this->safe_bool($withdrawOptions, 'includeFee', false)) {
             $fee = $this->safe_number($params, 'fee');
             if ($fee === null) {
                 $currencies = $this->fetch_currencies();
@@ -6353,7 +6353,7 @@ class htx extends Exchange {
         );
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
@@ -6844,7 +6844,7 @@ class htx extends Exchange {
         $marginMode = ($marketId === null) ? 'cross' : 'isolated';
         $market = $this->safe_market($marketId);
         $symbol = $this->safe_string($market, 'symbol');
-        $timestamp = $this->safe_number($info, 'accrued-at');
+        $timestamp = $this->safe_integer($info, 'accrued-at');
         return array(
             'account' => ($marginMode === 'isolated') ? $symbol : 'cross',  // deprecated
             'symbol' => $symbol,
@@ -7100,7 +7100,7 @@ class htx extends Exchange {
         return $this->parse_incomes($data, $market, $since, $limit);
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          * @param {float} $leverage the rate of $leverage
@@ -8236,7 +8236,7 @@ class htx extends Exchange {
         ), $market);
     }
 
-    public function borrow_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
+    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array ()) {
         /**
          * create a loan to borrow margin
          * @see https://huobiapi.github.io/docs/spot/v1/en/#$request-a-margin-loan-isolated
@@ -8270,7 +8270,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function borrow_cross_margin(string $code, $amount, $params = array ()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array ()) {
         /**
          * create a loan to borrow margin
          * @see https://huobiapi.github.io/docs/spot/v1/en/#$request-a-margin-loan-isolated
@@ -8819,7 +8819,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function set_position_mode($hedged, ?string $symbol = null, $params = array ()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
         /**
          * set $hedged to true or false
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-position-mode

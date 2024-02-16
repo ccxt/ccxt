@@ -5,10 +5,14 @@ import { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import kucoin from './abstract/kucoinfutures.js';
-import type { Int, OrderSide, OrderType, OHLCV, Order, Trade, FundingHistory, Balances, Str, Ticker, OrderBook, Transaction, Strings, Market, Currency, OrderRequest } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, OrderBook, Transaction, Strings, Market, Currency } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
+/**
+ * @class kucoinfutures
+ * @augments Exchange
+ */
 export default class kucoinfutures extends kucoin {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -1097,7 +1101,7 @@ export default class kucoinfutures extends kucoin {
         });
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name kucoinfutures#createOrder
@@ -1128,7 +1132,7 @@ export default class kucoinfutures extends kucoin {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const testOrder = this.safeValue (params, 'test', false);
+        const testOrder = this.safeBool (params, 'test', false);
         params = this.omit (params, 'test');
         const orderRequest = this.createContractOrderRequest (symbol, type, side, amount, price, params);
         let response = undefined;
@@ -1199,7 +1203,7 @@ export default class kucoinfutures extends kucoin {
         return this.parseOrders (data);
     }
 
-    createContractOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    createContractOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         const market = this.market (symbol);
         // required param, cannot be used twice
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId', this.uuid ());
@@ -1628,7 +1632,7 @@ export default class kucoinfutures extends kucoin {
         return await this.fetchOrdersByStatus ('done', symbol, since, limit, params);
     }
 
-    async fetchOrder (id = undefined, symbol: Str = undefined, params = {}) {
+    async fetchOrder (id: string = undefined, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name kucoinfutures#fetchOrder
@@ -1790,7 +1794,7 @@ export default class kucoinfutures extends kucoin {
         // const average = Precise.stringDiv (cost, Precise.stringMul (filled, market['contractSize']));
         // bool
         const isActive = this.safeValue (order, 'isActive');
-        const cancelExist = this.safeValue (order, 'cancelExist', false);
+        const cancelExist = this.safeBool (order, 'cancelExist', false);
         let status = undefined;
         if (isActive !== undefined) {
             status = isActive ? 'open' : 'closed';
@@ -1943,7 +1947,7 @@ export default class kucoinfutures extends kucoin {
         return this.parseBalance (response);
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name kucoinfutures#transfer
@@ -2529,7 +2533,7 @@ export default class kucoinfutures extends kucoin {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let clientOrderId = this.safeString (params, 'clientOrderId');
-        const testOrder = this.safeValue (params, 'test', false);
+        const testOrder = this.safeBool (params, 'test', false);
         params = this.omit (params, [ 'test', 'clientOrderId' ]);
         if (clientOrderId === undefined) {
             clientOrderId = this.numberToString (this.nonce ());

@@ -48,6 +48,7 @@ export default class poloniex extends Exchange {
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
+                'fetchFundingRate': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -713,7 +714,10 @@ export default class poloniex extends Exchange {
             const code = this.safeCurrencyCode(id);
             const name = this.safeString(currency, 'name');
             const networkId = this.safeString(currency, 'blockchain');
-            const networkCode = this.networkIdToCode(networkId, code);
+            let networkCode = undefined;
+            if (networkId !== undefined) {
+                networkCode = this.networkIdToCode(networkId, code);
+            }
             const delisted = this.safeValue(currency, 'delisted');
             const walletEnabled = this.safeString(currency, 'walletState') === 'ENABLED';
             const depositEnabled = this.safeString(currency, 'walletDepositState') === 'ENABLED';

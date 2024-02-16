@@ -41,7 +41,7 @@ import { CustomThrottlePriority } from './src/base/types.js'
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.2.20';
+const version = '4.2.44';
 
 (Exchange as any).ccxtVersion = version
 
@@ -79,6 +79,7 @@ import bitteam from  './src/bitteam.js'
 import bitvavo from  './src/bitvavo.js'
 import bl3p from  './src/bl3p.js'
 import blockchaincom from  './src/blockchaincom.js'
+import blofin from  './src/blofin.js'
 import btcalpha from  './src/btcalpha.js'
 import btcbox from  './src/btcbox.js'
 import btcmarkets from  './src/btcmarkets.js'
@@ -91,6 +92,7 @@ import coincheck from  './src/coincheck.js'
 import coinex from  './src/coinex.js'
 import coinlist from  './src/coinlist.js'
 import coinmate from  './src/coinmate.js'
+import coinmetro from  './src/coinmetro.js'
 import coinone from  './src/coinone.js'
 import coinsph from  './src/coinsph.js'
 import coinspot from  './src/coinspot.js'
@@ -201,6 +203,7 @@ import ndaxPro from  './src/pro/ndax.js'
 import okcoinPro from  './src/pro/okcoin.js'
 import okxPro from  './src/pro/okx.js'
 import onetradingPro from  './src/pro/onetrading.js'
+import p2bPro from  './src/pro/p2b.js'
 import phemexPro from  './src/pro/phemex.js'
 import poloniexPro from  './src/pro/poloniex.js'
 import poloniexfuturesPro from  './src/pro/poloniexfutures.js'
@@ -243,6 +246,7 @@ const exchanges = {
     'bitvavo':                bitvavo,
     'bl3p':                   bl3p,
     'blockchaincom':          blockchaincom,
+    'blofin':                 blofin,
     'btcalpha':               btcalpha,
     'btcbox':                 btcbox,
     'btcmarkets':             btcmarkets,
@@ -255,6 +259,7 @@ const exchanges = {
     'coinex':                 coinex,
     'coinlist':               coinlist,
     'coinmate':               coinmate,
+    'coinmetro':              coinmetro,
     'coinone':                coinone,
     'coinsph':                coinsph,
     'coinspot':               coinspot,
@@ -365,6 +370,7 @@ const pro = {
     'okcoin':                 okcoinPro,
     'okx':                    okxPro,
     'onetrading':             onetradingPro,
+    'p2b':                    p2bPro,
     'phemex':                 phemexPro,
     'poloniex':               poloniexPro,
     'poloniexfutures':        poloniexfuturesPro,
@@ -488,6 +494,7 @@ export {
     bitvavo,
     bl3p,
     blockchaincom,
+    blofin,
     btcalpha,
     btcbox,
     btcmarkets,
@@ -500,6 +507,7 @@ export {
     coinex,
     coinlist,
     coinmate,
+    coinmetro,
     coinone,
     coinsph,
     coinspot,

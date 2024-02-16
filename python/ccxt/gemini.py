@@ -352,7 +352,9 @@ class gemini(Exchange, ImplicitAPI):
             precision = self.parse_number(self.parse_precision(self.safe_string(currency, 5)))
             networks = {}
             networkId = self.safe_string(currency, 9)
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = None
+            if networkId is not None:
+                networkCode = self.network_id_to_code(networkId)
             if networkCode is not None:
                 networks[networkCode] = {
                     'info': currency,
@@ -512,7 +514,7 @@ class gemini(Exchange, ImplicitAPI):
             'post_only': True,
             'limit_only': True,
         }
-        return self.safe_value(statuses, status, True)
+        return self.safe_bool(statuses, status, True)
 
     def fetch_usdt_markets(self, params={}):
         # these markets can't be scrapped and fetchMarketsFrom api does an extra call
@@ -548,7 +550,7 @@ class gemini(Exchange, ImplicitAPI):
             }
             result[marketId] = self.parse_market(market)
         options = self.safe_value(self.options, 'fetchMarketsFromAPI', {})
-        fetchDetailsForAllSymbols = self.safe_value(options, 'fetchDetailsForAllSymbols', False)
+        fetchDetailsForAllSymbols = self.safe_bool(options, 'fetchDetailsForAllSymbols', False)
         fetchDetailsForMarketIds = self.safe_value(options, 'fetchDetailsForMarketIds', [])
         promises = []
         marketIds = []
@@ -1262,7 +1264,7 @@ class gemini(Exchange, ImplicitAPI):
             market = self.market(symbol)  # throws on non-existent symbol
         return self.parse_orders(response, market, since, limit)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://docs.gemini.com/rest-api/#new-order
@@ -1313,7 +1315,7 @@ class gemini(Exchange, ImplicitAPI):
                     request['options'] = ['fill-or-kill']
                 elif timeInForce == 'PO':
                     request['options'] = ['maker-or-cancel']
-            postOnly = self.safe_value(params, 'postOnly', False)
+            postOnly = self.safe_bool(params, 'postOnly', False)
             params = self.omit(params, 'postOnly')
             if postOnly:
                 request['options'] = ['maker-or-cancel']
@@ -1409,7 +1411,7 @@ class gemini(Exchange, ImplicitAPI):
         response = self.privatePostV1Mytrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

@@ -724,7 +724,7 @@ class luno extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * @see https://www.luno.com/en/developers/api#tag/Market/operation/GetCandles
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -742,7 +742,7 @@ class luno extends Exchange {
             'pair' => $market['id'],
         );
         if ($since !== null) {
-            $request['since'] = intval($since);
+            $request['since'] = $this->parse_to_int($since);
         } else {
             $duration = 1000 * 1000 * $this->parse_timeframe($timeframe);
             $request['since'] = $this->milliseconds() - $duration;
@@ -864,7 +864,7 @@ class luno extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in

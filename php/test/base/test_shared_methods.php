@@ -34,7 +34,7 @@ function string_value($value) {
 
 function assert_type($exchange, $skipped_properties, $entry, $key, $format) {
     if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
-        return;
+        return null;
     }
     // because "typeof" string is not transpilable without === 'name', we list them manually at this moment
     $entry_key_val = $exchange->safe_value($entry, $key);

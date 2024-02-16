@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitmart import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1864,7 +1864,7 @@ class bitmart(Exchange, ImplicitAPI):
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
         marginMode = self.safe_string(params, 'marginMode')
-        isMargin = self.safe_value(params, 'margin', False)
+        isMargin = self.safe_bool(params, 'margin', False)
         params = self.omit(params, ['margin', 'marginMode'])
         if marginMode is not None or isMargin:
             marketType = 'margin'
@@ -2181,7 +2181,7 @@ class bitmart(Exchange, ImplicitAPI):
         statuses = self.safe_value(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
-    def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
         :see: https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
@@ -2197,7 +2197,7 @@ class bitmart(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
@@ -2265,7 +2265,7 @@ class bitmart(Exchange, ImplicitAPI):
         order['price'] = price
         return order
 
-    def create_swap_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_swap_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
          * @ignore
         create a trade order
@@ -2314,7 +2314,7 @@ class bitmart(Exchange, ImplicitAPI):
             request['mode'] = 4
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'trigger_price'])
         isTriggerOrder = triggerPrice is not None
-        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activation_price', price)
+        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activation_price', self.number_to_string(price))
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callback_rate')
         isTrailingPercentOrder = trailingPercent is not None
         if isLimitOrder:
@@ -2359,7 +2359,7 @@ class bitmart(Exchange, ImplicitAPI):
         request['leverage'] = self.number_to_string(leverage)
         return self.extend(request, params)
 
-    def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
          * @ignore
         create a spot order request
@@ -2643,7 +2643,7 @@ class bitmart(Exchange, ImplicitAPI):
             if isStop:
                 response = self.privateGetContractPrivateCurrentPlanOrder(self.extend(request, params))
             else:
-                trailing = self.safe_value(params, 'trailing', False)
+                trailing = self.safe_bool(params, 'trailing', False)
                 orderType = self.safe_string(params, 'orderType')
                 params = self.omit(params, ['orderType', 'trailing'])
                 if trailing:
@@ -2798,7 +2798,7 @@ class bitmart(Exchange, ImplicitAPI):
         elif type == 'swap':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-            trailing = self.safe_value(params, 'trailing', False)
+            trailing = self.safe_bool(params, 'trailing', False)
             orderType = self.safe_string(params, 'orderType')
             params = self.omit(params, ['orderType', 'trailing'])
             if trailing:
@@ -2918,7 +2918,7 @@ class bitmart(Exchange, ImplicitAPI):
         # TODO: parse
         return networkId
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -3239,7 +3239,7 @@ class bitmart(Exchange, ImplicitAPI):
             'symbol': symbol,
         })
 
-    def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
+    def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
         :see: https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated
@@ -3441,7 +3441,7 @@ class bitmart(Exchange, ImplicitAPI):
             result.append(self.parse_isolated_borrow_rate(symbol))
         return result
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account, currently only supports transfer between spot and margin
         :see: https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer-signed
@@ -3756,7 +3756,7 @@ class bitmart(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    def set_leverage(self, leverage, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://developer-pro.bitmart.com/en/futures/#submit-leverage-signed

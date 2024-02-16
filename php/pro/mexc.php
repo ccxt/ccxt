@@ -493,7 +493,7 @@ class mexc extends \ccxt\async\mexc {
         }
         try {
             $this->handle_delta($storedOrderBook, $data);
-            $timestamp = $this->safe_integer($message, 't');
+            $timestamp = $this->safe_integer_2($message, 't', 'ts');
             $storedOrderBook['timestamp'] = $timestamp;
             $storedOrderBook['datetime'] = $this->iso8601($timestamp);
         } catch (Exception $e) {
@@ -1143,7 +1143,7 @@ class mexc extends \ccxt\async\mexc {
         //
         $msg = $this->safe_string($message, 'msg');
         if ($msg === 'PONG') {
-            return $this->handle_pong($client, $message);
+            $this->handle_pong($client, $message);
         } elseif (mb_strpos($msg, '@') > -1) {
             $parts = explode('@', $msg);
             $channel = $this->safe_string($parts, 1);
@@ -1166,7 +1166,8 @@ class mexc extends \ccxt\async\mexc {
             return;
         }
         if (is_array($message) && array_key_exists('msg', $message)) {
-            return $this->handle_subscription_status($client, $message);
+            $this->handle_subscription_status($client, $message);
+            return;
         }
         $c = $this->safe_string($message, 'c');
         $channel = null;

@@ -455,7 +455,7 @@ class mexc(ccxt.async_support.mexc):
             return
         try:
             self.handle_delta(storedOrderBook, data)
-            timestamp = self.safe_integer(message, 't')
+            timestamp = self.safe_integer_2(message, 't', 'ts')
             storedOrderBook['timestamp'] = timestamp
             storedOrderBook['datetime'] = self.iso8601(timestamp)
         except Exception as e:
@@ -1048,7 +1048,7 @@ class mexc(ccxt.async_support.mexc):
         #
         msg = self.safe_string(message, 'msg')
         if msg == 'PONG':
-            return self.handle_pong(client, message)
+            self.handle_pong(client, message)
         elif msg.find('@') > -1:
             parts = msg.split('@')
             channel = self.safe_string(parts, 1)
@@ -1066,7 +1066,8 @@ class mexc(ccxt.async_support.mexc):
                 client.reject(error)
             return
         if 'msg' in message:
-            return self.handle_subscription_status(client, message)
+            self.handle_subscription_status(client, message)
+            return
         c = self.safe_string(message, 'c')
         channel = None
         if c is None:

@@ -3,7 +3,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency } from './base/types.js';
 
 /**
  * @class hitbtc
@@ -691,7 +691,7 @@ export default class hitbtc extends Exchange {
             const expiry = this.safeInteger (market, 'expiry');
             const contract = (marketType === 'futures');
             const spot = (marketType === 'spot');
-            const marginTrading = this.safeValue (market, 'margin_trading', false);
+            const marginTrading = this.safeBool (market, 'margin_trading', false);
             const margin = spot && marginTrading;
             const future = (expiry !== undefined);
             const swap = (contract && !future);
@@ -826,9 +826,9 @@ export default class hitbtc extends Exchange {
             const entry = response[currencyId];
             const name = this.safeString (entry, 'full_name');
             const precision = this.safeNumber (entry, 'precision_transfer');
-            const payinEnabled = this.safeValue (entry, 'payin_enabled', false);
-            const payoutEnabled = this.safeValue (entry, 'payout_enabled', false);
-            const transferEnabled = this.safeValue (entry, 'transfer_enabled', false);
+            const payinEnabled = this.safeBool (entry, 'payin_enabled', false);
+            const payoutEnabled = this.safeBool (entry, 'payout_enabled', false);
+            const transferEnabled = this.safeBool (entry, 'transfer_enabled', false);
             const active = payinEnabled && payoutEnabled && transferEnabled;
             const rawNetworks = this.safeValue (entry, 'networks', []);
             const networks = {};
@@ -841,8 +841,8 @@ export default class hitbtc extends Exchange {
                 const network = this.safeNetwork (networkId);
                 fee = this.safeNumber (rawNetwork, 'payout_fee');
                 const networkPrecision = this.safeNumber (rawNetwork, 'precision_payout');
-                const payinEnabledNetwork = this.safeValue (entry, 'payin_enabled', false);
-                const payoutEnabledNetwork = this.safeValue (entry, 'payout_enabled', false);
+                const payinEnabledNetwork = this.safeBool (entry, 'payin_enabled', false);
+                const payoutEnabledNetwork = this.safeBool (entry, 'payout_enabled', false);
                 const activeNetwork = payinEnabledNetwork && payoutEnabledNetwork;
                 if (payinEnabledNetwork && !depositEnabled) {
                     depositEnabled = true;
@@ -2208,7 +2208,7 @@ export default class hitbtc extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         const request = {
@@ -2246,7 +2246,7 @@ export default class hitbtc extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#createOrder
@@ -2566,7 +2566,7 @@ export default class hitbtc extends Exchange {
         return this.safeValue (filteredMargin, 0) as MarginMode;
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name hitbtc#transfer
@@ -2656,7 +2656,7 @@ export default class hitbtc extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#withdraw
@@ -2691,7 +2691,7 @@ export default class hitbtc extends Exchange {
             params = this.omit (params, 'network');
         }
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
-        const includeFee = this.safeValue (withdrawOptions, 'includeFee', false);
+        const includeFee = this.safeBool (withdrawOptions, 'includeFee', false);
         if (includeFee) {
             request['include_fee'] = true;
         }
@@ -3217,7 +3217,7 @@ export default class hitbtc extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const leverage = this.safeString (params, 'leverage');
-        if (market['type'] === 'swap') {
+        if (market['swap']) {
             if (leverage === undefined) {
                 throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a leverage parameter for swap markets');
             }
@@ -3240,18 +3240,13 @@ export default class hitbtc extends Exchange {
         let marginMode = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('modifyMarginHelper', market, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('modifyMarginHelper', params);
-        params = this.omit (params, [ 'marginMode', 'margin' ]);
         let response = undefined;
-        if (marginMode !== undefined) {
+        if (marketType === 'swap') {
+            response = await this.privatePutFuturesAccountIsolatedSymbol (this.extend (request, params));
+        } else if ((marketType === 'margin') || (marketType === 'spot') || (marginMode === 'isolated')) {
             response = await this.privatePutMarginAccountIsolatedSymbol (this.extend (request, params));
         } else {
-            if (marketType === 'swap') {
-                response = await this.privatePutFuturesAccountIsolatedSymbol (this.extend (request, params));
-            } else if (marketType === 'margin') {
-                response = await this.privatePutMarginAccountIsolatedSymbol (this.extend (request, params));
-            } else {
-                throw new NotSupported (this.id + ' modifyMarginHelper() not support this market type');
-            }
+            throw new NotSupported (this.id + ' modifyMarginHelper() not support this market type');
         }
         //
         //     {
@@ -3395,7 +3390,7 @@ export default class hitbtc extends Exchange {
         return this.safeNumber (response, 'leverage');
     }
 
-    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#setLeverage
@@ -3568,7 +3563,7 @@ export default class hitbtc extends Exchange {
          * @returns {Array} the marginMode in lowercase
          */
         const defaultType = this.safeString (this.options, 'defaultType');
-        const isMargin = this.safeValue (params, 'margin', false);
+        const isMargin = this.safeBool (params, 'margin', false);
         let marginMode = undefined;
         [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
         if (marginMode === undefined) {

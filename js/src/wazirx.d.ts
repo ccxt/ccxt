@@ -30,7 +30,7 @@ export default class wazirx extends Exchange {
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     parseOrder(order: any, market?: Market): Order;
     parseOrderStatus(status: any): string;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
