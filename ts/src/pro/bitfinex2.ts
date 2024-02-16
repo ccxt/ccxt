@@ -588,8 +588,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const prec = this.safeString (subscription, 'prec', 'P0');
         const isRaw = (prec === 'R0');
         // if it is an initial snapshot
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
             const limit = this.safeInteger (subscription, 'len');
             if (isRaw) {
                 // raw order books
@@ -598,7 +597,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                 // P0, P1, P2, P3, P4
                 this.orderbooks[symbol] = this.countedOrderBook ({}, limit);
             }
-            orderbook = this.orderbooks[symbol];
+            const orderbook = this.orderbooks[symbol];
             if (isRaw) {
                 const deltas = message[1];
                 for (let i = 0; i < deltas.length; i++) {
@@ -660,10 +659,10 @@ export default class bitfinex2 extends bitfinex2Rest {
         const symbol = this.safeSymbol (marketId);
         const channel = 'book';
         const messageHash = channel + ':' + marketId;
-        const book = this.safeValue (this.orderbooks, symbol);
-        if (book === undefined) {
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
             return;
         }
+        const book = this.orderbooks[symbol];
         const depth = 25; // covers the first 25 bids and asks
         const stringArray = [];
         const bids = book['bids'];
