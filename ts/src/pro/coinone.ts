@@ -109,12 +109,11 @@ export default class coinone extends coinoneRest {
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = this.symbol (base + '/' + quote);
         const timestamp = this.safeInteger (data, 'timestamp');
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ();
-        } else {
-            orderbook.reset ();
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
+            this.orderbooks[symbol] = this.orderBook ();
         }
+        const orderbook = this.orderbooks[symbol];
+        orderbook.reset ();
         orderbook['symbol'] = symbol;
         const asks = this.safeValue (data, 'asks', []);
         const bids = this.safeValue (data, 'bids', []);
