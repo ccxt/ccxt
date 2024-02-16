@@ -371,10 +371,10 @@ export default class bitvavo extends bitvavoRest {
         const market = this.safeMarket (marketId, undefined, '-');
         const symbol = market['symbol'];
         const messageHash = event + '@' + market['id'];
-        const orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
+        if (!(symbol in this.orderbooks)) {
             return;
         }
+        const orderbook = this.orderbooks[symbol];
         if (orderbook['nonce'] === undefined) {
             const subscription = this.safeValue (client.subscriptions, messageHash, {});
             const watchingOrderBookSnapshot = this.safeValue (subscription, 'watchingOrderBookSnapshot');
