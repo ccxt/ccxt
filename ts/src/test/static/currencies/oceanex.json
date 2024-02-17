@@ -1,0 +1,40 @@
+{
+    "BTC": {
+        "info": false,
+        "id": "btc",
+        "numericId": false,
+        "code": "BTC",
+        "precision": 1e-10,
+        "type": false,
+        "name": false,
+        "active": false,
+        "deposit": false,
+        "withdraw": false,
+        "fee": false,
+        "fees": {},
+        "networks": {},
+        "limits": {
+          "deposit": { "min": false, "max": false },
+          "withdraw": { "min": false, "max": false }
+        }
+    },
+    "USDT": {
+        "info": false,
+        "id": "usdt",
+        "numericId": false,
+        "code": "USDT",
+        "precision": 1e-10,
+        "type": false,
+        "name": false,
+        "active": false,
+        "deposit": false,
+        "withdraw": false,
+        "fee": false,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": { "min": false, "max": false },
+            "withdraw": { "min": false, "max": false }
+        }
+    }
+}
