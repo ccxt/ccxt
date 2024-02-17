@@ -1111,7 +1111,9 @@ export default class indodax extends Exchange {
         const addresses = this.safeDict (data, 'address', {});
         const networks = this.safeDict (data, 'network', {});
         const addressKeys = Object.keys (addresses);
-        const result = {};
+        const result = {
+            'info': data,
+        };
         for (let i = 0; i < addressKeys.length; i++) {
             const marketId = addressKeys[i];
             const code = this.safeCurrencyCode (marketId);
@@ -1122,14 +1124,10 @@ export default class indodax extends Exchange {
                 if (marketId in networks) {
                     const networkId = this.safeString (networks, marketId);
                     if (networkId.indexOf (',') >= 0) {
-                        if (code === 'ETH') {
-                            network = 'ETH';
-                        } else if (code === 'BNB') {
-                            network = 'BEP2';
-                        } else if (address.indexOf ('0x') === 0) {
-                            network = 'ERC20';
-                        } else {
-                            network = networkId;
+                        network = [];
+                        const networkIds = networkId.split (',');
+                        for (let j = 0; j < networkIds.length; j++) {
+                            network.push (this.networkIdToCode (networkIds[j]).toUpperCase ());
                         }
                     } else {
                         network = this.networkIdToCode (networkId).toUpperCase ();
@@ -1144,7 +1142,6 @@ export default class indodax extends Exchange {
                 };
             }
         }
-        result['info'] = data;
         return result;
     }
 
