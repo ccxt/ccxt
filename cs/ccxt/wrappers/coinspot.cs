@@ -10,6 +10,7 @@ public partial class coinspot
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.coinspot.com.au/api#listmybalance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -29,6 +30,7 @@ public partial class coinspot
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.coinspot.com.au/api#listopenorders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -55,6 +57,7 @@ public partial class coinspot
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.coinspot.com.au/api#latestprices"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -94,6 +97,7 @@ public partial class coinspot
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.coinspot.com.au/api#orderhistory"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -127,6 +131,7 @@ public partial class coinspot
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.coinspot.com.au/api#rotransaction"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -187,6 +192,8 @@ public partial class coinspot
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.coinspot.com.au/api#cancelbuyorder"/>  <br/>
+    /// See <see href="https://www.coinspot.com.au/api#cancelsellorder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

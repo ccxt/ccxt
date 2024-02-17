@@ -184,7 +184,7 @@ class cex extends \ccxt\async\cex {
             $stored->append ($parsed);
         }
         $messageHash = 'trades';
-        $this->trades = $stored;
+        $this->trades = $stored; // trades don't have symbol
         $client->resolve ($this->trades, $messageHash);
     }
 
@@ -230,7 +230,7 @@ class cex extends \ccxt\async\cex {
         //     }
         //
         $data = $this->safe_value($message, 'data', array());
-        $stored = $this->trades;
+        $stored = $this->trades; // to do fix this, $this->trades is not meant to be used like this
         for ($i = 0; $i < count($data); $i++) {
             $rawTrade = $data[$i];
             $parsed = $this->parse_ws_old_trade($rawTrade);

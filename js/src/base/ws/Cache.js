@@ -22,6 +22,7 @@ class BaseCache extends Array {
 class ArrayCache extends BaseCache {
     constructor(maxSize = undefined) {
         super(maxSize);
+        this.hashmap = {};
         Object.defineProperty(this, 'nestedNewUpdatesBySymbol', {
             __proto__: null,
             value: false,
@@ -46,6 +47,12 @@ class ArrayCache extends BaseCache {
             __proto__: null,
             value: false,
             writable: true,
+        });
+        Object.defineProperty(this, 'hashmap', {
+            __proto__: null,
+            value: {},
+            writable: true,
+            enumerable: false,
         });
     }
     getLimit(symbol, limit) {
@@ -126,6 +133,7 @@ class ArrayCacheByTimestamp extends BaseCache {
         if (item[0] in this.hashmap) {
             const reference = this.hashmap[item[0]];
             if (reference !== item) {
+                // eslint-disable-next-line
                 for (const prop in item) {
                     reference[prop] = item[prop];
                 }
@@ -151,11 +159,11 @@ class ArrayCacheBySymbolById extends ArrayCache {
     constructor(maxSize = undefined) {
         super(maxSize);
         this.nestedNewUpdatesBySymbol = true;
-        Object.defineProperty(this, 'hashmap', {
-            __proto__: null,
-            value: {},
-            writable: true,
-        });
+        // Object.defineProperty (this, 'hashmap', {
+        //     __proto__: null, // make it invisible
+        //     value: {},
+        //     writable: true,
+        // })
     }
     append(item) {
         const byId = this.hashmap[item.symbol] = this.hashmap[item.symbol] || {};

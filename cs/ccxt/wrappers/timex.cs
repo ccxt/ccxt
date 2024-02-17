@@ -448,4 +448,23 @@ public partial class timex
         var res = await this.fetchTradingFee(symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
+    /// <summary>
+    /// fetch the deposit address for a currency associated with this account, does not accept params["network"]
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
+    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositAddress(code, parameters);
+        return ((Dictionary<string, object>)res);
+    }
 }

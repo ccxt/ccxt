@@ -358,9 +358,9 @@ class bitmex extends \ccxt\async\bitmex {
             $messageHash = $table . ':' . $marketId;
             $ticker = $this->safe_dict($this->tickers, $symbol, array());
             $info = $this->safe_dict($ticker, 'info', array());
-            $ticker = $this->parse_ticker(array_merge($info, $update), $market);
-            $tickers[$symbol] = $ticker;
-            $this->tickers[$symbol] = $ticker;
+            $parsedTicker = $this->parse_ticker(array_merge($info, $update), $market);
+            $tickers[$symbol] = $parsedTicker;
+            $this->tickers[$symbol] = $parsedTicker;
             $client->resolve ($ticker, $messageHash);
         }
         $client->resolve ($tickers, 'instrument');

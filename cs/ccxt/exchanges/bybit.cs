@@ -48,7 +48,9 @@ public partial class bybit : Exchange
                 { "fetchBorrowInterest", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
+                { "fetchCanceledAndClosedOrders", true },
                 { "fetchCanceledOrders", true },
+                { "fetchClosedOrder", true },
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", true },
                 { "fetchCrossBorrowRates", false },
@@ -76,10 +78,11 @@ public partial class bybit : Exchange
                 { "fetchOHLCV", true },
                 { "fetchOpenInterest", true },
                 { "fetchOpenInterestHistory", true },
+                { "fetchOpenOrder", true },
                 { "fetchOpenOrders", true },
-                { "fetchOrder", true },
+                { "fetchOrder", false },
                 { "fetchOrderBook", true },
-                { "fetchOrders", true },
+                { "fetchOrders", false },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", true },
                 { "fetchPositions", true },
@@ -3582,41 +3585,6 @@ public partial class bybit : Exchange
         }, market);
     }
 
-    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
-    {
-        /**
-        * @method
-        * @name bybit#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://bybit-exchange.github.io/docs/v5/order/order-list
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
-        parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol argument")) ;
-        }
-        await this.loadMarkets();
-        object request = new Dictionary<string, object>() {
-            { "orderId", id },
-        };
-        object result = await this.fetchOrders(symbol, null, null, this.extend(request, parameters));
-        object length = getArrayLength(result);
-        if (isTrue(isEqual(length, 0)))
-        {
-            object isTrigger = this.safeBoolN(parameters, new List<object>() {"trigger", "stop"}, false);
-            object extra = ((bool) isTrue(isTrigger)) ? "" : "If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
-            throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;
-        }
-        if (isTrue(isGreaterThan(length, 1)))
-        {
-            throw new InvalidOrder ((string)add(this.id, " returned more than one order")) ;
-        }
-        return this.safeValue(result, 0);
-    }
-
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
         /**
@@ -4735,34 +4703,120 @@ public partial class bybit : Exchange
         return this.parseOrders(data, market, since, limit);
     }
 
+    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchOrder() is not supported after the 5/02 update, please use fetchOpenOrder or fetchClosedOrder")) ;
+    }
+
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchOrders() is not supported after the 5/02 update, please use fetchOpenOrders, fetchClosedOrders or fetchCanceledOrders")) ;
+    }
+
+    public async virtual Task<object> fetchClosedOrder(object id, object symbol = null, object parameters = null)
     {
         /**
         * @method
-        * @name bybit#fetchOrders
-        * @description fetches information on multiple orders made by the user
+        * @name bybit#fetchClosedOrder
+        * @description fetches information on a closed order made by the user
         * @see https://bybit-exchange.github.io/docs/v5/order/order-list
-        * @param {string} symbol unified market symbol of the market orders were made in
+        * @param {string} id order id
+        * @param {string} [symbol] unified symbol of the market the order was made in
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.stop] set to true for fetching a closed stop order
+        * @param {string} [params.type] market type, ['swap', 'option', 'spot']
+        * @param {string} [params.subType] market subType, ['linear', 'inverse']
+        * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "orderId", id },
+        };
+        object result = await this.fetchClosedOrders(symbol, null, null, this.extend(request, parameters));
+        object length = getArrayLength(result);
+        if (isTrue(isEqual(length, 0)))
+        {
+            object isTrigger = this.safeBoolN(parameters, new List<object>() {"trigger", "stop"}, false);
+            object extra = ((bool) isTrue(isTrigger)) ? "" : "If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+            throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;
+        }
+        if (isTrue(isGreaterThan(length, 1)))
+        {
+            throw new InvalidOrder ((string)add(this.id, " returned more than one order")) ;
+        }
+        return this.safeValue(result, 0);
+    }
+
+    public async virtual Task<object> fetchOpenOrder(object id, object symbol = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#fetchOpenOrder
+        * @description fetches information on an open order made by the user
+        * @see https://bybit-exchange.github.io/docs/v5/order/open-order
+        * @param {string} id order id
+        * @param {string} [symbol] unified symbol of the market the order was made in
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.stop] set to true for fetching an open stop order
+        * @param {string} [params.type] market type, ['swap', 'option', 'spot']
+        * @param {string} [params.subType] market subType, ['linear', 'inverse']
+        * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
+        * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
+        * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "orderId", id },
+        };
+        object result = await this.fetchOpenOrders(symbol, null, null, this.extend(request, parameters));
+        object length = getArrayLength(result);
+        if (isTrue(isEqual(length, 0)))
+        {
+            object isTrigger = this.safeBoolN(parameters, new List<object>() {"trigger", "stop"}, false);
+            object extra = ((bool) isTrue(isTrigger)) ? "" : "If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+            throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;
+        }
+        if (isTrue(isGreaterThan(length, 1)))
+        {
+            throw new InvalidOrder ((string)add(this.id, " returned more than one order")) ;
+        }
+        return this.safeValue(result, 0);
+    }
+
+    public async override Task<object> fetchCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#fetchCanceledAndClosedOrders
+        * @description fetches information on multiple canceled and closed orders made by the user
+        * @see https://bybit-exchange.github.io/docs/v5/order/order-list
+        * @param {string} [symbol] unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.stop] true if stop order
+        * @param {boolean} [params.stop] set to true for fetching stop orders
         * @param {string} [params.type] market type, ['swap', 'option', 'spot']
         * @param {string} [params.subType] market subType, ['linear', 'inverse']
         * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
         * @param {int} [params.until] the latest time in ms to fetch entries for
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
-        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, parameters, "nextPageCursor", "nextPageCursor", null, 50);
+            return await this.fetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, parameters, "nextPageCursor", "nextPageCursor", null, 50);
         }
         var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
         var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
@@ -4778,7 +4832,7 @@ public partial class bybit : Exchange
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
         object type = null;
-        var typeparametersVariable = this.getBybitType("fetchOrders", market, parameters);
+        var typeparametersVariable = this.getBybitType("fetchCanceledAndClosedOrders", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         if (isTrue(isTrue((isTrue((isEqual(type, "option"))) || isTrue(isUsdcSettled))) && !isTrue(isUnifiedAccount)))
@@ -4869,10 +4923,16 @@ public partial class bybit : Exchange
         * @name bybit#fetchClosedOrders
         * @description fetches information on multiple closed orders made by the user
         * @see https://bybit-exchange.github.io/docs/v5/order/order-list
-        * @param {string} symbol unified market symbol of the market orders were made in
+        * @param {string} [symbol] unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.stop] set to true for fetching closed stop orders
+        * @param {string} [params.type] market type, ['swap', 'option', 'spot']
+        * @param {string} [params.subType] market subType, ['linear', 'inverse']
+        * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
+        * @param {int} [params.until] the latest time in ms to fetch entries for
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -4880,7 +4940,7 @@ public partial class bybit : Exchange
         object request = new Dictionary<string, object>() {
             { "orderStatus", "Filled" },
         };
-        return await this.fetchOrders(symbol, since, limit, this.extend(request, parameters));
+        return await this.fetchCanceledAndClosedOrders(symbol, since, limit, this.extend(request, parameters));
     }
 
     public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -4890,13 +4950,16 @@ public partial class bybit : Exchange
         * @name bybit#fetchCanceledOrders
         * @description fetches information on multiple canceled orders made by the user
         * @see https://bybit-exchange.github.io/docs/v5/order/order-list
-        * @param {string} symbol unified market symbol of the market orders were made in
+        * @param {string} [symbol] unified market symbol of the market orders were made in
         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
         * @param {int} [limit] max number of orders to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.stop] true if stop order
         * @param {string} [params.type] market type, ['swap', 'option', 'spot']
         * @param {string} [params.subType] market subType, ['linear', 'inverse']
+        * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
+        * @param {int} [params.until] the latest time in ms to fetch entries for
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -4904,7 +4967,7 @@ public partial class bybit : Exchange
         object request = new Dictionary<string, object>() {
             { "orderStatus", "Cancelled" },
         };
-        return await this.fetchOrders(symbol, since, limit, this.extend(request, parameters));
+        return await this.fetchCanceledAndClosedOrders(symbol, since, limit, this.extend(request, parameters));
     }
 
     public async virtual Task<object> fetchUsdcOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)

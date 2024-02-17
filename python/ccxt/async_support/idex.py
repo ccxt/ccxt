@@ -64,6 +64,9 @@ class idex(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDeposit': True,
+                'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
@@ -123,7 +126,7 @@ class idex(Exchange, ImplicitAPI):
                 },
                 'www': 'https://idex.io',
                 'doc': [
-                    'https://docs.idex.io/',
+                    'https://api-docs-v3.idex.io/',
                 ],
             },
             'api': {
@@ -1599,6 +1602,60 @@ class idex(Exchange, ImplicitAPI):
         defaultCost = self.safe_value(config, 'cost', 1)
         authenticated = hasApiKey and hasSecret and hasWalletAddress and hasPrivateKey
         return(defaultCost / 2) if authenticated else defaultCost
+
+    async def fetch_deposit_address(self, code: str = None, params={}):
+        """
+        fetch the Polygon address of the wallet
+        :see: https://api-docs-v3.idex.io/#get-wallets
+        :param str code: not used by idex
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        request = {}
+        request['nonce'] = self.uuidv1()
+        response = await self.privateGetWallets(self.extend(request, params))
+        #
+        #    [
+        #        {
+        #            address: "0x37A1827CA64C94A26028bDCb43FBDCB0bf6DAf5B",
+        #            totalPortfolioValueUsd: "0.00",
+        #            time: "1678342148086"
+        #        },
+        #        {
+        #            address: "0x0Ef3456E616552238B0c562d409507Ed6051A7b3",
+        #            totalPortfolioValueUsd: "15.90",
+        #            time: "1691697811659"
+        #        }
+        #    ]
+        #
+        return self.parse_deposit_address(response)
+
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+        #
+        #    [
+        #        {
+        #            address: "0x37A1827CA64C94A26028bDCb43FBDCB0bf6DAf5B",
+        #            totalPortfolioValueUsd: "0.00",
+        #            time: "1678342148086"
+        #        },
+        #        {
+        #            address: "0x0Ef3456E616552238B0c562d409507Ed6051A7b3",
+        #            totalPortfolioValueUsd: "15.90",
+        #            time: "1691697811659"
+        #        }
+        #    ]
+        #
+        length = len(depositAddress)
+        entry = self.safe_dict(depositAddress, length - 1)
+        address = self.safe_string(entry, 'address')
+        self.check_address(address)
+        return {
+            'info': depositAddress,
+            'currency': None,
+            'address': address,
+            'tag': None,
+            'network': 'MATIC',
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         network = self.safe_string(self.options, 'network', 'ETH')
