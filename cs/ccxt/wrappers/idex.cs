@@ -531,4 +531,24 @@ public partial class idex
         var res = await this.fetchTransactionsHelper(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
+    /// <summary>
+    /// fetch the Polygon address of the wallet
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api-docs-v3.idex.io/#get-wallets"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
+    public async Task<Dictionary<string, object>> FetchDepositAddress(string code = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositAddress(code, parameters);
+        return ((Dictionary<string, object>)res);
+    }
 }

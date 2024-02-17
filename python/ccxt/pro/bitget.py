@@ -504,12 +504,14 @@ class bitget(ccxt.async_support.bitget):
         rawOrderBook = self.safe_value(data, 0)
         timestamp = self.safe_integer(rawOrderBook, 'ts')
         incrementalBook = channel == 'books'
-        storedOrderBook = None
         if incrementalBook:
-            storedOrderBook = self.safe_value(self.orderbooks, symbol)
-            if storedOrderBook is None:
-                storedOrderBook = self.counted_order_book({})
-                storedOrderBook['symbol'] = symbol
+            # storedOrderBook = self.safe_value(self.orderbooks, symbol)
+            if not (symbol in self.orderbooks):
+                # ob = self.order_book({})
+                ob = self.counted_order_book({})
+                ob['symbol'] = symbol
+                self.orderbooks[symbol] = ob
+            storedOrderBook = self.orderbooks[symbol]
             asks = self.safe_value(rawOrderBook, 'asks', [])
             bids = self.safe_value(rawOrderBook, 'bids', [])
             self.handle_deltas(storedOrderBook['asks'], asks)
@@ -538,9 +540,11 @@ class bitget(ccxt.async_support.bitget):
                     error = InvalidNonce(self.id + ' invalid checksum')
                     client.reject(error, messageHash)
         else:
-            storedOrderBook = self.parse_order_book(rawOrderBook, symbol, timestamp)
-        self.orderbooks[symbol] = storedOrderBook
-        client.resolve(storedOrderBook, messageHash)
+            orderbook = self.order_book({})
+            parsedOrderbook = self.parse_order_book(rawOrderBook, symbol, timestamp)
+            orderbook.reset(parsedOrderbook)
+            self.orderbooks[symbol] = orderbook
+        client.resolve(self.orderbooks[symbol], messageHash)
 
     def handle_delta(self, bookside, delta):
         bidAsk = self.parse_bid_ask(delta, 0, 1)

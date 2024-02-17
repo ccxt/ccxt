@@ -1473,14 +1473,14 @@ public partial class bitmart : ccxt.bitmart
                 object update = getValue(datas, i);
                 object marketId = this.safeString(update, "symbol");
                 object symbol = this.safeSymbol(marketId);
-                object orderbook = this.safeDict(this.orderbooks, symbol);
-                if (isTrue(isEqual(orderbook, null)))
+                if (!isTrue((inOp(this.orderbooks, symbol))))
                 {
-                    orderbook = this.orderBook(new Dictionary<string, object>() {}, limit);
-                    ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
-                    ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
+                    object ob = this.orderBook(new Dictionary<string, object>() {}, limit);
+                    ((IDictionary<string,object>)ob)["symbol"] = symbol;
+                    ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
                 }
-                object type = this.safeValue(update, "type");
+                object orderbook = getValue(this.orderbooks, symbol);
+                object type = this.safeString(update, "type");
                 if (isTrue(isTrue((isEqual(type, "snapshot"))) || isTrue((!isTrue((isGreaterThanOrEqual(getIndexOf(channelName, "increase"), 0)))))))
                 {
                     (orderbook as IOrderBook).reset(new Dictionary<string, object>() {});
@@ -1506,13 +1506,13 @@ public partial class bitmart : ccxt.bitmart
             object depths = getValue(data, "depths");
             object marketId = this.safeString(data, "symbol");
             object symbol = this.safeSymbol(marketId);
-            object orderbook = this.safeDict(this.orderbooks, symbol);
-            if (isTrue(isEqual(orderbook, null)))
+            if (!isTrue((inOp(this.orderbooks, symbol))))
             {
-                orderbook = this.orderBook(new Dictionary<string, object>() {}, limit);
-                ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
-                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
+                object ob = this.orderBook(new Dictionary<string, object>() {}, limit);
+                ((IDictionary<string,object>)ob)["symbol"] = symbol;
+                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
             }
+            object orderbook = getValue(this.orderbooks, symbol);
             object way = this.safeNumber(data, "way");
             object side = ((bool) isTrue((isEqual(way, 1)))) ? "bids" : "asks";
             if (isTrue(isEqual(way, 1)))

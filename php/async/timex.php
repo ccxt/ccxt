@@ -47,6 +47,9 @@ class timex extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDeposit' => false,
+                'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
@@ -1551,7 +1554,71 @@ class timex extends Exchange {
         ), $market);
     }
 
+    public function fetch_deposit_address(string $code, $params = array ()) {
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch the deposit address for a $currency associated with this account, does not accept $params["network"]
+             * @param {string} $code unified $currency $code
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'symbol' => $currency['code'],
+            );
+            $response = Async\await($this->currenciesGetSSymbol (array_merge($request, $params)));
+            //
+            //    {
+            //        id => '1',
+            //        $currency => {
+            //            symbol => 'BTC',
+            //            name => 'Bitcoin',
+            //            address => '0x8370fbc6ddec1e18b4e41e72ed943e238458487c',
+            //            decimals => '8',
+            //            tradeDecimals => '20',
+            //            fiatSymbol => 'BTC',
+            //            depositEnabled => true,
+            //            withdrawalEnabled => true,
+            //            transferEnabled => true,
+            //            active => true
+            //        }
+            //    }
+            //
+            $data = $this->safe_dict($response, 'currency', array());
+            return $this->parse_deposit_address($data, $currency);
+        }) ();
+    }
+
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+        //
+        //    {
+        //        symbol => 'BTC',
+        //        name => 'Bitcoin',
+        //        address => '0x8370fbc6ddec1e18b4e41e72ed943e238458487c',
+        //        decimals => '8',
+        //        tradeDecimals => '20',
+        //        fiatSymbol => 'BTC',
+        //        depositEnabled => true,
+        //        withdrawalEnabled => true,
+        //        transferEnabled => true,
+        //        active => true
+        //    }
+        //
+        $currencyId = $this->safe_string($depositAddress, 'symbol');
+        return array(
+            'info' => $depositAddress,
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'address' => $this->safe_string($depositAddress, 'address'),
+            'tag' => null,
+            'network' => null,
+        );
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $paramsToExtract = $this->extract_params($path);
+        $path = $this->implode_params($path, $params);
+        $params = $this->omit($params, $paramsToExtract);
         $url = $this->urls['api']['rest'] . '/' . $api . '/' . $path;
         if ($params) {
             $url .= '?' . $this->urlencode_with_array_repeat($params);
