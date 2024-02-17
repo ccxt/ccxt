@@ -647,7 +647,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                 const bookside = orderbookItem[side];
                 bookside.store (this.parseNumber (price), this.parseNumber (size), this.parseNumber (counter));
             }
-            client.resolve (orderbook, messageHash);
+            client.resolve (this.orderbooks[symbol], messageHash);
         }
     }
 
