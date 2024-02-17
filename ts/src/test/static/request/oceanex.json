@@ -1,0 +1,17 @@
+{
+    "exchange": "oceanex",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch Deposit Address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.oceanex.pro/v1/deposit_address?user_jwt=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJJRDBBMzhGNTE5NjAiLCJkYXRhIjp7ImN1cnJlbmN5IjoiYnRjIn19.ZPmNfcQkHoA-KmmjQrLEpcRB1vV-7M6vpsYwLj2PUc12OHJ_F48XruTwcIVlt9M2RwqjWcqSPZWmTqUgPCJcNLDOfEVIexnjHbo6mR4qsNAH2gOvRcRZwT_CkBJLe5NNKdufI6Ly88MGYHpV5UkKM20OZdfr64R3hhvCpsB1fL3oL8iWtrrnFQcdI6koBw3fsbIzLTVpO0gJy9Pc9UzQMp82O2sPcJGjHPSfNXkpBqY0NignRkfFWMpHErxOmBQ7THqWuQ3DzuERfQgPORHv9MA_oD4K90fns9R6sEtu980qTXVvGaJuMuzYrKTY-W30ptitXP7c7iCiE4GGZdyy5A",
+                "input": [
+                    "BTC"
+                ]
+            }
+        ]
+    }
+}
