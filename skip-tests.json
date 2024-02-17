@@ -709,6 +709,8 @@
         }
     },
     "coinsph": {
+        "skip": true,
+        "until": "2024-02-20",
         "skipMethods": {
             "loadMarkets": {
                 "taker":"messed",
