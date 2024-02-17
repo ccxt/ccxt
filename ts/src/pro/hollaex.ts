@@ -103,11 +103,11 @@ export default class hollaex extends hollaexRest {
         const snapshot = this.parseOrderBook (data, symbol, timestampMs);
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook (snapshot);
-        } else {
-            (this.orderbooks[symbol]).reset (snapshot);
         }
+        const orderbook = this.orderbooks[symbol];
+        orderbook.reset (snapshot);
         const messageHash = channel + ':' + marketId;
-        client.resolve (this.orderbooks[symbol], messageHash);
+        client.resolve (orderbook, messageHash);
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
