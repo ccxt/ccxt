@@ -1110,11 +1110,14 @@ export default class coinsph extends Exchange {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
+         * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         // todo: add test order low priority
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const testOrder = this.safeBool (params, 'test', false);
+        params = this.omit (params, 'test');
         let orderType = this.safeString (params, 'type', type);
         orderType = this.encodeOrderType (orderType);
         params = this.omit (params, 'type');
@@ -1174,7 +1177,12 @@ export default class coinsph extends Exchange {
         }
         request['newOrderRespType'] = newOrderRespType;
         params = this.omit (params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
-        const response = await this.privatePostOpenapiV1Order (this.extend (request, params));
+        let response = undefined;
+        if (testOrder) {
+            response = await this.privatePostOpenapiV1OrderTest (this.extend (request, params));
+        } else {
+            response = await this.privatePostOpenapiV1Order (this.extend (request, params));
+        }
         //
         //     {
         //         "symbol": "ETHUSDT",
