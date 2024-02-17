@@ -224,23 +224,23 @@ export default class blofin extends blofinRest {
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ();
         }
-        const orderBook = this.orderbooks[symbol];
+        const orderbook = this.orderbooks[symbol];
         const timestamp = this.safeInteger (data, 'ts');
         const action = this.safeString (message, 'action');
         if (action === 'snapshot') {
             const orderBookSnapshot = this.parseOrderBook (data, symbol, timestamp);
             orderBookSnapshot['nonce'] = this.safeInteger (data, 'seqId');
-            orderBook.reset (orderBookSnapshot);
+            orderbook.reset (orderBookSnapshot);
         } else {
             const asks = this.safeList (data, 'asks', []);
             const bids = this.safeList (data, 'bids', []);
-            this.handleDeltasWithKeys (orderBook['asks'], asks);
-            this.handleDeltasWithKeys (orderBook['bids'], bids);
-            orderBook['timestamp'] = timestamp;
-            orderBook['datetime'] = this.iso8601 (timestamp);
+            this.handleDeltasWithKeys (orderbook['asks'], asks);
+            this.handleDeltasWithKeys (orderbook['bids'], bids);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
         }
-        this.orderbooks[symbol] = orderBook;
-        client.resolve (orderBook, messageHash);
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, messageHash);
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
