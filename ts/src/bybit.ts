@@ -4511,7 +4511,7 @@ export default class bybit extends Exchange {
          */
         const enableUnifiedAccount = this.safeBool (res, 1);
         if (enableUnifiedAccount) {
-            throw new NotSupported (this.id + ' fetchOrders() is not supported after the 5/02 update, please use fetchOpenOrders, fetchClosedOrders or fetchCanceledOrders');
+            throw new NotSupported (this.id + ' fetchOrders() is not supported after the 5/02 update for UTA accounts, please use fetchOpenOrders, fetchClosedOrders or fetchCanceledOrders');
         }
         return await this.fetchOrdersClassic (symbol, since, limit, params);
     }
