@@ -1,7 +1,7 @@
 {
     "exchange": "indodax",
-    "skipKeys": [],
-    "outputType": "json",
+    "skipKeys": ["timestamp"],
+    "outputType": "both",
     "methods": {
         "fetchDepositAddresses": [
             {
