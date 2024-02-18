@@ -55,6 +55,8 @@ public partial class coinbase : Exchange
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
+                { "fetchDepositAddress", "emulated" },
+                { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", true },
                 { "fetchDeposits", true },
                 { "fetchFundingHistory", false },
@@ -1726,19 +1728,20 @@ public partial class coinbase : Exchange
         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
+        * @param {object} [params.type] "spot" (default) or "swap"
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object request = new Dictionary<string, object>() {
-            { "limit", 250 },
-        };
+        object request = new Dictionary<string, object>() {};
         object response = null;
         object isV3 = this.safeBool(parameters, "v3", false);
-        parameters = this.omit(parameters, "v3");
+        object type = this.safeString(parameters, "type");
+        parameters = this.omit(parameters, new List<object>() {"v3", "type"});
         object method = this.safeString(this.options, "fetchBalance", "v3PrivateGetBrokerageAccounts");
         if (isTrue(isTrue((isV3)) || isTrue((isEqual(method, "v3PrivateGetBrokerageAccounts")))))
         {
+            ((IDictionary<string,object>)request)["limit"] = 250;
             response = await this.v3PrivateGetBrokerageAccounts(this.extend(request, parameters));
         } else
         {
@@ -1815,6 +1818,7 @@ public partial class coinbase : Exchange
         //         "size": 9
         //     }
         //
+        ((IDictionary<string,object>)parameters)["type"] = type;
         return this.parseCustomBalance(response, parameters);
     }
 
@@ -3554,7 +3558,7 @@ public partial class coinbase : Exchange
     {
         /**
         * @method
-        * @name ascendex#fetchDepositAddress
+        * @name coinbase#fetchDepositAddress
         * @description fetch the deposit address for a currency associated with this account
         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
         * @param {string} code unified currency code

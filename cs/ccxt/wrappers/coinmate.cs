@@ -10,6 +10,7 @@ public partial class coinmate
     /// retrieves data on all markets for coinmate
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coinmate.docs.apiary.io/#reference/trading-pairs/get-trading-pairs/get"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -29,6 +30,7 @@ public partial class coinmate
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coinmate.docs.apiary.io/#reference/balance/get-balances/post"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -48,6 +50,7 @@ public partial class coinmate
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coinmate.docs.apiary.io/#reference/order-book/get-order-book/get"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -74,6 +77,7 @@ public partial class coinmate
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coinmate.docs.apiary.io/#reference/ticker/get-ticker/get"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -90,9 +94,30 @@ public partial class coinmate
         return new Ticker(res);
     }
     /// <summary>
+    /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://coinmate.docs.apiary.io/#reference/ticker/get-ticker-all/get"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTickers(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
     /// fetch history of deposits and withdrawals
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coinmate.docs.apiary.io/#reference/transfers/get-transfer-history/post"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -132,6 +157,12 @@ public partial class coinmate
     /// make a withdrawal
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coinmate.docs.apiary.io/#reference/bitcoin-withdrawal-and-deposit/withdraw-bitcoins/post"/>  <br/>
+    /// See <see href="https://coinmate.docs.apiary.io/#reference/litecoin-withdrawal-and-deposit/withdraw-litecoins/post"/>  <br/>
+    /// See <see href="https://coinmate.docs.apiary.io/#reference/ethereum-withdrawal-and-deposit/withdraw-ethereum/post"/>  <br/>
+    /// See <see href="https://coinmate.docs.apiary.io/#reference/ripple-withdrawal-and-deposit/withdraw-ripple/post"/>  <br/>
+    /// See <see href="https://coinmate.docs.apiary.io/#reference/cardano-withdrawal-and-deposit/withdraw-cardano/post"/>  <br/>
+    /// See <see href="https://coinmate.docs.apiary.io/#reference/solana-withdrawal-and-deposit/withdraw-solana/post"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -151,6 +182,7 @@ public partial class coinmate
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coinmate.docs.apiary.io/#reference/trade-history/get-trade-history/post"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -184,6 +216,7 @@ public partial class coinmate
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coinmate.docs.apiary.io/#reference/transactions/transactions/get"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -217,6 +250,7 @@ public partial class coinmate
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coinmate.docs.apiary.io/#reference/trader-fees/get-trading-fees/post"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -236,6 +270,7 @@ public partial class coinmate
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coinmate.docs.apiary.io/#reference/order/get-open-orders/post"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -269,6 +304,7 @@ public partial class coinmate
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coinmate.docs.apiary.io/#reference/order/order-history/post"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -302,6 +338,10 @@ public partial class coinmate
     /// create a trade order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coinmate.docs.apiary.io/#reference/order/buy-limit-order/post"/>  <br/>
+    /// See <see href="https://coinmate.docs.apiary.io/#reference/order/sell-limit-order/post"/>  <br/>
+    /// See <see href="https://coinmate.docs.apiary.io/#reference/order/buy-instant-order/post"/>  <br/>
+    /// See <see href="https://coinmate.docs.apiary.io/#reference/order/sell-instant-order/post"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -328,6 +368,8 @@ public partial class coinmate
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coinmate.docs.apiary.io/#reference/order/get-order-by-orderid/post"/>  <br/>
+    /// See <see href="https://coinmate.docs.apiary.io/#reference/order/get-order-by-clientorderid/post"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -347,6 +389,7 @@ public partial class coinmate
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coinmate.docs.apiary.io/#reference/order/cancel-order/post"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

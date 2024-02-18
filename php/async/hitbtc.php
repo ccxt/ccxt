@@ -146,6 +146,8 @@ class hitbtc extends Exchange {
                         'public/orderbook/{symbol}' => 10,
                         'public/candles' => 10,
                         'public/candles/{symbol}' => 10,
+                        'public/converted/candles' => 10,
+                        'public/converted/candles/{symbol}' => 10,
                         'public/futures/info' => 10,
                         'public/futures/info/{symbol}' => 10,
                         'public/futures/history/funding' => 10,

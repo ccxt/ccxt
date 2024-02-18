@@ -22,6 +22,21 @@ abstract class bithumb extends \ccxt\async\Exchange {
     public function public_get_transaction_history_baseid_quoteid($params = array()) {
         return $this->request('transaction_history/{baseId}_{quoteId}', 'public', 'GET', $params, null, null, array());
     }
+    public function public_get_network_info($params = array()) {
+        return $this->request('network-info', 'public', 'GET', $params, null, null, array());
+    }
+    public function public_get_assetsstatus_multichain_all($params = array()) {
+        return $this->request('assetsstatus/multichain/ALL', 'public', 'GET', $params, null, null, array());
+    }
+    public function public_get_assetsstatus_multichain_currency($params = array()) {
+        return $this->request('assetsstatus/multichain/{currency}', 'public', 'GET', $params, null, null, array());
+    }
+    public function public_get_withdraw_minimum_all($params = array()) {
+        return $this->request('withdraw/minimum/ALL', 'public', 'GET', $params, null, null, array());
+    }
+    public function public_get_withdraw_minimum_currency($params = array()) {
+        return $this->request('withdraw/minimum/{currency}', 'public', 'GET', $params, null, null, array());
+    }
     public function public_get_assetsstatus_all($params = array()) {
         return $this->request('assetsstatus/ALL', 'public', 'GET', $params, null, null, array());
     }
@@ -90,6 +105,21 @@ abstract class bithumb extends \ccxt\async\Exchange {
     }
     public function publicGetTransactionHistoryBaseIdQuoteId($params = array()) {
         return $this->request('transaction_history/{baseId}_{quoteId}', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetNetworkInfo($params = array()) {
+        return $this->request('network-info', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetAssetsstatusMultichainALL($params = array()) {
+        return $this->request('assetsstatus/multichain/ALL', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetAssetsstatusMultichainCurrency($params = array()) {
+        return $this->request('assetsstatus/multichain/{currency}', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetWithdrawMinimumALL($params = array()) {
+        return $this->request('withdraw/minimum/ALL', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetWithdrawMinimumCurrency($params = array()) {
+        return $this->request('withdraw/minimum/{currency}', 'public', 'GET', $params, null, null, array());
     }
     public function publicGetAssetsstatusALL($params = array()) {
         return $this->request('assetsstatus/ALL', 'public', 'GET', $params, null, null, array());

@@ -1236,12 +1236,12 @@ class bitmart(ccxt.async_support.bitmart):
                 update = datas[i]
                 marketId = self.safe_string(update, 'symbol')
                 symbol = self.safe_symbol(marketId)
-                orderbook = self.safe_dict(self.orderbooks, symbol)
-                if orderbook is None:
-                    orderbook = self.order_book({}, limit)
-                    orderbook['symbol'] = symbol
-                    self.orderbooks[symbol] = orderbook
-                type = self.safe_value(update, 'type')
+                if not (symbol in self.orderbooks):
+                    ob = self.order_book({}, limit)
+                    ob['symbol'] = symbol
+                    self.orderbooks[symbol] = ob
+                orderbook = self.orderbooks[symbol]
+                type = self.safe_string(update, 'type')
                 if (type == 'snapshot') or (not(channelName.find('increase') >= 0)):
                     orderbook.reset({})
                 self.handle_order_book_message(client, update, orderbook)
@@ -1261,11 +1261,11 @@ class bitmart(ccxt.async_support.bitmart):
             depths = data['depths']
             marketId = self.safe_string(data, 'symbol')
             symbol = self.safe_symbol(marketId)
-            orderbook = self.safe_dict(self.orderbooks, symbol)
-            if orderbook is None:
-                orderbook = self.order_book({}, limit)
-                orderbook['symbol'] = symbol
-                self.orderbooks[symbol] = orderbook
+            if not (symbol in self.orderbooks):
+                ob = self.order_book({}, limit)
+                ob['symbol'] = symbol
+                self.orderbooks[symbol] = ob
+            orderbook = self.orderbooks[symbol]
             way = self.safe_number(data, 'way')
             side = 'bids' if (way == 1) else 'asks'
             if way == 1:

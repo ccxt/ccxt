@@ -3153,25 +3153,35 @@ export default class binance extends Exchange {
         return account;
     }
 
-    parseBalanceCustom (response, type = undefined, marginMode = undefined): Balances {
+    parseBalanceCustom (response, type = undefined, marginMode = undefined, isPortfolioMargin = false): Balances {
         const result = {
             'info': response,
         };
         let timestamp = undefined;
         const isolated = marginMode === 'isolated';
         const cross = (type === 'margin') || (marginMode === 'cross');
-        if (type === 'papi') {
+        if (isPortfolioMargin) {
             for (let i = 0; i < response.length; i++) {
                 const entry = response[i];
                 const account = this.account ();
                 const currencyId = this.safeString (entry, 'asset');
                 const code = this.safeCurrencyCode (currencyId);
-                const borrowed = this.safeString (entry, 'crossMarginBorrowed');
-                const interest = this.safeString (entry, 'crossMarginInterest');
-                account['free'] = this.safeString (entry, 'crossMarginFree');
-                account['used'] = this.safeString (entry, 'crossMarginLocked');
-                account['total'] = this.safeString (entry, 'crossMarginAsset');
-                account['debt'] = Precise.stringAdd (borrowed, interest);
+                if (type === 'linear') {
+                    account['free'] = this.safeString (entry, 'umWalletBalance');
+                    account['used'] = this.safeString (entry, 'umUnrealizedPNL');
+                } else if (type === 'inverse') {
+                    account['free'] = this.safeString (entry, 'cmWalletBalance');
+                    account['used'] = this.safeString (entry, 'cmUnrealizedPNL');
+                } else if (cross) {
+                    const borrowed = this.safeString (entry, 'crossMarginBorrowed');
+                    const interest = this.safeString (entry, 'crossMarginInterest');
+                    account['debt'] = Precise.stringAdd (borrowed, interest);
+                    account['free'] = this.safeString (entry, 'crossMarginFree');
+                    account['used'] = this.safeString (entry, 'crossMarginLocked');
+                    account['total'] = this.safeString (entry, 'crossMarginAsset');
+                } else {
+                    account['total'] = this.safeString (entry, 'totalWalletBalance');
+                }
                 result[code] = account;
             }
         } else if (!isolated && ((type === 'spot') || cross)) {
@@ -3287,7 +3297,12 @@ export default class binance extends Exchange {
         let response = undefined;
         const request = {};
         if (isPortfolioMargin || (type === 'papi')) {
-            type = 'papi';
+            if (this.isLinear (type, subType)) {
+                type = 'linear';
+            } else if (this.isInverse (type, subType)) {
+                type = 'inverse';
+            }
+            isPortfolioMargin = true;
             response = await this.papiGetBalance (this.extend (request, query));
         } else if (this.isLinear (type, subType)) {
             type = 'linear';
@@ -3527,7 +3542,7 @@ export default class binance extends Exchange {
         //         },
         //     ]
         //
-        return this.parseBalanceCustom (response, type, marginMode);
+        return this.parseBalanceCustom (response, type, marginMode, isPortfolioMargin);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {

@@ -75,7 +75,7 @@ public partial class bithumb : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"ticker/ALL_{quoteId}", "ticker/{baseId}_{quoteId}", "orderbook/ALL_{quoteId}", "orderbook/{baseId}_{quoteId}", "transaction_history/{baseId}_{quoteId}", "assetsstatus/ALL", "assetsstatus/{baseId}", "candlestick/{baseId}_{quoteId}/{interval}"} },
+                    { "get", new List<object>() {"ticker/ALL_{quoteId}", "ticker/{baseId}_{quoteId}", "orderbook/ALL_{quoteId}", "orderbook/{baseId}_{quoteId}", "transaction_history/{baseId}_{quoteId}", "network-info", "assetsstatus/multichain/ALL", "assetsstatus/multichain/{currency}", "withdraw/minimum/ALL", "withdraw/minimum/{currency}", "assetsstatus/ALL", "assetsstatus/{baseId}", "candlestick/{baseId}_{quoteId}/{interval}"} },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "post", new List<object>() {"info/account", "info/balance", "info/wallet_address", "info/ticker", "info/orders", "info/user_transactions", "info/order_detail", "trade/place", "trade/cancel", "trade/btc_withdrawal", "trade/krw_deposit", "trade/krw_withdrawal", "trade/market_buy", "trade/market_sell", "trade/stop_limit"} },
