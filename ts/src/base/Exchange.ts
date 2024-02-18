@@ -310,7 +310,6 @@ export default class Exchange {
     ohlcvs: any;
     orderbooks: Dictionary<Ob> = {};
     orders: ArrayCache = undefined;
-    positions = undefined;
     positions: any;
     tickers: Dictionary<Ticker> = {};
     trades: Dictionary<ArrayCache>;
