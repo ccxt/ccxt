@@ -335,10 +335,9 @@ export default class idex extends idexRest {
                     const orderBookSubscriptions = this.safeValue (this.options, 'orderBookSubscriptions', {});
                     if (!(marketId in orderBookSubscriptions)) {
                         const symbol = this.safeSymbol (marketId);
-                        if (!(symbol in this.orderbooks)) {
-                            const orderbook = this.countedOrderBook ({});
+                        if (this.safeValue (this.orderbooks, symbol) === undefined) {
+                            this.orderbooks[symbol] = this.countedOrderBook ({});
                             // orderbook.cache = []; // cache is never used?
-                            this.orderbooks[symbol] = orderbook;
                         }
                         this.spawn (this.fetchOrderBookSnapshot, client, symbol);
                     }
