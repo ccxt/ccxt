@@ -356,6 +356,8 @@
         }
     },
     "onetrading": {
+        "skip": true,
+        "until": "2024-02-28",
         "skipWs": true,
         "skipMethods": {
             "fetchOrderBook": "some bid might be lower than next bid",
@@ -707,6 +709,8 @@
         }
     },
     "coinsph": {
+        "skip": true,
+        "until": "2024-02-20",
         "skipMethods": {
             "loadMarkets": {
                 "taker":"messed",

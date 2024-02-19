@@ -502,11 +502,12 @@ public partial class gemini : ccxt.gemini
         object market = this.safeMarket(((string)marketId).ToLower());
         object symbol = getValue(market, "symbol");
         object messageHash = add("orderbook:", symbol);
-        object orderbook = this.safeDict(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
-            orderbook = this.orderBook();
+            object ob = this.orderBook();
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         object bids = getValue(orderbook, "bids");
         object asks = getValue(orderbook, "asks");
         for (object i = 0; isLessThan(i, getArrayLength(rawOrderBookChanges)); postFixIncrement(ref i))

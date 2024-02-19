@@ -55,6 +55,12 @@ abstract class fmfwio extends \ccxt\async\hitbtc {
     public function public_get_public_candles_symbol($params = array()) {
         return $this->request('public/candles/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function public_get_public_converted_candles($params = array()) {
+        return $this->request('public/converted/candles', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function public_get_public_converted_candles_symbol($params = array()) {
+        return $this->request('public/converted/candles/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function public_get_public_futures_info($params = array()) {
         return $this->request('public/futures/info', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -381,6 +387,12 @@ abstract class fmfwio extends \ccxt\async\hitbtc {
     }
     public function publicGetPublicCandlesSymbol($params = array()) {
         return $this->request('public/candles/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function publicGetPublicConvertedCandles($params = array()) {
+        return $this->request('public/converted/candles', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function publicGetPublicConvertedCandlesSymbol($params = array()) {
+        return $this->request('public/converted/candles/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
     public function publicGetPublicFuturesInfo($params = array()) {
         return $this->request('public/futures/info', 'public', 'GET', $params, null, null, array("cost" => 10));

@@ -518,13 +518,15 @@ class bitget extends bitget$1 {
         const rawOrderBook = this.safeValue(data, 0);
         const timestamp = this.safeInteger(rawOrderBook, 'ts');
         const incrementalBook = channel === 'books';
-        let storedOrderBook = undefined;
         if (incrementalBook) {
-            storedOrderBook = this.safeValue(this.orderbooks, symbol);
-            if (storedOrderBook === undefined) {
-                storedOrderBook = this.countedOrderBook({});
-                storedOrderBook['symbol'] = symbol;
+            // storedOrderBook = this.safeValue (this.orderbooks, symbol);
+            if (!(symbol in this.orderbooks)) {
+                // const ob = this.orderBook ({});
+                const ob = this.countedOrderBook({});
+                ob['symbol'] = symbol;
+                this.orderbooks[symbol] = ob;
             }
+            const storedOrderBook = this.orderbooks[symbol];
             const asks = this.safeValue(rawOrderBook, 'asks', []);
             const bids = this.safeValue(rawOrderBook, 'bids', []);
             this.handleDeltas(storedOrderBook['asks'], asks);
@@ -559,10 +561,12 @@ class bitget extends bitget$1 {
             }
         }
         else {
-            storedOrderBook = this.parseOrderBook(rawOrderBook, symbol, timestamp);
+            const orderbook = this.orderBook({});
+            const parsedOrderbook = this.parseOrderBook(rawOrderBook, symbol, timestamp);
+            orderbook.reset(parsedOrderbook);
+            this.orderbooks[symbol] = orderbook;
         }
-        this.orderbooks[symbol] = storedOrderBook;
-        client.resolve(storedOrderBook, messageHash);
+        client.resolve(this.orderbooks[symbol], messageHash);
     }
     handleDelta(bookside, delta) {
         const bidAsk = this.parseBidAsk(delta, 0, 1);

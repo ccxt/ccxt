@@ -1,8 +1,12 @@
+interface CustomArray extends Array {
+    hashmap: object;
+}
 declare class BaseCache extends Array {
     constructor(maxSize?: any);
     clear(): void;
 }
-declare class ArrayCache extends BaseCache {
+declare class ArrayCache extends BaseCache implements CustomArray {
+    hashmap: object;
     constructor(maxSize?: any);
     getLimit(symbol: any, limit: any): any;
     append(item: any): void;

@@ -460,10 +460,11 @@ class gemini extends gemini$1 {
         const market = this.safeMarket(marketId.toLowerCase());
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
-        let orderbook = this.safeDict(this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook();
+        if (!(symbol in this.orderbooks)) {
+            const ob = this.orderBook();
+            this.orderbooks[symbol] = ob;
         }
+        const orderbook = this.orderbooks[symbol];
         const bids = orderbook['bids'];
         const asks = orderbook['asks'];
         for (let i = 0; i < rawOrderBookChanges.length; i++) {

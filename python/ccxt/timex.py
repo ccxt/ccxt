@@ -55,6 +55,9 @@ class timex(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDeposit': False,
+                'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
@@ -1461,7 +1464,67 @@ class timex(Exchange, ImplicitAPI):
             'trades': rawTrades,
         }, market)
 
+    def fetch_deposit_address(self, code: str, params={}):
+        """
+        fetch the deposit address for a currency associated with self account, does not accept params["network"]
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'symbol': currency['code'],
+        }
+        response = self.currenciesGetSSymbol(self.extend(request, params))
+        #
+        #    {
+        #        id: '1',
+        #        currency: {
+        #            symbol: 'BTC',
+        #            name: 'Bitcoin',
+        #            address: '0x8370fbc6ddec1e18b4e41e72ed943e238458487c',
+        #            decimals: '8',
+        #            tradeDecimals: '20',
+        #            fiatSymbol: 'BTC',
+        #            depositEnabled: True,
+        #            withdrawalEnabled: True,
+        #            transferEnabled: True,
+        #            active: True
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'currency', {})
+        return self.parse_deposit_address(data, currency)
+
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+        #
+        #    {
+        #        symbol: 'BTC',
+        #        name: 'Bitcoin',
+        #        address: '0x8370fbc6ddec1e18b4e41e72ed943e238458487c',
+        #        decimals: '8',
+        #        tradeDecimals: '20',
+        #        fiatSymbol: 'BTC',
+        #        depositEnabled: True,
+        #        withdrawalEnabled: True,
+        #        transferEnabled: True,
+        #        active: True
+        #    }
+        #
+        currencyId = self.safe_string(depositAddress, 'symbol')
+        return {
+            'info': depositAddress,
+            'currency': self.safe_currency_code(currencyId, currency),
+            'address': self.safe_string(depositAddress, 'address'),
+            'tag': None,
+            'network': None,
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        paramsToExtract = self.extract_params(path)
+        path = self.implode_params(path, params)
+        params = self.omit(params, paramsToExtract)
         url = self.urls['api']['rest'] + '/' + api + '/' + path
         if params:
             url += '?' + self.urlencode_with_array_repeat(params)

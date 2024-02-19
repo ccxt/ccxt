@@ -43,6 +43,20 @@ export default class idex extends Exchange {
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
+    fetchDepositAddress(code?: string, params?: {}): Promise<{
+        info: any;
+        currency: any;
+        address: string;
+        tag: any;
+        network: string;
+    }>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): {
+        info: any;
+        currency: any;
+        address: string;
+        tag: any;
+        network: string;
+    };
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
