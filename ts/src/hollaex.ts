@@ -136,6 +136,9 @@ export default class hollaex extends Exchange {
                         'trades': 1,
                         'chart': 1,
                         'charts': 1,
+                        'minicharts': 1,
+                        'oracle/prices': 1,
+                        'quick-trade': 1,
                         // TradingView
                         'udf/config': 1,
                         'udf/history': 1,
