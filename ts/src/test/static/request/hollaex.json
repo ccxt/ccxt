@@ -2,5 +2,16 @@
     "exchange": "hollaex",
     "skipKeys": [],
     "outputType": "json",
-    "methods": {}
+    "methods": {
+        "fetchOrderBook": [
+            {
+                "description": "Spot fetch order book",
+                "method": "fetchOrderBook",
+                "url": "https://api.hollaex.com/v2/orderbook?symbol=btc-usdt",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ]
+    }
 }
