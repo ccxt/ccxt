@@ -445,11 +445,10 @@ export default class okcoin extends okcoinRest {
                 const options = this.safeValue (this.options, 'watchOrderBook', {});
                 // default limit is 400 bidasks
                 const limit = this.safeInteger (options, 'limit', 400);
-                const orderbook = this.orderBook ({}, limit);
-                this.orderbooks[symbol] = orderbook;
-                this.handleOrderBookMessage (client, update, orderbook);
+                this.orderbooks[symbol] = this.orderBook ({}, limit);
+                this.handleOrderBookMessage (client, update, this.orderbooks[symbol]);
                 const messageHash = table + ':' + marketId;
-                client.resolve (orderbook, messageHash);
+                client.resolve (this.orderbooks[symbol], messageHash);
             }
         } else {
             for (let i = 0; i < data.length; i++) {
@@ -458,10 +457,9 @@ export default class okcoin extends okcoinRest {
                 const market = this.safeMarket (marketId);
                 const symbol = market['symbol'];
                 if (symbol in this.orderbooks) {
-                    const orderbook = this.orderbooks[symbol];
-                    this.handleOrderBookMessage (client, update, orderbook);
+                    this.handleOrderBookMessage (client, update, this.orderbooks[symbol]);
                     const messageHash = table + ':' + marketId;
-                    client.resolve (orderbook, messageHash);
+                    client.resolve (this.orderbooks[symbol], messageHash);
                 }
             }
         }
