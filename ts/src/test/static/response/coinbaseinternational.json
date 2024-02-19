@@ -1,0 +1,216 @@
+{
+    "exchange": "coinbase",
+    "options": {},
+    "methods": {
+      "fetchAccounts": [
+        {
+          "description": "fetchAccounts",
+          "method": "fetchAccounts",
+          "input": [],
+          "httpResponse": [
+            {
+              "portfolio_id": "1wp37qsc-1-0",
+              "portfolio_uuid": "018d7f6c-b92c-7361-8b7e-2932711e5a22",
+              "name": "CCXT Portfolio 020624-17:16",
+              "user_uuid": "e6cfe6b6-a32f-5fa7-addb-3324d4526fbd",
+              "maker_fee_rate": "0",
+              "taker_fee_rate": "0.0002",
+              "trading_lock": false,
+              "borrow_disabled": false,
+              "is_lsp": false,
+              "is_default": true,
+              "cross_collateral_enabled": false
+            }
+          ],
+          "parsedResponse": [
+            {
+              "id": "1wp37qsc-1-0",
+              "type": null,
+              "code": null,
+              "info": {
+                "portfolio_id": "1wp37qsc-1-0",
+                "portfolio_uuid": "018d7f6c-b92c-7361-8b7e-2932711e5a22",
+                "name": "CCXT Portfolio 020624-17:16",
+                "user_uuid": "e6cfe6b6-a32f-5fa7-addb-3324d4526fbd",
+                "maker_fee_rate": "0",
+                "taker_fee_rate": "0.0002",
+                "trading_lock": false,
+                "borrow_disabled": false,
+                "is_lsp": false,
+                "is_default": true,
+                "cross_collateral_enabled": false
+              }
+            }
+          ]
+        }
+      ],
+      "fetchFundingRateHistory": [
+        {
+          "description": "Fill this with a description of the method call",
+          "method": "fetchFundingRateHistory",
+          "input": [
+            "BTC/USDC:USDC"
+          ],
+          "httpResponse": {
+            "pagination": {
+              "result_limit": "25",
+              "result_offset": "0"
+            },
+            "results": [
+              {
+                "instrument_id": "149264167780483072",
+                "funding_rate": "0.000156",
+                "mark_price": "52302.2",
+                "event_time": "2024-02-19T05:00:00Z"
+              }
+            ]
+          },
+          "parsedResponse": [
+            {
+              "info": {
+                "instrument_id": "149264167780483072",
+                "funding_rate": "0.000156",
+                "mark_price": "52302.2",
+                "event_time": "2024-02-19T05:00:00Z"
+              },
+              "symbol": "BTC/USDC:USDC",
+              "markPrice": 52302.2,
+              "indexPrice": null,
+              "interestRate": null,
+              "estimatedSettlePrice": null,
+              "timestamp": null,
+              "datetime": null,
+              "fundingRate": 0.000156,
+              "fundingTimestamp": 1708318800000,
+              "fundingDatetime": "2024-02-19T05:00:00Z",
+              "nextFundingRate": null,
+              "nextFundingTimestamp": null,
+              "nextFundingDatetime": null,
+              "previousFundingRate": null,
+              "previousFundingTimestamp": null,
+              "previousFundingDatetime": null
+            }
+          ]
+        }
+      ],
+      "fetchPositions": [
+        {
+          "description": "Fill this with a description of the method call",
+          "method": "fetchPositions",
+          "input": [],
+          "httpResponse": [
+            {
+              "symbol": "BTC-PERP",
+              "instrument_id": "114jqr89-0-0",
+              "instrument_uuid": "b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
+              "vwap": "52482.3",
+              "net_size": "0",
+              "buy_order_size": "0.001",
+              "sell_order_size": "0",
+              "im_contribution": "0.2",
+              "unrealized_pnl": "0",
+              "mark_price": "52302.2",
+              "entry_vwap": "52472.9"
+            }
+          ],
+          "parsedResponse": [
+            {
+              "info": {
+                "symbol": "BTC-PERP",
+                "instrument_id": "114jqr89-0-0",
+                "instrument_uuid": "b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
+                "vwap": "52482.3",
+                "net_size": "0",
+                "buy_order_size": "0.001",
+                "sell_order_size": "0",
+                "im_contribution": "0.2",
+                "unrealized_pnl": "0",
+                "mark_price": "52302.2",
+                "entry_vwap": "52472.9"
+              },
+              "id": null,
+              "symbol": "BTC/USDC:USDC",
+              "entryPrice": null,
+              "markPrice": 52302.2,
+              "notional": null,
+              "collateral": null,
+              "unrealizedPnl": 0,
+              "side": "short",
+              "contracts": 0,
+              "contractSize": null,
+              "timestamp": null,
+              "datetime": null,
+              "hedged": null,
+              "maintenanceMargin": null,
+              "maintenanceMarginPercentage": null,
+              "initialMargin": 0.2,
+              "initialMarginPercentage": null,
+              "leverage": null,
+              "liquidationPrice": null,
+              "marginRatio": null,
+              "marginMode": null,
+              "percentage": null
+            }
+          ]
+        }
+      ],
+      "fetchTicker": [
+        {
+          "description": "fetchTicker one symbol",
+          "method": "fetchTicker",
+          "input": [
+            "BTC/USDC:USDC"
+          ],
+          "httpResponse": {
+            "best_bid_price": "52302.4",
+            "best_bid_size": "1",
+            "best_ask_size": "0",
+            "trade_price": "52302.3",
+            "trade_qty": "4",
+            "index_price": "52411.2",
+            "mark_price": "52302.4",
+            "settlement_price": "52302.4",
+            "limit_up": "54939.1",
+            "limit_down": "49706.9",
+            "predicted_funding": "0.000143",
+            "timestamp": "2024-02-19T06:20:00.508Z"
+          },
+          "parsedResponse": {
+            "info": {
+              "best_bid_price": "52302.4",
+              "best_bid_size": "1",
+              "best_ask_size": "0",
+              "trade_price": "52302.3",
+              "trade_qty": "4",
+              "index_price": "52411.2",
+              "mark_price": "52302.4",
+              "settlement_price": "52302.4",
+              "limit_up": "54939.1",
+              "limit_down": "49706.9",
+              "predicted_funding": "0.000143",
+              "timestamp": "2024-02-19T06:20:00.508Z"
+            },
+            "symbol": "BTC/USDC:USDC",
+            "timestamp": 1708323600508,
+            "datetime": "2024-02-19T06:20:00.508Z",
+            "bid": 52302.4,
+            "bidVolume": 1,
+            "ask": null,
+            "askVolume": 0,
+            "high": null,
+            "low": null,
+            "open": null,
+            "close": null,
+            "last": null,
+            "change": null,
+            "percentage": null,
+            "average": null,
+            "vwap": null,
+            "baseVolume": null,
+            "quoteVolume": null,
+            "previousClose": null
+          }
+        }
+      ]
+    }
+}

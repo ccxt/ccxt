@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder, PermissionD
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, MarketInterface, CurrencyInterface, FundingRateHistory, TransferEntry, Position } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -96,7 +96,7 @@ export default class coinbaseinternational extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchTime': true,
+                'fetchTime': false,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
@@ -183,10 +183,6 @@ export default class coinbaseinternational extends Exchange {
                     },
                 },
             },
-            // 'proxyURL': 'http://oqDC2qbE92ubjog:EPCorco2sZKFUMr@194.135.30.249:44795',
-            // 'httpsProxy': 'https://oqDC2qbE92ubjog:EPCorco2sZKFUMr@194.135.30.249:44795',
-            'httpProxy': 'http://oqDC2qbE92ubjog:EPCorco2sZKFUMr@194.135.30.249:44795',
-            'wsProxy': 'http://oqDC2qbE92ubjog:EPCorco2sZKFUMr@194.135.30.249:44795',
             'fees': {
                 'trading': {
                     'taker': this.parseNumber ('0.004'),
@@ -232,14 +228,11 @@ export default class coinbaseinternational extends Exchange {
                 '6h': 'SIX_HOUR',
                 '1d': 'ONE_DAY',
             },
-            'commonCurrencies': {
-                'CGLD': 'CELO',
-            },
             'options': {
                 'clientOrderId': 'ccxt',
-                'portfolio': '1wp37qsc-1-0',
+                'portfolio': '1wp37qsc-1-0', // default portfolio id
                 'withdraw': {
-                    'method': 'v1PrivateTransfersWithdraw', // use v1PrivateTransfersWithdrawCounterparty for counterparty withdrawals
+                    'method': 'v1PrivatePostTransfersWithdraw', // use v1PrivatePostTransfersWithdrawCounterparty for counterparty withdrawals
                 },
             },
         });
@@ -301,7 +294,7 @@ export default class coinbaseinternational extends Exchange {
         };
     }
 
-    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingRateHistory[]> {
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbaseinternational#fetchFundingRateHistory
@@ -320,7 +313,7 @@ export default class coinbaseinternational extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            // return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
+            return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params) as FundingRateHistory[];
         }
         const market = this.market (symbol);
         const request = {
@@ -354,8 +347,8 @@ export default class coinbaseinternational extends Exchange {
         return this.parseFundingRateHistories (rawRates, market, since, limit);
     }
 
-    parseFundingRateHistory (info, market: Market = undefined): FundingRateHistory {
-        return this.parseFundingRate (info, market);
+    parseFundingRateHistory (info, market: Market = undefined) {
+        return this.parseFundingRate (info, market) as FundingRateHistory;
     }
 
     parseFundingRate (contract, market: Market = undefined) {
@@ -394,36 +387,41 @@ export default class coinbaseinternational extends Exchange {
          * @method
          * @name coinbaseinternational#createDepositAddress
          * @description create a currency deposit address
-         * @see https://docs.cloud.coinbaseinternational.com/sign-in-with-coinbaseinternational/docs/api-addresses#create-address
+         * @see https://docs.cloud.coinbase.com/intx/reference/createaddress
+         * @see https://docs.cloud.coinbase.com/intx/reference/createcounterpartyid
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
-        let portfolioId = this.safeString (params, 'portfolioId');
-        if (portfolioId === undefined) {
-            [ portfolioId, params ] = this.handleOptionAndParams (params, 'createDepositAddress', 'portfolio');
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'createDepositAddress', 'method', 'v1PrivatePostTransfersAddress');
+        let portfolio = undefined;
+        if (portfolio === undefined) {
+            [ portfolio, params ] = this.handleOptionAndParams (params, 'createDepositAddress', 'portfolio');
         }
-        if (portfolioId === undefined) {
-            throw new ExchangeError (this.id + ' createDepositAddress() requires a portfolioId parameter');
+        if (portfolio === undefined) {
+            throw new ExchangeError (this.id + ' createDepositAddress() requires a portfolio parameter');
         }
-        const currency = this.currency (code);
-        let network = undefined;
-        [ network, params ] = this.handleOptionAndParams (params, 'createDepositAddress', 'network');
         const request = {
-            'portfolioId': portfolioId,
-            'asset': currency,
+            'portfolio': portfolio,
         };
-        if (network !== undefined) {
-            const networkId = this.networkCodeToId (network);
-            request['network'] = networkId;
+        if (method === 'v1PrivatePostTransfersAddress') {
+            const currency = this.currency (code);
+            let network = undefined;
+            [ network, params ] = this.handleOptionAndParams (params, 'createDepositAddress', 'network');
+            request['asset'] = currency;
+            if (network !== undefined) {
+                const networkId = this.networkCodeToId (network);
+                request['network'] = networkId;
+            }
         }
         const response = await this.v1PrivatePostTransfersAddress (this.extend (request, params));
         //
         //
         const data = this.safeDict (response, 'data', {});
         const tag = this.safeString (data, 'destination_tag');
-        const address = this.safeString (data, 'address');
+        const address = this.safeString2 (data, 'address', 'counterparty_id');
         return {
             'currency': code,
             'tag': tag,
@@ -436,7 +434,7 @@ export default class coinbaseinternational extends Exchange {
         /**
          * @method
          * @name coinbaseinternational#setMargin
-         * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+         * @description Either adds or reduces margin in order to set the margin to a specific value
          * @see https://docs.cloud.coinbase.com/intx/reference/setportfoliomarginoverride
          * @param {string} symbol unified market symbol of the market to set margin in
          * @param {float} amount the amount to set the margin to
@@ -447,6 +445,9 @@ export default class coinbaseinternational extends Exchange {
         [ portfolio, params ] = this.handleOptionAndParams (params, 'setMargin', 'portfolio');
         if (portfolio === undefined) {
             throw new ArgumentsRequired (this.id + ' setMargin() requires a portfolio parameter');
+        }
+        if (symbol !== undefined) {
+            throw new BadRequest (this.id + ' setMargin() only allows setting margin to full portfolio');
         }
         const request = {
             'portfolio': portfolio,
@@ -748,7 +749,7 @@ export default class coinbaseinternational extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}): Promise<MarketInterface[]> {
+    async fetchMarkets (params = {}) {
         /**
          * @method
          * @name coinbaseinternational#fetchMarkets
@@ -807,73 +808,122 @@ export default class coinbaseinternational extends Exchange {
         //        ...
         //    ]
         //
-        const result: MarketInterface[] = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const marketId = this.safeString (market, 'symbol');
-            const baseId = this.safeString (market, 'base_asset_name');
-            const quoteId = this.safeString (market, 'quote_asset_name');
-            const typeId = this.safeString (market, 'type'); // 'SPOT', 'PERP'
-            const isSpot = (typeId === 'SPOT');
-            const fees = this.fees;
-            result.push ({
-                'id': marketId,
-                'lowercaseId': marketId.toLowerCase (),
-                'symbol': baseId + '/' + quoteId + (isSpot ? '' : (':' + quoteId)),
-                'base': baseId,
-                'quote': quoteId,
-                'settle': quoteId,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': quoteId,
-                'type': isSpot ? 'spot' : 'swap',
-                'spot': isSpot,
-                'margin': false,
-                'swap': !isSpot,
-                'future': !isSpot,
-                'option': false,
-                'active': this.safeString (market, 'trading_state') === 'TRADING',
-                'contract': !isSpot,
-                'linear': true,
-                'inverse': false,
-                'taker': fees['trading']['taker'],
-                'maker': fees['trading']['maker'],
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.safeNumber (market, 'base_increment'),
-                    'price': this.safeNumber (market, 'quote_increment'),
-                    'cost': this.safeNumber (market, 'quote_increment'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': this.safeNumber (market, 'base_imf'),
-                    },
-                    'amount': {
-                        'min': this.safeNumber (market, 'minQty'),
-                        'max': this.safeNumber (market, 'position_limit_qty'),
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeNumber (market, 'min_notional_value'),
-                        'max': undefined,
-                    },
-                },
-                'info': market,
-                'created': undefined, // present in inverse & linear apis
-            });
-        }
-        return result;
+        return this.parseMarkets (response);
     }
 
-    async fetchCurrencies (params = {}): Promise<CurrencyInterface[]> {
+    parseMarket (market): Market {
+        //
+        //   {
+        //       "instrument_id":"149264164756389888",
+        //       "instrument_uuid":"e9360798-6a10-45d6-af05-67c30eb91e2d",
+        //       "symbol":"ETH-PERP",
+        //       "type":"PERP",
+        //       "base_asset_id":"118059611793145856",
+        //       "base_asset_uuid":"d85dce9b-5b73-5c3c-8978-522ce1d1c1b4",
+        //       "base_asset_name":"ETH",
+        //       "quote_asset_id":"1",
+        //       "quote_asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
+        //       "quote_asset_name":"USDC",
+        //       "base_increment":"0.0001",
+        //       "quote_increment":"0.01",
+        //       "price_band_percent":"0.02",
+        //       "market_order_percent":"0.0075",
+        //       "qty_24hr":"44434.8131",
+        //       "notional_24hr":"110943454.279785",
+        //       "avg_daily_qty":"1099171.6025",
+        //       "avg_daily_notional":"2637240145.456987",
+        //       "previous_day_qty":"78909.3939",
+        //       "open_interest":"1270.749",
+        //       "position_limit_qty":"1831.9527",
+        //       "position_limit_adq_pct":"0.05",
+        //       "replacement_cost":"0.23",
+        //       "base_imf":"0.1",
+        //       "min_notional_value":"10",
+        //       "funding_interval":"3600000000000",
+        //       "trading_state":"TRADING",
+        //       "quote":{
+        //          "best_bid_price":"2490.8",
+        //          "best_bid_size":"9.0515",
+        //          "best_ask_price":"2490.81",
+        //          "best_ask_size":"4.8486",
+        //          "trade_price":"2490.39",
+        //          "trade_qty":"0.9508",
+        //          "index_price":"2490.5",
+        //          "mark_price":"2490.8",
+        //          "settlement_price":"2490.81",
+        //          "limit_up":"2615.42",
+        //          "limit_down":"2366.34",
+        //          "predicted_funding":"0.000009",
+        //          "timestamp":"2024-02-10T16:07:39.454Z"
+        //       }
+        //    }
+        //
+        const marketId = this.safeString (market, 'symbol');
+        const baseId = this.safeString (market, 'base_asset_name');
+        const quoteId = this.safeString (market, 'quote_asset_name');
+        const typeId = this.safeString (market, 'type'); // 'SPOT', 'PERP'
+        const isSpot = (typeId === 'SPOT');
+        const fees = this.fees;
+        let symbol = baseId + '/' + quoteId;
+        if (!isSpot) {
+            symbol += ':' + quoteId;
+        }
+        return {
+            'id': marketId,
+            'lowercaseId': marketId.toLowerCase (),
+            'symbol': symbol,
+            'base': baseId,
+            'quote': quoteId,
+            'settle': quoteId,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': quoteId,
+            'type': isSpot ? 'spot' : 'swap',
+            'spot': isSpot,
+            'margin': false,
+            'swap': !isSpot,
+            'future': !isSpot,
+            'option': false,
+            'active': this.safeString (market, 'trading_state') === 'TRADING',
+            'contract': !isSpot,
+            'linear': true,
+            'inverse': false,
+            'taker': fees['trading']['taker'],
+            'maker': fees['trading']['maker'],
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeNumber (market, 'base_increment'),
+                'price': this.safeNumber (market, 'quote_increment'),
+                'cost': this.safeNumber (market, 'quote_increment'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': this.safeNumber (market, 'base_imf'),
+                },
+                'amount': {
+                    'min': this.safeNumber (market, 'minQty'),
+                    'max': this.safeNumber (market, 'position_limit_qty'),
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.safeNumber (market, 'min_notional_value'),
+                    'max': undefined,
+                },
+            },
+            'info': market,
+            'created': undefined, // present in inverse & linear apis
+        };
+    }
+
+    async fetchCurrencies (params = {}): Promise<{}> {
         /**
          * @method
          * @name coinbaseinternational#fetchCurrencies
@@ -896,10 +946,10 @@ export default class coinbaseinternational extends Exchange {
         //        ...
         //    ]
         //
-        const result: CurrencyInterface[] = [];
+        const result = {};
         for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            result.push (this.parseCurrency (currency[i]));
+            const currency = this.parseCurrency (currencies[i]);
+            result[currency['code']] = currency;
         }
         return result;
     }
@@ -917,11 +967,20 @@ export default class coinbaseinternational extends Exchange {
         //
         const id = this.safeString (currency, 'asset_name');
         const code = this.safeCurrencyCode (id);
+        const statusId = this.safeString (currency, 'status');
         return {
             'id': id,
+            'name': code,
             'code': code,
-            'numericId': this.safeInteger (currency, 'asset_id'),
             'precision': undefined,
+            'info': currency,
+            'active': (statusId === 'ACTIVE'),
+            'deposit': undefined,
+            'withdraw': undefined,
+            'networks': undefined,
+            'fee': undefined,
+            'fees': undefined,
+            'limits': this.limits,
         };
     }
 
@@ -1079,7 +1138,7 @@ export default class coinbaseinternational extends Exchange {
         return this.safeBalance (this.balance);
     }
 
-    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name coinbaseinternational#transfer
@@ -1368,7 +1427,7 @@ export default class coinbaseinternational extends Exchange {
          * @method
          * @name coinbaseinternational#editOrder
          * @description edit a trade order
-        * @param {string} id cancel order id
+         * @param {string} id cancel order id
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1585,6 +1644,7 @@ export default class coinbaseinternational extends Exchange {
          * @name coinbaseinternational#withdraw
          * @description make a withdrawal
          * @see https://docs.cloud.coinbase.com/intx/reference/withdraw
+         * @see https://docs.cloud.coinbase.com/intx/reference/counterpartywithdraw
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -1599,7 +1659,7 @@ export default class coinbaseinternational extends Exchange {
         let network = undefined;
         [ network, params ] = this.handleOptionAndParams (params, 'withdraw', 'network');
         let method = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'withdraw', 'method', 'v1PrivateTransfersWithdraw');
+        [ method, params ] = this.handleOptionAndParams (params, 'withdraw', 'method', 'v1PrivatePostTransfersWithdraw');
         const request = {
             'type': 'send',
             'asset': currency['id'],

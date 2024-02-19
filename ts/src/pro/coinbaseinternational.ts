@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import coinbaseinternationalRest from '../coinbaseinternational.js';
-import { ExchangeError, NotSupported } from '../base/errors.js';
+import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 import { Ticker, Int, Trade, OrderBook, Market } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
@@ -37,6 +37,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
                     'offer': 'asks',
                 },
             },
+            'errors': {
+                'exact': {
+                    'Unable to authenticate': AuthenticationError,
+                },
+            },
         });
     }
 
@@ -69,9 +74,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (url === undefined) {
             throw new NotSupported (this.id + ' is not supported in sandbox environment');
         }
-        const timestamp = this.numberToString (this.seconds ());
+        const timestamp = this.nonce ().toString ();
         const auth = timestamp + this.apiKey + 'CBINTLMD' + this.password;
-        const signature = this.hmac (this.encode (auth), this.base64ToBinary (this.secret), sha256, 'base64');
+        const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
         const subscribe = {
             'type': 'SUBSCRIBE',
             'product_ids': productIds,
@@ -110,7 +115,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         }
         const url = this.urls['api']['ws'];
         if (url === undefined) {
-            throw new NotSupported (this.id + ' is not supported in sandbox environment')
+            throw new NotSupported (this.id + ' is not supported in sandbox environment');
         }
         const timestamp = this.numberToString (this.seconds ());
         const auth = timestamp + this.apiKey + 'CBINTLMD' + this.password;
@@ -460,7 +465,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const marketId = this.safeString (message, 'product_id');
         const symbol = this.safeSymbol (marketId);
         const datetime = this.safeString (message, 'time');
-        let orderbook = this.safeDict (this.orderbooks, symbol);
+        let orderbook = this.safeValue (this.orderbooks, symbol);
         if (type === 'SNAPSHOT') {
             const limit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
             orderbook = this.orderBook (message, limit);
@@ -518,7 +523,36 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return message;
     }
 
+    handleErrorMessage (client: Client, message) {
+        //
+        //    {
+        //        message: 'Failed to subscribe',
+        //        reason: 'Unable to authenticate',
+        //        channel: 'SUBSCRIPTIONS',
+        //        type: 'REJECT'
+        //    }
+        //
+        const type = this.safeString (message, 'type');
+        if (type !== 'REJECT') {
+            return false;
+        }
+        const reason = this.safeString (message, 'reason');
+        const errMsg = this.safeString (message, 'message');
+        try {
+            const feedback = this.id + ' ' + errMsg + reason;
+            this.throwExactlyMatchedException (this.exceptions['exact'], reason, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], reason, feedback);
+            throw new ExchangeError (feedback);
+        } catch (e) {
+            client.reject (e);
+        }
+        return true;
+    }
+
     handleMessage (client, message) {
+        if (this.handleErrorMessage (client, message)) {
+            return;
+        }
         const channel = this.safeString (message, 'channel');
         const methods = {
             'SUBSCRIPTIONS': this.handleSubscriptionStatus,
@@ -533,6 +567,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             throw new ExchangeError (errorMessage);
         }
         const method = this.safeValue (methods, channel);
-        method.call (this, client, message);
+        if (method !== undefined) {
+            method.call (this, client, message);
+        }
     }
 }
