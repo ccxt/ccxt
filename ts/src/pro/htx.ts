@@ -645,14 +645,13 @@ export default class htx extends htxRest {
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
         const symbol = this.safeSymbol (marketId);
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
             const size = this.safeString (parts, 3);
             const sizeParts = size.split ('_');
             const limit = this.safeInteger (sizeParts, 1);
-            orderbook = this.orderBook ({}, limit);
-            this.orderbooks[symbol] = orderbook;
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
         }
+        const orderbook = this.orderbooks[symbol];
         if ((event === undefined) && (orderbook['nonce'] === undefined)) {
             orderbook.cache.push (message);
         } else {
