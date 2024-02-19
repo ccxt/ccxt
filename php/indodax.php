@@ -44,6 +44,9 @@ class indodax extends Exchange {
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchDeposit' => false,
+                'fetchDepositAddress' => 'emulated',
+                'fetchDepositAddresses' => true,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => false,
                 'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
@@ -156,6 +159,24 @@ class indodax extends Exchange {
                 'recvWindow' => 5 * 1000, // default 5 sec
                 'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
+                'networks' => array(
+                    'XLM' => 'Stellar Token',
+                    'BSC' => 'bep20',
+                    'TRC20' => 'trc20',
+                    'MATIC' => 'polygon',
+                    // 'BEP2' => 'bep2',
+                    // 'ARB' => 'arb',
+                    // 'ERC20' => 'erc20',
+                    // 'KIP7' => 'kip7',
+                    // 'MAINNET' => 'mainnet',  // TODO => does mainnet just mean the default?
+                    // 'OEP4' => 'oep4',
+                    // 'OP' => 'op',
+                    // 'SPL' => 'spl',
+                    // 'TRC10' => 'trc10',
+                    // 'ZRC2' => 'zrc2'
+                    // 'ETH' => 'eth'
+                    // 'BASE' => 'base'
+                ),
             ),
             'commonCurrencies' => array(
                 'STR' => 'XLM',
@@ -1004,6 +1025,88 @@ class indodax extends Exchange {
             'success' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
+        /**
+         * fetch deposit $addresses for multiple currencies and chain types
+         * @param {string[]} [$codes] list of unified currency $codes, default is null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=$address-structure $address structures~
+         */
+        $this->load_markets();
+        $response = $this->privatePostGetInfo ($params);
+        //
+        //    {
+        //        success => '1',
+        //        return => {
+        //            server_time => '1708031570',
+        //            balance => array(
+        //                idr => '29952',
+        //                ...
+        //            ),
+        //            balance_hold => array(
+        //                idr => '0',
+        //                ...
+        //            ),
+        //            $address => array(
+        //                btc => '1KMntgzvU7iTSgMBWc11nVuJjAyfW3qJyk',
+        //                ...
+        //            ),
+        //            memo_is_required => array(
+        //                btc => array( mainnet => false ),
+        //                ...
+        //            ),
+        //            $network => array(
+        //                btc => 'mainnet',
+        //                ...
+        //            ),
+        //            user_id => '276011',
+        //            name => '',
+        //            email => 'testbitcoincoid@mailforspam.com',
+        //            profile_picture => null,
+        //            verification_status => 'unverified',
+        //            gauth_enable => true,
+        //            withdraw_status => '0'
+        //        }
+        //    }
+        //
+        $data = $this->safe_dict($response, 'return');
+        $addresses = $this->safe_dict($data, 'address', array());
+        $networks = $this->safe_dict($data, 'network', array());
+        $addressKeys = is_array($addresses) ? array_keys($addresses) : array();
+        $result = array(
+            'info' => $data,
+        );
+        for ($i = 0; $i < count($addressKeys); $i++) {
+            $marketId = $addressKeys[$i];
+            $code = $this->safe_currency_code($marketId);
+            $address = $this->safe_string($addresses, $marketId);
+            if (($address !== null) && (($codes === null) || ($this->in_array($code, $codes)))) {
+                $this->check_address($address);
+                $network = null;
+                if (is_array($networks) && array_key_exists($marketId, $networks)) {
+                    $networkId = $this->safe_string($networks, $marketId);
+                    if (mb_strpos($networkId, ',') !== false) {
+                        $network = array();
+                        $networkIds = explode(',', $networkId);
+                        for ($j = 0; $j < count($networkIds); $j++) {
+                            $network[] = strtoupper($this->network_id_to_code($networkIds[$j]));
+                        }
+                    } else {
+                        $network = strtoupper($this->network_id_to_code($networkId));
+                    }
+                }
+                $result[$code] = array(
+                    'info' => array(),
+                    'currency' => $code,
+                    'address' => $address,
+                    'network' => $network,
+                    'tag' => null,
+                );
+            }
+        }
+        return $result;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

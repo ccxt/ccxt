@@ -33,6 +33,9 @@ export default class indodax extends Exchange {
     withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseTransactionStatus(status: any): string;
+    fetchDepositAddresses(codes?: string[], params?: {}): Promise<{
+        info: import("./base/types.js").Dictionary<any>;
+    }>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;
