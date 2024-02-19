@@ -393,10 +393,10 @@ export default class gemini extends geminiRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ();
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
+            this.orderbooks[symbol] = this.orderBook ();
         }
+        const orderbook = this.orderbooks[symbol];
         for (let i = 0; i < changes.length; i++) {
             const delta = changes[i];
             const price = this.safeNumber (delta, 1);
@@ -472,9 +472,8 @@ export default class gemini extends geminiRest {
         const market = this.safeMarket (marketId.toLowerCase ());
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
-        if (!(symbol in this.orderbooks)) {
-            const ob = this.orderBook ();
-            this.orderbooks[symbol] = ob;
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
+            this.orderbooks[symbol] = this.orderBook ();
         }
         const orderbook = this.orderbooks[symbol];
         const bids = orderbook['bids'];
