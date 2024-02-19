@@ -5774,12 +5774,14 @@ export default class binance extends Exchange {
         const trailingDelta = this.safeString(params, 'trailingDelta');
         const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activationPrice', this.numberToString(price));
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRate');
+        const priceMatch = this.safeString(params, 'priceMatch');
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const isStopLoss = stopLossPrice !== undefined || trailingDelta !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
         const isTriggerOrder = triggerPrice !== undefined;
         const isConditional = isTriggerOrder || isTrailingPercentOrder || isStopLoss || isTakeProfit;
         const isPortfolioMarginConditional = (isPortfolioMargin && isConditional);
+        const isPriceMatch = priceMatch !== undefined;
         let uppercaseType = type.toUpperCase();
         let stopPrice = undefined;
         if (isTrailingPercentOrder) {
@@ -5960,7 +5962,7 @@ export default class binance extends Exchange {
                 request['quantity'] = this.amountToPrecision(symbol, amount);
             }
         }
-        if (priceIsRequired) {
+        if (priceIsRequired && !isPriceMatch) {
             if (price === undefined) {
                 throw new InvalidOrder(this.id + ' createOrder() requires a price argument for a ' + type + ' order');
             }

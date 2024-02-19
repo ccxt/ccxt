@@ -5991,12 +5991,14 @@ public partial class binance : Exchange
         object trailingDelta = this.safeString(parameters, "trailingDelta");
         object trailingTriggerPrice = this.safeString2(parameters, "trailingTriggerPrice", "activationPrice", this.numberToString(price));
         object trailingPercent = this.safeString2(parameters, "trailingPercent", "callbackRate");
+        object priceMatch = this.safeString(parameters, "priceMatch");
         object isTrailingPercentOrder = !isEqual(trailingPercent, null);
         object isStopLoss = isTrue(!isEqual(stopLossPrice, null)) || isTrue(!isEqual(trailingDelta, null));
         object isTakeProfit = !isEqual(takeProfitPrice, null);
         object isTriggerOrder = !isEqual(triggerPrice, null);
         object isConditional = isTrue(isTrue(isTrue(isTriggerOrder) || isTrue(isTrailingPercentOrder)) || isTrue(isStopLoss)) || isTrue(isTakeProfit);
         object isPortfolioMarginConditional = (isTrue(isPortfolioMargin) && isTrue(isConditional));
+        object isPriceMatch = !isEqual(priceMatch, null);
         object uppercaseType = ((string)type).ToUpper();
         object stopPrice = null;
         if (isTrue(isTrailingPercentOrder))
@@ -6201,7 +6203,7 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
             }
         }
-        if (isTrue(priceIsRequired))
+        if (isTrue(isTrue(priceIsRequired) && !isTrue(isPriceMatch)))
         {
             if (isTrue(isEqual(price, null)))
             {
