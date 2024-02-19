@@ -105,7 +105,7 @@ public partial class BaseTest
     public static string hash(object request2, Delegate algorithm2 = null, object digest2 = null) => Exchange.Hash(request2, algorithm2, digest2);
     public static string hmac(object request2, object secret2, Delegate algorithm2 = null, string digest = "hex") => Exchange.Hmac(request2, secret2, algorithm2, digest);
     public static string rsa(object request, object secret, Delegate alg = null) => Exchange.Rsa(request, secret, alg);
-    public static string ecdsa(object request, object secret, Delegate alg = null, Delegate stub = null) => Exchange.Ecdsa(request, secret, alg, stub);
+    public static object ecdsa(object request, object secret, Delegate alg = null, Delegate stub = null) => Exchange.Ecdsa(request, secret, alg, stub);
     public string jwt(object data, object secret, Delegate alg = null, bool isRsa = false) => Exchange.Jwt(data, secret, alg, isRsa);
 
     public static object crc32(object str, object signed2 = null) => Exchange.Crc32(str, signed2);
