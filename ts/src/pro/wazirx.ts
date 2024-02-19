@@ -542,20 +542,20 @@ export default class wazirx extends wazirxRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
-        const currentOrderBook = this.safeValue (this.orderbooks, symbol);
-        if (currentOrderBook === undefined) {
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
             const snapshot = this.parseOrderBook (data, symbol, timestamp, 'b', 'a');
             const orderBook = this.orderBook (snapshot);
             this.orderbooks[symbol] = orderBook;
         } else {
+            const orderbook = this.orderbooks[symbol];
             const asks = this.safeValue (data, 'a', []);
             const bids = this.safeValue (data, 'b', []);
-            this.handleDeltas (currentOrderBook['asks'], asks);
-            this.handleDeltas (currentOrderBook['bids'], bids);
-            currentOrderBook['nonce'] = timestamp;
-            currentOrderBook['timestamp'] = timestamp;
-            currentOrderBook['datetime'] = this.iso8601 (timestamp);
-            this.orderbooks[symbol] = currentOrderBook;
+            this.handleDeltas (orderbook['asks'], asks);
+            this.handleDeltas (orderbook['bids'], bids);
+            orderbook['nonce'] = timestamp;
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
+            this.orderbooks[symbol] = orderbook;
         }
         client.resolve (this.orderbooks[symbol], messageHash);
     }
