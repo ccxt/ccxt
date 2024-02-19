@@ -204,14 +204,14 @@ export default class cryptocom extends cryptocomRest {
         let data = this.safeValue (message, 'data');
         data = this.safeValue (data, 0);
         const timestamp = this.safeInteger (data, 't');
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
             const limit = this.safeInteger (message, 'depth');
-            orderbook = this.countedOrderBook ({}, limit);
+            this.orderbooks[symbol] = this.countedOrderBook ({}, limit);
         }
         const channel = this.safeString (message, 'channel');
         const nonce = this.safeInteger2 (data, 'u', 's');
         let books = data;
+        const orderbook = this.orderbooks[symbol];
         if (channel === 'book') {  // snapshot
             orderbook.reset ({});
             orderbook['symbol'] = symbol;
