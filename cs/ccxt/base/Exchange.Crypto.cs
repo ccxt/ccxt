@@ -311,10 +311,14 @@ public partial class Exchange
         }
 
         var hashName = (hash != null) ? hash.DynamicInvoke() as string : null;
-        byte[] msgHash = Encoding.UTF8.GetBytes((string)request);
+        byte[] msgHash;
         if (hashName != null)
         {
             msgHash = HashBytes(request, hash);
+        }
+        else
+        {
+            msgHash = Hex.HexToBytes((string)request);
         }
         var seckey = Hex.HexToBytes(secret.ToString());
 
