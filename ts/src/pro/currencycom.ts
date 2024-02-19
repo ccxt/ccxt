@@ -476,10 +476,10 @@ export default class currencycom extends currencycomRest {
         const destination = 'depthMarketData.subscribe';
         const messageHash = destination + ':' + symbol;
         const timestamp = this.safeInteger (data, 'ts');
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ();
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
+            this.orderbooks[symbol] = this.orderBook ();
         }
+        const orderbook = this.orderbooks[symbol];
         orderbook.reset ({
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
