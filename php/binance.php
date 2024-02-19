@@ -5667,12 +5667,14 @@ class binance extends Exchange {
         $trailingDelta = $this->safe_string($params, 'trailingDelta');
         $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activationPrice', $this->number_to_string($price));
         $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRate');
+        $priceMatch = $this->safe_string($params, 'priceMatch');
         $isTrailingPercentOrder = $trailingPercent !== null;
         $isStopLoss = $stopLossPrice !== null || $trailingDelta !== null;
         $isTakeProfit = $takeProfitPrice !== null;
         $isTriggerOrder = $triggerPrice !== null;
         $isConditional = $isTriggerOrder || $isTrailingPercentOrder || $isStopLoss || $isTakeProfit;
         $isPortfolioMarginConditional = ($isPortfolioMargin && $isConditional);
+        $isPriceMatch = $priceMatch !== null;
         $uppercaseType = strtoupper($type);
         $stopPrice = null;
         if ($isTrailingPercentOrder) {
@@ -5833,7 +5835,7 @@ class binance extends Exchange {
                 $request['quantity'] = $this->amount_to_precision($symbol, $amount);
             }
         }
-        if ($priceIsRequired) {
+        if ($priceIsRequired && !$isPriceMatch) {
             if ($price === null) {
                 throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for a ' . $type . ' order');
             }
