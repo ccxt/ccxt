@@ -445,7 +445,7 @@ export default class hollaex extends Exchange {
          * @method
          * @name hollaex#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://apidocs.hollaex.com/#orderbooks
+         * @see https://apidocs.hollaex.com/#orderbook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -456,7 +456,7 @@ export default class hollaex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetOrderbooks (this.extend (request, params));
+        const response = await this.publicGetOrderbook (this.extend (request, params));
         //
         //     {
         //         "btc-usdt": {
