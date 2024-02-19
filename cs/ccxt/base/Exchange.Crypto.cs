@@ -303,7 +303,7 @@ public partial class Exchange
         var curveName = "secp256k1";
         if (curve != null)
         {
-            curveName = hash.DynamicInvoke() as String;
+            curveName = curve.DynamicInvoke() as String;
         }
         if (curveName != "secp256k1")
         {
