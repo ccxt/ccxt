@@ -200,11 +200,10 @@ export default class luno extends lunoRest {
         const symbol = subscription['symbol'];
         const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeString (message, 'timestamp');
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.indexedOrderBook ({});
-            this.orderbooks[symbol] = orderbook;
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
+            this.orderbooks[symbol] = this.indexedOrderBook ({});
         }
+        const orderbook = this.orderbooks[symbol];
         const asks = this.safeValue (message, 'asks');
         if (asks !== undefined) {
             const snapshot = this.customParseOrderBook (message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id');
