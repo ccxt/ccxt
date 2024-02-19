@@ -473,20 +473,20 @@ export default class deribit extends deribitRest {
         const marketId = this.safeString (data, 'instrument_name');
         const symbol = this.safeSymbol (marketId);
         const timestamp = this.safeInteger (data, 'timestamp');
-        let storedOrderBook = this.safeValue (this.orderbooks, symbol);
-        if (storedOrderBook === undefined) {
-            storedOrderBook = this.countedOrderBook ();
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
+            this.orderbooks[symbol] = this.countedOrderBook ();
         }
+        const orderbook = this.orderbooks[symbol];
         const asks = this.safeValue (data, 'asks', []);
         const bids = this.safeValue (data, 'bids', []);
-        this.handleDeltas (storedOrderBook['asks'], asks);
-        this.handleDeltas (storedOrderBook['bids'], bids);
-        storedOrderBook['nonce'] = timestamp;
-        storedOrderBook['timestamp'] = timestamp;
-        storedOrderBook['datetime'] = this.iso8601 (timestamp);
-        storedOrderBook['symbol'] = symbol;
-        this.orderbooks[symbol] = storedOrderBook;
-        client.resolve (storedOrderBook, channel);
+        this.handleDeltas (orderbook['asks'], asks);
+        this.handleDeltas (orderbook['bids'], bids);
+        orderbook['nonce'] = timestamp;
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        orderbook['symbol'] = symbol;
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, channel);
     }
 
     cleanOrderBook (data) {
