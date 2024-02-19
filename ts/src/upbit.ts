@@ -1823,7 +1823,7 @@ export default class upbit extends Exchange {
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ();
+            const nonce = this.uuid ();
             const request = {
                 'access_key': this.apiKey,
                 'nonce': nonce,
