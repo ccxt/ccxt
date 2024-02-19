@@ -468,11 +468,10 @@ export default class probit extends probitRest {
         const symbol = this.safeSymbol (marketId);
         const dataBySide = this.groupBy (orderBook, 'side');
         const messageHash = 'orderbook:' + symbol;
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ({});
-            this.orderbooks[symbol] = orderbook;
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
+            this.orderbooks[symbol] = this.orderBook ();
         }
+        const orderbook = this.orderbooks[symbol];
         const reset = this.safeBool (message, 'reset', false);
         if (reset) {
             const snapshot = this.parseOrderBook (dataBySide, symbol, undefined, 'buy', 'sell', 'price', 'quantity');
