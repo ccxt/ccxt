@@ -598,14 +598,14 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const marketId = this.safeString (topicParts, 1);
         const symbol = this.safeSymbol (marketId, undefined, '-');
         const messageHash = 'orderbook:' + symbol;
-        const storedOrderBook = this.safeValue (this.orderbooks, symbol);
-        const nonce = this.safeInteger (storedOrderBook, 'nonce');
-        if (storedOrderBook === undefined) {
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
             return; // this shouldn't be needed, but for some reason sometimes this runs before handleOrderBookSubscription in c#
         }
+        const orderbook = this.orderbooks[symbol];
+        const nonce = this.safeInteger (orderbook, 'nonce');
         const deltaEnd = this.safeInteger (data, 'sequence');
         if (nonce === undefined) {
-            const cacheLength = storedOrderBook.cache.length;
+            const cacheLength = orderbook.cache.length;
             const topicPartsNew = topic.split (':');
             const topicSymbol = this.safeString (topicPartsNew, 1);
             const topicChannel = this.safeString (topicPartsNew, 0);
@@ -623,13 +623,13 @@ export default class kucoinfutures extends kucoinfuturesRest {
             if (cacheLength === snapshotDelay) {
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {});
             }
-            storedOrderBook.cache.push (data);
+            orderbook.cache.push (data);
             return;
         } else if (nonce >= deltaEnd) {
             return;
         }
-        this.handleDelta (storedOrderBook, data);
-        client.resolve (storedOrderBook, messageHash);
+        this.handleDelta (orderbook, data);
+        client.resolve (orderbook, messageHash);
     }
 
     getCacheIndex (orderbook, cache) {
