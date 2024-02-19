@@ -716,12 +716,11 @@ export default class phemex extends phemexRest {
             const book = this.safeValue2 (message, 'book', 'orderbook_p', {});
             const snapshot = this.customParseOrderBook (book, symbol, timestamp, 'bids', 'asks', 0, 1, market);
             snapshot['nonce'] = nonce;
-            const orderbook = this.orderBook (snapshot, depth);
-            this.orderbooks[symbol] = orderbook;
-            client.resolve (orderbook, messageHash);
+            this.orderbooks[symbol] = this.orderBook (snapshot, depth);
+            client.resolve (this.orderbooks[symbol], messageHash);
         } else {
-            const orderbook = this.safeValue (this.orderbooks, symbol);
-            if (orderbook !== undefined) {
+            if (this.safeValue (this.orderbooks, symbol) !== undefined) {
+                const orderbook = this.orderbooks[symbol];
                 const changes = this.safeValue2 (message, 'book', 'orderbook_p', {});
                 const asks = this.safeValue (changes, 'asks', []);
                 const bids = this.safeValue (changes, 'bids', []);
