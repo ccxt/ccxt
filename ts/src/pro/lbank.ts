@@ -796,11 +796,10 @@ export default class lbank extends lbankRest {
         const orderBook = this.safeValue (message, 'depth', message);
         const datetime = this.safeString (message, 'TS');
         const timestamp = this.parse8601 (datetime);
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ({});
-            this.orderbooks[symbol] = orderbook;
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
+            this.orderbooks[symbol] = this.orderBook ();
         }
+        const orderbook = this.orderbooks[symbol];
         const snapshot = this.parseOrderBook (orderBook, symbol, timestamp, 'bids', 'asks');
         orderbook.reset (snapshot);
         let messageHash = 'orderbook:' + symbol;
