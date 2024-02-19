@@ -376,10 +376,10 @@ export default class onetrading extends onetradingRest {
         const dateTime = this.safeString (message, 'time');
         const timestamp = this.parse8601 (dateTime);
         const channel = 'book:' + symbol;
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ({});
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
+            this.orderbooks[symbol] = this.orderBook ();
         }
+        const orderbook = this.orderbooks[symbol];
         if (type === 'ORDER_BOOK_SNAPSHOT') {
             const snapshot = this.parseOrderBook (message, symbol, timestamp, 'bids', 'asks');
             orderbook.reset (snapshot);
