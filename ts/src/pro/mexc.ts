@@ -470,27 +470,30 @@ export default class mexc extends mexcRest {
             client.subscriptions[messageHash] = 1;
             this.orderbooks[symbol] = this.countedOrderBook ({});
         }
-        const storedOrderBook = this.safeValue (this.orderbooks, symbol);
-        const nonce = this.safeInteger (storedOrderBook, 'nonce');
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
+            return;
+        }
+        const orderbook = this.orderbooks[symbol];
+        const nonce = this.safeInteger (orderbook, 'nonce');
         if (nonce === undefined) {
-            const cacheLength = storedOrderBook.cache.length;
+            const cacheLength = orderbook.cache.length;
             const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 25);
             if (cacheLength === snapshotDelay) {
                 this.spawn (this.loadOrderBook, client, messageHash, symbol);
             }
-            storedOrderBook.cache.push (data);
+            orderbook.cache.push (data);
             return;
         }
         try {
-            this.handleDelta (storedOrderBook, data);
+            this.handleDelta (orderbook, data);
             const timestamp = this.safeInteger2 (message, 't', 'ts');
-            storedOrderBook['timestamp'] = timestamp;
-            storedOrderBook['datetime'] = this.iso8601 (timestamp);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
         } catch (e) {
             delete client.subscriptions[messageHash];
             client.reject (e, messageHash);
         }
-        client.resolve (storedOrderBook, messageHash);
+        client.resolve (orderbook, messageHash);
     }
 
     handleBooksideDelta (bookside, bidasks) {
