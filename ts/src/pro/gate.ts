@@ -200,12 +200,15 @@ export default class gate extends gateRest {
         const marketId = this.safeString (delta, 's');
         const symbol = this.safeSymbol (marketId, undefined, '_', marketType);
         const messageHash = 'orderbook:' + symbol;
-        const storedOrderBook = this.safeValue (this.orderbooks, symbol, this.orderBook ({}));
-        const nonce = this.safeInteger (storedOrderBook, 'nonce');
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
+            this.orderbooks[symbol] = this.orderBook ();
+        }
+        const orderbook = this.orderbooks[symbol];
+        const nonce = this.safeInteger (orderbook, 'nonce');
         if (nonce === undefined) {
             let cacheLength = 0;
-            if (storedOrderBook !== undefined) {
-                cacheLength = storedOrderBook.cache.length;
+            if (orderbook !== undefined) {
+                cacheLength = orderbook.cache.length;
             }
             const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 10);
             const waitAmount = isSpot ? snapshotDelay : 0;
@@ -215,19 +218,19 @@ export default class gate extends gateRest {
                 const limit = this.safeInteger (subscription, 'limit');
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {}); // needed for c#, number of args needs to match
             }
-            storedOrderBook.cache.push (delta);
+            orderbook.cache.push (delta);
             return;
         } else if (nonce >= deltaEnd) {
             return;
         } else if (nonce >= deltaStart - 1) {
-            this.handleDelta (storedOrderBook, delta);
+            this.handleDelta (orderbook, delta);
         } else {
             const error = new InvalidNonce (this.id + ' orderbook update has a nonce bigger than u');
             delete client.subscriptions[messageHash];
             delete this.orderbooks[symbol];
             client.reject (error, messageHash);
         }
-        client.resolve (storedOrderBook, messageHash);
+        client.resolve (orderbook, messageHash);
     }
 
     getCacheIndex (orderBook, cache) {
