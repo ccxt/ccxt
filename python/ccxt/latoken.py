@@ -55,6 +55,9 @@ class latoken(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
+                'fetchDepositAddress': False,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDepositsWithdrawals': True,
                 'fetchDepositWithdrawFees': False,
                 'fetchIsolatedBorrowRate': False,
@@ -1493,7 +1496,7 @@ class latoken(Exchange, ImplicitAPI):
         transfers = self.safe_value(response, 'content', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
-    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code

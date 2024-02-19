@@ -3,6 +3,7 @@ from ccxt.base.types import Entry
 
 class ImplicitAPI:
     v2_public_get_currencies = v2PublicGetCurrencies = Entry('currencies', ['v2', 'public'], 'GET', {})
+    v2_public_get_currencies_crypto = v2PublicGetCurrenciesCrypto = Entry('currencies/crypto', ['v2', 'public'], 'GET', {})
     v2_public_get_time = v2PublicGetTime = Entry('time', ['v2', 'public'], 'GET', {})
     v2_public_get_exchange_rates = v2PublicGetExchangeRates = Entry('exchange-rates', ['v2', 'public'], 'GET', {})
     v2_public_get_users_user_id = v2PublicGetUsersUserId = Entry('users/{user_id}', ['v2', 'public'], 'GET', {})
@@ -73,6 +74,7 @@ class ImplicitAPI:
     v3_private_post_brokerage_orders_batch_cancel = v3PrivatePostBrokerageOrdersBatchCancel = Entry('brokerage/orders/batch_cancel', ['v3', 'private'], 'POST', {})
     v3_private_post_brokerage_orders_edit = v3PrivatePostBrokerageOrdersEdit = Entry('brokerage/orders/edit', ['v3', 'private'], 'POST', {})
     v3_private_post_brokerage_orders_edit_preview = v3PrivatePostBrokerageOrdersEditPreview = Entry('brokerage/orders/edit_preview', ['v3', 'private'], 'POST', {})
+    v3_private_post_brokerage_orders_preview = v3PrivatePostBrokerageOrdersPreview = Entry('brokerage/orders/preview', ['v3', 'private'], 'POST', {})
     v3_private_post_brokerage_portfolios = v3PrivatePostBrokeragePortfolios = Entry('brokerage/portfolios', ['v3', 'private'], 'POST', {})
     v3_private_post_brokerage_portfolios_move_funds = v3PrivatePostBrokeragePortfoliosMoveFunds = Entry('brokerage/portfolios/move_funds', ['v3', 'private'], 'POST', {})
     v3_private_post_brokerage_convert_quote = v3PrivatePostBrokerageConvertQuote = Entry('brokerage/convert/quote', ['v3', 'private'], 'POST', {})

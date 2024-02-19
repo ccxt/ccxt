@@ -264,6 +264,7 @@ public partial class okx : Exchange
                         { "trade/easy-convert-history", 20 },
                         { "trade/one-click-repay-currency-list", 20 },
                         { "trade/one-click-repay-history", 20 },
+                        { "trade/account-rate-limit", 1 },
                         { "asset/currencies", divide(5, 3) },
                         { "asset/balances", divide(5, 3) },
                         { "asset/non-tradable-assets", divide(5, 3) },
@@ -412,6 +413,7 @@ public partial class okx : Exchange
                         { "account/quick-margin-borrow-repay", 4 },
                         { "account/borrow-repay", divide(5, 3) },
                         { "account/simulated_margin", 10 },
+                        { "account/position-builder", 10 },
                         { "account/set-riskOffset-type", 2 },
                         { "account/activate-option", 4 },
                         { "account/set-auto-loan", 4 },
@@ -1600,7 +1602,7 @@ public partial class okx : Exchange
                 {
                     object parts = ((string)networkId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                     object chainPart = this.safeString(parts, 1, networkId);
-                    object networkCode = this.safeNetwork(chainPart);
+                    object networkCode = this.networkIdToCode(chainPart, getValue(currency, "code"));
                     object precision = this.parsePrecision(this.safeString(chain, "wdTickSz"));
                     if (isTrue(isEqual(maxPrecision, null)))
                     {
@@ -3804,7 +3806,6 @@ public partial class okx : Exchange
         * @param {int} [since] the earliest time in ms to fetch open orders for
         * @param {int} [limit] the maximum number of  open orders structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.till] Timestamp in ms of the latest time to retrieve orders for
         * @param {bool} [params.stop] True if fetching trigger or conditional orders
         * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
         * @param {string} [params.algoId] Algo ID "'433845797218942976'"
@@ -3847,15 +3848,9 @@ public partial class okx : Exchange
         if (isTrue(trailing))
         {
             ((IDictionary<string,object>)request)["ordType"] = "move_order_stop";
-        } else if (isTrue(isTrue(stop) || isTrue((inOp(algoOrderTypes, ordType)))))
+        } else if (isTrue(isTrue(stop) && isTrue((isEqual(ordType, null)))))
         {
-            if (isTrue(stop))
-            {
-                if (isTrue(isEqual(ordType, null)))
-                {
-                    throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires an \"ordType\" string parameter, \"conditional\", \"oco\", \"trigger\", \"move_order_stop\", \"iceberg\", or \"twap\"")) ;
-                }
-            }
+            ((IDictionary<string,object>)request)["ordType"] = "trigger";
         }
         object query = this.omit(parameters, new List<object>() {"method", "stop", "trigger", "trailing"});
         object response = null;
@@ -4169,7 +4164,7 @@ public partial class okx : Exchange
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {bool} [params.stop] True if fetching trigger or conditional orders
+        * @param {bool} [params.trigger] True if fetching trigger or conditional orders
         * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
         * @param {string} [params.algoId] Algo ID "'433845797218942976'"
         * @param {int} [params.until] timestamp in ms to fetch orders for
@@ -4205,12 +4200,12 @@ public partial class okx : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
         }
-        object options = this.safeValue(this.options, "fetchClosedOrders", new Dictionary<string, object>() {});
-        object algoOrderTypes = this.safeValue(this.options, "algoOrderTypes", new Dictionary<string, object>() {});
+        object options = this.safeDict(this.options, "fetchClosedOrders", new Dictionary<string, object>() {});
+        object algoOrderTypes = this.safeDict(this.options, "algoOrderTypes", new Dictionary<string, object>() {});
         object defaultMethod = this.safeString(options, "method", "privateGetTradeOrdersHistory");
         object method = this.safeString(parameters, "method", defaultMethod);
         object ordType = this.safeString(parameters, "ordType");
-        object stop = this.safeValue2(parameters, "stop", "trigger");
+        object stop = this.safeBool2(parameters, "stop", "trigger");
         object trailing = this.safeBool(parameters, "trailing", false);
         if (isTrue(isTrue(isTrue(trailing) || isTrue(stop)) || isTrue((inOp(algoOrderTypes, ordType)))))
         {
@@ -4220,14 +4215,11 @@ public partial class okx : Exchange
         if (isTrue(trailing))
         {
             ((IDictionary<string,object>)request)["ordType"] = "move_order_stop";
-        } else if (isTrue(isTrue(stop) || isTrue((inOp(algoOrderTypes, ordType)))))
+        } else if (isTrue(stop))
         {
-            if (isTrue(stop))
+            if (isTrue(isEqual(ordType, null)))
             {
-                if (isTrue(isEqual(ordType, null)))
-                {
-                    throw new ArgumentsRequired ((string)add(this.id, " fetchClosedOrders() requires an \"ordType\" string parameter, \"conditional\", \"oco\", \"trigger\", \"move_order_stop\", \"iceberg\", or \"twap\"")) ;
-                }
+                ((IDictionary<string,object>)request)["ordType"] = "trigger";
             }
         } else
         {
@@ -4783,7 +4775,7 @@ public partial class okx : Exchange
         };
     }
 
-    public async virtual Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
+    public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
     {
         /**
         * @method
@@ -5352,7 +5344,7 @@ public partial class okx : Exchange
         };
     }
 
-    public async virtual Task<object> fetchLeverage(object symbol, object parameters = null)
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
         /**
         * @method
@@ -6340,7 +6332,7 @@ public partial class okx : Exchange
         return response;
     }
 
-    public async virtual Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
+    public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
         /**
         * @method
@@ -6379,7 +6371,7 @@ public partial class okx : Exchange
         return response;
     }
 
-    public async virtual Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
     {
         /**
         * @method
@@ -6719,7 +6711,7 @@ public partial class okx : Exchange
         };
     }
 
-    public async virtual Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
@@ -6735,7 +6727,7 @@ public partial class okx : Exchange
         return await this.modifyMarginHelper(symbol, amount, "reduce", parameters);
     }
 
-    public async virtual Task<object> addMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method

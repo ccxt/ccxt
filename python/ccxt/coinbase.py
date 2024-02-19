@@ -72,6 +72,9 @@ class coinbase(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
+                'fetchDepositAddress': 'emulated',
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
@@ -139,6 +142,7 @@ class coinbase(Exchange, ImplicitAPI):
                     'public': {
                         'get': [
                             'currencies',
+                            'currencies/crypto',
                             'time',
                             'exchange-rates',
                             'users/{user_id}',
@@ -227,6 +231,7 @@ class coinbase(Exchange, ImplicitAPI):
                             'brokerage/orders/batch_cancel',
                             'brokerage/orders/edit',
                             'brokerage/orders/edit_preview',
+                            'brokerage/orders/preview',
                             'brokerage/portfolios',
                             'brokerage/portfolios/move_funds',
                             'brokerage/convert/quote',
@@ -332,6 +337,10 @@ class coinbase(Exchange, ImplicitAPI):
                     'ACCOUNT_TYPE_CRYPTO',
                     'ACCOUNT_TYPE_FIAT',
                 ],
+                'networks': {
+                    'ERC20': 'ethereum',
+                    'XLM': 'stellar',
+                },
                 'createMarketBuyOrderRequiresPrice': True,
                 'advanced': True,  # set to True if using any v3 endpoints from the advanced trade API
                 'fetchMarkets': 'fetchMarketsV3',  # 'fetchMarketsV3' or 'fetchMarketsV2'
@@ -430,11 +439,12 @@ class coinbase(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
-        pagination = self.safe_value(response, 'pagination', {})
+        data = self.safe_list(response, 'data', [])
+        pagination = self.safe_dict(response, 'pagination', {})
         cursor = self.safe_string(pagination, 'next_starting_after')
-        accounts = self.safe_value(response, 'data', [])
-        lastIndex = len(accounts) - 1
+        accounts = self.safe_list(response, 'data', [])
+        length = len(accounts)
+        lastIndex = length - 1
         last = self.safe_value(accounts, lastIndex)
         if (cursor is not None) and (cursor != ''):
             last['next_starting_after'] = cursor
@@ -481,8 +491,9 @@ class coinbase(Exchange, ImplicitAPI):
         #         "size": 9
         #     }
         #
-        accounts = self.safe_value(response, 'accounts', [])
-        lastIndex = len(accounts) - 1
+        accounts = self.safe_list(response, 'accounts', [])
+        length = len(accounts)
+        lastIndex = length - 1
         last = self.safe_value(accounts, lastIndex)
         cursor = self.safe_string(response, 'cursor')
         if (cursor is not None) and (cursor != ''):
@@ -666,10 +677,10 @@ class coinbase(Exchange, ImplicitAPI):
         return self.parse_trades(buys['data'], None, since, limit)
 
     def fetch_transactions_with_method(self, method, code: Str = None, since: Int = None, limit: Int = None, params={}):
-        request = self.prepare_account_request_with_currency_code(code, limit, params)
+        request = None
+        request, params = self.prepare_account_request_with_currency_code(code, limit, params)
         self.load_markets()
-        query = self.omit(params, ['account_id', 'accountId'])
-        response = getattr(self, method)(self.extend(request, query))
+        response = getattr(self, method)(self.extend(request, params))
         return self.parse_transactions(response['data'], None, since, limit)
 
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -1199,14 +1210,44 @@ class coinbase(Exchange, ImplicitAPI):
         expires = self.safe_integer(options, 'expires', 1000)
         now = self.milliseconds()
         if (timestamp is None) or ((now - timestamp) > expires):
-            currencies = self.v2PublicGetCurrencies(params)
+            promises = [
+                self.v2PublicGetCurrencies(params),
+                self.v2PublicGetCurrenciesCrypto(params),
+            ]
+            promisesResult = promises
+            fiatResponse = self.safe_dict(promisesResult, 0, {})
+            #
+            #    [
+            #        "data": {
+            #            id: 'IMP',
+            #            name: 'Isle of Man Pound',
+            #            min_size: '0.01'
+            #        },
+            #        ...
+            #    ]
+            #
+            cryptoResponse = self.safe_dict(promisesResult, 1, {})
+            #
+            #    {
+            #        asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
+            #        code: 'AERO',
+            #        name: 'Aerodrome Finance',
+            #        color: '#0433FF',
+            #        sort_index: '340',
+            #        exponent: '8',
+            #        type: 'crypto',
+            #        address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
+            #    }
+            #
+            fiatData = self.safe_list(fiatResponse, 'data', [])
+            cryptoData = self.safe_list(cryptoResponse, 'data', [])
             exchangeRates = self.v2PublicGetExchangeRates(params)
             self.options['fetchCurrencies'] = self.extend(options, {
-                'currencies': currencies,
+                'currencies': self.array_concat(fiatData, cryptoData),
                 'exchangeRates': exchangeRates,
                 'timestamp': now,
             })
-        return self.safe_value(self.options, 'fetchCurrencies', {})
+        return self.safe_dict(self.options, 'fetchCurrencies', {})
 
     def fetch_currencies(self, params={}):
         """
@@ -1219,18 +1260,27 @@ class coinbase(Exchange, ImplicitAPI):
         response = self.fetch_currencies_from_cache(params)
         currencies = self.safe_value(response, 'currencies', {})
         #
-        #     {
-        #         "data":[
-        #             {"id":"AED","name":"United Arab Emirates Dirham","min_size":"0.01000000"},
-        #             {"id":"AFN","name":"Afghan Afghani","min_size":"0.01000000"},
-        #             {"id":"ALL","name":"Albanian Lek","min_size":"0.01000000"},
-        #             {"id":"AMD","name":"Armenian Dram","min_size":"0.01000000"},
-        #             {"id":"ANG","name":"Netherlands Antillean Gulden","min_size":"0.01000000"},
-        #             ...
-        #         ],
-        #     }
+        # fiat
         #
-        exchangeRates = self.safe_value(response, 'exchangeRates', {})
+        #    {
+        #        id: 'IMP',
+        #        name: 'Isle of Man Pound',
+        #        min_size: '0.01'
+        #    },
+        #
+        # crypto
+        #
+        #    {
+        #        asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
+        #        code: 'AERO',
+        #        name: 'Aerodrome Finance',
+        #        color: '#0433FF',
+        #        sort_index: '340',
+        #        exponent: '8',
+        #        type: 'crypto',
+        #        address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
+        #    }
+        #
         #
         #     {
         #         "data":{
@@ -1246,24 +1296,23 @@ class coinbase(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(currencies, 'data', [])
-        dataById = self.index_by(data, 'id')
-        rates = self.safe_value(self.safe_value(exchangeRates, 'data', {}), 'rates', {})
-        keys = list(rates.keys())
         result = {}
-        for i in range(0, len(keys)):
-            key = keys[i]
-            type = 'fiat' if (key in dataById) else 'crypto'
-            currency = self.safe_value(dataById, key, {})
-            id = self.safe_string(currency, 'id', key)
-            name = self.safe_string(currency, 'name')
+        networks = {}
+        networksById = {}
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            assetId = self.safe_string(currency, 'asset_id')
+            id = self.safe_string_2(currency, 'id', 'code')
             code = self.safe_currency_code(id)
+            name = self.safe_string(currency, 'name')
+            self.options['networks'][code] = name.lower()
+            self.options['networksById'][code] = name.lower()
             result[code] = {
+                'info': currency,  # the original payload
                 'id': id,
                 'code': code,
-                'info': currency,  # the original payload
-                'type': type,
-                'name': name,
+                'type': 'crypto' if (assetId is not None) else 'fiat',
+                'name': self.safe_string(currency, 'name'),
                 'active': True,
                 'deposit': None,
                 'withdraw': None,
@@ -1280,6 +1329,12 @@ class coinbase(Exchange, ImplicitAPI):
                     },
                 },
             }
+            if assetId is not None:
+                lowerCaseName = name.lower()
+                networks[code] = lowerCaseName
+                networksById[lowerCaseName] = code
+        self.options['networks'] = self.extend(networks, self.options['networks'])
+        self.options['networksById'] = self.extend(networksById, self.options['networksById'])
         return result
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -1630,17 +1685,18 @@ class coinbase(Exchange, ImplicitAPI):
         :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.v3]: default False, set True to use v3 api endpoint
+        :param dict [params.type]: "spot"(default) or "swap"
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
-        request = {
-            'limit': 250,
-        }
+        request = {}
         response = None
         isV3 = self.safe_bool(params, 'v3', False)
-        params = self.omit(params, 'v3')
+        type = self.safe_string(params, 'type')
+        params = self.omit(params, ['v3', 'type'])
         method = self.safe_string(self.options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts')
         if (isV3) or (method == 'v3PrivateGetBrokerageAccounts'):
+            request['limit'] = 250
             response = self.v3PrivateGetBrokerageAccounts(self.extend(request, params))
         else:
             response = self.v2PrivateGetAccounts(self.extend(request, params))
@@ -1715,6 +1771,7 @@ class coinbase(Exchange, ImplicitAPI):
         #         "size": 9
         #     }
         #
+        params['type'] = type
         return self.parse_custom_balance(response, params)
 
     def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -1731,12 +1788,12 @@ class coinbase(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        request = self.prepare_account_request_with_currency_code(code, limit, params)
-        query = self.omit(params, ['account_id', 'accountId'])
+        request = None
+        request, params = self.prepare_account_request_with_currency_code(code, limit, params)
         # for pagination use parameter 'starting_after'
         # the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         # eg: instance.last_json_response.pagination.next_starting_after
-        response = self.v2PrivateGetAccountsAccountIdTransactions(self.extend(request, query))
+        response = self.v2PrivateGetAccountsAccountIdTransactions(self.extend(request, params))
         return self.parse_ledger(response['data'], currency, since, limit)
 
     def parse_ledger_entry_status(self, status):
@@ -2085,6 +2142,7 @@ class coinbase(Exchange, ImplicitAPI):
 
     def prepare_account_request_with_currency_code(self, code: Str = None, limit: Int = None, params={}):
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
+        params = self.omit(params, ['account_id', 'accountId'])
         if accountId is None:
             if code is None:
                 raise ArgumentsRequired(self.id + ' prepareAccountRequestWithCurrencyCode() method requires an account_id(or accountId) parameter OR a currency code argument')
@@ -2096,9 +2154,9 @@ class coinbase(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit
-        return request
+        return [request, params]
 
-    def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder
@@ -2133,6 +2191,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [params.stop_direction]: 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
         :param str [params.end_time]: '2023-05-25T17:01:05.092Z' for 'GTD' orders
         :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param boolean [params.preview]: default to False, wether to use the test/preview endpoint or not
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -2248,7 +2307,14 @@ class coinbase(Exchange, ImplicitAPI):
                     },
                 }
         params = self.omit(params, ['timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time'])
-        response = self.v3PrivatePostBrokerageOrders(self.extend(request, params))
+        preview = self.safe_value_2(params, 'preview', 'test', False)
+        response = None
+        if preview:
+            params = self.omit(params, ['preview', 'test'])
+            request = self.omit(request, 'client_order_id')
+            response = self.v3PrivatePostBrokerageOrdersPreview(self.extend(request, params))
+        else:
+            response = self.v3PrivatePostBrokerageOrders(self.extend(request, params))
         #
         # successful order
         #
@@ -2503,7 +2569,7 @@ class coinbase(Exchange, ImplicitAPI):
                 raise BadRequest(self.id + ' cancelOrders() has failed, check your arguments and parameters')
         return self.parse_orders(orders, market)
 
-    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         """
         edit a trade order
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_editorder
@@ -3153,6 +3219,138 @@ class coinbase(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_transaction(data, currency)
 
+    def fetch_deposit_addresses_by_network(self, code: str, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = None
+        request, params = self.prepare_account_request_with_currency_code(currency['code'])
+        response = self.v2PrivateGetAccountsAccountIdAddresses(self.extend(request, params))
+        #
+        #    {
+        #        pagination: {
+        #            ending_before: null,
+        #            starting_after: null,
+        #            previous_ending_before: null,
+        #            next_starting_after: null,
+        #            limit: '25',
+        #            order: 'desc',
+        #            previous_uri: null,
+        #            next_uri: null
+        #        },
+        #        data: [
+        #            {
+        #                id: '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        #                address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        #                address_info: {address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk'},
+        #                name: null,
+        #                created_at: '2023-05-29T21:12:12Z',
+        #                updated_at: '2023-05-29T21:12:12Z',
+        #                network: 'solana',
+        #                uri_scheme: 'solana',
+        #                resource: 'address',
+        #                resource_path: '/v2/accounts/a7b3d387-bfb8-5ce7-b8da-1f507e81cf25/addresses/64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        #                warnings: [
+        #                    {
+        #                    type: 'correct_address_warning',
+        #                    title: 'This is an ERC20 USDC address.',
+        #                    details: 'Only send ERC20 USD Coin(USDC) to self address.',
+        #                    image_url: 'https://www.coinbase.com/assets/addresses/global-receive-warning-a3d91807e61c717e5a38d270965003dcc025ca8a3cea40ec3d7835b7c86087fa.png',
+        #                    options: [{text: 'I understand', style: 'primary', id: 'dismiss'}]
+        #                    }
+        #                ],
+        #                qr_code_image_url: 'https://static-assets.coinbase.com/p2p/l2/asset_network_combinations/v5/usdc-solana.png',
+        #                address_label: 'USDC address(Solana)',
+        #                default_receive: True,
+        #                deposit_uri: 'solana:5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk?spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        #                callback_url: null,
+        #                share_address_copy: {
+        #                    line1: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        #                    line2: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.'
+        #                },
+        #                receive_subtitle: 'ERC-20',
+        #                inline_warning: {
+        #                    text: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.',
+        #                    tooltip: {
+        #                    title: 'USDC(Solana)',
+        #                    subtitle: 'This address can only receive USDC-SPL from Solana network.'
+        #                    }
+        #                }
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        data = self.safe_list(response, 'data', [])
+        addressStructures = self.parse_deposit_addresses(data, None, False)
+        return self.index_by(addressStructures, 'network')
+
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+        #
+        #    {
+        #        id: '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        #        address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        #        address_info: {
+        #            address: 'GCF74576I7AQ56SLMKBQAP255EGUOWCRVII3S44KEXVNJEOIFVBDMXVL',
+        #            destination_tag: '3722061866'
+        #        },
+        #        name: null,
+        #        created_at: '2023-05-29T21:12:12Z',
+        #        updated_at: '2023-05-29T21:12:12Z',
+        #        network: 'solana',
+        #        uri_scheme: 'solana',
+        #        resource: 'address',
+        #        resource_path: '/v2/accounts/a7b3d387-bfb8-5ce7-b8da-1f507e81cf25/addresses/64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        #        warnings: [
+        #            {
+        #            type: 'correct_address_warning',
+        #            title: 'This is an ERC20 USDC address.',
+        #            details: 'Only send ERC20 USD Coin(USDC) to self address.',
+        #            image_url: 'https://www.coinbase.com/assets/addresses/global-receive-warning-a3d91807e61c717e5a38d270965003dcc025ca8a3cea40ec3d7835b7c86087fa.png',
+        #            options: [{text: 'I understand', style: 'primary', id: 'dismiss'}]
+        #            }
+        #        ],
+        #        qr_code_image_url: 'https://static-assets.coinbase.com/p2p/l2/asset_network_combinations/v5/usdc-solana.png',
+        #        address_label: 'USDC address(Solana)',
+        #        default_receive: True,
+        #        deposit_uri: 'solana:5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk?spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        #        callback_url: null,
+        #        share_address_copy: {
+        #            line1: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        #            line2: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.'
+        #        },
+        #        receive_subtitle: 'ERC-20',
+        #        inline_warning: {
+        #            text: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.',
+        #            tooltip: {
+        #            title: 'USDC(Solana)',
+        #            subtitle: 'This address can only receive USDC-SPL from Solana network.'
+        #            }
+        #        }
+        #    }
+        #
+        address = self.safe_string(depositAddress, 'address')
+        self.check_address(address)
+        networkId = self.safe_string(depositAddress, 'network')
+        code = self.safe_currency_code(None, currency)
+        addressLabel = self.safe_string(depositAddress, 'address_label')
+        splitAddressLabel = addressLabel.split(' ')
+        marketId = self.safe_string(splitAddressLabel, 0)
+        addressInfo = self.safe_dict(depositAddress, 'address_info')
+        return {
+            'info': depositAddress,
+            'currency': self.safe_currency_code(marketId, currency),
+            'address': address,
+            'tag': self.safe_string(addressInfo, 'destination_tag'),
+            'network': self.network_id_to_code(networkId, code),
+        }
+
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         version = api[0]
         signed = api[1] == 'private'
@@ -3187,11 +3385,7 @@ class coinbase(Exchange, ImplicitAPI):
                     if query:
                         body = self.json(query)
                         payload = body
-                auth = None
-                if version == 'v3':
-                    auth = nonce + method + savedPath + payload
-                else:
-                    auth = nonce + method + fullPath + payload
+                auth = nonce + method + savedPath + payload
                 signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
                 headers = {
                     'CB-ACCESS-KEY': self.apiKey,

@@ -1287,7 +1287,7 @@ export default class lbank extends Exchange {
         return result;
     }
 
-    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name lbank#createMarketBuyOrderWithCost
@@ -2309,7 +2309,7 @@ export default class lbank extends Exchange {
         return this.parseTransactions (withdraws, currency, since, limit);
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name lbank#fetchTransactionFees

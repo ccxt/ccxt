@@ -155,6 +155,8 @@ class hitbtc(Exchange, ImplicitAPI):
                         'public/orderbook/{symbol}': 10,
                         'public/candles': 10,
                         'public/candles/{symbol}': 10,
+                        'public/converted/candles': 10,
+                        'public/converted/candles/{symbol}': 10,
                         'public/futures/info': 10,
                         'public/futures/info/{symbol}': 10,
                         'public/futures/history/funding': 10,
@@ -2075,7 +2077,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 raise NotSupported(self.id + ' cancelOrder() not support self market type')
         return self.parse_order(response, market)
 
-    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         self.load_markets()
         market = None
         request = {
@@ -2400,7 +2402,7 @@ class hitbtc(Exchange, ImplicitAPI):
         filteredMargin = self.filter_by_symbol(marginModes, symbol)
         return self.safe_value(filteredMargin, 0)
 
-    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://api.hitbtc.com/#transfer-between-wallet-and-exchange

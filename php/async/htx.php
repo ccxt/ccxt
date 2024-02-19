@@ -5027,7 +5027,7 @@ class htx extends Exchange {
         ), $market);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a $market buy order by providing the $symbol and $cost
@@ -6450,7 +6450,7 @@ class htx extends Exchange {
         );
     }
 
-    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): PromiseInterface {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -6953,7 +6953,7 @@ class htx extends Exchange {
         $marginMode = ($marketId === null) ? 'cross' : 'isolated';
         $market = $this->safe_market($marketId);
         $symbol = $this->safe_string($market, 'symbol');
-        $timestamp = $this->safe_number($info, 'accrued-at');
+        $timestamp = $this->safe_integer($info, 'accrued-at');
         return array(
             'account' => ($marginMode === 'isolated') ? $symbol : 'cross',  // deprecated
             'symbol' => $symbol,
@@ -8960,7 +8960,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function set_position_mode($hedged, ?string $symbol = null, $params = array ()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($hedged, $symbol, $params) {
             /**
              * set $hedged to true or false

@@ -330,7 +330,7 @@
           "lastUpdateTimestamp": null,
           "symbol": "LTC/USDT:USDT",
           "type": "market",
-          "timeInForce": "IOC",
+          "timeInForce": "GTC",
           "postOnly": null,
           "side": "buy",
           "price": null,
@@ -340,7 +340,7 @@
           "takeProfitPrice": 100,
           "average": null,
           "cost": null,
-          "amount": null,
+          "amount": 1,
           "filled": null,
           "remaining": null,
           "status": null,
@@ -421,7 +421,7 @@
           "lastUpdateTimestamp": null,
           "symbol": "LTC/USDT:USDT",
           "type": "market",
-          "timeInForce": "IOC",
+          "timeInForce": "GTC",
           "postOnly": null,
           "side": "buy",
           "price": null,
@@ -431,7 +431,7 @@
           "takeProfitPrice": null,
           "average": null,
           "cost": null,
-          "amount": null,
+          "amount": 0.1,
           "filled": null,
           "remaining": null,
           "status": null,
@@ -1070,6 +1070,106 @@
             "reduceOnly": null
           }
         ]
+      }
+    ],
+    "fetchDepositAddressesByNetwork": [
+      {
+        "description": "fetch USDT addresses",
+        "method": "fetchDepositAddressesByNetwork",
+        "input": [
+          "USDT"
+        ],
+        "httpResponse": {
+          "code": "0",
+          "timestamp": "1707911818729",
+          "data": {
+            "data": [
+              {
+                "coinId": "780",
+                "coin": "USDT",
+                "network": "TRC20",
+                "address": "ADD1",
+                "tag": ""
+              },
+              {
+                "coinId": "799",
+                "coin": "USDT",
+                "network": "BEP20",
+                "address": "ADD2",
+                "tag": ""
+              },
+              {
+                "coinId": "857",
+                "coin": "USDT",
+                "network": "SOL",
+                "address": "ADD3",
+                "tag": ""
+              },
+              {
+                "coinId": "1192",
+                "coin": "USDT",
+                "network": "POLYGON",
+                "address": "ADD2",
+                "tag": ""
+              }
+            ],
+            "total": "4"
+          }
+        },
+        "parsedResponse": {
+          "TRC20": {
+            "currency": "USDT",
+            "address": "ADD1",
+            "tag": null,
+            "network": "TRC20",
+            "info": {
+              "coinId": "780",
+              "coin": "USDT",
+              "network": "TRC20",
+              "address": "ADD1",
+              "tag": ""
+            }
+          },
+          "BEP20": {
+            "currency": "USDT",
+            "address": "ADD2",
+            "tag": null,
+            "network": "BEP20",
+            "info": {
+              "coinId": "799",
+              "coin": "USDT",
+              "network": "BEP20",
+              "address": "ADD2",
+              "tag": ""
+            }
+          },
+          "SOL": {
+            "currency": "USDT",
+            "address": "ADD3",
+            "tag": null,
+            "network": "SOL",
+            "info": {
+              "coinId": "857",
+              "coin": "USDT",
+              "network": "SOL",
+              "address": "ADD3",
+              "tag": ""
+            }
+          },
+          "POLYGON": {
+            "currency": "USDT",
+            "address": "ADD2",
+            "tag": null,
+            "network": "POLYGON",
+            "info": {
+              "coinId": "1192",
+              "coin": "USDT",
+              "network": "POLYGON",
+              "address": "ADD2",
+              "tag": ""
+            }
+          }
+        }
       }
     ]
   }

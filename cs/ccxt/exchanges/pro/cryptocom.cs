@@ -1053,7 +1053,7 @@ public partial class cryptocom : ccxt.cryptocom
             // channel might be user.trade.BTC_USDT
             this.handleTrades(client as WebSocketClient, result);
         }
-        if (isTrue(isTrue((!isEqual(channel, null))) && isTrue(((string)channel).StartsWith("user.order"))))
+        if (isTrue(isTrue((!isEqual(channel, null))) && isTrue(((string)channel).StartsWith(((string)"user.order")))))
         {
             // channel might be user.order.BTC_USDT
             this.handleOrders(client as WebSocketClient, result);

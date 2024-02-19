@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.2.33'
+__version__ = '4.2.46'
 
 # ----------------------------------------------------------------------------
 
@@ -111,6 +111,7 @@ from ccxt.bitteam import bitteam                                      # noqa: F4
 from ccxt.bitvavo import bitvavo                                      # noqa: F401
 from ccxt.bl3p import bl3p                                            # noqa: F401
 from ccxt.blockchaincom import blockchaincom                          # noqa: F401
+from ccxt.blofin import blofin                                        # noqa: F401
 from ccxt.btcalpha import btcalpha                                    # noqa: F401
 from ccxt.btcbox import btcbox                                        # noqa: F401
 from ccxt.btcmarkets import btcmarkets                                # noqa: F401
@@ -213,6 +214,7 @@ exchanges = [
     'bitvavo',
     'bl3p',
     'blockchaincom',
+    'blofin',
     'btcalpha',
     'btcbox',
     'btcmarkets',

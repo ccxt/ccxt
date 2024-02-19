@@ -422,7 +422,10 @@ class digifinex extends Exchange {
                 $minFoundPrecision = Precise::string_min($feeString, Precise::string_min($minDepositString, $minWithdrawString));
                 $precision = $this->parse_number($minFoundPrecision);
                 $networkId = $this->safe_string($currency, 'chain');
-                $networkCode = $this->network_id_to_code($networkId);
+                $networkCode = null;
+                if ($networkId !== null) {
+                    $networkCode = $this->network_id_to_code($networkId);
+                }
                 $network = array(
                     'info' => $currency,
                     'id' => $networkId,
@@ -1827,7 +1830,7 @@ class digifinex extends Exchange {
         return array_merge($request, $params);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a $market buy order by providing the $symbol and $cost
@@ -2922,7 +2925,7 @@ class digifinex extends Exchange {
         );
     }
 
-    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): PromiseInterface {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -4231,7 +4234,7 @@ class digifinex extends Exchange {
         );
     }
 
-    public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
              * set margin mode to 'cross' or 'isolated'

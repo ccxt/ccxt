@@ -269,8 +269,10 @@ public partial class phemex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Order> EditOrder(string id, object symbol, object type = null, object side = null, object amount = null, object price = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> EditOrder(string id, string symbol, string type = null, string side = null, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var price = price2 == 0 ? null : (object)price2;
         var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
@@ -669,7 +671,7 @@ public partial class phemex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> A [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}.</returns>
-    public async Task<Dictionary<string, object>> SetMargin(string symbol, object amount, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> SetMargin(string symbol, double amount, Dictionary<string, object> parameters = null)
     {
         var res = await this.setMargin(symbol, amount, parameters);
         return ((Dictionary<string, object>)res);
@@ -688,7 +690,7 @@ public partial class phemex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> response from the exchange.</returns>
-    public async Task<Dictionary<string, object>> SetMarginMode(object marginMode, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.setMarginMode(marginMode, symbol, parameters);
         return ((Dictionary<string, object>)res);
@@ -708,7 +710,7 @@ public partial class phemex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> response from the exchange.</returns>
-    public async Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.setPositionMode(hedged, symbol, parameters);
         return ((Dictionary<string, object>)res);
@@ -790,7 +792,7 @@ public partial class phemex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
-    public async Task<TransferEntry> Transfer(string code, double amount, object fromAccount, object toAccount, Dictionary<string, object> parameters = null)
+    public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
     {
         var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
         return new TransferEntry(res);

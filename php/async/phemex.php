@@ -40,6 +40,7 @@ class phemex extends Exchange {
                 'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'closePosition' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
@@ -2723,7 +2724,7 @@ class phemex extends Exchange {
         }) ();
     }
 
-    public function edit_order(string $id, $symbol, $type = null, $side = null, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, ?string $type = null, ?string $side = null, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -3989,7 +3990,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function set_margin(string $symbol, $amount, $params = array ()) {
+    public function set_margin(string $symbol, float $amount, $params = array ()) {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * Either adds or reduces margin in an isolated position in order to set the margin to a specific value
@@ -4048,7 +4049,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
              * set margin mode to 'cross' or 'isolated'
@@ -4084,7 +4085,7 @@ class phemex extends Exchange {
         }) ();
     }
 
-    public function set_position_mode($hedged, ?string $symbol = null, $params = array ()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($hedged, $symbol, $params) {
             /**
              * set $hedged to true or false for a $market
@@ -4339,7 +4340,7 @@ class phemex extends Exchange {
         }) ();
     }
 
-    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): PromiseInterface {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * $transfer $currency internally between wallets on the same account
@@ -4645,7 +4646,10 @@ class phemex extends Exchange {
             $currency = $this->currency($code);
             $networkCode = null;
             list($networkCode, $params) = $this->handle_network_code_and_params($params);
-            $networkId = $this->network_code_to_id($networkCode);
+            $networkId = null;
+            if ($networkCode !== null) {
+                $networkId = $this->network_code_to_id($networkCode);
+            }
             $stableCoins = $this->safe_value($this->options, 'stableCoins');
             if ($networkId === null) {
                 if (!($this->in_array($code, $stableCoins))) {

@@ -1953,7 +1953,7 @@ export default class coinex extends Exchange {
         }, market);
     }
 
-    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name coinex#createMarketBuyOrderWithCost
@@ -2518,7 +2518,7 @@ export default class coinex extends Exchange {
         return results;
     }
 
-    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
         /**
          * @method
          * @name okx#editOrder
@@ -3787,7 +3787,7 @@ export default class coinex extends Exchange {
         });
     }
 
-    async setMarginMode (marginMode, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name coinex#setMarginMode
@@ -4594,7 +4594,7 @@ export default class coinex extends Exchange {
         };
     }
 
-    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name coinex#transfer

@@ -530,13 +530,15 @@ class bitget extends \ccxt\async\bitget {
         $rawOrderBook = $this->safe_value($data, 0);
         $timestamp = $this->safe_integer($rawOrderBook, 'ts');
         $incrementalBook = $channel === 'books';
-        $storedOrderBook = null;
         if ($incrementalBook) {
-            $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
-            if ($storedOrderBook === null) {
-                $storedOrderBook = $this->counted_order_book(array());
-                $storedOrderBook['symbol'] = $symbol;
+            // $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+                // $ob = $this->order_book(array());
+                $ob = $this->counted_order_book(array());
+                $ob['symbol'] = $symbol;
+                $this->orderbooks[$symbol] = $ob;
             }
+            $storedOrderBook = $this->orderbooks[$symbol];
             $asks = $this->safe_value($rawOrderBook, 'asks', array());
             $bids = $this->safe_value($rawOrderBook, 'bids', array());
             $this->handle_deltas($storedOrderBook['asks'], $asks);
@@ -570,10 +572,12 @@ class bitget extends \ccxt\async\bitget {
                 }
             }
         } else {
-            $storedOrderBook = $this->parse_order_book($rawOrderBook, $symbol, $timestamp);
+            $orderbook = $this->order_book(array());
+            $parsedOrderbook = $this->parse_order_book($rawOrderBook, $symbol, $timestamp);
+            $orderbook->reset ($parsedOrderbook);
+            $this->orderbooks[$symbol] = $orderbook;
         }
-        $this->orderbooks[$symbol] = $storedOrderBook;
-        $client->resolve ($storedOrderBook, $messageHash);
+        $client->resolve ($this->orderbooks[$symbol], $messageHash);
     }
 
     public function handle_delta($bookside, $delta) {

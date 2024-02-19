@@ -54,6 +54,9 @@ class idex extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDeposit' => true,
+                'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
@@ -113,7 +116,7 @@ class idex extends Exchange {
                 ),
                 'www' => 'https://idex.io',
                 'doc' => array(
-                    'https://docs.idex.io/',
+                    'https://api-docs-v3.idex.io/',
                 ),
             ),
             'api' => array(
@@ -1728,6 +1731,64 @@ class idex extends Exchange {
         $defaultCost = $this->safe_value($config, 'cost', 1);
         $authenticated = $hasApiKey && $hasSecret && $hasWalletAddress && $hasPrivateKey;
         return $authenticated ? ($defaultCost / 2) : $defaultCost;
+    }
+
+    public function fetch_deposit_address(?string $code = null, $params = array ()) {
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch the Polygon address of the wallet
+             * @see https://api-docs-v3.idex.io/#get-wallets
+             * @param {string} $code not used by idex
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+             */
+            $request = array();
+            $request['nonce'] = $this->uuidv1();
+            $response = Async\await($this->privateGetWallets (array_merge($request, $params)));
+            //
+            //    array(
+            //        array(
+            //            address => "0x37A1827CA64C94A26028bDCb43FBDCB0bf6DAf5B",
+            //            totalPortfolioValueUsd => "0.00",
+            //            time => "1678342148086"
+            //        ),
+            //        {
+            //            address => "0x0Ef3456E616552238B0c562d409507Ed6051A7b3",
+            //            totalPortfolioValueUsd => "15.90",
+            //            time => "1691697811659"
+            //        }
+            //    )
+            //
+            return $this->parse_deposit_address($response);
+        }) ();
+    }
+
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+        //
+        //    array(
+        //        array(
+        //            $address => "0x37A1827CA64C94A26028bDCb43FBDCB0bf6DAf5B",
+        //            totalPortfolioValueUsd => "0.00",
+        //            time => "1678342148086"
+        //        ),
+        //        {
+        //            $address => "0x0Ef3456E616552238B0c562d409507Ed6051A7b3",
+        //            totalPortfolioValueUsd => "15.90",
+        //            time => "1691697811659"
+        //        }
+        //    )
+        //
+        $length = count($depositAddress);
+        $entry = $this->safe_dict($depositAddress, $length - 1);
+        $address = $this->safe_string($entry, 'address');
+        $this->check_address($address);
+        return array(
+            'info' => $depositAddress,
+            'currency' => null,
+            'address' => $address,
+            'tag' => null,
+            'network' => 'MATIC',
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

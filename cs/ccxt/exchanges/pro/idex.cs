@@ -185,9 +185,9 @@ public partial class idex : ccxt.idex
         if (isTrue(isEqual(length, 0)))
         {
             object limit = this.safeInteger(this.options, "tradesLimit");
-            this.trades = new ArrayCacheBySymbolById(limit);
+            this.trades = ((object)new ArrayCacheBySymbolById(limit));
         }
-        object trades = this.trades;
+        object trades = ((object)this.trades);
         callDynamically(trades, "append", new object[] {trade});
         callDynamically(client as WebSocketClient, "resolve", new object[] {trades, messageHash});
     }

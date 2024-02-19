@@ -1587,7 +1587,10 @@ class gate extends gate$1 {
             const currency = parts[0];
             const code = this.safeCurrencyCode(currency);
             const networkId = this.safeString(entry, 'chain');
-            const networkCode = this.networkIdToCode(networkId, code);
+            let networkCode = undefined;
+            if (networkId !== undefined) {
+                networkCode = this.networkIdToCode(networkId, code);
+            }
             const delisted = this.safeValue(entry, 'delisted');
             const withdrawDisabled = this.safeBool(entry, 'withdraw_disabled', false);
             const depositDisabled = this.safeBool(entry, 'deposit_disabled', false);

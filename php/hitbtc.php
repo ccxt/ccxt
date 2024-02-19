@@ -137,6 +137,8 @@ class hitbtc extends Exchange {
                         'public/orderbook/{symbol}' => 10,
                         'public/candles' => 10,
                         'public/candles/{symbol}' => 10,
+                        'public/converted/candles' => 10,
+                        'public/converted/candles/{symbol}' => 10,
                         'public/futures/info' => 10,
                         'public/futures/info/{symbol}' => 10,
                         'public/futures/history/funding' => 10,
@@ -2160,7 +2162,7 @@ class hitbtc extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         $request = array(
@@ -2514,7 +2516,7 @@ class hitbtc extends Exchange {
         return $this->safe_value($filteredMargin, 0);
     }
 
-    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://api.hitbtc.com/#transfer-between-wallet-and-exchange

@@ -10,9 +10,15 @@ export type OrderSide = 'buy' | 'sell' | string;
 export type OrderType = 'limit' | 'market' | string;
 export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option';
 export type SubType = 'linear' | 'inverse' | undefined;
+
 export interface Dictionary<T> {
     [key: string]: T;
 }
+
+export type Dict = Dictionary<any>;
+
+export type List = Array<any>;
+
 /** Request parameters */
 // type Params = Dictionary<string | number | boolean | string[]>;
 
@@ -112,6 +118,7 @@ export interface Order {
     filled: number;
     remaining: number;
     stopPrice?: number;
+    triggerPrice?: number;
     takeProfitPrice?: number;
     stopLossPrice?: number;
     cost: number;
@@ -257,6 +264,7 @@ export interface Position {
     notional?: number;
     leverage?: number;
     unrealizedPnl?: number;
+    realizedPnl?: number;
     collateral?: number;
     entryPrice?: number;
     markPrice?: number;

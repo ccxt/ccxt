@@ -1903,7 +1903,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    async def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost, params={}):
+    async def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params={}):
         """
         create a market order by providing the symbol, side and cost
         :see: https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
@@ -1917,7 +1917,7 @@ class kucoin(Exchange, ImplicitAPI):
         params['cost'] = cost
         return await self.create_order(symbol, 'market', side, cost, None, params)
 
-    async def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
         :see: https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
@@ -1929,7 +1929,7 @@ class kucoin(Exchange, ImplicitAPI):
         await self.load_markets()
         return await self.create_market_order_with_cost(symbol, 'buy', cost, params)
 
-    async def create_market_sell_order_with_cost(self, symbol: str, cost, params={}):
+    async def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market sell order by providing the symbol and cost
         :see: https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
@@ -2074,7 +2074,7 @@ class kucoin(Exchange, ImplicitAPI):
             request['postOnly'] = True
         return self.extend(request, params)
 
-    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         """
         edit an order, kucoin currently only supports the modification of HF orders
         :see: https://docs.kucoin.com/spot-hf/#modify-order
@@ -3373,7 +3373,7 @@ class kucoin(Exchange, ImplicitAPI):
         returnType = result if isolated else self.safe_balance(result)
         return returnType
 
-    async def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://docs.kucoin.com/#inner-transfer
@@ -3618,11 +3618,11 @@ class kucoin(Exchange, ImplicitAPI):
             except Exception as exc:
                 referenceId = context
         fee = None
-        feeCost = self.safe_number(item, 'fee')
+        feeCost = self.safe_string(item, 'fee')
         feeCurrency = None
-        if feeCost != 0:
+        if feeCost != '0':
             feeCurrency = code
-            fee = {'cost': feeCost, 'currency': feeCurrency}
+            fee = {'cost': self.parse_number(feeCost), 'currency': feeCurrency}
         return {
             'id': id,
             'direction': direction,
@@ -3726,8 +3726,11 @@ class kucoin(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data')
-        items = self.safe_value(data, 'items', data)
+        dataList = self.safe_list(response, 'data')
+        if dataList is not None:
+            return self.parse_ledger(dataList, currency, since, limit)
+        data = self.safe_dict(response, 'data')
+        items = self.safe_list(data, 'items', [])
         return self.parse_ledger(items, currency, since, limit)
 
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}):

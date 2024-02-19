@@ -1305,7 +1305,7 @@ class huobijp(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in

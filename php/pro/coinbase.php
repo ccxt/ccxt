@@ -92,7 +92,7 @@ class coinbase extends \ccxt\async\coinbase {
         }) ();
     }
 
-    public function watch_ticker($symbol, $params = array ()): PromiseInterface {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -273,7 +273,7 @@ class coinbase extends \ccxt\async\coinbase {
         }) ();
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()): PromiseInterface {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user

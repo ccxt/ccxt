@@ -24,6 +24,7 @@ public partial class Exchange
         {
             this.setMarkets(this.markets);
         }
+        this.afterConstruct();
     }
 
     private void initHttpClient()
@@ -737,10 +738,45 @@ public partial class Exchange
         return modified;
     }
 
+    /// <summary>
+    /// Returns the market object for a given market symbol.
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>market</term>
+    /// <description>
+    /// string : the market symbol, example: BTC/USD
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Market</term>Market structure </returns>
     public Market Market(string market)
     {
         var genericMarket = this.market(market);
         return new Market(genericMarket);
+    }
+
+    /// <summary>
+    /// Returns the Currency object for a given market symbol.
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>market</term>
+    /// <description>
+    /// string : the currency code, example: BTC
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Currency</term>Market structure </returns>
+
+    public Currency Currency(string currency)
+    {
+        var genericCurrency = this.currency(currency);
+        return new Currency(genericCurrency);
     }
 
     public async Task LoadMarkets()

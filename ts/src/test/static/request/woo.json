@@ -320,6 +320,40 @@
                   "USDT"
                 ]
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV with since and limit",
+                "method": "fetchOHLCV",
+                "url": "https://api-pub.woo.org/v1/hist/kline?start_time=1704067200000&symbol=SPOT_BTC_USDT&type=1m",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1704067200000,
+                  200
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit",
+                "method": "fetchOHLCV",
+                "url": "https://api-pub.woo.org/v1/hist/kline?start_time=1704067200000&symbol=SPOT_BTC_USDT&type=1m",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1704067200000
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit and without since",
+                "method": "fetchOHLCV",
+                "url": "https://api.woo.org/v1/public/kline?limit=200&symbol=SPOT_BTC_USDT&type=1m",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  null,
+                  200
+                ]
+              }
         ]
     }
 }

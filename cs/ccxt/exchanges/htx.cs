@@ -6384,7 +6384,7 @@ public partial class htx : Exchange
         };
     }
 
-    public async virtual Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
+    public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
     {
         /**
         * @method
@@ -7381,7 +7381,7 @@ public partial class htx : Exchange
         object marginMode = ((bool) isTrue((isEqual(marketId, null)))) ? "cross" : "isolated";
         market = this.safeMarket(marketId);
         object symbol = this.safeString(market, "symbol");
-        object timestamp = this.safeNumber(info, "accrued-at");
+        object timestamp = this.safeInteger(info, "accrued-at");
         return new Dictionary<string, object>() {
             { "account", ((bool) isTrue((isEqual(marginMode, "isolated")))) ? symbol : "cross" },
             { "symbol", symbol },
@@ -7492,7 +7492,7 @@ public partial class htx : Exchange
                 {
                     object options = this.safeValue(this.options, "broker", new Dictionary<string, object>() {});
                     object id = this.safeString(options, "id", "AA03022abc");
-                    if (isTrue(isTrue(isEqual(getIndexOf(path, "cancel"), -1)) && isTrue(((string)path).EndsWith("order"))))
+                    if (isTrue(isTrue(isEqual(getIndexOf(path, "cancel"), -1)) && isTrue(((string)path).EndsWith(((string)"order")))))
                     {
                         // swap order placement
                         object channelCode = this.safeString(parameters, "channel_code");
@@ -7500,7 +7500,7 @@ public partial class htx : Exchange
                         {
                             ((IDictionary<string,object>)parameters)["channel_code"] = id;
                         }
-                    } else if (isTrue(((string)path).EndsWith("orders/place")))
+                    } else if (isTrue(((string)path).EndsWith(((string)"orders/place"))))
                     {
                         // spot order placement
                         object clientOrderId = this.safeString(parameters, "client-order-id");
@@ -9292,7 +9292,7 @@ public partial class htx : Exchange
         });
     }
 
-    public async virtual Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
+    public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
         /**
         * @method

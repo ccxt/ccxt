@@ -888,7 +888,7 @@ class gate(Exchange, ImplicitAPI):
         reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z'
         return reconstructedDate
 
-    def create_expired_option_market(self, symbol):
+    def create_expired_option_market(self, symbol: str):
         # support expired option contracts
         quote = 'USDT'
         settle = quote
@@ -1561,7 +1561,9 @@ class gate(Exchange, ImplicitAPI):
             currency = parts[0]
             code = self.safe_currency_code(currency)
             networkId = self.safe_string(entry, 'chain')
-            networkCode = self.network_id_to_code(networkId, code)
+            networkCode = None
+            if networkId is not None:
+                networkCode = self.network_id_to_code(networkId, code)
             delisted = self.safe_value(entry, 'delisted')
             withdrawDisabled = self.safe_bool(entry, 'withdraw_disabled', False)
             depositDisabled = self.safe_bool(entry, 'deposit_disabled', False)
@@ -2017,7 +2019,7 @@ class gate(Exchange, ImplicitAPI):
             'taker': self.safe_number(info, takerKey),
         }
 
-    async def fetch_transaction_fees(self, codes=None, params={}):
+    async def fetch_transaction_fees(self, codes: List[str] = None, params={}):
         """
          * @deprecated
         please use fetchDepositWithdrawFees instead
@@ -3905,7 +3907,7 @@ class gate(Exchange, ImplicitAPI):
                     }
         return self.extend(request, params)
 
-    async def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
         :see: https://www.gate.io/docs/developers/apiv4/en/#create-an-order
@@ -3921,7 +3923,7 @@ class gate(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         """
         edit a trade order, gate currently only supports the modification of the price or amount fields
         :see: https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
@@ -4731,7 +4733,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market)
 
-    async def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://www.gate.io/docs/developers/apiv4/en/#transfer-between-trading-accounts
@@ -6178,7 +6180,7 @@ class gate(Exchange, ImplicitAPI):
         }
         return self.safe_string(ledgerType, type, type)
 
-    async def set_position_mode(self, hedged, symbol=None, params={}):
+    async def set_position_mode(self, hedged: bool, symbol: str = None, params={}):
         """
         set dual/hedged mode to True or False for a swap market, make sure all positions are closed and no orders are open before setting dual mode
         :see: https://www.gate.io/docs/developers/apiv4/en/#enable-or-disable-dual-mode

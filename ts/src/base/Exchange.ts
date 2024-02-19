@@ -152,6 +152,9 @@ export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balan
 
 // ----------------------------------------------------------------------------
 // move this elsewhere
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from './ws/Cache.js'
+import {OrderBook as Ob} from './ws/OrderBook.js';
+
 import totp from './functions/totp.js';
 import { ConsumerFunction, Message, Stream, Topic } from './ws/Stream.js'
 import { sleep } from './functions.js'
@@ -241,15 +244,16 @@ export default class Exchange {
     token: string; // reserved for HTTP auth in some cases
 
     balance      = {}
-    orderbooks   = {}
-    tickers      = {}
-    orders       = undefined
-    triggerOrders = undefined
-    trades: any
+    orderbooks: Dictionary<Ob>   = {}
+    tickers: Dictionary<Ticker>      = {}
+    bidsasks: Dictionary<Ticker>     = {}
+    orders: ArrayCache       = undefined
+    triggerOrders: ArrayCache = undefined
+    trades: Dictionary<ArrayCache>
     transactions = {}
     ohlcvs: any
-    myTrades: any
-    positions: any
+    myTrades: ArrayCache;
+    positions: any;
     urls: {
         logo?: string;
         api?: string | Dictionary<string>;
@@ -1347,7 +1351,7 @@ export default class Exchange {
         return undefined;
     }
 
-    client (url): WsClient {
+    client (url: string): WsClient {
         this.clients = this.clients || {};
         if (!this.clients[url]) {
             const onMessage = this.handleMessage.bind (this);
@@ -1378,7 +1382,7 @@ export default class Exchange {
         return this.clients[url];
     }
 
-    watchMultiple (url, messageHashes, message = undefined, subscribeHashes = undefined, subscription = undefined) {
+    watchMultiple (url: string, messageHashes: string[], message = undefined, subscribeHashes = undefined, subscription = undefined) {
         //
         // Without comments the code of this method is short and easy:
         //
@@ -1471,7 +1475,7 @@ export default class Exchange {
         return future;
     }
 
-    watch (url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined) {
+    watch (url: string, messageHash: string, message = undefined, subscribeHash = undefined, subscription = undefined) {
         //
         // Without comments the code of this method is short and easy:
         //
@@ -1588,7 +1592,7 @@ export default class Exchange {
         this.stream.close ();
     }
 
-    async loadOrderBook (client, messageHash, symbol, limit = undefined, params = {}) {
+    async loadOrderBook (client, messageHash: string, symbol: string, limit: Int = undefined, params = {}) {
         if (!(symbol in this.orderbooks)) {
             client.reject (new ExchangeError (this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
             return;
@@ -1649,7 +1653,7 @@ export default class Exchange {
         return axolotl(payload, hexKey, ed25519);
     }
 
-    fixStringifiedJsonMembers (content) {
+    fixStringifiedJsonMembers (content: string) {
         // used for instance in bingx
         // when stringified json has members with their values also stringified, like:
         // '{"code":0, "data":{"order":{"orderId":1742968678528512345,"symbol":"BTC-USDT", "takeProfit":"{\"type\":\"TAKE_PROFIT\",\"stopPrice\":43320.1}","reduceOnly":false}}}'
@@ -1772,6 +1776,9 @@ export default class Exchange {
          * @returns {object | undefined}
          */
         const value = this.safeValueN (dictionaryOrList, keys, defaultValue);
+        if (value === undefined) {
+            return defaultValue;
+        }
         if (typeof value === 'object') {
             return value;
         }
@@ -1806,6 +1813,9 @@ export default class Exchange {
          * @returns {Array | undefined}
          */
         const value = this.safeValueN (dictionaryOrList, keys, defaultValue);
+        if (value === undefined) {
+            return defaultValue;
+        }
         if (Array.isArray (value)) {
             return value;
         }
@@ -1861,7 +1871,7 @@ export default class Exchange {
         return undefined;
     }
 
-    checkProxyUrlSettings (url = undefined, method = undefined, headers = undefined, body = undefined) {
+    checkProxyUrlSettings (url: string = undefined, method: string = undefined, headers = undefined, body = undefined) {
         const usedProxies = [];
         let proxyUrl = undefined;
         if (this.proxyUrl !== undefined) {
@@ -1897,7 +1907,7 @@ export default class Exchange {
         return proxyUrl;
     }
 
-    checkProxySettings (url = undefined, method = undefined, headers = undefined, body = undefined) {
+    checkProxySettings (url: string = undefined, method: string = undefined, headers = undefined, body = undefined) {
         const usedProxies = [];
         let httpProxy = undefined;
         let httpsProxy = undefined;
@@ -2417,6 +2427,34 @@ export default class Exchange {
 
     async setLeverage (leverage: Int, symbol: string = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' setLeverage() is not supported yet');
+    }
+
+    async fetchLeverage (symbol: string, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' fetchLeverage() is not supported yet');
+    }
+
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' setPositionMode() is not supported yet');
+    }
+
+    async addMargin (symbol: string, amount: number, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' addMargin() is not supported yet');
+    }
+
+    async reduceMargin (symbol: string, amount: number, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' reduceMargin() is not supported yet');
+    }
+
+    async setMargin (symbol: string, amount: number, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' setMargin() is not supported yet');
+    }
+
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' setMarginMode() is not supported yet');
+    }
+
+    async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' fetchDepositAddressesByNetwork() is not supported yet');
     }
 
     async fetchOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OpenInterest[]> {
@@ -3617,7 +3655,7 @@ export default class Exchange {
         return ohlcv;
     }
 
-    networkCodeToId (networkCode, currencyCode = undefined) {
+    networkCodeToId (networkCode: string, currencyCode: string = undefined): string {
         /**
          * @ignore
          * @method
@@ -3627,6 +3665,9 @@ export default class Exchange {
          * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} exchange-specific network id
          */
+        if (networkCode === undefined) {
+            return undefined;
+        }
         const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
         let networkId = this.safeString (networkIdsByCodes, networkCode);
         // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
@@ -3660,7 +3701,7 @@ export default class Exchange {
         return networkId;
     }
 
-    networkIdToCode (networkId, currencyCode = undefined) {
+    networkIdToCode (networkId: string, currencyCode: string = undefined): string {
         /**
          * @ignore
          * @method
@@ -3670,11 +3711,14 @@ export default class Exchange {
          * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} unified network code
          */
-        const networkCodesByIds = this.safeValue (this.options, 'networksById', {});
+        if (networkId === undefined) {
+            return undefined;
+        }
+        const networkCodesByIds = this.safeDict (this.options, 'networksById', {});
         let networkCode = this.safeString (networkCodesByIds, networkId, networkId);
         // replace mainnet network-codes (i.e. ERC20->ETH)
         if (currencyCode !== undefined) {
-            const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
+            const defaultNetworkCodeReplacements = this.safeDict (this.options, 'defaultNetworkCodeReplacements', {});
             if (currencyCode in defaultNetworkCodeReplacements) {
                 const replacementObject = this.safeDict (defaultNetworkCodeReplacements, currencyCode, {});
                 networkCode = this.safeString (replacementObject, networkCode, networkCode);
@@ -3692,15 +3736,15 @@ export default class Exchange {
         return [ networkCodeInParams, params ];
     }
 
-    defaultNetworkCode (currencyCode) {
+    defaultNetworkCode (currencyCode: string) {
         let defaultNetworkCode = undefined;
-        const defaultNetworks = this.safeValue (this.options, 'defaultNetworks', {});
+        const defaultNetworks = this.safeDict (this.options, 'defaultNetworks', {});
         if (currencyCode in defaultNetworks) {
             // if currency had set its network in "defaultNetworks", use it
             defaultNetworkCode = defaultNetworks[currencyCode];
         } else {
             // otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
-            const defaultNetwork = this.safeValue (this.options, 'defaultNetwork');
+            const defaultNetwork = this.safeDict (this.options, 'defaultNetwork');
             if (defaultNetwork !== undefined) {
                 defaultNetworkCode = defaultNetwork;
             }
@@ -3746,7 +3790,7 @@ export default class Exchange {
         return chosenNetworkId;
     }
 
-    safeNumber2 (dictionary, key1, key2, d = undefined) {
+    safeNumber2 (dictionary: object, key1: IndexType, key2: IndexType, d = undefined) {
         const value = this.safeString2 (dictionary, key1, key2);
         return this.parseNumber (value, d);
     }
@@ -3773,7 +3817,7 @@ export default class Exchange {
         return this.filterBySinceLimit (sorted, since, limit, 0) as any;
     }
 
-    parseLeverageTiers (response, symbols: string[] = undefined, marketIdKey = undefined) {
+    parseLeverageTiers (response: object[], symbols: string[] = undefined, marketIdKey = undefined) {
         // marketIdKey should only be undefined when response is a dictionary
         symbols = this.marketSymbols (symbols);
         const tiers = {};
@@ -3828,10 +3872,10 @@ export default class Exchange {
             contractSize = this.safeNumber (market, 'contractSize');
             position['contractSize'] = contractSize;
         }
-        return position as any;
+        return position as Position;
     }
 
-    parsePositions (positions, symbols: string[] = undefined, params = {}): Position[] {
+    parsePositions (positions: any[], symbols: string[] = undefined, params = {}): Position[] {
         symbols = this.marketSymbols (symbols);
         positions = this.toArray (positions);
         const result = [];
@@ -3842,7 +3886,7 @@ export default class Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    parseAccounts (accounts, params = {}) {
+    parseAccounts (accounts: any[], params = {}) {
         accounts = this.toArray (accounts);
         const result = [];
         for (let i = 0; i < accounts.length; i++) {
@@ -3852,7 +3896,7 @@ export default class Exchange {
         return result;
     }
 
-    parseTrades (trades, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+    parseTrades (trades: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
         trades = this.toArray (trades);
         let result = [];
         for (let i = 0; i < trades.length; i++) {
@@ -3864,7 +3908,7 @@ export default class Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
     }
 
-    parseTransactions (transactions, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
+    parseTransactions (transactions: any[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
         transactions = this.toArray (transactions);
         let result = [];
         for (let i = 0; i < transactions.length; i++) {
@@ -3876,7 +3920,7 @@ export default class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseTransfers (transfers, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    parseTransfers (transfers: any[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         transfers = this.toArray (transfers);
         let result = [];
         for (let i = 0; i < transfers.length; i++) {
@@ -3927,11 +3971,48 @@ export default class Exchange {
         return this.safeString (market, 'symbol', symbol);
     }
 
+    handleParamString (params: object, paramName: string, defaultValue = undefined): [string, object] {
+        const value = this.safeString (params, paramName, defaultValue);
+        if (value !== undefined) {
+            params = this.omit (params, paramName);
+        }
+        return [ value, params ];
+    }
+
     resolvePath (path, params) {
         return [
             this.implodeParams (path, params),
             this.omit (params, this.extractParams (path)),
         ];
+    }
+
+    getListFromObjectValues (objects, key: IndexType) {
+        const newArray = this.toArray (objects);
+        const results = [];
+        for (let i = 0; i < newArray.length; i++) {
+            results.push (newArray[i][key]);
+        }
+        return results;
+    }
+
+    getSymbolsForMarketType (marketType: string = undefined, subType: string = undefined, symbolWithActiveStatus: boolean = true, symbolWithUnknownStatus: boolean = true) {
+        let filteredMarkets = this.markets;
+        if (marketType !== undefined) {
+            filteredMarkets = this.filterBy (filteredMarkets, 'type', marketType);
+        }
+        if (subType !== undefined) {
+            this.checkRequiredArgument ('getSymbolsForMarketType', subType, 'subType', [ 'linear', 'inverse', 'quanto' ]);
+            filteredMarkets = this.filterBy (filteredMarkets, 'subType', subType);
+        }
+        const activeStatuses = [];
+        if (symbolWithActiveStatus) {
+            activeStatuses.push (true);
+        }
+        if (symbolWithUnknownStatus) {
+            activeStatuses.push (undefined);
+        }
+        filteredMarkets = this.filterByArray (filteredMarkets, 'active', activeStatuses, false);
+        return this.getListFromObjectValues (filteredMarkets, 'symbol');
     }
 
     filterByArray (objects, key: IndexType, values = undefined, indexed = true) {
@@ -4034,15 +4115,15 @@ export default class Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
-    async editLimitBuyOrder (id, symbol, amount: number, price: number = undefined, params = {}) {
+    async editLimitBuyOrder (id: string, symbol: string, amount: number, price: number = undefined, params = {}) {
         return await this.editLimitOrder (id, symbol, 'buy', amount, price, params);
     }
 
-    async editLimitSellOrder (id, symbol, amount: number, price: number = undefined, params = {}) {
+    async editLimitSellOrder (id: string, symbol: string, amount: number, price: number = undefined, params = {}) {
         return await this.editLimitOrder (id, symbol, 'sell', amount, price, params);
     }
 
-    async editLimitOrder (id, symbol, side, amount: number, price: number = undefined, params = {}) {
+    async editLimitOrder (id: string, symbol: string, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         return await this.editOrder (id, symbol, 'limit', side, amount, price, params);
     }
 
@@ -4278,7 +4359,7 @@ export default class Exchange {
     }
 
     async fetchFundingFee (code: string, params = {}) {
-        const warnOnFetchFundingFee = this.safeValue (this.options, 'warnOnFetchFundingFee', true);
+        const warnOnFetchFundingFee = this.safeBool (this.options, 'warnOnFetchFundingFee', true);
         if (warnOnFetchFundingFee) {
             throw new NotSupported (this.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
         }
@@ -4286,7 +4367,7 @@ export default class Exchange {
     }
 
     async fetchFundingFees (codes: string[] = undefined, params = {}) {
-        const warnOnFetchFundingFees = this.safeValue (this.options, 'warnOnFetchFundingFees', true);
+        const warnOnFetchFundingFees = this.safeBool (this.options, 'warnOnFetchFundingFees', true);
         if (warnOnFetchFundingFees) {
             throw new NotSupported (this.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
         }
@@ -4343,14 +4424,14 @@ export default class Exchange {
             throw new NotSupported (this.id + ' fetchIsolatedBorrowRate() is not supported yet');
         }
         const borrowRates = await this.fetchIsolatedBorrowRates (params);
-        const rate = this.safeValue (borrowRates, symbol);
+        const rate = this.safeDict (borrowRates, symbol);
         if (rate === undefined) {
             throw new ExchangeError (this.id + ' fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ' + symbol);
         }
         return rate;
     }
 
-    handleOptionAndParams (params, methodName, optionName, defaultValue = undefined) {
+    handleOptionAndParams (params: object, methodName: string, optionName: string, defaultValue = undefined) {
         // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
         const defaultOptionName = 'default' + this.capitalize (optionName); // we also need to check the 'defaultXyzWhatever'
         // check if params contain the key
@@ -4374,7 +4455,7 @@ export default class Exchange {
         return [ value, params ];
     }
 
-    handleOptionAndParams2 (params, methodName, methodName2, optionName, defaultValue = undefined) {
+    handleOptionAndParams2 (params: object, methodName: string, methodName2: string, optionName: string, defaultValue = undefined) {
         // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
         const defaultOptionName = 'default' + this.capitalize (optionName); // we also need to check the 'defaultXyzWhatever'
         // check if params contain the key
@@ -4398,7 +4479,7 @@ export default class Exchange {
         return [ value, params ];
     }
 
-    handleOption (methodName, optionName, defaultValue = undefined) {
+    handleOption (methodName: string, optionName: string, defaultValue = undefined) {
         // eslint-disable-next-line no-unused-vars
         const [ result, empty ] = this.handleOptionAndParams ({}, methodName, optionName, defaultValue);
         return result;
@@ -4406,7 +4487,7 @@ export default class Exchange {
 
     handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}): any {
         const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
-        const methodOptions = this.safeValue (this.options, methodName);
+        const methodOptions = this.safeDict (this.options, methodName);
         let methodType = defaultType;
         if (methodOptions !== undefined) {
             if (typeof methodOptions === 'string') {
@@ -4421,7 +4502,7 @@ export default class Exchange {
         return [ type, params ];
     }
 
-    handleSubTypeAndParams (methodName, market = undefined, params = {}, defaultValue = undefined) {
+    handleSubTypeAndParams (methodName: string, market = undefined, params = {}, defaultValue = undefined) {
         let subType = undefined;
         // if set in params, it takes precedence
         const subTypeInParams = this.safeString2 (params, 'subType', 'defaultSubType');
@@ -4440,14 +4521,14 @@ export default class Exchange {
             }
             // if it was not defined in market object
             if (subType === undefined) {
-                const values = this.handleOptionAndParams (undefined, methodName, 'subType', defaultValue); // no need to re-test params here
+                const values = this.handleOptionAndParams ({}, methodName, 'subType', defaultValue); // no need to re-test params here
                 subType = values[0];
             }
         }
         return [ subType, params ];
     }
 
-    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {
+    handleMarginModeAndParams (methodName: string, params = {}, defaultValue = undefined) {
         /**
          * @ignore
          * @method
@@ -4503,11 +4584,11 @@ export default class Exchange {
             const market = this.market (symbol);
             symbol = market['symbol'];
             const tickers = await this.fetchTickers ([ symbol ], params);
-            const ticker = this.safeValue (tickers, symbol);
+            const ticker = this.safeDict (tickers, symbol);
             if (ticker === undefined) {
                 throw new NullResponse (this.id + ' fetchTickers() could not find a ticker for ' + symbol);
             } else {
-                return ticker;
+                return ticker as Ticker;
             }
         } else {
             throw new NotSupported (this.id + ' fetchTicker() is not supported yet');
@@ -4583,7 +4664,7 @@ export default class Exchange {
     }
 
     async fetchUnifiedOrder (order, params = {}): Promise<Order> {
-        return await this.fetchOrder (this.safeValue (order, 'id'), this.safeValue (order, 'symbol'), params);
+        return await this.fetchOrder (this.safeString (order, 'id'), this.safeString (order, 'symbol'), params);
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
@@ -4871,7 +4952,7 @@ export default class Exchange {
     }
 
     async cancelUnifiedOrder (order, params = {}): Promise<{}> {
-        return this.cancelOrder (this.safeValue (order, 'id'), this.safeValue (order, 'symbol'), params);
+        return this.cancelOrder (this.safeString (order, 'id'), this.safeString (order, 'symbol'), params);
     }
 
     async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -5032,6 +5113,17 @@ export default class Exchange {
             } else {
                 return depositAddress;
             }
+        } else if (this.has['fetchDepositAddressesByNetwork']) {
+            const network = this.safeString (params, 'network');
+            params = this.omit (params, 'network');
+            const addressStructures = await this.fetchDepositAddressesByNetwork (code, params);
+            if (network !== undefined) {
+                return this.safeDict (addressStructures, network);
+            } else {
+                const keys = Object.keys (addressStructures);
+                const key = this.safeString (keys, 0);
+                return this.safeDict (addressStructures, key);
+            }
         } else {
             throw new NotSupported (this.id + ' fetchDepositAddress() is not supported yet');
         }
@@ -5052,7 +5144,7 @@ export default class Exchange {
         return this.safeString (this.commonCurrencies, currency, currency);
     }
 
-    currency (code) {
+    currency (code: string) {
         if (this.currencies === undefined) {
             throw new ExchangeError (this.id + ' currencies not loaded');
         }
@@ -5442,7 +5534,7 @@ export default class Exchange {
     }
 
     isTriggerOrder (params) {
-        const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         if (isTrigger) {
             params = this.omit (params, [ 'trigger', 'stop' ]);
         }
@@ -5459,7 +5551,7 @@ export default class Exchange {
          * @returns {boolean} true if a post only order, false otherwise
          */
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
-        let postOnly = this.safeValue2 (params, 'postOnly', 'post_only', false);
+        let postOnly = this.safeBool2 (params, 'postOnly', 'post_only', false);
         // we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
         const ioc = timeInForce === 'IOC';
         const fok = timeInForce === 'FOK';
@@ -5656,7 +5748,7 @@ export default class Exchange {
          * @param {string} account key for account name in this.options['accountsByType']
          * @returns the exchange specific account name or the isolated margin id for transfers
          */
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const lowercaseAccount = account.toLowerCase ();
         if (lowercaseAccount in accountsByType) {
             return accountsByType[lowercaseAccount];
@@ -5668,7 +5760,7 @@ export default class Exchange {
         }
     }
 
-    checkRequiredArgument (methodName, argument, argumentName, options = []) {
+    checkRequiredArgument (methodName: string, argument, argumentName, options = []) {
         /**
          * @ignore
          * @method
@@ -6037,7 +6129,8 @@ export default class Exchange {
                 errors = 0;
                 const responseLength = response.length;
                 if (this.verbose) {
-                    const cursorMessage = 'Cursor pagination call ' + i + 1 + ' method ' + method + ' response length ' + responseLength + ' cursor ' + cursorValue;
+                    const iteration = (i + 1).toString ();
+                    const cursorMessage = 'Cursor pagination call ' + iteration + ' method ' + method + ' response length ' + responseLength.toString () + ' cursor ' + cursorValue;
                     this.log (cursorMessage);
                 }
                 if (responseLength === 0) {
@@ -6082,7 +6175,8 @@ export default class Exchange {
                 errors = 0;
                 const responseLength = response.length;
                 if (this.verbose) {
-                    const incrementalMessage = 'Incremental pagination call ' + i + 1 + ' method ' + method + ' response length ' + responseLength;
+                    const iteration = (i + 1).toString ();
+                    const incrementalMessage = 'Incremental pagination call ' + iteration + ' method ' + method + ' response length ' + responseLength.toString ();
                     this.log (incrementalMessage);
                 }
                 if (responseLength === 0) {
@@ -6141,8 +6235,8 @@ export default class Exchange {
         return input;
     }
 
-    handleUntilOption (key, request, params, multiplier = 1) {
-        const until = this.safeValue2 (params, 'until', 'till');
+    handleUntilOption (key: string, request, params, multiplier = 1) {
+        const until = this.safeInteger2 (params, 'until', 'till');
         if (until !== undefined) {
             request[key] = this.parseToInt (until * multiplier);
             params = this.omit (params, [ 'until', 'till' ]);
