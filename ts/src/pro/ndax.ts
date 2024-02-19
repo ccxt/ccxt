@@ -399,10 +399,10 @@ export default class ndax extends ndaxRest {
         }
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
             return;
         }
+        const orderbook = this.orderbooks[symbol];
         let timestamp = undefined;
         let nonce = undefined;
         for (let i = 0; i < payload.length; i++) {
@@ -473,10 +473,9 @@ export default class ndax extends ndaxRest {
         const symbol = this.safeString (subscription, 'symbol');
         const snapshot = this.parseOrderBook (payload, symbol);
         const limit = this.safeInteger (subscription, 'limit');
-        const orderbook = this.orderBook (snapshot, limit);
-        this.orderbooks[symbol] = orderbook;
+        this.orderbooks[symbol] = this.orderBook (snapshot, limit);
         const messageHash = this.safeString (subscription, 'messageHash');
-        client.resolve (orderbook, messageHash);
+        client.resolve (this.orderbooks[symbol], messageHash);
     }
 
     handleSubscriptionStatus (client: Client, message) {
