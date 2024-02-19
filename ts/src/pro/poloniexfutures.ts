@@ -782,12 +782,10 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const data = this.safeValue (message, 'data', {});
         const messageHash = this.safeString (message, 'topic', '');
         const symbol = this.getSymbolFromTopic (messageHash);
-        let orderBook = this.safeValue (this.orderbooks, symbol);
-        if (orderBook === undefined) {
-            this.orderbooks[symbol] = this.orderBook ({});
-            orderBook = this.orderbooks[symbol];
-            orderBook['symbol'] = symbol;
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
+            this.orderbooks[symbol] = this.orderBook ({ 'symbol': symbol });
         }
+        const orderBook = this.orderbooks[symbol];
         const nonce = this.safeInteger (orderBook, 'nonce');
         if (nonce === undefined) {
             const cacheLength = orderBook.cache.length;
@@ -838,9 +836,8 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const symbol = this.getSymbolFromTopic (messageHash);
         const timestamp = this.safeInteger (data, 'timestamp');
         const snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
-        const orderbook = this.orderBook (snapshot);
-        this.orderbooks[symbol] = orderbook;
-        client.resolve (orderbook, messageHash);
+        this.orderbooks[symbol] = this.orderBook (snapshot);
+        client.resolve (this.orderbooks[symbol], messageHash);
     }
 
     getSymbolFromTopic (topic: string) {
