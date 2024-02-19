@@ -526,11 +526,10 @@ export default class exmo extends exmoRest {
         const orderBook = this.safeValue (message, 'data', {});
         const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeInteger (message, 'ts');
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ({});
-            this.orderbooks[symbol] = orderbook;
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
+            this.orderbooks[symbol] = this.orderBook ();
         }
+        const orderbook = this.orderbooks[symbol];
         const event = this.safeString (message, 'event');
         if (event === 'snapshot') {
             const snapshot = this.parseOrderBook (orderBook, symbol, timestamp, 'bid', 'ask');
