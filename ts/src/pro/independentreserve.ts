@@ -187,11 +187,10 @@ export default class independentreserve extends independentreserveRest {
         const subscription = this.safeValue (client.subscriptions, messageHash, {});
         const receivedSnapshot = this.safeBool (subscription, 'receivedSnapshot', false);
         const timestamp = this.safeInteger (message, 'Time');
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ({});
-            this.orderbooks[symbol] = orderbook;
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
+            this.orderbooks[symbol] = this.orderBook ();
         }
+        const orderbook = this.orderbooks[symbol];
         if (event === 'OrderBookSnapshot') {
             const snapshot = this.parseOrderBook (orderBook, symbol, timestamp, 'Bids', 'Offers', 'Price', 'Volume');
             orderbook.reset (snapshot);
