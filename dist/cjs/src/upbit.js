@@ -41,6 +41,7 @@ class upbit extends upbit$1 {
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
+                'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
                 'fetchDeposits': true,
@@ -68,6 +69,7 @@ class upbit extends upbit$1 {
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchTransactions': false,
+                'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'transfer': false,
                 'withdraw': true,
@@ -1193,6 +1195,45 @@ class upbit extends upbit$1 {
         //
         return this.parseTransactions(response, currency, since, limit);
     }
+    async fetchDeposit(id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name upbit#fetchDeposit
+         * @description fetch information on a deposit
+         * @see https://global-docs.upbit.com/reference/individual-deposit-inquiry
+         * @param {string} id the unique id for the deposit
+         * @param {string} [code] unified currency code of the currency deposited
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        await this.loadMarkets();
+        const request = {
+            'uuid': id,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.privateGetDeposit(this.extend(request, params));
+        //
+        //     {
+        //         "type": "deposit",
+        //         "uuid": "7f54527e-2eee-4268-860e-fd8b9d7fe3c7",
+        //         "currency": "ADA",
+        //         "net_type": "ADA",
+        //         "txid": "99795bbfeca91eaa071068bb659b33eeb65d8aaff2551fdf7c78f345d188952b",
+        //         "state": "ACCEPTED",
+        //         "created_at": "2023-12-12T04:58:41Z",
+        //         "done_at": "2023-12-12T05:31:50Z",
+        //         "amount": "35.72344",
+        //         "fee": "0.0",
+        //         "transaction_type": "default"
+        //     }
+        //
+        return this.parseTransaction(response, currency);
+    }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -1237,13 +1278,52 @@ class upbit extends upbit$1 {
         //
         return this.parseTransactions(response, currency, since, limit);
     }
+    async fetchWithdrawal(id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name upbit#fetchWithdrawal
+         * @description fetch data on a currency withdrawal via the withdrawal id
+         * @see https://global-docs.upbit.com/reference/individual-withdrawal-inquiry
+         * @param {string} id the unique id for the withdrawal
+         * @param {string} [code] unified currency code of the currency withdrawn
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        await this.loadMarkets();
+        const request = {
+            'uuid': id,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.privateGetWithdraw(this.extend(request, params));
+        //
+        //     {
+        //         "type": "withdraw",
+        //         "uuid": "95ef274b-23a6-4de4-95b0-5cbef4ca658f",
+        //         "currency": "ADA",
+        //         "net_type": "ADA",
+        //         "txid": "b1528f149297a71671b86636f731f8fdb0ff53da0f1d8c19093d59df96f34583",
+        //         "state": "DONE",
+        //         "created_at": "2023-12-14T02:46:52Z",
+        //         "done_at": "2023-12-14T03:10:11Z",
+        //         "amount": "35.22344",
+        //         "fee": "0.5",
+        //         "transaction_type": "default"
+        //     }
+        //
+        return this.parseTransaction(response, currency);
+    }
     parseTransactionStatus(status) {
         const statuses = {
             'submitting': 'pending',
             'submitted': 'pending',
             'almost_accepted': 'pending',
             'rejected': 'failed',
-            'accepted': 'pending',
+            'accepted': 'ok',
             'processing': 'pending',
             'done': 'ok',
             'canceled': 'canceled', // 취소됨
@@ -1252,7 +1332,7 @@ class upbit extends upbit$1 {
     }
     parseTransaction(transaction, currency = undefined) {
         //
-        // fetchDeposits
+        // fetchDeposits, fetchDeposit
         //
         //     {
         //         "type": "deposit",
@@ -1266,7 +1346,7 @@ class upbit extends upbit$1 {
         //         "fee": "0.0"
         //     }
         //
-        // fetchWithdrawals
+        // fetchWithdrawals, fetchWithdrawal
         //
         //     {
         //         "type": "withdraw",
@@ -1281,27 +1361,21 @@ class upbit extends upbit$1 {
         //         "krw_amount": "80420.0"
         //     }
         //
-        const id = this.safeString(transaction, 'uuid');
-        const amount = this.safeNumber(transaction, 'amount');
         const address = undefined; // not present in the data structure received from the exchange
         const tag = undefined; // not present in the data structure received from the exchange
-        const txid = this.safeString(transaction, 'txid');
         const updatedRaw = this.safeString(transaction, 'done_at');
-        const updated = this.parse8601(updatedRaw);
         const timestamp = this.parse8601(this.safeString(transaction, 'created_at', updatedRaw));
         let type = this.safeString(transaction, 'type');
         if (type === 'withdraw') {
             type = 'withdrawal';
         }
         const currencyId = this.safeString(transaction, 'currency');
-        const code = this.safeCurrencyCode(currencyId);
-        const status = this.parseTransactionStatus(this.safeStringLower(transaction, 'state'));
-        const feeCost = this.safeNumber(transaction, 'fee');
+        const code = this.safeCurrencyCode(currencyId, currency);
         return {
             'info': transaction,
-            'id': id,
+            'id': this.safeString(transaction, 'uuid'),
             'currency': code,
-            'amount': amount,
+            'amount': this.safeNumber(transaction, 'amount'),
             'network': undefined,
             'address': address,
             'addressTo': undefined,
@@ -1309,17 +1383,17 @@ class upbit extends upbit$1 {
             'tag': tag,
             'tagTo': undefined,
             'tagFrom': undefined,
-            'status': status,
+            'status': this.parseTransactionStatus(this.safeStringLower(transaction, 'state')),
             'type': type,
-            'updated': updated,
-            'txid': txid,
+            'updated': this.parse8601(updatedRaw),
+            'txid': this.safeString(transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'internal': undefined,
             'comment': undefined,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': this.safeNumber(transaction, 'fee'),
             },
         };
     }
