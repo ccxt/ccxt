@@ -33,6 +33,10 @@
                 "low":"16 Aug - happened weird negative 24hr low",
                 "bid":"messed bid-ask",
                 "ask":"messed bid-ask"
+            },
+            "watchOrderBook": {
+                "bid":"messed bid-ask",
+                "ask":"messed bid-ask"
             }
         }
     },
