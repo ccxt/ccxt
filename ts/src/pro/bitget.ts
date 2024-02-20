@@ -1259,10 +1259,19 @@ export default class bitget extends bitgetRest {
         }
         const triggerPrice = this.safeNumber (order, 'triggerPrice');
         const price = this.safeString (order, 'price');
-        const cost = this.safeStringN (order, [ 'notional', 'notionalUsd', 'quoteSize' ]);
+        const avgPrice = this.omitZero (this.safeString2 (order, 'priceAvg', 'fillPrice'));
+        let cost = this.safeStringN (order, [ 'notional', 'notionalUsd', 'quoteSize' ]);
+        const side = this.safeString (order, 'side');
+        if (side === 'buy' && market['spot']) {
+            cost = this.safeString (order, 'newSize', cost);
+        }
         let filled = this.safeString2 (order, 'accBaseVolume', 'baseVolume');
-        if (market['spot'] && (rawStatus !== 'live')) {
-            filled = Precise.stringDiv (cost, price);
+        if ((filled === undefined) && market['spot'] && (rawStatus !== 'live')) {
+            filled = Precise.stringDiv (cost, avgPrice);
+        }
+        let amount = this.safeString (order, 'baseVolume');
+        if (!market['spot'] || side !== 'buy') {
+            amount = this.safeString (order, 'newSize', amount);
         }
         return this.safeOrder ({
             'info': order,
@@ -1275,13 +1284,13 @@ export default class bitget extends bitgetRest {
             'type': this.safeString (order, 'orderType'),
             'timeInForce': this.safeStringUpper (order, 'force'),
             'postOnly': undefined,
-            'side': this.safeString (order, 'side'),
+            'side': side,
             'price': price,
             'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
-            'amount': this.safeString (order, 'baseVolume'),
+            'amount': amount,
             'cost': cost,
-            'average': this.omitZero (this.safeString2 (order, 'priceAvg', 'fillPrice')),
+            'average': avgPrice,
             'filled': filled,
             'remaining': undefined,
             'status': this.parseWsOrderStatus (rawStatus),
