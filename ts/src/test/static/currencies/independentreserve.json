@@ -1,7 +1,52 @@
 {
     "BTC": {
+        "id": "Xbt",
         "code": "BTC",
-        "precision": null,
+        "precision": 1e-8,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "USDT": {
+        "id": "Usdt",
+        "code": "USDT",
+        "precision": 1e-8,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "LTC": {
+        "id": "Ltc",
+        "code": "LTC",
+        "precision": 1e-8,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "ETH": {
+        "id": "Eth",
+        "code": "ETH",
+        "precision": 1e-8,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "ADA": {
+        "id": "Ada",
+        "code": "ADA",
+        "precision": 1e-8,
         "fees": {},
         "networks": {},
         "limits": {
