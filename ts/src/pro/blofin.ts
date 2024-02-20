@@ -401,16 +401,17 @@ export default class blofin extends blofinRest {
         client.resolve (resolveData, messageHash);
     }
 
-    async authenticate (url, params = {}) {
+    async authenticate (params = {}) {
         this.checkRequiredCredentials ();
+        const time = this.milliseconds ();
+        const lastAuthenticatedTime = this.safeInteger (this.options, 'lastAuthenticatedTime', 0);
+        const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3600000); // 1 hour
         const messageHash = 'authenticated';
-        const client = this.client (url);
-        if (this.safeValue (client.subscriptions, messageHash) === undefined) {
+        if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
             const timestamp = this.milliseconds ().toString ();
             const nonce = 'n_' + timestamp;
-            const auth = '/users/self/verify' + 'GET' + timestamp + nonce;
-            const secret = this.secret; // this.base64ToBinary (
-            const signature = this.hmac (this.encode (auth), secret, sha256);
+            const auth = '/users/self/verify' + 'GET' + timestamp + '' + nonce;
+            const signature = this.stringToBase64 (this.hmac (this.encode (auth), this.encode (this.secret), sha256));
             const request = {
                 'op': 'login',
                 'args': [
@@ -418,14 +419,40 @@ export default class blofin extends blofinRest {
                         'apiKey': this.apiKey,
                         'passphrase': this.password,
                         'timestamp': timestamp,
+                        'nonce': nonce,
                         'sign': signature,
-                        'nonce': timestamp,
                     },
                 ],
             };
-            client.subscriptions[messageHash] = this.watch (url, messageHash, this.extend (request, params));
+            const marketType = 'swap'; // for now
+            const url = this.implodeHostname (this.urls['api']['ws'][marketType]['public']);
+            const response = await this.watch (url, messageHash, this.extend (request, params));
+            this.options['listenKey'] = this.safeString (response, 'listenKey');
+            this.options['lastAuthenticatedTime'] = time;
         }
-        return client.subscriptions[messageHash];
+    }
+
+    async watchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name blofin#watchBalance
+         * @see https://docs.blofin.com/index.html#ws-account-channel
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        await this.loadMarkets ();
+        await this.authenticate ();
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const isSpot = (type === 'spot');
+        const spotSubHash = 'spot:balance';
+        const swapSubHash = 'swap:private';
+        const spotMessageHash = 'spot:balance';
+        const swapMessageHash = 'swap:balance';
+        const messageHash = isSpot ? spotMessageHash : swapMessageHash;
+        const subscriptionHash = isSpot ? spotSubHash : swapSubHash;
+        return await this.watch ('', messageHash, {}, subscriptionHash);
     }
 
     handleMessage (client: Client, message) {
@@ -481,7 +508,7 @@ export default class blofin extends blofinRest {
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams (callerMethodName, firstMarket, params);
         if (marketType === 'spot') {
-            throw new NotSupported (this.id + ' ' + callerMethodName + '() is not supported for spot markets');
+            throw new NotSupported (this.id + ' ' + callerMethodName + '() is not supported for spot markets yet');
         }
         const rawSubscriptions = [];
         const messageHashes = [];
