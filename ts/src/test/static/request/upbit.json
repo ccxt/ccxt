@@ -159,6 +159,16 @@
               "95ef274b-23a6-4de4-95b0-5cbef4ca658f"
             ]
           }
+        ],
+        "fetchDeposit": [
+          {
+            "description": "Fetch a deposit",
+            "method": "fetchDeposit",
+            "url": "https://sg-api.upbit.com/v1/deposit?uuid=7f54527e-2eee-4268-860e-fd8b9d7fe3c7",
+            "input": [
+              "7f54527e-2eee-4268-860e-fd8b9d7fe3c7"
+            ]
+          }
         ]
     }
 }
