@@ -1179,10 +1179,13 @@ export default class idex extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
+        const testOrder = this.safeBool (params, 'test', false);
+        params = this.omit (params, 'test');
         const market = this.market (symbol);
         const nonce = this.uuidv1 ();
         let typeEnum = undefined;
@@ -1357,7 +1360,12 @@ export default class idex extends Exchange {
         //   "avgExecutionPrice": "0.09905990"
         // }
         // we don't use extend here because it is a signed endpoint
-        const response = await this.privatePostOrders (request);
+        let response = undefined;
+        if (testOrder) {
+            response = await this.privatePostOrdersTest (request);
+        } else {
+            response = await this.privatePostOrders (request);
+        }
         return this.parseOrder (response, market);
     }
 
