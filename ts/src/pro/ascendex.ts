@@ -218,7 +218,7 @@ export default class ascendex extends ascendexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const channel = 'depth-realtime' + ':' + market['id'];
+        const channel = 'depth' + ':' + market['id'];
         params = this.extend (params, {
             'ch': channel,
         });
@@ -229,7 +229,7 @@ export default class ascendex extends ascendexRest {
     async watchOrderBookSnapshot (symbol: string, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const action = 'depth-snapshot-realtime';
+        const action = 'depth-snapshot';
         const channel = action + ':' + market['id'];
         params = this.extend (params, {
             'action': action,
