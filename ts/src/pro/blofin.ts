@@ -4,7 +4,7 @@
 import blofinRest from '../blofin.js';
 import { NotSupported, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV } from '../base/types.js';
+import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
 
@@ -408,10 +408,7 @@ export default class blofin extends blofinRest {
         if (this.safeValue (client.subscriptions, messageHash) === undefined) {
             const timestamp = this.milliseconds ().toString ();
             const nonce = 'n_' + timestamp;
-            const urlParts = url.split ('/');
-            const partsLength = urlParts.length;
-            const path = this.safeString (urlParts, partsLength - 1);
-            const auth = path + 'GET' + timestamp + nonce;
+            const auth = '/users/self/verify' + 'GET' + timestamp + nonce;
             const secret = this.secret; // this.base64ToBinary (
             const signature = this.hmac (this.encode (auth), secret, sha256);
             const request = {
