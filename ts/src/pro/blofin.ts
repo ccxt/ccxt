@@ -481,13 +481,26 @@ export default class blofin extends blofinRest {
         //         },
         //     }
         //
-        const arg = this.safeDict (message, 'arg');
-        const channelName = this.safeString (arg, 'channel');
         const data = this.safeDict (message, 'data');
-        // const messageHash = 'balance' + ':' + type;
-        // client.resolve (this.safeBalance (result), messageHash);
+        const details = this.safeList (data, 'details', []);
+        const marketType = 'swap'; // for now
+        if (!(marketType in this.balance)) {
+            this.balance[marketType] = {};
+        }
+        for (let i = 0; i < details.length; i++) {
+            const rawBalance = details[i];
+            const currencyId = this.safeString (rawBalance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (rawBalance, 'available');
+            account['used'] = this.safeString (rawBalance, 'frozen');
+            account['info'] = rawBalance;
+            this.balance[marketType][code] = account;
+        }
+        this.balance[marketType]['info'] = message;
+        this.balance[marketType] = this.safeBalance (this.balance[marketType]);
+        client.resolve (this.balance[marketType], marketType + ':balance');
     }
-
 
     handleMessage (client: Client, message) {
         //
