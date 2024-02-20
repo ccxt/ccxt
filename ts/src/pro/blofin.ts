@@ -426,7 +426,7 @@ export default class blofin extends blofinRest {
             };
             const marketType = 'swap'; // for now
             const url = this.implodeHostname (this.urls['api']['ws'][marketType]['public']);
-            const response = await this.watch (url, messageHash, this.extend (request, params));
+            const response = await this.watch (url, messageHash, this.deepExtend (request, params));
             this.options['listenKey'] = this.safeString (response, 'listenKey');
             this.options['lastAuthenticatedTime'] = time;
         }
