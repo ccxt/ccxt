@@ -882,8 +882,8 @@ export default class ascendex extends ascendexRest {
             'ping': this.handlePing,
             'auth': this.handleAuthenticate,
             'sub': this.handleSubscriptionStatus,
-            'depth-realtime': this.handleOrderBook,
-            'depth-snapshot-realtime': this.handleOrderBookSnapshot,
+            'depth': this.handleOrderBook,
+            'depth-snapshot': this.handleOrderBookSnapshot,
             'trades': this.handleTrades,
             'bar': this.handleOHLCV,
             'balance': this.handleBalance,
@@ -911,7 +911,7 @@ export default class ascendex extends ascendexRest {
         //     { m: 'sub', id: "1647515701", ch: "depth:BTC/USDT", code: 0 }
         //
         const channel = this.safeString (message, 'ch', '');
-        if (channel.indexOf ('depth-realtime') > -1) {
+        if (channel.indexOf ('depth') > -1 && !(channel.indexOf ('depth-snapshot') > -1)) {
             this.handleOrderBookSubscription (client, message);
         }
         return message;
