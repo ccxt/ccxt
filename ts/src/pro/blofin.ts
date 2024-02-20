@@ -492,8 +492,8 @@ export default class blofin extends blofinRest {
             const currencyId = this.safeString (rawBalance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
+            account['total'] = this.safeString (rawBalance, 'balance');
             account['free'] = this.safeString (rawBalance, 'available');
-            account['used'] = this.safeString (rawBalance, 'frozen');
             account['info'] = rawBalance;
             this.balance[marketType][code] = account;
         }
