@@ -278,6 +278,13 @@ export default class testMainClass extends baseMainTestClass {
         const properties = Object.keys (exchange.has);
         properties.push ('loadMarkets');
         this.testFiles = await getTestFiles (properties, this.wsTests);
+        // temp fix for all langs for ohlcv
+        if (exchange.inArray ('fetch_o_h_l_c_v', this.testFiles)) {
+            this.testFiles['fetch_ohlcv'] = this.testFiles['fetch_o_h_l_c_v'];
+        }
+        if (exchange.inArray ('watch_o_h_l_c_v', this.testFiles)) {
+            this.testFiles['watch_ohlcv'] = this.testFiles['watch_o_h_l_c_v'];
+        }
     }
 
     loadCredentialsFromEnv (exchange: Exchange) {
