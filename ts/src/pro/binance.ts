@@ -2019,11 +2019,14 @@ export default class binance extends binanceRest {
          * @name binance#watchOrders
          * @description watches information on multiple orders made by the user
          * @see https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
+         * @see https://binance-docs.github.io/apidocs/pm/en/#event-futures-order-update
+         * @see https://binance-docs.github.io/apidocs/pm/en/#event-margin-order-update
          * @param {string} symbol unified market symbol of the market the orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for spot margin
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to watch portfolio margin account orders
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2051,10 +2054,15 @@ export default class binance extends binanceRest {
         if ((type === 'margin') || ((type === 'spot') && (marginMode !== undefined))) {
             urlType = 'spot'; // spot-margin shares the same stream as regular spot
         }
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchOrders', 'papi', 'portfolioMargin', false);
+        if (isPortfolioMargin) {
+            urlType = 'papi';
+        }
         const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
-        this.setBalanceCache (client, type);
-        this.setPositionsCache (client, type);
+        this.setBalanceCache (client, type, isPortfolioMargin);
+        this.setPositionsCache (client, type, undefined, isPortfolioMargin);
         const message = undefined;
         const orders = await this.watch (url, messageHash, message, type);
         if (this.newUpdates) {
