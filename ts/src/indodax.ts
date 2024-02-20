@@ -202,6 +202,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#server-time
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -220,6 +221,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchMarkets
          * @description retrieves data on all markets for indodax
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#pairs
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -342,6 +344,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#get-info-endpoint
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -385,6 +388,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#depth
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -446,6 +450,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -530,6 +535,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -638,6 +644,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#get-order-endpoints
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -663,6 +670,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#open-orders-endpoints
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -704,6 +712,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#order-history
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -729,6 +738,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#createOrder
          * @description create a trade order
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#trade-endpoints
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -768,6 +778,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#cancelOrder
          * @description cancels an open order
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#cancel-order-endpoints
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -795,6 +806,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchTransactionFee
          * @description fetch the fee for a transaction
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -829,6 +841,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchDepositsWithdrawals
          * @description fetch history of deposits and withdrawals
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#transaction-history-endpoints
          * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -930,6 +943,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#withdraw
          * @description make a withdrawal
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-coin-endpoints
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -1066,6 +1080,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchDepositAddresses
          * @description fetch deposit addresses for multiple currencies and chain types
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#general-information-on-endpoints
          * @param {string[]} [codes] list of unified currency codes, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
