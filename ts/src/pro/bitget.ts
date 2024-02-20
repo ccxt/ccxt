@@ -983,6 +983,7 @@ export default class bitget extends bitgetRest {
         //                 "clientOid": "798d1425-d31d-4ada-a51b-ec701e00a1d9",
         //                 "price": "35000.00",
         //                 "size": "7.0000",
+        //                 "newSize": "500.0000",
         //                 "notional": "7.000000",
         //                 "orderType": "limit",
         //                 "force": "gtc",
@@ -1149,6 +1150,7 @@ export default class bitget extends bitgetRest {
         //         "clientOid": "798d1425-d31d-4ada-a51b-ec701e00a1d9",
         //         "price": "35000.00",
         //         "size": "7.0000",
+        //         "newSize": "500.0000",
         //         "notional": "7.000000",
         //         "orderType": "limit",
         //         "force": "gtc",
@@ -1256,6 +1258,12 @@ export default class bitget extends bitgetRest {
             };
         }
         const triggerPrice = this.safeNumber (order, 'triggerPrice');
+        const price = this.safeString (order, 'price');
+        const cost = this.safeStringN (order, [ 'notional', 'notionalUsd', 'quoteSize' ]);
+        let filled = this.safeString2 (order, 'accBaseVolume', 'baseVolume');
+        if (market['spot'] && (rawStatus !== 'live')) {
+            filled = Precise.stringDiv (cost, price);
+        }
         return this.safeOrder ({
             'info': order,
             'symbol': symbol,
@@ -1268,13 +1276,13 @@ export default class bitget extends bitgetRest {
             'timeInForce': this.safeStringUpper (order, 'force'),
             'postOnly': undefined,
             'side': this.safeString (order, 'side'),
-            'price': this.safeString (order, 'price'),
+            'price': price,
             'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'amount': this.safeString (order, 'baseVolume'),
-            'cost': this.safeStringN (order, [ 'notional', 'notionalUsd', 'quoteSize' ]),
+            'cost': cost,
             'average': this.omitZero (this.safeString2 (order, 'priceAvg', 'fillPrice')),
-            'filled': this.safeString2 (order, 'accBaseVolume', 'baseVolume'),
+            'filled': filled,
             'remaining': undefined,
             'status': this.parseWsOrderStatus (rawStatus),
             'fee': feeObject,
