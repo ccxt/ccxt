@@ -10,6 +10,7 @@ public partial class idex
     /// retrieves data on all markets for idex
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v3.idex.io/#get-markets"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -29,6 +30,7 @@ public partial class idex
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v3.idex.io/#get-tickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -48,6 +50,7 @@ public partial class idex
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v3.idex.io/#get-tickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -67,6 +70,7 @@ public partial class idex
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v3.idex.io/#get-candles"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -100,6 +104,7 @@ public partial class idex
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v3.idex.io/#get-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -133,6 +138,7 @@ public partial class idex
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v3.idex.io/#get-api-account"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -152,6 +158,7 @@ public partial class idex
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v3.idex.io/#get-order-books"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -178,6 +185,7 @@ public partial class idex
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v3.idex.io/#get-balances"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -197,6 +205,7 @@ public partial class idex
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v3.idex.io/#get-fills"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -230,6 +239,7 @@ public partial class idex
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v3.idex.io/#get-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -249,6 +259,7 @@ public partial class idex
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v3.idex.io/#get-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -282,6 +293,7 @@ public partial class idex
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v3.idex.io/#get-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -322,6 +334,7 @@ public partial class idex
     /// create a trade order, https://docs.idex.io/#create-order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v3.idex.io/#create-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -333,6 +346,12 @@ public partial class idex
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.test</term>
+    /// <description>
+    /// bool : set to true to test an order, no order will be created but the request will be validated
     /// </description>
     /// </item>
     /// </list>
@@ -348,6 +367,7 @@ public partial class idex
     /// make a withdrawal
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v3.idex.io/#withdraw-funds"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -367,6 +387,7 @@ public partial class idex
     /// cancel all open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v3.idex.io/#cancel-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -386,6 +407,7 @@ public partial class idex
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v3.idex.io/#cancel-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -405,6 +427,7 @@ public partial class idex
     /// fetch information on a deposit
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v3.idex.io/#get-deposits"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -424,6 +447,7 @@ public partial class idex
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v3.idex.io/#get-deposits"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -454,9 +478,30 @@ public partial class idex
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
     /// <summary>
+    /// the latest known information on the availability of the exchange API
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api-docs-v3.idex.io/#get-ping"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}.</returns>
+    public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchStatus(parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v3.idex.io/#get-time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -476,6 +521,7 @@ public partial class idex
     /// fetch data on a currency withdrawal via the withdrawal id
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v3.idex.io/#get-withdrawals"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -495,6 +541,7 @@ public partial class idex
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-docs-v3.idex.io/#get-withdrawals"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

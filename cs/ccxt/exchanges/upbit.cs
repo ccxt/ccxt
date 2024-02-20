@@ -31,6 +31,7 @@ public partial class upbit : Exchange
                 { "fetchBalance", true },
                 { "fetchCanceledOrders", true },
                 { "fetchClosedOrders", true },
+                { "fetchDeposit", true },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", true },
                 { "fetchDeposits", true },
@@ -58,6 +59,7 @@ public partial class upbit : Exchange
                 { "fetchTradingFee", true },
                 { "fetchTradingFees", false },
                 { "fetchTransactions", false },
+                { "fetchWithdrawal", true },
                 { "fetchWithdrawals", true },
                 { "transfer", false },
                 { "withdraw", true },
@@ -1224,6 +1226,49 @@ public partial class upbit : Exchange
         return this.parseTransactions(response, currency, since, limit);
     }
 
+    public async virtual Task<object> fetchDeposit(object id, object code = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name upbit#fetchDeposit
+        * @description fetch information on a deposit
+        * @see https://global-docs.upbit.com/reference/individual-deposit-inquiry
+        * @param {string} id the unique id for the deposit
+        * @param {string} [code] unified currency code of the currency deposited
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
+        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "uuid", id },
+        };
+        object currency = null;
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.currency(code);
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+        }
+        object response = await this.privateGetDeposit(this.extend(request, parameters));
+        //
+        //     {
+        //         "type": "deposit",
+        //         "uuid": "7f54527e-2eee-4268-860e-fd8b9d7fe3c7",
+        //         "currency": "ADA",
+        //         "net_type": "ADA",
+        //         "txid": "99795bbfeca91eaa071068bb659b33eeb65d8aaff2551fdf7c78f345d188952b",
+        //         "state": "ACCEPTED",
+        //         "created_at": "2023-12-12T04:58:41Z",
+        //         "done_at": "2023-12-12T05:31:50Z",
+        //         "amount": "35.72344",
+        //         "fee": "0.0",
+        //         "transaction_type": "default"
+        //     }
+        //
+        return this.parseTransaction(response, currency);
+    }
+
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
@@ -1271,6 +1316,49 @@ public partial class upbit : Exchange
         return this.parseTransactions(response, currency, since, limit);
     }
 
+    public async virtual Task<object> fetchWithdrawal(object id, object code = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name upbit#fetchWithdrawal
+        * @description fetch data on a currency withdrawal via the withdrawal id
+        * @see https://global-docs.upbit.com/reference/individual-withdrawal-inquiry
+        * @param {string} id the unique id for the withdrawal
+        * @param {string} [code] unified currency code of the currency withdrawn
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
+        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "uuid", id },
+        };
+        object currency = null;
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.currency(code);
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+        }
+        object response = await this.privateGetWithdraw(this.extend(request, parameters));
+        //
+        //     {
+        //         "type": "withdraw",
+        //         "uuid": "95ef274b-23a6-4de4-95b0-5cbef4ca658f",
+        //         "currency": "ADA",
+        //         "net_type": "ADA",
+        //         "txid": "b1528f149297a71671b86636f731f8fdb0ff53da0f1d8c19093d59df96f34583",
+        //         "state": "DONE",
+        //         "created_at": "2023-12-14T02:46:52Z",
+        //         "done_at": "2023-12-14T03:10:11Z",
+        //         "amount": "35.22344",
+        //         "fee": "0.5",
+        //         "transaction_type": "default"
+        //     }
+        //
+        return this.parseTransaction(response, currency);
+    }
+
     public virtual object parseTransactionStatus(object status)
     {
         object statuses = new Dictionary<string, object>() {
@@ -1278,7 +1366,7 @@ public partial class upbit : Exchange
             { "submitted", "pending" },
             { "almost_accepted", "pending" },
             { "rejected", "failed" },
-            { "accepted", "pending" },
+            { "accepted", "ok" },
             { "processing", "pending" },
             { "done", "ok" },
             { "canceled", "canceled" },
@@ -1289,7 +1377,7 @@ public partial class upbit : Exchange
     public override object parseTransaction(object transaction, object currency = null)
     {
         //
-        // fetchDeposits
+        // fetchDeposits, fetchDeposit
         //
         //     {
         //         "type": "deposit",
@@ -1303,7 +1391,7 @@ public partial class upbit : Exchange
         //         "fee": "0.0"
         //     }
         //
-        // fetchWithdrawals
+        // fetchWithdrawals, fetchWithdrawal
         //
         //     {
         //         "type": "withdraw",
@@ -1318,13 +1406,9 @@ public partial class upbit : Exchange
         //         "krw_amount": "80420.0"
         //     }
         //
-        object id = this.safeString(transaction, "uuid");
-        object amount = this.safeNumber(transaction, "amount");
         object address = null; // not present in the data structure received from the exchange
         object tag = null; // not present in the data structure received from the exchange
-        object txid = this.safeString(transaction, "txid");
         object updatedRaw = this.safeString(transaction, "done_at");
-        object updated = this.parse8601(updatedRaw);
         object timestamp = this.parse8601(this.safeString(transaction, "created_at", updatedRaw));
         object type = this.safeString(transaction, "type");
         if (isTrue(isEqual(type, "withdraw")))
@@ -1332,14 +1416,12 @@ public partial class upbit : Exchange
             type = "withdrawal";
         }
         object currencyId = this.safeString(transaction, "currency");
-        object code = this.safeCurrencyCode(currencyId);
-        object status = this.parseTransactionStatus(this.safeStringLower(transaction, "state"));
-        object feeCost = this.safeNumber(transaction, "fee");
+        object code = this.safeCurrencyCode(currencyId, currency);
         return new Dictionary<string, object>() {
             { "info", transaction },
-            { "id", id },
+            { "id", this.safeString(transaction, "uuid") },
             { "currency", code },
-            { "amount", amount },
+            { "amount", this.safeNumber(transaction, "amount") },
             { "network", null },
             { "address", address },
             { "addressTo", null },
@@ -1347,17 +1429,17 @@ public partial class upbit : Exchange
             { "tag", tag },
             { "tagTo", null },
             { "tagFrom", null },
-            { "status", status },
+            { "status", this.parseTransactionStatus(this.safeStringLower(transaction, "state")) },
             { "type", type },
-            { "updated", updated },
-            { "txid", txid },
+            { "updated", this.parse8601(updatedRaw) },
+            { "txid", this.safeString(transaction, "txid") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "internal", null },
             { "comment", null },
             { "fee", new Dictionary<string, object>() {
                 { "currency", code },
-                { "cost", feeCost },
+                { "cost", this.safeNumber(transaction, "fee") },
             } },
         };
     }
