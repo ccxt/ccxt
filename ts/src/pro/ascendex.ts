@@ -921,15 +921,16 @@ export default class ascendex extends ascendexRest {
         const channel = this.safeString (message, 'ch');
         const parts = channel.split (':');
         const marketId = parts[1];
-        const symbol = this.safeSymbol (marketId);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
         this.orderbooks[symbol] = this.orderBook ({});
-        if (this.options['defaultType'] === 'spot') {
-            this.spawn (this.watchOrderBookSnapshot, symbol);
-        } else {
+        if (this.options['defaultType'] === 'swap' || market['contract']) {
             this.spawn (this.fetchRestOrderBookSafe, symbol);
+        } else {
+            this.spawn (this.watchOrderBookSnapshot, symbol);
         }
     }
 
