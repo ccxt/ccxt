@@ -2615,6 +2615,7 @@ export default class binance extends binanceRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to watch trades in a portfolio margin account
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets ();
@@ -2643,10 +2644,15 @@ export default class binance extends binanceRest {
         if (type === 'margin') {
             urlType = 'spot'; // spot-margin shares the same stream as regular spot
         }
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchMyTrades', 'papi', 'portfolioMargin', false);
+        if (isPortfolioMargin) {
+            urlType = 'papi';
+        }
         const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
-        this.setBalanceCache (client, type);
-        this.setPositionsCache (client, type);
+        this.setBalanceCache (client, type, isPortfolioMargin);
+        this.setPositionsCache (client, type, undefined, isPortfolioMargin);
         const message = undefined;
         const trades = await this.watch (url, messageHash, message, type);
         if (this.newUpdates) {
