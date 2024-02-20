@@ -35,6 +35,7 @@ export default class blofin extends blofinRest {
                 },
             },
             'options': {
+                'defaultType': 'swap',
                 'tradesLimit': 1000,
                 // orderbook channel can be one from:
                 //  - "books": 200 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed every 100 ms for the changes in the order book during that period of time.
@@ -403,33 +404,27 @@ export default class blofin extends blofinRest {
 
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
-        const time = this.milliseconds ();
-        const lastAuthenticatedTime = this.safeInteger (this.options, 'lastAuthenticatedTime', 0);
-        const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3600000); // 1 hour
-        const messageHash = 'authenticated';
-        if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
-            const timestamp = this.milliseconds ().toString ();
-            const nonce = 'n_' + timestamp;
-            const auth = '/users/self/verify' + 'GET' + timestamp + '' + nonce;
-            const signature = this.stringToBase64 (this.hmac (this.encode (auth), this.encode (this.secret), sha256));
-            const request = {
-                'op': 'login',
-                'args': [
-                    {
-                        'apiKey': this.apiKey,
-                        'passphrase': this.password,
-                        'timestamp': timestamp,
-                        'nonce': nonce,
-                        'sign': signature,
-                    },
-                ],
-            };
-            const marketType = 'swap'; // for now
-            const url = this.implodeHostname (this.urls['api']['ws'][marketType]['public']);
-            const response = await this.watch (url, messageHash, this.deepExtend (request, params));
-            this.options['listenKey'] = this.safeString (response, 'listenKey');
-            this.options['lastAuthenticatedTime'] = time;
-        }
+        const milliseconds = this.milliseconds ();
+        const messageHash = 'authenticate_hash';
+        const timestamp = milliseconds.toString ();
+        const nonce = 'n_' + timestamp;
+        const auth = '/users/self/verify' + 'GET' + timestamp + '' + nonce;
+        const signature = this.stringToBase64 (this.hmac (this.encode (auth), this.encode (this.secret), sha256));
+        const request = {
+            'op': 'login',
+            'args': [
+                {
+                    'apiKey': this.apiKey,
+                    'passphrase': this.password,
+                    'timestamp': timestamp,
+                    'nonce': nonce,
+                    'sign': signature,
+                },
+            ],
+        };
+        const marketType = 'swap'; // for now
+        const url = this.implodeHostname (this.urls['api']['ws'][marketType]['private']);
+        await this.watch (url, messageHash, this.deepExtend (request, params));
     }
 
     async watchBalance (params = {}): Promise<Balances> {
@@ -443,17 +438,56 @@ export default class blofin extends blofinRest {
          */
         await this.loadMarkets ();
         await this.authenticate ();
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
-        const isSpot = (type === 'spot');
-        const spotSubHash = 'spot:balance';
-        const swapSubHash = 'swap:private';
-        const spotMessageHash = 'spot:balance';
-        const swapMessageHash = 'swap:balance';
-        const messageHash = isSpot ? spotMessageHash : swapMessageHash;
-        const subscriptionHash = isSpot ? spotSubHash : swapSubHash;
-        return await this.watch ('', messageHash, {}, subscriptionHash);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        if (marketType === 'spot') {
+            throw new NotSupported (this.id + ' watchBalance() is not supported for spot markets yet');
+        }
+        const messageHash = marketType + ':balance';
+        const sub = {
+            'channel': 'account',
+        };
+        const request = this.getSubscriptionRequest ([ sub ]);
+        const url = this.implodeHostname (this.urls['api']['ws'][marketType]['private']);
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
+
+    handleBalance (client: Client, message) {
+        //
+        //     {
+        //         arg: {
+        //           channel: "account",
+        //         },
+        //         data: {
+        //           ts: "1708444871866",
+        //           totalEquity: "0.000000",
+        //           isolatedEquity: "0.000000",
+        //           details: [
+        //             {
+        //               currency: "USDT",
+        //               equity: "0",
+        //               available: "0",
+        //               balance: "0",
+        //               ts: "1708444871866",
+        //               isolatedEquity: "0",
+        //               equityUsd: "0.000000",
+        //               availableEquity: "0",
+        //               frozen: "0",
+        //               orderFrozen: "0",
+        //               unrealizedPnl: "0",
+        //               isolatedUnrealizedPnl: "0",
+        //             },
+        //           ],
+        //         },
+        //     }
+        //
+        const arg = this.safeDict (message, 'arg');
+        const channelName = this.safeString (arg, 'channel');
+        const data = this.safeDict (message, 'data');
+        // const messageHash = 'balance' + ':' + type;
+        // client.resolve (this.safeBalance (result), messageHash);
+    }
+
 
     handleMessage (client: Client, message) {
         //
@@ -470,11 +504,13 @@ export default class blofin extends blofinRest {
         // incoming data updates' examples can be seen under each handler method
         //
         const methods = {
+            'pong': this.handlePong,
             'trades': this.handleTrades,
             'books': this.handleOrderBook,
             'tickers': this.handleTicker,
             'candle': this.handleOHLCV,
-            'pong': this.handlePong,
+            //
+            'account': this.handleBalance,
         };
         let method = undefined;
         if (message === 'pong') {
@@ -482,6 +518,10 @@ export default class blofin extends blofinRest {
         } else {
             const event = this.safeString (message, 'event');
             if (event === 'subscribe') {
+                return;
+            }
+            if (event === 'login') {
+                client.resolve (message, 'authenticate_hash');
                 return;
             }
             const arg = this.safeDict (message, 'arg');
@@ -531,11 +571,15 @@ export default class blofin extends blofinRest {
             rawSubscriptions.push (topic);
             messageHashes.push (channel + ':' + market['symbol']);
         }
-        const request = {
-            'op': 'subscribe',
-            'args': rawSubscriptions,
-        };
+        const request = this.getSubscriptionRequest (rawSubscriptions);
         const url = this.implodeHostname (this.urls['api']['ws'][marketType]['public']);
         return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
+    }
+
+    getSubscriptionRequest (args) {
+        return {
+            'op': 'subscribe',
+            'args': args,
+        };
     }
 }
