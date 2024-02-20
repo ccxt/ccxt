@@ -45,6 +45,7 @@ export default class upbit extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
+                'fetchDeposit': true,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -1204,6 +1205,46 @@ export default class upbit extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
+    async fetchDeposit (id: string, code: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name upbit#fetchDeposit
+         * @description fetch information on a deposit
+         * @see https://global-docs.upbit.com/reference/individual-deposit-inquiry
+         * @param {string} id the unique id for the deposit
+         * @param {string} [code] unified currency code of the currency deposited
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'uuid': id,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.privateGetDeposit (this.extend (request, params));
+        //
+        //     {
+        //         "type": "deposit",
+        //         "uuid": "7f54527e-2eee-4268-860e-fd8b9d7fe3c7",
+        //         "currency": "ADA",
+        //         "net_type": "ADA",
+        //         "txid": "99795bbfeca91eaa071068bb659b33eeb65d8aaff2551fdf7c78f345d188952b",
+        //         "state": "ACCEPTED",
+        //         "created_at": "2023-12-12T04:58:41Z",
+        //         "done_at": "2023-12-12T05:31:50Z",
+        //         "amount": "35.72344",
+        //         "fee": "0.0",
+        //         "transaction_type": "default"
+        //     }
+        //
+        return this.parseTransaction (response, currency);
+    }
+
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
@@ -1295,7 +1336,7 @@ export default class upbit extends Exchange {
             'submitted': 'pending', // 처리 완료
             'almost_accepted': 'pending', // 출금대기중
             'rejected': 'failed', // 거부
-            'accepted': 'pending', // 승인됨
+            'accepted': 'ok', // 승인됨
             'processing': 'pending', // 처리 중
             'done': 'ok', // 완료
             'canceled': 'canceled', // 취소됨
@@ -1305,7 +1346,7 @@ export default class upbit extends Exchange {
 
     parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
-        // fetchDeposits
+        // fetchDeposits, fetchDeposit
         //
         //     {
         //         "type": "deposit",
@@ -1319,7 +1360,7 @@ export default class upbit extends Exchange {
         //         "fee": "0.0"
         //     }
         //
-        // fetchWithdrawals
+        // fetchWithdrawals, fetchWithdrawal
         //
         //     {
         //         "type": "withdraw",
