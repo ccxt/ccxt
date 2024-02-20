@@ -1,7 +1,6 @@
 {
     "ace": {
         "skip": "temp",
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "temporary skip, because ids are numeric and we are in wip for numeric id tests",
@@ -22,7 +21,6 @@
         "skipWs": "private endpoints"
     },
     "ascendex": {
-        "skipWs": "unknown https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2416",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
