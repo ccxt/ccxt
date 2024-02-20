@@ -149,6 +149,16 @@
                   "4321cb06-94cc-4fd5-bb15-a514c721ff56"
                 ]
             }
+        ],
+        "fetchWithdrawal": [
+          {
+            "description": "Fetch a withdrawal",
+            "method": "fetchWithdrawal",
+            "url": "https://sg-api.upbit.com/v1/withdraw?uuid=95ef274b-23a6-4de4-95b0-5cbef4ca658f",
+            "input": [
+              "95ef274b-23a6-4de4-95b0-5cbef4ca658f"
+            ]
+          }
         ]
     }
 }
