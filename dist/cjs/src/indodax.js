@@ -46,6 +46,9 @@ class indodax extends indodax$1 {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchDeposit': false,
+                'fetchDepositAddress': 'emulated',
+                'fetchDepositAddresses': true,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
@@ -157,7 +160,25 @@ class indodax extends indodax$1 {
             'options': {
                 'recvWindow': 5 * 1000,
                 'timeDifference': 0,
-                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
+                'adjustForTimeDifference': false,
+                'networks': {
+                    'XLM': 'Stellar Token',
+                    'BSC': 'bep20',
+                    'TRC20': 'trc20',
+                    'MATIC': 'polygon',
+                    // 'BEP2': 'bep2',
+                    // 'ARB': 'arb',
+                    // 'ERC20': 'erc20',
+                    // 'KIP7': 'kip7',
+                    // 'MAINNET': 'mainnet',  // TODO: does mainnet just mean the default?
+                    // 'OEP4': 'oep4',
+                    // 'OP': 'op',
+                    // 'SPL': 'spl',
+                    // 'TRC10': 'trc10',
+                    // 'ZRC2': 'zrc2'
+                    // 'ETH': 'eth'
+                    // 'BASE': 'base'
+                },
             },
             'commonCurrencies': {
                 'STR': 'XLM',
@@ -1015,6 +1036,90 @@ class indodax extends indodax$1 {
             'success': 'ok',
         };
         return this.safeString(statuses, status, status);
+    }
+    async fetchDepositAddresses(codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name indodax#fetchDepositAddresses
+         * @description fetch deposit addresses for multiple currencies and chain types
+         * @param {string[]} [codes] list of unified currency codes, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        await this.loadMarkets();
+        const response = await this.privatePostGetInfo(params);
+        //
+        //    {
+        //        success: '1',
+        //        return: {
+        //            server_time: '1708031570',
+        //            balance: {
+        //                idr: '29952',
+        //                ...
+        //            },
+        //            balance_hold: {
+        //                idr: '0',
+        //                ...
+        //            },
+        //            address: {
+        //                btc: '1KMntgzvU7iTSgMBWc11nVuJjAyfW3qJyk',
+        //                ...
+        //            },
+        //            memo_is_required: {
+        //                btc: { mainnet: false },
+        //                ...
+        //            },
+        //            network: {
+        //                btc: 'mainnet',
+        //                ...
+        //            },
+        //            user_id: '276011',
+        //            name: '',
+        //            email: 'testbitcoincoid@mailforspam.com',
+        //            profile_picture: null,
+        //            verification_status: 'unverified',
+        //            gauth_enable: true,
+        //            withdraw_status: '0'
+        //        }
+        //    }
+        //
+        const data = this.safeDict(response, 'return');
+        const addresses = this.safeDict(data, 'address', {});
+        const networks = this.safeDict(data, 'network', {});
+        const addressKeys = Object.keys(addresses);
+        const result = {
+            'info': data,
+        };
+        for (let i = 0; i < addressKeys.length; i++) {
+            const marketId = addressKeys[i];
+            const code = this.safeCurrencyCode(marketId);
+            const address = this.safeString(addresses, marketId);
+            if ((address !== undefined) && ((codes === undefined) || (this.inArray(code, codes)))) {
+                this.checkAddress(address);
+                let network = undefined;
+                if (marketId in networks) {
+                    const networkId = this.safeString(networks, marketId);
+                    if (networkId.indexOf(',') >= 0) {
+                        network = [];
+                        const networkIds = networkId.split(',');
+                        for (let j = 0; j < networkIds.length; j++) {
+                            network.push(this.networkIdToCode(networkIds[j]).toUpperCase());
+                        }
+                    }
+                    else {
+                        network = this.networkIdToCode(networkId).toUpperCase();
+                    }
+                }
+                result[code] = {
+                    'info': {},
+                    'currency': code,
+                    'address': address,
+                    'network': network,
+                    'tag': undefined,
+                };
+            }
+        }
+        return result;
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];

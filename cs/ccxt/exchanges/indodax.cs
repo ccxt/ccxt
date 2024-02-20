@@ -38,6 +38,9 @@ public partial class indodax : Exchange
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchDeposit", false },
+                { "fetchDepositAddress", "emulated" },
+                { "fetchDepositAddresses", true },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", false },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchFundingHistory", false },
@@ -149,6 +152,12 @@ public partial class indodax : Exchange
                 { "recvWindow", multiply(5, 1000) },
                 { "timeDifference", 0 },
                 { "adjustForTimeDifference", false },
+                { "networks", new Dictionary<string, object>() {
+                    { "XLM", "Stellar Token" },
+                    { "BSC", "bep20" },
+                    { "TRC20", "trc20" },
+                    { "MATIC", "polygon" },
+                } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "STR", "XLM" },
@@ -1094,6 +1103,98 @@ public partial class indodax : Exchange
             { "success", "ok" },
         };
         return this.safeString(statuses, status, status);
+    }
+
+    public async override Task<object> fetchDepositAddresses(object codes = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name indodax#fetchDepositAddresses
+        * @description fetch deposit addresses for multiple currencies and chain types
+        * @param {string[]} [codes] list of unified currency codes, default is undefined
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object response = await this.privatePostGetInfo(parameters);
+        //
+        //    {
+        //        success: '1',
+        //        return: {
+        //            server_time: '1708031570',
+        //            balance: {
+        //                idr: '29952',
+        //                ...
+        //            },
+        //            balance_hold: {
+        //                idr: '0',
+        //                ...
+        //            },
+        //            address: {
+        //                btc: '1KMntgzvU7iTSgMBWc11nVuJjAyfW3qJyk',
+        //                ...
+        //            },
+        //            memo_is_required: {
+        //                btc: { mainnet: false },
+        //                ...
+        //            },
+        //            network: {
+        //                btc: 'mainnet',
+        //                ...
+        //            },
+        //            user_id: '276011',
+        //            name: '',
+        //            email: 'testbitcoincoid@mailforspam.com',
+        //            profile_picture: null,
+        //            verification_status: 'unverified',
+        //            gauth_enable: true,
+        //            withdraw_status: '0'
+        //        }
+        //    }
+        //
+        object data = this.safeDict(response, "return");
+        object addresses = this.safeDict(data, "address", new Dictionary<string, object>() {});
+        object networks = this.safeDict(data, "network", new Dictionary<string, object>() {});
+        object addressKeys = new List<object>(((IDictionary<string,object>)addresses).Keys);
+        object result = new Dictionary<string, object>() {
+            { "info", data },
+        };
+        for (object i = 0; isLessThan(i, getArrayLength(addressKeys)); postFixIncrement(ref i))
+        {
+            object marketId = getValue(addressKeys, i);
+            object code = this.safeCurrencyCode(marketId);
+            object address = this.safeString(addresses, marketId);
+            if (isTrue(isTrue((!isEqual(address, null))) && isTrue((isTrue((isEqual(codes, null))) || isTrue((this.inArray(code, codes)))))))
+            {
+                this.checkAddress(address);
+                object network = null;
+                if (isTrue(inOp(networks, marketId)))
+                {
+                    object networkId = this.safeString(networks, marketId);
+                    if (isTrue(isGreaterThanOrEqual(getIndexOf(networkId, ","), 0)))
+                    {
+                        network = new List<object>() {};
+                        object networkIds = ((string)networkId).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+                        for (object j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
+                        {
+                            ((IList<object>)network).Add(((string)this.networkIdToCode(getValue(networkIds, j))).ToUpper());
+                        }
+                    } else
+                    {
+                        network = ((string)this.networkIdToCode(networkId)).ToUpper();
+                    }
+                }
+                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                    { "info", new Dictionary<string, object>() {} },
+                    { "currency", code },
+                    { "address", address },
+                    { "network", network },
+                    { "tag", null },
+                };
+            }
+        }
+        return result;
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

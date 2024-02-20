@@ -59,6 +59,8 @@ class coinbase extends Exchange {
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
+                'fetchDepositAddress' => 'emulated',
+                'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
@@ -1734,17 +1736,18 @@ class coinbase extends Exchange {
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->v3] default false, set true to use v3 api endpoint
+         * @param {array} [$params->type] "spot" (default) or "swap"
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
-        $request = array(
-            'limit' => 250,
-        );
+        $request = array();
         $response = null;
         $isV3 = $this->safe_bool($params, 'v3', false);
-        $params = $this->omit($params, 'v3');
+        $type = $this->safe_string($params, 'type');
+        $params = $this->omit($params, array( 'v3', 'type' ));
         $method = $this->safe_string($this->options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts');
         if (($isV3) || ($method === 'v3PrivateGetBrokerageAccounts')) {
+            $request['limit'] = 250;
             $response = $this->v3PrivateGetBrokerageAccounts (array_merge($request, $params));
         } else {
             $response = $this->v2PrivateGetAccounts (array_merge($request, $params));
@@ -1820,6 +1823,7 @@ class coinbase extends Exchange {
         //         "size" => 9
         //     }
         //
+        $params['type'] = $type;
         return $this->parse_custom_balance($response, $params);
     }
 

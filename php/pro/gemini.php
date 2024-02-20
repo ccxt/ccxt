@@ -478,10 +478,11 @@ class gemini extends \ccxt\async\gemini {
         $market = $this->safe_market(strtolower($marketId));
         $symbol = $market['symbol'];
         $messageHash = 'orderbook:' . $symbol;
-        $orderbook = $this->safe_dict($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->order_book();
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $ob = $this->order_book();
+            $this->orderbooks[$symbol] = $ob;
         }
+        $orderbook = $this->orderbooks[$symbol];
         $bids = $orderbook['bids'];
         $asks = $orderbook['asks'];
         for ($i = 0; $i < count($rawOrderBookChanges); $i++) {

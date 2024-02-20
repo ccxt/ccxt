@@ -43,6 +43,9 @@ public partial class idex : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDeposit", true },
+                { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
@@ -101,7 +104,7 @@ public partial class idex : Exchange
                     { "MATIC", "https://api-matic.idex.io" },
                 } },
                 { "www", "https://idex.io" },
-                { "doc", new List<object>() {"https://docs.idex.io/"} },
+                { "doc", new List<object>() {"https://api-docs-v3.idex.io/"} },
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
@@ -1819,6 +1822,67 @@ public partial class idex : Exchange
         object defaultCost = this.safeValue(config, "cost", 1);
         object authenticated = isTrue(isTrue(isTrue(hasApiKey) && isTrue(hasSecret)) && isTrue(hasWalletAddress)) && isTrue(hasPrivateKey);
         return ((bool) isTrue(authenticated)) ? (divide(defaultCost, 2)) : defaultCost;
+    }
+
+    public async override Task<object> fetchDepositAddress(object code = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name idex#fetchDepositAddress
+        * @description fetch the Polygon address of the wallet
+        * @see https://api-docs-v3.idex.io/#get-wallets
+        * @param {string} code not used by idex
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        object request = new Dictionary<string, object>() {};
+        ((IDictionary<string,object>)request)["nonce"] = this.uuidv1();
+        object response = await this.privateGetWallets(this.extend(request, parameters));
+        //
+        //    [
+        //        {
+        //            address: "0x37A1827CA64C94A26028bDCb43FBDCB0bf6DAf5B",
+        //            totalPortfolioValueUsd: "0.00",
+        //            time: "1678342148086"
+        //        },
+        //        {
+        //            address: "0x0Ef3456E616552238B0c562d409507Ed6051A7b3",
+        //            totalPortfolioValueUsd: "15.90",
+        //            time: "1691697811659"
+        //        }
+        //    ]
+        //
+        return this.parseDepositAddress(response);
+    }
+
+    public override object parseDepositAddress(object depositAddress, object currency = null)
+    {
+        //
+        //    [
+        //        {
+        //            address: "0x37A1827CA64C94A26028bDCb43FBDCB0bf6DAf5B",
+        //            totalPortfolioValueUsd: "0.00",
+        //            time: "1678342148086"
+        //        },
+        //        {
+        //            address: "0x0Ef3456E616552238B0c562d409507Ed6051A7b3",
+        //            totalPortfolioValueUsd: "15.90",
+        //            time: "1691697811659"
+        //        }
+        //    ]
+        //
+        object length = getArrayLength(depositAddress);
+        object entry = this.safeDict(depositAddress, subtract(length, 1));
+        object address = this.safeString(entry, "address");
+        this.checkAddress(address);
+        return new Dictionary<string, object>() {
+            { "info", depositAddress },
+            { "currency", null },
+            { "address", address },
+            { "tag", null },
+            { "network", "MATIC" },
+        };
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

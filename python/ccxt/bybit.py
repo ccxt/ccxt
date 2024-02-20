@@ -4179,11 +4179,172 @@ class bybit(Exchange, ImplicitAPI):
         data = self.safe_value(result, 'dataList', [])
         return self.parse_orders(data, market, since, limit)
 
+    def fetch_order_classic(self, id: str, symbol: Str = None, params={}):
+        """
+        fetches information on an order made by the user *classic accounts only*
+        :see: https://bybit-exchange.github.io/docs/v5/order/order-list
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        if market['spot']:
+            raise NotSupported(self.id + ' fetchOrder() is not supported for spot markets')
+        request = {
+            'orderId': id,
+        }
+        result = self.fetch_orders(symbol, None, None, self.extend(request, params))
+        length = len(result)
+        if length == 0:
+            isTrigger = self.safe_bool_n(params, ['trigger', 'stop'], False)
+            extra = '' if isTrigger else 'If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
+            raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
+        if length > 1:
+            raise InvalidOrder(self.id + ' returned more than one order')
+        return self.safe_value(result, 0)
+
     def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
-        raise NotSupported(self.id + ' fetchOrder() is not supported after the 5/02 update, please use fetchOpenOrder or fetchClosedOrder')
+        """
+         *classic accounts only/ spot not supported*  fetches information on an order made by the user *classic accounts only*
+        :see: https://bybit-exchange.github.io/docs/v5/order/order-list
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        res = self.is_unified_enabled()
+        enableUnifiedAccount = self.safe_bool(res, 1)
+        if enableUnifiedAccount:
+            raise NotSupported(self.id + ' fetchOrder() is not supported after the 5/02 update for UTA accounts, please use fetchOpenOrder or fetchClosedOrder')
+        return self.fetch_order_classic(id, symbol, params)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
-        raise NotSupported(self.id + ' fetchOrders() is not supported after the 5/02 update, please use fetchOpenOrders, fetchClosedOrders or fetchCanceledOrders')
+        res = self.is_unified_enabled()
+        """
+        *classic accounts only/ spot not supported* fetches information on multiple orders made by the user *classic accounts only/ spot not supported*
+        :see: https://bybit-exchange.github.io/docs/v5/order/order-list
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.stop]: True if stop order
+        :param str [params.type]: market type, ['swap', 'option']
+        :param str [params.subType]: market subType, ['linear', 'inverse']
+        :param str [params.orderFilter]: 'Order' or 'StopOrder' or 'tpslOrder'
+        :param int [params.until]: the latest time in ms to fetch entries for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        enableUnifiedAccount = self.safe_bool(res, 1)
+        if enableUnifiedAccount:
+            raise NotSupported(self.id + ' fetchOrders() is not supported after the 5/02 update for UTA accounts, please use fetchOpenOrders, fetchClosedOrders or fetchCanceledOrders')
+        return self.fetch_orders_classic(symbol, since, limit, params)
+
+    def fetch_orders_classic(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetches information on multiple orders made by the user *classic accounts only*
+        :see: https://bybit-exchange.github.io/docs/v5/order/order-list
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.stop]: True if stop order
+        :param str [params.type]: market type, ['swap', 'option', 'spot']
+        :param str [params.subType]: market subType, ['linear', 'inverse']
+        :param str [params.orderFilter]: 'Order' or 'StopOrder' or 'tpslOrder'
+        :param int [params.until]: the latest time in ms to fetch entries for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, params, 'nextPageCursor', 'nextPageCursor', None, 50)
+        enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
+        isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
+        request = {}
+        market = None
+        isUsdcSettled = False
+        if symbol is not None:
+            market = self.market(symbol)
+            isUsdcSettled = market['settle'] == 'USDC'
+            request['symbol'] = market['id']
+        type = None
+        type, params = self.get_bybit_type('fetchOrders', market, params)
+        if ((type == 'option') or isUsdcSettled) and not isUnifiedAccount:
+            return self.fetch_usdc_orders(symbol, since, limit, params)
+        if type == 'spot':
+            raise NotSupported(self.id + ' fetchOrders() is not supported for spot markets')
+        request['category'] = type
+        isStop = self.safe_bool_n(params, ['trigger', 'stop'], False)
+        params = self.omit(params, ['trigger', 'stop'])
+        if isStop:
+            request['orderFilter'] = 'StopOrder'
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None:
+            request['startTime'] = since
+        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
+        params = self.omit(params, ['endTime', 'till', 'until'])
+        if endTime is not None:
+            request['endTime'] = endTime
+        response = self.privateGetV5OrderHistory(self.extend(request, params))
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "OK",
+        #         "result": {
+        #             "nextPageCursor": "03234de9-1332-41eb-b805-4a9f42c136a3%3A1672220109387%2C03234de9-1332-41eb-b805-4a9f42c136a3%3A1672220109387",
+        #             "category": "linear",
+        #             "list": [
+        #                 {
+        #                     "symbol": "BTCUSDT",
+        #                     "orderType": "Limit",
+        #                     "orderLinkId": "test-001",
+        #                     "orderId": "03234de9-1332-41eb-b805-4a9f42c136a3",
+        #                     "cancelType": "CancelByUser",
+        #                     "avgPrice": "0",
+        #                     "stopOrderType": "UNKNOWN",
+        #                     "lastPriceOnCreated": "16656.5",
+        #                     "orderStatus": "Cancelled",
+        #                     "takeProfit": "",
+        #                     "cumExecValue": "0",
+        #                     "triggerDirection": 0,
+        #                     "blockTradeId": "",
+        #                     "rejectReason": "EC_PerCancelRequest",
+        #                     "isLeverage": "",
+        #                     "price": "18000",
+        #                     "orderIv": "",
+        #                     "createdTime": "1672220109387",
+        #                     "tpTriggerBy": "UNKNOWN",
+        #                     "positionIdx": 0,
+        #                     "timeInForce": "GoodTillCancel",
+        #                     "leavesValue": "0",
+        #                     "updatedTime": "1672220114123",
+        #                     "side": "Sell",
+        #                     "triggerPrice": "",
+        #                     "cumExecFee": "0",
+        #                     "slTriggerBy": "UNKNOWN",
+        #                     "leavesQty": "0",
+        #                     "closeOnTrigger": False,
+        #                     "cumExecQty": "0",
+        #                     "reduceOnly": False,
+        #                     "qty": "0.1",
+        #                     "stopLoss": "",
+        #                     "triggerBy": "UNKNOWN"
+        #                 }
+        #             ]
+        #         },
+        #         "retExtInfo": {},
+        #         "time": 1672221263862
+        #     }
+        #
+        data = self.add_pagination_cursor_to_result(response)
+        return self.parse_orders(data, market, since, limit)
 
     def fetch_closed_order(self, id: str, symbol: Str = None, params={}):
         """

@@ -739,6 +739,9 @@ abstract class okx extends \ccxt\async\Exchange {
     public function private_post_account_simulated_margin($params = array()) {
         return $this->request('account/simulated_margin', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
+    public function private_post_account_position_builder($params = array()) {
+        return $this->request('account/position-builder', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
     public function private_post_account_set_riskoffset_type($params = array()) {
         return $this->request('account/set-riskOffset-type', 'private', 'POST', $params, null, null, array("cost" => 2));
     }
@@ -1653,6 +1656,9 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function privatePostAccountSimulatedMargin($params = array()) {
         return $this->request('account/simulated_margin', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function privatePostAccountPositionBuilder($params = array()) {
+        return $this->request('account/position-builder', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
     public function privatePostAccountSetRiskOffsetType($params = array()) {
         return $this->request('account/set-riskOffset-type', 'private', 'POST', $params, null, null, array("cost" => 2));

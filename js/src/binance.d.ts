@@ -21,7 +21,7 @@ export default class binance extends Exchange {
     fetchMarkets(params?: {}): Promise<any[]>;
     parseMarket(market: any): Market;
     parseBalanceHelper(entry: any): import("./base/types.js").Account;
-    parseBalanceCustom(response: any, type?: any, marginMode?: any): Balances;
+    parseBalanceCustom(response: any, type?: any, marginMode?: any, isPortfolioMargin?: boolean): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: any, market?: Market): Ticker;

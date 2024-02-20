@@ -1,6 +1,10 @@
 /* eslint-disable max-classes-per-file */
 // @ts-nocheck
 
+interface CustomArray extends Array {
+    hashmap: object;
+}
+
 class BaseCache extends Array {
 
     constructor (maxSize = undefined) {
@@ -17,7 +21,9 @@ class BaseCache extends Array {
     }
 }
 
-class ArrayCache extends BaseCache {
+class ArrayCache extends BaseCache implements CustomArray {
+
+    hashmap: object = {};
 
     constructor (maxSize = undefined) {
         super (maxSize);
@@ -45,6 +51,12 @@ class ArrayCache extends BaseCache {
             __proto__: null, // make it invisible
             value: false,
             writable: true,
+        })
+        Object.defineProperty (this, 'hashmap', {
+            __proto__: null, // make it invisible
+            value: {},
+            writable: true,
+            enumerable: false,
         })
     }
 
@@ -130,6 +142,7 @@ class ArrayCacheByTimestamp extends BaseCache {
         if (item[0] in this.hashmap) {
             const reference = this.hashmap[item[0]]
             if (reference !== item) {
+                // eslint-disable-next-line
                 for (const prop in item) {
                     reference[prop] = item[prop]
                 }
@@ -156,11 +169,11 @@ class ArrayCacheBySymbolById extends ArrayCache {
     constructor (maxSize = undefined) {
         super (maxSize)
         this.nestedNewUpdatesBySymbol = true
-        Object.defineProperty (this, 'hashmap', {
-            __proto__: null, // make it invisible
-            value: {},
-            writable: true,
-        })
+        // Object.defineProperty (this, 'hashmap', {
+        //     __proto__: null, // make it invisible
+        //     value: {},
+        //     writable: true,
+        // })
     }
 
     append (item) {

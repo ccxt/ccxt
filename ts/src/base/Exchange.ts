@@ -153,6 +153,8 @@ export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balan
 // ----------------------------------------------------------------------------
 // move this elsewhere
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from './ws/Cache.js'
+import {OrderBook as Ob} from './ws/OrderBook.js';
+
 import totp from './functions/totp.js';
 import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
@@ -240,16 +242,16 @@ export default class Exchange {
     token: string; // reserved for HTTP auth in some cases
 
     balance      = {}
-    orderbooks   = {}
-    tickers      = {}
-    bidsasks     = {}
-    orders       = undefined
-    triggerOrders = undefined
-    trades: any
+    orderbooks: Dictionary<Ob>   = {}
+    tickers: Dictionary<Ticker>      = {}
+    bidsasks: Dictionary<Ticker>     = {}
+    orders: ArrayCache       = undefined
+    triggerOrders: ArrayCache = undefined
+    trades: Dictionary<ArrayCache>
     transactions = {}
     ohlcvs: any
-    myTrades: any
-    positions: any
+    myTrades: ArrayCache;
+    positions: any;
     urls: {
         logo?: string;
         api?: string | Dictionary<string>;

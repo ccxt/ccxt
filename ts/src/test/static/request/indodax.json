@@ -1,0 +1,16 @@
+{
+    "exchange": "indodax",
+    "skipKeys": ["timestamp"],
+    "outputType": "both",
+    "methods": {
+        "fetchDepositAddresses": [
+            {
+                "description": "Fetch Deposit Addresses",
+                "method": "fetchDepositAddresses",
+                "url": "https://indodax.com/tapi",
+                "input": [],
+                "output": "method=getInfo&timestamp=1708039102346&recvWindow=5000"
+            }
+        ]
+    }
+}

@@ -54,6 +54,9 @@ class indodax(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
                 'fetchDeposit': False,
+                'fetchDepositAddress': 'emulated',
+                'fetchDepositAddresses': True,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': False,
                 'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': False,
@@ -166,6 +169,24 @@ class indodax(Exchange, ImplicitAPI):
                 'recvWindow': 5 * 1000,  # default 5 sec
                 'timeDifference': 0,  # the difference between system clock and exchange clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
+                'networks': {
+                    'XLM': 'Stellar Token',
+                    'BSC': 'bep20',
+                    'TRC20': 'trc20',
+                    'MATIC': 'polygon',
+                    # 'BEP2': 'bep2',
+                    # 'ARB': 'arb',
+                    # 'ERC20': 'erc20',
+                    # 'KIP7': 'kip7',
+                    # 'MAINNET': 'mainnet',  # TODO: does mainnet just mean the default?
+                    # 'OEP4': 'oep4',
+                    # 'OP': 'op',
+                    # 'SPL': 'spl',
+                    # 'TRC10': 'trc10',
+                    # 'ZRC2': 'zrc2'
+                    # 'ETH': 'eth'
+                    # 'BASE': 'base'
+                },
             },
             'commonCurrencies': {
                 'STR': 'XLM',
@@ -968,6 +989,82 @@ class indodax(Exchange, ImplicitAPI):
             'success': 'ok',
         }
         return self.safe_string(statuses, status, status)
+
+    async def fetch_deposit_addresses(self, codes: List[str] = None, params={}):
+        """
+        fetch deposit addresses for multiple currencies and chain types
+        :param str[] [codes]: list of unified currency codes, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `address structures <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        await self.load_markets()
+        response = await self.privatePostGetInfo(params)
+        #
+        #    {
+        #        success: '1',
+        #        return: {
+        #            server_time: '1708031570',
+        #            balance: {
+        #                idr: '29952',
+        #                ...
+        #            },
+        #            balance_hold: {
+        #                idr: '0',
+        #                ...
+        #            },
+        #            address: {
+        #                btc: '1KMntgzvU7iTSgMBWc11nVuJjAyfW3qJyk',
+        #                ...
+        #            },
+        #            memo_is_required: {
+        #                btc: {mainnet: False},
+        #                ...
+        #            },
+        #            network: {
+        #                btc: 'mainnet',
+        #                ...
+        #            },
+        #            user_id: '276011',
+        #            name: '',
+        #            email: 'testbitcoincoid@mailforspam.com',
+        #            profile_picture: null,
+        #            verification_status: 'unverified',
+        #            gauth_enable: True,
+        #            withdraw_status: '0'
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'return')
+        addresses = self.safe_dict(data, 'address', {})
+        networks = self.safe_dict(data, 'network', {})
+        addressKeys = list(addresses.keys())
+        result = {
+            'info': data,
+        }
+        for i in range(0, len(addressKeys)):
+            marketId = addressKeys[i]
+            code = self.safe_currency_code(marketId)
+            address = self.safe_string(addresses, marketId)
+            if (address is not None) and ((codes is None) or (self.in_array(code, codes))):
+                self.check_address(address)
+                network = None
+                if marketId in networks:
+                    networkId = self.safe_string(networks, marketId)
+                    if networkId.find(',') >= 0:
+                        network = []
+                        networkIds = networkId.split(',')
+                        for j in range(0, len(networkIds)):
+                            network.append(self.network_id_to_code(networkIds[j]).upper())
+                    else:
+                        network = self.network_id_to_code(networkId).upper()
+                result[code] = {
+                    'info': {},
+                    'currency': code,
+                    'address': address,
+                    'network': network,
+                    'tag': None,
+                }
+        return result
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]

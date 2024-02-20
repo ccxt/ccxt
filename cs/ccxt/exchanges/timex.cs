@@ -37,6 +37,9 @@ public partial class timex : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDeposit", false },
+                { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
@@ -1530,11 +1533,78 @@ public partial class timex : Exchange
         }, market);
     }
 
+    public async override Task<object> fetchDepositAddress(object code, object parameters = null)
+    {
+        /**
+        * @method
+        * @name timex#fetchDepositAddress
+        * @description fetch the deposit address for a currency associated with this account, does not accept params["network"]
+        * @param {string} code unified currency code
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(currency, "code") },
+        };
+        object response = await this.currenciesGetSSymbol(this.extend(request, parameters));
+        //
+        //    {
+        //        id: '1',
+        //        currency: {
+        //            symbol: 'BTC',
+        //            name: 'Bitcoin',
+        //            address: '0x8370fbc6ddec1e18b4e41e72ed943e238458487c',
+        //            decimals: '8',
+        //            tradeDecimals: '20',
+        //            fiatSymbol: 'BTC',
+        //            depositEnabled: true,
+        //            withdrawalEnabled: true,
+        //            transferEnabled: true,
+        //            active: true
+        //        }
+        //    }
+        //
+        object data = this.safeDict(response, "currency", new Dictionary<string, object>() {});
+        return this.parseDepositAddress(data, currency);
+    }
+
+    public override object parseDepositAddress(object depositAddress, object currency = null)
+    {
+        //
+        //    {
+        //        symbol: 'BTC',
+        //        name: 'Bitcoin',
+        //        address: '0x8370fbc6ddec1e18b4e41e72ed943e238458487c',
+        //        decimals: '8',
+        //        tradeDecimals: '20',
+        //        fiatSymbol: 'BTC',
+        //        depositEnabled: true,
+        //        withdrawalEnabled: true,
+        //        transferEnabled: true,
+        //        active: true
+        //    }
+        //
+        object currencyId = this.safeString(depositAddress, "symbol");
+        return new Dictionary<string, object>() {
+            { "info", depositAddress },
+            { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "address", this.safeString(depositAddress, "address") },
+            { "tag", null },
+            { "network", null },
+        };
+    }
+
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object paramsToExtract = this.extractParams(path);
+        path = this.implodeParams(path, parameters);
+        parameters = this.omit(parameters, paramsToExtract);
         object url = add(add(add(add(getValue(getValue(this.urls, "api"), "rest"), "/"), api), "/"), path);
         if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
         {

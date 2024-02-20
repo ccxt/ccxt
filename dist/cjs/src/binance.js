@@ -3158,25 +3158,38 @@ class binance extends binance$1 {
         account['debt'] = Precise["default"].stringAdd(debt, interest);
         return account;
     }
-    parseBalanceCustom(response, type = undefined, marginMode = undefined) {
+    parseBalanceCustom(response, type = undefined, marginMode = undefined, isPortfolioMargin = false) {
         const result = {
             'info': response,
         };
         let timestamp = undefined;
         const isolated = marginMode === 'isolated';
         const cross = (type === 'margin') || (marginMode === 'cross');
-        if (type === 'papi') {
+        if (isPortfolioMargin) {
             for (let i = 0; i < response.length; i++) {
                 const entry = response[i];
                 const account = this.account();
                 const currencyId = this.safeString(entry, 'asset');
                 const code = this.safeCurrencyCode(currencyId);
-                const borrowed = this.safeString(entry, 'crossMarginBorrowed');
-                const interest = this.safeString(entry, 'crossMarginInterest');
-                account['free'] = this.safeString(entry, 'crossMarginFree');
-                account['used'] = this.safeString(entry, 'crossMarginLocked');
-                account['total'] = this.safeString(entry, 'crossMarginAsset');
-                account['debt'] = Precise["default"].stringAdd(borrowed, interest);
+                if (type === 'linear') {
+                    account['free'] = this.safeString(entry, 'umWalletBalance');
+                    account['used'] = this.safeString(entry, 'umUnrealizedPNL');
+                }
+                else if (type === 'inverse') {
+                    account['free'] = this.safeString(entry, 'cmWalletBalance');
+                    account['used'] = this.safeString(entry, 'cmUnrealizedPNL');
+                }
+                else if (cross) {
+                    const borrowed = this.safeString(entry, 'crossMarginBorrowed');
+                    const interest = this.safeString(entry, 'crossMarginInterest');
+                    account['debt'] = Precise["default"].stringAdd(borrowed, interest);
+                    account['free'] = this.safeString(entry, 'crossMarginFree');
+                    account['used'] = this.safeString(entry, 'crossMarginLocked');
+                    account['total'] = this.safeString(entry, 'crossMarginAsset');
+                }
+                else {
+                    account['total'] = this.safeString(entry, 'totalWalletBalance');
+                }
                 result[code] = account;
             }
         }
@@ -3296,7 +3309,13 @@ class binance extends binance$1 {
         let response = undefined;
         const request = {};
         if (isPortfolioMargin || (type === 'papi')) {
-            type = 'papi';
+            if (this.isLinear(type, subType)) {
+                type = 'linear';
+            }
+            else if (this.isInverse(type, subType)) {
+                type = 'inverse';
+            }
+            isPortfolioMargin = true;
             response = await this.papiGetBalance(this.extend(request, query));
         }
         else if (this.isLinear(type, subType)) {
@@ -3544,7 +3563,7 @@ class binance extends binance$1 {
         //         },
         //     ]
         //
-        return this.parseBalanceCustom(response, type, marginMode);
+        return this.parseBalanceCustom(response, type, marginMode, isPortfolioMargin);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -5752,12 +5771,14 @@ class binance extends binance$1 {
         const trailingDelta = this.safeString(params, 'trailingDelta');
         const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activationPrice', this.numberToString(price));
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRate');
+        const priceMatch = this.safeString(params, 'priceMatch');
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const isStopLoss = stopLossPrice !== undefined || trailingDelta !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
         const isTriggerOrder = triggerPrice !== undefined;
         const isConditional = isTriggerOrder || isTrailingPercentOrder || isStopLoss || isTakeProfit;
         const isPortfolioMarginConditional = (isPortfolioMargin && isConditional);
+        const isPriceMatch = priceMatch !== undefined;
         let uppercaseType = type.toUpperCase();
         let stopPrice = undefined;
         if (isTrailingPercentOrder) {
@@ -5938,7 +5959,7 @@ class binance extends binance$1 {
                 request['quantity'] = this.amountToPrecision(symbol, amount);
             }
         }
-        if (priceIsRequired) {
+        if (priceIsRequired && !isPriceMatch) {
             if (price === undefined) {
                 throw new errors.InvalidOrder(this.id + ' createOrder() requires a price argument for a ' + type + ' order');
             }
@@ -9827,12 +9848,12 @@ class binance extends binance$1 {
         /**
          * @method
          * @name binance#fetchPositions
+         * @description fetch all open positions
          * @see https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#position-information-user_data
          * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
          * @see https://binance-docs.github.io/apidocs/voptions/en/#option-position-information-user_data
-         * @description fetch all open positions
          * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
@@ -10056,7 +10077,10 @@ class binance extends binance$1 {
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const parsed = this.parsePositionRisk(response[i]);
-            result.push(parsed);
+            const entryPrice = this.safeString(parsed, 'entryPrice');
+            if ((entryPrice !== '0') && (entryPrice !== '0.0') && (entryPrice !== '0.00000000')) {
+                result.push(parsed);
+            }
         }
         symbols = this.marketSymbols(symbols);
         return this.filterByArrayPositions(result, 'symbol', symbols, false);

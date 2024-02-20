@@ -368,4 +368,23 @@ public partial class indodax
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
     }
+    /// <summary>
+    /// fetch deposit addresses for multiple currencies and chain types
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
+    public async Task<Dictionary<string, object>> FetchDepositAddresses(List<string> codes = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositAddresses(codes, parameters);
+        return ((Dictionary<string, object>)res);
+    }
 }
