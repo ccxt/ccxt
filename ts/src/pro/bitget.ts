@@ -1267,7 +1267,7 @@ export default class bitget extends bitgetRest {
             cost = this.safeString (order, 'newSize', cost);
         }
         let filled = this.safeString2 (order, 'accBaseVolume', 'baseVolume');
-        if ((filled === undefined) && market['spot'] && (rawStatus !== 'live')) {
+        if (market['spot'] && (rawStatus !== 'live')) {
             filled = Precise.stringDiv (cost, avgPrice);
         }
         let amount = this.safeString (order, 'baseVolume');
