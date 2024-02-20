@@ -242,6 +242,16 @@ export default class ascendex extends ascendexRest {
         return orderbook.limit ();
     }
 
+    async fetchOrderBookSnapshot (symbol: string, limit: Int = undefined, params = {}) {
+        const restOrderBook = await this.fetchRestOrderBookSafe (symbol, limit, params);
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ();
+        }
+        const orderbook = this.orderbooks[symbol];
+        orderbook.reset (restOrderBook);
+        return orderbook;
+    }
+
     handleOrderBookSnapshot (client: Client, message) {
         //
         // {
@@ -928,7 +938,7 @@ export default class ascendex extends ascendexRest {
         }
         this.orderbooks[symbol] = this.orderBook ({});
         if (this.options['defaultType'] === 'swap' || market['contract']) {
-            this.spawn (this.fetchRestOrderBookSafe, symbol);
+            this.spawn (this.fetchOrderBookSnapshot, symbol);
         } else {
             this.spawn (this.watchOrderBookSnapshot, symbol);
         }
