@@ -430,7 +430,7 @@ export default class coinbaseinternational extends Exchange {
         };
     }
 
-    async setMargin (symbol: string, amount: number, params = {}): Promise<{}> {
+    async setMargin (symbol: string, amount: number, params = {}): Promise<any> {
         /**
          * @method
          * @name coinbaseinternational#setMargin
@@ -923,7 +923,7 @@ export default class coinbaseinternational extends Exchange {
         };
     }
 
-    async fetchCurrencies (params = {}): Promise<{}> {
+    async fetchCurrencies (params = {}): Promise<any> {
         /**
          * @method
          * @name coinbaseinternational#fetchCurrencies
@@ -1403,7 +1403,7 @@ export default class coinbaseinternational extends Exchange {
         return this.parseOrder (orders, market);
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}): Promise<{}> {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         await this.loadMarkets ();
         let portfolio = undefined;
         [ portfolio, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'portfolio');

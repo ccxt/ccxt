@@ -76,7 +76,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         }
         const timestamp = this.nonce ().toString ();
         const auth = timestamp + this.apiKey + 'CBINTLMD' + this.password;
-        const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
+        const signature = this.hmac (this.encode (auth), this.base64ToBinary (this.secret), sha256, 'base64');
         const subscribe = {
             'type': 'SUBSCRIBE',
             'product_ids': productIds,
