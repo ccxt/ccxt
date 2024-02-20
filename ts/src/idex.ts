@@ -83,8 +83,10 @@ export default class idex extends Exchange {
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
@@ -1557,6 +1559,25 @@ export default class idex extends Exchange {
             'method': 'privateGetDeposits',
         }, params);
         return await this.fetchTransactionsHelper (code, since, limit, params);
+    }
+
+    async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name idex#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @see https://api-docs-v3.idex.io/#get-ping
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+         */
+        const response = await this.publicGetPing (params);
+        return {
+            'status': 'ok', // if there's no Errors, status = 'ok'
+            'updated': undefined,
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
     }
 
     async fetchTime (params = {}) {
