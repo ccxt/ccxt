@@ -5,7 +5,7 @@ import Exchange from './abstract/indodax.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -99,7 +99,7 @@ export default class indodax extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87070508-9358c880-c221-11ea-8dc5-5391afbbb422.jpg',
                 'api': {
-                    'public': 'https://indodax.com/api',
+                    'public': 'https://indodax.com',
                     'private': 'https://indodax.com/tapi',
                 },
                 'www': 'https://www.indodax.com',
@@ -109,14 +109,15 @@ export default class indodax extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'server_time': 5,
-                        'pairs': 5,
-                        'price_increments': 5,
-                        'summaries': 5,
-                        'ticker_all': 5,
-                        '{pair}/ticker': 5,
-                        '{pair}/trades': 5,
-                        '{pair}/depth': 5,
+                        'api/server_time': 5,
+                        'api/pairs': 5,
+                        'api/price_increments': 5,
+                        'api/summaries': 5,
+                        'api/ticker/{pair}': 5,
+                        'api/ticker_all': 5,
+                        'api/trades/{pair}': 5,
+                        'api/depth/{pair}': 5,
+                        'tradingview/history_v2': 5,
                     },
                 },
                 'private': {
@@ -181,6 +182,16 @@ export default class indodax extends Exchange {
                     // 'ETH': 'eth'
                     // 'BASE': 'base'
                 },
+                'timeframes': {
+                    '1m': '1',
+                    '15m': '15',
+                    '30m': '30',
+                    '1h': '60',
+                    '4h': '240',
+                    '1d': '1D',
+                    '3d': '3D',
+                    '1w': '1W',
+                },
             },
             'commonCurrencies': {
                 'STR': 'XLM',
@@ -206,7 +217,7 @@ export default class indodax extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicGetServerTime (params);
+        const response = await this.publicGetApiServerTime (params);
         //
         //     {
         //         "timezone": "UTC",
@@ -225,7 +236,7 @@ export default class indodax extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.publicGetPairs (params);
+        const response = await this.publicGetApiPairs (params);
         //
         //     [
         //         {
@@ -397,9 +408,9 @@ export default class indodax extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'pair': market['id'],
+            'pair': market['base'] + market['quote'],
         };
-        const orderbook = await this.publicGetPairDepth (this.extend (request, params));
+        const orderbook = await this.publicGetApiDepthPair (this.extend (request, params));
         return this.parseOrderBook (orderbook, market['symbol'], undefined, 'buy', 'sell');
     }
 
@@ -458,9 +469,9 @@ export default class indodax extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'pair': market['id'],
+            'pair': market['base'] + market['quote'],
         };
-        const response = await this.publicGetPairTicker (this.extend (request, params));
+        const response = await this.publicGetApiTickerPair (this.extend (request, params));
         //
         //     {
         //         "ticker": {
@@ -506,7 +517,7 @@ export default class indodax extends Exchange {
         //     }
         // }
         //
-        const response = await this.publicGetTickerAll (params);
+        const response = await this.publicGetApiTickerAll (params);
         const tickers = this.safeValue (response, 'tickers');
         return this.parseTickers (tickers, symbols);
     }
@@ -545,10 +556,81 @@ export default class indodax extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'pair': market['id'],
+            'pair': market['base'] + market['quote'],
         };
-        const response = await this.publicGetPairTrades (this.extend (request, params));
+        const response = await this.publicGetApiTradesPair (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        //
+        //     {
+        //         "Time": 1708416900,
+        //         "Open": 51707.52,
+        //         "High": 51707.52,
+        //         "Low": 51707.52,
+        //         "Close": 51707.52,
+        //         "Volume": "0"
+        //     }
+        //
+        return [
+            this.safeTimestamp (ohlcv, 'Time'),
+            this.safeNumber (ohlcv, 'Open'),
+            this.safeNumber (ohlcv, 'High'),
+            this.safeNumber (ohlcv, 'Low'),
+            this.safeNumber (ohlcv, 'Close'),
+            this.safeNumber (ohlcv, 'Volume'),
+        ];
+    }
+
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name indodax#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const timeframes = this.options['timeframes'];
+        const selectedTimeframe = this.safeString (timeframes, timeframe, timeframe);
+        const now = this.seconds ();
+        const until = this.safeInteger2 (params, 'until', 'till', now);
+        params = this.omit (params, [ 'until', 'till' ]);
+        const request = {
+            'to': until,
+            'tf': selectedTimeframe,
+            'symbol': market['base'] + market['quote'],
+        };
+        if (limit === undefined) {
+            limit = 1000;
+        }
+        if (since !== undefined) {
+            request['from'] = Math.floor (since / 1000);
+        } else {
+            const duration = this.parseTimeframe (timeframe);
+            request['from'] = now - limit * duration - 1;
+        }
+        const response = await this.publicGetTradingviewHistoryV2 (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "Time": 1708416900,
+        //             "Open": 51707.52,
+        //             "High": 51707.52,
+        //             "Low": 51707.52,
+        //             "Close": 51707.52,
+        //             "Volume": "0"
+        //         }
+        //     ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     parseOrderStatus (status) {
@@ -1163,7 +1245,12 @@ export default class indodax extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         if (api === 'public') {
-            url += '/' + this.implodeParams (path, params);
+            const query = this.omit (params, this.extractParams (path));
+            const requestPath = '/' + this.implodeParams (path, params);
+            url = url + requestPath;
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencodeWithArrayRepeat (query);
+            }
         } else {
             this.checkRequiredCredentials ();
             body = this.urlencode (this.extend ({
