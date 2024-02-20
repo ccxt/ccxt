@@ -926,7 +926,11 @@ export default class ascendex extends ascendexRest {
             delete this.orderbooks[symbol];
         }
         this.orderbooks[symbol] = this.orderBook ({});
-        this.spawn (this.watchOrderBookSnapshot, symbol);
+        if (this.options['defaultType'] === 'spot') {
+            this.spawn (this.watchOrderBookSnapshot, symbol);
+        } else {
+            this.spawn (this.fetchRestOrderBookSafe, symbol);
+        }
     }
 
     async pong (client, message) {
