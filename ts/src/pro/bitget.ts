@@ -1274,6 +1274,9 @@ export default class bitget extends bitgetRest {
         if (!market['spot'] || !(side === 'buy' && type === 'market')) {
             amount = this.safeString (order, 'newSize', amount);
         }
+        if (market['swap'] && (amount === undefined)) {
+            amount = this.safeString (order, 'size');
+        }
         return this.safeOrder ({
             'info': order,
             'symbol': symbol,
