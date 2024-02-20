@@ -20,11 +20,13 @@ fi
 
 if [ "$ws" -eq 1 ]; then
     echo "Transpiling WS version of $exchange_name "
+    npm run tsBuildFile ts/src/pro/$exchange_name.ts &
     node build/transpileWs.js $exchange_name --ws &
     node --loader ts-node/esm build/csharpTranspiler.ts $exchange_name --ws &
     wait
 else
     echo "Transpiling REST version of $exchange_name"
+    npm run tsBuildFile ts/src/$exchange_name.ts &
     node build/transpile.js $exchange_name &
     node --loader ts-node/esm build/csharpTranspiler.ts $exchange_name &
     wait
