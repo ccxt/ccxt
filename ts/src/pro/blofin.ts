@@ -5,6 +5,7 @@ import blofinRest from '../blofin.js';
 import { NotSupported, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV } from '../base/types.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -398,6 +399,36 @@ export default class blofin extends blofinRest {
         const resolveData = [ symbol, unifiedTimeframe, stored ];
         const messageHash = 'candle' + interval + ':' + symbol;
         client.resolve (resolveData, messageHash);
+    }
+
+    async authenticate (url, params = {}) {
+        this.checkRequiredCredentials ();
+        const messageHash = 'authenticated';
+        const client = this.client (url);
+        if (this.safeValue (client.subscriptions, messageHash) === undefined) {
+            const timestamp = this.milliseconds ().toString ();
+            const nonce = 'n_' + timestamp;
+            const urlParts = url.split ('/');
+            const partsLength = urlParts.length;
+            const path = this.safeString (urlParts, partsLength - 1);
+            const auth = path + 'GET' + timestamp + nonce;
+            const secret = this.secret; // this.base64ToBinary (
+            const signature = this.hmac (this.encode (auth), secret, sha256);
+            const request = {
+                'op': 'login',
+                'args': [
+                    {
+                        'apiKey': this.apiKey,
+                        'passphrase': this.password,
+                        'timestamp': timestamp,
+                        'sign': signature,
+                        'nonce': timestamp,
+                    },
+                ],
+            };
+            client.subscriptions[messageHash] = this.watch (url, messageHash, this.extend (request, params));
+        }
+        return client.subscriptions[messageHash];
     }
 
     handleMessage (client: Client, message) {
