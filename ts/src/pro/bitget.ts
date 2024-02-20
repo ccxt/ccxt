@@ -1262,7 +1262,8 @@ export default class bitget extends bitgetRest {
         const avgPrice = this.omitZero (this.safeString2 (order, 'priceAvg', 'fillPrice'));
         let cost = this.safeStringN (order, [ 'notional', 'notionalUsd', 'quoteSize' ]);
         const side = this.safeString (order, 'side');
-        if (side === 'buy' && market['spot']) {
+        const type = this.safeString (order, 'orderType');
+        if (side === 'buy' && market['spot'] && (type === 'market')) {
             cost = this.safeString (order, 'newSize', cost);
         }
         let filled = this.safeString2 (order, 'accBaseVolume', 'baseVolume');
@@ -1281,7 +1282,7 @@ export default class bitget extends bitgetRest {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': this.safeInteger (order, 'uTime'),
-            'type': this.safeString (order, 'orderType'),
+            'type': type,
             'timeInForce': this.safeStringUpper (order, 'force'),
             'postOnly': undefined,
             'side': side,
