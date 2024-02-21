@@ -9,13 +9,8 @@ import bequantRest from '../bequant.js';
 
 export default class bequant extends hitbtc {
     describe () {
-        // eslint-disable-next-line new-cap
-        const restInstance = new bequantRest ();
-        // eslint-disable-next-line new-cap
-        const parentRestInstance = new hitbtcRest ();
-        const extendedRestDescribe = this.deepExtend (parentRestInstance.describe (), restInstance.describe ());
-        const superWithRestDescribe = this.deepExtend (extendedRestDescribe, super.describe ());
-        return this.deepExtend (superWithRestDescribe, {
+        const mixedDescribe = this.getDescribeForMixedWsExchange (bequantRest, hitbtcRest, super.describe ());
+        return this.deepExtend (mixedDescribe, {
             'id': 'bequant',
             'name': 'Bequant',
             'countries': [ 'MT' ], // Malta
