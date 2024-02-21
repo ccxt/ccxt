@@ -381,7 +381,7 @@ export default class mexc extends mexcRest {
                     throw new BadRequest (this.id + ' watchOrderBook () limit argument can only be 5, 10 or 20');
                 }
                 messageHash += ':' + limit;
-                channel += '@' + limit;
+                channel = 'spot@public.limit.depth.v3.api@' + market['id'] + '@' + limit;
             }
             orderbook = await this.watchSpotPublic (channel, messageHash, params);
         } else {
@@ -389,6 +389,9 @@ export default class mexc extends mexcRest {
             const requestParams = {
                 'symbol': market['id'],
             };
+            if (limit !== undefined) {
+                requestParams['limit'] = limit;
+            }
             orderbook = await this.watchSwapPublic (channel, messageHash, requestParams, params);
         }
         return orderbook.limit ();
