@@ -2626,9 +2626,7 @@ export default class Exchange {
         return this.markets;
     }
 
-    getDescribeForMixedWsExchange (restClass: any, restBaseClass: any, wsBaseDescribe: Dictionary<any>) {
-        const restInstance = new restClass ();
-        const parentRestInstance = new restBaseClass ();
+    getDescribeForMixedWsExchange (restInstance: any, parentRestInstance: any, wsBaseDescribe: Dictionary<any>) {
         const extendedRestDescribe = this.deepExtend (parentRestInstance.describe (), restInstance.describe ());
         const superWithRestDescribe = this.deepExtend (extendedRestDescribe, wsBaseDescribe);
         return superWithRestDescribe;
