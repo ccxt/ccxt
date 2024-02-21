@@ -589,9 +589,9 @@ export default class testMainClass extends baseMainTestClass {
             return false;
         }
         const symbols = [
-            'BTC/CNY',
             'BTC/USDT',
             'BTC/USDC',
+            'BTC/CNY',
             'BTC/USD',
             'BTC/EUR',
             'BTC/ETH',
