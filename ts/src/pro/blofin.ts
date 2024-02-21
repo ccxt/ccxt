@@ -4,7 +4,7 @@
 import blofinRest from '../blofin.js';
 import { NotSupported, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances, Str, Order } from '../base/types.js';
+import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances, Order } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
 
@@ -98,9 +98,9 @@ export default class blofin extends blofinRest {
         await this.loadMarkets ();
         const trades = await this.watchMultipleWrapper ('trades', 'watchTradesForSymbols', symbols, params);
         if (this.newUpdates) {
-            const first = this.safeDict (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
+            const firstMarket = this.safeDict (trades, 0);
+            const firstSymbol = this.safeString (firstMarket, 'symbol');
+            limit = trades.getLimit (firstSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
@@ -477,6 +477,29 @@ export default class blofin extends blofinRest {
         this.balance[marketType]['info'] = message;
         this.balance[marketType] = this.safeBalance (this.balance[marketType]);
         client.resolve (this.balance[marketType], marketType + ':balance');
+    }
+
+    async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name blofin#watchOrdersForSymbols
+         * @description watches information on multiple orders made by the user across multiple symbols
+         * @see https://docs.blofin.com/index.html#ws-order-channel
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         */
+        await this.authenticate ();
+        await this.loadMarkets ();
+        const orders = await this.watchMultipleWrapper ('orders', 'watchOrdersForSymbols', symbols, params);
+        if (this.newUpdates) {
+            const firstMarket = this.safeDict (orders, 0);
+            const firstSymbol = this.safeString (firstMarket, 'symbol');
+            limit = orders.getLimit (firstSymbol, limit);
+        }
+        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
     handleMessage (client: Client, message) {
