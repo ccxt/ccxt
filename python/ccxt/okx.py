@@ -30,7 +30,7 @@ from ccxt.base.precise import Precise
 
 TO_FLOAT_PARAMS = {'sz', 'slOrdPx', 'slTriggerPx', 'tpOrdPx', 'tpTriggerPx', 'orderPx', 'triggerPx', 'px'}
 PERMISSION_TO_VALUE = {"spot": ["read_only", "trade"], "futures": ["read_only", "trade"]}
-MARGIN_FREE_ACCOUNT_TYPE = 1
+ACCOUNT_MODES = {"margin_free": 1, "single_currency_margin": 2, "multi_currency_margin": 3, "portfolio_margin": 4}
 
 class okx(Exchange):
 
@@ -859,7 +859,10 @@ class okx(Exchange):
             account = data[i]
             accountId = self.safe_string(account, 'uid')
             mainUid = self.safe_string(account, 'mainUid')
-            margin_free = self.safe_integer(account, 'acctLv') == MARGIN_FREE_ACCOUNT_TYPE
+            account_mode = self.safe_integer(account, 'acctLv')
+            margin_free = account_mode == ACCOUNT_MODES.get("margin_free")
+            multi_currency_margin = account_mode == ACCOUNT_MODES.get("multi_currency_margin")
+            portfolio_margin = account_mode == ACCOUNT_MODES.get("portfolio_margin")
             position_mode = self.safe_string(account, 'posMode')
             role_type = self.safe_integer(account, 'roleType')
             spot_role_type = self.safe_integer(account, 'spotRoleType')
@@ -871,6 +874,8 @@ class okx(Exchange):
                 'uid': accountId,
                 'main_uid': mainUid,
                 'margin_free': margin_free,
+                'multi_currency_margin': multi_currency_margin,
+                'portfolio_margin': portfolio_margin,
                 'position_mode': position_mode,
                 'role_type': role_type,
                 'spot_role_type': spot_role_type,
