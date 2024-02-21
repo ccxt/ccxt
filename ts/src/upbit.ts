@@ -1040,6 +1040,7 @@ export default class upbit extends Exchange {
          * @name upbit#createOrder
          * @description create a trade order
          * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
+         * @see https://global-docs.upbit.com/reference/order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1047,6 +1048,7 @@ export default class upbit extends Exchange {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.cost] for market buy orders, the quote quantity that can be used as an alternative for the amount
+         * @param {string} [params.timeInForce] 'IOC' or 'FOK'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1096,6 +1098,13 @@ export default class upbit extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'identifier');
         if (clientOrderId !== undefined) {
             request['identifier'] = clientOrderId;
+        }
+        if (type !== 'market') {
+            const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
+            params = this.omit (params, 'timeInForce');
+            if (timeInForce !== undefined) {
+                request['time_in_force'] = timeInForce;
+            }
         }
         params = this.omit (params, [ 'clientOrderId', 'identifier' ]);
         const response = await this.privatePostOrders (this.extend (request, params));
