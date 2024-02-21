@@ -942,6 +942,7 @@ class NewTranspiler {
         if (ws) {
             const wsRegexes = this.getWsRegexes();
             content = this.regexAll (content, wsRegexes);
+            content = this.replaceImportedRestClasses (content, csharpVersion.imports);
             const classNameRegex = /public\spartial\sclass\s(\w+)\s:\s(\w+)/gm;
             const classNameExec = classNameRegex.exec(content);
             const className = classNameExec ? classNameExec[1] : '';
@@ -950,6 +951,18 @@ class NewTranspiler {
         }
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;
+    }
+
+    replaceImportedRestClasses (content, imports) {
+        for (const imp of imports) {
+            // { name: "hitbtc", path: "./hitbtc.js", isDefault: true, }
+            // { name: "bequantRest", path: "../bequant.js", isDefault: true, }
+            const name = imp.name;
+            if (name.endsWith('Rest')) {
+                content = content.replaceAll(name, 'ccxt.' + name.replace('Rest', ''));
+            }
+        }
+        return content;
     }
 
     transpileDerivedExchangeFile (tsFolder, filename, options, csharpResult, force = false, ws = false) {
