@@ -4,7 +4,7 @@
 import blofinRest from '../blofin.js';
 import { NotSupported, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances, Order } from '../base/types.js';
+import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances, Str, Order } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
 
@@ -477,6 +477,21 @@ export default class blofin extends blofinRest {
         this.balance[marketType]['info'] = message;
         this.balance[marketType] = this.safeBalance (this.balance[marketType]);
         client.resolve (this.balance[marketType], marketType + ':balance');
+    }
+
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name alpaca#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         */
+        params['callerMethodName'] = 'watchOrders';
+        return await this.watchOrdersForSymbols ([ symbol ], since, limit, params);
     }
 
     async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
