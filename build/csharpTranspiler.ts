@@ -717,7 +717,7 @@ class NewTranspiler {
         // WS fixes
         baseClass = baseClass.replace(/\(object client,/gm, '(WebSocketClient client,');
         baseClass = baseClass.replace(/Dictionary<string,object>\)client\.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures');
-
+        baseClass = baseClass.replace ('/(\w+)RestInstance.describe/', '\(Exchange\)$1RestInstance.describe');
 
         const jsDelimiter = '// ' + delimiter
         const parts = baseClass.split (jsDelimiter)
