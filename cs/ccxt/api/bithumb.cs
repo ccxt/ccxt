@@ -36,6 +36,31 @@ public partial class bithumb : Exchange
         return await this.callAsync ("publicGetTransactionHistoryBaseIdQuoteId",parameters);
     }
 
+    public async Task<object> publicGetNetworkInfo (object parameters = null)
+    {
+        return await this.callAsync ("publicGetNetworkInfo",parameters);
+    }
+
+    public async Task<object> publicGetAssetsstatusMultichainALL (object parameters = null)
+    {
+        return await this.callAsync ("publicGetAssetsstatusMultichainALL",parameters);
+    }
+
+    public async Task<object> publicGetAssetsstatusMultichainCurrency (object parameters = null)
+    {
+        return await this.callAsync ("publicGetAssetsstatusMultichainCurrency",parameters);
+    }
+
+    public async Task<object> publicGetWithdrawMinimumALL (object parameters = null)
+    {
+        return await this.callAsync ("publicGetWithdrawMinimumALL",parameters);
+    }
+
+    public async Task<object> publicGetWithdrawMinimumCurrency (object parameters = null)
+    {
+        return await this.callAsync ("publicGetWithdrawMinimumCurrency",parameters);
+    }
+
     public async Task<object> publicGetAssetsstatusALL (object parameters = null)
     {
         return await this.callAsync ("publicGetAssetsstatusALL",parameters);

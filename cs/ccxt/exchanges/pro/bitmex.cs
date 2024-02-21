@@ -358,9 +358,9 @@ public partial class bitmex : ccxt.bitmex
             object messageHash = add(add(table, ":"), marketId);
             object ticker = this.safeDict(this.tickers, symbol, new Dictionary<string, object>() {});
             object info = this.safeDict(ticker, "info", new Dictionary<string, object>() {});
-            ticker = this.parseTicker(this.extend(info, update), market);
-            ((IDictionary<string,object>)tickers)[(string)symbol] = ticker;
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            object parsedTicker = this.parseTicker(this.extend(info, update), market);
+            ((IDictionary<string,object>)tickers)[(string)symbol] = parsedTicker;
+            ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsedTicker;
             callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {tickers, "instrument"});

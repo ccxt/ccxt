@@ -869,6 +869,37 @@ public partial class binance
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
+    /// fetch an open order by the id
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#query-current-open-order-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#query-current-open-order-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-current-um-open-order-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-current-cm-open-order-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-current-um-open-conditional-order-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-current-cm-open-conditional-order-user_data"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// string : set to true if you would like to fetch portfolio margin account stop or conditional orders
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<Order> FetchOpenOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOpenOrder(id, symbol, parameters);
+        return new Order(res);
+    }
+    /// <summary>
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
@@ -2253,6 +2284,9 @@ public partial class binance
     /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#get-force-liquidation-record-user_data"/>  <br/>
     /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#user-39-s-force-orders-user_data"/>  <br/>
     /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#user-39-s-force-orders-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-user-39-s-margin-force-orders-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-user-39-s-um-force-orders-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#query-user-39-s-cm-force-orders-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -2288,6 +2322,12 @@ public partial class binance
     /// <term>params.paginate</term>
     /// <description>
     /// boolean : *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolioMargin</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch liquidations in a portfolio margin account
     /// </description>
     /// </item>
     /// </list>

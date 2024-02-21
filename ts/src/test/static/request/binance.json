@@ -317,6 +317,22 @@
                   }
                 ],
                 "output": "timestamp=1707113537828&symbol=BTCUSDT&side=BUY&newOrderRespType=FULL&newClientOrderId=x-R4BD3S82e9ef29d8346440f0b28b86&type=LIMIT&quantity=0.001&price=35000&timeInForce=GTC&recvWindow=10000&signature=08d71bf9a60d5184cc256964f1175179c813d11e038718c0d64d5cc5b982f2f5"
+            },
+            {
+                "description": "swap order with priceMatch",
+                "method": "createOrder",
+                "url": "https://testnet.binancefuture.com/fapi/v1/order",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.2,
+                  null,
+                  {
+                    "priceMatch": "OPPONENT"
+                  }
+                ],
+                "output": "timestamp=1708360882808&symbol=LTCUSDT&side=BUY&newOrderRespType=RESULT&newClientOrderId=x-xcKtGhcu6f60e2c1e1ed4166838709&type=LIMIT&quantity=0.2&timeInForce=GTC&priceMatch=OPPONENT&recvWindow=10000&signature=b73ae983cc2d4995d48e98841152c802ba0b420ee79fc501bde0b6eeee4817ab"
             }
         ],
         "createOrders": [
@@ -2418,6 +2434,45 @@
                 "input": [
                   "LTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "Spot margin portfolio margin fetch my liquidations",
+                "method": "fetchMyLiquidations",
+                "url": "https://papi.binance.com/papi/v1/margin/forceOrders?timestamp=1707878056633&recvWindow=10000&signature=c1391185fe60a089f125a9e6b36015ee98a04d4e7e507ad3cd24143c479b6d5d",
+                "input": [
+                  null,
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
+            },
+            {
+                "description": "Linear swap portfolio margin fetch my liquidations",
+                "method": "fetchMyLiquidations",
+                "url": "https://papi.binance.com/papi/v1/um/forceOrders?timestamp=1707878995904&autoCloseType=LIQUIDATION&recvWindow=10000&signature=6ced6b47b0c81862f3713d5830784fc4897bdfac50bc357907d1e6a489cd83cd",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
+            },
+            {
+                "description": "Inverse swap portfolio margin fetch my liquidations",
+                "method": "fetchMyLiquidations",
+                "url": "https://papi.binance.com/papi/v1/cm/forceOrders?timestamp=1707879051093&autoCloseType=LIQUIDATION&recvWindow=10000&signature=46ebc9bfc482820fb8246d4643a2b33c0733ab15c6c1efd7a852b5f2992dc638",
+                "input": [
+                  "ETH/USD:ETH",
+                  null,
+                  null,
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
             }
         ],
         "fetchOrderBook": [
@@ -2538,6 +2593,76 @@
                   null,
                   {
                     "portfolioMargin": true
+                  }
+                ]
+            }
+        ],
+        "fetchOpenOrder": [
+            {
+                "description": "Linear swap fetch open order",
+                "method": "fetchOpenOrder",
+                "url": "https://testnet.binancefuture.com/fapi/v1/openOrder?timestamp=1707893171707&symbol=BTCUSDT&orderId=3697213934&recvWindow=10000&signature=d9063e928c20216bab7d6b72d810bb1772a5914ba223afb1d99223d2519c4495",
+                "input": [
+                  "3697213934",
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Inverse swap fetch open order",
+                "method": "fetchOpenOrder",
+                "url": "https://testnet.binancefuture.com/dapi/v1/openOrder?timestamp=1707893671838&symbol=BTCUSD_PERP&orderId=597368542&recvWindow=10000&signature=867e778a63cf33ae958df0344823f01ae4bfbe5f2d061e68d1047c829454dfa3",
+                "input": [
+                  "597368542",
+                  "BTC/USD:BTC"
+                ]
+            },
+            {
+                "description": "Linear portfolio margin fetch open order",
+                "method": "fetchOpenOrder",
+                "url": "https://papi.binance.com/papi/v1/um/openOrder?timestamp=1707894060424&symbol=BTCUSDT&orderId=264895013409&recvWindow=10000&signature=4d0be95bef943410edf40dab1e4adcc3f9719967ea8f2a6bd49852b14afe4303",
+                "input": [
+                  "264895013409",
+                  "BTC/USDT:USDT",
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
+            },
+            {
+                "description": "Inverse portfolio margin fetch open order",
+                "method": "fetchOpenOrder",
+                "url": "https://papi.binance.com/papi/v1/cm/openOrder?timestamp=1707894369330&symbol=ETHUSD_PERP&orderId=71790316950&recvWindow=10000&signature=483eb1e2eed64593d415a9e3bdc1a5d473655e9092a469d06a53f613f01b4be0",
+                "input": [
+                  "71790316950",
+                  "ETH/USD:ETH",
+                  {
+                    "portfolioMargin": true
+                  }
+                ]
+            },
+            {
+                "description": "Linear portfolio margin conditional fetch open order",
+                "method": "fetchOpenOrder",
+                "url": "https://papi.binance.com/papi/v1/um/conditional/openOrder?timestamp=1707894696072&symbol=BTCUSDT&strategyId=4084339&recvWindow=10000&signature=22ae21d4e6cca439461b2deae7750b973f8b307025e2124e779e93eb86bcb1cd",       
+                "input": [
+                  "4084339",
+                  "BTC/USDT:USDT",
+                  {
+                    "portfolioMargin": true,
+                    "stop": true
+                  }
+                ]
+            },
+            {
+                "description": "Inverse portfolio margin conditional fetch open order",
+                "method": "fetchOpenOrder",
+                "url": "https://papi.binance.com/papi/v1/cm/conditional/openOrder?timestamp=1707894959489&symbol=ETHUSD_PERP&strategyId=1423501&recvWindow=10000&signature=83acda806cf655ebbcecabaa76d6c024a30daf49ad9d6bceeb939807d22964a7",   
+                "input": [
+                  "1423501",
+                  "ETH/USD:ETH",
+                  {
+                    "portfolioMargin": true,
+                    "stop": true
                   }
                 ]
             }

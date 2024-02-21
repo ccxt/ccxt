@@ -554,15 +554,17 @@ public partial class bitget : ccxt.bitget
         object rawOrderBook = this.safeValue(data, 0);
         object timestamp = this.safeInteger(rawOrderBook, "ts");
         object incrementalBook = isEqual(channel, "books");
-        object storedOrderBook = null;
         if (isTrue(incrementalBook))
         {
-            storedOrderBook = this.safeValue(this.orderbooks, symbol);
-            if (isTrue(isEqual(storedOrderBook, null)))
+            // storedOrderBook = this.safeValue (this.orderbooks, symbol);
+            if (!isTrue((inOp(this.orderbooks, symbol))))
             {
-                storedOrderBook = this.countedOrderBook(new Dictionary<string, object>() {});
-                ((IDictionary<string,object>)storedOrderBook)["symbol"] = symbol;
+                // const ob = this.orderBook ({});
+                object ob = this.countedOrderBook(new Dictionary<string, object>() {});
+                ((IDictionary<string,object>)ob)["symbol"] = symbol;
+                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
             }
+            object storedOrderBook = getValue(this.orderbooks, symbol);
             object asks = this.safeValue(rawOrderBook, "asks", new List<object>() {});
             object bids = this.safeValue(rawOrderBook, "bids", new List<object>() {});
             this.handleDeltas(getValue(storedOrderBook, "asks"), asks);
@@ -602,10 +604,12 @@ public partial class bitget : ccxt.bitget
             }
         } else
         {
-            storedOrderBook = this.parseOrderBook(rawOrderBook, symbol, timestamp);
+            object orderbook = this.orderBook(new Dictionary<string, object>() {});
+            object parsedOrderbook = this.parseOrderBook(rawOrderBook, symbol, timestamp);
+            (orderbook as IOrderBook).reset(parsedOrderbook);
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         }
-        ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = storedOrderBook;
-        callDynamically(client as WebSocketClient, "resolve", new object[] {storedOrderBook, messageHash});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.orderbooks, symbol), messageHash});
     }
 
     public override void handleDelta(object bookside, object delta)

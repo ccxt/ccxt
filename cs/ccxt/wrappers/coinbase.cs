@@ -346,6 +346,12 @@ public partial class coinbase
     /// boolean : default false, set true to use v3 api endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// object : "spot" (default) or "swap"
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
@@ -965,5 +971,10 @@ public partial class coinbase
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
+    }
+    public async Task<Dictionary<string, object>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositAddressesByNetwork(code, parameters);
+        return ((Dictionary<string, object>)res);
     }
 }

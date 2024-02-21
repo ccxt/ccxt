@@ -2316,13 +2316,13 @@ class cryptocom extends Exchange {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
-             * @see https://exchange-docs.crypto.com/spot/index.html#private-get-currency-networks
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
              * @param {string[]|null} $codes list of unified currency $codes
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->v2PrivatePostPrivateGetCurrencyNetworks ($params));
+            $response = Async\await($this->v1PrivatePostPrivateGetCurrencyNetworks ($params));
             $data = $this->safe_value($response, 'result');
             $currencyMap = $this->safe_value($data, 'currency_map');
             return $this->parse_deposit_withdraw_fees($currencyMap, $codes, 'full_name');

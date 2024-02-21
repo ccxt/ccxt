@@ -121,7 +121,7 @@ class binance(Exchange, ImplicitAPI):
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': True,
-                'fetchOpenOrder': False,
+                'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -3111,25 +3111,34 @@ class binance(Exchange, ImplicitAPI):
         account['debt'] = Precise.string_add(debt, interest)
         return account
 
-    def parse_balance_custom(self, response, type=None, marginMode=None) -> Balances:
+    def parse_balance_custom(self, response, type=None, marginMode=None, isPortfolioMargin=False) -> Balances:
         result = {
             'info': response,
         }
         timestamp = None
         isolated = marginMode == 'isolated'
         cross = (type == 'margin') or (marginMode == 'cross')
-        if type == 'papi':
+        if isPortfolioMargin:
             for i in range(0, len(response)):
                 entry = response[i]
                 account = self.account()
                 currencyId = self.safe_string(entry, 'asset')
                 code = self.safe_currency_code(currencyId)
-                borrowed = self.safe_string(entry, 'crossMarginBorrowed')
-                interest = self.safe_string(entry, 'crossMarginInterest')
-                account['free'] = self.safe_string(entry, 'crossMarginFree')
-                account['used'] = self.safe_string(entry, 'crossMarginLocked')
-                account['total'] = self.safe_string(entry, 'crossMarginAsset')
-                account['debt'] = Precise.string_add(borrowed, interest)
+                if type == 'linear':
+                    account['free'] = self.safe_string(entry, 'umWalletBalance')
+                    account['used'] = self.safe_string(entry, 'umUnrealizedPNL')
+                elif type == 'inverse':
+                    account['free'] = self.safe_string(entry, 'cmWalletBalance')
+                    account['used'] = self.safe_string(entry, 'cmUnrealizedPNL')
+                elif cross:
+                    borrowed = self.safe_string(entry, 'crossMarginBorrowed')
+                    interest = self.safe_string(entry, 'crossMarginInterest')
+                    account['debt'] = Precise.string_add(borrowed, interest)
+                    account['free'] = self.safe_string(entry, 'crossMarginFree')
+                    account['used'] = self.safe_string(entry, 'crossMarginLocked')
+                    account['total'] = self.safe_string(entry, 'crossMarginAsset')
+                else:
+                    account['total'] = self.safe_string(entry, 'totalWalletBalance')
                 result[code] = account
         elif not isolated and ((type == 'spot') or cross):
             timestamp = self.safe_integer(response, 'updateTime')
@@ -3233,7 +3242,11 @@ class binance(Exchange, ImplicitAPI):
         response = None
         request = {}
         if isPortfolioMargin or (type == 'papi'):
-            type = 'papi'
+            if self.is_linear(type, subType):
+                type = 'linear'
+            elif self.is_inverse(type, subType):
+                type = 'inverse'
+            isPortfolioMargin = True
             response = self.papiGetBalance(self.extend(request, query))
         elif self.is_linear(type, subType):
             type = 'linear'
@@ -3469,7 +3482,7 @@ class binance(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        return self.parse_balance_custom(response, type, marginMode)
+        return self.parse_balance_custom(response, type, marginMode, isPortfolioMargin)
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -4960,7 +4973,7 @@ class binance(Exchange, ImplicitAPI):
         #         "status": "NEW"
         #     }
         #
-        # createOrder, fetchOpenOrders: portfolio margin linear swap and future conditional
+        # createOrder, fetchOpenOrders, fetchOpenOrder: portfolio margin linear swap and future conditional
         #
         #     {
         #         "newClientStrategyId": "x-xcKtGhcu27f109953d6e4dc0974006",
@@ -5097,6 +5110,130 @@ class binance(Exchange, ImplicitAPI):
         #         "priceProtect": False,
         #         "goodTillDate": 0,
         #         "selfTradePreventionMode": "NONE"
+        #     }
+        #
+        # fetchOpenOrder: linear swap
+        #
+        #     {
+        #         "orderId": 3697213934,
+        #         "symbol": "BTCUSDT",
+        #         "status": "NEW",
+        #         "clientOrderId": "x-xcKtGhcufb20c5a7761a4aa09aa156",
+        #         "price": "33000.00",
+        #         "avgPrice": "0.00000",
+        #         "origQty": "0.010",
+        #         "executedQty": "0.000",
+        #         "cumQuote": "0.00000",
+        #         "timeInForce": "GTC",
+        #         "type": "LIMIT",
+        #         "reduceOnly": False,
+        #         "closePosition": False,
+        #         "side": "BUY",
+        #         "positionSide": "BOTH",
+        #         "stopPrice": "0.00",
+        #         "workingType": "CONTRACT_PRICE",
+        #         "priceProtect": False,
+        #         "origType": "LIMIT",
+        #         "priceMatch": "NONE",
+        #         "selfTradePreventionMode": "NONE",
+        #         "goodTillDate": 0,
+        #         "time": 1707892893502,
+        #         "updateTime": 1707892893515
+        #     }
+        #
+        # fetchOpenOrder: inverse swap
+        #
+        #     {
+        #         "orderId": 597368542,
+        #         "symbol": "BTCUSD_PERP",
+        #         "pair": "BTCUSD",
+        #         "status": "NEW",
+        #         "clientOrderId": "x-xcKtGhcubbde7ba93b1a4ab881eff3",
+        #         "price": "35000",
+        #         "avgPrice": "0",
+        #         "origQty": "1",
+        #         "executedQty": "0",
+        #         "cumBase": "0",
+        #         "timeInForce": "GTC",
+        #         "type": "LIMIT",
+        #         "reduceOnly": False,
+        #         "closePosition": False,
+        #         "side": "BUY",
+        #         "positionSide": "BOTH",
+        #         "stopPrice": "0",
+        #         "workingType": "CONTRACT_PRICE",
+        #         "priceProtect": False,
+        #         "origType": "LIMIT",
+        #         "time": 1707893453199,
+        #         "updateTime": 1707893453199
+        #     }
+        #
+        # fetchOpenOrder: linear portfolio margin
+        #
+        #     {
+        #         "orderId": 264895013409,
+        #         "symbol": "BTCUSDT",
+        #         "status": "NEW",
+        #         "clientOrderId": "x-xcKtGhcu6278f1adbdf14f74ab432e",
+        #         "price": "35000",
+        #         "avgPrice": "0",
+        #         "origQty": "0.010",
+        #         "executedQty": "0",
+        #         "cumQuote": "0",
+        #         "timeInForce": "GTC",
+        #         "type": "LIMIT",
+        #         "reduceOnly": False,
+        #         "side": "BUY",
+        #         "positionSide": "LONG",
+        #         "origType": "LIMIT",
+        #         "time": 1707893839364,
+        #         "updateTime": 1707893839364,
+        #         "goodTillDate": 0,
+        #         "selfTradePreventionMode": "NONE"
+        #     }
+        #
+        # fetchOpenOrder: inverse portfolio margin
+        #
+        #     {
+        #         "orderId": 71790316950,
+        #         "symbol": "ETHUSD_PERP",
+        #         "pair": "ETHUSD",
+        #         "status": "NEW",
+        #         "clientOrderId": "x-xcKtGhcuec11030474204ab08ba2c2",
+        #         "price": "2500",
+        #         "avgPrice": "0",
+        #         "origQty": "1",
+        #         "executedQty": "0",
+        #         "cumBase": "0",
+        #         "timeInForce": "GTC",
+        #         "type": "LIMIT",
+        #         "reduceOnly": False,
+        #         "side": "BUY",
+        #         "positionSide": "LONG",
+        #         "origType": "LIMIT",
+        #         "time": 1707894181694,
+        #         "updateTime": 1707894181694
+        #     }
+        #
+        # fetchOpenOrder: inverse portfolio margin conditional
+        #
+        #     {
+        #         "newClientStrategyId": "x-xcKtGhcu2da9c765294b433994ffce",
+        #         "strategyId": 1423501,
+        #         "strategyStatus": "NEW",
+        #         "strategyType": "STOP",
+        #         "origQty": "1",
+        #         "price": "2500",
+        #         "reduceOnly": False,
+        #         "side": "BUY",
+        #         "positionSide": "LONG",
+        #         "stopPrice": "4000",
+        #         "symbol": "ETHUSD_PERP",
+        #         "bookTime": 1707894782679,
+        #         "updateTime": 1707894782679,
+        #         "timeInForce": "GTC",
+        #         "workingType": "CONTRACT_PRICE",
+        #         "priceProtect": False
         #     }
         #
         code = self.safe_string(order, 'code')
@@ -5376,12 +5513,14 @@ class binance(Exchange, ImplicitAPI):
         trailingDelta = self.safe_string(params, 'trailingDelta')
         trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activationPrice', self.number_to_string(price))
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRate')
+        priceMatch = self.safe_string(params, 'priceMatch')
         isTrailingPercentOrder = trailingPercent is not None
         isStopLoss = stopLossPrice is not None or trailingDelta is not None
         isTakeProfit = takeProfitPrice is not None
         isTriggerOrder = triggerPrice is not None
         isConditional = isTriggerOrder or isTrailingPercentOrder or isStopLoss or isTakeProfit
         isPortfolioMarginConditional = (isPortfolioMargin and isConditional)
+        isPriceMatch = priceMatch is not None
         uppercaseType = type.upper()
         stopPrice = None
         if isTrailingPercentOrder:
@@ -5518,7 +5657,7 @@ class binance(Exchange, ImplicitAPI):
                 request['quantity'] = self.parse_to_numeric(amount)
             else:
                 request['quantity'] = self.amount_to_precision(symbol, amount)
-        if priceIsRequired:
+        if priceIsRequired and not isPriceMatch:
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
             request['price'] = self.price_to_precision(symbol, price)
@@ -5947,7 +6086,7 @@ class binance(Exchange, ImplicitAPI):
         marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchOpenOrders', 'papi', 'portfolioMargin', False)
-        isConditional = self.safe_bool_2(params, 'stop', 'conditional')
+        isConditional = self.safe_bool_n(params, ['stop', 'conditional', 'trigger'])
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -5964,7 +6103,7 @@ class binance(Exchange, ImplicitAPI):
             type = self.safe_string(params, 'type', defaultType)
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchOpenOrders', market, params)
-        params = self.omit(params, ['type', 'stop', 'conditional'])
+        params = self.omit(params, ['type', 'stop', 'conditional', 'trigger'])
         response = None
         if type == 'option':
             if since is not None:
@@ -6000,6 +6139,207 @@ class binance(Exchange, ImplicitAPI):
         else:
             response = self.privateGetOpenOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
+
+    def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+        """
+        fetch an open order by the id
+        :see: https://binance-docs.github.io/apidocs/futures/en/#query-current-open-order-user_data
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#query-current-open-order-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-current-um-open-order-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-current-cm-open-order-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-current-um-open-conditional-order-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-current-cm-open-conditional-order-user_data
+        :param str id: order id
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.trigger]: set to True if you would like to fetch portfolio margin account stop or conditional orders
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOpenOrder() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchOpenOrder', 'papi', 'portfolioMargin', False)
+        isConditional = self.safe_bool_n(params, ['stop', 'conditional', 'trigger'])
+        params = self.omit(params, ['stop', 'conditional', 'trigger'])
+        isPortfolioMarginConditional = (isPortfolioMargin and isConditional)
+        orderIdRequest = 'strategyId' if isPortfolioMarginConditional else 'orderId'
+        request[orderIdRequest] = id
+        response = None
+        if market['linear']:
+            if isPortfolioMargin:
+                if isConditional:
+                    response = self.papiGetUmConditionalOpenOrder(self.extend(request, params))
+                else:
+                    response = self.papiGetUmOpenOrder(self.extend(request, params))
+            else:
+                response = self.fapiPrivateGetOpenOrder(self.extend(request, params))
+        elif market['inverse']:
+            if isPortfolioMargin:
+                if isConditional:
+                    response = self.papiGetCmConditionalOpenOrder(self.extend(request, params))
+                else:
+                    response = self.papiGetCmOpenOrder(self.extend(request, params))
+            else:
+                response = self.dapiPrivateGetOpenOrder(self.extend(request, params))
+        else:
+            if market['option']:
+                raise NotSupported(self.id + ' fetchOpenOrder() does not support option markets')
+            elif market['spot']:
+                raise NotSupported(self.id + ' fetchOpenOrder() does not support spot markets')
+        #
+        # linear swap
+        #
+        #     {
+        #         "orderId": 3697213934,
+        #         "symbol": "BTCUSDT",
+        #         "status": "NEW",
+        #         "clientOrderId": "x-xcKtGhcufb20c5a7761a4aa09aa156",
+        #         "price": "33000.00",
+        #         "avgPrice": "0.00000",
+        #         "origQty": "0.010",
+        #         "executedQty": "0.000",
+        #         "cumQuote": "0.00000",
+        #         "timeInForce": "GTC",
+        #         "type": "LIMIT",
+        #         "reduceOnly": False,
+        #         "closePosition": False,
+        #         "side": "BUY",
+        #         "positionSide": "BOTH",
+        #         "stopPrice": "0.00",
+        #         "workingType": "CONTRACT_PRICE",
+        #         "priceProtect": False,
+        #         "origType": "LIMIT",
+        #         "priceMatch": "NONE",
+        #         "selfTradePreventionMode": "NONE",
+        #         "goodTillDate": 0,
+        #         "time": 1707892893502,
+        #         "updateTime": 1707892893515
+        #     }
+        #
+        # inverse swap
+        #
+        #     {
+        #         "orderId": 597368542,
+        #         "symbol": "BTCUSD_PERP",
+        #         "pair": "BTCUSD",
+        #         "status": "NEW",
+        #         "clientOrderId": "x-xcKtGhcubbde7ba93b1a4ab881eff3",
+        #         "price": "35000",
+        #         "avgPrice": "0",
+        #         "origQty": "1",
+        #         "executedQty": "0",
+        #         "cumBase": "0",
+        #         "timeInForce": "GTC",
+        #         "type": "LIMIT",
+        #         "reduceOnly": False,
+        #         "closePosition": False,
+        #         "side": "BUY",
+        #         "positionSide": "BOTH",
+        #         "stopPrice": "0",
+        #         "workingType": "CONTRACT_PRICE",
+        #         "priceProtect": False,
+        #         "origType": "LIMIT",
+        #         "time": 1707893453199,
+        #         "updateTime": 1707893453199
+        #     }
+        #
+        # linear portfolio margin
+        #
+        #     {
+        #         "orderId": 264895013409,
+        #         "symbol": "BTCUSDT",
+        #         "status": "NEW",
+        #         "clientOrderId": "x-xcKtGhcu6278f1adbdf14f74ab432e",
+        #         "price": "35000",
+        #         "avgPrice": "0",
+        #         "origQty": "0.010",
+        #         "executedQty": "0",
+        #         "cumQuote": "0",
+        #         "timeInForce": "GTC",
+        #         "type": "LIMIT",
+        #         "reduceOnly": False,
+        #         "side": "BUY",
+        #         "positionSide": "LONG",
+        #         "origType": "LIMIT",
+        #         "time": 1707893839364,
+        #         "updateTime": 1707893839364,
+        #         "goodTillDate": 0,
+        #         "selfTradePreventionMode": "NONE"
+        #     }
+        #
+        # inverse portfolio margin
+        #
+        #     {
+        #         "orderId": 71790316950,
+        #         "symbol": "ETHUSD_PERP",
+        #         "pair": "ETHUSD",
+        #         "status": "NEW",
+        #         "clientOrderId": "x-xcKtGhcuec11030474204ab08ba2c2",
+        #         "price": "2500",
+        #         "avgPrice": "0",
+        #         "origQty": "1",
+        #         "executedQty": "0",
+        #         "cumBase": "0",
+        #         "timeInForce": "GTC",
+        #         "type": "LIMIT",
+        #         "reduceOnly": False,
+        #         "side": "BUY",
+        #         "positionSide": "LONG",
+        #         "origType": "LIMIT",
+        #         "time": 1707894181694,
+        #         "updateTime": 1707894181694
+        #     }
+        #
+        # linear portfolio margin conditional
+        #
+        #     {
+        #         "newClientStrategyId": "x-xcKtGhcu2205fde44418483ca21874",
+        #         "strategyId": 4084339,
+        #         "strategyStatus": "NEW",
+        #         "strategyType": "STOP",
+        #         "origQty": "0.010",
+        #         "price": "35000",
+        #         "reduceOnly": False,
+        #         "side": "BUY",
+        #         "positionSide": "LONG",
+        #         "stopPrice": "60000",
+        #         "symbol": "BTCUSDT",
+        #         "bookTime": 1707894490094,
+        #         "updateTime": 1707894490094,
+        #         "timeInForce": "GTC",
+        #         "workingType": "CONTRACT_PRICE",
+        #         "priceProtect": False,
+        #         "goodTillDate": 0,
+        #         "selfTradePreventionMode": "NONE"
+        #     }
+        #
+        # inverse portfolio margin conditional
+        #
+        #     {
+        #         "newClientStrategyId": "x-xcKtGhcu2da9c765294b433994ffce",
+        #         "strategyId": 1423501,
+        #         "strategyStatus": "NEW",
+        #         "strategyType": "STOP",
+        #         "origQty": "1",
+        #         "price": "2500",
+        #         "reduceOnly": False,
+        #         "side": "BUY",
+        #         "positionSide": "LONG",
+        #         "stopPrice": "4000",
+        #         "symbol": "ETHUSD_PERP",
+        #         "bookTime": 1707894782679,
+        #         "updateTime": 1707894782679,
+        #         "timeInForce": "GTC",
+        #         "workingType": "CONTRACT_PRICE",
+        #         "priceProtect": False
+        #     }
+        #
+        return self.parse_order(response, market)
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -8801,12 +9141,12 @@ class binance(Exchange, ImplicitAPI):
 
     def fetch_positions(self, symbols: Strings = None, params={}):
         """
+        fetch all open positions
         :see: https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
         :see: https://binance-docs.github.io/apidocs/delivery/en/#position-information-user_data
         :see: https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
         :see: https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
         :see: https://binance-docs.github.io/apidocs/voptions/en/#option-position-information-user_data
-        fetch all open positions
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [method]: method name to call, "positionRisk", "account" or "option", default is "positionRisk"
@@ -9004,7 +9344,9 @@ class binance(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(response)):
             parsed = self.parse_position_risk(response[i])
-            result.append(parsed)
+            entryPrice = self.safe_string(parsed, 'entryPrice')
+            if (entryPrice != '0') and (entryPrice != '0.0') and (entryPrice != '0.00000000'):
+                result.append(parsed)
         symbols = self.market_symbols(symbols)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
@@ -10376,12 +10718,16 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/spot/en/#get-force-liquidation-record-user_data
         :see: https://binance-docs.github.io/apidocs/futures/en/#user-39-s-force-orders-user_data
         :see: https://binance-docs.github.io/apidocs/delivery/en/#user-39-s-force-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-user-39-s-margin-force-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-user-39-s-um-force-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-user-39-s-cm-force-orders-user_data
         :param str [symbol]: unified CCXT market symbol
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve
         :param dict [params]: exchange specific parameters for the binance api endpoint
         :param int [params.until]: timestamp in ms of the latest liquidation
         :param boolean [params.paginate]: *spot only* default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.portfolioMargin]: set to True if you would like to fetch liquidations in a portfolio margin account
         :returns dict: an array of `liquidation structures <https://docs.ccxt.com/#/?id=liquidation-structure>`
         """
         self.load_markets()
@@ -10396,12 +10742,15 @@ class binance(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchMyLiquidations', market, params)
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchMyLiquidations', market, params, 'linear')
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchMyLiquidations', 'papi', 'portfolioMargin', False)
         request = {}
         if type != 'spot':
             request['autoCloseType'] = 'LIQUIDATION'
         if market is not None:
             symbolKey = 'isolatedSymbol' if market['spot'] else 'symbol'
-            request[symbolKey] = market['id']
+            if not isPortfolioMargin:
+                request[symbolKey] = market['id']
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -10412,11 +10761,20 @@ class binance(Exchange, ImplicitAPI):
         request, params = self.handle_until_option('endTime', request, params)
         response = None
         if type == 'spot':
-            response = self.sapiGetMarginForceLiquidationRec(self.extend(request, params))
+            if isPortfolioMargin:
+                response = self.papiGetMarginForceOrders(self.extend(request, params))
+            else:
+                response = self.sapiGetMarginForceLiquidationRec(self.extend(request, params))
         elif subType == 'linear':
-            response = self.fapiPrivateGetForceOrders(self.extend(request, params))
+            if isPortfolioMargin:
+                response = self.papiGetUmForceOrders(self.extend(request, params))
+            else:
+                response = self.fapiPrivateGetForceOrders(self.extend(request, params))
         elif subType == 'inverse':
-            response = self.dapiPrivateGetForceOrders(self.extend(request, params))
+            if isPortfolioMargin:
+                response = self.papiGetCmForceOrders(self.extend(request, params))
+            else:
+                response = self.dapiPrivateGetForceOrders(self.extend(request, params))
         else:
             raise NotSupported(self.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets')
         #
@@ -10496,7 +10854,7 @@ class binance(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        liquidations = self.safe_value(response, 'rows', response)
+        liquidations = self.safe_list(response, 'rows', response)
         return self.parse_liquidations(liquidations, market, since, limit)
 
     def parse_liquidation(self, liquidation, market: Market = None):

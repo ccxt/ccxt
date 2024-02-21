@@ -806,15 +806,41 @@ public partial class bingx
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// fetch the deposit address for a currency associated with this account
+    /// fetch the deposit addresses for a currency associated with this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/common/sub-account#Query%20Main%20Account%20Deposit%20Address"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}, indexed by the network.</returns>
+    public async Task<Dictionary<string, object>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositAddressesByNetwork(code, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetch the deposit address for a currency associated with this account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.network</term>
+    /// <description>
+    /// string : The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency
     /// </description>
     /// </item>
     /// </list>

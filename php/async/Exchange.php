@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.2.44';
+$version = '4.2.48';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.2.44';
+    const VERSION = '4.2.48';
 
     public $browser;
     public $marketsLoading = null;
@@ -3553,6 +3553,17 @@ class Exchange extends \ccxt\Exchange {
                     throw new InvalidAddress($this->id . ' fetchDepositAddress() could not find a deposit address for ' . $code . ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
                 } else {
                     return $depositAddress;
+                }
+            } elseif ($this->has['fetchDepositAddressesByNetwork']) {
+                $network = $this->safe_string($params, 'network');
+                $params = $this->omit ($params, 'network');
+                $addressStructures = Async\await($this->fetchDepositAddressesByNetwork ($code, $params));
+                if ($network !== null) {
+                    return $this->safe_dict($addressStructures, $network);
+                } else {
+                    $keys = is_array($addressStructures) ? array_keys($addressStructures) : array();
+                    $key = $this->safe_string($keys, 0);
+                    return $this->safe_dict($addressStructures, $key);
                 }
             } else {
                 throw new NotSupported($this->id . ' fetchDepositAddress() is not supported yet');

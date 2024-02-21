@@ -16,6 +16,11 @@ public partial class coinbase : Exchange
         return await this.callAsync ("v2PublicGetCurrencies",parameters);
     }
 
+    public async Task<object> v2PublicGetCurrenciesCrypto (object parameters = null)
+    {
+        return await this.callAsync ("v2PublicGetCurrenciesCrypto",parameters);
+    }
+
     public async Task<object> v2PublicGetTime (object parameters = null)
     {
         return await this.callAsync ("v2PublicGetTime",parameters);

@@ -350,9 +350,9 @@ class bitmex(ccxt.async_support.bitmex):
             messageHash = table + ':' + marketId
             ticker = self.safe_dict(self.tickers, symbol, {})
             info = self.safe_dict(ticker, 'info', {})
-            ticker = self.parse_ticker(self.extend(info, update), market)
-            tickers[symbol] = ticker
-            self.tickers[symbol] = ticker
+            parsedTicker = self.parse_ticker(self.extend(info, update), market)
+            tickers[symbol] = parsedTicker
+            self.tickers[symbol] = parsedTicker
             client.resolve(ticker, messageHash)
         client.resolve(tickers, 'instrument')
         return message

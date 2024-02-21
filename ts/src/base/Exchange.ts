@@ -153,6 +153,8 @@ export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balan
 // ----------------------------------------------------------------------------
 // move this elsewhere
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from './ws/Cache.js'
+import {OrderBook as Ob} from './ws/OrderBook.js';
+
 import totp from './functions/totp.js';
 
 // ----------------------------------------------------------------------------
@@ -239,16 +241,16 @@ export default class Exchange {
     token: string; // reserved for HTTP auth in some cases
 
     balance      = {}
-    orderbooks   = {}
-    tickers      = {}
-    bidsasks     = {}
-    orders       = undefined
-    triggerOrders = undefined
-    trades: any
+    orderbooks: Dictionary<Ob>   = {}
+    tickers: Dictionary<Ticker>      = {}
+    bidsasks: Dictionary<Ticker>     = {}
+    orders: ArrayCache       = undefined
+    triggerOrders: ArrayCache = undefined
+    trades: Dictionary<ArrayCache>
     transactions = {}
     ohlcvs: any
-    myTrades: any
-    positions: any
+    myTrades: ArrayCache;
+    positions: any;
     urls: {
         logo?: string;
         api?: string | Dictionary<string>;
@@ -4875,6 +4877,17 @@ export default class Exchange {
                 throw new InvalidAddress (this.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
             } else {
                 return depositAddress;
+            }
+        } else if (this.has['fetchDepositAddressesByNetwork']) {
+            const network = this.safeString (params, 'network');
+            params = this.omit (params, 'network');
+            const addressStructures = await this.fetchDepositAddressesByNetwork (code, params);
+            if (network !== undefined) {
+                return this.safeDict (addressStructures, network);
+            } else {
+                const keys = Object.keys (addressStructures);
+                const key = this.safeString (keys, 0);
+                return this.safeDict (addressStructures, key);
             }
         } else {
             throw new NotSupported (this.id + ' fetchDepositAddress() is not supported yet');

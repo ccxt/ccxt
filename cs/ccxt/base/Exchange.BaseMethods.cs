@@ -4011,6 +4011,20 @@ public partial class Exchange
             {
                 return depositAddress;
             }
+        } else if (isTrue(getValue(this.has, "fetchDepositAddressesByNetwork")))
+        {
+            object network = this.safeString(parameters, "network");
+            parameters = this.omit(parameters, "network");
+            object addressStructures = await this.fetchDepositAddressesByNetwork(code, parameters);
+            if (isTrue(!isEqual(network, null)))
+            {
+                return this.safeDict(addressStructures, network);
+            } else
+            {
+                object keys = new List<object>(((IDictionary<string,object>)addressStructures).Keys);
+                object key = this.safeString(keys, 0);
+                return this.safeDict(addressStructures, key);
+            }
         } else
         {
             throw new NotSupported ((string)add(this.id, " fetchDepositAddress() is not supported yet")) ;

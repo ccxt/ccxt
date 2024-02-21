@@ -4392,6 +4392,19 @@ export default class Exchange {
                 return depositAddress;
             }
         }
+        else if (this.has['fetchDepositAddressesByNetwork']) {
+            const network = this.safeString(params, 'network');
+            params = this.omit(params, 'network');
+            const addressStructures = await this.fetchDepositAddressesByNetwork(code, params);
+            if (network !== undefined) {
+                return this.safeDict(addressStructures, network);
+            }
+            else {
+                const keys = Object.keys(addressStructures);
+                const key = this.safeString(keys, 0);
+                return this.safeDict(addressStructures, key);
+            }
+        }
         else {
             throw new NotSupported(this.id + ' fetchDepositAddress() is not supported yet');
         }
