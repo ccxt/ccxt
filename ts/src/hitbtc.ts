@@ -3429,7 +3429,7 @@ export default class hitbtc extends Exchange {
             throw new ArgumentsRequired (this.id + ' setLeverage () requires an extra parameter params["marginMode"]');
         }
         const request = {
-            'symbol': market['id'],
+            'symbol': (marginMode === 'isolated') ? market['id'] : market['settleId'],
             'leverage': leverage.toString (),
             'margin_balance': this.amountToPrecision (symbol, marginBalance),
             'margin_mode': marginMode,
