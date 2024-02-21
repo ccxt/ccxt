@@ -158,8 +158,9 @@ def json_stringify(elem):
     return json.dumps(elem)
 
 
-def convert_to_snake_case(conent):
-    return re.sub(r'(?<!^)(?=[A-Z])', '_', conent).lower()
+def convert_to_snake_case(content):
+    res = re.sub(r'(?<!^)(?=[A-Z])', '_', content).lower()
+    return res.replace('o_h_l_c_v', 'ohlcv')
 
 
 def get_test_name(methodName):
@@ -185,8 +186,7 @@ def io_dir_read(path):
 
 
 async def call_method(test_files, methodName, exchange, skippedProperties, args):
-    methodNameToCall = convert_to_snake_case(methodName)
-    methodNameToCall = 'test_' + methodNameToCall.replace('o_h_l_c_v', 'ohlcv')
+    methodNameToCall = 'test_' + convert_to_snake_case(methodName)
     return await getattr(test_files[methodName], methodNameToCall)(exchange, skippedProperties, *args)
 
 

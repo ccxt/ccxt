@@ -113,12 +113,12 @@ function json_stringify($s) {
 }
 
 function convert_to_snake_case($input) {
-    return strtolower(preg_replace('/(?<!^)(?=[A-Z])/', '_', $input));
+    $res = strtolower(preg_replace('/(?<!^)(?=[A-Z])/', '_', $input));
+    return str_replace('o_h_l_c_v', 'ohlcv', $res);
 }
 
 function get_test_name($methodName) {
-    $snake_cased = str_replace('o_h_l_c_v', 'ohlcv', convert_to_snake_case($methodName));
-    return 'test_' . $snake_cased;
+    return 'test_' . convert_to_snake_case($methodName);
 }
 
 function io_file_exists($path) {
