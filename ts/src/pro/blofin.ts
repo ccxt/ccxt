@@ -96,7 +96,7 @@ export default class blofin extends blofinRest {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
-        const trades = await this.watchMultipleWrapper ('trades', 'watchTradesForSymbols', symbols, params);
+        const trades = await this.watchMultipleWrapper (true, 'trades', 'watchTradesForSymbols', symbols, params);
         if (this.newUpdates) {
             const firstMarket = this.safeDict (trades, 0);
             const firstSymbol = this.safeString (firstMarket, 'symbol');
@@ -197,7 +197,7 @@ export default class blofin extends blofinRest {
         if (channelName !== 'books') {
             throw new NotSupported (this.id + ' ' + callerMethodName + '() at this moment ' + channelName + ' is not supported, coming soon');
         }
-        const orderbook = await this.watchMultipleWrapper (channelName, callerMethodName, symbols, params);
+        const orderbook = await this.watchMultipleWrapper (true, channelName, callerMethodName, symbols, params);
         return orderbook.limit ();
     }
 
@@ -274,7 +274,7 @@ export default class blofin extends blofinRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        const ticker = await this.watchMultipleWrapper ('tickers', 'watchTickers', symbols, params);
+        const ticker = await this.watchMultipleWrapper (true, 'tickers', 'watchTickers', symbols, params);
         if (this.newUpdates) {
             const tickers = {};
             tickers[ticker['symbol']] = ticker;
@@ -347,7 +347,7 @@ export default class blofin extends blofinRest {
             throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
         }
         await this.loadMarkets ();
-        const [ symbol, timeframe, candles ] = await this.watchMultipleWrapper ('candle', 'watchOHLCVForSymbols', symbolsAndTimeframes, params);
+        const [ symbol, timeframe, candles ] = await this.watchMultipleWrapper (true, 'candle', 'watchOHLCVForSymbols', symbolsAndTimeframes, params);
         if (this.newUpdates) {
             limit = candles.getLimit (symbol, limit);
         }
@@ -493,13 +493,63 @@ export default class blofin extends blofinRest {
          */
         await this.authenticate ();
         await this.loadMarkets ();
-        const orders = await this.watchMultipleWrapper ('orders', 'watchOrdersForSymbols', symbols, params);
+        const orders = await this.watchMultipleWrapper (false, 'orders', 'watchOrdersForSymbols', symbols, params);
         if (this.newUpdates) {
             const firstMarket = this.safeDict (orders, 0);
             const firstSymbol = this.safeString (firstMarket, 'symbol');
             limit = orders.getLimit (firstSymbol, limit);
         }
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
+    }
+
+    handleOrders (client: Client, message) {
+        //
+        //     {
+        //         action: 'update',
+        //         arg: { channel: 'orders' },
+        //         data: [
+        //           {
+        //             instType: 'SWAP',
+        //             instId: 'BTC-USDT',
+        //             orderId: '2076441173',
+        //             clientOrderId: null,
+        //             price: '27000.000000000000000000',
+        //             size: '1',
+        //             orderType: 'limit',
+        //             side: 'buy',
+        //             positionSide: 'net',
+        //             marginMode: 'cross',
+        //             filledSize: '0',
+        //             filledAmount: '0.000000000000000000',
+        //             averagePrice: '0.000000000000000000',
+        //             state: 'live', // live, canceled, etc
+        //             leverage: '3',
+        //             tpTriggerPrice: null,
+        //             tpOrderPrice: null,
+        //             slTriggerPrice: null,
+        //             slOrderPrice: null,
+        //             fee: '0.000000000000000000',
+        //             pnl: '0.000000000000000000',
+        //             cancelSource: '',
+        //             orderCategory: 'normal',
+        //             createTime: '1708541142784',
+        //             updateTime: '1708541142828',
+        //             reduceOnly: 'false',
+        //             brokerId: 'ec6dd3a7dd982d0b'
+        //           }
+        //         ]
+        //     }
+        //
+        const arg = this.safeDict (message, 'arg');
+        const channelName = this.safeString (arg, 'channel');
+        const data = this.safeList (message, 'data');
+        for (let i = 0; i < data.length; i++) {
+            const order = this.parseOrder (data[i]);
+            const symbol = order['symbol'];
+            const messageHash = channelName + ':' + symbol;
+            this.orders[symbol] = order;
+            client.resolve (this.orders[symbol], messageHash);
+        }
     }
 
     handleMessage (client: Client, message) {
@@ -524,6 +574,7 @@ export default class blofin extends blofinRest {
             'candle': this.handleOHLCV,
             //
             'account': this.handleBalance,
+            'orders': this.handleOrders,
         };
         let method = undefined;
         if (message === 'pong') {
@@ -532,10 +583,11 @@ export default class blofin extends blofinRest {
             const event = this.safeString (message, 'event');
             if (event === 'subscribe') {
                 return;
-            }
-            if (event === 'login') {
+            } else if (event === 'login') {
                 client.resolve (message, 'authenticate_hash');
                 return;
+            } else if (event === 'error') {
+                throw new Error (this.id + ' error: ' + this.json (message));
             }
             const arg = this.safeDict (message, 'arg');
             const channelName = this.safeString (arg, 'channel');
@@ -571,10 +623,10 @@ export default class blofin extends blofinRest {
         };
         const marketType = 'swap'; // for now
         const url = this.implodeHostname (this.urls['api']['ws'][marketType]['private']);
-        await this.watch (url, messageHash, this.deepExtend (request, params));
+        await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    async watchMultipleWrapper (channelName: string, callerMethodName: string, symbolsArray: any[] = undefined, params = {}) {
+    async watchMultipleWrapper (isPublic: boolean, channelName: string, callerMethodName: string, symbolsArray: any[] = undefined, params = {}) {
         // underlier method for all watch-multiple symbols
         await this.loadMarkets ();
         [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', callerMethodName);
@@ -588,7 +640,7 @@ export default class blofin extends blofinRest {
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' ' + callerMethodName + '() is not supported for spot markets yet');
         }
-        const rawSubscriptions = [];
+        let rawSubscriptions = [];
         const messageHashes = [];
         for (let i = 0; i < symbolsArray.length; i++) {
             const current = symbolsArray[i];
@@ -609,8 +661,13 @@ export default class blofin extends blofinRest {
             rawSubscriptions.push (topic);
             messageHashes.push (channel + ':' + market['symbol']);
         }
+        // orders channel is exceptional, need to overwrite the raw subscription
+        if (channelName === 'orders') {
+            rawSubscriptions = [ { 'channel': 'orders' } ];
+        }
         const request = this.getSubscriptionRequest (rawSubscriptions);
-        const url = this.implodeHostname (this.urls['api']['ws'][marketType]['public']);
+        const privateOrPublic = isPublic ? 'public' : 'private';
+        const url = this.implodeHostname (this.urls['api']['ws'][marketType][privateOrPublic]);
         return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
     }
 
