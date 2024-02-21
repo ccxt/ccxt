@@ -3,7 +3,7 @@
 
 import blofinRest from '../blofin.js';
 import { NotSupported, ArgumentsRequired } from '../base/errors.js';
-import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances, Order } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
@@ -493,13 +493,13 @@ export default class blofin extends blofinRest {
          */
         await this.authenticate ();
         await this.loadMarkets ();
-        const orders = await this.watchMultipleWrapper (false, 'orders', 'watchOrdersForSymbols', symbols, params);
+        const order = await this.watchMultipleWrapper (false, 'orders', 'watchOrdersForSymbols', symbols, params);
         if (this.newUpdates) {
-            const firstMarket = this.safeDict (orders, 0);
-            const firstSymbol = this.safeString (firstMarket, 'symbol');
-            limit = orders.getLimit (firstSymbol, limit);
+            const orders = [];
+            orders.push (order);
+            return orders;
         }
-        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (this.orders, since, limit, 'timestamp', true);
     }
 
     handleOrders (client: Client, message) {
@@ -540,6 +540,10 @@ export default class blofin extends blofinRest {
         //         ]
         //     }
         //
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
         const arg = this.safeDict (message, 'arg');
         const channelName = this.safeString (arg, 'channel');
         const data = this.safeList (message, 'data');
