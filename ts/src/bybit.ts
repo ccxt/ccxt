@@ -5082,7 +5082,7 @@ export default class bybit extends Exchange {
          * @method
          * @name bybit#fetchMyTrades
          * @description fetch all trades made by the user
-         * @see https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+         * @see https://bybit-exchange.github.io/docs/v5/order/execution
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
