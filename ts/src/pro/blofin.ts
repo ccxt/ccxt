@@ -23,6 +23,8 @@ export default class blofin extends blofinRest {
                 'watchTickers': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': true,
+                'watchOrders': true,
+                'watchOrdersForSymbols': true,
             },
             'urls': {
                 'api': {
@@ -402,31 +404,6 @@ export default class blofin extends blofinRest {
         client.resolve (resolveData, messageHash);
     }
 
-    async authenticate (params = {}) {
-        this.checkRequiredCredentials ();
-        const milliseconds = this.milliseconds ();
-        const messageHash = 'authenticate_hash';
-        const timestamp = milliseconds.toString ();
-        const nonce = 'n_' + timestamp;
-        const auth = '/users/self/verify' + 'GET' + timestamp + '' + nonce;
-        const signature = this.stringToBase64 (this.hmac (this.encode (auth), this.encode (this.secret), sha256));
-        const request = {
-            'op': 'login',
-            'args': [
-                {
-                    'apiKey': this.apiKey,
-                    'passphrase': this.password,
-                    'timestamp': timestamp,
-                    'nonce': nonce,
-                    'sign': signature,
-                },
-            ],
-        };
-        const marketType = 'swap'; // for now
-        const url = this.implodeHostname (this.urls['api']['ws'][marketType]['private']);
-        await this.watch (url, messageHash, this.deepExtend (request, params));
-    }
-
     async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
@@ -547,6 +524,31 @@ export default class blofin extends blofinRest {
         if (method) {
             method.call (this, client, message);
         }
+    }
+
+    async authenticate (params = {}) {
+        this.checkRequiredCredentials ();
+        const milliseconds = this.milliseconds ();
+        const messageHash = 'authenticate_hash';
+        const timestamp = milliseconds.toString ();
+        const nonce = 'n_' + timestamp;
+        const auth = '/users/self/verify' + 'GET' + timestamp + '' + nonce;
+        const signature = this.stringToBase64 (this.hmac (this.encode (auth), this.encode (this.secret), sha256));
+        const request = {
+            'op': 'login',
+            'args': [
+                {
+                    'apiKey': this.apiKey,
+                    'passphrase': this.password,
+                    'timestamp': timestamp,
+                    'nonce': nonce,
+                    'sign': signature,
+                },
+            ],
+        };
+        const marketType = 'swap'; // for now
+        const url = this.implodeHostname (this.urls['api']['ws'][marketType]['private']);
+        await this.watch (url, messageHash, this.deepExtend (request, params));
     }
 
     async watchMultipleWrapper (channelName: string, callerMethodName: string, symbolsArray: any[] = undefined, params = {}) {
