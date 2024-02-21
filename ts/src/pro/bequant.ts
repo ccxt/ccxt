@@ -2,6 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import hitbtc from './hitbtc.js';
+import hitbtcRest from '../hitbtc.js';
 import bequantRest from '../bequant.js';
 
 // ---------------------------------------------------------------------------
@@ -10,9 +11,11 @@ export default class bequant extends hitbtc {
     describe () {
         // eslint-disable-next-line new-cap
         const restInstance = new bequantRest ();
-        const restDescribe = restInstance.describe ();
-        const extended = this.deepExtend (super.describe (), restDescribe);
-        return this.deepExtend (extended, {
+        // eslint-disable-next-line new-cap
+        const parentRestInstance = new hitbtcRest ();
+        const extendedRestDescribe = this.deepExtend (parentRestInstance.describe (), restInstance.describe ());
+        const superWithRestDescribe = this.deepExtend (extendedRestDescribe, super.describe ());
+        return this.deepExtend (superWithRestDescribe, {
             'id': 'bequant',
             'name': 'Bequant',
             'countries': [ 'MT' ], // Malta
