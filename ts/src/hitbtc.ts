@@ -3244,7 +3244,7 @@ export default class hitbtc extends Exchange {
         [ marginMode, params ] = this.handleMarginModeAndParams ('modifyMarginHelper', params);
         let response = undefined;
         if (marketType === 'swap') {
-            request['marginMode'] = 'isolated';
+            request['margin_mode'] = 'isolated';
             response = await this.privatePutFuturesAccountMarginModeSymbol (this.extend (request, params));
         } else if ((marketType === 'margin') || (marketType === 'spot') || (marginMode === 'isolated')) {
             response = await this.privatePutMarginAccountIsolatedSymbol (this.extend (request, params));
