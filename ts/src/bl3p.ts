@@ -45,7 +45,7 @@ export default class bl3p extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchDepositAddress': true,
+                'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
@@ -467,34 +467,6 @@ export default class bl3p extends Exchange {
         //
         const data = this.safeDict (response, 'data');
         return this.parseDepositAddress (data, currency);
-    }
-
-    async fetchDepositAddress (code: string, params = {}) {
-        /**
-         * @method
-         * @name bl3p#fetchDepositAddress
-         * @description fetch the deposit address for a currency associated with this account
-         * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#33---get-the-last-deposit-address
-         * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-         */
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const response = await this.privatePostGENMKTMoneyDepositAddress (this.extend (request, params));
-        //
-        //    {
-        //        "result": "success",
-        //        "data": {
-        //            "address": "36Udu9zi1uYicpXcJpoKfv3bewZeok5tpk"
-        //        }
-        //    }
-        //
-        const data = this.safeValue (response, 'data');
-        return this.parseDepositAddress (data);
     }
 
     parseDepositAddress (depositAddress, currency: Currency = undefined) {
