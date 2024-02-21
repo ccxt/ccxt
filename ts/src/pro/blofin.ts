@@ -4,7 +4,7 @@
 import blofinRest from '../blofin.js';
 import { NotSupported, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances } from '../base/types.js';
+import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances, Str, Order } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
 
@@ -71,8 +71,8 @@ export default class blofin extends blofinRest {
         /**
          * @method
          * @name blofin#watchTrades
-         * @see https://docs.blofin.com/index.html#ws-trades-channel
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.blofin.com/index.html#ws-trades-channel
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -87,8 +87,8 @@ export default class blofin extends blofinRest {
         /**
          * @method
          * @name blofin#watchTradesForSymbols
-         * @see https://docs.blofin.com/index.html#ws-trades-channel
          * @description get the list of most recent trades for a list of symbols
+         * @see https://docs.blofin.com/index.html#ws-trades-channel
          * @param {string[]} symbols unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -165,8 +165,8 @@ export default class blofin extends blofinRest {
         /**
          * @method
          * @name blofin#watchOrderBook
-         * @see https://docs.blofin.com/index.html#ws-order-book-channel
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.blofin.com/index.html#ws-order-book-channel
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -251,8 +251,8 @@ export default class blofin extends blofinRest {
         /**
          * @method
          * @name blofin#watchTicker
-         * @see https://docs.blofin.com/index.html#ws-tickers-channel
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.blofin.com/index.html#ws-tickers-channel
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -268,8 +268,8 @@ export default class blofin extends blofinRest {
         /**
          * @method
          * @name blofin#watchTickers
-         * @see https://docs.blofin.com/index.html#ws-tickers-channel
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @see https://docs.blofin.com/index.html#ws-tickers-channel
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -334,8 +334,8 @@ export default class blofin extends blofinRest {
         /**
          * @method
          * @name blofin#watchOHLCVForSymbols
-         * @see https://docs.blofin.com/index.html#ws-candlesticks-channel
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.blofin.com/index.html#ws-candlesticks-channel
          * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
@@ -408,8 +408,8 @@ export default class blofin extends blofinRest {
         /**
          * @method
          * @name blofin#watchBalance
-         * @see https://docs.blofin.com/index.html#ws-account-channel
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.blofin.com/index.html#ws-account-channel
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
