@@ -1,8 +1,9 @@
 //  ---------------------------------------------------------------------------
 
 import deltaRest from '../delta.js';
-import { ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Market, OHLCV, Strings, Ticker, Tickers } from '../base/types.js';
+import { NotSupported } from '../base/errors.js';
+import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -14,10 +15,10 @@ export default class delta extends deltaRest {
                 'watchBalance': false,
                 'watchTicker': true,
                 'watchTickers': true,
-                'watchTrades': false,
+                'watchTrades': true,
                 'watchMyTrades': false,
                 'watchOrders': false,
-                'watchOrderBook': false,
+                'watchOrderBook': true,
                 'watchOHLCV': true,
             },
             'urls': {
@@ -29,6 +30,97 @@ export default class delta extends deltaRest {
                 },
             },
         });
+    }
+
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name delta#watchTrades
+         * @see https://docs.delta.exchange/#all_trades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const subscriptionHash = 'all_trades';
+        const request = {
+            'type': 'subscribe',
+            'payload': {
+                'channels': [
+                    {
+                        'name': subscriptionHash,
+                        'symbols': [
+                            market['id'],
+                        ],
+                    },
+                ],
+            },
+        };
+        const messageHash = 'trades:' + symbol;
+        const url = this.urls['api']['ws'];
+        const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        if (this.newUpdates) {
+            const first = this.safeDict (trades, 0, {});
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleTrades (client: Client, message) {
+        //
+        // all_trades_snapshot
+        //     {
+        //         "symbol": "ETH_USDT",
+        //         "trades": [
+        //             {
+        //                 "buyer_role": "taker",
+        //                 "price": "2909.60",
+        //                 "seller_role": "maker",
+        //                 "size": "0.09200",
+        //                 "timestamp": 1708508574949128
+        //             },
+        //             ...
+        //         ],
+        //         "type": "all_trades_snapshot"
+        //     }
+        //
+        // all_trades (update)
+        //     {
+        //         "buyer_role": "maker",
+        //         "price": "2911.20",
+        //         "product_id": 8411,
+        //         "seller_role": "taker",
+        //         "size": "0.05800",
+        //         "symbol": "ETH_USDT",
+        //         "timestamp": "1708508731638004",
+        //         "type": "all_trades"
+        //     }
+        //
+        const marketId = this.safeString (message, 'symbol');
+        const market = this.safeMarket (marketId);
+        let trades = this.safeList (message, 'trades', []);
+        const type = this.safeString (message, 'type');
+        if (type === 'all_trades') {
+            trades = [ message ];
+        }
+        const symbol = market['symbol'];
+        const messageHash = 'trades:' + symbol;
+        const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+        for (let i = 0; i < trades.length; i++) {
+            const trade = this.parseTrade (trades[i], market);
+            let stored = this.safeDict (this.trades, symbol) as any;
+            if (stored === undefined) {
+                stored = new ArrayCache (tradesLimit);
+                this.trades[symbol] = stored;
+            }
+            stored.append (trade);
+            client.resolve (stored, messageHash);
+        }
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -56,7 +148,7 @@ export default class delta extends deltaRest {
          * @returns {object} an array of [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true);
+        symbols = this.marketSymbols (symbols);
         const marketIds = this.marketIds (symbols);
         const subscriptionHash = 'v2/ticker';
         const messageHash = 'tickers';
@@ -65,7 +157,7 @@ export default class delta extends deltaRest {
             'payload': {
                 'channels': [
                     {
-                        'name': 'v2/ticker',
+                        'name': subscriptionHash,
                         'symbols': marketIds,
                     },
                 ],
@@ -113,6 +205,116 @@ export default class delta extends deltaRest {
         client.resolve (this.tickers, 'tickers');
     }
 
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name delta#watchOrderBook
+         * @see https://docs.delta.exchange/#l2_updates
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const messageHash = 'book:' + symbol;
+        const subscriptionHash = 'l2_updates';
+        const request = {
+            'type': 'subscribe',
+            'payload': {
+                'channels': [
+                    {
+                        'name': subscriptionHash,
+                        'symbols': [
+                            market['id'],
+                        ],
+                    },
+                ],
+            },
+        };
+        const url = this.urls['api']['ws'];
+        const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        return orderbook.limit ();
+    }
+
+    handleOrderBook (client: Client, message) {
+        //
+        //  snapshot
+        //     {
+        //         "action": "snapshot",
+        //         "asks": [
+        //             [ "2914.60", "0.1733" ],
+        //             ...
+        //         ],
+        //         "bids": [
+        //             [ "2913.40", "0.6131" ],
+        //             ...
+        //         ],
+        //         "cs": 1905080047,
+        //         "sequence_no": 937625,
+        //         "symbol": "ETH_USDT",
+        //         "timestamp": "1708514696898474",
+        //         "type": "l2_updates"
+        //     }
+        //
+        //  update
+        //     {
+        //         "action": "update",
+        //         "asks": [
+        //         [ "2914.60", "0" ],
+        //         ...
+        //         ],
+        //         "bids": [
+        //         [ "2913.60", "0.6131" ],
+        //         ...
+        //         ],
+        //         "cs": 1145868018,
+        //         "sequence_no": 937626,
+        //         "symbol": "ETH_USDT",
+        //         "timestamp": "1708514697899524",
+        //         "type": "l2_updates"
+        //     }
+        //
+        const action = this.safeString (message, 'action');
+        const marketId = this.safeString (message, 'symbol');
+        const symbol = this.safeSymbol (marketId);
+        const timestamp = this.safeInteger (message, 'timestamp');
+        const messageHash = 'book:' + symbol;
+        let orderbook = this.safeDict (this.orderbooks, symbol) as any;
+        if (orderbook === undefined) {
+            orderbook = this.orderBook ({});
+        }
+        if (action === 'snapshot') {
+            const snapshot = this.parseOrderBook (message, symbol, timestamp);
+            orderbook.reset (snapshot);
+        } else if (action === 'update') {
+            this.handleDeltas (orderbook['asks'], this.safeList (message, 'asks', []));
+            this.handleDeltas (orderbook['bids'], this.safeList (message, 'bids', []));
+        } else {
+            throw new NotSupported (this.id + ' watchOrderBook() did not recognize message action ' + action);
+        }
+        const sequence_no = this.safeInteger (message, 'sequence_no');
+        orderbook['nonce'] = sequence_no; // todo: check
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, messageHash);
+    }
+
+    handleDelta (bookside, sideDelta) {
+        const price = this.safeFloat (sideDelta, 0);
+        const amount = this.safeFloat (sideDelta, 1);
+        bookside.store (price, amount);
+    }
+
+    handleDeltas (bookside, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (bookside, deltas[i]);
+        }
+    }
+
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
@@ -129,12 +331,13 @@ export default class delta extends deltaRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const timeframeId = this.safeString (this.timeframes, timeframe, timeframe);
+        const subscriptionHash = 'candlestick_' + timeframeId;
         const request = {
             'type': 'subscribe',
             'payload': {
                 'channels': [
                     {
-                        'name': 'candlestick_' + timeframeId,
+                        'name': subscriptionHash,
                         'symbols': [
                             market['id'],
                         ],
@@ -205,7 +408,7 @@ export default class delta extends deltaRest {
             marketIds = this.marketIds (symbols);
         }
         const url = this.urls['api']['ws'];
-        const client = this.safeValue (this.clients, url);
+        const client = this.safeDict (this.clients, url);
         let subscription = {};
         if (client !== undefined) {
             subscription = this.safeDict (client.subscriptions, subscriptionHash);
@@ -233,10 +436,16 @@ export default class delta extends deltaRest {
     handleMessage (client: Client, message) {
         const type = this.safeString (message, 'type', '');
         if (type.indexOf ('candlestick') > -1) {
-            return this.handleOHLCV (client, message);
+            this.handleOHLCV (client, message);
+        }
+        if (type.indexOf ('all_trades') > -1) {
+            this.handleTrades (client, message);
         }
         if (type === 'v2/ticker') {
-            return this.handleTicker (client, message);
+            this.handleTicker (client, message);
+        }
+        if (type === 'l2_updates') {
+            this.handleOrderBook (client, message);
         }
     }
 }
