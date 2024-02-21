@@ -1164,7 +1164,7 @@ export default class bitmart extends Exchange {
         //          "base_volume_24h":"117387.58", // NOT base, but quote currency!!!
         //          "s_t": 1610936002
         //      }
-        // 
+        //
         // swap
         //
         //      {
