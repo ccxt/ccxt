@@ -2626,6 +2626,14 @@ export default class Exchange {
         return this.markets;
     }
 
+    getDescribeForMixedWsExchange (restClass: any, restBaseClass: any, wsBaseDescribe: Dictionary<any>) {
+        const restInstance = new restClass ();
+        const parentRestInstance = new restBaseClass ();
+        const extendedRestDescribe = this.deepExtend (parentRestInstance.describe (), restInstance.describe ());
+        const superWithRestDescribe = this.deepExtend (extendedRestDescribe, wsBaseDescribe);
+        return superWithRestDescribe;
+    }
+
     safeBalance (balance: object): Balances {
         const balances = this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]);
         const codes = Object.keys (balances);
