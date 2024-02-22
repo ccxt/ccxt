@@ -3,7 +3,7 @@
 
 import blofinRest from '../blofin.js';
 import { NotSupported, ArgumentsRequired } from '../base/errors.js';
-import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances, Str, Order, Position } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
@@ -564,7 +564,7 @@ export default class blofin extends blofinRest {
         const channelName = this.safeString (arg, 'channel');
         const data = this.safeList (message, 'data');
         for (let i = 0; i < data.length; i++) {
-            const order = this.parseOrder (data[i]);
+            const order = this.parseWsOrder (data[i]);
             const symbol = order['symbol'];
             const messageHash = channelName + ':' + symbol;
             this.orders[symbol] = order;
@@ -572,11 +572,15 @@ export default class blofin extends blofinRest {
         }
     }
 
+    parseWsOrder (order, market: Market = undefined): Order {
+        return this.parseOrder (order, market);
+    }
+
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
-         * @name bitmart#watchPositions
-         * @see https://developer-pro.bitmart.com/en/futures/#private-position-channel
+         * @name blofin#watchPositions
+         * @see https://docs.blofin.com/index.html#ws-positions-channel
          * @description watch all open positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the exchange API endpoint
@@ -593,64 +597,51 @@ export default class blofin extends blofinRest {
 
     handlePositions (client: Client, message) {
         //
-        //    {
-        //        "group":"futures/position",
-        //        "data":[
+        //     {
+        //         arg: { channel: 'positions' },
+        //         data: [
         //           {
-        //              "symbol":"LTCUSDT",
-        //              "hold_volume":"5",
-        //              "position_type":2,
-        //              "open_type":2,
-        //              "frozen_volume":"0",
-        //              "close_volume":"0",
-        //              "hold_avg_price":"71.582",
-        //              "close_avg_price":"0",
-        //              "open_avg_price":"71.582",
-        //              "liquidate_price":"0",
-        //              "create_time":1701623327513,
-        //              "update_time":1701627620439
-        //           },
-        //           {
-        //              "symbol":"LTCUSDT",
-        //              "hold_volume":"6",
-        //              "position_type":1,
-        //              "open_type":2,
-        //              "frozen_volume":"0",
-        //              "close_volume":"0",
-        //              "hold_avg_price":"71.681666666666666667",
-        //              "close_avg_price":"0",
-        //              "open_avg_price":"71.681666666666666667",
-        //              "liquidate_price":"0",
-        //              "create_time":1701621167225,
-        //              "update_time":1701628152614
+        //             instType: 'SWAP',
+        //             instId: 'LTC-USDT',
+        //             marginMode: 'cross',
+        //             positionId: '644159',
+        //             positionSide: 'net',
+        //             positions: '1',
+        //             availablePositions: '1',
+        //             averagePrice: '68.16',
+        //             unrealizedPnl: '0.64378567',
+        //             unrealizedPnlRatio: '0.028335636883802816',
+        //             leverage: '3',
+        //             liquidationPrice: '10.116655172370356435',
+        //             markPrice: '68.8',
+        //             initialMargin: '22.934595223333333333',
+        //             margin: '',
+        //             marginRatio: '152.461979885880159658',
+        //             maintenanceMargin: '0.34401892835',
+        //             adl: '4',
+        //             createTime: '1707235776528',
+        //             updateTime: '1707235776528'
         //           }
-        //        ]
-        //    }
+        //         ]
+        //     }
         //
-        const data = this.safeValue (message, 'data', []);
         const cache = this.positions;
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
+        const arg = this.safeDict (message, 'arg');
+        const channelName = this.safeString (arg, 'channel');
+        const data = this.safeList (message, 'data');
         const newPositions = [];
         for (let i = 0; i < data.length; i++) {
-            const rawPosition = data[i];
-            const position = this.parseWsPosition (rawPosition);
+            const position = this.parseWsPosition (data[i]);
             newPositions.push (position);
             cache.append (position);
         }
-        const messageHashes = this.findMessageHashes (client, 'positions::');
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const parts = messageHash.split ('::');
-            const symbolsString = parts[1];
-            const symbols = symbolsString.split (',');
-            const positions = this.filterByArray (newPositions, 'symbol', symbols, false);
-            if (!this.isEmpty (positions)) {
-                client.resolve (positions, messageHash);
-            }
-        }
-        client.resolve (newPositions, 'positions');
+    }
+
+    parseWsPosition (position, market: Market = undefined): Position {
+        return this.parsePosition (position, market);
     }
 
     handleMessage (client: Client, message) {
@@ -668,14 +659,16 @@ export default class blofin extends blofinRest {
         // incoming data updates' examples can be seen under each handler method
         //
         const methods = {
+            // public
             'pong': this.handlePong,
             'trades': this.handleTrades,
             'books': this.handleOrderBook,
             'tickers': this.handleTicker,
-            'candle': this.handleOHLCV,
-            //
+            'candle': this.handleOHLCV, // candle1m, candle5m, etc
+            // private
             'account': this.handleBalance,
             'orders': this.handleOrders,
+            'positions': this.handlePositions,
         };
         let method = undefined;
         if (message === 'pong') {
