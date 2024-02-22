@@ -1175,10 +1175,9 @@ export default class binance extends binanceRest {
         client.resolve (newTickers, 'tickers');
     }
 
-    signParams (params = {}) {
+    signParams (isPrivate: boolean, params = {}) {
         this.checkRequiredCredentials ();
         let extendedParams = this.extend ({
-            'timestamp': this.nonce (),
             'apiKey': this.apiKey,
         }, params);
         const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
@@ -1201,7 +1200,10 @@ export default class binance extends binanceRest {
         } else {
             signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
         }
-        extendedParams['signature'] = signature;
+        if (isPrivate) {
+            extendedParams['timestamp'] = this.nonce ();
+            extendedParams['signature'] = signature;
+        }
         return extendedParams;
     }
 
@@ -1372,7 +1374,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'account.status',
-            'params': this.signParams (this.extend (payload, params)),
+            'params': this.signParams (true, this.extend (payload, params)),
         };
         const subscription = {
             'method': this.handleBalanceWs,
@@ -1623,7 +1625,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'order.place',
-            'params': this.signParams (this.extend (payload, params)),
+            'params': this.signParams (true, this.extend (payload, params)),
         };
         if (test) {
             if (sor) {
@@ -1763,7 +1765,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'order.cancelReplace',
-            'params': this.signParams (this.extend (payload, params)),
+            'params': this.signParams (true, this.extend (payload, params)),
         };
         const subscription = {
             'method': this.handleEditOrderWs,
@@ -1881,7 +1883,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'order.cancel',
-            'params': this.signParams (this.extend (payload, params)),
+            'params': this.signParams (true, this.extend (payload, params)),
         };
         const subscription = {
             'method': this.handleOrderWs,
@@ -1912,7 +1914,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'order.cancel',
-            'params': this.signParams (this.extend (payload, params)),
+            'params': this.signParams (true, this.extend (payload, params)),
         };
         const subscription = {
             'method': this.handleOrdersWs,
@@ -1953,7 +1955,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'order.status',
-            'params': this.signParams (this.extend (payload, params)),
+            'params': this.signParams (true, this.extend (payload, params)),
         };
         const subscription = {
             'method': this.handleOrderWs,
@@ -1994,7 +1996,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'allOrders',
-            'params': this.signParams (this.extend (payload, params)),
+            'params': this.signParams (true, this.extend (payload, params)),
         };
         const subscription = {
             'method': this.handleOrdersWs,
@@ -2054,7 +2056,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'openOrders.status',
-            'params': this.signParams (this.extend (payload, params)),
+            'params': this.signParams (true, this.extend (payload, params)),
         };
         const subscription = {
             'method': this.handleOrdersWs,
@@ -2596,7 +2598,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'myTrades',
-            'params': this.signParams (this.extend (payload, params)),
+            'params': this.signParams (true, this.extend (payload, params)),
         };
         const subscription = {
             'method': this.handleTradesWs,
