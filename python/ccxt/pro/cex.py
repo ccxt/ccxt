@@ -170,7 +170,7 @@ class cex(ccxt.async_support.cex):
             parsed = self.parse_ws_old_trade(rawTrade)
             stored.append(parsed)
         messageHash = 'trades'
-        self.trades = stored
+        self.trades = stored  # trades don't have symbol
         client.resolve(self.trades, messageHash)
 
     def parse_ws_old_trade(self, trade, market=None):
@@ -183,7 +183,7 @@ class cex(ccxt.async_support.cex):
         if not isinstance(trade, list):
             trade = trade.split(':')
         side = self.safe_string(trade, 0)
-        timestamp = self.safe_number(trade, 1)
+        timestamp = self.safe_integer(trade, 1)
         amount = self.safe_string(trade, 2)
         price = self.safe_string(trade, 3)
         id = self.safe_string(trade, 4)
@@ -213,7 +213,7 @@ class cex(ccxt.async_support.cex):
         #     }
         #
         data = self.safe_value(message, 'data', [])
-        stored = self.trades
+        stored = self.trades  # to do fix self, self.trades is not meant to be used like self
         for i in range(0, len(data)):
             rawTrade = data[i]
             parsed = self.parse_ws_old_trade(rawTrade)

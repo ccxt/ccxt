@@ -125,6 +125,21 @@
                   0.00018544,
                   null
                 ]
+            },
+            {
+                "description": "test create order",
+                "method": "createOrder",
+                "url": "https://api.pro.coins.ph/openapi/v1/order/test?symbol=BTCUSDT&type=MARKET&side=SELL&quantity=0.0001854&newOrderRespType=FULL&timestamp=1702189732038&&signature=b19f78019ac7d7c0fe197963d5d15b812f667bc7279c9d4bc60e32df07e856e0",
+                "input": [
+                  "BTC/USDT",
+                  "market",
+                  "sell",
+                  0.00018544,
+                  null,
+                  {
+                    "test": true
+                  }
+                ]
             }
         ],
         "createMarketBuyOrderWithCost": [

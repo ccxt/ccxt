@@ -425,6 +425,7 @@ class bitfinex2(Exchange, ImplicitAPI):
                 'EDO': 'PNT',
                 'EUS': 'EURS',
                 'EUT': 'EURT',
+                'HTX': 'HT',
                 'IDX': 'ID',
                 'IOT': 'IOTA',
                 'IQX': 'IQ',
@@ -3260,7 +3261,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         })
 
-    def set_margin(self, symbol: str, amount, params={}):
+    def set_margin(self, symbol: str, amount: float, params={}):
         """
         either adds or reduces margin in a swap position in order to set the margin to a specific value
         :see: https://docs.bitfinex.com/reference/rest-auth-deriv-pos-collateral-set

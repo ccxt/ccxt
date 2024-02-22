@@ -25,14 +25,14 @@ export default class bitget extends Exchange {
         currency: string;
         address: string;
         tag: string;
-        network: string;
+        network: any;
         info: any;
     }>;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         currency: string;
         address: string;
         tag: string;
-        network: string;
+        network: any;
         info: any;
     };
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;

@@ -472,10 +472,11 @@ export default class gemini extends geminiRest {
         const market = this.safeMarket (marketId.toLowerCase ());
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
-        let orderbook = this.safeDict (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ();
+        if (!(symbol in this.orderbooks)) {
+            const ob = this.orderBook ();
+            this.orderbooks[symbol] = ob;
         }
+        const orderbook = this.orderbooks[symbol];
         const bids = orderbook['bids'];
         const asks = orderbook['asks'];
         for (let i = 0; i < rawOrderBookChanges.length; i++) {
@@ -658,7 +659,7 @@ export default class gemini extends geminiRest {
         //         "socket_sequence": 139
         //     }
         //
-        const timestamp = this.safeNumber (order, 'timestampms');
+        const timestamp = this.safeInteger (order, 'timestampms');
         const status = this.safeString (order, 'type');
         const marketId = this.safeString (order, 'symbol');
         const typeId = this.safeString (order, 'order_type');

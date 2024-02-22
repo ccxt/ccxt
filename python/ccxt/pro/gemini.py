@@ -434,9 +434,10 @@ class gemini(ccxt.async_support.gemini):
         market = self.safe_market(marketId.lower())
         symbol = market['symbol']
         messageHash = 'orderbook:' + symbol
-        orderbook = self.safe_dict(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.order_book()
+        if not (symbol in self.orderbooks):
+            ob = self.order_book()
+            self.orderbooks[symbol] = ob
+        orderbook = self.orderbooks[symbol]
         bids = orderbook['bids']
         asks = orderbook['asks']
         for i in range(0, len(rawOrderBookChanges)):
@@ -605,7 +606,7 @@ class gemini(ccxt.async_support.gemini):
         #         "socket_sequence": 139
         #     }
         #
-        timestamp = self.safe_number(order, 'timestampms')
+        timestamp = self.safe_integer(order, 'timestampms')
         status = self.safe_string(order, 'type')
         marketId = self.safe_string(order, 'symbol')
         typeId = self.safe_string(order, 'order_type')

@@ -554,15 +554,17 @@ public partial class bitget : ccxt.bitget
         object rawOrderBook = this.safeValue(data, 0);
         object timestamp = this.safeInteger(rawOrderBook, "ts");
         object incrementalBook = isEqual(channel, "books");
-        object storedOrderBook = null;
         if (isTrue(incrementalBook))
         {
-            storedOrderBook = this.safeValue(this.orderbooks, symbol);
-            if (isTrue(isEqual(storedOrderBook, null)))
+            // storedOrderBook = this.safeValue (this.orderbooks, symbol);
+            if (!isTrue((inOp(this.orderbooks, symbol))))
             {
-                storedOrderBook = this.countedOrderBook(new Dictionary<string, object>() {});
-                ((IDictionary<string,object>)storedOrderBook)["symbol"] = symbol;
+                // const ob = this.orderBook ({});
+                object ob = this.countedOrderBook(new Dictionary<string, object>() {});
+                ((IDictionary<string,object>)ob)["symbol"] = symbol;
+                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
             }
+            object storedOrderBook = getValue(this.orderbooks, symbol);
             object asks = this.safeValue(rawOrderBook, "asks", new List<object>() {});
             object bids = this.safeValue(rawOrderBook, "bids", new List<object>() {});
             this.handleDeltas(getValue(storedOrderBook, "asks"), asks);
@@ -602,10 +604,12 @@ public partial class bitget : ccxt.bitget
             }
         } else
         {
-            storedOrderBook = this.parseOrderBook(rawOrderBook, symbol, timestamp);
+            object orderbook = this.orderBook(new Dictionary<string, object>() {});
+            object parsedOrderbook = this.parseOrderBook(rawOrderBook, symbol, timestamp);
+            (orderbook as IOrderBook).reset(parsedOrderbook);
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         }
-        ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = storedOrderBook;
-        callDynamically(client as WebSocketClient, "resolve", new object[] {storedOrderBook, messageHash});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.orderbooks, symbol), messageHash});
     }
 
     public override void handleDelta(object bookside, object delta)
@@ -1060,6 +1064,7 @@ public partial class bitget : ccxt.bitget
         //                 "clientOid": "798d1425-d31d-4ada-a51b-ec701e00a1d9",
         //                 "price": "35000.00",
         //                 "size": "7.0000",
+        //                 "newSize": "500.0000",
         //                 "notional": "7.000000",
         //                 "orderType": "limit",
         //                 "force": "gtc",
@@ -1233,6 +1238,7 @@ public partial class bitget : ccxt.bitget
         //         "clientOid": "798d1425-d31d-4ada-a51b-ec701e00a1d9",
         //         "price": "35000.00",
         //         "size": "7.0000",
+        //         "newSize": "500.0000",
         //         "notional": "7.000000",
         //         "orderType": "limit",
         //         "force": "gtc",
@@ -1341,6 +1347,29 @@ public partial class bitget : ccxt.bitget
             };
         }
         object triggerPrice = this.safeNumber(order, "triggerPrice");
+        object price = this.safeString(order, "price");
+        object avgPrice = this.omitZero(this.safeString2(order, "priceAvg", "fillPrice"));
+        object cost = this.safeStringN(order, new List<object>() {"notional", "notionalUsd", "quoteSize"});
+        object side = this.safeString(order, "side");
+        object type = this.safeString(order, "orderType");
+        if (isTrue(isTrue(isTrue(isEqual(side, "buy")) && isTrue(getValue(market, "spot"))) && isTrue((isEqual(type, "market")))))
+        {
+            cost = this.safeString(order, "newSize", cost);
+        }
+        object filled = this.safeString2(order, "accBaseVolume", "baseVolume");
+        if (isTrue(isTrue(getValue(market, "spot")) && isTrue((!isEqual(rawStatus, "live")))))
+        {
+            filled = Precise.stringDiv(cost, avgPrice);
+        }
+        object amount = this.safeString(order, "baseVolume");
+        if (isTrue(!isTrue(getValue(market, "spot")) || !isTrue((isTrue(isEqual(side, "buy")) && isTrue(isEqual(type, "market"))))))
+        {
+            amount = this.safeString(order, "newSize", amount);
+        }
+        if (isTrue(isTrue(getValue(market, "swap")) && isTrue((isEqual(amount, null)))))
+        {
+            amount = this.safeString(order, "size");
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "symbol", symbol },
@@ -1349,17 +1378,17 @@ public partial class bitget : ccxt.bitget
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", this.safeInteger(order, "uTime") },
-            { "type", this.safeString(order, "orderType") },
+            { "type", type },
             { "timeInForce", this.safeStringUpper(order, "force") },
             { "postOnly", null },
-            { "side", this.safeString(order, "side") },
-            { "price", this.safeString(order, "price") },
+            { "side", side },
+            { "price", price },
             { "stopPrice", triggerPrice },
             { "triggerPrice", triggerPrice },
-            { "amount", this.safeString(order, "baseVolume") },
-            { "cost", this.safeStringN(order, new List<object>() {"notional", "notionalUsd", "quoteSize"}) },
-            { "average", this.omitZero(this.safeString2(order, "priceAvg", "fillPrice")) },
-            { "filled", this.safeString2(order, "accBaseVolume", "baseVolume") },
+            { "amount", amount },
+            { "cost", cost },
+            { "average", avgPrice },
+            { "filled", filled },
             { "remaining", null },
             { "status", this.parseWsOrderStatus(rawStatus) },
             { "fee", feeObject },

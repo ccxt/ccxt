@@ -351,6 +351,7 @@ public partial class bitfinex2 : Exchange
                 { "EDO", "PNT" },
                 { "EUS", "EURS" },
                 { "EUT", "EURT" },
+                { "HTX", "HT" },
                 { "IDX", "ID" },
                 { "IOT", "IOTA" },
                 { "IQX", "IQ" },
@@ -3691,7 +3692,7 @@ public partial class bitfinex2 : Exchange
         });
     }
 
-    public async virtual Task<object> setMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> setMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method

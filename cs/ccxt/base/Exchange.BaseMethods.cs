@@ -766,6 +766,24 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " setPositionMode() is not supported yet")) ;
     }
 
+    public async virtual Task<object> addMargin(object symbol, object amount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " addMargin() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " reduceMargin() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> setMargin(object symbol, object amount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " setMargin() is not supported yet")) ;
+    }
+
     public async virtual Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -2234,6 +2252,10 @@ public partial class Exchange
          * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} exchange-specific network id
          */
+        if (isTrue(isEqual(networkCode, null)))
+        {
+            return null;
+        }
         object networkIdsByCodes = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
         object networkId = this.safeString(networkIdsByCodes, networkCode);
         // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
@@ -2285,6 +2307,10 @@ public partial class Exchange
          * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} unified network code
          */
+        if (isTrue(isEqual(networkId, null)))
+        {
+            return null;
+        }
         object networkCodesByIds = this.safeDict(this.options, "networksById", new Dictionary<string, object>() {});
         object networkCode = this.safeString(networkCodesByIds, networkId, networkId);
         // replace mainnet network-codes (i.e. ERC20->ETH)
@@ -2486,7 +2512,7 @@ public partial class Exchange
             contractSize = this.safeNumber(market, "contractSize");
             ((IDictionary<string,object>)position)["contractSize"] = contractSize;
         }
-        return ((object)position);
+        return position;
     }
 
     public virtual object parsePositions(object positions, object symbols = null, object parameters = null)
@@ -2611,9 +2637,57 @@ public partial class Exchange
         return this.safeString(market, "symbol", symbol);
     }
 
+    public virtual object handleParamString(object parameters, object paramName, object defaultValue = null)
+    {
+        object value = this.safeString(parameters, paramName, defaultValue);
+        if (isTrue(!isEqual(value, null)))
+        {
+            parameters = this.omit(parameters, paramName);
+        }
+        return new List<object>() {value, parameters};
+    }
+
     public virtual object resolvePath(object path, object parameters)
     {
         return new List<object> {this.implodeParams(path, parameters), this.omit(parameters, this.extractParams(path))};
+    }
+
+    public virtual object getListFromObjectValues(object objects, object key)
+    {
+        object newArray = this.toArray(objects);
+        object results = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(newArray)); postFixIncrement(ref i))
+        {
+            ((IList<object>)results).Add(getValue(getValue(newArray, i), key));
+        }
+        return results;
+    }
+
+    public virtual object getSymbolsForMarketType(object marketType = null, object subType = null, object symbolWithActiveStatus = null, object symbolWithUnknownStatus = null)
+    {
+        symbolWithActiveStatus ??= true;
+        symbolWithUnknownStatus ??= true;
+        object filteredMarkets = this.markets;
+        if (isTrue(!isEqual(marketType, null)))
+        {
+            filteredMarkets = this.filterBy(filteredMarkets, "type", marketType);
+        }
+        if (isTrue(!isEqual(subType, null)))
+        {
+            this.checkRequiredArgument("getSymbolsForMarketType", subType, "subType", new List<object>() {"linear", "inverse", "quanto"});
+            filteredMarkets = this.filterBy(filteredMarkets, "subType", subType);
+        }
+        object activeStatuses = new List<object>() {};
+        if (isTrue(symbolWithActiveStatus))
+        {
+            ((IList<object>)activeStatuses).Add(true);
+        }
+        if (isTrue(symbolWithUnknownStatus))
+        {
+            ((IList<object>)activeStatuses).Add(null);
+        }
+        filteredMarkets = this.filterByArray(filteredMarkets, "active", activeStatuses, false);
+        return this.getListFromObjectValues(filteredMarkets, "symbol");
     }
 
     public virtual object filterByArray(object objects, object key, object values = null, object indexed = null)
@@ -3936,6 +4010,20 @@ public partial class Exchange
             } else
             {
                 return depositAddress;
+            }
+        } else if (isTrue(getValue(this.has, "fetchDepositAddressesByNetwork")))
+        {
+            object network = this.safeString(parameters, "network");
+            parameters = this.omit(parameters, "network");
+            object addressStructures = await this.fetchDepositAddressesByNetwork(code, parameters);
+            if (isTrue(!isEqual(network, null)))
+            {
+                return this.safeDict(addressStructures, network);
+            } else
+            {
+                object keys = new List<object>(((IDictionary<string,object>)addressStructures).Keys);
+                object key = this.safeString(keys, 0);
+                return this.safeDict(addressStructures, key);
             }
         } else
         {

@@ -478,10 +478,11 @@ class gemini extends \ccxt\async\gemini {
         $market = $this->safe_market(strtolower($marketId));
         $symbol = $market['symbol'];
         $messageHash = 'orderbook:' . $symbol;
-        $orderbook = $this->safe_dict($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->order_book();
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $ob = $this->order_book();
+            $this->orderbooks[$symbol] = $ob;
         }
+        $orderbook = $this->orderbooks[$symbol];
         $bids = $orderbook['bids'];
         $asks = $orderbook['asks'];
         for ($i = 0; $i < count($rawOrderBookChanges); $i++) {
@@ -664,7 +665,7 @@ class gemini extends \ccxt\async\gemini {
         //         "socket_sequence" => 139
         //     }
         //
-        $timestamp = $this->safe_number($order, 'timestampms');
+        $timestamp = $this->safe_integer($order, 'timestampms');
         $status = $this->safe_string($order, 'type');
         $marketId = $this->safe_string($order, 'symbol');
         $typeId = $this->safe_string($order, 'order_type');

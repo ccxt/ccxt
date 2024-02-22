@@ -7088,7 +7088,7 @@ class htx extends htx$1 {
         const marginMode = (marketId === undefined) ? 'cross' : 'isolated';
         market = this.safeMarket(marketId);
         const symbol = this.safeString(market, 'symbol');
-        const timestamp = this.safeNumber(info, 'accrued-at');
+        const timestamp = this.safeInteger(info, 'accrued-at');
         return {
             'account': (marginMode === 'isolated') ? symbol : 'cross',
             'symbol': symbol,

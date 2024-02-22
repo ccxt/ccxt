@@ -3989,7 +3989,7 @@ export default class phemex extends Exchange {
         };
     }
 
-    async setMargin (symbol: string, amount, params = {}) {
+    async setMargin (symbol: string, amount: number, params = {}) {
         /**
          * @method
          * @name phemex#setMargin
@@ -4646,7 +4646,10 @@ export default class phemex extends Exchange {
         const currency = this.currency (code);
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        let networkId = this.networkCodeToId (networkCode);
+        let networkId = undefined;
+        if (networkCode !== undefined) {
+            networkId = this.networkCodeToId (networkCode);
+        }
         const stableCoins = this.safeValue (this.options, 'stableCoins');
         if (networkId === undefined) {
             if (!(this.inArray (code, stableCoins))) {

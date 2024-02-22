@@ -52,6 +52,7 @@ export default class bingx extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
@@ -388,6 +389,7 @@ export default class bingx extends Exchange {
                 'broad': {},
             },
             'commonCurrencies': {
+                'SNOW': 'Snowman', // Snowman vs SnowSwap conflict
             },
             'options': {
                 'defaultType': 'spot',
@@ -403,6 +405,13 @@ export default class bingx extends Exchange {
                 },
                 'recvWindow': 5 * 1000, // 5 sec
                 'broker': 'CCXT',
+                'defaultNetworks': {
+                    'ETH': 'ETH',
+                    'USDT': 'ERC20',
+                    'USDC': 'ERC20',
+                    'BTC': 'BTC',
+                    'LTC': 'LTC',
+                },
             },
         });
     }
@@ -1818,6 +1827,7 @@ export default class bingx extends Exchange {
         if (timeInForce === 'IOC') {
             request['timeInForce'] = 'IOC';
         }
+        const triggerPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
         if (isSpot) {
             [ postOnly, params ] = this.handlePostOnly (isMarketOrder, timeInForce === 'POC', params);
             if (postOnly || (timeInForce === 'POC')) {
@@ -1828,7 +1838,7 @@ export default class bingx extends Exchange {
             if (cost !== undefined) {
                 request['quoteOrderQty'] = this.parseToNumeric (this.costToPrecision (symbol, cost));
             } else {
-                if (market['spot'] && isMarketOrder && (price !== undefined)) {
+                if (isMarketOrder && (price !== undefined)) {
                     // keep the legacy behavior, to avoid  breaking the old spot-market-buying code
                     const calculatedCost = Precise.stringMul (this.numberToString (amount), this.numberToString (price));
                     request['quoteOrderQty'] = this.parseToNumeric (calculatedCost);
@@ -1839,6 +1849,17 @@ export default class bingx extends Exchange {
             if (!isMarketOrder) {
                 request['price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
             }
+            if (triggerPrice !== undefined) {
+                if (isMarketOrder && this.safeString (request, 'quoteOrderQty') === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires the cost parameter (or the amount + price) for placing spot market-buy trigger orders');
+                }
+                request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
+                if (type === 'LIMIT') {
+                    request['type'] = 'TRIGGER_LIMIT';
+                } else if (type === 'MARKET') {
+                    request['type'] = 'TRIGGER_MARKET';
+                }
+            }
         } else {
             [ postOnly, params ] = this.handlePostOnly (isMarketOrder, timeInForce === 'PostOnly', params);
             if (postOnly || (timeInForce === 'PostOnly')) {
@@ -1848,7 +1869,6 @@ export default class bingx extends Exchange {
             } else if (timeInForce === 'FOK') {
                 request['timeInForce'] = 'FOK';
             }
-            const triggerPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
             const stopLossPrice = this.safeString (params, 'stopLossPrice');
             const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
             const trailingAmount = this.safeString (params, 'trailingAmount');
@@ -2141,6 +2161,14 @@ export default class bingx extends Exchange {
         return this.safeString (sides, side, side);
     }
 
+    parseOrderType (type) {
+        const types = {
+            'trigger_market': 'market',
+            'trigger_limit': 'limit',
+        };
+        return this.safeString (types, type, type);
+    }
+
     parseOrder (order, market: Market = undefined): Order {
         //
         // spot
@@ -2403,7 +2431,7 @@ export default class bingx extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': this.safeInteger (order, 'updateTime'),
-            'type': this.safeStringLower2 (order, 'type', 'o'),
+            'type': this.parseOrderType (this.safeStringLower2 (order, 'type', 'o')),
             'timeInForce': this.safeString (order, 'timeInForce'),
             'postOnly': undefined,
             'side': this.parseOrderSide (side),
@@ -3072,15 +3100,15 @@ export default class bingx extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddressesByNetwork (code: string, params = {}) {
         /**
          * @method
-         * @name bingx#fetchDepositAddress
-         * @description fetch the deposit address for a currency associated with this account
-         * @see https://bingx-api.github.io/docs/#/common/sub-account#Query%20Main%20Account%20Deposit%20Address
+         * @name bingx#fetchDepositAddressesByNetwork
+         * @description fetch the deposit addresses for a currency associated with this account
+         * @see https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}, indexed by the network
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -3114,6 +3142,35 @@ export default class bingx extends Exchange {
         const data = this.safeValue (this.safeValue (response, 'data'), 'data');
         const parsed = this.parseDepositAddresses (data, [ currency['code'] ], false);
         return this.indexBy (parsed, 'network');
+    }
+
+    async fetchDepositAddress (code: string, params = {}) {
+        /**
+         * @method
+         * @name bingx#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @see https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.network] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        const network = this.safeString (params, 'network');
+        params = this.omit (params, [ 'network' ]);
+        const addressStructures = await this.fetchDepositAddressesByNetwork (code, params);
+        if (network !== undefined) {
+            return this.safeDict (addressStructures, network);
+        } else {
+            const options = this.safeDict (this.options, 'defaultNetworks');
+            const defaultNetworkForCurrency = this.safeString (options, code);
+            if (defaultNetworkForCurrency !== undefined) {
+                return this.safeDict (addressStructures, defaultNetworkForCurrency);
+            } else {
+                const keys = Object.keys (addressStructures);
+                const key = this.safeString (keys, 0);
+                return this.safeDict (addressStructures, key);
+            }
+        }
     }
 
     parseDepositAddress (depositAddress, currency: Currency = undefined) {
@@ -3388,7 +3445,7 @@ export default class bingx extends Exchange {
         return await this.swapV2PrivatePostTradeMarginType (this.extend (request, params));
     }
 
-    async setMargin (symbol: string, amount, params = {}) {
+    async setMargin (symbol: string, amount: number, params = {}) {
         /**
          * @method
          * @name bingx#setMargin

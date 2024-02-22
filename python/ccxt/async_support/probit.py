@@ -1497,12 +1497,12 @@ class probit(Exchange, ImplicitAPI):
         currencyId = self.safe_string(transaction, 'currency_id')
         code = self.safe_currency_code(currencyId)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        feeCost = self.safe_number(transaction, 'fee')
+        feeCostString = self.safe_string(transaction, 'fee')
         fee = None
-        if feeCost is not None and feeCost != 0:
+        if feeCostString is not None and feeCostString != '0':
             fee = {
                 'currency': code,
-                'cost': feeCost,
+                'cost': self.parse_number(feeCostString),
             }
         return {
             'id': id,

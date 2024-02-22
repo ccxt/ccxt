@@ -124,6 +124,8 @@ public partial class hitbtc : Exchange
                         { "public/orderbook/{symbol}", 10 },
                         { "public/candles", 10 },
                         { "public/candles/{symbol}", 10 },
+                        { "public/converted/candles", 10 },
+                        { "public/converted/candles/{symbol}", 10 },
                         { "public/futures/info", 10 },
                         { "public/futures/info/{symbol}", 10 },
                         { "public/futures/history/funding", 10 },
@@ -3415,7 +3417,7 @@ public partial class hitbtc : Exchange
         };
     }
 
-    public async virtual Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
@@ -3438,7 +3440,7 @@ public partial class hitbtc : Exchange
         return await this.modifyMarginHelper(symbol, amount, "reduce", parameters);
     }
 
-    public async virtual Task<object> addMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method

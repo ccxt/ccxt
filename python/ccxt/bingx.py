@@ -63,6 +63,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
@@ -399,6 +400,7 @@ class bingx(Exchange, ImplicitAPI):
                 'broad': {},
             },
             'commonCurrencies': {
+                'SNOW': 'Snowman',  # Snowman vs SnowSwap conflict
             },
             'options': {
                 'defaultType': 'spot',
@@ -414,6 +416,13 @@ class bingx(Exchange, ImplicitAPI):
                 },
                 'recvWindow': 5 * 1000,  # 5 sec
                 'broker': 'CCXT',
+                'defaultNetworks': {
+                    'ETH': 'ETH',
+                    'USDT': 'ERC20',
+                    'USDC': 'ERC20',
+                    'BTC': 'BTC',
+                    'LTC': 'LTC',
+                },
             },
         })
 
@@ -1718,6 +1727,7 @@ class bingx(Exchange, ImplicitAPI):
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         if timeInForce == 'IOC':
             request['timeInForce'] = 'IOC'
+        triggerPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
         if isSpot:
             postOnly, params = self.handle_post_only(isMarketOrder, timeInForce == 'POC', params)
             if postOnly or (timeInForce == 'POC'):
@@ -1727,7 +1737,7 @@ class bingx(Exchange, ImplicitAPI):
             if cost is not None:
                 request['quoteOrderQty'] = self.parse_to_numeric(self.cost_to_precision(symbol, cost))
             else:
-                if market['spot'] and isMarketOrder and (price is not None):
+                if isMarketOrder and (price is not None):
                     # keep the legacy behavior, to avoid  breaking the old spot-market-buying code
                     calculatedCost = Precise.string_mul(self.number_to_string(amount), self.number_to_string(price))
                     request['quoteOrderQty'] = self.parse_to_numeric(calculatedCost)
@@ -1735,6 +1745,14 @@ class bingx(Exchange, ImplicitAPI):
                     request['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
             if not isMarketOrder:
                 request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
+            if triggerPrice is not None:
+                if isMarketOrder and self.safe_string(request, 'quoteOrderQty') is None:
+                    raise ArgumentsRequired(self.id + ' createOrder() requires the cost parameter(or the amount + price) for placing spot market-buy trigger orders')
+                request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
+                if type == 'LIMIT':
+                    request['type'] = 'TRIGGER_LIMIT'
+                elif type == 'MARKET':
+                    request['type'] = 'TRIGGER_MARKET'
         else:
             postOnly, params = self.handle_post_only(isMarketOrder, timeInForce == 'PostOnly', params)
             if postOnly or (timeInForce == 'PostOnly'):
@@ -1743,7 +1761,6 @@ class bingx(Exchange, ImplicitAPI):
                 request['timeInForce'] = 'GTC'
             elif timeInForce == 'FOK':
                 request['timeInForce'] = 'FOK'
-            triggerPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
             stopLossPrice = self.safe_string(params, 'stopLossPrice')
             takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
             trailingAmount = self.safe_string(params, 'trailingAmount')
@@ -2007,6 +2024,13 @@ class bingx(Exchange, ImplicitAPI):
         }
         return self.safe_string(sides, side, side)
 
+    def parse_order_type(self, type):
+        types = {
+            'trigger_market': 'market',
+            'trigger_limit': 'limit',
+        }
+        return self.safe_string(types, type, type)
+
     def parse_order(self, order, market: Market = None) -> Order:
         #
         # spot
@@ -2258,7 +2282,7 @@ class bingx(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': self.safe_integer(order, 'updateTime'),
-            'type': self.safe_string_lower_2(order, 'type', 'o'),
+            'type': self.parse_order_type(self.safe_string_lower_2(order, 'type', 'o')),
             'timeInForce': self.safe_string(order, 'timeInForce'),
             'postOnly': None,
             'side': self.parse_order_side(side),
@@ -2880,13 +2904,13 @@ class bingx(Exchange, ImplicitAPI):
             'status': status,
         }
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_addresses_by_network(self, code: str, params={}):
         """
-        fetch the deposit address for a currency associated with self account
-        :see: https://bingx-api.github.io/docs/#/common/sub-account#Query%20Main%20Account%20Deposit%20Address
+        fetch the deposit addresses for a currency associated with self account
+        :see: https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: a dictionary `address structures <https://docs.ccxt.com/#/?id=address-structure>`, indexed by the network
         """
         self.load_markets()
         currency = self.currency(code)
@@ -2920,6 +2944,30 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_value(self.safe_value(response, 'data'), 'data')
         parsed = self.parse_deposit_addresses(data, [currency['code']], False)
         return self.index_by(parsed, 'network')
+
+    def fetch_deposit_address(self, code: str, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :see: https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        network = self.safe_string(params, 'network')
+        params = self.omit(params, ['network'])
+        addressStructures = self.fetch_deposit_addresses_by_network(code, params)
+        if network is not None:
+            return self.safe_dict(addressStructures, network)
+        else:
+            options = self.safe_dict(self.options, 'defaultNetworks')
+            defaultNetworkForCurrency = self.safe_string(options, code)
+            if defaultNetworkForCurrency is not None:
+                return self.safe_dict(addressStructures, defaultNetworkForCurrency)
+            else:
+                keys = list(addressStructures.keys())
+                key = self.safe_string(keys, 0)
+                return self.safe_dict(addressStructures, key)
 
     def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
@@ -3168,7 +3216,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         return self.swapV2PrivatePostTradeMarginType(self.extend(request, params))
 
-    def set_margin(self, symbol: str, amount, params={}):
+    def set_margin(self, symbol: str, amount: float, params={}):
         """
         Either adds or reduces margin in an isolated position in order to set the margin to a specific value
         :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Adjust%20isolated%20margin

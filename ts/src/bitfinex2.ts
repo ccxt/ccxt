@@ -406,6 +406,7 @@ export default class bitfinex2 extends Exchange {
                 'EDO': 'PNT',
                 'EUS': 'EURS',
                 'EUT': 'EURT',
+                'HTX': 'HT',
                 'IDX': 'ID',
                 'IOT': 'IOTA',
                 'IQX': 'IQ',
@@ -3486,7 +3487,7 @@ export default class bitfinex2 extends Exchange {
         });
     }
 
-    async setMargin (symbol: string, amount, params = {}) {
+    async setMargin (symbol: string, amount: number, params = {}) {
         /**
          * @method
          * @name bitfinex2#setMargin

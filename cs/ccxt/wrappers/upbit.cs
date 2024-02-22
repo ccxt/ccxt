@@ -253,6 +253,7 @@ public partial class upbit
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -270,6 +271,12 @@ public partial class upbit
     /// <term>params.cost</term>
     /// <description>
     /// float : for market buy orders, the quote quantity that can be used as an alternative for the amount
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.timeInForce</term>
+    /// <description>
+    /// string : 'IOC' or 'FOK'
     /// </description>
     /// </item>
     /// </list>
@@ -336,6 +343,38 @@ public partial class upbit
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
     /// <summary>
+    /// fetch information on a deposit
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://global-docs.upbit.com/reference/individual-deposit-inquiry"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code of the currency deposited
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.txid</term>
+    /// <description>
+    /// string : withdrawal transaction id, the id argument is reserved for uuid
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    public async Task<Transaction> FetchDeposit(string id, string code = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDeposit(id, code, parameters);
+        return new Transaction(res);
+    }
+    /// <summary>
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
@@ -368,6 +407,38 @@ public partial class upbit
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchWithdrawals(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+    }
+    /// <summary>
+    /// fetch data on a currency withdrawal via the withdrawal id
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://global-docs.upbit.com/reference/individual-withdrawal-inquiry"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code of the currency withdrawn
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.txid</term>
+    /// <description>
+    /// string : withdrawal transaction id, the id argument is reserved for uuid
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    public async Task<Transaction> FetchWithdrawal(string id, string code = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchWithdrawal(id, code, parameters);
+        return new Transaction(res);
     }
     public async Task<List<Order>> FetchOrdersByState(object state, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
