@@ -60,9 +60,9 @@ public partial class Exchange
 
     public string hmac(object request2, object secret2, Delegate algorithm2 = null, string digest = "hex") => Hmac(request2, secret2, algorithm2, digest);
 
-    public string hash(object request2, Delegate algorithm2 = null, object digest2 = null) => Hash(request2, algorithm2, digest2);
+    public object hash(object request2, Delegate algorithm2 = null, object digest2 = null) => Hash(request2, algorithm2, digest2);
 
-    public static string Hash(object request2, Delegate hash = null, object digest2 = null)
+    public static object Hash(object request2, Delegate hash = null, object digest2 = null)
     {
         var request = request2 as String;
         var algorithm = hash.DynamicInvoke() as string;
@@ -93,7 +93,10 @@ public partial class Exchange
                 signature = SignKeccak(request);
                 break;
         }
-
+        if (digest == "binary")
+        {
+            return signature;
+        }
         return digest == "hex" ? binaryToHex(signature) : binaryToBase64(signature);
     }
 
