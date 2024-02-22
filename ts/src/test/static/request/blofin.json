@@ -128,6 +128,16 @@
             "output": "[{\"orderId\":\"2075704519\",\"instId\":\"LTC-USDT\"}]"
           }
         ],
+        "fetchOrders": [
+            {
+              "description": "fetchOrders for swap symbol",
+              "method": "fetchOrders",
+              "url": "https://openapi.blofin.com/api/v1/trade/orders-pending?instId=BTC-USDT",
+              "input": [
+                "BTC/USDT:USDT"
+              ]
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "swap trades",
