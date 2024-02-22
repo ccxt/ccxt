@@ -87,7 +87,7 @@ public partial class Exchange
                 signature = SignMD5(request);
                 break;
             case "keccak":
-                signature = SignKeccak(request);
+                signature = SignKeccak(request2);
                 break;
             case "sha3":
                 signature = SignKeccak(request);
@@ -170,10 +170,19 @@ public partial class Exchange
         return resultBytes;
     }
 
-    public static byte[] SignKeccak(string data)
+    public static byte[] SignKeccak(object data2)
     {
+        byte[] msg;
+        if (data2 is string)
+        {
+            msg = Encoding.UTF8.GetBytes((string)data2);
+        }
+        else
+        {
+            msg = data2 as byte[];
+        }
         Sha3Keccack keccack = new Sha3Keccack();
-        var hash = keccack.CalculateHash(Encoding.UTF8.GetBytes(data));
+        var hash = keccack.CalculateHash(msg);
         return hash;
     }
 
