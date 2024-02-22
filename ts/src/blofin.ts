@@ -489,6 +489,25 @@ export default class blofin extends Exchange {
     }
 
     parseTicker (ticker, market: Market = undefined): Ticker {
+        //
+        // response similar for REST & WS
+        //
+        //     {
+        //         instId: "ADA-USDT",
+        //         ts: "1707736811486",
+        //         last: "0.5315",
+        //         lastSize: "4",
+        //         askPrice: "0.5318",
+        //         askSize: "248",
+        //         bidPrice: "0.5315",
+        //         bidSize: "63",
+        //         open24h: "0.5555",
+        //         high24h: "0.5563",
+        //         low24h: "0.5315",
+        //         volCurrency24h: "198560100",
+        //         vol24h: "1985601",
+        //     }
+        //
         const timestamp = this.safeInteger (ticker, 'ts');
         const marketId = this.safeString (ticker, 'instId');
         market = this.safeMarket (marketId, market, '-');
