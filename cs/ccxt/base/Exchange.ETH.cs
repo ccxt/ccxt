@@ -21,13 +21,14 @@ public partial class Exchange
     {
         //  ['(uint32,bool,uint64,uint64,bool,uint8,uint64)[]', 'uint8', 'address', 'uint256']
         //  [Array(1), 0, '0x0000000000000000000000000000000000000000', 1708007294587]
-        var types = types2 as IList<string>;
+        var types = types2 as IList<object>;
         var vals = args2 as IList<object>;
+        var valsTuple = new List<object>() { vals };
         var typesDefinion = "tuple(" + String.Join(",", types) + ")";
 
         var testExtract = new ABIStringSignatureDeserialiser().ExtractParameters(typesDefinion, false);
         var parameterEncoder = new Nethereum.ABI.FunctionEncoding.ParametersEncoder();
-        var encoded = parameterEncoder.EncodeParameters(testExtract.ToArray(), vals.ToArray());
+        var encoded = parameterEncoder.EncodeParameters(testExtract.ToArray(), valsTuple.ToArray());
         return encoded;
     }
 
@@ -121,7 +122,6 @@ public partial class Exchange
         var encodedFromRaw = typedEncoder.EncodeTypedDataRaw((typeRaw));
 
         return encodedFromRaw;
-
     }
 }
 
