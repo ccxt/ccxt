@@ -246,6 +246,7 @@ class ImplicitAPI:
     private_post_account_quick_margin_borrow_repay = privatePostAccountQuickMarginBorrowRepay = Entry('account/quick-margin-borrow-repay', 'private', 'POST', {'cost': 4})
     private_post_account_borrow_repay = privatePostAccountBorrowRepay = Entry('account/borrow-repay', 'private', 'POST', {'cost': 1.6666666666666667})
     private_post_account_simulated_margin = privatePostAccountSimulatedMargin = Entry('account/simulated_margin', 'private', 'POST', {'cost': 10})
+    private_post_account_position_builder = privatePostAccountPositionBuilder = Entry('account/position-builder', 'private', 'POST', {'cost': 10})
     private_post_account_set_riskoffset_type = privatePostAccountSetRiskOffsetType = Entry('account/set-riskOffset-type', 'private', 'POST', {'cost': 2})
     private_post_account_activate_option = privatePostAccountActivateOption = Entry('account/activate-option', 'private', 'POST', {'cost': 4})
     private_post_account_set_auto_loan = privatePostAccountSetAutoLoan = Entry('account/set-auto-loan', 'private', 'POST', {'cost': 4})

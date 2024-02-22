@@ -351,6 +351,14 @@ class bitstamp extends Exchange {
                         'eurcv_address/' => 1,
                         'pyusd_withdrawal/' => 1,
                         'pyusd_address/' => 1,
+                        'lmwr_withdrawal/' => 1,
+                        'lmwr_address/' => 1,
+                        'pepe_withdrawal/' => 1,
+                        'pepe_address/' => 1,
+                        'blur_withdrawal/' => 1,
+                        'blur_address/' => 1,
+                        'vext_withdrawal/' => 1,
+                        'vext_address/' => 1,
                     ),
                 ),
             ),
@@ -832,7 +840,7 @@ class bitstamp extends Exchange {
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             if (mb_strpos($id, '_') === false) {
-                $value = $this->safe_number($transaction, $id);
+                $value = $this->safe_integer($transaction, $id);
                 if (($value !== null) && ($value !== 0)) {
                     return $id;
                 }

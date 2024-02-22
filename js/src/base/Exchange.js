@@ -59,6 +59,7 @@ export default class Exchange {
         this.balance = {};
         this.orderbooks = {};
         this.tickers = {};
+        this.bidsasks = {};
         this.orders = undefined;
         this.triggerOrders = undefined;
         this.transactions = {};
@@ -3426,11 +3427,45 @@ export default class Exchange {
         const market = this.market(symbol);
         return this.safeString(market, 'symbol', symbol);
     }
+    handleParamString(params, paramName, defaultValue = undefined) {
+        const value = this.safeString(params, paramName, defaultValue);
+        if (value !== undefined) {
+            params = this.omit(params, paramName);
+        }
+        return [value, params];
+    }
     resolvePath(path, params) {
         return [
             this.implodeParams(path, params),
             this.omit(params, this.extractParams(path)),
         ];
+    }
+    getListFromObjectValues(objects, key) {
+        const newArray = this.toArray(objects);
+        const results = [];
+        for (let i = 0; i < newArray.length; i++) {
+            results.push(newArray[i][key]);
+        }
+        return results;
+    }
+    getSymbolsForMarketType(marketType = undefined, subType = undefined, symbolWithActiveStatus = true, symbolWithUnknownStatus = true) {
+        let filteredMarkets = this.markets;
+        if (marketType !== undefined) {
+            filteredMarkets = this.filterBy(filteredMarkets, 'type', marketType);
+        }
+        if (subType !== undefined) {
+            this.checkRequiredArgument('getSymbolsForMarketType', subType, 'subType', ['linear', 'inverse', 'quanto']);
+            filteredMarkets = this.filterBy(filteredMarkets, 'subType', subType);
+        }
+        const activeStatuses = [];
+        if (symbolWithActiveStatus) {
+            activeStatuses.push(true);
+        }
+        if (symbolWithUnknownStatus) {
+            activeStatuses.push(undefined);
+        }
+        filteredMarkets = this.filterByArray(filteredMarkets, 'active', activeStatuses, false);
+        return this.getListFromObjectValues(filteredMarkets, 'symbol');
     }
     filterByArray(objects, key, values = undefined, indexed = true) {
         objects = this.toArray(objects);
@@ -4355,6 +4390,19 @@ export default class Exchange {
             }
             else {
                 return depositAddress;
+            }
+        }
+        else if (this.has['fetchDepositAddressesByNetwork']) {
+            const network = this.safeString(params, 'network');
+            params = this.omit(params, 'network');
+            const addressStructures = await this.fetchDepositAddressesByNetwork(code, params);
+            if (network !== undefined) {
+                return this.safeDict(addressStructures, network);
+            }
+            else {
+                const keys = Object.keys(addressStructures);
+                const key = this.safeString(keys, 0);
+                return this.safeDict(addressStructures, key);
             }
         }
         else {

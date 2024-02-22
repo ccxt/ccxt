@@ -361,6 +361,14 @@ class bitstamp(Exchange, ImplicitAPI):
                         'eurcv_address/': 1,
                         'pyusd_withdrawal/': 1,
                         'pyusd_address/': 1,
+                        'lmwr_withdrawal/': 1,
+                        'lmwr_address/': 1,
+                        'pepe_withdrawal/': 1,
+                        'pepe_address/': 1,
+                        'blur_withdrawal/': 1,
+                        'blur_address/': 1,
+                        'vext_withdrawal/': 1,
+                        'vext_address/': 1,
                     },
                 },
             },
@@ -814,7 +822,7 @@ class bitstamp(Exchange, ImplicitAPI):
         for i in range(0, len(ids)):
             id = ids[i]
             if id.find('_') < 0:
-                value = self.safe_number(transaction, id)
+                value = self.safe_integer(transaction, id)
                 if (value is not None) and (value != 0):
                     return id
         return None

@@ -350,6 +350,14 @@ export default class bitstamp extends Exchange {
                         'eurcv_address/': 1,
                         'pyusd_withdrawal/': 1,
                         'pyusd_address/': 1,
+                        'lmwr_withdrawal/': 1,
+                        'lmwr_address/': 1,
+                        'pepe_withdrawal/': 1,
+                        'pepe_address/': 1,
+                        'blur_withdrawal/': 1,
+                        'blur_address/': 1,
+                        'vext_withdrawal/': 1,
+                        'vext_address/': 1,
                     },
                 },
             },
@@ -829,7 +837,7 @@ export default class bitstamp extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             if (id.indexOf ('_') < 0) {
-                const value = this.safeNumber (transaction, id);
+                const value = this.safeInteger (transaction, id);
                 if ((value !== undefined) && (value !== 0)) {
                     return id;
                 }

@@ -10,6 +10,9 @@ abstract class coinbase extends \ccxt\Exchange {
     public function v2_public_get_currencies($params = array()) {
         return $this->request('currencies', array('v2', 'public'), 'GET', $params, null, null, array());
     }
+    public function v2_public_get_currencies_crypto($params = array()) {
+        return $this->request('currencies/crypto', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
     public function v2_public_get_time($params = array()) {
         return $this->request('time', array('v2', 'public'), 'GET', $params, null, null, array());
     }
@@ -252,6 +255,9 @@ abstract class coinbase extends \ccxt\Exchange {
     }
     public function v2PublicGetCurrencies($params = array()) {
         return $this->request('currencies', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2PublicGetCurrenciesCrypto($params = array()) {
+        return $this->request('currencies/crypto', array('v2', 'public'), 'GET', $params, null, null, array());
     }
     public function v2PublicGetTime($params = array()) {
         return $this->request('time', array('v2', 'public'), 'GET', $params, null, null, array());

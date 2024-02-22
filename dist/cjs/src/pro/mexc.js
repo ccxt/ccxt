@@ -450,6 +450,7 @@ class mexc extends mexc$1 {
         const symbol = this.safeSymbol(marketId);
         const messageHash = 'orderbook:' + symbol;
         const subscription = this.safeValue(client.subscriptions, messageHash);
+        const limit = this.safeInteger(subscription, 'limit');
         if (subscription === true) {
             // we set client.subscriptions[messageHash] to 1
             // once we have received the first delta and initialized the orderbook
@@ -462,7 +463,7 @@ class mexc extends mexc$1 {
             const cacheLength = storedOrderBook.cache.length;
             const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 25);
             if (cacheLength === snapshotDelay) {
-                this.spawn(this.loadOrderBook, client, messageHash, symbol);
+                this.spawn(this.loadOrderBook, client, messageHash, symbol, limit, {});
             }
             storedOrderBook.cache.push(data);
             return;

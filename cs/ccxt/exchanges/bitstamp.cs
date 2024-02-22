@@ -339,6 +339,14 @@ public partial class bitstamp : Exchange
                         { "eurcv_address/", 1 },
                         { "pyusd_withdrawal/", 1 },
                         { "pyusd_address/", 1 },
+                        { "lmwr_withdrawal/", 1 },
+                        { "lmwr_address/", 1 },
+                        { "pepe_withdrawal/", 1 },
+                        { "pepe_address/", 1 },
+                        { "blur_withdrawal/", 1 },
+                        { "blur_address/", 1 },
+                        { "vext_withdrawal/", 1 },
+                        { "vext_address/", 1 },
                     } },
                 } },
             } },
@@ -805,7 +813,7 @@ public partial class bitstamp : Exchange
             object id = getValue(ids, i);
             if (isTrue(isLessThan(getIndexOf(id, "_"), 0)))
             {
-                object value = this.safeNumber(transaction, id);
+                object value = this.safeInteger(transaction, id);
                 if (isTrue(isTrue((!isEqual(value, null))) && isTrue((!isEqual(value, 0)))))
                 {
                     return id;

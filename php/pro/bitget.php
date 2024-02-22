@@ -530,13 +530,15 @@ class bitget extends \ccxt\async\bitget {
         $rawOrderBook = $this->safe_value($data, 0);
         $timestamp = $this->safe_integer($rawOrderBook, 'ts');
         $incrementalBook = $channel === 'books';
-        $storedOrderBook = null;
         if ($incrementalBook) {
-            $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
-            if ($storedOrderBook === null) {
-                $storedOrderBook = $this->counted_order_book(array());
-                $storedOrderBook['symbol'] = $symbol;
+            // $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+                // $ob = $this->order_book(array());
+                $ob = $this->counted_order_book(array());
+                $ob['symbol'] = $symbol;
+                $this->orderbooks[$symbol] = $ob;
             }
+            $storedOrderBook = $this->orderbooks[$symbol];
             $asks = $this->safe_value($rawOrderBook, 'asks', array());
             $bids = $this->safe_value($rawOrderBook, 'bids', array());
             $this->handle_deltas($storedOrderBook['asks'], $asks);
@@ -570,10 +572,12 @@ class bitget extends \ccxt\async\bitget {
                 }
             }
         } else {
-            $storedOrderBook = $this->parse_order_book($rawOrderBook, $symbol, $timestamp);
+            $orderbook = $this->order_book(array());
+            $parsedOrderbook = $this->parse_order_book($rawOrderBook, $symbol, $timestamp);
+            $orderbook->reset ($parsedOrderbook);
+            $this->orderbooks[$symbol] = $orderbook;
         }
-        $this->orderbooks[$symbol] = $storedOrderBook;
-        $client->resolve ($storedOrderBook, $messageHash);
+        $client->resolve ($this->orderbooks[$symbol], $messageHash);
     }
 
     public function handle_delta($bookside, $delta) {
@@ -979,6 +983,7 @@ class bitget extends \ccxt\async\bitget {
         //                 "clientOid" => "798d1425-d31d-4ada-a51b-ec701e00a1d9",
         //                 "price" => "35000.00",
         //                 "size" => "7.0000",
+        //                 "newSize" => "500.0000",
         //                 "notional" => "7.000000",
         //                 "orderType" => "limit",
         //                 "force" => "gtc",
@@ -1145,6 +1150,7 @@ class bitget extends \ccxt\async\bitget {
         //         "clientOid" => "798d1425-d31d-4ada-a51b-ec701e00a1d9",
         //         "price" => "35000.00",
         //         "size" => "7.0000",
+        //         "newSize" => "500.0000",
         //         "notional" => "7.000000",
         //         "orderType" => "limit",
         //         "force" => "gtc",
@@ -1252,6 +1258,25 @@ class bitget extends \ccxt\async\bitget {
             );
         }
         $triggerPrice = $this->safe_number($order, 'triggerPrice');
+        $price = $this->safe_string($order, 'price');
+        $avgPrice = $this->omit_zero($this->safe_string_2($order, 'priceAvg', 'fillPrice'));
+        $cost = $this->safe_string_n($order, array( 'notional', 'notionalUsd', 'quoteSize' ));
+        $side = $this->safe_string($order, 'side');
+        $type = $this->safe_string($order, 'orderType');
+        if ($side === 'buy' && $market['spot'] && ($type === 'market')) {
+            $cost = $this->safe_string($order, 'newSize', $cost);
+        }
+        $filled = $this->safe_string_2($order, 'accBaseVolume', 'baseVolume');
+        if ($market['spot'] && ($rawStatus !== 'live')) {
+            $filled = Precise::string_div($cost, $avgPrice);
+        }
+        $amount = $this->safe_string($order, 'baseVolume');
+        if (!$market['spot'] || !($side === 'buy' && $type === 'market')) {
+            $amount = $this->safe_string($order, 'newSize', $amount);
+        }
+        if ($market['swap'] && ($amount === null)) {
+            $amount = $this->safe_string($order, 'size');
+        }
         return $this->safe_order(array(
             'info' => $order,
             'symbol' => $symbol,
@@ -1260,17 +1285,17 @@ class bitget extends \ccxt\async\bitget {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $this->safe_integer($order, 'uTime'),
-            'type' => $this->safe_string($order, 'orderType'),
+            'type' => $type,
             'timeInForce' => $this->safe_string_upper($order, 'force'),
             'postOnly' => null,
-            'side' => $this->safe_string($order, 'side'),
-            'price' => $this->safe_string($order, 'price'),
+            'side' => $side,
+            'price' => $price,
             'stopPrice' => $triggerPrice,
             'triggerPrice' => $triggerPrice,
-            'amount' => $this->safe_string($order, 'baseVolume'),
-            'cost' => $this->safe_string_n($order, array( 'notional', 'notionalUsd', 'quoteSize' )),
-            'average' => $this->omit_zero($this->safe_string_2($order, 'priceAvg', 'fillPrice')),
-            'filled' => $this->safe_string_2($order, 'accBaseVolume', 'baseVolume'),
+            'amount' => $amount,
+            'cost' => $cost,
+            'average' => $avgPrice,
+            'filled' => $filled,
             'remaining' => null,
             'status' => $this->parse_ws_order_status($rawStatus),
             'fee' => $feeObject,

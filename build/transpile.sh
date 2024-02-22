@@ -25,7 +25,7 @@ if [ "$ws" -eq 1 ]; then
     wait
 else
     echo "Transpiling REST version of $exchange_name"
-    node build/transpileWs.js $exchange_name &
+    node build/transpile.js $exchange_name &
     node --loader ts-node/esm build/csharpTranspiler.ts $exchange_name &
     wait
 fi

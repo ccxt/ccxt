@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.2.43';
+$version = '4.2.49';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.2.43';
+    const VERSION = '4.2.49';
 
     public $browser;
     public $marketsLoading = null;
@@ -2446,11 +2446,48 @@ class Exchange extends \ccxt\Exchange {
         return $this->safe_string($market, 'symbol', $symbol);
     }
 
+    public function handle_param_string(array $params, string $paramName, $defaultValue = null) {
+        $value = $this->safe_string($params, $paramName, $defaultValue);
+        if ($value !== null) {
+            $params = $this->omit ($params, $paramName);
+        }
+        return array( $value, $params );
+    }
+
     public function resolve_path($path, $params) {
         return array(
             $this->implode_params($path, $params),
             $this->omit ($params, $this->extract_params($path)),
         );
+    }
+
+    public function get_list_from_object_values($objects, int|string $key) {
+        $newArray = $this->to_array($objects);
+        $results = array();
+        for ($i = 0; $i < count($newArray); $i++) {
+            $results[] = $newArray[$i][$key];
+        }
+        return $results;
+    }
+
+    public function get_symbols_for_market_type(?string $marketType = null, ?string $subType = null, bool $symbolWithActiveStatus = true, bool $symbolWithUnknownStatus = true) {
+        $filteredMarkets = $this->markets;
+        if ($marketType !== null) {
+            $filteredMarkets = $this->filter_by($filteredMarkets, 'type', $marketType);
+        }
+        if ($subType !== null) {
+            $this->check_required_argument('getSymbolsForMarketType', $subType, 'subType', array( 'linear', 'inverse', 'quanto' ));
+            $filteredMarkets = $this->filter_by($filteredMarkets, 'subType', $subType);
+        }
+        $activeStatuses = array();
+        if ($symbolWithActiveStatus) {
+            $activeStatuses[] = true;
+        }
+        if ($symbolWithUnknownStatus) {
+            $activeStatuses[] = null;
+        }
+        $filteredMarkets = $this->filter_by_array($filteredMarkets, 'active', $activeStatuses, false);
+        return $this->get_list_from_object_values($filteredMarkets, 'symbol');
     }
 
     public function filter_by_array($objects, int|string $key, $values = null, $indexed = true) {
@@ -3516,6 +3553,17 @@ class Exchange extends \ccxt\Exchange {
                     throw new InvalidAddress($this->id . ' fetchDepositAddress() could not find a deposit address for ' . $code . ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
                 } else {
                     return $depositAddress;
+                }
+            } elseif ($this->has['fetchDepositAddressesByNetwork']) {
+                $network = $this->safe_string($params, 'network');
+                $params = $this->omit ($params, 'network');
+                $addressStructures = Async\await($this->fetchDepositAddressesByNetwork ($code, $params));
+                if ($network !== null) {
+                    return $this->safe_dict($addressStructures, $network);
+                } else {
+                    $keys = is_array($addressStructures) ? array_keys($addressStructures) : array();
+                    $key = $this->safe_string($keys, 0);
+                    return $this->safe_dict($addressStructures, $key);
                 }
             } else {
                 throw new NotSupported($this->id . ' fetchDepositAddress() is not supported yet');
