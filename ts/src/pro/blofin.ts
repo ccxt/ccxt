@@ -114,14 +114,7 @@ export default class blofin extends blofinRest {
         //         instId: "DOGE-USDT",
         //       },
         //       data : [
-        //         {
-        //           instId: "DOGE-USDT",
-        //           tradeId: "3373545342",
-        //           price: "0.08199",
-        //           size: "4",
-        //           side: "buy",
-        //           ts: "1707486245435",
-        //         },
+        //         <same object as shown in REST example>,
         //         ...
         //       ]
         //     }
@@ -149,16 +142,6 @@ export default class blofin extends blofinRest {
     }
 
     parseWsTrade (trade, market: Market = undefined): Trade {
-        //
-        //     {
-        //       instId: "DOGE-USDT",
-        //       tradeId: "3373545342",
-        //       price: "0.08199",
-        //       size: "4",
-        //       side: "buy",
-        //       ts: "1707486245435",
-        //     }
-        //
         return this.parseTrade (trade, market);
     }
 
@@ -286,32 +269,32 @@ export default class blofin extends blofinRest {
 
     handleTicker (client: Client, message) {
         //
+        // message
+        //
         //     {
-        //         instId: "ADA-USDT",
-        //         ts: "1707736811486",
-        //         last: "0.5315",
-        //         lastSize: "4",
-        //         askPrice: "0.5318",
-        //         askSize: "248",
-        //         bidPrice: "0.5315",
-        //         bidSize: "63",
-        //         open24h: "0.5555",
-        //         high24h: "0.5563",
-        //         low24h: "0.5315",
-        //         volCurrency24h: "198560100",
-        //         vol24h: "1985601",
+        //         arg: {
+        //             channel: "tickers",
+        //             instId: "DOGE-USDT",
+        //         },
+        //         data: [
+        //             <same object as shown in REST example>
+        //         ],
         //     }
         //
         const arg = this.safeDict (message, 'arg');
         const channelName = this.safeString (arg, 'channel');
         const data = this.safeList (message, 'data');
         for (let i = 0; i < data.length; i++) {
-            const ticker = this.parseTicker (data[i]);
+            const ticker = this.parseWsTicker (data[i]);
             const symbol = ticker['symbol'];
             const messageHash = channelName + ':' + symbol;
             this.tickers[symbol] = ticker;
             client.resolve (this.tickers[symbol], messageHash);
         }
+    }
+
+    parseWsTicker (ticker, market: Market = undefined): Ticker {
+        return this.parseTicker (ticker, market);
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -366,17 +349,7 @@ export default class blofin extends blofinRest {
         //             instId: "DOGE-USDT",
         //         },
         //         data: [
-        //             [
-        //               "1707759720000",
-        //               "0.08181",
-        //               "0.08195",
-        //               "0.08179",
-        //               "0.08194",
-        //               "7695",
-        //               "7695000",
-        //               "630099.32",
-        //               "0",
-        //             ],
+        //             [ same object as shown in REST example ]
         //         ],
         //     }
         //
@@ -436,27 +409,7 @@ export default class blofin extends blofinRest {
         //         arg: {
         //           channel: "account",
         //         },
-        //         data: {
-        //           ts: "1708444871866",
-        //           totalEquity: "0.000000",
-        //           isolatedEquity: "0.000000",
-        //           details: [
-        //             {
-        //               currency: "USDT",
-        //               equity: "0",
-        //               available: "0",
-        //               balance: "0",
-        //               ts: "1708444871866",
-        //               isolatedEquity: "0",
-        //               equityUsd: "0.000000",
-        //               availableEquity: "0",
-        //               frozen: "0",
-        //               orderFrozen: "0",
-        //               unrealizedPnl: "0",
-        //               isolatedUnrealizedPnl: "0",
-        //             },
-        //           ],
-        //         },
+        //         data: <same object as shown in REST example>,
         //     }
         //
         const marketType = 'swap'; // for now
@@ -515,35 +468,7 @@ export default class blofin extends blofinRest {
         //         action: 'update',
         //         arg: { channel: 'orders' },
         //         data: [
-        //           {
-        //             instType: 'SWAP',
-        //             instId: 'BTC-USDT',
-        //             orderId: '2076441173',
-        //             clientOrderId: null,
-        //             price: '27000.000000000000000000',
-        //             size: '1',
-        //             orderType: 'limit',
-        //             side: 'buy',
-        //             positionSide: 'net',
-        //             marginMode: 'cross',
-        //             filledSize: '0',
-        //             filledAmount: '0.000000000000000000',
-        //             averagePrice: '0.000000000000000000',
-        //             state: 'live', // live, canceled, etc
-        //             leverage: '3',
-        //             tpTriggerPrice: null,
-        //             tpOrderPrice: null,
-        //             slTriggerPrice: null,
-        //             slOrderPrice: null,
-        //             fee: '0.000000000000000000',
-        //             pnl: '0.000000000000000000',
-        //             cancelSource: '',
-        //             orderCategory: 'normal',
-        //             createTime: '1708541142784',
-        //             updateTime: '1708541142828',
-        //             reduceOnly: 'false',
-        //             brokerId: 'ec6dd3a7dd982d0b'
-        //           }
+        //           <same object as shown in REST example>
         //         ]
         //     }
         //
@@ -591,28 +516,7 @@ export default class blofin extends blofinRest {
         //     {
         //         arg: { channel: 'positions' },
         //         data: [
-        //           {
-        //             instType: 'SWAP',
-        //             instId: 'LTC-USDT',
-        //             marginMode: 'cross',
-        //             positionId: '644159',
-        //             positionSide: 'net',
-        //             positions: '1',
-        //             availablePositions: '1',
-        //             averagePrice: '68.16',
-        //             unrealizedPnl: '0.64378567',
-        //             unrealizedPnlRatio: '0.028335636883802816',
-        //             leverage: '3',
-        //             liquidationPrice: '10.116655172370356435',
-        //             markPrice: '68.8',
-        //             initialMargin: '22.934595223333333333',
-        //             margin: '',
-        //             marginRatio: '152.461979885880159658',
-        //             maintenanceMargin: '0.34401892835',
-        //             adl: '4',
-        //             createTime: '1707235776528',
-        //             updateTime: '1707235776528'
-        //           }
+        //           <same object as shown in REST example>
         //         ]
         //     }
         //
