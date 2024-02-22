@@ -37,10 +37,14 @@ export default class binance extends binanceRest {
                 'cancelOrderWs': true,
                 'cancelOrdersWs': false,
                 'cancelAllOrdersWs': true,
+                'fetchBalanceWs': true,
+                'fetchDepositsWs': false,
+                'fetchMarketsWs': false,
+                'fetchMyTradesWs': true,
+                'fetchOpenOrdersWs': true,
                 'fetchOrderWs': true,
                 'fetchOrdersWs': true,
-                'fetchBalanceWs': true,
-                'fetchMyTradesWs': true,
+                'fetchWithdrawalsWs': false,
             },
             'urls': {
                 'test': {
