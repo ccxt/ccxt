@@ -1,0 +1,258 @@
+2024-02-16T11:01:03.676Z
+Node.js: v18.18.0
+CCXT v4.2.45
+binance.fetchBalance ([object Object])
+2024-02-16T11:01:07.877Z iteration 0 passed in 1521 ms
+
+{
+  info: [
+    {
+      asset: 'ETH',
+      totalWalletBalance: '0.00057786',
+      crossMarginAsset: '0.0',
+      crossMarginBorrowed: '0.0',
+      crossMarginFree: '0.0',
+      crossMarginInterest: '0.0',
+      crossMarginLocked: '0.0',
+      umWalletBalance: '0.0',
+      umUnrealizedPNL: '0.0',
+      cmWalletBalance: '0.00057786',
+      cmUnrealizedPNL: '0.0',
+      updateTime: '1708067615305',
+      negativeBalance: '0.0'
+    },
+    {
+      asset: 'USDT',
+      totalWalletBalance: '136.03451668',
+      crossMarginAsset: '30.6003261',
+      crossMarginBorrowed: '0.00011146',
+      crossMarginFree: '30.6003261',
+      crossMarginInterest: '0.00000197',
+      crossMarginLocked: '0.0',
+      umWalletBalance: '105.43419058',
+      umUnrealizedPNL: '0.0',
+      cmWalletBalance: '0.0',
+      cmUnrealizedPNL: '0.0',
+      updateTime: '1708064880778',
+      negativeBalance: '0.0'
+    },
+    {
+      asset: 'LTC',
+      totalWalletBalance: '0.000636',
+      crossMarginAsset: '0.000636',
+      crossMarginBorrowed: '0.0',
+      crossMarginFree: '0.000636',
+      crossMarginInterest: '0.0',
+      crossMarginLocked: '0.0',
+      umWalletBalance: '0.0',
+      umUnrealizedPNL: '0.0',
+      cmWalletBalance: '0.0',
+      cmUnrealizedPNL: '0.0',
+      updateTime: '1707550484595',
+      negativeBalance: '0.0'
+    },
+    {
+      asset: 'ADA',
+      totalWalletBalance: '10.0325',
+      crossMarginAsset: '10.0325',
+      crossMarginBorrowed: '0.0',
+      crossMarginFree: '10.0325',
+      crossMarginInterest: '0.0',
+      crossMarginLocked: '0.0',
+      umWalletBalance: '0.0',
+      umUnrealizedPNL: '0.0',
+      cmWalletBalance: '0.0',
+      cmUnrealizedPNL: '0.0',
+      updateTime: '1707550484595',
+      negativeBalance: '0.0'
+    }
+  ],
+  ETH: { free: 0, used: 0, total: 0 },
+  USDT: { free: 105.43419058, used: 0, total: 105.43419058 },
+  LTC: { free: 0, used: 0, total: 0 },
+  ADA: { free: 0, used: 0, total: 0 },
+  free: { ETH: 0, USDT: 105.43419058, LTC: 0, ADA: 0 },
+  used: { ETH: 0, USDT: 0, LTC: 0, ADA: 0 },
+  total: { ETH: 0, USDT: 105.43419058, LTC: 0, ADA: 0 }
+}
+2024-02-16T11:01:07.877Z iteration 1 passed in 1521 ms
+
+Report: (paste inside static/response/binance.json ->fetchBalance)
+[32m-------------------------------------------[39m
+{
+  "description": "Fill this with a description of the method call",
+  "method": "fetchBalance",
+  "input": [
+    {
+      "type": "papi",
+      "subType": "linear"
+    }
+  ],
+  "httpResponse": [
+    {
+      "asset": "ETH",
+      "totalWalletBalance": "0.00057786",
+      "crossMarginAsset": "0.0",
+      "crossMarginBorrowed": "0.0",
+      "crossMarginFree": "0.0",
+      "crossMarginInterest": "0.0",
+      "crossMarginLocked": "0.0",
+      "umWalletBalance": "0.0",
+      "umUnrealizedPNL": "0.0",
+      "cmWalletBalance": "0.00057786",
+      "cmUnrealizedPNL": "0.0",
+      "updateTime": "1708067615305",
+      "negativeBalance": "0.0"
+    },
+    {
+      "asset": "USDT",
+      "totalWalletBalance": "136.03451668",
+      "crossMarginAsset": "30.6003261",
+      "crossMarginBorrowed": "0.00011146",
+      "crossMarginFree": "30.6003261",
+      "crossMarginInterest": "0.00000197",
+      "crossMarginLocked": "0.0",
+      "umWalletBalance": "105.43419058",
+      "umUnrealizedPNL": "0.0",
+      "cmWalletBalance": "0.0",
+      "cmUnrealizedPNL": "0.0",
+      "updateTime": "1708064880778",
+      "negativeBalance": "0.0"
+    },
+    {
+      "asset": "LTC",
+      "totalWalletBalance": "0.000636",
+      "crossMarginAsset": "0.000636",
+      "crossMarginBorrowed": "0.0",
+      "crossMarginFree": "0.000636",
+      "crossMarginInterest": "0.0",
+      "crossMarginLocked": "0.0",
+      "umWalletBalance": "0.0",
+      "umUnrealizedPNL": "0.0",
+      "cmWalletBalance": "0.0",
+      "cmUnrealizedPNL": "0.0",
+      "updateTime": "1707550484595",
+      "negativeBalance": "0.0"
+    },
+    {
+      "asset": "ADA",
+      "totalWalletBalance": "10.0325",
+      "crossMarginAsset": "10.0325",
+      "crossMarginBorrowed": "0.0",
+      "crossMarginFree": "10.0325",
+      "crossMarginInterest": "0.0",
+      "crossMarginLocked": "0.0",
+      "umWalletBalance": "0.0",
+      "umUnrealizedPNL": "0.0",
+      "cmWalletBalance": "0.0",
+      "cmUnrealizedPNL": "0.0",
+      "updateTime": "1707550484595",
+      "negativeBalance": "0.0"
+    }
+  ],
+  "parsedResponse": {
+    "info": [
+      {
+        "asset": "ETH",
+        "totalWalletBalance": "0.00057786",
+        "crossMarginAsset": "0.0",
+        "crossMarginBorrowed": "0.0",
+        "crossMarginFree": "0.0",
+        "crossMarginInterest": "0.0",
+        "crossMarginLocked": "0.0",
+        "umWalletBalance": "0.0",
+        "umUnrealizedPNL": "0.0",
+        "cmWalletBalance": "0.00057786",
+        "cmUnrealizedPNL": "0.0",
+        "updateTime": "1708067615305",
+        "negativeBalance": "0.0"
+      },
+      {
+        "asset": "USDT",
+        "totalWalletBalance": "136.03451668",
+        "crossMarginAsset": "30.6003261",
+        "crossMarginBorrowed": "0.00011146",
+        "crossMarginFree": "30.6003261",
+        "crossMarginInterest": "0.00000197",
+        "crossMarginLocked": "0.0",
+        "umWalletBalance": "105.43419058",
+        "umUnrealizedPNL": "0.0",
+        "cmWalletBalance": "0.0",
+        "cmUnrealizedPNL": "0.0",
+        "updateTime": "1708064880778",
+        "negativeBalance": "0.0"
+      },
+      {
+        "asset": "LTC",
+        "totalWalletBalance": "0.000636",
+        "crossMarginAsset": "0.000636",
+        "crossMarginBorrowed": "0.0",
+        "crossMarginFree": "0.000636",
+        "crossMarginInterest": "0.0",
+        "crossMarginLocked": "0.0",
+        "umWalletBalance": "0.0",
+        "umUnrealizedPNL": "0.0",
+        "cmWalletBalance": "0.0",
+        "cmUnrealizedPNL": "0.0",
+        "updateTime": "1707550484595",
+        "negativeBalance": "0.0"
+      },
+      {
+        "asset": "ADA",
+        "totalWalletBalance": "10.0325",
+        "crossMarginAsset": "10.0325",
+        "crossMarginBorrowed": "0.0",
+        "crossMarginFree": "10.0325",
+        "crossMarginInterest": "0.0",
+        "crossMarginLocked": "0.0",
+        "umWalletBalance": "0.0",
+        "umUnrealizedPNL": "0.0",
+        "cmWalletBalance": "0.0",
+        "cmUnrealizedPNL": "0.0",
+        "updateTime": "1707550484595",
+        "negativeBalance": "0.0"
+      }
+    ],
+    "ETH": {
+      "free": 0,
+      "used": 0,
+      "total": 0
+    },
+    "USDT": {
+      "free": 105.43419058,
+      "used": 0,
+      "total": 105.43419058
+    },
+    "LTC": {
+      "free": 0,
+      "used": 0,
+      "total": 0
+    },
+    "ADA": {
+      "free": 0,
+      "used": 0,
+      "total": 0
+    },
+    "timestamp": null,
+    "datetime": null,
+    "free": {
+      "ETH": 0,
+      "USDT": 105.43419058,
+      "LTC": 0,
+      "ADA": 0
+    },
+    "used": {
+      "ETH": 0,
+      "USDT": 0,
+      "LTC": 0,
+      "ADA": 0
+    },
+    "total": {
+      "ETH": 0,
+      "USDT": 105.43419058,
+      "LTC": 0,
+      "ADA": 0
+    }
+  }
+}
+[32m-------------------------------------------[39m
