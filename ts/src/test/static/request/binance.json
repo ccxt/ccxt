@@ -2666,6 +2666,16 @@
                   }
                 ]
             }
+        ],
+        "fetchClosedOrdersWs": [
+            {
+                "description": "Fetch Closed Orders Ws",
+                "method": "fetchClosedOrdersWs",
+                "url": "https://binancefuture.com/dapi/v1/exchangeInfo",
+                "input": [
+                    "XRP/USDT"
+                ]
+            }
         ]
     }
 }
