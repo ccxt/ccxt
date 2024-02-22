@@ -62,7 +62,7 @@ public partial class Exchange
         var types = new Dictionary<string, MemberDescription[]>();
 
         // fill in domain types
-        var domainTypesDescription = new MemberDescription[] { };
+        var domainTypesDescription = new List<MemberDescription> { };
         for (var i = 0; i < domainTypes.Count; i++)
         {
             var key = domainTypes.Keys.ElementAt(i);
@@ -70,41 +70,46 @@ public partial class Exchange
             var member = new MemberDescription();
             member.Name = key;
             member.Type = value;
-            domainTypesDescription.Append(member);
+            domainTypesDescription.Add(member);
         }
-        types["EIP712Domain"] = domainTypesDescription;
+        types["EIP712Domain"] = domainTypesDescription.ToArray();
 
         // fill in message types
+        var messageTypesDict = new Dictionary<string, string>();
         var typeName = messageTypesKeys[0];
-        var messageTypesContent = messageTypes[typeName] as IDictionary<string, object>;
-        var messageTypesDescription = new MemberDescription[] { };
+        var messageTypesContent = messageTypes[typeName] as IList<object>;
+        var messageTypesDescription = new List<MemberDescription> { };
         for (var i = 0; i < messageTypesContent.Count; i++)
         {
-            var key = messageTypesContent.Keys.ElementAt(i);
-            var value = messageTypesContent.Values.ElementAt(i);
+            var elem = messageTypesContent[i] as IDictionary<string, object>; // {\"name\":\"source\",\"type\":\"string\"}
+            var name = elem["name"] as string;
+            var type = elem["type"] as string;
+            messageTypesDict[name] = type;
+            // var key = messageTypesContent.Keys.ElementAt(i);
+            // var value = messageTypesContent.Values.ElementAt(i);
             var member = new MemberDescription();
-            member.Name = key;
-            member.Type = value as string;
-            messageTypesDescription.Append(member);
+            member.Name = name;
+            member.Type = type;
+            messageTypesDescription.Add(member);
         }
-        types[typeName] = messageTypesDescription;
+        types[typeName] = messageTypesDescription.ToArray();
 
         // fill in message values
-        var messageValues = new MemberValue[] { };
+        var messageValues = new List<MemberValue> { };
         for (var i = 0; i < messageData.Count; i++)
         {
 
             var key = messageData.Keys.ElementAt(i);// for instance source
-            var type = messageTypesContent[key] as string; // "uint256"
+            var type = messageTypesDict[key];
             var value = messageData.Values.ElementAt(i); // 1
             var member = new MemberValue();
             member.TypeName = type;
             member.Value = value;
-            messageValues.Append(member);
+            messageValues.Add(member);
         }
-        typeRaw.Message = messageValues;
+        typeRaw.Message = messageValues.ToArray();
 
-        var domainValuesArray = new MemberValue[] { };
+        var domainValuesArray = new List<MemberValue> { };
         // fill in domain values
         for (var i = 0; i < domain.Count; i++)
         {
@@ -113,10 +118,12 @@ public partial class Exchange
             var member = new MemberValue();
             member.TypeName = domainTypes[key];
             member.Value = value;
-            domainValuesArray.Append(member);
+            domainValuesArray.Add(member);
         }
-        typeRaw.DomainRawValues = domainValuesArray;
+        typeRaw.DomainRawValues = domainValuesArray.ToArray();
 
+        typeRaw.Types = types;
+        typeRaw.PrimaryType = typeName;
         var typedEncoder = new Eip712TypedDataSigner();
 
         var encodedFromRaw = typedEncoder.EncodeTypedDataRaw((typeRaw));
@@ -124,15 +131,3 @@ public partial class Exchange
         return encodedFromRaw;
     }
 }
-
-// // experimental, not yet implemented for all exchanges
-// // your contributions are welcome ;)
-// const exchange = new ccxt.okx();
-// const domain =({"chainId":1337,"name":"Exchange","verifyingContract":"0x0000000000000000000000000000000000000000","version":"1"})
-// const messageTypes = {"Agent":[{"name":"source","type":"string"},{"name":"connectionId","type":"bytes32"}]}
-// const binaryArray = exchange.base16ToBinary('3889f66fd611cf83b036f035a51d2709708b6be93e6a2cbbb8dd555d3c5ffd68')
-// // [56, 137, 246, 111, 214, 17, 207, 131, 176, 54, 240, 53, 165, 29, 39, 9, 112, 139, 107, 233, 
-// const messageData ={"source":"b","connectionId": binaryArray};
-
-// const encoded = exchange.ethEncodeStructuredData(domain, messageTypes, messageData);
-// console.log(encoded);
