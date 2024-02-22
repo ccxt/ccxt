@@ -589,9 +589,10 @@ export default class testMainClass extends baseMainTestClass {
             return false;
         }
         const symbols = [
+            'BTC/USDT',
+            'BTC/USDC',
             'BTC/CNY',
             'BTC/USD',
-            'BTC/USDT',
             'BTC/EUR',
             'BTC/ETH',
             'ETH/BTC',
@@ -713,8 +714,9 @@ export default class testMainClass extends baseMainTestClass {
             'ZRX',
         ];
         const spotSymbols = [
-            'BTC/USD',
             'BTC/USDT',
+            'BTC/USDC',
+            'BTC/USD',
             'BTC/CNY',
             'BTC/EUR',
             'BTC/ETH',
@@ -728,6 +730,7 @@ export default class testMainClass extends baseMainTestClass {
         ];
         const swapSymbols = [
             'BTC/USDT:USDT',
+            'BTC/USDC:USDC',
             'BTC/USD:USD',
             'ETH/USDT:USDT',
             'ETH/USD:USD',
