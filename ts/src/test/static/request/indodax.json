@@ -1,6 +1,10 @@
 {
     "exchange": "indodax",
-    "skipKeys": ["timestamp"],
+    "skipKeys": [
+        "timestamp",
+        "from",
+        "to"
+    ],
     "outputType": "both",
     "methods": {
         "fetchDepositAddresses": [
@@ -10,6 +14,19 @@
                 "url": "https://indodax.com/tapi",
                 "input": [],
                 "output": "method=getInfo&timestamp=1708039102346&recvWindow=5000"
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://indodax.com/tradingview/history_v2?to=1708417630&tf=60&symbol=BTCUSDT&from=1708399629",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    1708399629000,
+                    5
+                ]
             }
         ]
     }

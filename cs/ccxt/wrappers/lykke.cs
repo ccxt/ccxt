@@ -10,6 +10,7 @@ public partial class lykke
     /// retrieves data on all markets for lykke
     /// </summary>
     /// <remarks>
+    /// See <see href="https://lykkecity.github.io/Trading-API/#get-asset-by-id"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -29,6 +30,8 @@ public partial class lykke
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://lykkecity.github.io/Trading-API/#get-current-prices"/>  <br/>
+    /// See <see href="https://lykkecity.github.io/Trading-API/#24hr-ticker-price-change-statistics"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -48,6 +51,7 @@ public partial class lykke
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://lykkecity.github.io/Trading-API/#24hr-ticker-price-change-statistics"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -67,6 +71,7 @@ public partial class lykke
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://lykkecity.github.io/Trading-API/#asset-pair-order-book-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -93,6 +98,7 @@ public partial class lykke
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://lykkecity.github.io/Trading-API/#get-public-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -126,6 +132,7 @@ public partial class lykke
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://lykkecity.github.io/Trading-API/#get-the-current-balance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -145,6 +152,8 @@ public partial class lykke
     /// create a trade order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://lykkecity.github.io/Trading-API/#place-a-limit-order"/>  <br/>
+    /// See <see href="https://lykkecity.github.io/Trading-API/#place-a-market-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -171,6 +180,7 @@ public partial class lykke
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://lykkecity.github.io/Trading-API/#cancel-orders-by-id"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -190,6 +200,7 @@ public partial class lykke
     /// cancel all open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://lykkecity.github.io/Trading-API/#mass-cancel-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -209,6 +220,7 @@ public partial class lykke
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://lykkecity.github.io/Trading-API/#get-order-by-id"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -228,6 +240,7 @@ public partial class lykke
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://lykkecity.github.io/Trading-API/#get-active-or-closed-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -261,6 +274,7 @@ public partial class lykke
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://lykkecity.github.io/Trading-API/#get-active-or-closed-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -294,6 +308,7 @@ public partial class lykke
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://lykkecity.github.io/Trading-API/#get-trade-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -327,6 +342,7 @@ public partial class lykke
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://lykkecity.github.io/Trading-API/#get-deposit-address-for-a-given-asset"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -346,6 +362,7 @@ public partial class lykke
     /// fetch history of deposits and withdrawals
     /// </summary>
     /// <remarks>
+    /// See <see href="https://lykkecity.github.io/Trading-API/#get-the-history-of-withdrawals-and-deposits"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -385,6 +402,7 @@ public partial class lykke
     /// make a withdrawal
     /// </summary>
     /// <remarks>
+    /// See <see href="https://lykkecity.github.io/Trading-API/#withdrawal"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

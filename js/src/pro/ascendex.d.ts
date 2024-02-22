@@ -11,6 +11,7 @@ export default class ascendex extends ascendexRest {
     handleTrades(client: Client, message: any): void;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     watchOrderBookSnapshot(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    fetchOrderBookSnapshot(symbol: string, limit?: Int, params?: {}): Promise<import("../base/ws/OrderBook.js").OrderBook>;
     handleOrderBookSnapshot(client: Client, message: any): void;
     handleOrderBook(client: Client, message: any): void;
     handleDelta(bookside: any, delta: any): void;
