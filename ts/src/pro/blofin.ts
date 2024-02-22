@@ -417,7 +417,8 @@ export default class blofin extends blofinRest {
             this.balance[marketType] = {};
         }
         this.balance[marketType] = this.parseWsBalance (message);
-        client.resolve (this.balance[marketType], marketType + ':balance');
+        const messageHash = marketType + ':balance';
+        client.resolve (this.balance[marketType], messageHash);
     }
 
     parseWsBalance (message) {
@@ -532,7 +533,9 @@ export default class blofin extends blofinRest {
             const position = this.parseWsPosition (data[i]);
             newPositions.push (position);
             cache.append (position);
-            client.resolve (position, channelName + ':' + position['symbol']);
+            const symbol = position['symbol'];
+            const messageHash = channelName + ':' + symbol;
+            client.resolve (position, messageHash);
         }
         this.positions = cache;
     }
