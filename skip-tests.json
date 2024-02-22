@@ -200,7 +200,6 @@
         }
     },
     "bitfinex2": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
