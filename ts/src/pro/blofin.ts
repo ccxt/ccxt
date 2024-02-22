@@ -625,10 +625,10 @@ export default class blofin extends blofinRest {
         //         ]
         //     }
         //
-        const cache = this.positions;
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
+        const cache = this.positions;
         const arg = this.safeDict (message, 'arg');
         const channelName = this.safeString (arg, 'channel');
         const data = this.safeList (message, 'data');
@@ -639,6 +639,7 @@ export default class blofin extends blofinRest {
             cache.append (position);
             client.resolve (position, channelName + ':' + position['symbol']);
         }
+        this.positions = cache;
     }
 
     parseWsPosition (position, market: Market = undefined): Position {
