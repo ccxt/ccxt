@@ -4,7 +4,7 @@
 import blofinRest from '../blofin.js';
 import { NotSupported, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances, Str, Order } from '../base/types.js';
+import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances, Str, Order, Position } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
 
@@ -25,6 +25,7 @@ export default class blofin extends blofinRest {
                 'watchOHLCVForSymbols': true,
                 'watchOrders': true,
                 'watchOrdersForSymbols': true,
+                'watchPositions': true,
             },
             'urls': {
                 'api': {
@@ -571,6 +572,87 @@ export default class blofin extends blofinRest {
         }
     }
 
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name bitmart#watchPositions
+         * @see https://developer-pro.bitmart.com/en/futures/#private-position-channel
+         * @description watch all open positions
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.authenticate ();
+        await this.loadMarkets ();
+        const newPositions = await this.watchMultipleWrapper (false, 'positions', 'watchPositions', symbols, params);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit);
+    }
+
+    handlePositions (client: Client, message) {
+        //
+        //    {
+        //        "group":"futures/position",
+        //        "data":[
+        //           {
+        //              "symbol":"LTCUSDT",
+        //              "hold_volume":"5",
+        //              "position_type":2,
+        //              "open_type":2,
+        //              "frozen_volume":"0",
+        //              "close_volume":"0",
+        //              "hold_avg_price":"71.582",
+        //              "close_avg_price":"0",
+        //              "open_avg_price":"71.582",
+        //              "liquidate_price":"0",
+        //              "create_time":1701623327513,
+        //              "update_time":1701627620439
+        //           },
+        //           {
+        //              "symbol":"LTCUSDT",
+        //              "hold_volume":"6",
+        //              "position_type":1,
+        //              "open_type":2,
+        //              "frozen_volume":"0",
+        //              "close_volume":"0",
+        //              "hold_avg_price":"71.681666666666666667",
+        //              "close_avg_price":"0",
+        //              "open_avg_price":"71.681666666666666667",
+        //              "liquidate_price":"0",
+        //              "create_time":1701621167225,
+        //              "update_time":1701628152614
+        //           }
+        //        ]
+        //    }
+        //
+        const data = this.safeValue (message, 'data', []);
+        const cache = this.positions;
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+        const newPositions = [];
+        for (let i = 0; i < data.length; i++) {
+            const rawPosition = data[i];
+            const position = this.parseWsPosition (rawPosition);
+            newPositions.push (position);
+            cache.append (position);
+        }
+        const messageHashes = this.findMessageHashes (client, 'positions::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            const positions = this.filterByArray (newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty (positions)) {
+                client.resolve (positions, messageHash);
+            }
+        }
+        client.resolve (newPositions, 'positions');
+    }
+
     handleMessage (client: Client, message) {
         //
         // message examples
@@ -656,8 +738,8 @@ export default class blofin extends blofinRest {
         const firstMarket = this.market (symbols[0]);
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams (callerMethodName, firstMarket, params);
-        if (marketType === 'spot') {
-            throw new NotSupported (this.id + ' ' + callerMethodName + '() is not supported for spot markets yet');
+        if (marketType !== 'swap') {
+            throw new NotSupported (this.id + ' ' + callerMethodName + '() does not support ' + marketType + ' markets yet');
         }
         let rawSubscriptions = [];
         const messageHashes = [];
@@ -680,9 +762,9 @@ export default class blofin extends blofinRest {
             rawSubscriptions.push (topic);
             messageHashes.push (channel + ':' + market['symbol']);
         }
-        // orders channel is exceptional, need to overwrite the raw subscription
-        if (channelName === 'orders') {
-            rawSubscriptions = [ { 'channel': 'orders' } ];
+        // private channel are difference, they only need plural channel name for multiple symbols
+        if (this.inArray (channelName, [ 'orders', 'positions' ])) {
+            rawSubscriptions = [ { 'channel': channelName } ];
         }
         const request = this.getSubscriptionRequest (rawSubscriptions);
         const privateOrPublic = isPublic ? 'public' : 'private';
