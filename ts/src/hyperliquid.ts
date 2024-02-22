@@ -1310,7 +1310,7 @@ export default class hyperliquid extends Exchange {
         if (coin !== undefined) {
             marketId = coin + '/USDC:USDC';
         }
-        if (market['id'] === undefined) {
+        if (this.safeString (entry, 'id') === undefined) {
             market = this.safeMarket (marketId, undefined);
         } else {
             market = this.safeMarket (marketId, market);
