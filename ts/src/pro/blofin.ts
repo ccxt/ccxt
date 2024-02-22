@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import blofinRest from '../blofin.js';
-import { NotSupported, ArgumentsRequired } from '../base/errors.js';
+import { NotSupported, ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances, Str, Order, Position } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -630,7 +630,7 @@ export default class blofin extends blofinRest {
                 client.resolve (message, 'authenticate_hash');
                 return;
             } else if (event === 'error') {
-                throw new Error (this.id + ' error: ' + this.json (message));
+                throw new ExchangeError (this.id + ' error: ' + this.json (message));
             }
             const arg = this.safeDict (message, 'arg');
             const channelName = this.safeString (arg, 'channel');
