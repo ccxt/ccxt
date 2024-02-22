@@ -564,7 +564,8 @@ export default class blofin extends Exchange {
 
     parseTrade (trade, market: Market = undefined): Trade {
         //
-        // fetch trades & ws trades
+        // response similar for REST & WS
+        //
         //   {
         //       "tradeId": "3263934920",
         //       "instId": "LTC-USDT",
@@ -864,6 +865,8 @@ export default class blofin extends Exchange {
 
     parseTradingBalance (response) {
         //
+        // "data" similar for REST & WS
+        //
         // {
         //     "code": "0",
         //     "msg": "success",
@@ -884,7 +887,8 @@ export default class blofin extends Exchange {
         //                 "orderFrozen": "14920.994472632597427761",
         //                 "equityUsd": "10011254.077985990315787910",
         //                 "isolatedUnrealizedPnl": "-22.151999999999999999952",
-        //                 "bonus": "0"
+        //                 "bonus": "0" // present only in REST
+        //                 "unrealizedPnl": "0" // present only in WS
         //             }
         //         ]
         //     }
@@ -1048,6 +1052,8 @@ export default class blofin extends Exchange {
     }
 
     parseOrder (order, market: Market = undefined): Order {
+        //
+        // response similar for REST & WS
         //
         // {
         //     "orderId": "2075628533",
@@ -1876,6 +1882,8 @@ export default class blofin extends Exchange {
     }
 
     parsePosition (position, market: Market = undefined) {
+        //
+        // response similar for REST & WS
         //
         //     {
         //         instType: 'SWAP',
