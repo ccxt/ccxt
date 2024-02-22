@@ -96,7 +96,7 @@ export default class blofin extends Exchange {
                 'fetchOrder': undefined,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchPermissions': undefined,
                 'fetchPosition': true,
@@ -1281,54 +1281,6 @@ export default class blofin extends Exchange {
         request['marginMode'] = marginMode;
         params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice' ]);
         return this.extend (request, params);
-    }
-
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name bigone#fetchOrders
-         * @description fetches information on multiple orders made by the user
-         * @see https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'instId': market['id'],
-        };
-        if (limit !== undefined) {
-            request['limit'] = Math.min (limit, 100);
-        }
-        const response = await this.privateGetTradeOrdersPending (this.extend (request, params));
-        //
-        //    {
-        //        "code":0,
-        //        "data": [
-        //             {
-        //                 "id": 10,
-        //                 "asset_pair_name": "ETH-BTC",
-        //                 "price": "10.00",
-        //                 "amount": "10.00",
-        //                 "filled_amount": "9.0",
-        //                 "avg_deal_price": "12.0",
-        //                 "side": "ASK",
-        //                 "state": "FILLED",
-        //                 "created_at":"2019-01-29T06:05:56Z",
-        //                 "updated_at":"2019-01-29T06:05:56Z",
-        //             },
-        //         ],
-        //        "page_token":"dxzef",
-        //    }
-        //
-        const orders = this.safeValue (response, 'data', []);
-        return this.parseOrders (orders, market, since, limit);
     }
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
