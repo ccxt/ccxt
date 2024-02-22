@@ -2985,7 +2985,7 @@ class binance(Exchange, ImplicitAPI):
         fees = self.fees
         linear = None
         inverse = None
-        strike = self.safe_integer(market, 'strikePrice')
+        strike = self.safe_string(market, 'strikePrice')
         symbol = base + '/' + quote
         if contract:
             if swap:
@@ -2993,7 +2993,7 @@ class binance(Exchange, ImplicitAPI):
             elif future:
                 symbol = symbol + ':' + settle + '-' + self.yymmdd(expiry)
             elif option:
-                symbol = symbol + ':' + settle + '-' + self.yymmdd(expiry) + '-' + self.number_to_string(strike) + '-' + self.safe_string(optionParts, 3)
+                symbol = symbol + ':' + settle + '-' + self.yymmdd(expiry) + '-' + strike + '-' + self.safe_string(optionParts, 3)
             contractSize = self.safe_number_2(market, 'contractSize', 'unit', self.parse_number('1'))
             linear = settle == quote
             inverse = settle == base
@@ -3017,6 +3017,9 @@ class binance(Exchange, ImplicitAPI):
         elif option:
             unifiedType = 'option'
             active = None
+        parsedStrike = None
+        if strike is not None:
+            parsedStrike = self.parse_to_numeric(strike)
         entry = {
             'id': id,
             'lowercaseId': lowercaseId,
@@ -3042,7 +3045,7 @@ class binance(Exchange, ImplicitAPI):
             'contractSize': contractSize,
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
-            'strike': strike,
+            'strike': parsedStrike,
             'optionType': self.safe_string_lower(market, 'side'),
             'precision': {
                 'amount': self.safe_integer_2(market, 'quantityPrecision', 'quantityScale'),
