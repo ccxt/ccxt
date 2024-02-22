@@ -459,25 +459,16 @@ export default class blofin extends blofinRest {
         //         },
         //     }
         //
-        const data = this.safeDict (message, 'data');
-        const details = this.safeList (data, 'details', []);
         const marketType = 'swap'; // for now
         if (!(marketType in this.balance)) {
             this.balance[marketType] = {};
         }
-        for (let i = 0; i < details.length; i++) {
-            const rawBalance = details[i];
-            const currencyId = this.safeString (rawBalance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['total'] = this.safeString (rawBalance, 'balance');
-            account['free'] = this.safeString (rawBalance, 'available');
-            account['info'] = rawBalance;
-            this.balance[marketType][code] = account;
-        }
-        this.balance[marketType]['info'] = message;
-        this.balance[marketType] = this.safeBalance (this.balance[marketType]);
+        this.balance[marketType] = this.parseWsBalance (message);
         client.resolve (this.balance[marketType], marketType + ':balance');
+    }
+
+    parseWsBalance (message) {
+        return this.parseBalance (message);
     }
 
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
