@@ -878,11 +878,11 @@ export default class blofin extends Exchange {
         if (type) {
             return this.parseFundingBalance (response);
         } else {
-            return this.parseTradingBalance (response);
+            return this.parseBalance (response);
         }
     }
 
-    parseTradingBalance (response) {
+    parseBalance (response) {
         //
         // "data" similar for REST & WS
         //
