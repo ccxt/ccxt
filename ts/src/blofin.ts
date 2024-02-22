@@ -93,7 +93,7 @@ export default class blofin extends Exchange {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
-                'fetchOrder': true,
+                'fetchOrder': undefined,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
