@@ -115,8 +115,8 @@ export default class onetrading extends Exchange {
             'urls': {
                 'logo': 'https://github.com/ccxt/ccxt/assets/43336371/bdbc26fd-02f2-4ca7-9f1e-17333690bb1c',
                 'api': {
-                    'public': 'https://api.onetrading.com/public',
-                    'private': 'https://api.onetrading.com/public',
+                    'public': 'https://api.onetrading.com/fast',
+                    'private': 'https://api.onetrading.com/fast',
                 },
                 'www': 'https://onetrading.com/',
                 'doc': [
@@ -134,38 +134,39 @@ export default class onetrading extends Exchange {
                         'order-book/{instrument_code}',
                         'market-ticker',
                         'market-ticker/{instrument_code}',
-                        'price-ticks/{instrument_code}',
+                        'price-ticks/{instrument_code}', // undocument
                         'time',
                     ],
                 },
                 'private': {
                     'get': [
                         'account/balances',
-                        'account/deposit/crypto/{currency_code}',
-                        'account/deposit/fiat/EUR',
-                        'account/deposits',
-                        'account/deposits/bitpanda',
-                        'account/withdrawals',
-                        'account/withdrawals/bitpanda',
                         'account/fees',
                         'account/orders',
                         'account/orders/{order_id}',
+                        'account/orders/client/{client_id}',
                         'account/orders/{order_id}/trades',
                         'account/trades',
-                        'account/trades/{trade_id}',
-                        'account/trading-volume',
+                        'account/deposit/crypto/{currency_code}', // undocument
+                        'account/deposit/fiat/EUR', // undocument
+                        'account/deposits', // undocument
+                        'account/deposits/bitpanda', // undocument
+                        'account/withdrawals', // undocument
+                        'account/withdrawals/bitpanda', // undocument
+                        'account/trades/{trade_id}', // undocument
+                        'account/trading-volume', // undocument
                     ],
                     'post': [
-                        'account/deposit/crypto',
-                        'account/withdraw/crypto',
-                        'account/withdraw/fiat',
-                        'account/fees',
                         'account/orders',
+                        'account/deposit/crypto', // undocument
+                        'account/withdraw/crypto', // undocument
+                        'account/withdraw/fiat', // undocument
+                        'account/fees', // undocument
                     ],
                     'delete': [
                         'account/orders',
                         'account/orders/{order_id}',
-                        'account/orders/client/{client_id}',
+                        'account/orders/client/{client_id}', // undocument
                     ],
                 },
             },
