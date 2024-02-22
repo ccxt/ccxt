@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.46'
+__version__ = '4.2.49'
 
 # -----------------------------------------------------------------------------
 
@@ -884,7 +884,7 @@ class Exchange(object):
             if isinstance(key, str):
                 if key in dictionary_or_list and dictionary_or_list[key] is not None and dictionary_or_list[key] != '':
                     return dictionary_or_list[key]
-            else:
+            elif key is not None:
                 if (key < len(dictionary_or_list)) and (dictionary_or_list[key] is not None) and (dictionary_or_list[key] != ''):
                     return dictionary_or_list[key]
         return None

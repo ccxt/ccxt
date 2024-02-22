@@ -1,6 +1,8 @@
 using System.Text;
 using System.Security.Cryptography;
 using System.IO.Compression;
+using Cryptography.ECDSA;
+using Nethereum.Util;
 
 namespace ccxt;
 
@@ -84,9 +86,41 @@ public partial class Exchange
             case "md5":
                 signature = SignMD5(request);
                 break;
+            case "keccak":
+                signature = SignKeccak(request);
+                break;
+            case "sha3":
+                signature = SignKeccak(request);
+                break;
         }
 
         return digest == "hex" ? binaryToHex(signature) : binaryToBase64(signature);
+    }
+
+    private static byte[] HashBytes(object request2, Delegate hash = null)
+    {
+        var request = request2 as String;
+        var algorithm = hash.DynamicInvoke() as string;
+        var signature = new Byte[] { };
+        switch (algorithm)
+        {
+            case "sha256":
+                signature = SignSHA256(request);
+                break;
+            case "sha512":
+                signature = SignSHA512(request);
+                break;
+            case "sha384":
+                signature = SignSHA384(request);
+                break;
+            case "sha1":
+                signature = SignSHA1(request);
+                break;
+            case "md5":
+                signature = SignMD5(request);
+                break;
+        }
+        return signature;
     }
 
 
@@ -134,6 +168,13 @@ public partial class Exchange
         using var encryptor = SHA1.Create();
         var resultBytes = encryptor.ComputeHash(Encoding.UTF8.GetBytes(data));
         return resultBytes;
+    }
+
+    public static byte[] SignKeccak(string data)
+    {
+        Sha3Keccack keccack = new Sha3Keccack();
+        var hash = keccack.CalculateHash(Encoding.UTF8.GetBytes(data));
+        return hash;
     }
 
     public static byte[] SignSHA384(string data)
@@ -235,6 +276,13 @@ public partial class Exchange
         return Convert.ToBase64String(signData);
     }
 
+    // private static byte[] hashData(string data, string algorithm)
+    // {
+    //     var sha = stringToHashAlgorithmName(algorithm);
+    //     sh
+    //     return sha.Hash(Encoding.UTF8.GetBytes(data));
+    // }
+
     private static HashAlgorithmName stringToHashAlgorithmName(string hashAlgorithmName)
     {
         switch (hashAlgorithmName)
@@ -262,33 +310,46 @@ public partial class Exchange
                          .ToArray();
     }
 
-    public string ecdsa(object request, object secret, Delegate alg = null, Delegate hash = null) => Ecdsa(request, secret, alg, hash);
+    public object ecdsa(object request, object secret, Delegate alg = null, Delegate hash = null) => Ecdsa(request, secret, alg, hash);
 
-    public static string Ecdsa(object request, object secret, Delegate curve = null, Delegate hash = null)
+    public static object Ecdsa(object request, object secret, Delegate curve = null, Delegate hash = null)
     {
-        // if (hash != null)
-        //     request = Hash(request, hash);
-        // var bytesSecret = Encoding.UTF8.GetBytes((string)secret);
-        // PrivateKey privateKey = PrivateKey.fromString(bytesSecret);
-        // Signature signature = Ecdsa.sign((string)request, privateKey);
-        // var sec = (string)secret;
-        // var curveName = curve.DynamicInvoke() as string ?? "secp256k1";
-        // var omg = StringToByteArray(sec);
-        // ECDsa key = ECDsa.Create(stringToCurve(curveName));
-        // var be = Encoding.BigEndianUnicode.GetString(omg);
-        // var beBytes = Encoding.BigEndianUnicode.GetBytes(be);
-        // key.ImportParameters(new ECParameters
-        // {
-        //     Curve = stringToCurve(curveName),
-        //     D = beBytes,
-        // });
-        // key.ImportECPrivateKey(beBytes, out _);
-        // var dataBytes = Encoding.UTF8.GetBytes((string)request);
-        // var signature = key.SignHash(dataBytes);
-        // var signatureString = binaryToBase64(signature);
-        // var newSign = ByteArrayToString(signature);
-        // return signatureString;
-        return String.Empty;
+        var curveName = "secp256k1";
+        if (curve != null)
+        {
+            curveName = curve.DynamicInvoke() as String;
+        }
+        if (curveName != "secp256k1")
+        {
+            throw new ArgumentException("Only secp256k1 is supported");
+        }
+
+        var hashName = (hash != null) ? hash.DynamicInvoke() as string : null;
+        byte[] msgHash;
+        if (hashName != null)
+        {
+            msgHash = HashBytes(request, hash);
+        }
+        else
+        {
+            msgHash = Hex.HexToBytes((string)request);
+        }
+        var seckey = Hex.HexToBytes(secret.ToString());
+
+        var sig = Secp256K1Manager.SignCompact(msgHash, seckey, out int recoveryId);
+
+        var rBytes = sig.Take(32).ToArray();
+        var sBytes = sig.Skip(32).Take((32)).ToArray();
+
+        var r = ToHex(rBytes);
+        var s = ToHex(sBytes);
+
+
+        return new Dictionary<string, object>() {
+            { "r", r },
+            { "s", s },
+            { "v", recoveryId },
+        };
     }
 
     public static string ByteArrayToString(byte[] ba)
@@ -484,5 +545,11 @@ public partial class Exchange
             deflateStream.CopyTo(resultStream);
             return resultStream.ToArray();
         }
+    }
+
+    public static string ToHex(byte[] value, bool prefix = false)
+    {
+        var strPrex = prefix ? "0x" : "";
+        return strPrex + string.Concat(value.Select(b => b.ToString("x2")).ToArray());
     }
 }
