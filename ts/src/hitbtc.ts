@@ -3615,18 +3615,18 @@ export default class hitbtc extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const query = this.omit (params, this.extractParams (path));
         const implodedPath = this.implodeParams (path, params);
+        params = this.omit (params, this.extractParams (implodedPath));
         let url = this.urls['api'][api] + '/' + implodedPath;
         let getRequest = undefined;
-        const keys = Object.keys (query);
+        const keys = Object.keys (params);
         const queryLength = keys.length;
         headers = {
             'Content-Type': 'application/json',
         };
         if (method === 'GET') {
             if (queryLength) {
-                getRequest = '?' + this.urlencode (query);
+                getRequest = '?' + this.urlencode (params);
                 url = url + getRequest;
             }
         } else {
