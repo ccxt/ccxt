@@ -637,11 +637,64 @@ export default class blofin extends blofinRest {
             const position = this.parseWsPosition (data[i]);
             newPositions.push (position);
             cache.append (position);
+            client.resolve (position, channelName + ':' + position['symbol']);
         }
     }
 
     parseWsPosition (position, market: Market = undefined): Position {
         return this.parsePosition (position, market);
+    }
+
+    async watchMultipleWrapper (isPublic: boolean, channelName: string, callerMethodName: string, symbolsArray: any[] = undefined, params = {}) {
+        // underlier method for all watch-multiple symbols
+        await this.loadMarkets ();
+        [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', callerMethodName);
+        // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
+        const isOHLCV = (channelName === 'candle');
+        let symbols = isOHLCV ? this.getListFromObjectValues (symbolsArray, 0) : symbolsArray;
+        symbols = this.marketSymbols (symbols, undefined, false, true);
+        const firstMarket = this.market (symbols[0]);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams (callerMethodName, firstMarket, params);
+        if (marketType !== 'swap') {
+            throw new NotSupported (this.id + ' ' + callerMethodName + '() does not support ' + marketType + ' markets yet');
+        }
+        let rawSubscriptions = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbolsArray.length; i++) {
+            const current = symbolsArray[i];
+            let market = undefined;
+            let channel = channelName;
+            if (isOHLCV) {
+                market = this.market (current[0]);
+                const tf = current[1];
+                const interval = this.safeString (this.timeframes, tf, tf);
+                channel += interval;
+            } else {
+                market = this.market (current);
+            }
+            const topic = {
+                'channel': channel,
+                'instId': market['id'],
+            };
+            rawSubscriptions.push (topic);
+            messageHashes.push (channel + ':' + market['symbol']);
+        }
+        // private channel are difference, they only need plural channel name for multiple symbols
+        if (this.inArray (channelName, [ 'orders', 'positions' ])) {
+            rawSubscriptions = [ { 'channel': channelName } ];
+        }
+        const request = this.getSubscriptionRequest (rawSubscriptions);
+        const privateOrPublic = isPublic ? 'public' : 'private';
+        const url = this.implodeHostname (this.urls['api']['ws'][marketType][privateOrPublic]);
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
+    }
+
+    getSubscriptionRequest (args) {
+        return {
+            'op': 'subscribe',
+            'args': args,
+        };
     }
 
     handleMessage (client: Client, message) {
@@ -718,57 +771,5 @@ export default class blofin extends blofinRest {
         const marketType = 'swap'; // for now
         const url = this.implodeHostname (this.urls['api']['ws'][marketType]['private']);
         await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
-    }
-
-    async watchMultipleWrapper (isPublic: boolean, channelName: string, callerMethodName: string, symbolsArray: any[] = undefined, params = {}) {
-        // underlier method for all watch-multiple symbols
-        await this.loadMarkets ();
-        [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', callerMethodName);
-        // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
-        const isOHLCV = (channelName === 'candle');
-        let symbols = isOHLCV ? this.getListFromObjectValues (symbolsArray, 0) : symbolsArray;
-        symbols = this.marketSymbols (symbols, undefined, false, true);
-        const firstMarket = this.market (symbols[0]);
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams (callerMethodName, firstMarket, params);
-        if (marketType !== 'swap') {
-            throw new NotSupported (this.id + ' ' + callerMethodName + '() does not support ' + marketType + ' markets yet');
-        }
-        let rawSubscriptions = [];
-        const messageHashes = [];
-        for (let i = 0; i < symbolsArray.length; i++) {
-            const current = symbolsArray[i];
-            let market = undefined;
-            let channel = channelName;
-            if (isOHLCV) {
-                market = this.market (current[0]);
-                const tf = current[1];
-                const interval = this.safeString (this.timeframes, tf, tf);
-                channel += interval;
-            } else {
-                market = this.market (current);
-            }
-            const topic = {
-                'channel': channel,
-                'instId': market['id'],
-            };
-            rawSubscriptions.push (topic);
-            messageHashes.push (channel + ':' + market['symbol']);
-        }
-        // private channel are difference, they only need plural channel name for multiple symbols
-        if (this.inArray (channelName, [ 'orders', 'positions' ])) {
-            rawSubscriptions = [ { 'channel': channelName } ];
-        }
-        const request = this.getSubscriptionRequest (rawSubscriptions);
-        const privateOrPublic = isPublic ? 'public' : 'private';
-        const url = this.implodeHostname (this.urls['api']['ws'][marketType][privateOrPublic]);
-        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
-    }
-
-    getSubscriptionRequest (args) {
-        return {
-            'op': 'subscribe',
-            'args': args,
-        };
     }
 }
