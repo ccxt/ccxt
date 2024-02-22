@@ -682,7 +682,8 @@ export default class bitget extends bitgetRest {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const data = this.safeValue (message, 'data', []);
+        let data = this.safeList (message, 'data', []);
+        data = data.reverse (); // fix chronological order
         for (let j = 0; j < data.length; j++) {
             const rawTrade = data[j];
             const parsed = this.parseWsTrade (rawTrade, market);
