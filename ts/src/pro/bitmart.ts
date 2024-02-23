@@ -932,45 +932,21 @@ export default class bitmart extends bitmartRest {
         //
         const table = this.safeString (message, 'table');
         const isSpot = (table !== undefined);
-        const data = this.safeValue (message, 'data');
-        if (data === undefined) {
+        let rawTickers = [];
+        if (isSpot) {
+            rawTickers = this.safeList (message, 'data', []);
+        } else {
+            rawTickers = [ this.safeValue (message, 'data', {}) ];
+        }
+        if (!rawTickers.length) {
             return;
         }
-        if (isSpot) {
-            for (let i = 0; i < data.length; i++) {
-                const ticker = this.parseTicker (data[i]);
-                const symbol = ticker['symbol'];
-                const marketId = this.safeString (ticker['info'], 'symbol');
-                const messageHash = table + ':' + marketId;
-                this.tickers[symbol] = ticker;
-                client.resolve (ticker, messageHash);
-                this.resolveMessageHashesForSymbol (client, symbol, ticker, 'tickers::');
-            }
-        } else {
-            // on each update for contract markets, single ticker is provided
-            const ticker = this.parseWsSwapTicker (data);
-            const symbol = this.safeString (ticker, 'symbol');
+        for (let i = 0; i < rawTickers.length; i++) {
+            const ticker = isSpot ? this.parseTicker (rawTickers[i]) : this.parseWsSwapTicker (rawTickers[i]);
+            const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
-            client.resolve (ticker, 'tickers::swap');
-            this.resolveMessageHashesForSymbol (client, symbol, ticker, 'tickers::');
-        }
-    }
-
-    resolveMessageHashesForSymbol (client, symbol, result, prexif) {
-        const prefixSeparator = '::';
-        const symbolsSeparator = ',';
-        const messageHashes = this.findMessageHashes (client, prexif);
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const parts = messageHash.split (prefixSeparator);
-            const length = parts.length;
-            const symbolsString = parts[length - 1];
-            const symbols = symbolsString.split (symbolsSeparator);
-            if (this.inArray (symbol, symbols)) {
-                const response = {};
-                response[symbol] = result;
-                client.resolve (response, messageHash);
-            }
+            const messageHash = 'ticker:' + symbol;
+            client.resolve (ticker, messageHash);
         }
     }
 
