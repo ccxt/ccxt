@@ -937,7 +937,7 @@ class Exchange {
                 $array[$key] = var_export($value, true);
             }
         }
-        return http_build_query($array, '', $this->urlencode_glue);
+        return http_build_query($array, '', $this->urlencode_glue, PHP_QUERY_RFC3986);
     }
 
     public function urlencode_nested($array) {
