@@ -2,10 +2,12 @@
 using Nethereum.ABI;
 namespace ccxt;
 using Nethereum.ABI;
+using Nethereum.ABI.Model;
 using Nethereum;
 using Nethereum.ABI.ABIDeserialisation;
 using Nethereum.ABI.EIP712;
 using Nethereum.Signer.EIP712;
+using System.Linq;
 
 public partial class Exchange
 {
@@ -17,18 +19,84 @@ public partial class Exchange
     //     return this.base16ToBinary(TypedDataEncoder.encode(domain, messageTypes, messageData).slice(-132));
     // }
 
+    private object[] ConvertToArray(object obj)
+    {
+        var array = (obj as IList<object>).ToArray();
+        for (var i = 0; i < array.Length; i++)
+        {
+            var item = array[i];
+            if (item is IDictionary<string, object>)
+            {
+                // array[i] = ConvertToDictionary(item);
+            }
+            else if (item is IList<object>)
+            {
+                array[i] = ConvertToArray(item);
+            }
+        }
+        return array;
+    }
+
     public object ethAbiEncode(object types2, object args2)
     {
         //  ['(uint32,bool,uint64,uint64,bool,uint8,uint64)[]', 'uint8', 'address', 'uint256']
         //  [Array(1), 0, '0x0000000000000000000000000000000000000000', 1708007294587]
+
+        //     // test
+        //     var typesDefinion = "tuple((uint32,bool,uint64,uint64,bool,uint8,uint64)[],uint8,address,uint256)";
+        //     var valsTuple = new object[]
+        //     {
+        //         new object[]
+        //         {
+        //             new object[]
+        //             {
+        //                 5,
+        //                 true,
+        //                 1000000000,
+        //                 100000000,
+        //                 false,
+        //                 2,
+        //                 0
+        //             },
+        //             0,
+        //             "0x0000000000000000000000000000000000000000",
+        //             0
+        //         }
+        //     };
+        //     // var types = types2 as IList<object>;
+        //     var vals = (args2 as IList<object>).ToArray();
+
+        //     var objectValues = ConvertToArray(args2);
+
+        //     var wrappedValues = new object[] { objectValues };
+
+        //     object converted;
+
+
+        //     var valsTuple2 = new object[] { vals };
+        //     // var typesDefinion = "tuple(" + String.Join(",", types) + ")";
+
+        //     var testExtract = new ABIStringSignatureDeserialiser().ExtractParameters(typesDefinion, false);
+        //     var parameterEncoder = new Nethereum.ABI.FunctionEncoding.ParametersEncoder();
+        //     var encoded = parameterEncoder.EncodeParameters(testExtract.ToArray(), valsTuple.ToArray());
+
+        //     var encodedFromExchange = parameterEncoder.EncodeParameters(testExtract.ToArray(), wrappedValues);
+
+        //     var areEqual = encoded.SequenceEqual(encodedFromExchange);
+
+        //     return encoded;
         var types = types2 as IList<object>;
         var vals = args2 as IList<object>;
         var valsTuple = new List<object>() { vals };
-        var typesDefinion = "tuple(" + String.Join(",", types) + ")";
-
-        var testExtract = new ABIStringSignatureDeserialiser().ExtractParameters(typesDefinion, false);
-        var parameterEncoder = new Nethereum.ABI.FunctionEncoding.ParametersEncoder();
-        var encoded = parameterEncoder.EncodeParameters(testExtract.ToArray(), valsTuple.ToArray());
+        var tupleType = new TupleType();
+        var components = new List<Parameter>();
+        foreach (var type in types)
+        {
+            var typeExtract = new ABIStringSignatureDeserialiser().ExtractParameters(type.ToString(), false);
+            components.Add(typeExtract[0]);
+        }
+        tupleType.SetComponents(components.ToArray());
+        var encoded = tupleType.Encode(ConvertToArray(valsTuple));
         return encoded;
     }
 
