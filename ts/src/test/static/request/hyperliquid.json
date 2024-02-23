@@ -2,10 +2,44 @@
     "exchange": "hyperliquid",
     "skipKeys": [
         "startTime",
-        "endTime"
+        "endTime",
+        "r",
+        "s",
+        "v",
+        "nonce"
     ],
     "outputType": "json",
     "methods": {
+        "createOrder": [
+            {
+                "description": "create swap limit order",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "SOL/USDC:USDC",
+                  "limit",
+                  "buy",
+                  0.1,
+                  100
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"grouping\":\"na\",\"orders\":[{\"asset\":5,\"isBuy\":true,\"sz\":\"0.1\",\"limitPx\":\"100\",\"reduceOnly\":false,\"orderType\":{\"limit\":{\"tif\":\"Gtc\"}},\"broker_code\":1}]},\"nonce\":1708700471045,\"signature\":{\"r\":\"0xd246869b34473a574f9815f1f07e1d164befa371754277c8f429f57d461dbe\",\"s\":\"0xd1d10779993a9f2fae10c1b459fac19998fb6f0f9e27975e0f1a937a1242244\",\"v\":27}}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel order",
+                "method": "cancelOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  6188389423,
+                  "SOL/USDC:USDC",
+                  {
+                    "user": "0x3B3741c0EFf9C6b556Ec813e70589161F416662A"
+                  }
+                ],
+                "output": "{\"nonce\":1708702292482,\"action\":{\"type\":\"cancel\",\"cancels\":[{\"asset\":5,\"oid\":6188389423}]},\"signature\":{\"r\":\"0xa69d79cf977accd5cb1415940358d410f8bd0913c110bf23fd680c3231c63d55\",\"s\":\"0x1cd8101e49d0f69c6882f347e7e1094091649503c7d0017f0fde4d3d6d878066\",\"v\":28}}"
+            }
+        ],
         "fetchMarkets": [
             {
                 "description": "fetchMarkets",
@@ -34,7 +68,7 @@
                 "method": "fetchOrderBook",
                 "url": "https://api.hyperliquid.xyz/info",
                 "input": [
-                    "ETH/USD:USDC"
+                    "ETH/USDC:USDC"
                 ],
                 "output": "{\"type\":\"l2Book\",\"coin\":\"ETH\"}"
             }
@@ -45,7 +79,7 @@
                 "method": "fetchOHLCV",
                 "url": "https://api.hyperliquid.xyz/info",
                 "input": [
-                    "ETH/USD:USDC"
+                    "ETH/USDC:USDC"
                 ],
                 "output": "{\"type\":\"candleSnapshot\",\"req\":{\"coin\":\"ETH\",\"interval\":\"1m\",\"startTime\":0,\"endTime\":1704683640997}}"
             }
@@ -56,7 +90,7 @@
                 "method": "fetchFundingRateHistory",
                 "url": "https://api.hyperliquid.xyz/info",
                 "input": [
-                    "ETH/USD:USDC",
+                    "ETH/USDC:USDC",
                     null,
                     null,
                     {
@@ -72,7 +106,7 @@
                 "method": "fetchOpenOrders",
                 "url": "https://api.hyperliquid.xyz/info",
                 "input": [
-                    "ETH/USD:USDC",
+                    "ETH/USDC:USDC",
                     null,
                     null,
                     {
@@ -89,7 +123,7 @@
                 "url": "https://api.hyperliquid.xyz/info",
                 "input": [
                     "3998833804",
-                    "ETH/USD:USDC",
+                    "ETH/USDC:USDC",
                     {
                         "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
                     }
@@ -103,7 +137,7 @@
                 "method": "fetchMyTrades",
                 "url": "https://api.hyperliquid.xyz/info",
                 "input": [
-                    "ETH/USD:USDC",
+                    "ETH/USDC:USDC",
                     null,
                     null,
                     {
@@ -119,7 +153,7 @@
                 "method": "fetchPosition",
                 "url": "https://api.hyperliquid.xyz/info",
                 "input": [
-                    "ETH/USD:USDC",
+                    "ETH/USDC:USDC",
                     {
                         "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
                     }
@@ -134,7 +168,7 @@
                 "url": "https://api.hyperliquid.xyz/info",
                 "input": [
                     [
-                        "ETH/USD:USDC"
+                        "ETH/USDC:USDC"
                     ],
                     {
                         "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
