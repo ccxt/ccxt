@@ -440,6 +440,67 @@ export default class gemini extends geminiRest {
         return await this.helperForWatchMultipleConstruct ('bidsasks', symbols, params);
     }
 
+    handleBidsAsksForMultidata (client: Client, rawBidAskChanges, timestamp: Int, nonce: Int) {
+        //
+        // {
+        //     eventId: '1683002916916153',
+        //     events: [
+        //       {
+        //         price: '50945.37',
+        //         reason: 'top-of-book',
+        //         remaining: '0.0',
+        //         side: 'bid',
+        //         symbol: 'BTCUSDT',
+        //         type: 'change'
+        //       },
+        //       {
+        //         price: '50947.75',
+        //         reason: 'top-of-book',
+        //         remaining: '0.11725',
+        //         side: 'bid',
+        //         symbol: 'BTCUSDT',
+        //         type: 'change'
+        //       }
+        //     ],
+        //     socket_sequence: 322,
+        //     timestamp: 1708674495,
+        //     timestampms: 1708674495174,
+        //     type: 'update'
+        // }
+        //
+        const marketId = rawBidAskChanges[0]['symbol'];
+        const market = this.safeMarket (marketId.toLowerCase ());
+        const symbol = market['symbol'];
+        if (!(symbol in this.bidsasks)) {
+            this.bidsasks[symbol] = this.parseTicker ({
+                'symbol': symbol,
+            });
+        }
+        const currentBidAsk = this.bidsasks[symbol];
+        const messageHash = 'bidsasks:' + symbol;
+        // last update always overwrites the previous state and is the latest state
+        for (let i = 0; i < rawBidAskChanges.length; i++) {
+            const entry = rawBidAskChanges[i];
+            const rawSide = this.safeString (entry, 'side');
+            const price = this.safeNumber (entry, 'price');
+            const size = this.safeNumber (entry, 'remaining');
+            if (size === 0) {
+                continue;
+            }
+            if (rawSide === 'bid') {
+                currentBidAsk['bid'] = price;
+                currentBidAsk['bidVolume'] = size;
+            } else {
+                currentBidAsk['ask'] = price;
+                currentBidAsk['askVolume'] = size;
+            }
+        }
+        currentBidAsk['timestamp'] = timestamp;
+        currentBidAsk['datetime'] = this.iso8601 (timestamp);
+        this.bidsasks[symbol] = currentBidAsk;
+        client.resolve (currentBidAsk, messageHash);
+    }
+
     async helperForWatchMultipleConstruct (itemHashName:string, symbols: string[], params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
