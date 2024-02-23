@@ -4,7 +4,7 @@ import geminiRest from '../gemini.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { ExchangeError, NotSupported } from '../base/errors.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, OrderBook, Order, Trade, OHLCV } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, OHLCV, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -16,6 +16,7 @@ export default class gemini extends geminiRest {
                 'watchBalance': false,
                 'watchTicker': false,
                 'watchTickers': false,
+                'watchBidsAsks': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
                 'watchMyTrades': false,
@@ -446,6 +447,8 @@ export default class gemini extends geminiRest {
         let url = this.urls['api']['ws'] + '/v1/multimarketdata?symbols=' + queryStr + '&heartbeat=true&';
         if (itemHashName === 'orderbook') {
             url += 'trades=false&bids=true&offers=true';
+        } else if (itemHashName === 'bidsasks') {
+            url += 'trades=false&bids=true&offers=true&top_of_book=true';
         } else if (itemHashName === 'trades') {
             url += 'trades=true&bids=false&offers=false';
         }
@@ -796,16 +799,26 @@ export default class gemini extends geminiRest {
             const eventId = this.safeInteger (message, 'eventId');
             const events = this.safeList (message, 'events');
             const orderBookItems = [];
+            const bidaskItems = [];
             const collectedEventsOfTrades = [];
+            const eventsLength = events.length;
             for (let i = 0; i < events.length; i++) {
                 const event = events[i];
                 const eventType = this.safeString (event, 'type');
                 const isOrderBook = (eventType === 'change') && ('side' in event) && this.inArray (event['side'], [ 'ask', 'bid' ]);
-                if (isOrderBook) {
+                const eventReason = this.safeString (event, 'reason');
+                const isBidAsk = (eventReason === 'top-of-book') || (isOrderBook && (eventReason === 'initial') && eventsLength === 2);
+                if (isBidAsk) {
+                    bidaskItems.push (event);
+                } else if (isOrderBook) {
                     orderBookItems.push (event);
                 } else if (eventType === 'trade') {
                     collectedEventsOfTrades.push (events[i]);
                 }
+            }
+            const lengthBa = bidaskItems.length;
+            if (lengthBa > 0) {
+                this.handleBidsAsksForMultidata (client, bidaskItems, ts, eventId);
             }
             const lengthOb = orderBookItems.length;
             if (lengthOb > 0) {
