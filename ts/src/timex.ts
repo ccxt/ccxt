@@ -69,6 +69,7 @@ export default class timex extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true, // maker fee only
                 'fetchWithdrawal': false,
@@ -263,6 +264,21 @@ export default class timex extends Exchange {
                 'defaultSortOrders': 'createdAt,asc',
             },
         });
+    }
+
+    async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name timex#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        const response = await this.tradingviewGetTime (params);
+        //
+        //     1708682617
+        //
+        return this.parseToInt (response) * 1000;
     }
 
     async fetchMarkets (params = {}) {
@@ -1634,7 +1650,7 @@ export default class timex extends Exchange {
         if (Object.keys (params).length) {
             url += '?' + this.urlencodeWithArrayRepeat (params);
         }
-        if (api !== 'public') {
+        if (api !== 'public' && api !== 'tradingview') {
             this.checkRequiredCredentials ();
             const auth = this.stringToBase64 (this.apiKey + ':' + this.secret);
             const secret = 'Basic ' + auth;
