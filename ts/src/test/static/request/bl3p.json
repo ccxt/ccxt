@@ -2,9 +2,10 @@
     "exchange": "bl3p",
     "skipKeys": [
         "time",
-        "account-group"
+        "account-group",
+        "nonce"
     ],
-    "outputType": "json",
+    "outputType": "both",
     "methods": {
         "createDepositAddress": [
             {
