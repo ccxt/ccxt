@@ -432,7 +432,7 @@ export default class hyperliquid extends Exchange {
         //         "withdrawable": "100.0"
         //     }
         //
-        const data = this.safeValue (response, 'marginSummary', {});
+        const data = this.safeDict (response, 'marginSummary', {});
         const result = {
             'info': response,
             'USDC': {
@@ -486,10 +486,10 @@ export default class hyperliquid extends Exchange {
         //         "time": "1704290104840"
         //     }
         //
-        const data = this.safeValue (response, 'levels', []);
+        const data = this.safeList (response, 'levels', []);
         const result = {
-            'bids': this.safeValue (data, 0, []),
-            'asks': this.safeValue (data, 1, []),
+            'bids': this.safeList (data, 0, []),
+            'asks': this.safeList (data, 1, []),
         };
         const timestamp = this.safeInteger (response, 'time');
         return this.parseOrderBook (result, market['symbol'], timestamp, 'bids', 'asks', 'px', 'sz');
@@ -625,7 +625,7 @@ export default class hyperliquid extends Exchange {
             'params': params,
         } as OrderRequest;
         const response = await this.createOrders ([ order ], params);
-        const first = this.safeValue (response, 0);
+        const first = this.safeDict (response, 0);
         return this.parseOrder (first, market);
     }
 
@@ -647,7 +647,7 @@ export default class hyperliquid extends Exchange {
         let hasClientOrderId = false;
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
-            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const orderParams = this.safeDict (rawOrder, 'params', {});
             const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
             if (clientOrderId !== undefined) {
                 hasClientOrderId = true;
@@ -656,7 +656,7 @@ export default class hyperliquid extends Exchange {
         if (hasClientOrderId) {
             for (let i = 0; i < orders.length; i++) {
                 const rawOrder = orders[i];
-                const orderParams = this.safeValue (rawOrder, 'params', {});
+                const orderParams = this.safeDict (rawOrder, 'params', {});
                 const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
                 if (clientOrderId === undefined) {
                     throw new ArgumentsRequired (this.id + ' createOrders() all orders must have clientOrderId if at least one has a clientOrderId');
@@ -702,7 +702,7 @@ export default class hyperliquid extends Exchange {
                 px = this.priceToPrecision (symbol, price);
             }
             const sz = this.amountToPrecision (symbol, amount);
-            const reduceOnly = this.safeValue (orderParams, 'reduceOnly', false);
+            const reduceOnly = this.safeBool (orderParams, 'reduceOnly', false);
             const orderType = {};
             let signingOrderType = 0;
             if (isTrigger) {
@@ -958,7 +958,7 @@ export default class hyperliquid extends Exchange {
         //         "status": "order"
         //     }
         //
-        const data = this.safeValue (response, 'order');
+        const data = this.safeDict (response, 'order');
         return this.parseOrder (data, market);
     }
 
@@ -1109,7 +1109,7 @@ export default class hyperliquid extends Exchange {
         const slippage = this.safeValue (params, 'slippage', defaultSlippage);
         const vaultAddress = this.safeString (params, 'vaultAddress');
         let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
-        const postOnly = this.safeValue (params, 'postOnly', false);
+        const postOnly = this.safeBool (params, 'postOnly', false);
         if (postOnly) {
             defaultTimeInForce = 'alo';
         }
@@ -1117,9 +1117,9 @@ export default class hyperliquid extends Exchange {
         timeInForce = this.capitalize (timeInForce);
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         const zeroAddress = this.safeString (this.options, 'zeroAddress');
-        let triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
-        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        let triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeString (params, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const isTrigger = (stopLossPrice || takeProfitPrice);
         params = this.omit (params, [ 'slippage', 'vaultAddress', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id' ]);
         // TODO: round px to 5 significant figures and 6 decimals
@@ -1131,7 +1131,7 @@ export default class hyperliquid extends Exchange {
             px = this.priceToPrecision (symbol, price.toString ());
         }
         const sz = this.amountToPrecision (symbol, amount);
-        const reduceOnly = this.safeValue (params, 'reduceOnly', false);
+        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
         // TODO: trigger order type
         const orderType = {};
         let signingOrderType = 0;
@@ -1252,7 +1252,7 @@ export default class hyperliquid extends Exchange {
         //     }
         //
         const data = this.safeValue (this.safeValue (this.safeValue (response, 'response'), 'data'), 'statuses', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         return this.parseOrder (first, market);
     }
 
@@ -1336,10 +1336,10 @@ export default class hyperliquid extends Exchange {
             'type': this.safeStringLower (entry, 'orderType'),
             'timeInForce': this.safeStringUpper (entry, 'tif'),
             'postOnly': undefined,
-            'reduceOnly': this.safeValue (entry, 'reduceOnly'),
+            'reduceOnly': this.safeBool (entry, 'reduceOnly'),
             'side': side,
             'price': this.safeNumber (entry, 'limitPx'),
-            'triggerPrice': this.safeValue (entry, 'isTrigger') ? this.safeNumber (entry, 'triggerPx') : undefined,
+            'triggerPrice': this.safeBool (entry, 'isTrigger') ? this.safeNumber (entry, 'triggerPx') : undefined,
             'amount': this.safeNumber (entry, 'sz'),
             'cost': undefined,
             'average': undefined,
@@ -1466,7 +1466,7 @@ export default class hyperliquid extends Exchange {
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         const positions = await this.fetchPositions ([ symbol ], params);
-        return this.safeValue (positions, 0, {}) as Position;
+        return this.safeDict (positions, 0, {}) as Position;
     }
 
     async fetchPositions (symbols: Strings = undefined, params = {}) {
@@ -1531,7 +1531,7 @@ export default class hyperliquid extends Exchange {
         //         "withdrawable": "100.0"
         //     }
         //
-        const data = this.safeValue (response, 'assetPositions', []);
+        const data = this.safeList (response, 'assetPositions', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             result.push (this.parsePosition (data[i], undefined));
@@ -1566,12 +1566,12 @@ export default class hyperliquid extends Exchange {
         //         "type": "oneWay"
         //     }
         //
-        const entry = this.safeValue (position, 'position', {});
+        const entry = this.safeDict (position, 'position', {});
         const coin = this.safeString (entry, 'coin');
         const marketId = coin + '/USDC:USDC';
         market = this.safeMarket (marketId, undefined);
         const symbol = market['symbol'];
-        const leverage = this.safeValue (entry, 'leverage', {});
+        const leverage = this.safeDict (entry, 'leverage', {});
         const isIsolated = (this.safeString (leverage, 'type') === 'isolated');
         const quantity = this.safeNumber (leverage, 'rawUsd');
         let side = undefined;
@@ -1624,7 +1624,7 @@ export default class hyperliquid extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const leverage = this.safeValue (params, 'leverage');
+        const leverage = this.safeInteger (params, 'leverage');
         if (leverage === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter');
         }
@@ -1681,7 +1681,7 @@ export default class hyperliquid extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marginMode = this.safeValue (params, 'marginMode');
+        const marginMode = this.safeString (params, 'marginMode');
         if (marginMode === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a marginMode parameter');
         }
@@ -1817,7 +1817,7 @@ export default class hyperliquid extends Exchange {
                 throw new NotSupported (this.id + 'withdraw() only support USDC');
             }
         }
-        const isSandboxMode = this.safeValue (this.options, 'sandboxMode');
+        const isSandboxMode = this.safeBool (this.options, 'sandboxMode');
         const nonce = this.milliseconds ();
         const payload = {
             'destination': toAccount,
@@ -1860,7 +1860,7 @@ export default class hyperliquid extends Exchange {
                 throw new NotSupported (this.id + 'withdraw() only support USDC');
             }
         }
-        const isSandboxMode = this.safeValue (this.options, 'sandboxMode');
+        const isSandboxMode = this.safeBool (this.options, 'sandboxMode');
         const nonce = this.milliseconds ();
         const payload = {
             'destination': address,
@@ -1897,7 +1897,7 @@ export default class hyperliquid extends Exchange {
     buildActionSig (signatureTypes, signatureData) {
         const connectionId = this.ethAbiEncode (signatureTypes, signatureData);
         const connectionIdHash = this.hash (connectionId, keccak, 'binary');
-        const isSandboxMode = this.safeValue (this.options, 'sandboxMode');
+        const isSandboxMode = this.safeBool (this.options, 'sandboxMode');
         const chainId = 1337;
         const message = {
             'source': (isSandboxMode) ? 'b' : 'a',
@@ -1913,7 +1913,7 @@ export default class hyperliquid extends Exchange {
     }
 
     buildTransferSig (message) {
-        const isSandboxMode = this.safeValue (this.options, 'sandboxMode');
+        const isSandboxMode = this.safeBool (this.options, 'sandboxMode');
         const chainId = (isSandboxMode) ? 421614 : 42161;
         const messageTypes = {
             'UsdTransferSignPayload': [
@@ -1926,7 +1926,7 @@ export default class hyperliquid extends Exchange {
     }
 
     buildWithdrawSig (message) {
-        const isSandboxMode = this.safeValue (this.options, 'sandboxMode');
+        const isSandboxMode = this.safeBool (this.options, 'sandboxMode');
         const chainId = (isSandboxMode) ? 421614 : 42161;
         const messageTypes = {
             'WithdrawFromBridge2SignPayload': [
@@ -1954,10 +1954,10 @@ export default class hyperliquid extends Exchange {
         if (status === 'err') {
             message = this.safeString (response, 'response');
         } else {
-            const responsePayload = this.safeValue (response, 'response', {});
-            const data = this.safeValue (responsePayload, 'data', {});
-            const statuses = this.safeValue (data, 'statuses', []);
-            const firstStatus = this.safeValue (statuses, 0);
+            const responsePayload = this.safeDict (response, 'response', {});
+            const data = this.safeDict (responsePayload, 'data', {});
+            const statuses = this.safeList (data, 'statuses', []);
+            const firstStatus = this.safeDict (statuses, 0);
             message = this.safeString (firstStatus, 'error');
         }
         const feedback = this.id + ' ' + body;
