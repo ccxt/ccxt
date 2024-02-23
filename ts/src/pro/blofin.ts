@@ -533,11 +533,9 @@ export default class blofin extends blofinRest {
             const position = this.parseWsPosition (data[i]);
             newPositions.push (position);
             cache.append (position);
-            const symbol = position['symbol'];
-            const messageHash = channelName + ':' + symbol;
+            const messageHash = channelName + ':' + position['symbol'];
             client.resolve (position, messageHash);
         }
-        this.positions = cache;
     }
 
     parseWsPosition (position, market: Market = undefined): Position {
