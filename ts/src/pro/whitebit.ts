@@ -208,15 +208,13 @@ export default class whitebit extends whitebitRest {
         const symbol = market['symbol'];
         const data = this.safeValue (params, 1);
         const timestamp = this.safeTimestamp(data, 'timestamp');
-        let orderbook = undefined;
-        if (symbol in this.orderbooks) {
-            orderbook = this.orderbooks[symbol];
-        } else {
-            orderbook = this.orderBook ();
-            this.orderbooks[symbol] = orderbook;
+        if (!(symbol in this.orderbooks)) {
+            const ob = this.orderBook ();
+            this.orderbooks[symbol] = ob;
         }
-        orderbook.timestamp = timestamp;
-        orderbook.datetime = this.iso8601 (timestamp);
+        const orderbook = this.orderbooks[symbol];
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
         if (isSnapshot) {
             const snapshot = this.parseOrderBook (data, symbol);
             orderbook.reset (snapshot);
