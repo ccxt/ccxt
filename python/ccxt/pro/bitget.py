@@ -908,6 +908,7 @@ class bitget(ccxt.async_support.bitget):
         #                 "clientOid": "798d1425-d31d-4ada-a51b-ec701e00a1d9",
         #                 "price": "35000.00",
         #                 "size": "7.0000",
+        #                 "newSize": "500.0000",
         #                 "notional": "7.000000",
         #                 "orderType": "limit",
         #                 "force": "gtc",
@@ -1069,6 +1070,7 @@ class bitget(ccxt.async_support.bitget):
         #         "clientOid": "798d1425-d31d-4ada-a51b-ec701e00a1d9",
         #         "price": "35000.00",
         #         "size": "7.0000",
+        #         "newSize": "500.0000",
         #         "notional": "7.000000",
         #         "orderType": "limit",
         #         "force": "gtc",
@@ -1175,6 +1177,21 @@ class bitget(ccxt.async_support.bitget):
                 'currency': self.safe_currency_code(feeCurrency),
             }
         triggerPrice = self.safe_number(order, 'triggerPrice')
+        price = self.safe_string(order, 'price')
+        avgPrice = self.omit_zero(self.safe_string_2(order, 'priceAvg', 'fillPrice'))
+        cost = self.safe_string_n(order, ['notional', 'notionalUsd', 'quoteSize'])
+        side = self.safe_string(order, 'side')
+        type = self.safe_string(order, 'orderType')
+        if side == 'buy' and market['spot'] and (type == 'market'):
+            cost = self.safe_string(order, 'newSize', cost)
+        filled = self.safe_string_2(order, 'accBaseVolume', 'baseVolume')
+        if market['spot'] and (rawStatus != 'live'):
+            filled = Precise.string_div(cost, avgPrice)
+        amount = self.safe_string(order, 'baseVolume')
+        if not market['spot'] or not (side == 'buy' and type == 'market'):
+            amount = self.safe_string(order, 'newSize', amount)
+        if market['swap'] and (amount is None):
+            amount = self.safe_string(order, 'size')
         return self.safe_order({
             'info': order,
             'symbol': symbol,
@@ -1183,17 +1200,17 @@ class bitget(ccxt.async_support.bitget):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': self.safe_integer(order, 'uTime'),
-            'type': self.safe_string(order, 'orderType'),
+            'type': type,
             'timeInForce': self.safe_string_upper(order, 'force'),
             'postOnly': None,
-            'side': self.safe_string(order, 'side'),
-            'price': self.safe_string(order, 'price'),
+            'side': side,
+            'price': price,
             'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
-            'amount': self.safe_string(order, 'baseVolume'),
-            'cost': self.safe_string_n(order, ['notional', 'notionalUsd', 'quoteSize']),
-            'average': self.omit_zero(self.safe_string_2(order, 'priceAvg', 'fillPrice')),
-            'filled': self.safe_string_2(order, 'accBaseVolume', 'baseVolume'),
+            'amount': amount,
+            'cost': cost,
+            'average': avgPrice,
+            'filled': filled,
             'remaining': None,
             'status': self.parse_ws_order_status(rawStatus),
             'fee': feeObject,

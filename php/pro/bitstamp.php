@@ -113,7 +113,7 @@ class bitstamp extends \ccxt\async\bitstamp {
             // usually it takes at least 4-5 deltas to resolve
             $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 6);
             if ($cacheLength === $snapshotDelay) {
-                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol);
+                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, null, array());
             }
             $storedOrderBook->cache[] = $delta;
             return;
