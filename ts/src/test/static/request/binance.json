@@ -2666,16 +2666,6 @@
                   }
                 ]
             }
-        ],
-        "fetchTradesWs": [
-            {
-                "description": "Fetch Trades Ws",
-                "method": "fetchTradesWs",
-                "url": "https://binancefuture.com/dapi/v1/exchangeInfo",
-                "input": [
-                    "BTC/USDT"
-                ]
-            }
         ]
     }
 }
