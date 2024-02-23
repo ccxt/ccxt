@@ -1250,9 +1250,29 @@ export default class hyperliquid extends Exchange {
         //             }
         //         }
         //     }
+        // when the order is filled immediately
+        //     {
+        //         "status":"ok",
+        //         "response":{
+        //            "type":"order",
+        //            "data":{
+        //               "statuses":[
+        //                  {
+        //                     "filled":{
+        //                        "totalSz":"0.1",
+        //                        "avgPx":"100.84",
+        //                        "oid":6195281425
+        //                     }
+        //                  }
+        //               ]
+        //            }
+        //         }
+        //     }
         //
-        const data = this.safeValue (this.safeValue (this.safeValue (response, 'response'), 'data'), 'statuses', []);
-        const first = this.safeDict (data, 0, {});
+        const responseObject = this.safeDict (response, 'response', {});
+        const dataObject = this.safeDict (responseObject, 'data', {});
+        const statuses = this.safeList (dataObject, 'statuses', []);
+        const first = this.safeDict (statuses, 0, {});
         return this.parseOrder (first, market);
     }
 
@@ -1303,7 +1323,15 @@ export default class hyperliquid extends Exchange {
         //         }
         //     }
         //
-        let entry = this.safeDict2 (order, 'order', 'resting');
+        //     {
+        //        "filled":{
+        //           "totalSz":"0.1",
+        //           "avgPx":"100.84",
+        //           "oid":6195281425
+        //        }
+        //     }
+        //
+        let entry = this.safeDictN (order, [ 'order', 'resting', 'filled' ]);
         if (entry === undefined) {
             entry = order;
         }
