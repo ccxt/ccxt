@@ -336,7 +336,7 @@ export default class bitmart extends bitmartRest {
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         const tickers = await this.watchTickers ([ symbol ], params);
-        return this.safeValue (tickers, symbol);
+        return tickers[symbol];
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -353,8 +353,10 @@ export default class bitmart extends bitmartRest {
         const market = this.getMarketFromSymbols (symbols);
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
-        const tickers = await this.subscribeMultiple ('ticker', marketType, symbols, params);
+        const ticker = await this.subscribeMultiple ('ticker', marketType, symbols, params);
         if (this.newUpdates) {
+            const tickers = {};
+            tickers[ticker['symbol']] = ticker;
             return tickers;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
