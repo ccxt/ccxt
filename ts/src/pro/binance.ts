@@ -41,6 +41,7 @@ export default class binance extends binanceRest {
                 'fetchDepositsWs': false,
                 'fetchMarketsWs': false,
                 'fetchMyTradesWs': true,
+                'fetchOHLCVWs': true,
                 'fetchOpenOrdersWs': true,
                 'fetchOrderWs': true,
                 'fetchOrdersWs': true,
@@ -847,6 +848,53 @@ export default class binance extends binanceRest {
         }
         stored.append (parsed);
         client.resolve (stored, messageHash);
+    }
+
+    async fetchOHLCVWs (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name binance#fetchOHLCV
+         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#klines
+         * @description query historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to query OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} since timestamp in ms of the earliest candle to fetch
+         * @param {int} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the exchange API endpoint
+         * @param {int} params.until timestamp in ms of the earliest candle to fetch
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} params.timeZone default=0 (UTC)
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new BadRequest (this.id + ' fetchTradesWs () requires a symbol argument');
+        }
+        this.checkIsSpot ('fetchOHLCVWs', symbol, params);
+        const url = this.urls['api']['ws']['ws'];
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
+        let returnRateLimits = false;
+        [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchOHLCVWs', 'returnRateLimits', false);
+        const payload = {
+            'symbol': this.marketId (symbol),
+            'returnRateLimits': returnRateLimits,
+            'interval': this.timeframes[timeframe],
+        };
+        if (limit !== undefined) {
+            payload['limit'] = limit;
+        }
+        const message = {
+            'id': messageHash,
+            'method': 'klines',
+            'params': this.signParams (false, this.extend (payload, params)),
+        };
+        const subscription = {
+            'method': this.handleOHLCV,
+        };
+        const trades = await this.watch (url, messageHash, message, messageHash, subscription);
+        return this.filterBySinceLimit (trades, since, limit);
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
