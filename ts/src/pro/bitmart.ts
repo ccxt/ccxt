@@ -112,6 +112,7 @@ export default class bitmart extends bitmartRest {
     }
 
     async subscribeMultiple (channel: string, type: string, symbols: string[], params = {}) {
+        symbols = this.marketSymbols (symbols, type, false, true);
         const url = this.implodeHostname (this.urls['api']['ws'][type]['public']);
         const channelType = (type === 'spot') ? 'spot' : 'futures';
         const actionType = (type === 'spot') ? 'op' : 'action';
@@ -838,6 +839,10 @@ export default class bitmart extends bitmartRest {
         const data = this.safeValue (message, 'data');
         if (data === undefined) {
             return;
+        }
+        const isSwap = ('group' in message);
+        if (isSwap) {
+            data.reverse (); // fix chronological order
         }
         let stored = undefined;
         let symbol = undefined;
