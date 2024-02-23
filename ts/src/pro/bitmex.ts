@@ -84,25 +84,26 @@ export default class bitmex extends bitmexRest {
         const name = 'instrument';
         const url = this.urls['api']['ws'];
         const messageHashes = [];
+        const rawSubscriptions = [];
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market (symbol);
-                const hash = name + ':' + market['id'];
-                messageHashes.push (hash);
+                const subscription = name + ':' + market['id'];
+                rawSubscriptions.push (subscription);
+                const messageHash = 'ticker:' + symbol;
+                messageHashes.push (messageHash);
             }
         } else {
-            messageHashes.push (name);
+            rawSubscriptions.push (name);
+            messageHashes.push ('alltickers');
         }
         const request = {
             'op': 'subscribe',
-            'args': messageHashes,
+            'args': rawSubscriptions,
         };
-        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), rawSubscriptions);
         if (this.newUpdates) {
-            if (symbols === undefined) {
-                return ticker;
-            }
             const result = {};
             result[ticker['symbol']] = ticker;
             return result;
