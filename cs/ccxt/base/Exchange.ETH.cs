@@ -95,7 +95,7 @@ public partial class Exchange
             components.Add(typeExtract[0]);
         }
         tupleType.SetComponents(components.ToArray());
-        var encoded = tupleType.Encode(ConvertToArray(valsTuple));
+        var encoded = tupleType.Encode(ConvertToArray(vals));
         return encoded;
     }
 
