@@ -295,7 +295,6 @@
         }
     },
     "bitmex": {
-        "skipWs": "timeouts",
         "skipMethods": {
             "loadMarkets": "some market types are out of expected market-types",
             "fetchOHLCV": "open might be greater than high",
