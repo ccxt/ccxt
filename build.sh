@@ -84,7 +84,7 @@ build_and_test_all () {
     npm run test-base-ws
     last_commit_message=$(git log -1 --pretty=%B)
     echo "Last commit: $last_commit_message" # for debugging
-    if [[ "$last_commit_message" == *"skip-tests"* ]]; then
+    if [[ "$last_commit_message" == *"[skip-tests]"* ]]; then
         echo "[SKIP-TESTS] Will skip tests!"
         exit
     fi
