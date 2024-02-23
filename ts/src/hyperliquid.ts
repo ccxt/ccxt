@@ -640,8 +640,8 @@ export default class hyperliquid extends Exchange {
          */
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
-        let defaultSlippage = this.safeValue (this.options, 'defaultSlippage');
-        defaultSlippage = this.safeValue (params, 'slippage', defaultSlippage);
+        let defaultSlippage = this.safeString (this.options, 'defaultSlippage');
+        defaultSlippage = this.safeString (params, 'slippage', defaultSlippage);
         const vaultAddress = this.safeString (params, 'vaultAddress');
         const zeroAddress = this.safeString (this.options, 'zeroAddress');
         let hasClientOrderId = false;
@@ -682,7 +682,7 @@ export default class hyperliquid extends Exchange {
             let orderParams = this.safeValue (rawOrder, 'params', {});
             orderParams = this.extend (params, orderParams);
             const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
-            const slippage = this.safeValue (orderParams, 'slippage', defaultSlippage);
+            const slippage = this.safeString (orderParams, 'slippage', defaultSlippage);
             let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
             const postOnly = this.safeValue (orderParams, 'postOnly', false);
             if (postOnly) {
@@ -765,7 +765,7 @@ export default class hyperliquid extends Exchange {
                 'reduceOnly': reduceOnly,
                 'orderType': orderType,
                 'cloid': clientOrderId,
-                'broker_code': 1,
+                'brokerCode': 1,
             });
         }
         let sig = undefined;
@@ -1105,8 +1105,8 @@ export default class hyperliquid extends Exchange {
         const isMarket = (type === 'MARKET');
         side = side.toUpperCase ();
         const isBuy = (side === 'BUY');
-        const defaultSlippage = this.safeValue (this.options, 'defaultSlippage');
-        const slippage = this.safeValue (params, 'slippage', defaultSlippage);
+        const defaultSlippage = this.safeString (this.options, 'defaultSlippage');
+        const slippage = this.safeString (params, 'slippage', defaultSlippage);
         const vaultAddress = this.safeString (params, 'vaultAddress');
         let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
         const postOnly = this.safeBool (params, 'postOnly', false);
