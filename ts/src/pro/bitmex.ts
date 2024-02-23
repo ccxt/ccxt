@@ -65,17 +65,9 @@ export default class bitmex extends bitmexRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const name = 'instrument';
-        const messageHash = name + ':' + market['id'];
-        const url = this.urls['api']['ws'];
-        const request = {
-            'op': 'subscribe',
-            'args': [
-                messageHash,
-            ],
-        };
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        symbol = this.symbol (symbol);
+        const tickers = await this.watchTickers ([ symbol ], params);
+        return tickers[symbol];
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
