@@ -111,7 +111,7 @@ export default class bitmart extends bitmartRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    async subscribeMultiple (channel: string, type: string, symbols: string[], params = {}) {
+    async subscribeMultiple (channel: string, type: string, symbols: Strings = undefined, params = {}) {
         symbols = this.marketSymbols (symbols, type, false, true);
         const url = this.implodeHostname (this.urls['api']['ws'][type]['public']);
         const channelType = (type === 'spot') ? 'spot' : 'futures';
