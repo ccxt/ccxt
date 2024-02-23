@@ -181,6 +181,7 @@ export default class hyperliquid extends Exchange {
                     'Invalid TP/SL price.': InvalidOrder,
                     'No liquidity available for market order.': InvalidOrder,
                     'Order was never placed, already canceled, or filled.': OrderNotFound,
+                    'User or API Wallet ': InvalidOrder,
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -1940,17 +1941,24 @@ export default class hyperliquid extends Exchange {
         if (!response) {
             return undefined; // fallback to default error handler
         }
+        // {"status":"err","response":"User or API Wallet 0xb8a6f8b26223de27c31938d56e470a5b832703a5 does not exist."}
         //
         //     {
         //         status: 'ok',
         //         response: { type: 'order', data: { statuses: [ { error: 'Insufficient margin to place order. asset=4' } ] } }
         //     }
         //
-        const responsePayload = this.safeValue (response, 'response', {});
-        const data = this.safeValue (responsePayload, 'data', {});
-        const statuses = this.safeValue (data, 'statuses', []);
-        const firstStatus = this.safeValue (statuses, 0);
-        const message = this.safeString (firstStatus, 'error');
+        const status = this.safeString (response, 'status', '');
+        let message = undefined;
+        if (status === 'err') {
+            message = this.safeString (response, 'response');
+        } else {
+            const responsePayload = this.safeValue (response, 'response', {});
+            const data = this.safeValue (responsePayload, 'data', {});
+            const statuses = this.safeValue (data, 'statuses', []);
+            const firstStatus = this.safeValue (statuses, 0);
+            message = this.safeString (firstStatus, 'error');
+        }
         const feedback = this.id + ' ' + body;
         const nonEmptyMessage = ((message !== undefined) && (message !== ''));
         if (nonEmptyMessage) {
