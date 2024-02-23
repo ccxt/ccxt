@@ -354,7 +354,7 @@ export default class bitmex extends bitmexRest {
             this.tickers[symbol] = fullParsedTicker;
             const messageHash = 'ticker:' + symbol;
             client.resolve (fullParsedTicker, messageHash);
-            client.resolve (tickers, 'alltickers');
+            client.resolve (fullParsedTicker, 'alltickers');
         }
         return message;
     }
