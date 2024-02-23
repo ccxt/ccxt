@@ -130,16 +130,49 @@ public partial class Exchange
 
         // fill in domain types
         var domainTypesDescription = new List<MemberDescription> { };
-        for (var i = 0; i < domainTypes.Count; i++)
-        {
-            var key = domainTypes.Keys.ElementAt(i);
-            var value = domainTypes.Values.ElementAt(i);
-            var member = new MemberDescription();
-            member.Name = key;
-            member.Type = value;
-            domainTypesDescription.Add(member);
+        var domainValuesArray = new List<MemberValue> { };
+        var eip721Domain = new List<object[]>{};
+        eip721Domain.Add(new object[]{
+                "name",
+                "string"
+        });
+        eip721Domain.Add(new object[]{
+                "version",
+                "string"
+        });
+        eip721Domain.Add(new object[]{
+                "chainId",
+                "uint256"
+        });
+        eip721Domain.Add(new object[]{
+                "verifyingContract",
+                "address"
+        });
+        eip721Domain.Add(new object[]{
+                "salt",
+                "bytes32"
+        });
+        foreach (var d in eip721Domain) {
+            var key = d[0] as string;
+            var type = d[1] as string;
+            for (var i = 0; i < domain.Count; i++)
+            {
+                if (String.Equals(key, domain.Keys.ElementAt(i))) {
+                    var value = domainValues[i];
+                    var memberDescription = new MemberDescription();
+                    memberDescription.Name = key;
+                    memberDescription.Type = type;
+                    domainTypesDescription.Add(memberDescription);
+
+                    var memberValue = new MemberValue();
+                    memberValue.TypeName = type;
+                    memberValue.Value = value;
+                    domainValuesArray.Add(memberValue);
+                }
+            }
         }
         types["EIP712Domain"] = domainTypesDescription.ToArray();
+        typeRaw.DomainRawValues = domainValuesArray.ToArray();
 
         // fill in message types
         var messageTypesDict = new Dictionary<string, string>();
@@ -175,25 +208,13 @@ public partial class Exchange
             messageValues.Add(member);
         }
         typeRaw.Message = messageValues.ToArray();
-
-        var domainValuesArray = new List<MemberValue> { };
-        // fill in domain values
-        for (var i = 0; i < domain.Count; i++)
-        {
-            var key = domain.Keys.ElementAt(i);
-            var value = domainValues[i];
-            var member = new MemberValue();
-            member.TypeName = domainTypes[key];
-            member.Value = value;
-            domainValuesArray.Add(member);
-        }
-        typeRaw.DomainRawValues = domainValuesArray.ToArray();
-
         typeRaw.Types = types;
         typeRaw.PrimaryType = typeName;
         var typedEncoder = new Eip712TypedDataSigner();
 
         var encodedFromRaw = typedEncoder.EncodeTypedDataRaw((typeRaw));
+
+        Console.WriteLine(this.binaryToBase16(encodedFromRaw));
 
         return encodedFromRaw;
     }
