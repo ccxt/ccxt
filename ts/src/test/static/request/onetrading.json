@@ -22,6 +22,18 @@
                 "url": "https://api.onetrading.com/fast/v1/account/balances",
                 "input": []
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.onetrading.com/fast/v1/market-ticker/BTC_USDT",
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  1
+                ]
+            }
         ]
     }
 }
