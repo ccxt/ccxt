@@ -207,7 +207,7 @@ export default class whitebit extends whitebitRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const data = this.safeValue (params, 1);
-        const timestamp = this.safeTimestamp(data, 'timestamp');
+        const timestamp = this.safeTimestamp (data, 'timestamp');
         if (!(symbol in this.orderbooks)) {
             const ob = this.orderBook ();
             this.orderbooks[symbol] = ob;
