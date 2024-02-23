@@ -427,6 +427,19 @@ export default class gemini extends geminiRest {
         return orderbook.limit ();
     }
 
+    async watchBidsAsks (symbols: string[], limit: Int = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name gemini#watchBidsAsks
+         * @description watches best bid & ask for symbols
+         * @see https://docs.gemini.com/websocket-api/#multi-market-data
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        return await this.helperForWatchMultipleConstruct ('bidsasks', symbols, params);
+    }
+
     async helperForWatchMultipleConstruct (itemHashName:string, symbols: string[], params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
