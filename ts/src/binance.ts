@@ -340,14 +340,6 @@ export default class binance extends Exchange {
                         'managed-subaccount/deposit/address': 0.006667, // Weight(UID): 1 => cost = 0.006667 * 1 = 0.006667
                         'managed-subaccount/query-trans-log': 0.40002,
                         // lending endpoints
-                        'lending/daily/product/list': 0.1,
-                        'lending/daily/userLeftQuota': 0.1,
-                        'lending/daily/userRedemptionQuota': 0.1,
-                        'lending/daily/token/position': 0.1,
-                        'lending/union/account': 0.1,
-                        'lending/union/purchaseRecord': 0.1,
-                        'lending/union/redemptionRecord': 0.1,
-                        'lending/union/interestHistory': 0.1,
                         'lending/project/list': 0.1,
                         'lending/project/position/list': 0.1,
                         // eth-staking
@@ -517,8 +509,6 @@ export default class binance extends Exchange {
                         'futures/transfer': 0.1,
                         // lending
                         'lending/customizedFixed/purchase': 0.1,
-                        'lending/daily/purchase': 0.1,
-                        'lending/daily/redeem': 0.1,
                         // liquid swap endpoints
                         'bswap/liquidityAdd': 60, // Weight(UID): 1000 + (Additional: 1 request every 3 seconds =  0.333 requests per second) => cost = ( 1000 / rateLimit ) / 0.333 = 60.0000006
                         'bswap/liquidityRemove': 60, // Weight(UID): 1000 + (Additional: 1 request every three seconds)
@@ -3238,17 +3228,17 @@ export default class binance extends Exchange {
                 result[symbol] = this.safeBalance (subResult);
             }
         } else if (type === 'savings') {
-            const positionAmountVos = this.safeList (response, 'positionAmountVos', []);
-            for (let i = 0; i < positionAmountVos.length; i++) {
-                const entry = positionAmountVos[i];
-                const currencyId = this.safeString (entry, 'asset');
+            const [ lockedPositions, flexiblePositions ] = response;
+            [ ...(lockedPositions || []), ...(flexiblePositions || []) ].forEach ((position: any) => {
+                const currencyId = this.safeString (position, 'asset');
                 const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                const usedAndTotal = this.safeString (entry, 'amount');
-                account['total'] = usedAndTotal;
-                account['used'] = usedAndTotal;
+                // for the flexible positions, the amount is the "totalAmount" field
+                const amount = this.safeString (position, 'amount') || this.safeString (position, 'totalAmount');
+                const account = result[code] || this.account ();
+                account['total'] = (account['total'] || 0) + amount;
+                account['used'] = (account['used'] || 0) + amount;
                 result[code] = account;
-            }
+            });
         } else if (type === 'funding') {
             for (let i = 0; i < response.length; i++) {
                 const entry = response[i];
@@ -3347,7 +3337,11 @@ export default class binance extends Exchange {
         } else if ((type === 'margin') || (marginMode === 'cross')) {
             response = await this.sapiGetMarginAccount (this.extend (request, query));
         } else if (type === 'savings') {
-            response = await this.sapiGetLendingUnionAccount (this.extend (request, query));
+            request['size'] = 100;
+            response = await Promise.all ([
+                this.fetchPaginatedPositionsByPage ('sapiGetSimpleEarnLockedPosition', this.extend (request, query), request['size']),
+                this.fetchPaginatedPositionsByPage ('sapiGetSimpleEarnFlexiblePosition', this.extend (request, query), request['size']),
+            ]);
         } else if (type === 'funding') {
             response = await this.sapiPostAssetGetFundingAsset (this.extend (request, query));
         } else {
@@ -3503,28 +3497,51 @@ export default class binance extends Exchange {
         //
         // savings
         //
-        //     {
-        //       "totalAmountInBTC": "0.3172",
-        //       "totalAmountInUSDT": "10000",
-        //       "totalFixedAmountInBTC": "0.3172",
-        //       "totalFixedAmountInUSDT": "10000",
-        //       "totalFlexibleInBTC": "0",
-        //       "totalFlexibleInUSDT": "0",
-        //       "positionAmountVos": [
-        //         {
-        //           "asset": "USDT",
-        //           "amount": "10000",
-        //           "amountInBTC": "0.3172",
-        //           "amountInUSDT": "10000"
-        //         },
-        //         {
-        //           "asset": "BUSD",
-        //           "amount": "0",
-        //           "amountInBTC": "0",
-        //           "amountInUSDT": "0"
-        //         }
-        //       ]
-        //     }
+        //   [
+        //      { // Locked positions
+        //          "rows":[
+        //              {
+        //                  "positionId": "123123",
+        //                  "projectId": "Axs*90",
+        //                  "asset": "AXS",
+        //                  "amount": "122.09202928",
+        //                  "purchaseTime": "1646182276000",
+        //                  "duration": "60",
+        //                  "accrualDays": "4",
+        //                  "rewardAsset": "AXS",
+        //                  "APY": "0.23",
+        //                  "isRenewable": true,
+        //                  "isAutoRenew": true,
+        //                  "redeemDate": "1732182276000"
+        //              }
+        //          ],
+        //          "total": 1
+        //      },
+        //     { // Flexible positions
+        //          "rows":[
+        //              {
+        //                  "totalAmount": "75.46000000",
+        //                  "tierAnnualPercentageRate": {
+        //                      "0-5BTC": 0.05,
+        //                      "5-10BTC": 0.03
+        //                  },
+        //                  "latestAnnualPercentageRate": "0.02599895",
+        //                  "yesterdayAirdropPercentageRate": "0.02599895",
+        //                  "asset": "USDT",
+        //                  "airDropAsset": "BETH",
+        //                  "canRedeem": true,
+        //                  "collateralAmount": "232.23123213",
+        //                  "productId": "USDT001",
+        //                  "yesterdayRealTimeRewards": "0.10293829",
+        //                  "cumulativeBonusRewards": "0.22759183",
+        //                  "cumulativeRealTimeRewards": "0.22759183",
+        //                  "cumulativeTotalRewards": "0.45459183",
+        //                  "autoSubscribe": true
+        //              }
+        //          ],
+        //          "total": 1
+        //      }
+        //   ]
         //
         // binance pay
         //
@@ -3559,6 +3576,22 @@ export default class binance extends Exchange {
         //     ]
         //
         return this.parseBalanceCustom (response, type, marginMode);
+    }
+
+    async fetchPaginatedPositionsByPage (method: string, params: string, pageSize: number, maxPages: number = 10): Promise<any[]> {
+        let result = [];
+        let page = 1; // The default page is 1
+        while (page <= maxPages) {
+            const response = await this[method] (this.extend (params, { 'current': page, 'size': pageSize }));
+            const rows = this.safeValue (response, 'rows', []);
+            const total = this.safeInteger (response, 'total');
+            result = this.arrayConcat (result, rows);
+            if (rows.length === 0 || total < pageSize) {
+                break;
+            }
+            page++;
+        }
+        return result;
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
