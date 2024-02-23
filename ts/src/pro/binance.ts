@@ -1127,10 +1127,10 @@ export default class binance extends binanceRest {
     }
 
     signParams (isPrivate: boolean, params = {}) {
-        this.checkRequiredCredentials ();
-        let extendedParams = this.extend ({
-            'apiKey': this.apiKey,
-        }, params);
+        if (isPrivate) {
+            this.checkRequiredCredentials ();
+        }
+        let extendedParams = this.extend ({}, params);
         const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
         if (defaultRecvWindow !== undefined) {
             params['recvWindow'] = defaultRecvWindow;
@@ -1139,22 +1139,23 @@ export default class binance extends binanceRest {
         if (recvWindow !== undefined) {
             params['recvWindow'] = recvWindow;
         }
-        extendedParams = this.keysort (extendedParams);
-        const query = this.urlencode (extendedParams);
-        let signature = undefined;
-        if (this.secret.indexOf ('PRIVATE KEY') > -1) {
-            if (this.secret.length > 120) {
-                signature = rsa (query, this.secret, sha256);
-            } else {
-                signature = eddsa (this.encode (query), this.secret, ed25519);
-            }
-        } else {
-            signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
-        }
         if (isPrivate) {
-            extendedParams['timestamp'] = this.nonce ();
+            const query = this.urlencode (extendedParams);
+            let signature = undefined;
+            if (this.secret.indexOf ('PRIVATE KEY') > -1) {
+                if (this.secret.length > 120) {
+                    signature = rsa (query, this.secret, sha256);
+                } else {
+                    signature = eddsa (this.encode (query), this.secret, ed25519);
+                }
+            } else {
+                signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
+            }
+            extendedParams['apiKey'] = this.apiKey;
             extendedParams['signature'] = signature;
+            extendedParams['timestamp'] = this.nonce ();
         }
+        extendedParams = this.keysort (extendedParams);
         return extendedParams;
     }
 
