@@ -11,10 +11,8 @@ class bequant extends \ccxt\pro\hitbtc {
 
     public function describe() {
         // eslint-disable-next-line new-cap
-        $restInstance = new \ccxt\async\bequant ();
-        $restDescribe = $restInstance->describe ();
-        $extended = $this->deep_extend(parent::describe(), $restDescribe);
-        return $this->deep_extend($extended, array(
+        $describeExtended = $this->get_describe_for_extended_ws_exchange(new \ccxt\async\bequant (), new \ccxt\async\hitbtc (), parent::describe());
+        return $this->deep_extend($describeExtended, array(
             'id' => 'bequant',
             'name' => 'Bequant',
             'countries' => array( 'MT' ), // Malta
