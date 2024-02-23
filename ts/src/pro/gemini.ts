@@ -472,9 +472,8 @@ export default class gemini extends geminiRest {
         const market = this.safeMarket (marketId.toLowerCase ());
         const symbol = market['symbol'];
         if (!(symbol in this.bidsasks)) {
-            this.bidsasks[symbol] = this.parseTicker ({
-                'symbol': symbol,
-            });
+            this.bidsasks[symbol] = this.parseTicker ({});
+            this.bidsasks[symbol]['symbol'] = symbol;
         }
         const currentBidAsk = this.bidsasks[symbol];
         const messageHash = 'bidsasks:' + symbol;
@@ -497,6 +496,7 @@ export default class gemini extends geminiRest {
         }
         currentBidAsk['timestamp'] = timestamp;
         currentBidAsk['datetime'] = this.iso8601 (timestamp);
+        currentBidAsk['info'] = rawBidAskChanges;
         this.bidsasks[symbol] = currentBidAsk;
         client.resolve (currentBidAsk, messageHash);
     }
