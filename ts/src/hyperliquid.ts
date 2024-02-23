@@ -765,6 +765,7 @@ export default class hyperliquid extends Exchange {
                 'reduceOnly': reduceOnly,
                 'orderType': orderType,
                 'cloid': clientOrderId,
+                'broker_code': 1,
             });
         }
         let sig = undefined;
