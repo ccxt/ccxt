@@ -44,6 +44,7 @@ export default class binance extends binanceRest {
                 'fetchOpenOrdersWs': true,
                 'fetchOrderWs': true,
                 'fetchOrdersWs': true,
+                'fetchTradingFeesWs': false,
                 'fetchWithdrawalsWs': false,
             },
             'urls': {
