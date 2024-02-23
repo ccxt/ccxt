@@ -1,7 +1,7 @@
 
-using Nethereum.ABI;
 namespace ccxt;
 using Nethereum.ABI;
+using Nethereum.ABI.Model;
 using Nethereum;
 using Nethereum.ABI.ABIDeserialisation;
 using Nethereum.ABI.EIP712;
@@ -24,11 +24,14 @@ public partial class Exchange
         var types = types2 as IList<object>;
         var vals = args2 as IList<object>;
         var valsTuple = new List<object>() { vals };
-        var typesDefinion = "tuple(" + String.Join(",", types) + ")";
-
-        var testExtract = new ABIStringSignatureDeserialiser().ExtractParameters(typesDefinion, false);
-        var parameterEncoder = new Nethereum.ABI.FunctionEncoding.ParametersEncoder();
-        var encoded = parameterEncoder.EncodeParameters(testExtract.ToArray(), valsTuple.ToArray());
+        var tupleType = new TupleType();
+        var components = new List<Parameter>();
+        foreach (var type in types) {
+            var typeExtract = new ABIStringSignatureDeserialiser().ExtractParameters(type.ToString(), false);
+            components.Add(typeExtract[0]);
+        }
+        tupleType.SetComponents(components.ToArray());
+        var encoded = tupleType.Encode(vals.ToArray());
         return encoded;
     }
 
