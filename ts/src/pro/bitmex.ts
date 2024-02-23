@@ -344,17 +344,18 @@ export default class bitmex extends bitmexRest {
         for (let i = 0; i < data.length; i++) {
             const update = data[i];
             const marketId = this.safeString (update, 'symbol');
-            const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
-            const messageHash = table + ':' + marketId;
-            const ticker = this.safeDict (this.tickers, symbol, {});
-            const info = this.safeDict (ticker, 'info', {});
-            const parsedTicker = this.parseTicker (this.extend (info, update), market);
-            tickers[symbol] = parsedTicker;
-            this.tickers[symbol] = parsedTicker;
-            client.resolve (ticker, messageHash);
+            const symbol = this.safeSymbol (marketId);
+            if (!(symbol in this.tickers)) {
+                this.tickers[symbol] = this.parseTicker ({});
+            }
+            const updatedTicker = this.parseTicker (update);
+            const fullParsedTicker = this.deepExtend (this.tickers[symbol], updatedTicker);
+            tickers[symbol] = fullParsedTicker;
+            this.tickers[symbol] = fullParsedTicker;
+            const messageHash = 'ticker:' + symbol;
+            client.resolve (fullParsedTicker, messageHash);
+            client.resolve (tickers, 'alltickers');
         }
-        client.resolve (tickers, 'instrument');
         return message;
     }
 
