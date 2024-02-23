@@ -264,7 +264,6 @@
         }
     },
     "bitmart": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "expiry":"expiry is expected to be > 0",
