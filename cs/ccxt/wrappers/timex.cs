@@ -7,9 +7,29 @@ namespace ccxt;
 public partial class timex
 {
     /// <summary>
+    /// fetches the current integer timestamp in milliseconds from the exchange server
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>int</term> the current integer timestamp in milliseconds from the exchange server.</returns>
+    public async Task<Int64> FetchTime(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTime(parameters);
+        return (Int64)res;
+    }
+    /// <summary>
     /// retrieves data on all markets for timex
     /// </summary>
     /// <remarks>
+    /// See <see href="https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listMarkets"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -29,6 +49,7 @@ public partial class timex
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Manager/getDeposits"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -62,6 +83,7 @@ public partial class timex
     /// fetch all withdrawals made to an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Manager/getWithdraws"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -95,6 +117,7 @@ public partial class timex
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listTickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -114,6 +137,7 @@ public partial class timex
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listTickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -133,6 +157,7 @@ public partial class timex
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/orderbookV2"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -159,6 +184,7 @@ public partial class timex
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listTrades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -192,6 +218,7 @@ public partial class timex
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listCandles"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -225,6 +252,7 @@ public partial class timex
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/getBalances"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -244,6 +272,7 @@ public partial class timex
     /// create a trade order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/createOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -277,6 +306,7 @@ public partial class timex
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/deleteOrders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -296,6 +326,7 @@ public partial class timex
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/deleteOrders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -315,6 +346,7 @@ public partial class timex
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/History/getOrderDetails"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -334,6 +366,7 @@ public partial class timex
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/getOpenOrders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -367,6 +400,7 @@ public partial class timex
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/History/getOrders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -400,6 +434,7 @@ public partial class timex
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/History/getTrades_1"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -433,6 +468,7 @@ public partial class timex
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/getFees"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -446,6 +482,26 @@ public partial class timex
     public async Task<Dictionary<string, object>> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetch the deposit address for a currency associated with this account, does not accept params["network"]
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Currency/selectCurrencyBySymbol"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
+    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositAddress(code, parameters);
         return ((Dictionary<string, object>)res);
     }
 }

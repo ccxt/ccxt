@@ -40,6 +40,7 @@ class binance extends Exchange {
                 'createMarketSellOrderWithCost' => true,
                 'createOrder' => true,
                 'createOrders' => true,
+                'createOrderWithTakeProfitAndStopLoss' => true,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
@@ -113,7 +114,7 @@ class binance extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchTradingLimits' => null,
-                'fetchTransactionFee' => null,
+                'fetchTransactionFee' => 'emulated',
                 'fetchTransactionFees' => true,
                 'fetchTransactions' => false,
                 'fetchTransfers' => true,
@@ -465,6 +466,10 @@ class binance extends Exchange {
                         'simple-earn/flexible/history/rewardsRecord' => 15,
                         'simple-earn/locked/history/rewardsRecord' => 15,
                         'simple-earn/flexible/history/collateralRecord' => 0.1,
+                        // Convert
+                        'dci/product/list' => 0.1,
+                        'dci/product/positions' => 0.1,
+                        'dci/product/accounts' => 0.1,
                     ),
                     'post' => array(
                         'asset/dust' => 0.06667, // Weight(UID) => 10 => cost = 0.006667 * 10 = 0.06667
@@ -593,6 +598,9 @@ class binance extends Exchange {
                         'simple-earn/locked/redeem' => 0.1,
                         'simple-earn/flexible/setAutoSubscribe' => 15,
                         'simple-earn/locked/setAutoSubscribe' => 15,
+                        // convert
+                        'dci/product/subscribe' => 0.1,
+                        'dci/product/auto_compound/edit' => 0.1,
                     ),
                     'put' => array(
                         'userDataStream' => 0.1,
@@ -3001,7 +3009,7 @@ class binance extends Exchange {
         $fees = $this->fees;
         $linear = null;
         $inverse = null;
-        $strike = $this->safe_integer($market, 'strikePrice');
+        $strike = $this->safe_string($market, 'strikePrice');
         $symbol = $base . '/' . $quote;
         if ($contract) {
             if ($swap) {
@@ -3009,7 +3017,7 @@ class binance extends Exchange {
             } elseif ($future) {
                 $symbol = $symbol . ':' . $settle . '-' . $this->yymmdd($expiry);
             } elseif ($option) {
-                $symbol = $symbol . ':' . $settle . '-' . $this->yymmdd($expiry) . '-' . $this->number_to_string($strike) . '-' . $this->safe_string($optionParts, 3);
+                $symbol = $symbol . ':' . $settle . '-' . $this->yymmdd($expiry) . '-' . $strike . '-' . $this->safe_string($optionParts, 3);
             }
             $contractSize = $this->safe_number_2($market, 'contractSize', 'unit', $this->parse_number('1'));
             $linear = $settle === $quote;
@@ -3039,6 +3047,10 @@ class binance extends Exchange {
             $unifiedType = 'option';
             $active = null;
         }
+        $parsedStrike = null;
+        if ($strike !== null) {
+            $parsedStrike = $this->parse_to_numeric($strike);
+        }
         $entry = array(
             'id' => $id,
             'lowercaseId' => $lowercaseId,
@@ -3064,7 +3076,7 @@ class binance extends Exchange {
             'contractSize' => $contractSize,
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
-            'strike' => $strike,
+            'strike' => $parsedStrike,
             'optionType' => $this->safe_string_lower($market, 'side'),
             'precision' => array(
                 'amount' => $this->safe_integer_2($market, 'quantityPrecision', 'quantityScale'),
@@ -3139,25 +3151,35 @@ class binance extends Exchange {
         return $account;
     }
 
-    public function parse_balance_custom($response, $type = null, $marginMode = null): array {
+    public function parse_balance_custom($response, $type = null, $marginMode = null, $isPortfolioMargin = false): array {
         $result = array(
             'info' => $response,
         );
         $timestamp = null;
         $isolated = $marginMode === 'isolated';
         $cross = ($type === 'margin') || ($marginMode === 'cross');
-        if ($type === 'papi') {
+        if ($isPortfolioMargin) {
             for ($i = 0; $i < count($response); $i++) {
                 $entry = $response[$i];
                 $account = $this->account();
                 $currencyId = $this->safe_string($entry, 'asset');
                 $code = $this->safe_currency_code($currencyId);
-                $borrowed = $this->safe_string($entry, 'crossMarginBorrowed');
-                $interest = $this->safe_string($entry, 'crossMarginInterest');
-                $account['free'] = $this->safe_string($entry, 'crossMarginFree');
-                $account['used'] = $this->safe_string($entry, 'crossMarginLocked');
-                $account['total'] = $this->safe_string($entry, 'crossMarginAsset');
-                $account['debt'] = Precise::string_add($borrowed, $interest);
+                if ($type === 'linear') {
+                    $account['free'] = $this->safe_string($entry, 'umWalletBalance');
+                    $account['used'] = $this->safe_string($entry, 'umUnrealizedPNL');
+                } elseif ($type === 'inverse') {
+                    $account['free'] = $this->safe_string($entry, 'cmWalletBalance');
+                    $account['used'] = $this->safe_string($entry, 'cmUnrealizedPNL');
+                } elseif ($cross) {
+                    $borrowed = $this->safe_string($entry, 'crossMarginBorrowed');
+                    $interest = $this->safe_string($entry, 'crossMarginInterest');
+                    $account['debt'] = Precise::string_add($borrowed, $interest);
+                    $account['free'] = $this->safe_string($entry, 'crossMarginFree');
+                    $account['used'] = $this->safe_string($entry, 'crossMarginLocked');
+                    $account['total'] = $this->safe_string($entry, 'crossMarginAsset');
+                } else {
+                    $account['total'] = $this->safe_string($entry, 'totalWalletBalance');
+                }
                 $result[$code] = $account;
             }
         } elseif (!$isolated && (($type === 'spot') || $cross)) {
@@ -3271,7 +3293,12 @@ class binance extends Exchange {
         $response = null;
         $request = array();
         if ($isPortfolioMargin || ($type === 'papi')) {
-            $type = 'papi';
+            if ($this->is_linear($type, $subType)) {
+                $type = 'linear';
+            } elseif ($this->is_inverse($type, $subType)) {
+                $type = 'inverse';
+            }
+            $isPortfolioMargin = true;
             $response = $this->papiGetBalance (array_merge($request, $query));
         } elseif ($this->is_linear($type, $subType)) {
             $type = 'linear';
@@ -3511,7 +3538,7 @@ class binance extends Exchange {
         //         ),
         //     )
         //
-        return $this->parse_balance_custom($response, $type, $marginMode);
+        return $this->parse_balance_custom($response, $type, $marginMode, $isPortfolioMargin);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
@@ -5652,12 +5679,14 @@ class binance extends Exchange {
         $trailingDelta = $this->safe_string($params, 'trailingDelta');
         $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activationPrice', $this->number_to_string($price));
         $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRate');
+        $priceMatch = $this->safe_string($params, 'priceMatch');
         $isTrailingPercentOrder = $trailingPercent !== null;
         $isStopLoss = $stopLossPrice !== null || $trailingDelta !== null;
         $isTakeProfit = $takeProfitPrice !== null;
         $isTriggerOrder = $triggerPrice !== null;
         $isConditional = $isTriggerOrder || $isTrailingPercentOrder || $isStopLoss || $isTakeProfit;
         $isPortfolioMarginConditional = ($isPortfolioMargin && $isConditional);
+        $isPriceMatch = $priceMatch !== null;
         $uppercaseType = strtoupper($type);
         $stopPrice = null;
         if ($isTrailingPercentOrder) {
@@ -5818,7 +5847,7 @@ class binance extends Exchange {
                 $request['quantity'] = $this->amount_to_precision($symbol, $amount);
             }
         }
-        if ($priceIsRequired) {
+        if ($priceIsRequired && !$isPriceMatch) {
             if ($price === null) {
                 throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for a ' . $type . ' order');
             }
@@ -9579,12 +9608,12 @@ class binance extends Exchange {
 
     public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
+         * fetch all open positions
          * @see https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#position-information-user_data
          * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
          * @see https://binance-docs.github.io/apidocs/voptions/en/#option-position-information-user_data
-         * fetch all open positions
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
@@ -9795,7 +9824,10 @@ class binance extends Exchange {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $parsed = $this->parse_position_risk($response[$i]);
-            $result[] = $parsed;
+            $entryPrice = $this->safe_string($parsed, 'entryPrice');
+            if (($entryPrice !== '0') && ($entryPrice !== '0.0') && ($entryPrice !== '0.00000000')) {
+                $result[] = $parsed;
+            }
         }
         $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);

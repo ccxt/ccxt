@@ -759,6 +759,7 @@ public partial class mexc : Exchange
                     { "700006", typeof(BadRequest) },
                     { "700007", typeof(AuthenticationError) },
                     { "700008", typeof(BadRequest) },
+                    { "700013", typeof(AuthenticationError) },
                     { "730001", typeof(BadRequest) },
                     { "730002", typeof(BadRequest) },
                     { "730000", typeof(ExchangeError) },
@@ -5476,7 +5477,7 @@ public partial class mexc : Exchange
                     { "source", this.safeString(this.options, "broker", "CCXT") },
                 };
             }
-            if (isTrue(isEqual(method, "POST")))
+            if (isTrue(isTrue((isEqual(method, "POST"))) || isTrue((isEqual(method, "PUT")))))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }

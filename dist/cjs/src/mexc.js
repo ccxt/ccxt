@@ -889,6 +889,7 @@ class mexc extends mexc$1 {
                     '700006': errors.BadRequest,
                     '700007': errors.AuthenticationError,
                     '700008': errors.BadRequest,
+                    '700013': errors.AuthenticationError,
                     '730001': errors.BadRequest,
                     '730002': errors.BadRequest,
                     '730000': errors.ExchangeError,
@@ -5420,7 +5421,7 @@ class mexc extends mexc$1 {
                     'source': this.safeString(this.options, 'broker', 'CCXT'),
                 };
             }
-            if (method === 'POST') {
+            if ((method === 'POST') || (method === 'PUT')) {
                 headers['Content-Type'] = 'application/json';
             }
         }

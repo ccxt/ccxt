@@ -72,6 +72,8 @@ class coinbase(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
+                'fetchDepositAddress': 'emulated',
+                'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
                 'fetchFundingHistory': False,
@@ -1683,17 +1685,18 @@ class coinbase(Exchange, ImplicitAPI):
         :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.v3]: default False, set True to use v3 api endpoint
+        :param dict [params.type]: "spot"(default) or "swap"
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
-        request = {
-            'limit': 250,
-        }
+        request = {}
         response = None
         isV3 = self.safe_bool(params, 'v3', False)
-        params = self.omit(params, 'v3')
+        type = self.safe_string(params, 'type')
+        params = self.omit(params, ['v3', 'type'])
         method = self.safe_string(self.options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts')
         if (isV3) or (method == 'v3PrivateGetBrokerageAccounts'):
+            request['limit'] = 250
             response = self.v3PrivateGetBrokerageAccounts(self.extend(request, params))
         else:
             response = self.v2PrivateGetAccounts(self.extend(request, params))
@@ -1768,6 +1771,7 @@ class coinbase(Exchange, ImplicitAPI):
         #         "size": 9
         #     }
         #
+        params['type'] = type
         return self.parse_custom_balance(response, params)
 
     def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):

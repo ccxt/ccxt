@@ -348,11 +348,11 @@ class bitmex extends bitmex$1 {
             const market = this.safeMarket(marketId);
             const symbol = market['symbol'];
             const messageHash = table + ':' + marketId;
-            let ticker = this.safeDict(this.tickers, symbol, {});
+            const ticker = this.safeDict(this.tickers, symbol, {});
             const info = this.safeDict(ticker, 'info', {});
-            ticker = this.parseTicker(this.extend(info, update), market);
-            tickers[symbol] = ticker;
-            this.tickers[symbol] = ticker;
+            const parsedTicker = this.parseTicker(this.extend(info, update), market);
+            tickers[symbol] = parsedTicker;
+            this.tickers[symbol] = parsedTicker;
             client.resolve(ticker, messageHash);
         }
         client.resolve(tickers, 'instrument');

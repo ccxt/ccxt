@@ -223,7 +223,7 @@ export default class hitbtc extends hitbtcRest {
                 'symbols': [market['id']],
             },
         };
-        const orderbook = await this.subscribePublic(name, name, [symbol], this.deepExtend(request, params));
+        const orderbook = await this.subscribePublic(name, 'orderbooks', [symbol], this.deepExtend(request, params));
         return orderbook.limit();
     }
     handleOrderBook(client, message) {
@@ -252,13 +252,12 @@ export default class hitbtc extends hitbtcRest {
         //
         const data = this.safeValue2(message, 'snapshot', 'update', {});
         const marketIds = Object.keys(data);
-        const channel = this.safeString(message, 'ch');
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket(marketId);
             const symbol = market['symbol'];
             const item = data[marketId];
-            const messageHash = channel + '::' + symbol;
+            const messageHash = 'orderbooks::' + symbol;
             if (!(symbol in this.orderbooks)) {
                 const subscription = this.safeValue(client.subscriptions, messageHash, {});
                 const limit = this.safeInteger(subscription, 'limit');
@@ -316,7 +315,7 @@ export default class hitbtc extends hitbtcRest {
                 'symbols': [market['id']],
             },
         };
-        const result = await this.subscribePublic(name, 'ticker', [symbol], this.deepExtend(request, params));
+        const result = await this.subscribePublic(name, 'tickers', [symbol], this.deepExtend(request, params));
         return this.safeValue(result, symbol);
     }
     async watchTickers(symbols = undefined, params = {}) {
@@ -399,7 +398,6 @@ export default class hitbtc extends hitbtcRest {
         //
         const data = this.safeValue(message, 'data', {});
         const marketIds = Object.keys(data);
-        const channel = this.safeString(message, 'ch');
         const newTickers = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -408,8 +406,6 @@ export default class hitbtc extends hitbtcRest {
             const ticker = this.parseWsTicker(data[marketId], market);
             this.tickers[symbol] = ticker;
             newTickers[symbol] = ticker;
-            const messageHash = channel + '::' + symbol;
-            client.resolve(newTickers, messageHash);
         }
         client.resolve(newTickers, 'tickers');
         const messageHashes = this.findMessageHashes(client, 'tickers::');
@@ -425,7 +421,6 @@ export default class hitbtc extends hitbtcRest {
                 client.resolve(tickers, messageHash);
             }
         }
-        client.resolve(this.tickers, channel);
         return message;
     }
     parseWsTicker(ticker, market = undefined) {
@@ -506,7 +501,7 @@ export default class hitbtc extends hitbtcRest {
             request['limit'] = limit;
         }
         const name = 'trades';
-        const trades = await this.subscribePublic(name, name, [symbol], this.deepExtend(request, params));
+        const trades = await this.subscribePublic(name, 'trades', [symbol], this.deepExtend(request, params));
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
@@ -635,7 +630,7 @@ export default class hitbtc extends hitbtcRest {
         if (limit !== undefined) {
             request['params']['limit'] = limit;
         }
-        const ohlcv = await this.subscribePublic(name, name, [symbol], this.deepExtend(request, params));
+        const ohlcv = await this.subscribePublic(name, 'candles', [symbol], this.deepExtend(request, params));
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
@@ -696,7 +691,7 @@ export default class hitbtc extends hitbtcRest {
             for (let j = 0; j < ohlcvs.length; j++) {
                 stored.append(ohlcvs[j]);
             }
-            const messageHash = channel + '::' + symbol;
+            const messageHash = 'candles::' + symbol;
             client.resolve(stored, messageHash);
         }
         return message;

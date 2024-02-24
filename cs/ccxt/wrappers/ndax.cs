@@ -10,6 +10,7 @@ public partial class ndax
     /// retrieves data on all markets for ndax
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#getinstruments"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -29,6 +30,7 @@ public partial class ndax
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#getl2snapshot"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -55,6 +57,7 @@ public partial class ndax
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#getlevel1"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -74,6 +77,7 @@ public partial class ndax
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#gettickerhistory"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -140,6 +144,7 @@ public partial class ndax
     /// fetch all the accounts associated with a profile
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#getuseraccounts"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -159,6 +164,7 @@ public partial class ndax
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#getaccountpositions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -178,6 +184,7 @@ public partial class ndax
     /// fetch the history of changes, actions done by the user or operations that altered balance of the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#getaccounttransactions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -211,6 +218,7 @@ public partial class ndax
     /// create a trade order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#sendorder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -250,6 +258,7 @@ public partial class ndax
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#gettradeshistory"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -283,6 +292,7 @@ public partial class ndax
     /// cancel all open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#cancelallorders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -302,6 +312,7 @@ public partial class ndax
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#cancelorder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -321,6 +332,7 @@ public partial class ndax
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#getopenorders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -354,6 +366,7 @@ public partial class ndax
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#getorderhistory"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -387,6 +400,7 @@ public partial class ndax
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#getorderstatus"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -406,6 +420,7 @@ public partial class ndax
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#getorderhistorybyorderid"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -511,6 +526,7 @@ public partial class ndax
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#getwithdraws"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
