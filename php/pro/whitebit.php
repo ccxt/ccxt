@@ -173,6 +173,7 @@ class whitebit extends \ccxt\async\whitebit {
         //     "params":[
         //        true,
         //        array(
+        //           "timestamp" => 1708679568.940867,
         //           "asks":[
         //              [ "21252.45","0.01957"],
         //              ["21252.55","0.126205"],
@@ -209,13 +210,14 @@ class whitebit extends \ccxt\async\whitebit {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $data = $this->safe_value($params, 1);
-        $orderbook = null;
-        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
-            $orderbook = $this->orderbooks[$symbol];
-        } else {
-            $orderbook = $this->order_book();
-            $this->orderbooks[$symbol] = $orderbook;
+        $timestamp = $this->safe_timestamp($data, 'timestamp');
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $ob = $this->order_book();
+            $this->orderbooks[$symbol] = $ob;
         }
+        $orderbook = $this->orderbooks[$symbol];
+        $orderbook['timestamp'] = $timestamp;
+        $orderbook['datetime'] = $this->iso8601($timestamp);
         if ($isSnapshot) {
             $snapshot = $this->parse_order_book($data, $symbol);
             $orderbook->reset ($snapshot);

@@ -891,6 +891,7 @@ export default class mexc extends Exchange {
                     '700006': BadRequest, // IP non white list
                     '700007': AuthenticationError, // No permission to access the endpoint
                     '700008': BadRequest, // Illegal characters found in parameter
+                    '700013': AuthenticationError, // Invalid Content-Type v3
                     '730001': BadRequest, // Pair not found
                     '730002': BadRequest, // Your input param is invalid
                     '730000': ExchangeError, // Request failed, please contact the customer service
@@ -5438,7 +5439,7 @@ export default class mexc extends Exchange {
                     'source': this.safeString (this.options, 'broker', 'CCXT'),
                 };
             }
-            if (method === 'POST') {
+            if ((method === 'POST') || (method === 'PUT')) {
                 headers['Content-Type'] = 'application/json';
             }
         } else if (section === 'contract' || section === 'spot2') {
