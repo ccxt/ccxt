@@ -172,6 +172,7 @@ export default class cex extends cexRest {
         //     }
         //
         const data = this.safeValue (message, 'data', []);
+        data.reverse (); // fix chronological order
         const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
         const stored = new ArrayCache (limit);
         for (let i = 0; i < data.length; i++) {
