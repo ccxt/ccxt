@@ -88,7 +88,7 @@ export default class coinbaseinternational extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': false,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchPosition': true,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
@@ -130,6 +130,9 @@ export default class coinbaseinternational extends Exchange {
                 'secret': false,
                 'password': true,
             },
+            'proxyURL': 'http://oqDC2qbE92ubjog:EPCorco2sZKFUMr@194.135.30.249:44795',
+            'wsProxy': 'http://oqDC2qbE92ubjog:EPCorco2sZKFUMr@194.135.30.249:44795',
+            'httpProxy': 'http://oqDC2qbE92ubjog:EPCorco2sZKFUMr@194.135.30.249:44795',
             'api': {
                 'v1': {
                     'public': {
@@ -215,7 +218,12 @@ export default class coinbaseinternational extends Exchange {
                 'broad': {
                     'DUPLICATE_CLIENT_ORDER_ID': DuplicateOrderId,
                     'Order rejected': InvalidOrder,
+                    'market orders must be IoC': InvalidOrder,
+                    'tif is required': InvalidOrder,
                     'Unauthorized': PermissionDenied,
+                    'invalid result_limit': BadRequest,
+                    'is a required field': BadRequest,
+                    'Not Found': BadRequest,
                 },
             },
             'timeframes': {
@@ -245,7 +253,6 @@ export default class coinbaseinternational extends Exchange {
          * @description fetch all the accounts associated with a profile
          * @see https://docs.cloud.coinbase.com/intx/reference/getportfolios
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
         await this.loadMarkets ();
@@ -312,16 +319,18 @@ export default class coinbaseinternational extends Exchange {
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        let maxEntriesPerRequest = undefined;
+        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'maxEntriesPerRequest', 100);
+        const pageKey = 'ccxtPageKey';
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params) as FundingRateHistory[];
+            return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params, pageKey, maxEntriesPerRequest) as FundingRateHistory[];
         }
         const market = this.market (symbol);
+        const page = this.safeInteger (params, pageKey, 1) - 1;
         const request = {
             'instrument': market['id'],
+            'result_offset': this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest),
         };
-        if (since !== undefined) {
-            request['result_offset'] = since;
-        }
         if (limit !== undefined) {
             request['result_limit'] = limit;
         }
@@ -368,8 +377,8 @@ export default class coinbaseinternational extends Exchange {
             'indexPrice': undefined,
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': this.parse8601 (fundingDatetime),
+            'datetime': fundingDatetime,
             'fundingRate': this.safeNumber (contract, 'funding_rate'),
             'fundingTimestamp': this.parse8601 (fundingDatetime),
             'fundingDatetime': fundingDatetime,
@@ -466,10 +475,26 @@ export default class coinbaseinternational extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.portfolios] Identifies the portfolios by UUID (e.g., 892e8c7c-e979-4cad-b61b-55a197932cf1) or portfolio ID (e.g., 5189861793641175). Can provide single or multiple portfolios to filter by or fetches transfers for all portfolios if none are provided.
+         * @param {int} [params.until] Only find transfers updated before this time. Use timestamp format
+         * @param {string} [params.status] The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
+         * @param {string} [params.type] The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        let paginate = undefined;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'paginate');
+        let maxEntriesPerRequest = undefined;
+        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', 100);
+        const pageKey = 'ccxtPageKey';
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental ('fetchDepositsWithdrawals', code, since, limit, params, pageKey, maxEntriesPerRequest) as Transaction[];
+        }
+        const page = this.safeInteger (params, pageKey, 1) - 1;
+        const request = {
+            'result_offset': this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest),
+        };
         if (since !== undefined) {
             request['time_from'] = this.iso8601 (since);
         }
@@ -479,6 +504,16 @@ export default class coinbaseinternational extends Exchange {
             }
             request['result_limit'] = limit;
         }
+        let portfolios = undefined;
+        [ portfolios, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'portfolios');
+        if (portfolios !== undefined) {
+            request['portfolios'] = portfolios;
+        }
+        let until = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'until');
+        if (until !== undefined) {
+            request['time_to'] = this.iso8601 (until);
+        }
         const response = await this.v1PrivateGetTransfers (this.extend (request, params));
         const rawTransactions = this.safeList (response, 'results', []);
         return this.parseTransactions (rawTransactions);
@@ -487,7 +522,7 @@ export default class coinbaseinternational extends Exchange {
     async fetchPosition (symbol: string, params = {}) {
         /**
          * @method
-         * @name binance#fetchPosition
+         * @name coinbaseinternational#fetchPosition
          * @see https://docs.cloud.coinbase.com/intx/reference/getportfolioposition
          * @description fetch data on an open position
          * @param {string} symbol unified market symbol of the market the position is held in
@@ -577,7 +612,7 @@ export default class coinbaseinternational extends Exchange {
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
-         * @name binance#fetchPositions
+         * @name coinbaseinternational#fetchPositions
          * @see https://docs.cloud.coinbase.com/intx/reference/getportfoliopositions
          * @description fetch all open positions
          * @param {string[]} [symbols] list of unified market symbols
@@ -629,6 +664,11 @@ export default class coinbaseinternational extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.portfolios] Identifies the portfolios by UUID (e.g., 892e8c7c-e979-4cad-b61b-55a197932cf1) or portfolio ID (e.g., 5189861793641175). Can provide single or multiple portfolios to filter by or fetches transfers for all portfolios if none are provided.
+         * @param {int} [params.until] Only find transfers updated before this time. Use timestamp format
+         * @param {string} [params.status] The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
+         * @param {string} [params.type] The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
@@ -645,6 +685,11 @@ export default class coinbaseinternational extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.portfolios] Identifies the portfolios by UUID (e.g., 892e8c7c-e979-4cad-b61b-55a197932cf1) or portfolio ID (e.g., 5189861793641175). Can provide single or multiple portfolios to filter by or fetches transfers for all portfolios if none are provided.
+         * @param {int} [params.until] Only find transfers updated before this time. Use timestamp format
+         * @param {string} [params.status] The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
+         * @param {string} [params.type] The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
@@ -865,7 +910,9 @@ export default class coinbaseinternational extends Exchange {
         const isSpot = (typeId === 'SPOT');
         const fees = this.fees;
         let symbol = baseId + '/' + quoteId;
+        let settleId = undefined;
         if (!isSpot) {
+            settleId = quoteId;
             symbol += ':' + quoteId;
         }
         return {
@@ -874,10 +921,10 @@ export default class coinbaseinternational extends Exchange {
             'symbol': symbol,
             'base': baseId,
             'quote': quoteId,
-            'settle': quoteId,
+            'settle': settleId ? settleId : undefined,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': quoteId,
+            'settleId': settleId ? settleId : undefined,
             'type': isSpot ? 'spot' : 'swap',
             'spot': isSpot,
             'margin': false,
@@ -886,11 +933,11 @@ export default class coinbaseinternational extends Exchange {
             'option': false,
             'active': this.safeString (market, 'trading_state') === 'TRADING',
             'contract': !isSpot,
-            'linear': true,
-            'inverse': false,
+            'linear': isSpot ? undefined : (settleId === quoteId),
+            'inverse': isSpot ? undefined : (settleId !== quoteId),
             'taker': fees['trading']['taker'],
             'maker': fees['trading']['maker'],
-            'contractSize': undefined,
+            'contractSize': 1,
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
@@ -906,8 +953,8 @@ export default class coinbaseinternational extends Exchange {
                     'max': this.safeNumber (market, 'base_imf'),
                 },
                 'amount': {
-                    'min': this.safeNumber (market, 'minQty'),
-                    'max': this.safeNumber (market, 'position_limit_qty'),
+                    'min': undefined,
+                    'max': isSpot ? undefined : this.safeNumber (market, 'position_limit_qty'),
                 },
                 'price': {
                     'min': undefined,
@@ -919,7 +966,7 @@ export default class coinbaseinternational extends Exchange {
                 },
             },
             'info': market,
-            'created': undefined, // present in inverse & linear apis
+            'created': undefined,
         };
     }
 
@@ -1199,9 +1246,11 @@ export default class coinbaseinternational extends Exchange {
         const market = this.market (symbol);
         let typeId = type.toUpperCase ();
         const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
-        const clientOrderIdprefix = this.safeString (this.options, 'clientOrderId');
+        const clientOrderIdprefix = this.safeString (this.options, 'clientOrderId', 'ccxt');
+        let clientOrderId = clientOrderIdprefix + this.uuid ();
+        clientOrderId = clientOrderId.slice (0, 18);
         const request = {
-            'client_order_id': (clientOrderIdprefix + this.uuid ()).slice (0, 18),
+            'client_order_id': clientOrderId,
             'side': side.toUpperCase (),
             'instrument': market['id'],
             'size': this.amountToPrecision (market['symbol'], amount),
@@ -1229,10 +1278,20 @@ export default class coinbaseinternational extends Exchange {
         let postOnly = undefined;
         [ postOnly, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'postOnly', 'post_only');
         let tif = undefined;
-        [ tif, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'tif', 'timeInForce', 'GTC');
+        [ tif, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'tif', 'timeInForce');
+        // market orders must be IOC
+        if (type === 'market') {
+            if (tif !== undefined && tif !== 'IOC') {
+                throw new InvalidOrder (this.id + 'createOrder() market orders must have tif set to "IOC"');
+            }
+            tif = 'IOC';
+        }
         if (postOnly !== undefined || tif === 'PO') {
             request['post_only'] = postOnly;
         } else {
+            if (tif === undefined) {
+                tif = 'GTC';
+            }
             request['tif'] = tif;
         }
         params = this.omit (params, [ 'client_order_id', 'user' ]);
@@ -1526,16 +1585,29 @@ export default class coinbaseinternational extends Exchange {
          * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @param {int} [params.until] the latest time in ms to fetch trades for
+         * @param {int} [params.offset] offset
+         * @param {string} [params.event_type] The most recent type of event that happened to the order. Allowed values: NEW, TRADE, REPLACED
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
+        let portfolio = undefined;
+        [ portfolio, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'portfolio');
+        if (portfolio === undefined) {
+            throw new BadRequest (this.id + ' fetchOpenOrders() requires a portfolio parameter');
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
+        let maxEntriesPerRequest = undefined;
+        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
+        const pageKey = 'ccxtPageKey';
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchOpenOrders', symbol, since, limit, params, undefined, 100) as Order[];
+            return await this.fetchPaginatedCallIncremental ('fetchOpenOrders', symbol, since, limit, params, pageKey, maxEntriesPerRequest) as Order[];
         }
-        const request = {};
+        const page = this.safeInteger (params, pageKey, 1) - 1;
+        const request = {
+            'portfolio': portfolio,
+            'result_offset': this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest),
+        };
         let market = undefined;
         if (symbol) {
             market = this.market (symbol);
@@ -1550,7 +1622,42 @@ export default class coinbaseinternational extends Exchange {
         if (since !== undefined) {
             request['ref_datetime'] = this.iso8601 (since);
         }
-        const rawOrders = await this.v1PrivateGetOrders (this.extend (request, params));
+        const response = await this.v1PrivateGetOrders (this.extend (request, params));
+        //
+        //    {
+        //        "pagination":{
+        //           "result_limit":25,
+        //           "result_offset":0
+        //        },
+        //        "results":[
+        //           {
+        //              "order_id":"1y4cm6b4-1-0",
+        //              "client_order_id":"ccxtd0dd4b5d-8e5f-",
+        //              "side":"SELL",
+        //              "instrument_id":"114jqr89-0-0",
+        //              "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
+        //              "symbol":"BTC-PERP",
+        //              "portfolio_id":"1wp37qsc-1-0",
+        //              "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
+        //              "type":"LIMIT",
+        //              "price":"54000",
+        //              "size":"0.01",
+        //              "tif":"GTC",
+        //              "stp_mode":"BOTH",
+        //              "event_type":"NEW",
+        //              "event_time":"2024-02-24T16:46:37.413Z",
+        //              "submit_time":"2024-02-24T16:46:37.412Z",
+        //              "order_status":"WORKING",
+        //              "leaves_qty":"0.01",
+        //              "exec_qty":"0",
+        //              "avg_price":"0",
+        //              "fee":"0"
+        //           },
+        //           ...
+        //        ]
+        //    }
+        //
+        const rawOrders = this.safeList (response, 'results', []);
         return this.parseOrders (rawOrders, market, since, limit);
     }
 
@@ -1571,19 +1678,25 @@ export default class coinbaseinternational extends Exchange {
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        const pageKey = 'ccxtPageKey';
+        let maxEntriesPerRequest = undefined;
+        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, undefined, 100) as Trade[];
+            return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, pageKey, maxEntriesPerRequest) as Trade[];
         }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {};
+        const page = this.safeInteger (params, pageKey, 1) - 1;
+        const request = {
+            'result_offset': this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest),
+        };
         if (limit !== undefined) {
             if (limit > 100) {
                 throw new BadRequest (this.id + ' fetchMyTrades() maximum limit is 100. Consider setting paginate to true to fetch more trades.');
             }
-            request['result_offset'] = limit;
+            request['result_limit'] = limit;
         }
         if (since !== undefined) {
             request['time_from'] = this.iso8601 (since);

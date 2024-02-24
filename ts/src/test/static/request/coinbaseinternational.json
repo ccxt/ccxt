@@ -21,12 +21,30 @@
           ]
         }
        ],
+       "fetchPosition": [
+        {
+          "description": "fetchPosition",
+          "method": "fetchPosition",
+          "url": "https://api-n5e1.coinbase.com/api/v1/portfolios/1wp37qsc-1-0/positions/BTC-PERP",
+          "input": [
+            "BTC/USDC:USDC"
+          ]
+        }
+       ],
        "fetchPositions": [
         {
           "description": "fetchPositions with symbols undefined",
           "method": "fetchPositions",
           "url": "https://api-n5e1.coinbase.com/api/v1/portfolios/1wp37qsc-1-0/positions",
           "input": []
+        },
+        {
+          "description": "fetchPositions with symbol",
+          "method": "fetchPositions",
+          "url": "https://api-n5e1.coinbase.com/api/v1/portfolios/1wp37qsc-1-0/positions",
+          "input": [
+            "BTC/USDC:USDC"
+          ]
         }
        ],
        "fetchTicker": [
@@ -37,6 +55,70 @@
           "input": [
             "BTC/USDC:USDC"
           ]
+        }
+       ],
+       "fetchTickers": [
+        {
+          "description": "fetchTickers with one symbol",
+          "method": "fetchTickers",
+          "url": "https://api-n5e1.coinbase.com/api/v1/instruments",
+          "input": [
+            [
+              "BTC/USDC:USDC"
+            ]
+          ]
+        }
+       ],
+       "fetchBalance": [
+        {
+          "description": "fetchBalance",
+          "method": "fetchBalance",
+          "url": "https://api-n5e1.coinbase.com/api/v1/portfolios/1wp37qsc-1-0/balances",
+          "input": []
+        }
+       ],
+       "createOrder": [
+        {
+          "description": "createOrder market buy",
+          "method": "createOrder",
+          "url": "https://api-n5e1.coinbase.com/api/v1/orders",
+          "input": [
+            "BTC/USDC:USDC",
+            "market",
+            "buy",
+            0.01,
+            54000
+          ],
+          "output": "{\"client_order_id\":\"ccxt3523937d-859d-\",\"side\":\"BUY\",\"instrument\":\"BTC-PERP\",\"size\":\"0.01\",\"type\":\"MARKET\",\"portfolio\":\"1wp37qsc-1-0\",\"tif\":\"IOC\"}"
+        },
+        {
+          "description": "createOrder limit sell",
+          "method": "createOrder",
+          "url": "https://api-n5e1.coinbase.com/api/v1/orders",
+          "input": [
+            "BTC/USDC:USDC",
+            "limit",
+            "sell",
+            0.01,
+            54000
+          ],
+          "output": "{\"client_order_id\":\"ccxtd0dd4b5d-8e5f-\",\"side\":\"SELL\",\"instrument\":\"BTC-PERP\",\"size\":\"0.01\",\"type\":\"LIMIT\",\"price\":54000,\"portfolio\":\"1wp37qsc-1-0\",\"tif\":\"GTC\"}"
+        }
+       ],
+       "fetchOpenOrders": [
+        {
+          "description": "fetchOpenOrders",
+          "method": "fetchOpenOrders",
+          "url": "https://api-n5e1.coinbase.com/api/v1/orders?portfolio=1wp37qsc-1-0&result_offset=0",
+          "input": []
+        }
+       ],
+       "fetchMyTrades": [
+        {
+          "description": "fetchMyTrades",
+          "method": "fetchMyTrades",
+          "url": "https://api-n5e1.coinbase.com/api/v1/portfolios/fills?result_offset=0",
+          "input": []
         }
        ]
     }

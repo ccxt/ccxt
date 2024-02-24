@@ -93,6 +93,65 @@
           ]
         }
       ],
+      "fetchPosition": [
+        {
+          "description": "fetchPosition",
+          "method": "fetchPosition",
+          "input": [
+            "BTC/USDC:USDC"
+          ],
+          "httpResponse": {
+            "symbol": "BTC-PERP",
+            "instrument_id": "114jqr89-0-0",
+            "instrument_uuid": "b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
+            "vwap": "52482.3",
+            "net_size": "0",
+            "buy_order_size": "0.001",
+            "sell_order_size": "0",
+            "im_contribution": "0.2",
+            "unrealized_pnl": "0",
+            "mark_price": "51007.8",
+            "entry_vwap": "52472.9"
+          },
+          "parsedResponse": {
+            "info": {
+              "symbol": "BTC-PERP",
+              "instrument_id": "114jqr89-0-0",
+              "instrument_uuid": "b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
+              "vwap": "52482.3",
+              "net_size": "0",
+              "buy_order_size": "0.001",
+              "sell_order_size": "0",
+              "im_contribution": "0.2",
+              "unrealized_pnl": "0",
+              "mark_price": "51007.8",
+              "entry_vwap": "52472.9"
+            },
+            "id": null,
+            "symbol": "BTC/USDC:USDC",
+            "entryPrice": null,
+            "markPrice": 51007.8,
+            "notional": null,
+            "collateral": null,
+            "unrealizedPnl": 0,
+            "side": "short",
+            "contracts": 0,
+            "contractSize": null,
+            "timestamp": null,
+            "datetime": null,
+            "hedged": null,
+            "maintenanceMargin": null,
+            "maintenanceMarginPercentage": null,
+            "initialMargin": 0.2,
+            "initialMarginPercentage": null,
+            "leverage": null,
+            "liquidationPrice": null,
+            "marginRatio": null,
+            "marginMode": null,
+            "percentage": null
+          }
+        }
+      ],
       "fetchPositions": [
         {
           "description": "Fill this with a description of the method call",
@@ -132,6 +191,67 @@
               "symbol": "BTC/USDC:USDC",
               "entryPrice": null,
               "markPrice": 52302.2,
+              "notional": null,
+              "collateral": null,
+              "unrealizedPnl": 0,
+              "side": "short",
+              "contracts": 0,
+              "contractSize": null,
+              "timestamp": null,
+              "datetime": null,
+              "hedged": null,
+              "maintenanceMargin": null,
+              "maintenanceMarginPercentage": null,
+              "initialMargin": 0.2,
+              "initialMarginPercentage": null,
+              "leverage": null,
+              "liquidationPrice": null,
+              "marginRatio": null,
+              "marginMode": null,
+              "percentage": null
+            }
+          ]
+        },
+        {
+          "description": "fetchPositions with symbol",
+          "method": "fetchPositions",
+          "input": [
+            "BTC/USDC:USDC"
+          ],
+          "httpResponse": [
+            {
+              "symbol": "BTC-PERP",
+              "instrument_id": "114jqr89-0-0",
+              "instrument_uuid": "b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
+              "vwap": "52482.3",
+              "net_size": "0",
+              "buy_order_size": "0.001",
+              "sell_order_size": "0",
+              "im_contribution": "0.2",
+              "unrealized_pnl": "0",
+              "mark_price": "51007.9",
+              "entry_vwap": "52472.9"
+            }
+          ],
+          "parsedResponse": [
+            {
+              "info": {
+                "symbol": "BTC-PERP",
+                "instrument_id": "114jqr89-0-0",
+                "instrument_uuid": "b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
+                "vwap": "52482.3",
+                "net_size": "0",
+                "buy_order_size": "0.001",
+                "sell_order_size": "0",
+                "im_contribution": "0.2",
+                "unrealized_pnl": "0",
+                "mark_price": "51007.9",
+                "entry_vwap": "52472.9"
+              },
+              "id": null,
+              "symbol": "BTC/USDC:USDC",
+              "entryPrice": null,
+              "markPrice": 51007.9,
               "notional": null,
               "collateral": null,
               "unrealizedPnl": 0,
@@ -210,6 +330,421 @@
             "quoteVolume": null,
             "previousClose": null
           }
+        }
+      ],
+      "fetchTickers": [
+        {
+          "description": "Fill this with a description of the method call",
+          "method": "fetchTickers",
+          "input": [
+            [
+              "BTC/USDC:USDC"
+            ]
+          ],
+          "httpResponse": [
+            {
+              "instrument_id": "149264164756389888",
+              "instrument_uuid": "e9360798-6a10-45d6-af05-67c30eb91e2d",
+              "symbol": "ETH-PERP",
+              "type": "PERP",
+              "base_asset_id": "118059611793145856",
+              "base_asset_uuid": "d85dce9b-5b73-5c3c-8978-522ce1d1c1b4",
+              "base_asset_name": "ETH",
+              "quote_asset_id": "1",
+              "quote_asset_uuid": "2b92315d-eab7-5bef-84fa-089a131333f5",
+              "quote_asset_name": "USDC",
+              "base_increment": "0.0001",
+              "quote_increment": "0.01",
+              "price_band_percent": "0.02",
+              "market_order_percent": "0.01",
+              "qty_24hr": "37752.61",
+              "notional_24hr": "111092278.2195",
+              "avg_daily_qty": "2217313.8434",
+              "avg_daily_notional": "5422246228.809596",
+              "previous_day_qty": "37394.44",
+              "open_interest": "5915.6126",
+              "position_limit_qty": "2956.4185",
+              "position_limit_adq_pct": "0.04",
+              "replacement_cost": "0.23",
+              "base_imf": "0.2",
+              "min_notional_value": "10",
+              "funding_interval": "3600000000000",
+              "trading_state": "TRADING",
+              "quote": {
+                "best_bid_price": "2943.03",
+                "best_bid_size": "4",
+                "best_ask_price": "2943.08",
+                "best_ask_size": "5",
+                "trade_price": "2943.03",
+                "trade_qty": "1",
+                "index_price": "2960.55",
+                "mark_price": "2943.03",
+                "settlement_price": "2943.01",
+                "limit_up": "3090.71",
+                "limit_down": "2796.37",
+                "predicted_funding": "-0.000225",
+                "timestamp": "2024-02-24T16:24:30.082Z"
+              }
+            }
+          ]
+        }
+      ],
+      "fetchBalance": [
+        {
+          "description": "fetchBalance",
+          "method": "fetchBalance",
+          "input": [],
+          "httpResponse": [
+            {
+              "asset_id": "0-0-1",
+              "asset_name": "USDC",
+              "asset_uuid": "2b92315d-eab7-5bef-84fa-089a131333f5",
+              "quantity": "499999.4142000000",
+              "hold": "0",
+              "hold_available_for_collateral": "0",
+              "transfer_hold": "0",
+              "collateral_value": "499999.4142",
+              "max_withdraw_amount": "499997.4102000000",
+              "loan": "0",
+              "loan_collateral_requirement": "0.0"
+            }
+          ],
+          "parsedResponse": {
+            "USDC": {
+              "free": 499999.4142,
+              "used": 0,
+              "total": 499999.4142
+            },
+            "free": {
+              "USDC": 499999.4142
+            },
+            "used": {
+              "USDC": 0
+            },
+            "total": {
+              "USDC": 499999.4142
+            }
+          }
+        }
+      ],
+      "createOrder": [
+        {
+          "description": "createOrder market buy",
+          "method": "createOrder",
+          "input": [
+            "BTC/USDC:USDC",
+            "market",
+            "buy",
+            0.01,
+            54000
+          ],
+          "httpResponse": {
+            "order_id": "1y4c86pm-1-0",
+            "client_order_id": "ccxt3523937d-859d-",
+            "side": "BUY",
+            "instrument_id": "114jqr89-0-0",
+            "instrument_uuid": "b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
+            "symbol": "BTC-PERP",
+            "portfolio_id": "1wp37qsc-1-0",
+            "portfolio_uuid": "018d7f6c-b92c-7361-8b7e-2932711e5a22",
+            "type": "MARKET",
+            "price": "51517.8",
+            "size": "0.01",
+            "tif": "IOC",
+            "stp_mode": "BOTH",
+            "event_type": "NEW",
+            "order_status": "WORKING",
+            "leaves_qty": "0.01",
+            "exec_qty": "0",
+            "avg_price": "0",
+            "fee": "0"
+          },
+          "parsedResponse": {
+            "info": {
+              "order_id": "1y4c86pm-1-0",
+              "client_order_id": "ccxt3523937d-859d-",
+              "side": "BUY",
+              "instrument_id": "114jqr89-0-0",
+              "instrument_uuid": "b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
+              "symbol": "BTC-PERP",
+              "portfolio_id": "1wp37qsc-1-0",
+              "portfolio_uuid": "018d7f6c-b92c-7361-8b7e-2932711e5a22",
+              "type": "MARKET",
+              "price": "51517.8",
+              "size": "0.01",
+              "tif": "IOC",
+              "stp_mode": "BOTH",
+              "event_type": "NEW",
+              "order_status": "WORKING",
+              "leaves_qty": "0.01",
+              "exec_qty": "0",
+              "avg_price": "0",
+              "fee": "0"
+            },
+            "id": "1y4c86pm-1-0",
+            "clientOrderId": "ccxt3523937d-859d-",
+            "timestamp": null,
+            "datetime": null,
+            "lastTradeTimestamp": null,
+            "symbol": "BTC/USDC:USDC",
+            "type": "market",
+            "timeInForce": "IOC",
+            "postOnly": false,
+            "side": "buy",
+            "price": 51517.8,
+            "stopPrice": null,
+            "triggerPrice": null,
+            "amount": 0.01,
+            "filled": 0,
+            "remaining": 0.01,
+            "cost": 0,
+            "average": null,
+            "status": "WORKING",
+            "fee": {
+              "cost": 0
+            },
+            "trades": [],
+            "fees": [
+              {
+                "cost": 0
+              }
+            ],
+            "lastUpdateTimestamp": null,
+            "reduceOnly": null,
+            "takeProfitPrice": null,
+            "stopLossPrice": null
+          }
+        },
+        {
+          "description": "createOrder limit sell",
+          "method": "createOrder",
+          "input": [
+            "BTC/USDC:USDC",
+            "limit",
+            "sell",
+            0.01,
+            54000
+          ],
+          "httpResponse": {
+            "order_id": "1y4cm6b4-1-0",
+            "client_order_id": "ccxtd0dd4b5d-8e5f-",
+            "side": "SELL",
+            "instrument_id": "114jqr89-0-0",
+            "instrument_uuid": "b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
+            "symbol": "BTC-PERP",
+            "portfolio_id": "1wp37qsc-1-0",
+            "portfolio_uuid": "018d7f6c-b92c-7361-8b7e-2932711e5a22",
+            "type": "LIMIT",
+            "price": "54000",
+            "size": "0.01",
+            "tif": "GTC",
+            "stp_mode": "BOTH",
+            "event_type": "NEW",
+            "order_status": "WORKING",
+            "leaves_qty": "0.01",
+            "exec_qty": "0",
+            "avg_price": "0",
+            "fee": "0"
+          },
+          "parsedResponse": {
+            "info": {
+              "order_id": "1y4cm6b4-1-0",
+              "client_order_id": "ccxtd0dd4b5d-8e5f-",
+              "side": "SELL",
+              "instrument_id": "114jqr89-0-0",
+              "instrument_uuid": "b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
+              "symbol": "BTC-PERP",
+              "portfolio_id": "1wp37qsc-1-0",
+              "portfolio_uuid": "018d7f6c-b92c-7361-8b7e-2932711e5a22",
+              "type": "LIMIT",
+              "price": "54000",
+              "size": "0.01",
+              "tif": "GTC",
+              "stp_mode": "BOTH",
+              "event_type": "NEW",
+              "order_status": "WORKING",
+              "leaves_qty": "0.01",
+              "exec_qty": "0",
+              "avg_price": "0",
+              "fee": "0"
+            },
+            "id": "1y4cm6b4-1-0",
+            "clientOrderId": "ccxtd0dd4b5d-8e5f-",
+            "timestamp": null,
+            "datetime": null,
+            "lastTradeTimestamp": null,
+            "symbol": "BTC/USDC:USDC",
+            "type": "limit",
+            "timeInForce": "GTC",
+            "postOnly": false,
+            "side": "sell",
+            "price": 54000,
+            "stopPrice": null,
+            "triggerPrice": null,
+            "amount": 0.01,
+            "filled": 0,
+            "remaining": 0.01,
+            "cost": 0,
+            "average": null,
+            "status": "WORKING",
+            "fee": {
+              "cost": 0
+            },
+            "trades": [],
+            "fees": [
+              {
+                "cost": 0
+              }
+            ],
+            "lastUpdateTimestamp": null,
+            "reduceOnly": null,
+            "takeProfitPrice": null,
+            "stopLossPrice": null
+          }
+        }
+      ],
+      "fetchOpenOrders": [
+        {
+          "description": "Fill this with a description of the method call",
+          "method": "fetchOpenOrders",
+          "input": [],
+          "httpResponse": {
+            "pagination": {
+              "result_limit": "25",
+              "result_offset": "0"
+            },
+            "results": [
+              {
+                "order_id": "1y4cm6b4-1-0",
+                "client_order_id": "ccxtd0dd4b5d-8e5f-",
+                "side": "SELL",
+                "instrument_id": "114jqr89-0-0",
+                "instrument_uuid": "b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
+                "symbol": "BTC-PERP",
+                "portfolio_id": "1wp37qsc-1-0",
+                "portfolio_uuid": "018d7f6c-b92c-7361-8b7e-2932711e5a22",
+                "type": "LIMIT",
+                "price": "54000",
+                "size": "0.01",
+                "tif": "GTC",
+                "stp_mode": "BOTH",
+                "event_type": "NEW",
+                "event_time": "2024-02-24T16:46:37.413Z",
+                "submit_time": "2024-02-24T16:46:37.412Z",
+                "order_status": "WORKING",
+                "leaves_qty": "0.01",
+                "exec_qty": "0",
+                "avg_price": "0",
+                "fee": "0"
+              }
+            ]
+          },
+          "parsedResponse": [
+            {
+              "id": "1x97fnp7-1-0",
+              "clientOrderId": "ccxt",
+              "timestamp": 1707881836743,
+              "datetime": "2024-02-14T03:37:16.743Z",
+              "lastTradeTimestamp": null,
+              "symbol": "BTC/USDC:USDC",
+              "type": "limit",
+              "timeInForce": "GTC",
+              "postOnly": false,
+              "side": "buy",
+              "price": 10000,
+              "stopPrice": null,
+              "triggerPrice": null,
+              "amount": 0.001,
+              "filled": 0,
+              "remaining": 0.001,
+              "cost": 0,
+              "average": null,
+              "status": "WORKING",
+              "fee": {
+                "cost": 0
+              },
+              "trades": [],
+              "fees": [
+                {
+                  "cost": 0
+                }
+              ],
+              "lastUpdateTimestamp": null,
+              "reduceOnly": null,
+              "takeProfitPrice": null,
+              "stopLossPrice": null
+            }
+          ]
+        }
+      ],
+      "fetchMyTrades": [
+        {
+          "description": "Fill this with a description of the method call",
+          "method": "fetchMyTrades",
+          "input": [],
+          "httpResponse": {
+            "pagination": {
+              "result_limit": "25",
+              "result_offset": "0"
+            },
+            "results": [
+              {
+                "portfolio_id": "1wp37qsc-1-0",
+                "portfolio_uuid": "018d7f6c-b92c-7361-8b7e-2932711e5a22",
+                "portfolio_name": "CCXT Portfolio 020624-17:16",
+                "fill_id": "1y4c86pn-1-1",
+                "exec_id": "284343631358214145",
+                "order_id": "1y4c86pm-1-0",
+                "instrument_id": "114jqr89-0-0",
+                "instrument_uuid": "b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
+                "symbol": "BTC-PERP",
+                "match_id": "284343631358197761",
+                "fill_price": "51007.8",
+                "fill_qty": "0.01",
+                "client_id": "1x59ctku-1-1",
+                "client_order_id": "ccxt3523937d-859d-",
+                "order_qty": "0.01",
+                "limit_price": "51517.8",
+                "total_filled": "0.01",
+                "filled_vwap": "51007.8",
+                "expire_time": "",
+                "stop_price": "",
+                "side": "BUY",
+                "tif": "IOC",
+                "stp_mode": "BOTH",
+                "flags": "is_aggressor",
+                "fee": "0.204",
+                "fee_asset": "USDC",
+                "order_status": "DONE",
+                "event_time": "2024-02-24T16:40:04.565Z"
+              }
+            ]
+          },
+          "parsedResponse": [
+            {
+              "id": "1xbfq5c5-1-4",
+              "order": "1xbfq5c5-1-0",
+              "timestamp": 1707957579653,
+              "datetime": "2024-02-15T00:39:39.653Z",
+              "symbol": "BTC/USDC:USDC",
+              "type": null,
+              "side": "sell",
+              "takerOrMaker": null,
+              "price": 52472.9,
+              "amount": 0.01,
+              "cost": 524.729,
+              "fee": {
+                "cost": 0.2098,
+                "currency": "USDC"
+              },
+              "fees": [
+                {
+                  "cost": 0.2098,
+                  "currency": "USDC"
+                }
+              ]
+            }
+          ]
         }
       ]
     }
