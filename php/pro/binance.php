@@ -37,10 +37,15 @@ class binance extends \ccxt\async\binance {
                 'cancelOrderWs' => true,
                 'cancelOrdersWs' => false,
                 'cancelAllOrdersWs' => true,
+                'fetchBalanceWs' => true,
+                'fetchDepositsWs' => false,
+                'fetchMarketsWs' => false,
+                'fetchMyTradesWs' => true,
+                'fetchOpenOrdersWs' => true,
                 'fetchOrderWs' => true,
                 'fetchOrdersWs' => true,
-                'fetchBalanceWs' => true,
-                'fetchMyTradesWs' => true,
+                'fetchTradingFeesWs' => false,
+                'fetchWithdrawalsWs' => false,
             ),
             'urls' => array(
                 'test' => array(
@@ -1955,6 +1960,29 @@ class binance extends \ccxt\async\binance {
             );
             $orders = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
             return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
+        }) ();
+    }
+
+    public function fetch_closed_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-$order-history-user_data
+             * fetch closed $orders
+             * @param {string} $symbol unified market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch open $orders for
+             * @param {int} [$limit] the maximum number of open $orders structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
+             */
+            $orders = Async\await($this->fetch_orders_ws($symbol, $since, $limit, $params));
+            $closedOrders = array();
+            for ($i = 0; $i < count($orders); $i++) {
+                $order = $orders[$i];
+                if ($order['status'] === 'closed') {
+                    $closedOrders[] = $order;
+                }
+            }
+            return $closedOrders;
         }) ();
     }
 

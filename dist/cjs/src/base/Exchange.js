@@ -2266,6 +2266,11 @@ class Exchange {
         this.codes = Object.keys(currenciesSortedByCode);
         return this.markets;
     }
+    getDescribeForExtendedWsExchange(currentRestInstance, parentRestInstance, wsBaseDescribe) {
+        const extendedRestDescribe = this.deepExtend(parentRestInstance.describe(), currentRestInstance.describe());
+        const superWithRestDescribe = this.deepExtend(extendedRestDescribe, wsBaseDescribe);
+        return superWithRestDescribe;
+    }
     safeBalance(balance) {
         const balances = this.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total']);
         const codes = Object.keys(balances);

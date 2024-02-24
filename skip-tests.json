@@ -41,7 +41,6 @@
         }
     },
     "bequant": {
-        "skipWs": "timeouts",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/264802937#L2194"

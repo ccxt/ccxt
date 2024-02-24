@@ -30,10 +30,15 @@ public partial class binance : ccxt.binance
                 { "cancelOrderWs", true },
                 { "cancelOrdersWs", false },
                 { "cancelAllOrdersWs", true },
+                { "fetchBalanceWs", true },
+                { "fetchDepositsWs", false },
+                { "fetchMarketsWs", false },
+                { "fetchMyTradesWs", true },
+                { "fetchOpenOrdersWs", true },
                 { "fetchOrderWs", true },
                 { "fetchOrdersWs", true },
-                { "fetchBalanceWs", true },
-                { "fetchMyTradesWs", true },
+                { "fetchTradingFeesWs", false },
+                { "fetchWithdrawalsWs", false },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "test", new Dictionary<string, object>() {
@@ -2153,6 +2158,33 @@ public partial class binance : ccxt.binance
         };
         object orders = await this.watch(url, messageHash, message, messageHash, subscription);
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
+    }
+
+    public async override Task<object> fetchClosedOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#fetchClosedOrdersWs
+        * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-order-history-user_data
+        * @description fetch closed orders
+        * @param {string} symbol unified market symbol
+        * @param {int} [since] the earliest time in ms to fetch open orders for
+        * @param {int} [limit] the maximum number of open orders structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        object orders = await this.fetchOrdersWs(symbol, since, limit, parameters);
+        object closedOrders = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        {
+            object order = getValue(orders, i);
+            if (isTrue(isEqual(getValue(order, "status"), "closed")))
+            {
+                ((IList<object>)closedOrders).Add(order);
+            }
+        }
+        return closedOrders;
     }
 
     public async override Task<object> fetchOpenOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
