@@ -227,6 +227,7 @@ export default class cex extends cexRest {
         //
         const data = this.safeValue (message, 'data', []);
         const stored = this.trades as any; // to do fix this, this.trades is not meant to be used like this
+        data.reverse (); // fix chronological order
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
             const parsed = this.parseWsOldTrade (rawTrade);
