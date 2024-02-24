@@ -637,7 +637,6 @@
         }
     },
     "coincheck": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets":{
                 "info":"not provided",
