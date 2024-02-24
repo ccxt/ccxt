@@ -1132,6 +1132,7 @@ export default class cex extends cexRest {
     handleOHLCVAny (client: Client, message) {
         const event = this.safeString (message, 'e');
         const methods = {
+            'init-ohlcv-data': this.handleInitOHLCV,
             'ohlcv24': this.handleOHLCV24,
             'ohlcv1m': this.handleOHLCV1m,
             'ohlcv': this.handleOHLCV,
@@ -1504,7 +1505,6 @@ export default class cex extends cexRest {
             'connected': this.handleConnected,
             'tick': this.handleTicker,
             'ticker': this.handleTicker,
-            'init-ohlcv-data': this.handleInitOHLCV,
             'ohlcv': this.handleOHLCVAny,
             'get-balance': this.handleBalance,
             'order-book-subscribe': this.handleOrderBookSnapshot,

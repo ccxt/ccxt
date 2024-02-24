@@ -740,7 +740,8 @@
                 "withdraw": "not provided",
                 "deposit": "not provided",
                 "networks": "missing"
-            }
+            },
+            "watchOHLCV": "does not work for 1min"
         }
     },
     "coinex": {
