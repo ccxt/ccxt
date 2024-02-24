@@ -5370,7 +5370,7 @@ class okx extends Exchange {
         $liquidationPrice = $this->safe_number($position, 'liqPx');
         $percentageString = $this->safe_string($position, 'uplRatio');
         $percentage = $this->parse_number(Precise::string_mul($percentageString, '100'));
-        $timestamp = $this->safe_integer($position, 'uTime');
+        $timestamp = $this->safe_integer($position, 'cTime');
         $marginRatio = $this->parse_number(Precise::string_div($maintenanceMarginString, $collateralString, 4));
         return $this->safe_position(array(
             'info' => $position,

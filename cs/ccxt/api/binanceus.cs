@@ -1221,6 +1221,21 @@ public partial class binanceus : binance
         return await this.callAsync ("sapiGetSimpleEarnFlexibleHistoryCollateralRecord",parameters);
     }
 
+    public async Task<object> sapiGetDciProductList (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetDciProductList",parameters);
+    }
+
+    public async Task<object> sapiGetDciProductPositions (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetDciProductPositions",parameters);
+    }
+
+    public async Task<object> sapiGetDciProductAccounts (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetDciProductAccounts",parameters);
+    }
+
     public async Task<object> sapiGetAssetAssetDistributionHistory (object parameters = null)
     {
         return await this.callAsync ("sapiGetAssetAssetDistributionHistory",parameters);
@@ -1944,6 +1959,16 @@ public partial class binanceus : binance
     public async Task<object> sapiPostSimpleEarnLockedSetAutoSubscribe (object parameters = null)
     {
         return await this.callAsync ("sapiPostSimpleEarnLockedSetAutoSubscribe",parameters);
+    }
+
+    public async Task<object> sapiPostDciProductSubscribe (object parameters = null)
+    {
+        return await this.callAsync ("sapiPostDciProductSubscribe",parameters);
+    }
+
+    public async Task<object> sapiPostDciProductAutoCompoundEdit (object parameters = null)
+    {
+        return await this.callAsync ("sapiPostDciProductAutoCompoundEdit",parameters);
     }
 
     public async Task<object> sapiPostOtcQuotes (object parameters = null)
