@@ -36,7 +36,6 @@ export default class blockchaincom extends blockchaincomRest {
                     },
                     'noOriginHeader': false,
                 },
-                'sequenceNumbers': {},
             },
             'streaming': {
             },
@@ -731,23 +730,7 @@ export default class blockchaincom extends blockchaincomRest {
         }
     }
 
-    checkSequenceNumber (client: Client, message) {
-        const seqnum = this.safeInteger (message, 'seqnum', 0);
-        const channel = this.safeString (message, 'channel', '');
-        const sequenceNumbersByChannel = this.safeValue (this.options, 'sequenceNumbers', {});
-        const lastSeqnum = this.safeInteger (sequenceNumbersByChannel, channel);
-        if (lastSeqnum === undefined) {
-            this.options['sequenceNumbers'][channel] = seqnum;
-        } else {
-            if (seqnum !== lastSeqnum + 1) {
-                throw new ExchangeError (this.id + ' ' + channel + ' seqnum ' + seqnum + ' is not the expected ' + (lastSeqnum + 1));
-            }
-            this.options['sequenceNumbers'][channel] = seqnum;
-        }
-    }
-
     handleMessage (client: Client, message) {
-        this.checkSequenceNumber (client, message);
         const channel = this.safeString (message, 'channel');
         const handlers = {
             'ticker': this.handleTicker,
