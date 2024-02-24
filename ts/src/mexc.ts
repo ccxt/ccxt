@@ -5438,7 +5438,7 @@ export default class mexc extends Exchange {
                     'source': this.safeString (this.options, 'broker', 'CCXT'),
                 };
             }
-            if (method === 'POST') {
+            if ((method === 'POST') || (method === 'PUT')) {
                 headers['Content-Type'] = 'application/json';
             }
         } else if (section === 'contract' || section === 'spot2') {
