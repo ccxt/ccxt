@@ -1,5 +1,5 @@
 import geminiRest from '../gemini.js';
-import type { Int, Str, OrderBook, Order, Trade, OHLCV } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, OHLCV, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class gemini extends geminiRest {
     describe(): any;
@@ -14,6 +14,8 @@ export default class gemini extends geminiRest {
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleOrderBook(client: Client, message: any): void;
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
+    watchBidsAsks(symbols: string[], limit?: Int, params?: {}): Promise<Tickers>;
+    handleBidsAsksForMultidata(client: Client, rawBidAskChanges: any, timestamp: Int, nonce: Int): void;
     helperForWatchMultipleConstruct(itemHashName: string, symbols: string[], params?: {}): Promise<any>;
     handleOrderBookForMultidata(client: Client, rawOrderBookChanges: any, timestamp: Int, nonce: Int): void;
     handleL2Updates(client: Client, message: any): void;
