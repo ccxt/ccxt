@@ -98,6 +98,7 @@ const {
     , ymd
     , base64ToString
     , crc32
+    , packb
     , TRUNCATE
     , ROUND
     , DECIMAL_PLACES
@@ -454,6 +455,7 @@ export default class Exchange {
     ymd = ymd
     base64ToString = base64ToString
     crc32 = crc32
+    packb = packb
 
     describe () {
         return {
