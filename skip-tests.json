@@ -685,7 +685,6 @@
         }
     },
     "coinone": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "active":"is undefined"
