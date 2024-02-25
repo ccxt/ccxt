@@ -397,7 +397,6 @@
         }
     },
     "bitstamp": {
-        "skipWs": true,
         "skipMethods": {
             "fetchOrderBook": "bid/ask might be 0",
             "fetchL2OrderBook": "same",
