@@ -41,7 +41,6 @@
         }
     },
     "bequant": {
-        "skipWs": "timeouts",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/264802937#L2194"
@@ -241,6 +240,7 @@
             "fetchTickers": {
                 "bid":"broken bid-ask",
                 "ask":"broken bid-ask",
+                "open": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269099593#L3833",
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             },

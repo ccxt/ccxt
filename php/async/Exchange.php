@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.2.49';
+$version = '4.2.51';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.2.49';
+    const VERSION = '4.2.51';
 
     public $browser;
     public $marketsLoading = null;
@@ -1250,6 +1250,12 @@ class Exchange extends \ccxt\Exchange {
         $currenciesSortedByCode = $this->keysort ($this->currencies);
         $this->codes = is_array($currenciesSortedByCode) ? array_keys($currenciesSortedByCode) : array();
         return $this->markets;
+    }
+
+    public function get_describe_for_extended_ws_exchange(mixed $currentRestInstance, mixed $parentRestInstance, array $wsBaseDescribe) {
+        $extendedRestDescribe = $this->deep_extend($parentRestInstance->describe (), $currentRestInstance->describe ());
+        $superWithRestDescribe = $this->deep_extend($extendedRestDescribe, $wsBaseDescribe);
+        return $superWithRestDescribe;
     }
 
     public function safe_balance(array $balance) {

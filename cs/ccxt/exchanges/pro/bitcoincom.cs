@@ -10,10 +10,8 @@ public partial class bitcoincom : hitbtc
     public override object describe()
     {
         // eslint-disable-next-line new-cap
-        var restInstance = new ccxt.bequant();
-        object restDescribe = restInstance.describe();
-        object extended = this.deepExtend(base.describe(), restDescribe);
-        return this.deepExtend(extended, new Dictionary<string, object>() {
+        object describeExtended = this.getDescribeForExtendedWsExchange(new ccxt.bitcoincom(), new ccxt.hitbtc(), base.describe());
+        return this.deepExtend(describeExtended, new Dictionary<string, object>() {
             { "id", "bitcoincom" },
             { "name", "bitcoin.com" },
             { "countries", new List<object>() {"KN"} },

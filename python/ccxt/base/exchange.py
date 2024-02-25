@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.49'
+__version__ = '4.2.51'
 
 # -----------------------------------------------------------------------------
 
@@ -2485,6 +2485,11 @@ class Exchange(object):
         currenciesSortedByCode = self.keysort(self.currencies)
         self.codes = list(currenciesSortedByCode.keys())
         return self.markets
+
+    def get_describe_for_extended_ws_exchange(self, currentRestInstance: Any, parentRestInstance: Any, wsBaseDescribe: dict):
+        extendedRestDescribe = self.deep_extend(parentRestInstance.describe(), currentRestInstance.describe())
+        superWithRestDescribe = self.deep_extend(extendedRestDescribe, wsBaseDescribe)
+        return superWithRestDescribe
 
     def safe_balance(self, balance: object):
         balances = self.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total'])
