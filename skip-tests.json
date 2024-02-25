@@ -448,8 +448,6 @@
         }
     },
     "bitvavo": {
-        "skip": "temp",
-        "skipWs": "temp",
         "httpsProxy": "http://51.83.140.52:11230",
         "skipMethods": {
             "fetchCurrencies": {
