@@ -1,5 +1,5 @@
-(function () {
-	"use strict";
+// (function () {
+// 	"use strict";
 
 	// Serializes a value to a MessagePack byte array.
 	//
@@ -535,24 +535,29 @@
 		return str;
 	}
 
-	// The exported functions
-	let msgpack = {
-		serialize: serialize,
-		deserialize: deserialize,
+	// // The exported functions
+	// let msgpack = {
+	// 	serialize: serialize,
+	// 	deserialize: deserialize,
 
-		// Compatibility with other libraries
-		encode: serialize,
-		decode: deserialize
-	};
+	// 	// Compatibility with other libraries
+	// 	encode: serialize,
+	// 	decode: deserialize
+	// };
 
-	// Environment detection
-	if (typeof module === "object" && module && typeof module.exports === "object") {
-		// Node.js
-		module.exports = msgpack;
-	}
-	else {
-		// Global object
-		window[window.msgpackJsName || "msgpack"] = msgpack;
-	}
+	// // Environment detection
+	// if (typeof module === "object" && module && typeof module.exports === "object") {
+	// 	// Node.js
+	// 	module.exports = msgpack;
+	// }
+	// else {
+	// 	// Global object
+	// 	window[window.msgpackJsName || "msgpack"] = msgpack;
+	// }
 
-})();
+// })();
+
+export {
+	serialize,
+	deserialize
+}
