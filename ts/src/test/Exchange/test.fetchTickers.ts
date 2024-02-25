@@ -5,7 +5,10 @@ import testTicker from './base/test.ticker.js';
 async function testFetchTickers (exchange, skippedProperties, symbol) {
     const withoutSymbol = testFetchTickersHelper (exchange, skippedProperties, undefined);
     const withSymbol = testFetchTickersHelper (exchange, skippedProperties, [ symbol ]);
-    await Promise.all ([ withSymbol, withoutSymbol ]);
+    const tests = [ withSymbol, withoutSymbol ];
+    for (let i = 0; i < tests.length; i++) {
+        await tests[i];
+    }
 }
 
 async function testFetchTickersHelper (exchange, skippedProperties, argSymbols, argParams = {}) {
