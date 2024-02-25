@@ -2,7 +2,7 @@
 
 import coinbaseinternationalRest from '../coinbaseinternational.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
-import { Ticker, Int, Trade, OrderBook, Market, FundingRate } from '../base/types.js';
+import { Ticker, Int, Trade, OrderBook, Market } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache } from '../base/ws/Cache.js';
@@ -151,7 +151,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return await this.watchMultiple (url, messageHashes, this.extend (subscribe, params), messageHashes);
     }
 
-    async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    async watchFundingRate (symbol: string, params = {}): Promise<{}> {
         /**
          * @method
          * @name coinbaseinternational#watchFundingRate

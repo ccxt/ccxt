@@ -130,9 +130,6 @@ export default class coinbaseinternational extends Exchange {
                 'secret': false,
                 'password': true,
             },
-            //'proxyURL': 'http://oqDC2qbE92ubjog:EPCorco2sZKFUMr@194.135.30.249:44795',
-            'wsProxy': 'http://35.229.158.21:3128',
-            'httpProxy': 'http://35.229.158.21:3128',
             'api': {
                 'v1': {
                     'public': {
@@ -220,6 +217,7 @@ export default class coinbaseinternational extends Exchange {
                     'Order rejected': InvalidOrder,
                     'market orders must be IoC': InvalidOrder,
                     'tif is required': InvalidOrder,
+                    'Invalid replace order request': InvalidOrder,
                     'Unauthorized': PermissionDenied,
                     'invalid result_limit': BadRequest,
                     'is a required field': BadRequest,
@@ -1495,6 +1493,7 @@ export default class coinbaseinternational extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.client_order_id] client order id
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1517,7 +1516,10 @@ export default class coinbaseinternational extends Exchange {
         if (stopPrice !== undefined) {
             request['stop_price'] = stopPrice;
         }
-        params = this.omit (params, [ 'client_order_id' ]);
+        const clientOrderId = this.safeString (params, 'client_order_id');
+        if (clientOrderId === undefined) {
+            throw new BadRequest (this.id + ' editOrder() requires a client_order_id parameter');
+        }
         const order = await this.v1PrivatePutOrdersId (this.extend (request, params));
         return this.parseOrder (order, market);
     }

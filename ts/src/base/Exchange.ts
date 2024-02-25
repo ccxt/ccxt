@@ -2269,7 +2269,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchFundingRates() is not supported yet');
     }
 
-    async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    async watchFundingRate (symbol: string, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' watchFundingRate() is not supported yet');
     }
 
