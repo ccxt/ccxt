@@ -35,6 +35,7 @@ public partial class binance : Exchange
                 { "createMarketSellOrderWithCost", true },
                 { "createOrder", true },
                 { "createOrders", true },
+                { "createOrderWithTakeProfitAndStopLoss", true },
                 { "createPostOnlyOrder", true },
                 { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", true },
@@ -108,7 +109,7 @@ public partial class binance : Exchange
                 { "fetchTradingFee", true },
                 { "fetchTradingFees", true },
                 { "fetchTradingLimits", null },
-                { "fetchTransactionFee", null },
+                { "fetchTransactionFee", "emulated" },
                 { "fetchTransactionFees", true },
                 { "fetchTransactions", false },
                 { "fetchTransfers", true },
@@ -445,6 +446,9 @@ public partial class binance : Exchange
                         { "simple-earn/flexible/history/rewardsRecord", 15 },
                         { "simple-earn/locked/history/rewardsRecord", 15 },
                         { "simple-earn/flexible/history/collateralRecord", 0.1 },
+                        { "dci/product/list", 0.1 },
+                        { "dci/product/positions", 0.1 },
+                        { "dci/product/accounts", 0.1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "asset/dust", 0.06667 },
@@ -561,6 +565,8 @@ public partial class binance : Exchange
                         { "simple-earn/locked/redeem", 0.1 },
                         { "simple-earn/flexible/setAutoSubscribe", 15 },
                         { "simple-earn/locked/setAutoSubscribe", 15 },
+                        { "dci/product/subscribe", 0.1 },
+                        { "dci/product/auto_compound/edit", 0.1 },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "userDataStream", 0.1 },
@@ -3061,7 +3067,7 @@ public partial class binance : Exchange
         object fees = this.fees;
         object linear = null;
         object inverse = null;
-        object strike = this.safeInteger(market, "strikePrice");
+        object strike = this.safeString(market, "strikePrice");
         object symbol = add(add(bs, "/"), quote);
         if (isTrue(contract))
         {
@@ -3073,7 +3079,7 @@ public partial class binance : Exchange
                 symbol = add(add(add(add(symbol, ":"), settle), "-"), this.yymmdd(expiry));
             } else if (isTrue(option))
             {
-                symbol = add(add(add(add(add(add(add(add(symbol, ":"), settle), "-"), this.yymmdd(expiry)), "-"), this.numberToString(strike)), "-"), this.safeString(optionParts, 3));
+                symbol = add(add(add(add(add(add(add(add(symbol, ":"), settle), "-"), this.yymmdd(expiry)), "-"), strike), "-"), this.safeString(optionParts, 3));
             }
             contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
             linear = isEqual(settle, quote);
@@ -3110,6 +3116,11 @@ public partial class binance : Exchange
             unifiedType = "option";
             active = null;
         }
+        object parsedStrike = null;
+        if (isTrue(!isEqual(strike, null)))
+        {
+            parsedStrike = this.parseToNumeric(strike);
+        }
         object entry = new Dictionary<string, object>() {
             { "id", id },
             { "lowercaseId", lowercaseId },
@@ -3135,7 +3146,7 @@ public partial class binance : Exchange
             { "contractSize", contractSize },
             { "expiry", expiry },
             { "expiryDatetime", this.iso8601(expiry) },
-            { "strike", strike },
+            { "strike", parsedStrike },
             { "optionType", this.safeStringLower(market, "side") },
             { "precision", new Dictionary<string, object>() {
                 { "amount", this.safeInteger2(market, "quantityPrecision", "quantityScale") },
@@ -5991,12 +6002,14 @@ public partial class binance : Exchange
         object trailingDelta = this.safeString(parameters, "trailingDelta");
         object trailingTriggerPrice = this.safeString2(parameters, "trailingTriggerPrice", "activationPrice", this.numberToString(price));
         object trailingPercent = this.safeString2(parameters, "trailingPercent", "callbackRate");
+        object priceMatch = this.safeString(parameters, "priceMatch");
         object isTrailingPercentOrder = !isEqual(trailingPercent, null);
         object isStopLoss = isTrue(!isEqual(stopLossPrice, null)) || isTrue(!isEqual(trailingDelta, null));
         object isTakeProfit = !isEqual(takeProfitPrice, null);
         object isTriggerOrder = !isEqual(triggerPrice, null);
         object isConditional = isTrue(isTrue(isTrue(isTriggerOrder) || isTrue(isTrailingPercentOrder)) || isTrue(isStopLoss)) || isTrue(isTakeProfit);
         object isPortfolioMarginConditional = (isTrue(isPortfolioMargin) && isTrue(isConditional));
+        object isPriceMatch = !isEqual(priceMatch, null);
         object uppercaseType = ((string)type).ToUpper();
         object stopPrice = null;
         if (isTrue(isTrailingPercentOrder))
@@ -6201,7 +6214,7 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
             }
         }
-        if (isTrue(priceIsRequired))
+        if (isTrue(isTrue(priceIsRequired) && !isTrue(isPriceMatch)))
         {
             if (isTrue(isEqual(price, null)))
             {

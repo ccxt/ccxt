@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.independentreserve import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade
 from typing import List
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -43,6 +43,9 @@ class independentreserve(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -670,6 +673,49 @@ class independentreserve(Exchange, ImplicitAPI):
             'orderGuid': id,
         }
         return self.privatePostCancelOrder(self.extend(request, params))
+
+    def fetch_deposit_address(self, code: str, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :see: https://www.independentreserve.com/features/api#GetDigitalCurrencyDepositAddress
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'primaryCurrencyCode': currency['id'],
+        }
+        response = self.privatePostGetDigitalCurrencyDepositAddress(self.extend(request, params))
+        #
+        #    {
+        #        Tag: '3307446684',
+        #        DepositAddress: 'GCCQH4HACMRAD56EZZZ4TOIDQQRVNADMJ35QOFWF4B2VQGODMA2WVQ22',
+        #        LastCheckedTimestampUtc: '2024-02-20T11:13:35.6912985Z',
+        #        NextUpdateTimestampUtc: '2024-02-20T11:14:56.5112394Z'
+        #    }
+        #
+        return self.parse_deposit_address(response)
+
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+        #
+        #    {
+        #        Tag: '3307446684',
+        #        DepositAddress: 'GCCQH4HACMRAD56EZZZ4TOIDQQRVNADMJ35QOFWF4B2VQGODMA2WVQ22',
+        #        LastCheckedTimestampUtc: '2024-02-20T11:13:35.6912985Z',
+        #        NextUpdateTimestampUtc: '2024-02-20T11:14:56.5112394Z'
+        #    }
+        #
+        address = self.safe_string(depositAddress, 'DepositAddress')
+        self.check_address(address)
+        return {
+            'info': depositAddress,
+            'currency': self.safe_string(currency, 'code'),
+            'address': address,
+            'tag': self.safe_string(depositAddress, 'Tag'),
+            'network': None,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + path

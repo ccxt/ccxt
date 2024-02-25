@@ -111,7 +111,7 @@ export default class bitstamp extends bitstampRest {
             // usually it takes at least 4-5 deltas to resolve
             const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 6);
             if (cacheLength === snapshotDelay) {
-                this.spawn (this.loadOrderBook, client, messageHash, symbol);
+                this.spawn (this.loadOrderBook, client, messageHash, symbol, null, {});
             }
             storedOrderBook.cache.push (delta);
             return;

@@ -317,6 +317,22 @@
                   }
                 ],
                 "output": "timestamp=1707113537828&symbol=BTCUSDT&side=BUY&newOrderRespType=FULL&newClientOrderId=x-R4BD3S82e9ef29d8346440f0b28b86&type=LIMIT&quantity=0.001&price=35000&timeInForce=GTC&recvWindow=10000&signature=08d71bf9a60d5184cc256964f1175179c813d11e038718c0d64d5cc5b982f2f5"
+            },
+            {
+                "description": "swap order with priceMatch",
+                "method": "createOrder",
+                "url": "https://testnet.binancefuture.com/fapi/v1/order",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.2,
+                  null,
+                  {
+                    "priceMatch": "OPPONENT"
+                  }
+                ],
+                "output": "timestamp=1708360882808&symbol=LTCUSDT&side=BUY&newOrderRespType=RESULT&newClientOrderId=x-xcKtGhcu6f60e2c1e1ed4166838709&type=LIMIT&quantity=0.2&timeInForce=GTC&priceMatch=OPPONENT&recvWindow=10000&signature=b73ae983cc2d4995d48e98841152c802ba0b420ee79fc501bde0b6eeee4817ab"
             }
         ],
         "createOrders": [

@@ -15,6 +15,7 @@ public partial class deribit
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.deribit.com/#public-get_time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -34,6 +35,7 @@ public partial class deribit
     /// the latest known information on the availability of the exchange API
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.deribit.com/#public-status"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -53,6 +55,7 @@ public partial class deribit
     /// fetch all the accounts associated with a profile
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.deribit.com/#private-get_subaccounts"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -72,6 +75,7 @@ public partial class deribit
     /// retrieves data on all markets for deribit
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.deribit.com/#public-get_currencies"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -91,6 +95,7 @@ public partial class deribit
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.deribit.com/#private-get_account_summary"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -110,6 +115,7 @@ public partial class deribit
     /// create a currency deposit address
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.deribit.com/#private-create_deposit_address"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -129,6 +135,7 @@ public partial class deribit
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.deribit.com/#private-get_current_deposit_address"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -148,6 +155,7 @@ public partial class deribit
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.deribit.com/#public-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -167,6 +175,7 @@ public partial class deribit
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.deribit.com/#public-get_book_summary_by_currency"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -186,6 +195,7 @@ public partial class deribit
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.deribit.com/#public-get_tradingview_chart_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -219,7 +229,8 @@ public partial class deribit
     /// get the list of most recent trades for a particular symbol.
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.deribit.com/#private-get_user_trades_by_currency"/>  <br/>
+    /// See <see href="https://docs.deribit.com/#public-get_last_trades_by_instrument"/>  <br/>
+    /// See <see href="https://docs.deribit.com/#public-get_last_trades_by_instrument_and_time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -253,6 +264,7 @@ public partial class deribit
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.deribit.com/#private-get_account_summary"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -272,6 +284,7 @@ public partial class deribit
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.deribit.com/#public-get_order_book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -298,6 +311,7 @@ public partial class deribit
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.deribit.com/#private-get_order_state"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -318,6 +332,7 @@ public partial class deribit
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.deribit.com/#private-buy"/>  <br/>
+    /// See <see href="https://docs.deribit.com/#private-sell"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -408,6 +423,7 @@ public partial class deribit
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.deribit.com/#private-cancel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -427,6 +443,8 @@ public partial class deribit
     /// cancel all open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.deribit.com/#private-cancel_all"/>  <br/>
+    /// See <see href="https://docs.deribit.com/#private-cancel_all_by_instrument"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -446,6 +464,8 @@ public partial class deribit
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.deribit.com/#private-get_open_orders_by_currency"/>  <br/>
+    /// See <see href="https://docs.deribit.com/#private-get_open_orders_by_instrument"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -479,6 +499,8 @@ public partial class deribit
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.deribit.com/#private-get_order_history_by_currency"/>  <br/>
+    /// See <see href="https://docs.deribit.com/#private-get_order_history_by_instrument"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -512,6 +534,7 @@ public partial class deribit
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.deribit.com/#private-get_user_trades_by_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -545,6 +568,10 @@ public partial class deribit
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.deribit.com/#private-get_user_trades_by_currency"/>  <br/>
+    /// See <see href="https://docs.deribit.com/#private-get_user_trades_by_currency_and_time"/>  <br/>
+    /// See <see href="https://docs.deribit.com/#private-get_user_trades_by_instrument"/>  <br/>
+    /// See <see href="https://docs.deribit.com/#private-get_user_trades_by_instrument_and_time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -578,6 +605,7 @@ public partial class deribit
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.deribit.com/#private-get_deposits"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -611,6 +639,7 @@ public partial class deribit
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.deribit.com/#private-get_withdrawals"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -710,6 +739,7 @@ public partial class deribit
     /// fetch a history of internal transfers made on an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.deribit.com/#private-get_transfers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -743,6 +773,8 @@ public partial class deribit
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.deribit.com/#private-submit_transfer_to_user"/>  <br/>
+    /// See <see href="https://docs.deribit.com/#private-submit_transfer_to_subaccount"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -762,6 +794,7 @@ public partial class deribit
     /// make a withdrawal
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.deribit.com/#private-withdraw"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

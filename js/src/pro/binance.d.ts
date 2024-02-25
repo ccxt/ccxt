@@ -44,6 +44,7 @@ export default class binance extends binanceRest {
     cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<any>;
     fetchOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseWsOrder(order: any, market?: any): Order;

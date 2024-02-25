@@ -48,6 +48,7 @@ class upbit(Exchange, ImplicitAPI):
                 'fetchBalance': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
+                'fetchDeposit': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': True,
                 'fetchDeposits': True,
@@ -75,6 +76,7 @@ class upbit(Exchange, ImplicitAPI):
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
                 'fetchTransactions': False,
+                'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'transfer': False,
                 'withdraw': True,
@@ -988,6 +990,7 @@ class upbit(Exchange, ImplicitAPI):
         """
         create a trade order
         :see: https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
+        :see: https://global-docs.upbit.com/reference/order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -995,6 +998,7 @@ class upbit(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.cost]: for market buy orders, the quote quantity that can be used alternative for the amount
+        :param str [params.timeInForce]: 'IOC' or 'FOK'
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1039,6 +1043,11 @@ class upbit(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'identifier')
         if clientOrderId is not None:
             request['identifier'] = clientOrderId
+        if type != 'market':
+            timeInForce = self.safe_string_lower_2(params, 'timeInForce', 'time_in_force')
+            params = self.omit(params, 'timeInForce')
+            if timeInForce is not None:
+                request['time_in_force'] = timeInForce
         params = self.omit(params, ['clientOrderId', 'identifier'])
         response = self.privatePostOrders(self.extend(request, params))
         #
@@ -1138,6 +1147,42 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
+    def fetch_deposit(self, id: str, code: Str = None, params={}):
+        """
+        fetch information on a deposit
+        :see: https://global-docs.upbit.com/reference/individual-deposit-inquiry
+        :param str id: the unique id for the deposit
+        :param str [code]: unified currency code of the currency deposited
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.txid]: withdrawal transaction id, the id argument is reserved for uuid
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        self.load_markets()
+        request = {
+            'uuid': id,
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        response = self.privateGetDeposit(self.extend(request, params))
+        #
+        #     {
+        #         "type": "deposit",
+        #         "uuid": "7f54527e-2eee-4268-860e-fd8b9d7fe3c7",
+        #         "currency": "ADA",
+        #         "net_type": "ADA",
+        #         "txid": "99795bbfeca91eaa071068bb659b33eeb65d8aaff2551fdf7c78f345d188952b",
+        #         "state": "ACCEPTED",
+        #         "created_at": "2023-12-12T04:58:41Z",
+        #         "done_at": "2023-12-12T05:31:50Z",
+        #         "amount": "35.72344",
+        #         "fee": "0.0",
+        #         "transaction_type": "default"
+        #     }
+        #
+        return self.parse_transaction(response, currency)
+
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         :see: https://docs.upbit.com/reference/%EC%A0%84%EC%B2%B4-%EC%B6%9C%EA%B8%88-%EC%A1%B0%ED%9A%8C
@@ -1178,13 +1223,49 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
+    def fetch_withdrawal(self, id: str, code: Str = None, params={}):
+        """
+        fetch data on a currency withdrawal via the withdrawal id
+        :see: https://global-docs.upbit.com/reference/individual-withdrawal-inquiry
+        :param str id: the unique id for the withdrawal
+        :param str [code]: unified currency code of the currency withdrawn
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.txid]: withdrawal transaction id, the id argument is reserved for uuid
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        self.load_markets()
+        request = {
+            'uuid': id,
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        response = self.privateGetWithdraw(self.extend(request, params))
+        #
+        #     {
+        #         "type": "withdraw",
+        #         "uuid": "95ef274b-23a6-4de4-95b0-5cbef4ca658f",
+        #         "currency": "ADA",
+        #         "net_type": "ADA",
+        #         "txid": "b1528f149297a71671b86636f731f8fdb0ff53da0f1d8c19093d59df96f34583",
+        #         "state": "DONE",
+        #         "created_at": "2023-12-14T02:46:52Z",
+        #         "done_at": "2023-12-14T03:10:11Z",
+        #         "amount": "35.22344",
+        #         "fee": "0.5",
+        #         "transaction_type": "default"
+        #     }
+        #
+        return self.parse_transaction(response, currency)
+
     def parse_transaction_status(self, status):
         statuses = {
             'submitting': 'pending',  # 처리 중
             'submitted': 'pending',  # 처리 완료
             'almost_accepted': 'pending',  # 출금대기중
             'rejected': 'failed',  # 거부
-            'accepted': 'pending',  # 승인됨
+            'accepted': 'ok',  # 승인됨
             'processing': 'pending',  # 처리 중
             'done': 'ok',  # 완료
             'canceled': 'canceled',  # 취소됨
@@ -1193,7 +1274,7 @@ class upbit(Exchange, ImplicitAPI):
 
     def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
-        # fetchDeposits
+        # fetchDeposits, fetchDeposit
         #
         #     {
         #         "type": "deposit",
@@ -1207,7 +1288,7 @@ class upbit(Exchange, ImplicitAPI):
         #         "fee": "0.0"
         #     }
         #
-        # fetchWithdrawals
+        # fetchWithdrawals, fetchWithdrawal
         #
         #     {
         #         "type": "withdraw",
@@ -1222,26 +1303,20 @@ class upbit(Exchange, ImplicitAPI):
         #         "krw_amount": "80420.0"
         #     }
         #
-        id = self.safe_string(transaction, 'uuid')
-        amount = self.safe_number(transaction, 'amount')
         address = None  # not present in the data structure received from the exchange
         tag = None  # not present in the data structure received from the exchange
-        txid = self.safe_string(transaction, 'txid')
         updatedRaw = self.safe_string(transaction, 'done_at')
-        updated = self.parse8601(updatedRaw)
         timestamp = self.parse8601(self.safe_string(transaction, 'created_at', updatedRaw))
         type = self.safe_string(transaction, 'type')
         if type == 'withdraw':
             type = 'withdrawal'
         currencyId = self.safe_string(transaction, 'currency')
-        code = self.safe_currency_code(currencyId)
-        status = self.parse_transaction_status(self.safe_string_lower(transaction, 'state'))
-        feeCost = self.safe_number(transaction, 'fee')
+        code = self.safe_currency_code(currencyId, currency)
         return {
             'info': transaction,
-            'id': id,
+            'id': self.safe_string(transaction, 'uuid'),
             'currency': code,
-            'amount': amount,
+            'amount': self.safe_number(transaction, 'amount'),
             'network': None,
             'address': address,
             'addressTo': None,
@@ -1249,17 +1324,17 @@ class upbit(Exchange, ImplicitAPI):
             'tag': tag,
             'tagTo': None,
             'tagFrom': None,
-            'status': status,
+            'status': self.parse_transaction_status(self.safe_string_lower(transaction, 'state')),
             'type': type,
-            'updated': updated,
-            'txid': txid,
+            'updated': self.parse8601(updatedRaw),
+            'txid': self.safe_string(transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'internal': None,
             'comment': None,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': self.safe_number(transaction, 'fee'),
             },
         }
 
@@ -1705,7 +1780,7 @@ class upbit(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(query)
         if api == 'private':
             self.check_required_credentials()
-            nonce = self.nonce()
+            nonce = self.uuid()
             request = {
                 'access_key': self.apiKey,
                 'nonce': nonce,

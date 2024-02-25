@@ -4893,6 +4893,7 @@ class okx(Exchange, ImplicitAPI):
     async def fetch_positions(self, symbols: Strings = None, params={}):
         """
         :see: https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
+        :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history history
         fetch all open positions
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -5025,13 +5026,38 @@ class okx(Exchange, ImplicitAPI):
         #        "vegaBS": "",
         #        "vegaPA": ""
         #    }
+        # history
+        #    {
+        #        "cTime":"1708351230102",
+        #        "ccy":"USDT",
+        #        "closeAvgPx":"1.2567",
+        #        "closeTotalPos":"40",
+        #        "direction":"short",
+        #        "fee":"-0.0351036",
+        #        "fundingFee":"0",
+        #        "instId":"SUSHI-USDT-SWAP",
+        #        "instType":"SWAP",
+        #        "lever":"10.0",
+        #        "liqPenalty":"0",
+        #        "mgnMode":"isolated",
+        #        "openAvgPx":"1.2462",
+        #        "openMaxPos":"40",
+        #        "pnl":"-0.42",
+        #        "pnlRatio":"-0.0912982667308618",
+        #        "posId":"666159086676836352",
+        #        "realizedPnl":"-0.4551036",
+        #        "triggerPx":"",
+        #        "type":"2",
+        #        "uTime":"1708354805699",
+        #        "uly":"SUSHI-USDT"
+        #    }
         #
         marketId = self.safe_string(position, 'instId')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         pos = self.safe_string(position, 'pos')  # 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way(hedge) mode: -1 if short, 1 if long, 0 if position is not open
         contractsAbs = Precise.string_abs(pos)
-        side = self.safe_string(position, 'posSide')
+        side = self.safe_string_2(position, 'posSide', 'direction')
         hedged = side != 'net'
         contracts = self.parse_number(contractsAbs)
         if market['margin']:
@@ -5061,7 +5087,7 @@ class okx(Exchange, ImplicitAPI):
         notional = self.parse_number(notionalString)
         marginMode = self.safe_string(position, 'mgnMode')
         initialMarginString = None
-        entryPriceString = self.safe_string(position, 'avgPx')
+        entryPriceString = self.safe_string_2(position, 'avgPx', 'openAvgPx')
         unrealizedPnlString = self.safe_string(position, 'upl')
         leverageString = self.safe_string(position, 'lever')
         initialMarginPercentage = None
@@ -5084,27 +5110,28 @@ class okx(Exchange, ImplicitAPI):
         liquidationPrice = self.safe_number(position, 'liqPx')
         percentageString = self.safe_string(position, 'uplRatio')
         percentage = self.parse_number(Precise.string_mul(percentageString, '100'))
-        timestamp = self.safe_integer(position, 'uTime')
+        timestamp = self.safe_integer(position, 'cTime')
         marginRatio = self.parse_number(Precise.string_div(maintenanceMarginString, collateralString, 4))
         return self.safe_position({
             'info': position,
-            'id': None,
+            'id': self.safe_string(position, 'posId'),
             'symbol': symbol,
             'notional': notional,
             'marginMode': marginMode,
             'liquidationPrice': liquidationPrice,
             'entryPrice': self.parse_number(entryPriceString),
             'unrealizedPnl': self.parse_number(unrealizedPnlString),
+            'realizedPnl': self.safe_number(position, 'realizedPnl'),
             'percentage': percentage,
             'contracts': contracts,
             'contractSize': contractSize,
             'markPrice': self.parse_number(markPriceString),
-            'lastPrice': None,
+            'lastPrice': self.safe_number(position, 'closeAvgPx'),
             'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastUpdateTimestamp': None,
+            'lastUpdateTimestamp': self.safe_integer(position, 'uTime'),
             'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
             'collateral': self.parse_number(collateralString),

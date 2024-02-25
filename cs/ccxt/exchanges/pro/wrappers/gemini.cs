@@ -135,6 +135,27 @@ public partial class gemini
         var res = await this.watchOrderBookForSymbols(symbols, limit, parameters);
         return ((ccxt.pro.IOrderBook) res).Copy();
     }
+    /// <summary>
+    /// watches best bid & ask for symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.gemini.com/websocket-api/#multi-market-data"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> WatchBidsAsks(List<string> symbols, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchBidsAsks(symbols, limit, parameters);
+        return new Tickers(res);
+    }
     public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

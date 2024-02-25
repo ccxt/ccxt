@@ -983,6 +983,7 @@ export default class bitget extends bitgetRest {
         //                 "clientOid": "798d1425-d31d-4ada-a51b-ec701e00a1d9",
         //                 "price": "35000.00",
         //                 "size": "7.0000",
+        //                 "newSize": "500.0000",
         //                 "notional": "7.000000",
         //                 "orderType": "limit",
         //                 "force": "gtc",
@@ -1149,6 +1150,7 @@ export default class bitget extends bitgetRest {
         //         "clientOid": "798d1425-d31d-4ada-a51b-ec701e00a1d9",
         //         "price": "35000.00",
         //         "size": "7.0000",
+        //         "newSize": "500.0000",
         //         "notional": "7.000000",
         //         "orderType": "limit",
         //         "force": "gtc",
@@ -1256,6 +1258,25 @@ export default class bitget extends bitgetRest {
             };
         }
         const triggerPrice = this.safeNumber (order, 'triggerPrice');
+        const price = this.safeString (order, 'price');
+        const avgPrice = this.omitZero (this.safeString2 (order, 'priceAvg', 'fillPrice'));
+        let cost = this.safeStringN (order, [ 'notional', 'notionalUsd', 'quoteSize' ]);
+        const side = this.safeString (order, 'side');
+        const type = this.safeString (order, 'orderType');
+        if (side === 'buy' && market['spot'] && (type === 'market')) {
+            cost = this.safeString (order, 'newSize', cost);
+        }
+        let filled = this.safeString2 (order, 'accBaseVolume', 'baseVolume');
+        if (market['spot'] && (rawStatus !== 'live')) {
+            filled = Precise.stringDiv (cost, avgPrice);
+        }
+        let amount = this.safeString (order, 'baseVolume');
+        if (!market['spot'] || !(side === 'buy' && type === 'market')) {
+            amount = this.safeString (order, 'newSize', amount);
+        }
+        if (market['swap'] && (amount === undefined)) {
+            amount = this.safeString (order, 'size');
+        }
         return this.safeOrder ({
             'info': order,
             'symbol': symbol,
@@ -1264,17 +1285,17 @@ export default class bitget extends bitgetRest {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': this.safeInteger (order, 'uTime'),
-            'type': this.safeString (order, 'orderType'),
+            'type': type,
             'timeInForce': this.safeStringUpper (order, 'force'),
             'postOnly': undefined,
-            'side': this.safeString (order, 'side'),
-            'price': this.safeString (order, 'price'),
+            'side': side,
+            'price': price,
             'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
-            'amount': this.safeString (order, 'baseVolume'),
-            'cost': this.safeStringN (order, [ 'notional', 'notionalUsd', 'quoteSize' ]),
-            'average': this.omitZero (this.safeString2 (order, 'priceAvg', 'fillPrice')),
-            'filled': this.safeString2 (order, 'accBaseVolume', 'baseVolume'),
+            'amount': amount,
+            'cost': cost,
+            'average': avgPrice,
+            'filled': filled,
             'remaining': undefined,
             'status': this.parseWsOrderStatus (rawStatus),
             'fee': feeObject,

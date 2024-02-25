@@ -68,6 +68,7 @@ class binance(Exchange, ImplicitAPI):
                 'createMarketSellOrderWithCost': True,
                 'createOrder': True,
                 'createOrders': True,
+                'createOrderWithTakeProfitAndStopLoss': True,
                 'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
@@ -141,7 +142,7 @@ class binance(Exchange, ImplicitAPI):
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTradingLimits': None,
-                'fetchTransactionFee': None,
+                'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': True,
                 'fetchTransactions': False,
                 'fetchTransfers': True,
@@ -493,6 +494,10 @@ class binance(Exchange, ImplicitAPI):
                         'simple-earn/flexible/history/rewardsRecord': 15,
                         'simple-earn/locked/history/rewardsRecord': 15,
                         'simple-earn/flexible/history/collateralRecord': 0.1,
+                        # Convert
+                        'dci/product/list': 0.1,
+                        'dci/product/positions': 0.1,
+                        'dci/product/accounts': 0.1,
                     },
                     'post': {
                         'asset/dust': 0.06667,  # Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
@@ -621,6 +626,9 @@ class binance(Exchange, ImplicitAPI):
                         'simple-earn/locked/redeem': 0.1,
                         'simple-earn/flexible/setAutoSubscribe': 15,
                         'simple-earn/locked/setAutoSubscribe': 15,
+                        # convert
+                        'dci/product/subscribe': 0.1,
+                        'dci/product/auto_compound/edit': 0.1,
                     },
                     'put': {
                         'userDataStream': 0.1,
@@ -2985,7 +2993,7 @@ class binance(Exchange, ImplicitAPI):
         fees = self.fees
         linear = None
         inverse = None
-        strike = self.safe_integer(market, 'strikePrice')
+        strike = self.safe_string(market, 'strikePrice')
         symbol = base + '/' + quote
         if contract:
             if swap:
@@ -2993,7 +3001,7 @@ class binance(Exchange, ImplicitAPI):
             elif future:
                 symbol = symbol + ':' + settle + '-' + self.yymmdd(expiry)
             elif option:
-                symbol = symbol + ':' + settle + '-' + self.yymmdd(expiry) + '-' + self.number_to_string(strike) + '-' + self.safe_string(optionParts, 3)
+                symbol = symbol + ':' + settle + '-' + self.yymmdd(expiry) + '-' + strike + '-' + self.safe_string(optionParts, 3)
             contractSize = self.safe_number_2(market, 'contractSize', 'unit', self.parse_number('1'))
             linear = settle == quote
             inverse = settle == base
@@ -3017,6 +3025,9 @@ class binance(Exchange, ImplicitAPI):
         elif option:
             unifiedType = 'option'
             active = None
+        parsedStrike = None
+        if strike is not None:
+            parsedStrike = self.parse_to_numeric(strike)
         entry = {
             'id': id,
             'lowercaseId': lowercaseId,
@@ -3042,7 +3053,7 @@ class binance(Exchange, ImplicitAPI):
             'contractSize': contractSize,
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
-            'strike': strike,
+            'strike': parsedStrike,
             'optionType': self.safe_string_lower(market, 'side'),
             'precision': {
                 'amount': self.safe_integer_2(market, 'quantityPrecision', 'quantityScale'),
@@ -5513,12 +5524,14 @@ class binance(Exchange, ImplicitAPI):
         trailingDelta = self.safe_string(params, 'trailingDelta')
         trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activationPrice', self.number_to_string(price))
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRate')
+        priceMatch = self.safe_string(params, 'priceMatch')
         isTrailingPercentOrder = trailingPercent is not None
         isStopLoss = stopLossPrice is not None or trailingDelta is not None
         isTakeProfit = takeProfitPrice is not None
         isTriggerOrder = triggerPrice is not None
         isConditional = isTriggerOrder or isTrailingPercentOrder or isStopLoss or isTakeProfit
         isPortfolioMarginConditional = (isPortfolioMargin and isConditional)
+        isPriceMatch = priceMatch is not None
         uppercaseType = type.upper()
         stopPrice = None
         if isTrailingPercentOrder:
@@ -5655,7 +5668,7 @@ class binance(Exchange, ImplicitAPI):
                 request['quantity'] = self.parse_to_numeric(amount)
             else:
                 request['quantity'] = self.amount_to_precision(symbol, amount)
-        if priceIsRequired:
+        if priceIsRequired and not isPriceMatch:
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
             request['price'] = self.price_to_precision(symbol, price)

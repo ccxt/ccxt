@@ -186,4 +186,24 @@ public partial class bl3p
         var res = await this.cancelOrder(id, symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
+    /// <summary>
+    /// create a currency deposit address
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#32---create-a-new-deposit-address"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
+    public async Task<Dictionary<string, object>> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createDepositAddress(code, parameters);
+        return ((Dictionary<string, object>)res);
+    }
 }

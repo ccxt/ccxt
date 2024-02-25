@@ -1,5 +1,5 @@
 import Exchange from './abstract/independentreserve.js';
-import type { Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
+import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
 /**
  * @class independentreserve
  * @augments Exchange
@@ -23,6 +23,20 @@ export default class independentreserve extends Exchange {
     fetchTradingFees(params?: {}): Promise<{}>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
+    fetchDepositAddress(code: string, params?: {}): Promise<{
+        info: any;
+        currency: string;
+        address: string;
+        tag: string;
+        network: any;
+    }>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): {
+        info: any;
+        currency: string;
+        address: string;
+        tag: string;
+        network: any;
+    };
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

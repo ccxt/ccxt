@@ -5480,6 +5480,7 @@ public partial class okx : Exchange
         * @method
         * @name okx#fetchPositions
         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
+        * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history history
         * @description fetch all open positions
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5627,13 +5628,38 @@ public partial class okx : Exchange
         //        "vegaBS": "",
         //        "vegaPA": ""
         //    }
+        // history
+        //    {
+        //        "cTime":"1708351230102",
+        //        "ccy":"USDT",
+        //        "closeAvgPx":"1.2567",
+        //        "closeTotalPos":"40",
+        //        "direction":"short",
+        //        "fee":"-0.0351036",
+        //        "fundingFee":"0",
+        //        "instId":"SUSHI-USDT-SWAP",
+        //        "instType":"SWAP",
+        //        "lever":"10.0",
+        //        "liqPenalty":"0",
+        //        "mgnMode":"isolated",
+        //        "openAvgPx":"1.2462",
+        //        "openMaxPos":"40",
+        //        "pnl":"-0.42",
+        //        "pnlRatio":"-0.0912982667308618",
+        //        "posId":"666159086676836352",
+        //        "realizedPnl":"-0.4551036",
+        //        "triggerPx":"",
+        //        "type":"2",
+        //        "uTime":"1708354805699",
+        //        "uly":"SUSHI-USDT"
+        //    }
         //
         object marketId = this.safeString(position, "instId");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
         object pos = this.safeString(position, "pos"); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         object contractsAbs = Precise.stringAbs(pos);
-        object side = this.safeString(position, "posSide");
+        object side = this.safeString2(position, "posSide", "direction");
         object hedged = !isEqual(side, "net");
         object contracts = this.parseNumber(contractsAbs);
         if (isTrue(getValue(market, "margin")))
@@ -5682,7 +5708,7 @@ public partial class okx : Exchange
         object notional = this.parseNumber(notionalString);
         object marginMode = this.safeString(position, "mgnMode");
         object initialMarginString = null;
-        object entryPriceString = this.safeString(position, "avgPx");
+        object entryPriceString = this.safeString2(position, "avgPx", "openAvgPx");
         object unrealizedPnlString = this.safeString(position, "upl");
         object leverageString = this.safeString(position, "lever");
         object initialMarginPercentage = null;
@@ -5711,27 +5737,28 @@ public partial class okx : Exchange
         object liquidationPrice = this.safeNumber(position, "liqPx");
         object percentageString = this.safeString(position, "uplRatio");
         object percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
-        object timestamp = this.safeInteger(position, "uTime");
+        object timestamp = this.safeInteger(position, "cTime");
         object marginRatio = this.parseNumber(Precise.stringDiv(maintenanceMarginString, collateralString, 4));
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
-            { "id", null },
+            { "id", this.safeString(position, "posId") },
             { "symbol", symbol },
             { "notional", notional },
             { "marginMode", marginMode },
             { "liquidationPrice", liquidationPrice },
             { "entryPrice", this.parseNumber(entryPriceString) },
             { "unrealizedPnl", this.parseNumber(unrealizedPnlString) },
+            { "realizedPnl", this.safeNumber(position, "realizedPnl") },
             { "percentage", percentage },
             { "contracts", contracts },
             { "contractSize", contractSize },
             { "markPrice", this.parseNumber(markPriceString) },
-            { "lastPrice", null },
+            { "lastPrice", this.safeNumber(position, "closeAvgPx") },
             { "side", side },
             { "hedged", hedged },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "lastUpdateTimestamp", null },
+            { "lastUpdateTimestamp", this.safeInteger(position, "uTime") },
             { "maintenanceMargin", maintenanceMargin },
             { "maintenanceMarginPercentage", maintenanceMarginPercentage },
             { "collateral", this.parseNumber(collateralString) },
