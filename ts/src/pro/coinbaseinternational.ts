@@ -2,7 +2,7 @@
 
 import coinbaseinternationalRest from '../coinbaseinternational.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
-import { Ticker, Int, Trade, OrderBook, Market } from '../base/types.js';
+import { Ticker, Int, Trade, OrderBook, Market, FundingRate } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache } from '../base/ws/Cache.js';
@@ -47,15 +47,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             },
             'options': {
                 'watchTicker': {
-                    'channel': 'LEVEL1',  // 'INSTRUMENTS'
+                    'channel': 'LEVEL1',  // 'INSTRUMENTS' or 'RISK'
                 },
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'myTradesLimit': 1000,
-                'sides': {
-                    'bid': 'bids',
-                    'offer': 'asks',
-                },
             },
             'errors': {
                 'exact': {
@@ -80,14 +76,17 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         let market = undefined;
         let messageHash = name;
         let productIds = [];
+        if (symbol === undefined) {
+            symbol = this.symbols;
+        }
         if (Array.isArray (symbol)) {
             const symbols = this.marketSymbols (symbol);
             const marketIds = this.marketIds (symbols);
             productIds = marketIds;
-            messageHash = messageHash + '::' + symbol.join (',');
+            messageHash = messageHash + '::' + symbols.join (',');
         } else if (symbol !== undefined) {
             market = this.market (symbol);
-            messageHash = name + '::' + market['id'];
+            messageHash = name + '::' + market['symbol'];
             productIds = [ market['id'] ];
         }
         const url = this.urls['api']['ws'];
@@ -152,6 +151,32 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return await this.watchMultiple (url, messageHashes, this.extend (subscribe, params), messageHashes);
     }
 
+    async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        /**
+         * @method
+         * @name coinbaseinternational#watchFundingRate
+         * @description watch the current funding rate
+         * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        return await this.subscribe ('RISK', symbol, params);
+    }
+
+    async watchFundingRates (symbols: string[], params = {}): Promise<{}> {
+        /**
+         * @method
+         * @name coinbaseinternational#watchFundingRates
+         * @description watch the funding rate for multiple markets
+         * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         */
+        return await this.subscribeMultiple ('RISK', symbols, params);
+    }
+
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
@@ -194,7 +219,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         //        "type":"SNAPSHOT"
         //    }
         const ticker = this.parseWsInstrument (message);
-        client.resolve (ticker, 'INSTRUMENTS::' + ticker['symbol']);
+        const channel = this.safeString (message, 'channel');
+        client.resolve (ticker, channel);
+        client.resolve (ticker, channel + '::' + ticker['symbol']);
     }
 
     parseWsInstrument (ticker, market = undefined) {
@@ -275,9 +302,10 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         //       "type": "UPDATE"
         //    }
         //
-        const ticker = this.parseTicker (message);
-        client.resolve (ticker, 'ticker');
-        client.resolve (ticker, 'LEVEL1::' + ticker['symbol']);
+        const ticker = this.parseWsTicker (message);
+        const channel = this.safeString (message, 'channel');
+        client.resolve (ticker, channel);
+        client.resolve (ticker, channel + '::' + ticker['symbol']);
     }
 
     parseWsTicker (ticker: object, market: Market = undefined): Ticker {
@@ -374,13 +402,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const trade = this.parseWsTrade (message);
         const symbol = trade['symbol'];
         let tradesArray = this.safeValue (this.trades, symbol);
+        const channel = this.safeString (message, 'channel');
         if (tradesArray === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             tradesArray = new ArrayCache (limit);
         }
         tradesArray.append (trade);
         this.trades[symbol] = tradesArray;
-        client.resolve (tradesArray, 'MATCH::' + trade['symbol']);
+        client.resolve (tradesArray, channel);
+        client.resolve (tradesArray, channel + '::' + trade['symbol']);
         return message;
     }
 
@@ -485,6 +515,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const marketId = this.safeString (message, 'product_id');
         const symbol = this.safeSymbol (marketId);
         const datetime = this.safeString (message, 'time');
+        const channel = this.safeString (message, 'channel');
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (type === 'SNAPSHOT') {
             const limit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
@@ -498,7 +529,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         orderbook['datetime'] = datetime;
         orderbook['timestamp'] = this.parse8601 (datetime);
         this.orderbooks[symbol] = orderbook;
-        client.resolve (orderbook, 'LEVEL2::' + symbol);
+        client.resolve (orderbook, channel + '::' + symbol);
     }
 
     handleDelta (orderbook, delta) {
@@ -543,6 +574,34 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return message;
     }
 
+    handleFundingRate (client: Client, message) {
+        //
+        // snapshot
+        //    {
+        //       "sequence": 0,
+        //       "product_id": "BTC-PERP",
+        //       "time": "2023-05-10T14:58:47.000Z",
+        //       "funding_rate": "0.001387",
+        //       "is_final": true,
+        //       "channel": "FUNDING",
+        //       "type": "SNAPSHOT"
+        //    }
+        // update
+        //    {
+        //       "sequence": 1,
+        //       "product_id": "BTC-PERP",
+        //       "time": "2023-05-10T15:00:00.000Z",
+        //       "funding_rate": "0.001487",
+        //       "is_final": false,
+        //       "channel": "FUNDING",
+        //       "type": "UPDATE"
+        //    }
+        //
+        const channel = this.safeString (message, 'channel');
+        const fundingRate = this.parseFundingRate (message);
+        client.resolve (fundingRate, channel + '::' + fundingRate['symbol']);
+    }
+
     handleErrorMessage (client: Client, message) {
         //
         //    {
@@ -580,6 +639,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             'LEVEL1': this.handleTicker,
             'MATCH': this.handleTrade,
             'LEVEL2': this.handleOrderBook,
+            'FUNDING': this.handleFundingRate,
+            'RISK': this.handleTicker,
         };
         const type = this.safeString (message, 'type');
         if (type === 'error') {

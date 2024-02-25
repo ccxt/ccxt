@@ -2,7 +2,7 @@
 // ----------------------------------------------------------------------------
 
 import Exchange from './abstract/coinbaseinternational.js';
-import { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder, PermissionDenied, DuplicateOrderId } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder, PermissionDenied, DuplicateOrderId, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -130,9 +130,9 @@ export default class coinbaseinternational extends Exchange {
                 'secret': false,
                 'password': true,
             },
-            'proxyURL': 'http://oqDC2qbE92ubjog:EPCorco2sZKFUMr@194.135.30.249:44795',
-            'wsProxy': 'http://oqDC2qbE92ubjog:EPCorco2sZKFUMr@194.135.30.249:44795',
-            'httpProxy': 'http://oqDC2qbE92ubjog:EPCorco2sZKFUMr@194.135.30.249:44795',
+            //'proxyURL': 'http://oqDC2qbE92ubjog:EPCorco2sZKFUMr@194.135.30.249:44795',
+            'wsProxy': 'http://35.229.158.21:3128',
+            'httpProxy': 'http://35.229.158.21:3128',
             'api': {
                 'v1': {
                     'public': {
@@ -224,6 +224,7 @@ export default class coinbaseinternational extends Exchange {
                     'invalid result_limit': BadRequest,
                     'is a required field': BadRequest,
                     'Not Found': BadRequest,
+                    'ip not allowed': AuthenticationError,
                 },
             },
             'timeframes': {
@@ -369,7 +370,7 @@ export default class coinbaseinternational extends Exchange {
         //       "event_time":"2024-02-10T16:00:00Z"
         //    }
         //
-        const fundingDatetime = this.safeString (contract, 'event_time');
+        const fundingDatetime = this.safeString2 (contract, 'event_time', 'time');
         return {
             'info': contract,
             'symbol': this.safeSymbol (undefined, market),
@@ -577,6 +578,7 @@ export default class coinbaseinternational extends Exchange {
         //
         const marketId = this.safeString (position, 'symbol');
         let quantity = this.safeString (position, 'net_size');
+        market = this.safeMarket (marketId, market, '-');
         let side = 'long';
         if (Precise.stringLe (quantity, '0')) {
             side = 'short';
@@ -593,7 +595,7 @@ export default class coinbaseinternational extends Exchange {
             'unrealizedPnl': this.safeNumber (position, 'unrealized_pnl'),
             'side': side,
             'contracts': this.parseNumber (quantity),
-            'contractSize': undefined,
+            'contractSize': this.safeNumber (market, 'contractSize'),
             'timestamp': undefined,
             'datetime': undefined,
             'hedged': undefined,
@@ -929,7 +931,7 @@ export default class coinbaseinternational extends Exchange {
             'spot': isSpot,
             'margin': false,
             'swap': !isSpot,
-            'future': !isSpot,
+            'future': false,
             'option': false,
             'active': this.safeString (market, 'trading_state') === 'TRADING',
             'contract': !isSpot,
@@ -937,7 +939,7 @@ export default class coinbaseinternational extends Exchange {
             'inverse': isSpot ? undefined : (settleId !== quoteId),
             'taker': fees['trading']['taker'],
             'maker': fees['trading']['maker'],
-            'contractSize': 1,
+            'contractSize': isSpot ? undefined : 1,
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
@@ -1052,7 +1054,7 @@ export default class coinbaseinternational extends Exchange {
             const quote = this.safeDict (instrument, 'quote', {});
             tickers[symbol] = this.parseTicker (quote, this.safeMarket (marketId));
         }
-        return this.filterByArray (tickers, 'symbol', symbols);
+        return this.filterByArray (tickers, 'symbol', symbols, true);
     }
 
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {

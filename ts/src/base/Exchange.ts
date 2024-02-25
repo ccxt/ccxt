@@ -2269,6 +2269,18 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchFundingRates() is not supported yet');
     }
 
+    async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        throw new NotSupported (this.id + ' watchFundingRate() is not supported yet');
+    }
+
+    async watchFundingRates (symbols: string[], params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' watchFundingRates() is not supported yet');
+    }
+
+    async watchFundingRatesForSymbols (symbols: string[], params = {}): Promise<{}> {
+        return await this.watchFundingRates (symbols, params);
+    }
+
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
         throw new NotSupported (this.id + ' transfer() is not supported yet');
     }
