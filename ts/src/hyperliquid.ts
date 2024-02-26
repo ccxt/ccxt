@@ -817,7 +817,13 @@ export default class hyperliquid extends Exchange {
             'orders': orderReq,
             'grouping': 'na',
         };
-        const request = this.signL1Action (orderAction, nonce);
+        const signature = this.signL1Action (orderAction, nonce);
+        const request = {
+            'action': orderAction,
+            'nonce': nonce,
+            'signature': signature,
+            'vaultAddress': vaultAddress,
+        };
         const response = await this.privatePostExchange (request);
         //
         //     {
