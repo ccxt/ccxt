@@ -940,12 +940,14 @@ export default class okx extends okxRest {
         const channel = 'positions';
         let newPositions = undefined;
         if (symbols === undefined) {
+            const arg = {
+                'channel': 'positions',
+                'instType': 'ANY',
+            };
+            const args = [ arg ];
             const nonSymbolRequest = {
                 'op': 'subscribe',
-                'args': [ {
-                    'channel': 'positions',
-                    'instType': 'ANY',
-                } ],
+                'args': args,
             };
             const url = this.getUrl (channel, 'private');
             newPositions = await this.watch (url, channel, nonSymbolRequest, channel);
