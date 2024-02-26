@@ -724,6 +724,7 @@
         }
     },
     "cex": {
+        "preferredSpotSymbol": "BTC/USD",
         "skipMethods": {
             "proxies": "probably they do not permit our proxy location",
             "loadMarkets": {
