@@ -931,9 +931,6 @@ export default class okx extends okxRest {
          * @param {object} params extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
-        if (this.isEmpty (symbols)) {
-            throw new ArgumentsRequired (this.id + ' watchPositions requires a list of symbols');
-        }
         await this.loadMarkets ();
         await this.authenticate (params);
         symbols = this.marketSymbols (symbols);
@@ -941,7 +938,20 @@ export default class okx extends okxRest {
             'instType': 'ANY',
         };
         const channel = 'positions';
-        const newPositions = await this.subscribeMultiple ('private', channel, symbols, this.extend (request, params));
+        let newPositions = undefined;
+        if (symbols === undefined) {
+            const nonSymbolRequest = {
+                'op': 'subscribe',
+                'args': [ {
+                    'channel': 'positions',
+                    'instType': 'ANY',
+                } ],
+            };
+            const url = this.getUrl (channel, 'private');
+            newPositions = await this.watch (url, channel, nonSymbolRequest, channel);
+        } else {
+            newPositions = await this.subscribeMultiple ('private', channel, symbols, this.extend (request, params));
+        }
         if (this.newUpdates) {
             return newPositions;
         }
@@ -1040,6 +1050,7 @@ export default class okx extends okxRest {
                 client.resolve (positions, messageHash);
             }
         }
+        client.resolve (newPositions, channel);
     }
 
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
