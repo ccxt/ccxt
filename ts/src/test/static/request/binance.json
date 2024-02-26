@@ -2666,6 +2666,38 @@
                   }
                 ]
             }
+        ],
+        "fetchPositionMode": [
+            {
+                "description": "Fetch Position Mode for linear markets",
+                "method": "fetchPositionMode",
+                "url": "https://testnet.binancefuture.com/fapi/v1/positionSide/dual?timestamp=1708957008104&recvWindow=10000&signature=9c06e6b4e748672ca010b656010a1a5ab35be45b8c0484c2ff1f7a672d30a83b",
+                "input": [
+                    null,
+                    {
+                        "subType": "linear"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch Position Mode for inverse markets",
+                "method": "fetchPositionMode",
+                "url": "https://testnet.binancefuture.com/dapi/v1/positionSide/dual?timestamp=1708957069083&recvWindow=10000&signature=8fca8b68435e3fb8a1abc2ccf6bbf47acfee2df637c6fcd80ca466441f12a2f4",
+                "input": [
+                  null,
+                  {
+                    "subType": "inverse"
+                  }
+                ]
+            },
+            {
+                "description": "test with a linear symbol",
+                "method": "fetchPositionMode",
+                "url": "https://testnet.binancefuture.com/fapi/v1/positionSide/dual?timestamp=1708957224845&recvWindow=10000&signature=55a79022aa888b93211125c8ef8682102a3b6009bdbf9bad8cd3966b441429d8",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }

@@ -43,9 +43,11 @@ class binance(ccxt.async_support.binance):
                 'fetchDepositsWs': False,
                 'fetchMarketsWs': False,
                 'fetchMyTradesWs': True,
+                'fetchOHLCVWs': True,
                 'fetchOpenOrdersWs': True,
                 'fetchOrderWs': True,
                 'fetchOrdersWs': True,
+                'fetchTradesWs': True,
                 'fetchTradingFeesWs': False,
                 'fetchWithdrawalsWs': False,
             },
@@ -775,6 +777,89 @@ class binance(ccxt.async_support.binance):
             self.ohlcvs[symbol][timeframe] = stored
         stored.append(parsed)
         client.resolve(stored, messageHash)
+
+    async def fetch_ohlcv_ws(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+        """
+        :see: https://binance-docs.github.io/apidocs/websocket_api/en/#klines
+        query historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to query OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int since: timestamp in ms of the earliest candle to fetch
+        :param int limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the exchange API endpoint
+        :param int params['until']: timestamp in ms of the earliest candle to fetch
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param str params['timeZone']: default=0(UTC)
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        await self.load_markets()
+        self.check_is_spot('fetchOHLCVWs', symbol, params)
+        url = self.urls['api']['ws']['ws']
+        requestId = self.request_id(url)
+        messageHash = str(requestId)
+        returnRateLimits = False
+        returnRateLimits, params = self.handle_option_and_params(params, 'fetchOHLCVWs', 'returnRateLimits', False)
+        payload = {
+            'symbol': self.market_id(symbol),
+            'returnRateLimits': returnRateLimits,
+            'interval': self.timeframes[timeframe],
+        }
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, 'until')
+        if since is not None:
+            payload['startTime'] = since
+        if limit is not None:
+            payload['limit'] = limit
+        if until is not None:
+            payload['endTime'] = until
+        message = {
+            'id': messageHash,
+            'method': 'klines',
+            'params': self.extend(payload, params),
+        }
+        subscription = {
+            'method': self.handle_fetch_ohlcv,
+        }
+        return await self.watch(url, messageHash, message, messageHash, subscription)
+
+    def handle_fetch_ohlcv(self, client: Client, message):
+        #
+        #    {
+        #        "id": "1dbbeb56-8eea-466a-8f6e-86bdcfa2fc0b",
+        #        "status": 200,
+        #        "result": [
+        #            [
+        #                1655971200000,      # Kline open time
+        #                "0.01086000",       # Open price
+        #                "0.01086600",       # High price
+        #                "0.01083600",       # Low price
+        #                "0.01083800",       # Close price
+        #                "2290.53800000",    # Volume
+        #                1655974799999,      # Kline close time
+        #                "24.85074442",      # Quote asset volume
+        #                2283,               # Number of trades
+        #                "1171.64000000",    # Taker buy base asset volume
+        #                "12.71225884",      # Taker buy quote asset volume
+        #                "0"                 # Unused field, ignore
+        #            ]
+        #        ],
+        #        "rateLimits": [
+        #            {
+        #                "rateLimitType": "REQUEST_WEIGHT",
+        #                "interval": "MINUTE",
+        #                "intervalNum": 1,
+        #                "limit": 6000,
+        #                "count": 2
+        #            }
+        #        ]
+        #    }
+        #
+        result = self.safe_list(message, 'result')
+        parsed = self.parse_ohlcvs(result)
+        # use a reverse lookup in a static map instead
+        messageHash = self.safe_string(message, 'id')
+        client.resolve(parsed, messageHash)
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
@@ -2328,12 +2413,54 @@ class binance(ccxt.async_support.binance):
         trades = await self.watch(url, messageHash, message, messageHash, subscription)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
 
+    async def fetch_trades_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        :see: https://binance-docs.github.io/apidocs/websocket_api/en/#recent-trades
+        fetch all trades made by the user
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve, default=500, max=1000
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param int [params.fromId]: trade ID to begin at
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        """
+        await self.load_markets()
+        if symbol is None:
+            raise BadRequest(self.id + ' fetchTradesWs() requires a symbol argument')
+        self.check_is_spot('fetchTradesWs', symbol, params)
+        url = self.urls['api']['ws']['ws']
+        requestId = self.request_id(url)
+        messageHash = str(requestId)
+        returnRateLimits = False
+        returnRateLimits, params = self.handle_option_and_params(params, 'fetchTradesWs', 'returnRateLimits', False)
+        payload = {
+            'symbol': self.market_id(symbol),
+            'returnRateLimits': returnRateLimits,
+        }
+        if limit is not None:
+            payload['limit'] = limit
+        message = {
+            'id': messageHash,
+            'method': 'trades.historical',
+            'params': self.extend(payload, params),
+        }
+        subscription = {
+            'method': self.handle_trades_ws,
+        }
+        trades = await self.watch(url, messageHash, message, messageHash, subscription)
+        return self.filter_by_since_limit(trades, since, limit)
+
     def handle_trades_ws(self, client: Client, message):
+        #
+        # fetchMyTradesWs
         #
         #    {
         #        "id": "f4ce6a53-a29d-4f70-823b-4ab59391d6e8",
         #        "status": 200,
-        #        "result": [{
+        #        "result": [
+        #            {
         #                "symbol": "BTCUSDT",
         #                "id": 1650422481,
         #                "orderId": 12569099453,
@@ -2348,6 +2475,25 @@ class binance(ccxt.async_support.binance):
         #                "isMaker": True,
         #                "isBestMatch": True
         #            },
+        #            ...
+        #        ],
+        #    }
+        #
+        # fetchTradesWs
+        #
+        #    {
+        #        "id": "f4ce6a53-a29d-4f70-823b-4ab59391d6e8",
+        #        "status": 200,
+        #        "result": [
+        #            {
+        #                "id": 0,
+        #                "price": "0.00005000",
+        #                "qty": "40.00000000",
+        #                "quoteQty": "0.00200000",
+        #                "time": 1500004800376,
+        #                "isBuyerMaker": True,
+        #                "isBestMatch": True
+        #            }
         #            ...
         #        ],
         #    }

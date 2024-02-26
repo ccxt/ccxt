@@ -319,10 +319,10 @@ function assert_fee_structure($exchange, $skipped_properties, $method, $entry, $
 function assert_timestamp_order($exchange, $method, $code_or_symbol, $items, $ascending = true) {
     for ($i = 0; $i < count($items); $i++) {
         if ($i > 0) {
-            $ascending_or_descending = $ascending ? 'ascending' : 'descending';
             $current_ts = $items[$i - 1]['timestamp'];
             $next_ts = $items[$i]['timestamp'];
             if ($current_ts !== null && $next_ts !== null) {
+                $ascending_or_descending = $ascending ? 'ascending' : 'descending';
                 $comparison = $ascending ? ($current_ts <= $next_ts) : ($current_ts >= $next_ts);
                 assert($comparison, $exchange->id . ' ' . $method . ' ' . string_value($code_or_symbol) . ' must return a ' . $ascending_or_descending . ' sorted array of items by timestamp, but ' . ((string) $current_ts) . ' is opposite with its next ' . ((string) $next_ts) . ' ' . $exchange->json($items));
             }

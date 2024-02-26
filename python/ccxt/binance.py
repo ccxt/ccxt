@@ -63,8 +63,12 @@ class binance(Exchange, ImplicitAPI):
                 'closeAllPositions': False,
                 'closePosition': False,  # exchange specific closePosition parameter for binance createOrder is not synonymous with how CCXT uses closePositions
                 'createDepositAddress': False,
+                'createLimitBuyOrder': True,
+                'createLimitSellOrder': True,
+                'createMarketBuyOrder': True,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketOrderWithCost': True,
+                'createMarketSellOrder': True,
                 'createMarketSellOrderWithCost': True,
                 'createOrder': True,
                 'createOrders': True,
@@ -130,6 +134,7 @@ class binance(Exchange, ImplicitAPI):
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionMode': True,
                 'fetchPositions': True,
                 'fetchPositionsRisk': True,
                 'fetchPremiumIndexOHLCV': False,
@@ -145,6 +150,7 @@ class binance(Exchange, ImplicitAPI):
                 'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': True,
                 'fetchTransactions': False,
+                'fetchTransfer': False,
                 'fetchTransfers': True,
                 'fetchUnderlyingAssets': False,
                 'fetchVolatilityHistory': False,
@@ -494,6 +500,10 @@ class binance(Exchange, ImplicitAPI):
                         'simple-earn/flexible/history/rewardsRecord': 15,
                         'simple-earn/locked/history/rewardsRecord': 15,
                         'simple-earn/flexible/history/collateralRecord': 0.1,
+                        # Convert
+                        'dci/product/list': 0.1,
+                        'dci/product/positions': 0.1,
+                        'dci/product/accounts': 0.1,
                     },
                     'post': {
                         'asset/dust': 0.06667,  # Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
@@ -622,6 +632,9 @@ class binance(Exchange, ImplicitAPI):
                         'simple-earn/locked/redeem': 0.1,
                         'simple-earn/flexible/setAutoSubscribe': 15,
                         'simple-earn/locked/setAutoSubscribe': 15,
+                        # convert
+                        'dci/product/subscribe': 0.1,
+                        'dci/product/auto_compound/edit': 0.1,
                     },
                     'put': {
                         'userDataStream': 0.1,
@@ -3981,7 +3994,8 @@ class binance(Exchange, ImplicitAPI):
         #         "closeTime": 1677097200000
         #     }
         #
-        volumeIndex = 7 if (market['inverse']) else 5
+        inverse = self.safe_bool(market, 'inverse')
+        volumeIndex = 7 if inverse else 5
         return [
             self.safe_integer_2(ohlcv, 0, 'closeTime'),
             self.safe_number_2(ohlcv, 1, 'open'),
@@ -7532,7 +7546,6 @@ class binance(Exchange, ImplicitAPI):
 
     def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        :see: https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
         fetch a history of internal transfers made on an account
         :see: https://binance-docs.github.io/apidocs/spot/en/#query-user-universal-transfer-history-user_data
         :param str code: unified currency code of the currency transferred
@@ -11015,4 +11028,35 @@ class binance(Exchange, ImplicitAPI):
             'lastPrice': None,
             'underlyingPrice': None,
             'info': greeks,
+        }
+
+    def fetch_position_mode(self, symbol: Str = None, params={}):
+        """
+        fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param dict params: extra parameters specific to the exchange API endpoint
+        :param str params['subType']: "linear" or "inverse"
+        :returns dict: an object detailing whether the market is in hedged or one-way mode
+        """
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchPositionMode', market, params)
+        response = None
+        if subType == 'linear':
+            response = self.fapiPrivateGetPositionSideDual(params)
+        elif subType == 'inverse':
+            response = self.dapiPrivateGetPositionSideDual(params)
+        else:
+            raise BadRequest(self.id + ' fetchPositionMode requires either a symbol argument or params["subType"]')
+        #
+        #    {
+        #        dualSidePosition: False
+        #    }
+        #
+        dualSidePosition = self.safe_bool(response, 'dualSidePosition')
+        return {
+            'info': response,
+            'hedged': dualSidePosition,
         }
