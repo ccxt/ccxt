@@ -2,6 +2,7 @@ namespace ccxt;
 using System.Security.Cryptography;
 using System.Text;
 
+using MiniMessagePack;
 
 using dict = Dictionary<string, object>;
 using list = List<object>;
@@ -95,6 +96,18 @@ public partial class Exchange
     public string decode(object data)
     {
         return (string)data; // stub for python
+    }
+
+    public string intToBase16(object number)
+    {
+        var n = Convert.ToInt64(number);
+        return n.ToString("x");
+    }
+
+    public object packb(object data)
+    {
+        var packer = new MiniMessagePacker();
+        return packer.Pack(data);
     }
 
     public string rawencode(object paramaters1)
