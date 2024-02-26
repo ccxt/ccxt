@@ -596,6 +596,13 @@ export default class testMainClass extends baseMainTestClass {
 
     getTestSymbol (exchange, isSpot, symbols) {
         let symbol = undefined;
+        const preferredSpotSymbol = exchange.safeString (this.skippedSettingsForExchange, 'preferredSpotSymbol');
+        const preferredSwapSymbol = exchange.safeString (this.skippedSettingsForExchange, 'preferredSwapSymbol');
+        if (isSpot && preferredSpotSymbol) {
+            return preferredSpotSymbol;
+        } else if (!isSpot && preferredSwapSymbol) {
+            return preferredSwapSymbol;
+        }
         for (let i = 0; i < symbols.length; i++) {
             const s = symbols[i];
             const market = exchange.safeValue (exchange.markets, s);
