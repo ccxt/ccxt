@@ -5453,7 +5453,7 @@ export default class okx extends Exchange {
         const liquidationPrice = this.safeNumber (position, 'liqPx');
         const percentageString = this.safeString (position, 'uplRatio');
         const percentage = this.parseNumber (Precise.stringMul (percentageString, '100'));
-        const timestamp = this.safeInteger (position, 'uTime');
+        const timestamp = this.safeInteger (position, 'cTime');
         const marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateralString, 4));
         return this.safePosition ({
             'info': position,
