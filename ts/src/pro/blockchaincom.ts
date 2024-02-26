@@ -690,20 +690,20 @@ export default class blockchaincom extends blockchaincomRest {
         //     }
         //
         const event = this.safeString (message, 'event');
+        if (event === 'subscribed') {
+            return;
+        }
         const type = this.safeString (message, 'channel');
         const marketId = this.safeString (message, 'symbol');
         const symbol = this.safeSymbol (marketId);
         const messageHash = 'orderbook:' + symbol + ':' + type;
         const datetime = this.safeString (message, 'timestamp');
         const timestamp = this.parse8601 (datetime);
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.countedOrderBook ({});
-            this.orderbooks[symbol] = orderbook;
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
+            this.orderbooks[symbol] = this.countedOrderBook ();
         }
-        if (event === 'subscribed') {
-            return;
-        } else if (event === 'snapshot') {
+        const orderbook = this.orderbooks[symbol];
+        if (event === 'snapshot') {
             const snapshot = this.parseOrderBook (message, symbol, timestamp, 'bids', 'asks', 'px', 'qty', 'num');
             orderbook.reset (snapshot);
         } else if (event === 'updated') {
