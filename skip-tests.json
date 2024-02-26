@@ -199,7 +199,6 @@
         }
     },
     "bitfinex2": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
@@ -371,7 +370,6 @@
         }
     },
     "bitrue": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies",
@@ -399,7 +397,6 @@
         }
     },
     "bitstamp": {
-        "skipWs": true,
         "skipMethods": {
             "fetchOrderBook": "bid/ask might be 0",
             "fetchL2OrderBook": "same",
@@ -450,8 +447,6 @@
         }
     },
     "bitvavo": {
-        "skip": "temp",
-        "skipWs": "temp",
         "httpsProxy": "http://51.83.140.52:11230",
         "skipMethods": {
             "fetchCurrencies": {
