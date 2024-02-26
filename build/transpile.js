@@ -633,6 +633,7 @@ class Transpiler {
             // a proper \ccxt\Exchange::deep_extend() base method is implemented instead
             // [ /this\.deepExtend\s/g, 'array_replace_recursive'],
             [ /(\w+)\.shift\s*\(\)/g, 'array_shift($1)' ],
+            [ /(\w+)\.reverse\s*\(\)/g, 'array_reverse($1)' ],
             [ /(\w+)\.pop\s*\(\)/g, 'array_pop($1)' ],
             [ /Number\.MAX_SAFE_INTEGER/g, 'PHP_INT_MAX' ],
             [ /Precise\.stringAdd\s/g, 'Precise::string_add' ],

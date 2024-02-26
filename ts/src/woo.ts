@@ -2,7 +2,7 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/woo.js';
-import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder, ArgumentsRequired, NotSupported } from './base/errors.js';
+import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder, ArgumentsRequired, NotSupported, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -287,6 +287,7 @@ export default class woo extends Exchange {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
+
                     '-1000': ExchangeError, // { "code": -1000,  "message": "An unknown error occurred while processing the request" }
                     '-1001': AuthenticationError, // { "code": -1001,  "message": "The api key or secret is in wrong format" }
                     '-1002': AuthenticationError, // { "code": -1002,  "message": "API key or secret is invalid, it may because key have insufficient permission or the key is expired/revoked." }
@@ -297,7 +298,6 @@ export default class woo extends Exchange {
                     '-1007': BadRequest, // { "code": -1007,  "message": "The data is already exists or your request is duplicated." }
                     '-1008': InvalidOrder, // { "code": -1008,  "message": "The quantity of settlement is too high than you can request." }
                     '-1009': BadRequest, // { "code": -1009,  "message": "Can not request withdrawal settlement, you need to deposit other arrears first." }
-                    '-1011': ExchangeError, // { "code": -1011,  "message": "Can not place/cancel orders, it may because internal network error. Please try again in a few seconds." }
                     '-1012': BadRequest, // { "code": -1012,  "message": "Amount is required for buy market orders when margin disabled."}  The place/cancel order request is rejected by internal module, it may because the account is in liquidation or other internal errors. Please try again in a few seconds." }
                     '-1101': InvalidOrder, // { "code": -1101,  "message": "The risk exposure for client is too high, it may cause by sending too big order or the leverage is too low. please refer to client info to check the current exposure." }
                     '-1102': InvalidOrder, // { "code": -1102,  "message": "The order value (price * size) is too small." }
@@ -306,6 +306,8 @@ export default class woo extends Exchange {
                     '-1105': InvalidOrder, // { "code": -1105,  "message": "Price is X% too high or X% too low from the mid price." }
                 },
                 'broad': {
+                    'Can not place': ExchangeError, // { "code": -1011,  "message": "Can not place/cancel orders, it may because internal network error. Please try again in a few seconds." }
+                    'maintenance': OnMaintenance, // {"code":"-1011","message":"The system is under maintenance.","success":false}
                     'symbol must not be blank': BadRequest, // when sending 'cancelOrder' without symbol [-1005]
                     'The token is not supported': BadRequest, // when getting incorrect token's deposit address [-1005]
                     'Your order and symbol are not valid or already canceled': BadRequest, // actual response whensending 'cancelOrder' for already canceled id [-1006]
@@ -2398,6 +2400,7 @@ export default class woo extends Exchange {
         }
         //
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
+        //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
         const success = this.safeValue (response, 'success');
         const errorCode = this.safeString (response, 'code');
