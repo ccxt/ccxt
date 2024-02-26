@@ -157,26 +157,17 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
     {
         lock (_syncRoot)
         {
-            if (this._asks != null) {
-                this._asks._index.Clear();
-                this._asks.Clear();
-            } else {
-                (this.asks as Asks)._index.Clear();
-                (this.asks as Asks).Clear();
-            }
+            this._asks._index.Clear();
+            this._asks.Clear();
+
             var snapshotAsks = Exchange.SafeValue(snapshot as dict, "asks") as List<object>;
             for (var i = 0; i < snapshotAsks.Count; i++)
             {
                 this.asks.storeArray(snapshotAsks[i] as List<object>);
             }
 
-            if (this._bids != null) {
-                this._bids._index.Clear();
-                this._bids.Clear();
-            } else {
-                (this.bids as Bids)._index.Clear();
-                (this.bids as Bids).Clear();
-            }
+            this._bids._index.Clear();
+            this._bids.Clear();
             var snapshotBids = Exchange.SafeValue(snapshot as dict, "bids") as List<object>;
             for (var i = 0; i < snapshotBids.Count; i++)
             {
@@ -251,6 +242,7 @@ public class CountedOrderBook : OrderBook, IOrderBook
 {
     public CountedAsks asks;
     public CountedBids bids;
+    
     public CountedOrderBook(object snapshot = null, object depth2 = null) : base(Exchange.Extend(snapshot ?? new Dictionary<string,object>(), new CustomConcurrentDictionary<string, object> {
        {"asks", new CountedAsks(Exchange.SafeValue(snapshot ?? new Dictionary<string,object>(), "asks", new SlimConcurrentList<object>()), depth2)},
        {"bids", new CountedBids(Exchange.SafeValue(snapshot ?? new Dictionary<string,object>(), "bids", new SlimConcurrentList<object>()), depth2)}
@@ -268,6 +260,35 @@ public class CountedOrderBook : OrderBook, IOrderBook
         return this;
     }
 
+
+
+
+    public void reset(object snapshot = null)
+    {
+        lock (_syncRoot)
+        {
+            this.asks._index.Clear();
+            this.asks.Clear();
+
+            var snapshotAsks = Exchange.SafeValue(snapshot as dict, "asks") as List<object>;
+            for (var i = 0; i < snapshotAsks.Count; i++)
+            {
+                this.asks.storeArray(snapshotAsks[i] as List<object>);
+            }
+
+            this.bids._index.Clear();
+            this.bids.Clear();
+            var snapshotBids = Exchange.SafeValue(snapshot as dict, "bids") as List<object>;
+            for (var i = 0; i < snapshotBids.Count; i++)
+            {
+                this.bids.storeArray(snapshotBids[i] as List<object>);
+            }
+            this["nonce"] = Exchange.SafeValue(snapshot as dict, "nonce", this["nonce"]);
+            this["timestamp"] = Exchange.SafeValue(snapshot as dict, "timestamp", this["timestamp"]);
+            this["datetime"] = Exchange.Iso8601(this["timestamp"]);
+            this["symbol"] = Exchange.SafeValue(snapshot as dict, "symbol", this["symbol"]);
+        }
+    }
 
     public IOrderBook Copy()
     {
