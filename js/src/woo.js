@@ -6,7 +6,7 @@
 
 // ---------------------------------------------------------------------------
 import Exchange from './abstract/woo.js';
-import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder, ArgumentsRequired, NotSupported } from './base/errors.js';
+import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder, ArgumentsRequired, NotSupported, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -298,7 +298,6 @@ export default class woo extends Exchange {
                     '-1007': BadRequest,
                     '-1008': InvalidOrder,
                     '-1009': BadRequest,
-                    '-1011': ExchangeError,
                     '-1012': BadRequest,
                     '-1101': InvalidOrder,
                     '-1102': InvalidOrder,
@@ -307,6 +306,8 @@ export default class woo extends Exchange {
                     '-1105': InvalidOrder, // { "code": -1105,  "message": "Price is X% too high or X% too low from the mid price." }
                 },
                 'broad': {
+                    'Can not place': ExchangeError,
+                    'maintenance': OnMaintenance,
                     'symbol must not be blank': BadRequest,
                     'The token is not supported': BadRequest,
                     'Your order and symbol are not valid or already canceled': BadRequest,
@@ -2383,6 +2384,7 @@ export default class woo extends Exchange {
         }
         //
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
+        //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
         const success = this.safeValue(response, 'success');
         const errorCode = this.safeString(response, 'code');

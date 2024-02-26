@@ -295,7 +295,6 @@ class woo extends woo$1 {
                     '-1007': errors.BadRequest,
                     '-1008': errors.InvalidOrder,
                     '-1009': errors.BadRequest,
-                    '-1011': errors.ExchangeError,
                     '-1012': errors.BadRequest,
                     '-1101': errors.InvalidOrder,
                     '-1102': errors.InvalidOrder,
@@ -304,6 +303,8 @@ class woo extends woo$1 {
                     '-1105': errors.InvalidOrder, // { "code": -1105,  "message": "Price is X% too high or X% too low from the mid price." }
                 },
                 'broad': {
+                    'Can not place': errors.ExchangeError,
+                    'maintenance': errors.OnMaintenance,
                     'symbol must not be blank': errors.BadRequest,
                     'The token is not supported': errors.BadRequest,
                     'Your order and symbol are not valid or already canceled': errors.BadRequest,
@@ -2380,6 +2381,7 @@ class woo extends woo$1 {
         }
         //
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
+        //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
         const success = this.safeValue(response, 'success');
         const errorCode = this.safeString(response, 'code');

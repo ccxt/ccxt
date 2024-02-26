@@ -30,10 +30,17 @@ public partial class binance : ccxt.binance
                 { "cancelOrderWs", true },
                 { "cancelOrdersWs", false },
                 { "cancelAllOrdersWs", true },
+                { "fetchBalanceWs", true },
+                { "fetchDepositsWs", false },
+                { "fetchMarketsWs", false },
+                { "fetchMyTradesWs", true },
+                { "fetchOHLCVWs", true },
+                { "fetchOpenOrdersWs", true },
                 { "fetchOrderWs", true },
                 { "fetchOrdersWs", true },
-                { "fetchBalanceWs", true },
-                { "fetchMyTradesWs", true },
+                { "fetchTradesWs", true },
+                { "fetchTradingFeesWs", false },
+                { "fetchWithdrawalsWs", false },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "test", new Dictionary<string, object>() {
@@ -904,6 +911,105 @@ public partial class binance : ccxt.binance
         }
         callDynamically(stored, "append", new object[] {parsed});
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
+    }
+
+    public async override Task<object> fetchOHLCVWs(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#fetchOHLCVWs
+        * @see https://binance-docs.github.io/apidocs/websocket_api/en/#klines
+        * @description query historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @param {string} symbol unified symbol of the market to query OHLCV data for
+        * @param {string} timeframe the length of time each candle represents
+        * @param {int} since timestamp in ms of the earliest candle to fetch
+        * @param {int} limit the maximum amount of candles to fetch
+        * @param {object} params extra parameters specific to the exchange API endpoint
+        * @param {int} params.until timestamp in ms of the earliest candle to fetch
+        *
+        * EXCHANGE SPECIFIC PARAMETERS
+        * @param {string} params.timeZone default=0 (UTC)
+        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+        */
+        timeframe ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        this.checkIsSpot("fetchOHLCVWs", symbol, parameters);
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "ws");
+        object requestId = this.requestId(url);
+        object messageHash = ((object)requestId).ToString();
+        object returnRateLimits = false;
+        var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCVWs", "returnRateLimits", false);
+        returnRateLimits = ((IList<object>)returnRateLimitsparametersVariable)[0];
+        parameters = ((IList<object>)returnRateLimitsparametersVariable)[1];
+        object payload = new Dictionary<string, object>() {
+            { "symbol", this.marketId(symbol) },
+            { "returnRateLimits", returnRateLimits },
+            { "interval", getValue(this.timeframes, timeframe) },
+        };
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, "until");
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)payload)["startTime"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)payload)["limit"] = limit;
+        }
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)payload)["endTime"] = until;
+        }
+        object message = new Dictionary<string, object>() {
+            { "id", messageHash },
+            { "method", "klines" },
+            { "params", this.extend(payload, parameters) },
+        };
+        object subscription = new Dictionary<string, object>() {
+            { "method", this.handleFetchOHLCV },
+        };
+        return await this.watch(url, messageHash, message, messageHash, subscription);
+    }
+
+    public virtual void handleFetchOHLCV(WebSocketClient client, object message)
+    {
+        //
+        //    {
+        //        "id": "1dbbeb56-8eea-466a-8f6e-86bdcfa2fc0b",
+        //        "status": 200,
+        //        "result": [
+        //            [
+        //                1655971200000,      // Kline open time
+        //                "0.01086000",       // Open price
+        //                "0.01086600",       // High price
+        //                "0.01083600",       // Low price
+        //                "0.01083800",       // Close price
+        //                "2290.53800000",    // Volume
+        //                1655974799999,      // Kline close time
+        //                "24.85074442",      // Quote asset volume
+        //                2283,               // Number of trades
+        //                "1171.64000000",    // Taker buy base asset volume
+        //                "12.71225884",      // Taker buy quote asset volume
+        //                "0"                 // Unused field, ignore
+        //            ]
+        //        ],
+        //        "rateLimits": [
+        //            {
+        //                "rateLimitType": "REQUEST_WEIGHT",
+        //                "interval": "MINUTE",
+        //                "intervalNum": 1,
+        //                "limit": 6000,
+        //                "count": 2
+        //            }
+        //        ]
+        //    }
+        //
+        object result = this.safeList(message, "result");
+        object parsed = this.parseOHLCVs(result);
+        // use a reverse lookup in a static map instead
+        object messageHash = this.safeString(message, "id");
+        callDynamically(client as WebSocketClient, "resolve", new object[] {parsed, messageHash});
     }
 
     public async override Task<object> watchTicker(object symbol, object parameters = null)
@@ -2155,6 +2261,33 @@ public partial class binance : ccxt.binance
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
 
+    public async override Task<object> fetchClosedOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#fetchClosedOrdersWs
+        * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-order-history-user_data
+        * @description fetch closed orders
+        * @param {string} symbol unified market symbol
+        * @param {int} [since] the earliest time in ms to fetch open orders for
+        * @param {int} [limit] the maximum number of open orders structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        object orders = await this.fetchOrdersWs(symbol, since, limit, parameters);
+        object closedOrders = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        {
+            object order = getValue(orders, i);
+            if (isTrue(isEqual(getValue(order, "status"), "closed")))
+            {
+                ((IList<object>)closedOrders).Add(order);
+            }
+        }
+        return closedOrders;
+    }
+
     public async override Task<object> fetchOpenOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         /**
@@ -2804,13 +2937,66 @@ public partial class binance : ccxt.binance
         return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
     }
 
+    public async override Task<object> fetchTradesWs(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#fetchTradesWs
+        * @see https://binance-docs.github.io/apidocs/websocket_api/en/#recent-trades
+        * @description fetch all trades made by the user
+        * @param {string} symbol unified market symbol
+        * @param {int} [since] the earliest time in ms to fetch trades for
+        * @param {int} [limit] the maximum number of trades structures to retrieve, default=500, max=1000
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        *
+        * EXCHANGE SPECIFIC PARAMETERS
+        * @param {int} [params.fromId] trade ID to begin at
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new BadRequest ((string)add(this.id, " fetchTradesWs () requires a symbol argument")) ;
+        }
+        this.checkIsSpot("fetchTradesWs", symbol, parameters);
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "ws");
+        object requestId = this.requestId(url);
+        object messageHash = ((object)requestId).ToString();
+        object returnRateLimits = false;
+        var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "fetchTradesWs", "returnRateLimits", false);
+        returnRateLimits = ((IList<object>)returnRateLimitsparametersVariable)[0];
+        parameters = ((IList<object>)returnRateLimitsparametersVariable)[1];
+        object payload = new Dictionary<string, object>() {
+            { "symbol", this.marketId(symbol) },
+            { "returnRateLimits", returnRateLimits },
+        };
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)payload)["limit"] = limit;
+        }
+        object message = new Dictionary<string, object>() {
+            { "id", messageHash },
+            { "method", "trades.historical" },
+            { "params", this.extend(payload, parameters) },
+        };
+        object subscription = new Dictionary<string, object>() {
+            { "method", this.handleTradesWs },
+        };
+        object trades = await this.watch(url, messageHash, message, messageHash, subscription);
+        return this.filterBySinceLimit(trades, since, limit);
+    }
+
     public virtual void handleTradesWs(WebSocketClient client, object message)
     {
+        //
+        // fetchMyTradesWs
         //
         //    {
         //        "id": "f4ce6a53-a29d-4f70-823b-4ab59391d6e8",
         //        "status": 200,
-        //        "result": [{
+        //        "result": [
+        //            {
         //                "symbol": "BTCUSDT",
         //                "id": 1650422481,
         //                "orderId": 12569099453,
@@ -2825,6 +3011,25 @@ public partial class binance : ccxt.binance
         //                "isMaker": true,
         //                "isBestMatch": true
         //            },
+        //            ...
+        //        ],
+        //    }
+        //
+        // fetchTradesWs
+        //
+        //    {
+        //        "id": "f4ce6a53-a29d-4f70-823b-4ab59391d6e8",
+        //        "status": 200,
+        //        "result": [
+        //            {
+        //                "id": 0,
+        //                "price": "0.00005000",
+        //                "qty": "40.00000000",
+        //                "quoteQty": "0.00200000",
+        //                "time": 1500004800376,
+        //                "isBuyerMaker": true,
+        //                "isBestMatch": true
+        //            }
         //            ...
         //        ],
         //    }

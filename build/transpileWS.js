@@ -286,6 +286,8 @@ class CCXTProTranspiler extends Transpiler {
                     const exchangeName = match[1];
                     const exchangeNameRest = exchangeName + 'Rest';
                     result.python3 = result.python3.replace ('\nclass ', 'import ccxt.async_support.' + exchangeName + ' as ' + exchangeNameRest + '\n\n\nclass ');
+                    // correct `new Xyz()` format
+                    result.python3 = result.python3.replace ('new ' + exchangeNameRest, exchangeNameRest);
                     result.phpAsync = result.phpAsync.replace ('new '+ exchangeNameRest, 'new \\ccxt\\async\\' + exchangeName);
                 }
             }
