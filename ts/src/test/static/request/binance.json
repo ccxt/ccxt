@@ -2666,20 +2666,6 @@
                   }
                 ]
             }
-        ],
-        "fetchLedgerEntry": [
-            {
-                "description": "Option Fetch Ledger Entry",
-                "method": "fetchLedgerEntry",
-                "url": "https://eapi.binance.com/eapi/v1/income?timestamp=1708733694590&recordId=8110240447708406010&recvWindow=10000&signature=aa41468ca3dd5454d0f81cc757876157a67521dea70da448630044c512919b54",
-                "input": [
-                  "8110240447708406010",
-                  null,
-                  {
-                    "type": "option"
-                  }
-                ]
-            }
         ]
     }
 }
