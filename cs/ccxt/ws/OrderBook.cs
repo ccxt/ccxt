@@ -240,8 +240,46 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
 
 public class CountedOrderBook : OrderBook, IOrderBook
 {
-    public CountedAsks asks;
-    public CountedBids bids;
+    private CountedAsks _asks;
+    private CountedBids _bids;
+
+    public IAsks asks
+    {
+        get
+        {
+            lock (_syncRoot)
+            {
+                return _asks;
+            }
+        }
+        set
+        {
+            lock (_syncRoot)
+            {
+                _asks = value as CountedAsks;
+            }
+        }
+    }
+    public IBids bids
+    {
+        get
+        {
+            lock (_syncRoot)
+            {
+                return _bids;
+            }
+        }
+        set
+        {
+            lock (_syncRoot)
+            {
+                _bids = value as CountedBids;
+            }
+        }
+    }
+
+
+
     public CountedOrderBook(object snapshot = null, object depth2 = null) : base(Exchange.Extend(snapshot ?? new Dictionary<string,object>(), new CustomConcurrentDictionary<string, object> {
        {"asks", new CountedAsks(Exchange.SafeValue(snapshot ?? new Dictionary<string,object>(), "asks", new SlimConcurrentList<object>()), depth2)},
        {"bids", new CountedBids(Exchange.SafeValue(snapshot ?? new Dictionary<string,object>(), "bids", new SlimConcurrentList<object>()), depth2)}
