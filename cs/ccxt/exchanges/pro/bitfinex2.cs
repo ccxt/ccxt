@@ -357,7 +357,9 @@ public partial class bitfinex2 : ccxt.bitfinex2
         if (isTrue(isEqual(messageLength, 2)))
         {
             // initial snapshot
-            object trades = this.safeValue(message, 1, new List<object>() {});
+            object trades = this.safeList(message, 1, new List<object>() {});
+            // needs to be reversed to make chronological order
+            trades = trades = (trades as IList<object>).Reverse().ToList();
             for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
             {
                 object parsed = this.parseWsTrade(getValue(trades, i), market);
