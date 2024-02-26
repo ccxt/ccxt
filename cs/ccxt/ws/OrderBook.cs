@@ -41,7 +41,7 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
 
     private Asks _asks;
 
-    public IAsks asks
+    public virtual IAsks asks
     {
         get
         {
@@ -60,7 +60,7 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
     }
     private Bids _bids;
 
-    public IBids bids
+    public virtual IBids bids
     {
         get
         {
@@ -243,7 +243,7 @@ public class CountedOrderBook : OrderBook, IOrderBook
     private CountedAsks _asks;
     private CountedBids _bids;
 
-    public IAsks asks
+    public override IAsks asks
     {
         get
         {
@@ -260,7 +260,7 @@ public class CountedOrderBook : OrderBook, IOrderBook
             }
         }
     }
-    public IBids bids
+    public override IBids bids
     {
         get
         {
