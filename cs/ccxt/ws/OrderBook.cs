@@ -41,7 +41,7 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
 
     private Asks _asks;
 
-    public virtual IAsks asks
+    public IAsks asks
     {
         get
         {
@@ -60,7 +60,7 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
     }
     private Bids _bids;
 
-    public virtual IBids bids
+    public IBids bids
     {
         get
         {
@@ -157,17 +157,26 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
     {
         lock (_syncRoot)
         {
-            this._asks._index.Clear();
-            this._asks.Clear();
-
+            if (this._asks != null) {
+                this._asks._index.Clear();
+                this._asks.Clear();
+            } else {
+                (this.asks as Asks)._index.Clear();
+                (this.asks as Asks).Clear();
+            }
             var snapshotAsks = Exchange.SafeValue(snapshot as dict, "asks") as List<object>;
             for (var i = 0; i < snapshotAsks.Count; i++)
             {
                 this.asks.storeArray(snapshotAsks[i] as List<object>);
             }
 
-            this._bids._index.Clear();
-            this._bids.Clear();
+            if (this._bids != null) {
+                this._bids._index.Clear();
+                this._bids.Clear();
+            } else {
+                (this.bids as Bids)._index.Clear();
+                (this.bids as Bids).Clear();
+            }
             var snapshotBids = Exchange.SafeValue(snapshot as dict, "bids") as List<object>;
             for (var i = 0; i < snapshotBids.Count; i++)
             {
@@ -240,46 +249,8 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
 
 public class CountedOrderBook : OrderBook, IOrderBook
 {
-    private CountedAsks _asks;
-    private CountedBids _bids;
-
-    public override IAsks asks
-    {
-        get
-        {
-            lock (_syncRoot)
-            {
-                return _asks;
-            }
-        }
-        set
-        {
-            lock (_syncRoot)
-            {
-                _asks = value as CountedAsks;
-            }
-        }
-    }
-    public override IBids bids
-    {
-        get
-        {
-            lock (_syncRoot)
-            {
-                return _bids;
-            }
-        }
-        set
-        {
-            lock (_syncRoot)
-            {
-                _bids = value as CountedBids;
-            }
-        }
-    }
-
-
-
+    public CountedAsks asks;
+    public CountedBids bids;
     public CountedOrderBook(object snapshot = null, object depth2 = null) : base(Exchange.Extend(snapshot ?? new Dictionary<string,object>(), new CustomConcurrentDictionary<string, object> {
        {"asks", new CountedAsks(Exchange.SafeValue(snapshot ?? new Dictionary<string,object>(), "asks", new SlimConcurrentList<object>()), depth2)},
        {"bids", new CountedBids(Exchange.SafeValue(snapshot ?? new Dictionary<string,object>(), "bids", new SlimConcurrentList<object>()), depth2)}
