@@ -130,7 +130,30 @@ public partial class Exchange
         if (!this.clients.ContainsKey(url))
         {
             this.clients[url] = new WebSocketClient(url, proxy, handleMessage, ping, onClose, onError, this.verbose);
+            object ws = this.safeValue(this.options, "ws", new Dictionary<string, object>() {});
+            object wsOptions = this.safeValue(ws, "options", new Dictionary<string, object>() {});
+            Dictionary<string, string> wsHeaders = (Dictionary<string, string>) this.safeValue(wsOptions, "headers", new Dictionary<string, string>() {});
+            // iterate through headers
+            foreach (var key in wsHeaders.Keys)
+            {
+                this.clients[url].webSocket.Options.SetRequestHeader(key, wsHeaders[key].ToString());
+            }
         }
+
+
+"options", new Dictionary<string, object>() {
+                { "ws", new Dictionary<string, object>() {
+                    { "options", new Dictionary<string, object>() {
+                        { "headers", new Dictionary<string, object>() {
+                            { "Origin", "https://exchange.blockchain.com" },
+                        } },
+                    } },
+                    { "noOriginHeader", false },
+                } },
+            } },
+        
+                    this.clients[url].webSocket.Options.SetRequestHeader("Origin", "https://exchange.blockchain.com");
+                    // webSocket.Options.KeepAliveInterval = TimeSpan.Zero;
         return this.clients[url];
     }
 
