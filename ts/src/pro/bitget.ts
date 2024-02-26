@@ -682,7 +682,7 @@ export default class bitget extends bitgetRest {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        let data = this.safeList (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const length = data.length;
         const maxLength = Math.max (length - 1, 0);
         // fix chronological order by reversing
