@@ -150,7 +150,7 @@ public partial class Exchange
         var body = body2 as String;
 
         if (this.verbose)
-            this.log("fetch Request:\n" + this.id + " " + method + " " + url + "\nRequestHeaders:\n" + this.stringifyObject(headers) + "\nRequestBody:\n" + this.stringifyObject(body) + "\n");
+            this.log("fetch Request:\n" + this.id + " " + method + " " + url + "\nRequestHeaders:\n" + this.stringifyObject(headers) + "\nRequestBody:\n" + this.json(body) + "\n");
 
         // to do: add all proxies support
         this.checkProxySettings();
