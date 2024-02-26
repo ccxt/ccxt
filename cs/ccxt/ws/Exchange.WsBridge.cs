@@ -139,21 +139,6 @@ public partial class Exchange
                 this.clients[url].webSocket.Options.SetRequestHeader(key, wsHeaders[key].ToString());
             }
         }
-
-
-"options", new Dictionary<string, object>() {
-                { "ws", new Dictionary<string, object>() {
-                    { "options", new Dictionary<string, object>() {
-                        { "headers", new Dictionary<string, object>() {
-                            { "Origin", "https://exchange.blockchain.com" },
-                        } },
-                    } },
-                    { "noOriginHeader", false },
-                } },
-            } },
-        
-                    this.clients[url].webSocket.Options.SetRequestHeader("Origin", "https://exchange.blockchain.com");
-                    // webSocket.Options.KeepAliveInterval = TimeSpan.Zero;
         return this.clients[url];
     }
 
