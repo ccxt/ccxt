@@ -136,9 +136,13 @@ public partial class Exchange
             object ws = this.safeValue(this.options, "ws", new Dictionary<string, object>() {});
             object wsOptions = this.safeValue(ws, "options", new Dictionary<string, object>() {});
             var wsHeaders = this.safeValue(wsOptions, "headers", new Dictionary<string, object>() {});
-            foreach (var key in wsHeaders.Keys)
-            {
-                this.clients[url].webSocket.Options.SetRequestHeader(key, wsHeaders[key].ToString());
+            // iterate through headers
+            if (wsHeaders != null) {
+                var headers = wsHeaders as Dictionary<string, object>;
+                foreach (var key in headers.Keys)
+                {
+                    this.clients[url].webSocket.Options.SetRequestHeader(key, headers[key].ToString());
+                }
             }
         }
         return this.clients[url];
