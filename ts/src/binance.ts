@@ -4085,7 +4085,8 @@ export default class binance extends Exchange {
         //         "closeTime": 1677097200000
         //     }
         //
-        const volumeIndex = (market['inverse']) ? 7 : 5;
+        const inverse = this.safeBool (market, 'inverse');
+        const volumeIndex = inverse ? 7 : 5;
         return [
             this.safeInteger2 (ohlcv, 0, 'closeTime'),
             this.safeNumber2 (ohlcv, 1, 'open'),

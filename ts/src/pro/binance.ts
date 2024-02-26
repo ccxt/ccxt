@@ -41,6 +41,7 @@ export default class binance extends binanceRest {
                 'fetchDepositsWs': false,
                 'fetchMarketsWs': false,
                 'fetchMyTradesWs': true,
+                'fetchOHLCVWs': true,
                 'fetchOpenOrdersWs': true,
                 'fetchOrderWs': true,
                 'fetchOrdersWs': true,
@@ -849,6 +850,96 @@ export default class binance extends binanceRest {
         }
         stored.append (parsed);
         client.resolve (stored, messageHash);
+    }
+
+    async fetchOHLCVWs (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name binance#fetchOHLCVWs
+         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#klines
+         * @description query historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to query OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} since timestamp in ms of the earliest candle to fetch
+         * @param {int} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the exchange API endpoint
+         * @param {int} params.until timestamp in ms of the earliest candle to fetch
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} params.timeZone default=0 (UTC)
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        this.checkIsSpot ('fetchOHLCVWs', symbol, params);
+        const url = this.urls['api']['ws']['ws'];
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
+        let returnRateLimits = false;
+        [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchOHLCVWs', 'returnRateLimits', false);
+        const payload = {
+            'symbol': this.marketId (symbol),
+            'returnRateLimits': returnRateLimits,
+            'interval': this.timeframes[timeframe],
+        };
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        if (since !== undefined) {
+            payload['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            payload['limit'] = limit;
+        }
+        if (until !== undefined) {
+            payload['endTime'] = until;
+        }
+        const message = {
+            'id': messageHash,
+            'method': 'klines',
+            'params': this.extend (payload, params),
+        };
+        const subscription = {
+            'method': this.handleFetchOHLCV,
+        };
+        return await this.watch (url, messageHash, message, messageHash, subscription);
+    }
+
+    handleFetchOHLCV (client: Client, message) {
+        //
+        //    {
+        //        "id": "1dbbeb56-8eea-466a-8f6e-86bdcfa2fc0b",
+        //        "status": 200,
+        //        "result": [
+        //            [
+        //                1655971200000,      // Kline open time
+        //                "0.01086000",       // Open price
+        //                "0.01086600",       // High price
+        //                "0.01083600",       // Low price
+        //                "0.01083800",       // Close price
+        //                "2290.53800000",    // Volume
+        //                1655974799999,      // Kline close time
+        //                "24.85074442",      // Quote asset volume
+        //                2283,               // Number of trades
+        //                "1171.64000000",    // Taker buy base asset volume
+        //                "12.71225884",      // Taker buy quote asset volume
+        //                "0"                 // Unused field, ignore
+        //            ]
+        //        ],
+        //        "rateLimits": [
+        //            {
+        //                "rateLimitType": "REQUEST_WEIGHT",
+        //                "interval": "MINUTE",
+        //                "intervalNum": 1,
+        //                "limit": 6000,
+        //                "count": 2
+        //            }
+        //        ]
+        //    }
+        //
+        const result = this.safeList (message, 'result');
+        const parsed = this.parseOHLCVs (result);
+        // use a reverse lookup in a static map instead
+        const messageHash = this.safeString (message, 'id');
+        client.resolve (parsed, messageHash);
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
