@@ -1129,11 +1129,12 @@ export default class binance extends binanceRest {
         client.resolve (newTickers, 'tickers');
     }
 
-    signParams (isPrivate: boolean, params = {}) {
-        if (isPrivate) {
-            this.checkRequiredCredentials ();
-        }
-        let extendedParams = this.extend ({}, params);
+    signParams (params = {}) {
+        this.checkRequiredCredentials ();
+        let extendedParams = this.extend ({
+            'timestamp': this.nonce (),
+            'apiKey': this.apiKey,
+        }, params);
         const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
         if (defaultRecvWindow !== undefined) {
             params['recvWindow'] = defaultRecvWindow;
@@ -1142,23 +1143,19 @@ export default class binance extends binanceRest {
         if (recvWindow !== undefined) {
             params['recvWindow'] = recvWindow;
         }
-        if (isPrivate) {
-            const query = this.urlencode (extendedParams);
-            let signature = undefined;
-            if (this.secret.indexOf ('PRIVATE KEY') > -1) {
-                if (this.secret.length > 120) {
-                    signature = rsa (query, this.secret, sha256);
-                } else {
-                    signature = eddsa (this.encode (query), this.secret, ed25519);
-                }
-            } else {
-                signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
-            }
-            extendedParams['apiKey'] = this.apiKey;
-            extendedParams['signature'] = signature;
-            extendedParams['timestamp'] = this.nonce ();
-        }
         extendedParams = this.keysort (extendedParams);
+        const query = this.urlencode (extendedParams);
+        let signature = undefined;
+        if (this.secret.indexOf ('PRIVATE KEY') > -1) {
+            if (this.secret.length > 120) {
+                signature = rsa (query, this.secret, sha256);
+            } else {
+                signature = eddsa (this.encode (query), this.secret, ed25519);
+            }
+        } else {
+            signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
+        }
+        extendedParams['signature'] = signature;
         return extendedParams;
     }
 
@@ -1329,7 +1326,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'account.status',
-            'params': this.signParams (true, this.extend (payload, params)),
+            'params': this.signParams (this.extend (payload, params)),
         };
         const subscription = {
             'method': this.handleBalanceWs,
@@ -1580,7 +1577,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'order.place',
-            'params': this.signParams (true, this.extend (payload, params)),
+            'params': this.signParams (this.extend (payload, params)),
         };
         if (test) {
             if (sor) {
@@ -1720,7 +1717,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'order.cancelReplace',
-            'params': this.signParams (true, this.extend (payload, params)),
+            'params': this.signParams (this.extend (payload, params)),
         };
         const subscription = {
             'method': this.handleEditOrderWs,
@@ -1838,7 +1835,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'order.cancel',
-            'params': this.signParams (true, this.extend (payload, params)),
+            'params': this.signParams (this.extend (payload, params)),
         };
         const subscription = {
             'method': this.handleOrderWs,
@@ -1869,7 +1866,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'order.cancel',
-            'params': this.signParams (true, this.extend (payload, params)),
+            'params': this.signParams (this.extend (payload, params)),
         };
         const subscription = {
             'method': this.handleOrdersWs,
@@ -1910,7 +1907,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'order.status',
-            'params': this.signParams (true, this.extend (payload, params)),
+            'params': this.signParams (this.extend (payload, params)),
         };
         const subscription = {
             'method': this.handleOrderWs,
@@ -1951,7 +1948,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'allOrders',
-            'params': this.signParams (true, this.extend (payload, params)),
+            'params': this.signParams (this.extend (payload, params)),
         };
         const subscription = {
             'method': this.handleOrdersWs,
@@ -2011,7 +2008,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'openOrders.status',
-            'params': this.signParams (true, this.extend (payload, params)),
+            'params': this.signParams (this.extend (payload, params)),
         };
         const subscription = {
             'method': this.handleOrdersWs,
@@ -2553,7 +2550,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'myTrades',
-            'params': this.signParams (true, this.extend (payload, params)),
+            'params': this.signParams (this.extend (payload, params)),
         };
         const subscription = {
             'method': this.handleTradesWs,
