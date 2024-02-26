@@ -2017,7 +2017,7 @@ export default class hyperliquid extends Exchange {
             data += '01';
             data += vaultAddress;
         }
-        return this.hash (data, keccak, 'binary');
+        return this.hash (this.base16ToBinary (data), keccak, 'binary');
     }
 
     buildActionSig (signatureTypes, signatureData) {
