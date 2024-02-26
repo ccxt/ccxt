@@ -1,5 +1,6 @@
 import assert from 'assert';
-import { Message, Stream } from '../../../base/ws/Stream.js';
+import Stream from '../../../base/ws/Stream.js';
+import { Message } from '../../../base/types.js';
 
 // Test case for producing a message
 function testProduce () {

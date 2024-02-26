@@ -1,28 +1,8 @@
-import { Int } from "../types";
+import { Int, Message, Topic, ConsumerFunction, BaseStream } from "../types";
+import { Consumer } from "./Consumer.js";
 
-export type Topic = string;
 
-export interface Metadata {
-    topic: Topic
-    index: Int
-}
-
-export interface Message {
-    payload: any;
-    error: any;
-    metadata: Metadata;
-    history: Message[];
-}
-
-export type ConsumerFunction = (message: Message) => Promise<void> | void;
-
-export interface Consumer {
-    fn: ConsumerFunction;
-    synchronous: boolean;
-    currentIndex: number;
-}
-
-export class Stream {
+export class Stream implements BaseStream {
     public maxMessagesPerTopic: Int;
 
     public topics: Map<Topic, Message[]>;
@@ -53,10 +33,11 @@ export class Stream {
             payload,
             error,
             metadata: {
+                stream: this,
                 topic,
                 index,
+                history: messages.slice (),
             },
-            history: this.getMessageHistory (topic).slice (0, -1),
         };
 
         if (this.maxMessagesPerTopic && messages.length >= this.maxMessagesPerTopic) {
@@ -64,27 +45,26 @@ export class Stream {
         }
 
         this.topics.get (topic).push (message);
-        this.notifyConsumers (topic);
+        this.runConsumers (topic);
     }
 
     /**
      * Subscribes to a topic and registers a consumer function to handle incoming data.
+     * Current index is the index of the last message consumed
      * @param topic - The topic to subscribe to.
      * @param consumerFn - The consumer function to handle incoming data.
      * @param synchronous - Optional. Indicates whether the consumer function should be executed synchronously or asynchronously. Default is true.
      */
     subscribe (topic: Topic, consumerFn: ConsumerFunction, synchronous: boolean = true): void {
-        const consumer: Consumer = {
-            fn: consumerFn,
-            synchronous,
-            currentIndex: this.getLastIndex (topic) + 1,
-        };
+        const consumer = new Consumer (consumerFn, synchronous, this.getLastIndex (topic));
 
         if (!this.consumers.has (topic)) {
             this.consumers.set (topic, []);
         }
 
         this.consumers.get (topic).push (consumer);
+
+        consumer.run (this, topic);
     }
 
     /**
@@ -112,36 +92,17 @@ export class Stream {
         let lastIndex = -1
         const messages = this.topics.get (topic)
         if (messages && messages.length > 0) {
-            lastIndex = messages[-1].metadata.index;
+            lastIndex = messages[messages.length - 1].metadata.index;
         }
         return lastIndex;
     }
 
-    private async handleConsumer (consumer: Consumer, topic: Topic): Promise<void> {
-        const messages = this.getMessageHistory (topic);
-        for (let i = 0; i < messages.length; i++) {
-            const message = messages[i];
-            if (message.metadata.index < consumer.currentIndex) {
-                continue;
-            }
-            try {
-                consumer.currentIndex = message.metadata.index;
-                if (consumer.synchronous) {
-                    await consumer.fn (message);
-                } else {
-                    consumer.fn (message);
-                }
-            } catch (e) {
-                this.produce ('errors', null, e);
-            }
-        }
-    }
-
-    private notifyConsumers (topic: Topic): void {
+    private runConsumers (topic: Topic): void {
         const topicConsumers = this.consumers.get (topic);
         if (topicConsumers) {
             for (let i = 0; i < topicConsumers.length; i++) {
-                const promise = this.handleConsumer (topicConsumers[i], topic);
+                const consumer = topicConsumers[i];
+                consumer.run (this, topic);
             }
         }
     }
@@ -154,3 +115,5 @@ export class Stream {
         this.consumers = new Map ();
     }
 }
+
+export default Stream

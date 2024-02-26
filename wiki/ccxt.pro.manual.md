@@ -159,23 +159,22 @@ while (condition) {
 In CCXT Pro each public and private unified RESTful method having a `fetch*` prefix also has a corresponding stream-based counterpart method prefixed with `watch*`, as follows:
 
 - Public API
-  - `fetchStatus` → `watchStatus`
-  - `fetchOrderBook` → `watchOrderBook`
-  - `fetchTicker` → `watchTicker`
-  - `fetchTickers` → `watchTickers`
-  - `fetchOHLCV` → `watchOHLCV`
-  - `fetchTrades` → `watchTrades`
+  - `fetchStatus` → `watchStatus` → `subscribeStatus`
+  - `fetchOrderBook` → `watchOrderBook` → `subscribeOrderBook`
+  - `fetchTicker` → `watchTicker` → `subscribeTicker`
+  - `fetchTickers` → `watchTickers` → `subscribeTickers`
+  - `fetchOHLCV` → `watchOHLCV` → `subscribeOHLCV`
+  - `fetchTrades` → `watchTrades` → `subscribeTrades`
 - Private API
-  - `fetchBalance` → `watchBalance`
-  - `fetchOrders` → `watchOrders` <sup>*(notice the `watch` prefix)*</sup>
-  - `fetchMyTrades` → `watchMyTrades`
-  - `fetchPositions` → `watchPositions`
-  <sup>*soon*</sup>
-  - `createOrder` → `createOrderWs`
-  - `editOrder` → `editOrderWs`
-  - `cancelOrder` → `cancelOrderWs`
-  - `cancelOrders` → `cancelOrdersWs`
-  - `cancelAllOrders` → `cancelAllOrdersWs`
+  - `fetchBalance` → `watchBalance` → `subscribeBalance`
+  - `fetchOrders` → `watchOrders` → `subscribeOrders` *(notice the `watch` prefix)*
+  - `fetchMyTrades` → `watchMyTrades` → `subscribeMyTrades`
+  - `fetchPositions` → `watchPositions` → `subscribePositions`
+  - `createOrder` → `createOrderWs` → `subscribeOrderWs`
+  - `editOrder` → `editOrderWs` → `subscribeEditOrderWs`
+  - `cancelOrder` → `cancelOrderWs` → `subscribeCancelOrderWs`
+  - `cancelOrders` → `cancelOrdersWs` → `subscribeCancelOrdersWs`
+  - `cancelAllOrders` → `cancelAllOrdersWs` → `subscribeCancelAllOrdersWs`
 
 
 The Unified CCXT Pro Streaming API inherits CCXT usage patterns to make migration easier.
@@ -211,6 +210,91 @@ Many of the CCXT rules and concepts also apply to CCXT Pro:
 - CCXT Pro will call CCXT RESTful methods under the hood if necessary
 - CCXT Pro will throw standard CCXT exceptions where necessary
 - ...
+
+
+## Subscribe functions
+Subscribe functions allow you to listen for updates from a specific stream. For example, subscribeTickers lets you subscribe to ticker updates for one or more symbols in real-time. When an update occurs, a callback function you define is invoked with the new data.
+
+### Callback Functions
+When you subscribe to a stream, you must provide a callback function. This function is called whenever a new message is received. The callback function receives a single argument: a Message object that contains the new data (payload), any error that might have occurred, metadata about the message, and the history of messages for that topic.
+
+Accessing Metadata and Message History
+Each message contains metadata providing context about the message, such as the stream and topic it belongs to and its index in the stream. The message also includes a history of previous messages for the topic, allowing you to access past data easily.
+
+### Synchronous vs. Asynchronous Consumption
+You can choose to consume messages synchronously or asynchronously:
+
+Synchronous consumption means that the library will wait for one message to be fully processed in the callback before moving on to the next message. This is useful for ensuring order but can slow down processing if the callback function takes a long time to execute.
+Asynchronous consumption allows the library to continue delivering messages without waiting for the callback to complete, suitable for high-throughput environments where order may not be as critical.
+
+### Example Usage
+#### subscribeTickers example
+**Syntax**
+```typescript
+async subscribeTickers(symbols?: string[], callback: ConsumerFunction, synchronous: boolean = true, params: object = {}): Promise<void>
+```
+**Parameters:**
+
+- **symbols**: Optional array of symbols to monitor. If omitted, subscribes to updates for all symbols.
+- **callback**: Function to execute with each message.
+- **synchronous**: Determines if messages should be processed synchronously (true by default).
+*params*: Extra parameters for the exchange API endpoint.
+
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+const handleTickerUpdate: ConsumerFunction = (message: Message): void => {
+    console.log('New ticker update:', message.payload);
+    // Access metadata and history
+    console.log('Metadata:', message.metadata);
+    console.log('History:', message.history);
+};
+
+// Subscribe to ticker updates for BTC/USD and ETH/USD
+await subscribeTickers(['BTC/USD', 'ETH/USD'], handleTickerUpdate, true)
+```
+#### **Python**
+```python
+from types import ConsumerFunction, Message
+
+def handle_ticker_update(message: Message) -> None:
+    print('New ticker update:', message.payload)
+    # Access metadata and history
+    print('Metadata:', message.metadata.__dict__)
+    print('History:', [msg.payload for msg in message.history])
+
+# Subscribe to ticker updates for BTC/USD and ETH/USD
+await subscribe_tickers(['BTC/USD', 'ETH/USD'], handle_ticker_update, True)
+```
+#### **PHP**
+```php
+function handleTickerUpdate($message) {
+    echo 'New ticker update: ', $message->payload, PHP_EOL;
+    // Access metadata and history
+    echo 'Metadata: ', json_encode($message->metadata), PHP_EOL;
+    echo 'History: ', json_encode(array_map(fn($msg) => $msg->payload, $message->history)), PHP_EOL;
+}
+
+// Subscribe to ticker updates for BTC/USD and ETH/USD
+subscribeTickers(['BTC/USD', 'ETH/USD'], 'handleTickerUpdate', true);
+```
+#### **C#**
+```csharp
+    public static async Task HandleTickerUpdate(Message message)
+    {
+        Console.WriteLine($"New ticker update: {message.Payload}");
+        // Access metadata and history
+        Console.WriteLine($"Metadata: {message.Metadata}");
+        Console.WriteLine($"History: {string.Join(", ", message.History.Select(m => m.Payload))}");
+    }
+
+    public static async Task Main(string[] args)
+    {
+        await SubscribeTickers(new string[] { "BTC/USD", "ETH/USD" }, HandleTickerUpdate, true);
+    }
+```
+<!-- tabs:end -->
+
 
 ## Streaming Specifics
 

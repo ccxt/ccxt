@@ -1,5 +1,5 @@
-import ccxt from '../../ts/ccxt.js';
-import { Message } from '../../ts/src/base/ws/Stream.js';
+import ccxt from '../../js/ccxt.js';
+import { Message } from '../../js/src/base/types.js';
 
 const exchange = new ccxt.pro.binance ({});
 exchange.verbose = false;

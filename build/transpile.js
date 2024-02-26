@@ -335,6 +335,8 @@ class Transpiler {
             [ /\.checkConflictingProxies\s/g, '.check_conflicting_proxies'],
             [ /\.parseMarket\s/g, '.parse_market'],
             [ /\.isRoundNumber\s/g, '.is_round_number'],
+            [ /\.setupStream\s/g, '.setup_stream'],
+            [ /\.streamToSymbol\s/g, '.stream_to_symbol'],
             [ /\.watchMultiple\s/g, '.watch_multiple'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
@@ -990,6 +992,7 @@ class Transpiler {
             'Trade': /-> (?:List\[)?Trade/,
             'Order': /-> (?:List\[)?Order\]?:/,
             'Transaction': /-> (?:List\[)?Transaction/,
+            'ConsumerFunction': /: ConsumerFunction =/ 
         }
         const matches = []
         let match

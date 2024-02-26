@@ -441,7 +441,7 @@ export default class binance extends binanceRest {
                 delete client.subscriptions[messageHash];
                 client.reject (e, messageHash);
                 this.streamProduce ('orderbooks', undefined, e);
-                this.streamProduce ('orderbooks.' + symbol, undefined, e);
+                this.streamProduce ('orderbooks::' + symbol, undefined, e);
             }
         }
     }
@@ -849,7 +849,8 @@ export default class binance extends binanceRest {
             this.ohlcvs[symbol][timeframe] = stored;
         }
         stored.append (parsed);
-        this.streamProduce ('ohlcv.' + symbol + timeframe, parsed);
+        this.streamProduce ('ohlcv', parsed);
+        this.streamProduce ('ohlcv::' + symbol + '::' + timeframe, parsed);
         client.resolve (stored, messageHash);
     }
 
@@ -1082,6 +1083,7 @@ export default class binance extends binanceRest {
         const symbol = result['symbol'];
         this.tickers[symbol] = result;
         client.resolve (result, messageHash);
+        this.streamProduce ('tickers', result);
         if (event === 'bookTicker') {
             // watch bookTickers
             client.resolve (result, '!' + 'bookTicker@arr');
@@ -1303,6 +1305,7 @@ export default class binance extends binanceRest {
         // don't remove the future from the .futures cache
         const future = client.futures[messageHash];
         future.resolve ();
+        this.streamProduce ('balances', this.balance[type]);
         client.resolve (this.balance[type], type + ':balance');
     }
 
@@ -1386,6 +1389,7 @@ export default class binance extends binanceRest {
         const messageHash = this.safeString (message, 'id');
         const result = this.safeValue (message, 'result', {});
         const parsedBalances = this.parseBalance (result);
+        this.streamProduce ('balances', parsedBalances);
         client.resolve (parsedBalances, messageHash);
     }
 
@@ -1525,6 +1529,7 @@ export default class binance extends binanceRest {
         this.balance[accountType]['timestamp'] = timestamp;
         this.balance[accountType]['datetime'] = this.iso8601 (timestamp);
         this.balance[accountType] = this.safeBalance (this.balance[accountType]);
+        this.streamProduce ('balances', this.balance[accountType]);
         client.resolve (this.balance[accountType], messageHash);
     }
 
@@ -1647,6 +1652,7 @@ export default class binance extends binanceRest {
         const messageHash = this.safeString (message, 'id');
         const result = this.safeValue (message, 'result', {});
         const order = this.parseOrder (result);
+        this.streamProduce ('orders', order);
         client.resolve (order, messageHash);
     }
 
@@ -2374,6 +2380,7 @@ export default class binance extends binanceRest {
             const contracts = this.safeNumber (position, 'contracts', 0);
             if (contracts > 0) {
                 cache.append (position);
+                this.streamProduce ('positions', position);
             }
         }
         // don't remove the future from the .futures cache
@@ -2432,6 +2439,7 @@ export default class binance extends binanceRest {
             position['datetime'] = this.iso8601 (timestamp);
             newPositions.push (position);
             cache.append (position);
+            this.streamProduce ('positions', position);
         }
         const messageHashes = this.findMessageHashes (client, accountType + ':positions::');
         for (let i = 0; i < messageHashes.length; i++) {
@@ -2567,6 +2575,9 @@ export default class binance extends binanceRest {
         const messageHash = this.safeString (message, 'id');
         const result = this.safeValue (message, 'result', []);
         const trades = this.parseTrades (result);
+        for (let i = 0; i < trades.length; i++) {
+            this.streamProduce ('myTrades', trades[i]);
+        }
         client.resolve (trades, messageHash);
     }
 
@@ -2679,6 +2690,7 @@ export default class binance extends binanceRest {
             }
             const myTrades = this.myTrades;
             myTrades.append (trade);
+            this.streamProduce ('myTrades');
             client.resolve (this.myTrades, messageHash);
             const messageHashSymbol = messageHash + ':' + symbol;
             client.resolve (this.myTrades, messageHashSymbol);
@@ -2716,6 +2728,7 @@ export default class binance extends binanceRest {
             cachedOrders.append (parsed);
             const messageHash = 'orders';
             const symbolSpecificMessageHash = 'orders:' + symbol;
+            this.streamProduce ('orders', parsed);
             client.resolve (cachedOrders, messageHash);
             client.resolve (cachedOrders, symbolSpecificMessageHash);
         }

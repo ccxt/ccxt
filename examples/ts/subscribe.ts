@@ -1,37 +1,44 @@
-import ccxt from '../../ts/ccxt.js';
-import { Message } from '../../ts/src/base/ws/Stream.js';
-
+import ccxt from '../../js/ccxt.js';
+import { Message } from '../../js/src/base/types.js';
 
 // AUTO-TRANSPILE //
 
 function printMessage (message: Message) {
-    console.log ('Received message from: ', message.metadata.topic, ' : ', exchange.json (message.payload));
+    if (message.error) {
+        throw new Error (message.error);
+    }
+    console.log ('Received message: ', ' from: ', message.metadata.topic, ' : ', message.payload.toString (), ' : index : ', message.metadata.index, ' : history.length ', message.metadata.history.length);
 }
 
 async function example () {
-    const exchange = new ccxt.pro.binance ({});
+    const exchange = new ccxt.pro.binanceusdm ({});
     exchange.setSandboxMode (true);
-    exchange.verbose = false;
+    // exchange.verbose = true;
 
     // create ws subscriptions
-    const symbol = 'BTC/USDT';
+    const symbol = 'BTC/USDT:USDT';
 
     // public subscriptions
     await exchange.subscribeOHLCV (symbol, '1m', printMessage);
     await exchange.subscribeOrderBook (symbol, printMessage);
     await exchange.subscribeTicker (symbol, printMessage);
-    await exchange.subscribeTickers (undefined, printMessage);
+    // await exchange.subscribeTickers (undefined, printMessage);
     await exchange.subscribeTrades (symbol, printMessage);
 
     // private subscriptions
-    await exchange.subscribeBalance (printMessage);
-    await exchange.subscribeMyTrades (symbol, printMessage);
-    await exchange.subscribeOrders (symbol, printMessage);
-    await exchange.subscribePositionForSymbols (undefined, printMessage);
+    console.log ('---- start private subscriptions asynchrounously -----');
+    exchange.subscribeBalance (printMessage);
+    exchange.subscribeMyTrades (symbol, printMessage);
+    exchange.subscribeOrders (symbol, printMessage);
+    exchange.subscribePositionForSymbols (undefined, printMessage);
 
-    await exchange.createOrder (symbol, 'market', 'buy', 0.0001);
+    await exchange.sleep (5000);
 
-    await exchange.sleep (10000);
+    console.log ('---- create Market order -----');
+    const res = await exchange.createOrder (symbol, 'market', 'buy', 0.01);
+    console.log (res);
+
+    await exchange.sleep (5000);
 
     // subscribe to error?
 
