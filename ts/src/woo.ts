@@ -287,7 +287,6 @@ export default class woo extends Exchange {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-
                     '-1000': ExchangeError, // { "code": -1000,  "message": "An unknown error occurred while processing the request" }
                     '-1001': AuthenticationError, // { "code": -1001,  "message": "The api key or secret is in wrong format" }
                     '-1002': AuthenticationError, // { "code": -1002,  "message": "API key or secret is invalid, it may because key have insufficient permission or the key is expired/revoked." }
