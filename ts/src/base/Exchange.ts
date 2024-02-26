@@ -566,7 +566,6 @@ export default class Exchange {
                 'fetchMySettlementHistory': undefined,
                 'fetchMyTrades': undefined,
                 'fetchMyTradesWs': undefined,
-                'fetchNetworkDepositAddress': undefined,
                 'fetchOHLCV': undefined,
                 'fetchOHLCVWs': undefined,
                 'fetchOpenInterest': undefined,
