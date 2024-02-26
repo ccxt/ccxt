@@ -290,7 +290,8 @@
                 "bid": "wrong data https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4325"
             },
             "watchTrades":{
-                "side": "not set https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4312"
+                "side": "not set https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4312",
+                "timestamp": "messed order coming from exchange"
             }
         }
     },
