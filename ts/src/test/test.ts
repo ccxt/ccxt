@@ -56,6 +56,7 @@ class baseMainTestClass {
     privateTestOnly = false;
     loadKeys = false;
     sandbox = false;
+    skippedSettingsForExchange = {};
     skippedMethods = {};
     checkedPublicTests = {};
     testFiles = {};
@@ -588,49 +589,8 @@ export default class testMainClass extends baseMainTestClass {
         if (!result) {
             return false;
         }
-        const symbols = [
-            'BTC/USDT',
-            'BTC/USDC',
-            'BTC/CNY',
-            'BTC/USD',
-            'BTC/EUR',
-            'BTC/ETH',
-            'ETH/BTC',
-            'BTC/JPY',
-            'ETH/EUR',
-            'ETH/JPY',
-            'ETH/CNY',
-            'ETH/USD',
-            'LTC/CNY',
-            'DASH/BTC',
-            'DOGE/BTC',
-            'BTC/AUD',
-            'BTC/PLN',
-            'USD/SLL',
-            'BTC/RUB',
-            'BTC/UAH',
-            'LTC/BTC',
-            'EUR/USD',
-        ];
-        const resultSymbols = [];
-        const exchangeSpecificSymbols = exchange.symbols;
-        for (let i = 0; i < exchangeSpecificSymbols.length; i++) {
-            const symbol = exchangeSpecificSymbols[i];
-            if (exchange.inArray (symbol, symbols)) {
-                resultSymbols.push (symbol);
-            }
-        }
-        let resultMsg = '';
-        const resultLength = resultSymbols.length;
         const exchangeSymbolsLength = exchange.symbols.length;
-        if (resultLength > 0) {
-            if (exchangeSymbolsLength > resultLength) {
-                resultMsg = resultSymbols.join (', ') + ' + more...';
-            } else {
-                resultMsg = resultSymbols.join (', ');
-            }
-        }
-        dump ('[INFO:MAIN] Exchange loaded', exchangeSymbolsLength, 'symbols', resultMsg);
+        dump ('[INFO:MAIN] Exchange loaded', exchangeSymbolsLength, 'symbols');
         return true;
     }
 
@@ -719,24 +679,39 @@ export default class testMainClass extends baseMainTestClass {
             'BTC/USD',
             'BTC/CNY',
             'BTC/EUR',
+            'BTC/AUD',
+            'BTC/PLN',
+            'BTC/RUB',
+            'BTC/JPY',
+            'ETH/USDT',
+            'ETH/USDC',
+            'ETH/USD',
+            'ETH/CNY',
+            'ETH/EUR',
+            'ETH/AUD',
+            'ETH/PLN',
+            'ETH/RUB',
+            'ETH/JPY',
+            // fiats
+            'EUR/USDT',
+            'EUR/USD',
+            'EUR/USDC',
+            'USDT/EUR',
+            'USD/EUR',
+            'USDC/EUR',
+            // non-fiats
             'BTC/ETH',
             'ETH/BTC',
-            'ETH/USD',
-            'ETH/USDT',
-            'BTC/JPY',
-            'LTC/BTC',
-            'ZRX/WETH',
-            'EUR/USD',
         ];
         const swapSymbols = [
+            // linear
             'BTC/USDT:USDT',
             'BTC/USDC:USDC',
             'BTC/USD:USD',
             'ETH/USDT:USDT',
+            'ETH/USDC:USDC',
             'ETH/USD:USD',
-            'LTC/USDT:USDT',
-            'DOGE/USDT:USDT',
-            'ADA/USDT:USDT',
+            // inverse
             'BTC/USD:BTC',
             'ETH/USD:ETH',
         ];
