@@ -110,6 +110,7 @@ export default class binance extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchPositionsRisk': true,
                 'fetchPremiumIndexOHLCV': false,
@@ -11821,6 +11822,42 @@ export default class binance extends Exchange {
             'lastPrice': undefined,
             'underlyingPrice': undefined,
             'info': greeks,
+        };
+    }
+
+    async fetchPositionMode (symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchPositionMode
+         * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {object} params extra parameters specific to the exchange API endpoint
+         * @param {string} params.subType "linear" or "inverse"
+         * @returns {object} an object detailing whether the market is in hedged or one-way mode
+         */
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionMode', market, params);
+        let response = undefined;
+        if (subType === 'linear') {
+            response = await this.fapiPrivateGetPositionSideDual (params);
+        } else if (subType === 'inverse') {
+            response = await this.dapiPrivateGetPositionSideDual (params);
+        } else {
+            throw new BadRequest (this.id + ' fetchPositionMode requires either a symbol argument or params["subType"]');
+        }
+        //
+        //    {
+        //        dualSidePosition: false
+        //    }
+        //
+        const dualSidePosition = this.safeBool (response, 'dualSidePosition');
+        return {
+            'info': response,
+            'hedged': dualSidePosition,
         };
     }
 }
