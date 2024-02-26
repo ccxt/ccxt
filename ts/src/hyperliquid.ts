@@ -2007,7 +2007,7 @@ export default class hyperliquid extends Exchange {
         const dataBinary = this.packb (action);
         const dataHex = this.binaryToBase16 (dataBinary);
         let data = dataHex;
-        data += '00000' + this.toBase16 (nonce);
+        data += '00000' + this.intToBase16 (nonce);
         if (vaultAddress === undefined) {
             data += '00';
         } else {
