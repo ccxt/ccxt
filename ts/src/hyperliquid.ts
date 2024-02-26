@@ -849,7 +849,7 @@ export default class hyperliquid extends Exchange {
     signL1Action (action, nonce): object {
         const vaultAdress = this.safeString (action, 'vaultAddress');
         const hash = this.actionHash (action, vaultAdress, nonce);
-        const isMainnet = this.safeBool (this.options, 'sandbox', false) === false;
+        const isMainnet = this.safeBool (this.options, 'sandboxMode', false) === false;
         const phantomAgent = this.constructPhantomAgent (hash, isMainnet);
         // const data = {
         //     'domain': {
@@ -899,10 +899,6 @@ export default class hyperliquid extends Exchange {
             'connectionId': hash,
         };
     }
-
-    // signInner (data) {
-    //     const structuredData = this.ethEncodeStructuredData (data);
-    // }
 
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
