@@ -823,8 +823,11 @@ export default class hyperliquid extends Exchange {
             'action': orderAction,
             'nonce': nonce,
             'signature': signature,
-            'vaultAddress': vaultAddress,
+            // 'vaultAddress': vaultAddress,
         };
+        if (vaultAddress !== undefined) {
+            request['vaultAddress'] = vaultAddress;
+        }
         const response = await this.privatePostExchange (request);
         //
         //     {
