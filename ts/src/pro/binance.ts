@@ -2594,7 +2594,7 @@ export default class binance extends binanceRest {
         const message = {
             'id': messageHash,
             'method': 'trades.historical',
-            'params': this.signParams (false, this.extend (payload, params)),
+            'params': this.extend (payload, params),
         };
         const subscription = {
             'method': this.handleTradesWs,
