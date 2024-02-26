@@ -39,10 +39,15 @@ class binance(ccxt.async_support.binance):
                 'cancelOrderWs': True,
                 'cancelOrdersWs': False,
                 'cancelAllOrdersWs': True,
+                'fetchBalanceWs': True,
+                'fetchDepositsWs': False,
+                'fetchMarketsWs': False,
+                'fetchMyTradesWs': True,
+                'fetchOpenOrdersWs': True,
                 'fetchOrderWs': True,
                 'fetchOrdersWs': True,
-                'fetchBalanceWs': True,
-                'fetchMyTradesWs': True,
+                'fetchTradingFeesWs': False,
+                'fetchWithdrawalsWs': False,
             },
             'urls': {
                 'test': {
@@ -1776,6 +1781,24 @@ class binance(ccxt.async_support.binance):
         }
         orders = await self.watch(url, messageHash, message, messageHash, subscription)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+
+    async def fetch_closed_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        :see: https://binance-docs.github.io/apidocs/websocket_api/en/#account-order-history-user_data
+        fetch closed orders
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        orders = await self.fetch_orders_ws(symbol, since, limit, params)
+        closedOrders = []
+        for i in range(0, len(orders)):
+            order = orders[i]
+            if order['status'] == 'closed':
+                closedOrders.append(order)
+        return closedOrders
 
     async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """

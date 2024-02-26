@@ -892,6 +892,7 @@ export default class mexc extends Exchange {
                     '700006': BadRequest,
                     '700007': AuthenticationError,
                     '700008': BadRequest,
+                    '700013': AuthenticationError,
                     '730001': BadRequest,
                     '730002': BadRequest,
                     '730000': ExchangeError,
@@ -5424,7 +5425,7 @@ export default class mexc extends Exchange {
                     'source': this.safeString(this.options, 'broker', 'CCXT'),
                 };
             }
-            if (method === 'POST') {
+            if ((method === 'POST') || (method === 'PUT')) {
                 headers['Content-Type'] = 'application/json';
             }
         }
