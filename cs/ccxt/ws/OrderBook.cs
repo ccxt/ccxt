@@ -243,8 +243,8 @@ public class CountedOrderBook : OrderBook, IOrderBook
     public CountedAsks asks;
     public CountedBids bids;
     public CountedOrderBook(object snapshot = null, object depth2 = null) : base(Exchange.Extend(snapshot, new CustomConcurrentDictionary<string, object> {
-       {"asks", new CountedAsks(Exchange.SafeValue(snapshot, "asks", new SlimConcurrentList<object>()), depth2)},
-       {"bids", new CountedBids(Exchange.SafeValue(snapshot, "bids", new SlimConcurrentList<object>()), depth2)}
+       {"asks", new CountedAsks(Exchange.SafeValue(snapshot ?? new Dictionary<string,object>(), "asks", new SlimConcurrentList<object>()), depth2)},
+       {"bids", new CountedBids(Exchange.SafeValue(snapshot ?? new Dictionary<string,object>(), "bids", new SlimConcurrentList<object>()), depth2)}
     }), depth2)
     {
 
