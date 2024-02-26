@@ -332,19 +332,19 @@ export default class testMainClass extends baseMainTestClass {
         // skipped tests
         const skippedFile = this.rootDirForSkips + 'skip-tests.json';
         const skippedSettings = ioFileRead (skippedFile);
-        const skippedSettingsForExchange = exchange.safeValue (skippedSettings, exchangeId, {});
+        this.skippedSettingsForExchange = exchange.safeValue (skippedSettings, exchangeId, {});
         // others
-        const timeout = exchange.safeValue (skippedSettingsForExchange, 'timeout');
+        const timeout = exchange.safeValue (this.skippedSettingsForExchange, 'timeout');
         if (timeout !== undefined) {
             exchange.timeout = exchange.parseToInt (timeout);
         }
         if (getCliArgValue ('--useProxy')) {
-            exchange.httpProxy = exchange.safeString (skippedSettingsForExchange, 'httpProxy');
-            exchange.httpsProxy = exchange.safeString (skippedSettingsForExchange, 'httpsProxy');
-            exchange.wsProxy = exchange.safeString (skippedSettingsForExchange, 'wsProxy');
-            exchange.wssProxy = exchange.safeString (skippedSettingsForExchange, 'wssProxy');
+            exchange.httpProxy = exchange.safeString (this.skippedSettingsForExchange, 'httpProxy');
+            exchange.httpsProxy = exchange.safeString (this.skippedSettingsForExchange, 'httpsProxy');
+            exchange.wsProxy = exchange.safeString (this.skippedSettingsForExchange, 'wsProxy');
+            exchange.wssProxy = exchange.safeString (this.skippedSettingsForExchange, 'wssProxy');
         }
-        this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
+        this.skippedMethods = exchange.safeValue (this.skippedSettingsForExchange, 'skipMethods', {});
         this.checkedPublicTests = {};
     }
 
@@ -646,32 +646,20 @@ export default class testMainClass extends baseMainTestClass {
             'ETH',
             'XRP',
             'LTC',
-            'BCH',
-            'EOS',
             'BNB',
-            'BSV',
-            'USDT',
-            'ATOM',
-            'BAT',
-            'BTG',
             'DASH',
             'DOGE',
             'ETC',
-            'IOTA',
-            'LSK',
-            'MKR',
-            'NEO',
-            'PAX',
-            'QTUM',
             'TRX',
-            'TUSD',
-            'USD',
+            // fiats
+            'USDT',
             'USDC',
-            'WAVES',
-            'XEM',
-            'XMR',
-            'ZEC',
-            'ZRX',
+            'USD',
+            'EUR',
+            'TUSD',
+            'CNY',
+            'JPY',
+            'BRL',
         ];
         const spotSymbols = [
             'BTC/USDT',
@@ -680,8 +668,7 @@ export default class testMainClass extends baseMainTestClass {
             'BTC/CNY',
             'BTC/EUR',
             'BTC/AUD',
-            'BTC/PLN',
-            'BTC/RUB',
+            'BTC/BRL',
             'BTC/JPY',
             'ETH/USDT',
             'ETH/USDC',
@@ -689,8 +676,7 @@ export default class testMainClass extends baseMainTestClass {
             'ETH/CNY',
             'ETH/EUR',
             'ETH/AUD',
-            'ETH/PLN',
-            'ETH/RUB',
+            'ETH/BRL',
             'ETH/JPY',
             // fiats
             'EUR/USDT',
