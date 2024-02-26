@@ -243,6 +243,9 @@ interface binance {
     sapiGetSimpleEarnFlexibleHistoryRewardsRecord(params?: {}): Promise<implicitReturnType>;
     sapiGetSimpleEarnLockedHistoryRewardsRecord(params?: {}): Promise<implicitReturnType>;
     sapiGetSimpleEarnFlexibleHistoryCollateralRecord(params?: {}): Promise<implicitReturnType>;
+    sapiGetDciProductList(params?: {}): Promise<implicitReturnType>;
+    sapiGetDciProductPositions(params?: {}): Promise<implicitReturnType>;
+    sapiGetDciProductAccounts(params?: {}): Promise<implicitReturnType>;
     sapiGetAssetAssetDistributionHistory(params?: {}): Promise<implicitReturnType>;
     sapiGetAssetQueryTradingFee(params?: {}): Promise<implicitReturnType>;
     sapiGetAssetQueryTradingVolume(params?: {}): Promise<implicitReturnType>;
@@ -388,6 +391,8 @@ interface binance {
     sapiPostSimpleEarnLockedRedeem(params?: {}): Promise<implicitReturnType>;
     sapiPostSimpleEarnFlexibleSetAutoSubscribe(params?: {}): Promise<implicitReturnType>;
     sapiPostSimpleEarnLockedSetAutoSubscribe(params?: {}): Promise<implicitReturnType>;
+    sapiPostDciProductSubscribe(params?: {}): Promise<implicitReturnType>;
+    sapiPostDciProductAutoCompoundEdit(params?: {}): Promise<implicitReturnType>;
     sapiPostOtcQuotes(params?: {}): Promise<implicitReturnType>;
     sapiPostOtcOrders(params?: {}): Promise<implicitReturnType>;
     sapiPostFiatpaymentWithdrawApply(params?: {}): Promise<implicitReturnType>;

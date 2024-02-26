@@ -895,6 +895,7 @@ class mexc extends Exchange {
                     '700006' => '\\ccxt\\BadRequest', // IP non white list
                     '700007' => '\\ccxt\\AuthenticationError', // No permission to access the endpoint
                     '700008' => '\\ccxt\\BadRequest', // Illegal characters found in parameter
+                    '700013' => '\\ccxt\\AuthenticationError', // Invalid Content-Type v3
                     '730001' => '\\ccxt\\BadRequest', // Pair not found
                     '730002' => '\\ccxt\\BadRequest', // Your input param is invalid
                     '730000' => '\\ccxt\\ExchangeError', // Request failed, please contact the customer service
@@ -5463,7 +5464,7 @@ class mexc extends Exchange {
                     'source' => $this->safe_string($this->options, 'broker', 'CCXT'),
                 );
             }
-            if ($method === 'POST') {
+            if (($method === 'POST') || ($method === 'PUT')) {
                 $headers['Content-Type'] = 'application/json';
             }
         } elseif ($section === 'contract' || $section === 'spot2') {
