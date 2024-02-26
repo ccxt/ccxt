@@ -815,6 +815,7 @@ export default class hyperliquid extends Exchange {
         const orderAction = {
             'type': 'order',
             'orders': orderReq,
+            'brokerCode': 1,
             'grouping': 'na',
         };
         const signature = this.signL1Action (orderAction, nonce);
