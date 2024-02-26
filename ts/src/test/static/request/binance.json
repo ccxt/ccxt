@@ -2666,6 +2666,14 @@
                   }
                 ]
             }
-        ]
+        ],
+        "fetchCanceledAndClosedOrders": {
+            "description": "Fill this with a description of the method call",
+            "method": "fetchCanceledAndClosedOrders",
+            "url": "https://testnet.binance.vision/api/v3/allOrders?timestamp=1708947070267&symbol=XRPUSDT&recvWindow=10000&signature=e3492363f286490a957b9500d81d89ea16bd7d21460150051055c5642b2c2ae1",
+            "input": [
+                "XRP/USDT"
+            ]
+        }
     }
 }
