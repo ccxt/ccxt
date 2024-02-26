@@ -30,6 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
+use MessagePack\MessagePack;
 use kornrunner\Keccak;
 use Web3\Contracts\TypedDataEncoder;
 use Elliptic\EC;
@@ -1323,6 +1324,10 @@ class Exchange {
             hex2bin(str_replace('0x', '', $typedDataEncoder->hashDomain($domainData))),
             hex2bin(str_replace('0x', '', $typedDataEncoder->hashEIP712Message($messageTypes, $messageData)))
         );
+    }
+
+    public function packb($data) {
+        return MessagePack::pack($data);
     }
 
     public function throttle($cost = null) {
