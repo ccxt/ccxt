@@ -46,6 +46,10 @@ export default class binance extends Exchange {
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': true,
                 'createMarketSellOrderWithCost': true,
+                'createLimitBuyOrder': true,
+                'createLimitSellOrder': true,
+                'createMarketBuyOrder': true,
+                'createMarketSellOrder': true,
                 'createOrder': true,
                 'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': true,
@@ -125,6 +129,7 @@ export default class binance extends Exchange {
                 'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
                 'fetchTransactions': false,
+                'fetchTransfer': false,
                 'fetchTransfers': true,
                 'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
@@ -7971,7 +7976,6 @@ export default class binance extends Exchange {
         /**
          * @method
          * @name binance#fetchTransfers
-         * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
          * @description fetch a history of internal transfers made on an account
          * @see https://binance-docs.github.io/apidocs/spot/en/#query-user-universal-transfer-history-user_data
          * @param {string} code unified currency code of the currency transferred
