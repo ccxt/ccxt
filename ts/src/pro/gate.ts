@@ -396,7 +396,7 @@ export default class gate extends gateRest {
         const rawMarketType = this.safeString (parts, 0);
         const marketType = (rawMarketType === 'futures') ? 'contract' : 'spot';
         let results = [];
-        if (marketType === 'contract') {
+        if (Array.isArray (this.safeValue (message, 'result'))) {
             results = this.safeList (message, 'result', []);
         } else {
             const rawTicker = this.safeDict (message, 'result', {});
