@@ -1,4 +1,7 @@
 namespace ccxt;
+
+using System.Net.Http.Headers;
+
 using System.Net.WebSockets;
 
 public partial class Exchange
@@ -132,8 +135,7 @@ public partial class Exchange
             this.clients[url] = new WebSocketClient(url, proxy, handleMessage, ping, onClose, onError, this.verbose);
             object ws = this.safeValue(this.options, "ws", new Dictionary<string, object>() {});
             object wsOptions = this.safeValue(ws, "options", new Dictionary<string, object>() {});
-            Dictionary<string, string> wsHeaders = (Dictionary<string, string>) this.safeValue(wsOptions, "headers", new Dictionary<string, string>() {});
-            // iterate through headers
+            var wsHeaders = this.safeValue(wsOptions, "headers", new Dictionary<string, object>() {});
             foreach (var key in wsHeaders.Keys)
             {
                 this.clients[url].webSocket.Options.SetRequestHeader(key, wsHeaders[key].ToString());
