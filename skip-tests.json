@@ -207,9 +207,18 @@
                 "withdraw": "not provided",
                 "deposit": "not provided"
             },
-            "fetchOrderBook": "multiple bids might have same value",
-            "fetchL2OrderBook": "same",
-            "fetchTickers": "negative values"
+            "fetchOrderBook": {
+                "bid": "multiple bids might have same value"
+            },
+            "fetchL2OrderBook": {
+                "bid": "same"
+            },
+            "watchOrderBook": {
+                "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269129438#L3999"  
+            },
+            "watchOrderBookForSymbols": {
+                "bid": "same"  
+            }
         }
     },
     "bitflyer": {
