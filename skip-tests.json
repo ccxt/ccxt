@@ -394,6 +394,7 @@
             "loadMarkets": {
                 "active": "not provided"
             },
+            "fetchOrderBook": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269129438#L4148",
             "fetchOHLCV": "randomly failing with 404 not found"
         }
     },
