@@ -4001,7 +4001,7 @@ export default class bingx extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const dualSidePosition = this.safeString (data, 'dualSidePosition');
         return {
             'info': response,
