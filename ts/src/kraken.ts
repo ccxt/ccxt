@@ -237,6 +237,8 @@ export default class kraken extends Exchange {
                 'hardCodedMethodsToEcid': {
                     'Ethereum (ERC20)': 'Ethereum',
                 },
+                'withdrawalNetworks': [],
+                'currenciesNetworks': {},
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -470,6 +472,60 @@ export default class kraken extends Exchange {
         return result;
     }
 
+    async fetchWithdrawalMethods () {
+        let withdrawalNetworks = this.safeValue (this.options, 'withdrawalNetworks', []);
+        if (withdrawalNetworks.length === 0) {
+            const withdrawNetworkResponse = await this.privatePostWithdrawMethods ();
+            // Withdrawal Methods
+            // {
+            //     "error": [],
+            //     "result": [
+            //       {
+            //         "asset": "XXBT",
+            //         "method": "Bitcoin",
+            //         "network": "Bitcoin",
+            //         "minimum": "0.0004"
+            //       },
+            //       {
+            //         "asset": "XXBT",
+            //         "method": "Bitcoin Lightning",
+            //         "network": "Lightning",
+            //         "minimum": "0.00001"
+            //       }
+            //     ]
+            //  }
+            withdrawalNetworks = this.safeValue (withdrawNetworkResponse, 'result', []);
+            this.options['withdrawalNetworks'] = withdrawalNetworks;
+        }
+        this.options['methodsByEcids'] = {};
+        this.options['ecidsByMethods'] = {};
+        const networksPerCurrency = {};
+        for (let i = 0; i < withdrawalNetworks.length; i++) {
+            const network = this.safeValue (withdrawalNetworks, i);
+            const asset = this.safeString (network, 'asset');
+            const code = this.safeCurrencyCode (asset);
+            const networkInformation = {
+                'info': network,
+                'network': this.safeString (network, 'network'),
+                'withdraw': {
+                    'min': this.parseNumber (this.safeString (network, 'minimum')),
+                    'max': undefined,
+                },
+                'withdraw_enabled': true,
+            };
+            this.options['methodsByEcids'][code] = this.safeValue (this.options['methodsByEcids'], code, {});
+            this.options['ecidsByMethods'][code] = this.safeValue (this.options['ecidsByMethods'], code, {});
+            const method = this.safeString (networkInformation['info'], 'method');
+            this.options['methodsByEcids'][code][networkInformation['network']] = method;
+            this.options['ecidsByMethods'][code][method] = networkInformation['network'];
+            const currencyNetworks = this.safeValue (networksPerCurrency, code, []);
+            currencyNetworks.push (networkInformation);
+            networksPerCurrency[code] = currencyNetworks;
+        }
+        this.options['currenciesNetworks'] = networksPerCurrency;
+        return withdrawalNetworks;
+    }
+
     async fetchCurrencies (params = {}) {
         /**
          * @method
@@ -480,10 +536,8 @@ export default class kraken extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const [ assetsResponse, withdrawNetworkResponse ] = await Promise.all ([
-            this.publicGetAssets (params),
-            this.privatePostWithdrawMethods (),
-        ]);
+        const assetsResponse = await this.publicGetAssets (params);
+        await this.fetchWithdrawalMethods ();
         // Assets
         //     {
         //         "error": [],
@@ -493,30 +547,9 @@ export default class kraken extends Exchange {
         //             ...
         //         },
         //     }
-        // Withdrawal Methods
-        // {
-        //     "error": [],
-        //     "result": [
-        //       {
-        //         "asset": "XXBT",
-        //         "method": "Bitcoin",
-        //         "network": "Bitcoin",
-        //         "minimum": "0.0004"
-        //       },
-        //       {
-        //         "asset": "XXBT",
-        //         "method": "Bitcoin Lightning",
-        //         "network": "Lightning",
-        //         "minimum": "0.00001"
-        //       }
-        //     ]
-        //  }
         const currencies = this.safeValue (assetsResponse, 'result', {});
-        const withdrawalNetworks = this.safeValue (withdrawNetworkResponse, 'result', []);
         const ids = Object.keys (currencies);
         const result = {};
-        this.options['methodsByEcids'] = {};
-        this.options['ecidsByMethods'] = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const currency = currencies[id];
@@ -529,27 +562,9 @@ export default class kraken extends Exchange {
             const status = this.safeString (currency, 'status');
             const isTokenDepositable = (status === 'enabled' || status === 'deposit_only');
             const isWithdrawalEnabled = (status === 'enabled' || status === 'withdrawal_only');
-            const filteredWithdrawalNetworks = withdrawalNetworks.filter ((n) => {
-                const networkAssetCode = this.safeString (n, 'asset');
-                const safeNetworkCode = this.safeCurrencyCode (networkAssetCode);
-                return safeNetworkCode === code && safeNetworkCode !== null;
-            });
-            const networkInformations = filteredWithdrawalNetworks.map ((n) => ({
-                'info': n,
-                'network': this.safeString (n, 'network'),
-                'withdraw': {
-                    'min': this.parseNumber (this.safeString (n, 'minimum')),
-                    'max': undefined,
-                },
-                'withdraw_enabled': true,
-            }));
-            this.options['methodsByEcids'][code] = {};
-            this.options['ecidsByMethods'][code] = {};
-            networkInformations.forEach ((n) => {
-                const method = this.safeString (n['info'], 'method');
-                this.options['methodsByEcids'][code][n['network']] = method;
-                this.options['ecidsByMethods'][code][method] = n['network'];
-            });
+            // Load the networks if they exist
+            const currenciesNetworks = this.safeValue (this.options, 'currenciesNetworks', {});
+            const networkInformations = this.safeValue (currenciesNetworks, code, []);
             result[code] = {
                 'id': id,
                 'code': code,
@@ -2223,7 +2238,6 @@ export default class kraken extends Exchange {
         };
         return this.safeString (statuses, status, status);
     }
-
 
     parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
