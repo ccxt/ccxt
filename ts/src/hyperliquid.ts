@@ -1759,33 +1759,24 @@ export default class hyperliquid extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const asset = this.parseToInt (market['baseId']);
-        const vaultAddress = this.safeString (params, 'vaultAddress');
-        const zeroAddress = this.safeString (this.options, 'zeroAddress');
         let sz = this.parseToInt (Precise.stringMul (this.amountToPrecision (symbol, amount), '1000000'));
         if (type === 'reduce') {
             sz = -sz;
         }
         const nonce = this.milliseconds ();
-        const signatureTypes = [ 'uint32', 'bool', 'int64', 'address', 'uint256' ];
-        const signatureData = [
-            asset,
-            true,
-            sz,
-            (vaultAddress) ? vaultAddress : zeroAddress,
-            nonce,
-        ];
-        const sig = this.buildActionSig (signatureTypes, signatureData);
-        const request = {
-            'action': {
-                'type': 'updateIsolatedMargin',
-                'asset': asset,
-                'isBuy': true,
-                'ntli': sz,
-            },
-            'nonce': nonce,
-            'signature': sig,
+        const updateAction = {
+            'type': 'updateIsolatedMargin',
+            'asset': asset,
+            'isBuy': true,
+            'ntli': sz,
         };
-        const response = await this.privatePostExchange (request);
+        const signature = this.signL1Action (updateAction, nonce);
+        const request = {
+            'action': updateAction,
+            'nonce': nonce,
+            'signature': signature,
+        };
+        const response = await this.privatePostExchange (this.extend (request, params));
         //
         //     {
         //         'response': {
