@@ -42,8 +42,8 @@ public partial class testMainClass : BaseTest
 
     public bool isSynchronous = false;
 
-    public object onlySpecificTests = null;
-    public object proxyTestFileName = null;
+    public string[] onlySpecificTests = new string[] { };
+    public string proxyTestFileName = "proxies";
 
     public string lang = "C#";
 
