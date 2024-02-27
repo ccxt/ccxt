@@ -207,9 +207,18 @@
                 "withdraw": "not provided",
                 "deposit": "not provided"
             },
-            "fetchOrderBook": "multiple bids might have same value",
-            "fetchL2OrderBook": "same",
-            "fetchTickers": "negative values"
+            "fetchOrderBook": {
+                "bid": "multiple bids might have same value"
+            },
+            "fetchL2OrderBook": {
+                "bid": "same"
+            },
+            "watchOrderBook": {
+                "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269129438#L3999"  
+            },
+            "watchOrderBookForSymbols": {
+                "bid": "same"  
+            }
         }
     },
     "bitflyer": {
@@ -470,7 +479,6 @@
         }
     },
     "blockchaincom": {
-        "skipWs": "https://app.travis-ci.com/github/ccxt/ccxt/builds/265225134#L2304",
         "skipMethods": {
             "loadMarkets": {
                 "taker":"not provided",
@@ -764,7 +772,6 @@
         }
     },
     "cryptocom": {
-        "skipWs": "timeout",
         "skipMethods": {
             "proxies": "probably they do not permit our proxy",
             "loadMarkets": {
@@ -848,7 +855,6 @@
         }
     },
     "deribit": {
-        "skipWs": "timeouts",
         "skipMethods": {
             "fetchCurrencies": "deposit/withdraw not provided",
             "loadMarkets": "strike is set when option is not true",
@@ -895,7 +901,6 @@
         }
     },
     "gemini": {
-        "skipWs": "temporary",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes",

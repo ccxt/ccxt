@@ -69,6 +69,7 @@ export default class binance extends Exchange {
                 'fetchBorrowInterest': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': true,
+                'fetchCanceledAndClosedOrders': 'emulated',
                 'fetchCanceledOrders': 'emulated',
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': 'emulated',
@@ -126,7 +127,7 @@ export default class binance extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
-                'fetchTradingLimits': undefined,
+                'fetchTradingLimits': 'emulated',
                 'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
                 'fetchTransactions': false,
@@ -6718,6 +6719,39 @@ export default class binance extends Exchange {
         return this.filterBySinceLimit (filteredOrders, since, limit);
     }
 
+    async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name binance#fetchCanceledAndClosedOrders
+         * @description fetches information on multiple canceled orders made by the user
+         * @see https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-orders-user_data
+         * @param {string} symbol unified market symbol of the market the orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
+         * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchCanceledAndClosedOrders() requires a symbol argument');
+        }
+        const orders = await this.fetchOrders (symbol, since, undefined, params);
+        const canceledOrders = this.filterBy (orders, 'status', 'canceled');
+        const closedOrders = this.filterBy (orders, 'status', 'closed');
+        const filteredOrders = this.arrayConcat (canceledOrders, closedOrders);
+        const sortedOrders = this.sortBy (filteredOrders, 'timestamp');
+        return this.filterBySinceLimit (sortedOrders, since, limit);
+    }
+
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
@@ -11827,6 +11861,20 @@ export default class binance extends Exchange {
             'underlyingPrice': undefined,
             'info': greeks,
         };
+    }
+
+    async fetchTradingLimits (symbols: Strings = undefined, params = {}) {
+        // this method should not be called directly, use loadTradingLimits () instead
+        const markets = await this.fetchMarkets ();
+        const tradingLimits = {};
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const symbol = market['symbol'];
+            if ((symbols === undefined) || (this.inArray (symbol, symbols))) {
+                tradingLimits[symbol] = market['limits']['amount'];
+            }
+        }
+        return tradingLimits;
     }
 
     async fetchPositionMode (symbol: Str = undefined, params = {}) {
