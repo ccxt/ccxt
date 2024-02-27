@@ -947,7 +947,8 @@ export default class testMainClass extends baseMainTestClass {
         if (exchange.alias) {
             return;
         }
-        if (this.sandbox || getExchangeProp (exchange, 'sandbox')) {
+        const sandboxProp = getExchangeProp (exchange, 'sandbox');
+        if (this.sandbox || (sandboxProp !== undefined && sandboxProp)) { // fix c#
             exchange.setSandboxMode (true);
         }
         // because of python-async, we need proper `.close()` handling
