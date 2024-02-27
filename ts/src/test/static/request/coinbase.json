@@ -10,6 +10,16 @@
                 "url": "https://api.coinbase.com/v2/time",
                 "input": [
                 ]
+            },
+            {
+                "description": "fetch time - v3",
+                "method": "fetchTime",
+                "url": "https://api.coinbase.com/api/v3/brokerage/time",
+                "input": [
+                    {
+                        "method":"v3PublicGetBrokerageTime"
+                    }
+                ]
             }
         ],
         "createOrder": [
