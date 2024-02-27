@@ -752,7 +752,7 @@ export default class hyperliquid extends Exchange {
         if (vaultAddress !== undefined) {
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange (request);
+        const response = await this.privatePostExchange (this.extend (request, params));
         //
         //     {
         //         "status": "ok",
@@ -1052,7 +1052,7 @@ export default class hyperliquid extends Exchange {
         const signature = this.signL1Action (cancelAction, nonce);
         request['action'] = cancelAction;
         request['signature'] = signature;
-        const response = await this.privatePostExchange (request);
+        const response = await this.privatePostExchange (this.extend (request, params));
         //
         //     {
         //         "status":"ok",
@@ -1667,7 +1667,7 @@ export default class hyperliquid extends Exchange {
             'nonce': nonce,
             'signature': signature,
         };
-        const response = await this.privatePostExchange (request);
+        const response = await this.privatePostExchange (this.extend (request, params));
         //
         //     {
         //         'response': {
@@ -1715,7 +1715,7 @@ export default class hyperliquid extends Exchange {
             'nonce': nonce,
             'signature': signature,
         };
-        const response = await this.privatePostExchange (request);
+        const response = await this.privatePostExchange (this.extend (request, params));
         //
         //     {
         //         'response': {
@@ -1830,7 +1830,7 @@ export default class hyperliquid extends Exchange {
             'nonce': nonce,
             'signature': sig,
         };
-        const response = await this.privatePostExchange (request);
+        const response = await this.privatePostExchange (this.extend (request, params));
         return response;
     }
 
@@ -1873,7 +1873,7 @@ export default class hyperliquid extends Exchange {
             'nonce': nonce,
             'signature': sig,
         };
-        const response = await this.privatePostExchange (request);
+        const response = await this.privatePostExchange (this.extend (request, params));
         return response;
     }
 
