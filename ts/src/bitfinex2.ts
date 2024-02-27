@@ -2377,7 +2377,7 @@ export default class bitfinex2 extends Exchange {
                 feeCost = Precise.stringAbs (feeCost);
             }
             amount = this.safeNumber (data, 5);
-            id = this.safeString (data, 0);
+            id = this.safeInteger (data, 0);
             status = 'ok';
             if (id === 0) {
                 id = undefined;
@@ -2686,13 +2686,15 @@ export default class bitfinex2 extends Exchange {
         //     ]
         //
         const statusMessage = this.safeString (response, 0);
-        if (statusMessage === 'error') {
-            const feedback = this.id + ' ' + response;
-            const message = this.safeString (response, 2, '');
+        const data = this.safeValue (response, 4, []);
+        const txId = this.safeInteger (data, 0);
+        if (statusMessage === 'error' || txId === 0) {
+            // sometimes bitfinex returns a success data structure even if there's an error
+            const message = this.safeString (response, 2, undefined) || this.safeString (response, 7, '');
             // same message as in v1
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-            throw new ExchangeError (feedback); // unknown message
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, message);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, message);
+            throw new ExchangeError (message); // unknown message
         }
         const text = this.safeString (response, 7);
         if (text !== 'success') {
