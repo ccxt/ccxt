@@ -1653,28 +1653,19 @@ export default class hyperliquid extends Exchange {
         }
         const asset = this.parseToInt (market['baseId']);
         const isCross = (marginMode === 'isolated');
-        const vaultAddress = this.safeString (params, 'vaultAddress');
-        const zeroAddress = this.safeString (this.options, 'zeroAddress');
         const nonce = this.milliseconds ();
         params = this.omit (params, [ 'leverage', 'vaultAddress' ]);
-        const signatureTypes = [ 'uint32', 'bool', 'uint32', 'address', 'uint256' ];
-        const signatureData = [
-            asset,
-            isCross,
-            leverage,
-            (vaultAddress) ? vaultAddress : zeroAddress,
-            nonce,
-        ];
-        const sig = this.buildActionSig (signatureTypes, signatureData);
+        const updateAction = {
+            'type': 'updateLeverage',
+            'asset': asset,
+            'isCross': isCross,
+            'leverage': leverage,
+        };
+        const signature = this.signL1Action (updateAction, nonce);
         const request = {
-            'action': {
-                'type': 'updateLeverage',
-                'asset': asset,
-                'isCross': isCross,
-                'leverage': leverage,
-            },
+            'action': updateAction,
             'nonce': nonce,
-            'signature': sig,
+            'signature': signature,
         };
         const response = await this.privatePostExchange (request);
         //
@@ -1710,28 +1701,19 @@ export default class hyperliquid extends Exchange {
         }
         const isCross = (marginMode === 'cross');
         const asset = this.parseToInt (market['baseId']);
-        const vaultAddress = this.safeString (params, 'vaultAddress');
-        const zeroAddress = this.safeString (this.options, 'zeroAddress');
         const nonce = this.milliseconds ();
         params = this.omit (params, 'vaultAddress');
-        const signatureTypes = [ 'uint32', 'bool', 'uint32', 'address', 'uint256' ];
-        const signatureData = [
-            asset,
-            isCross,
-            leverage,
-            (vaultAddress) ? vaultAddress : zeroAddress,
-            nonce,
-        ];
-        const sig = this.buildActionSig (signatureTypes, signatureData);
+        const updateAction = {
+            'type': 'updateLeverage',
+            'asset': asset,
+            'isCross': isCross,
+            'leverage': leverage,
+        };
+        const signature = this.signL1Action (updateAction, nonce);
         const request = {
-            'action': {
-                'type': 'updateLeverage',
-                'asset': asset,
-                'isCross': isCross,
-                'leverage': leverage,
-            },
+            'action': updateAction,
             'nonce': nonce,
-            'signature': sig,
+            'signature': signature,
         };
         const response = await this.privatePostExchange (request);
         //
