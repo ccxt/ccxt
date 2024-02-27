@@ -460,7 +460,6 @@
         }
     },
     "bitvavo": {
-        "httpsProxy": "http://51.83.140.52:11230",
         "skipMethods": {
             "fetchCurrencies": {
                 "precision": "not provided",
