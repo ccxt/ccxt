@@ -471,7 +471,7 @@ export default class mexc extends mexcRest {
             client.subscriptions[messageHash] = 1;
             this.orderbooks[symbol] = this.countedOrderBook ({});
         }
-        const storedOrderBook = this.safeValue (this.orderbooks, symbol);
+        const storedOrderBook = this.orderbooks[symbol];
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
