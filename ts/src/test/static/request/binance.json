@@ -2701,6 +2701,8 @@
         ],
         "fetchTradingLimits": [
             {
+                "disabled": true,
+                "reason": "fetchMarkets performs multiple requests and that's not supported by static-tests",
                 "description": "Fetch Trading Limits with a symbol array argument",
                 "method": "fetchTradingLimits",
                 "url": "https://testnet.binancefuture.com/dapi/v1/exchangeInfo",
@@ -2712,6 +2714,7 @@
                 ]
             },
             {
+                "disabled": true,
                 "description": "Fetch Trading Limits with no input arguments",
                 "method": "fetchTradingLimits",
                 "url": "https://testnet.binancefuture.com/dapi/v1/exchangeInfo",
