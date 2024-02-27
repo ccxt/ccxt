@@ -126,7 +126,7 @@ export default class binance extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
-                'fetchTradingLimits': undefined,
+                'fetchTradingLimits': 'emulated',
                 'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
                 'fetchTransactions': false,
@@ -11827,6 +11827,20 @@ export default class binance extends Exchange {
             'underlyingPrice': undefined,
             'info': greeks,
         };
+    }
+
+    async fetchTradingLimits (symbols: Strings = undefined, params = {}) {
+        // this method should not be called directly, use loadTradingLimits () instead
+        const markets = await this.fetchMarkets ();
+        const tradingLimits = {};
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const symbol = market['symbol'];
+            if ((symbols === undefined) || (this.inArray (symbol, symbols))) {
+                tradingLimits[symbol] = market['limits']['amount'];
+            }
+        }
+        return tradingLimits;
     }
 
     async fetchPositionMode (symbol: Str = undefined, params = {}) {
