@@ -199,7 +199,6 @@
         }
     },
     "bitfinex2": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
@@ -240,6 +239,7 @@
             "fetchTickers": {
                 "bid":"broken bid-ask",
                 "ask":"broken bid-ask",
+                "open": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269099593#L3833",
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             },
@@ -370,7 +370,6 @@
         }
     },
     "bitrue": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies",
@@ -390,6 +389,7 @@
         }
     },
     "bitso": {
+        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "active": "not provided"
@@ -397,8 +397,10 @@
             "fetchOHLCV": "randomly failing with 404 not found"
         }
     },
+    "bitforex": {
+        "skipWs": true
+    },
     "bitstamp": {
-        "skipWs": true,
         "skipMethods": {
             "fetchOrderBook": "bid/ask might be 0",
             "fetchL2OrderBook": "same",
@@ -449,8 +451,6 @@
         }
     },
     "bitvavo": {
-        "skip": "temp",
-        "skipWs": "temp",
         "httpsProxy": "http://51.83.140.52:11230",
         "skipMethods": {
             "fetchCurrencies": {
@@ -470,7 +470,6 @@
         }
     },
     "blockchaincom": {
-        "skipWs": "https://app.travis-ci.com/github/ccxt/ccxt/builds/265225134#L2304",
         "skipMethods": {
             "loadMarkets": {
                 "taker":"not provided",

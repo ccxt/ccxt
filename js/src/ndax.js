@@ -10,7 +10,7 @@ import { ExchangeError, AuthenticationError, InsufficientFunds, BadSymbol, Order
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import totp from './base/functions/totp.js';
+import { totp } from './base/functions/totp.js';
 // ---------------------------------------------------------------------------
 /**
  * @class ndax

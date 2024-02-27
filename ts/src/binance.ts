@@ -43,8 +43,12 @@ export default class binance extends Exchange {
                 'closeAllPositions': false,
                 'closePosition': false,  // exchange specific closePosition parameter for binance createOrder is not synonymous with how CCXT uses closePositions
                 'createDepositAddress': false,
+                'createLimitBuyOrder': true,
+                'createLimitSellOrder': true,
+                'createMarketBuyOrder': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': true,
+                'createMarketSellOrder': true,
                 'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrders': true,
@@ -111,6 +115,7 @@ export default class binance extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchPositionsRisk': true,
                 'fetchPremiumIndexOHLCV': false,
@@ -122,10 +127,11 @@ export default class binance extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
-                'fetchTradingLimits': undefined,
+                'fetchTradingLimits': 'emulated',
                 'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
                 'fetchTransactions': false,
+                'fetchTransfer': false,
                 'fetchTransfers': true,
                 'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
@@ -475,6 +481,10 @@ export default class binance extends Exchange {
                         'simple-earn/flexible/history/rewardsRecord': 15,
                         'simple-earn/locked/history/rewardsRecord': 15,
                         'simple-earn/flexible/history/collateralRecord': 0.1,
+                        // Convert
+                        'dci/product/list': 0.1,
+                        'dci/product/positions': 0.1,
+                        'dci/product/accounts': 0.1,
                     },
                     'post': {
                         'asset/dust': 0.06667, // Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
@@ -603,6 +613,9 @@ export default class binance extends Exchange {
                         'simple-earn/locked/redeem': 0.1,
                         'simple-earn/flexible/setAutoSubscribe': 15,
                         'simple-earn/locked/setAutoSubscribe': 15,
+                        // convert
+                        'dci/product/subscribe': 0.1,
+                        'dci/product/auto_compound/edit': 0.1,
                     },
                     'put': {
                         'userDataStream': 0.1,
@@ -4079,7 +4092,8 @@ export default class binance extends Exchange {
         //         "closeTime": 1677097200000
         //     }
         //
-        const volumeIndex = (market['inverse']) ? 7 : 5;
+        const inverse = this.safeBool (market, 'inverse');
+        const volumeIndex = inverse ? 7 : 5;
         return [
             this.safeInteger2 (ohlcv, 0, 'closeTime'),
             this.safeNumber2 (ohlcv, 1, 'open'),
@@ -7997,7 +8011,6 @@ export default class binance extends Exchange {
         /**
          * @method
          * @name binance#fetchTransfers
-         * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
          * @description fetch a history of internal transfers made on an account
          * @see https://binance-docs.github.io/apidocs/spot/en/#query-user-universal-transfer-history-user_data
          * @param {string} code unified currency code of the currency transferred
@@ -11847,6 +11860,56 @@ export default class binance extends Exchange {
             'lastPrice': undefined,
             'underlyingPrice': undefined,
             'info': greeks,
+        };
+    }
+
+    async fetchTradingLimits (symbols: Strings = undefined, params = {}) {
+        // this method should not be called directly, use loadTradingLimits () instead
+        const markets = await this.fetchMarkets ();
+        const tradingLimits = {};
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const symbol = market['symbol'];
+            if ((symbols === undefined) || (this.inArray (symbol, symbols))) {
+                tradingLimits[symbol] = market['limits']['amount'];
+            }
+        }
+        return tradingLimits;
+    }
+
+    async fetchPositionMode (symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchPositionMode
+         * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {object} params extra parameters specific to the exchange API endpoint
+         * @param {string} params.subType "linear" or "inverse"
+         * @returns {object} an object detailing whether the market is in hedged or one-way mode
+         */
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionMode', market, params);
+        let response = undefined;
+        if (subType === 'linear') {
+            response = await this.fapiPrivateGetPositionSideDual (params);
+        } else if (subType === 'inverse') {
+            response = await this.dapiPrivateGetPositionSideDual (params);
+        } else {
+            throw new BadRequest (this.id + ' fetchPositionMode requires either a symbol argument or params["subType"]');
+        }
+        //
+        //    {
+        //        dualSidePosition: false
+        //    }
+        //
+        const dualSidePosition = this.safeBool (response, 'dualSidePosition');
+        return {
+            'info': response,
+            'hedged': dualSidePosition,
         };
     }
 }
