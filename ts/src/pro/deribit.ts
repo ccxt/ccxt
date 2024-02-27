@@ -186,7 +186,7 @@ export default class deribit extends deribitRest {
         //         "params": {
         //             "channel": "ticker.BTC_USDC-PERPETUAL.raw",
         //             "data": {
-        //                 "timestamp": 1655393725041,
+        //                 "timestamp": 1655393725040,
         //                 "stats": [Object],
         //                 "state": "open",
         //                 "settlement_price": 21729.5891,
