@@ -763,7 +763,6 @@
         }
     },
     "cryptocom": {
-        "skipWs": "timeout",
         "skipMethods": {
             "proxies": "probably they do not permit our proxy",
             "loadMarkets": {
