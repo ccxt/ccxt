@@ -855,7 +855,6 @@
         }
     },
     "deribit": {
-        "skipWs": "timeouts",
         "skipMethods": {
             "fetchCurrencies": "deposit/withdraw not provided",
             "loadMarkets": "strike is set when option is not true",
