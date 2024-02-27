@@ -1017,7 +1017,7 @@ export default class hyperliquid extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let clientOrderId = this.safeValue2 (params, 'clientOrderId', 'client_id');
-        params = this.omit (params, [ 'vaultAddress', 'clientOrderId', 'client_id' ]);
+        params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         const nonce = this.milliseconds ();
         const request = {
             'nonce': nonce
@@ -1654,7 +1654,7 @@ export default class hyperliquid extends Exchange {
         const asset = this.parseToInt (market['baseId']);
         const isCross = (marginMode === 'isolated');
         const nonce = this.milliseconds ();
-        params = this.omit (params, [ 'leverage', 'vaultAddress' ]);
+        params = this.omit (params, [ 'leverage' ]);
         const updateAction = {
             'type': 'updateLeverage',
             'asset': asset,
@@ -1702,7 +1702,7 @@ export default class hyperliquid extends Exchange {
         const isCross = (marginMode === 'cross');
         const asset = this.parseToInt (market['baseId']);
         const nonce = this.milliseconds ();
-        params = this.omit (params, 'vaultAddress');
+        params = this.omit (params, 'marginMode');
         const updateAction = {
             'type': 'updateLeverage',
             'asset': asset,
