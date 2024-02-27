@@ -30,11 +30,16 @@ public partial class binance : Exchange
                 { "closeAllPositions", false },
                 { "closePosition", false },
                 { "createDepositAddress", false },
+                { "createLimitBuyOrder", true },
+                { "createLimitSellOrder", true },
+                { "createMarketBuyOrder", true },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrderWithCost", true },
+                { "createMarketSellOrder", true },
                 { "createMarketSellOrderWithCost", true },
                 { "createOrder", true },
                 { "createOrders", true },
+                { "createOrderWithTakeProfitAndStopLoss", true },
                 { "createPostOnlyOrder", true },
                 { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", true },
@@ -96,6 +101,7 @@ public partial class binance : Exchange
                 { "fetchOrders", true },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", true },
+                { "fetchPositionMode", true },
                 { "fetchPositions", true },
                 { "fetchPositionsRisk", true },
                 { "fetchPremiumIndexOHLCV", false },
@@ -108,9 +114,10 @@ public partial class binance : Exchange
                 { "fetchTradingFee", true },
                 { "fetchTradingFees", true },
                 { "fetchTradingLimits", null },
-                { "fetchTransactionFee", null },
+                { "fetchTransactionFee", "emulated" },
                 { "fetchTransactionFees", true },
                 { "fetchTransactions", false },
+                { "fetchTransfer", false },
                 { "fetchTransfers", true },
                 { "fetchUnderlyingAssets", false },
                 { "fetchVolatilityHistory", false },
@@ -445,6 +452,9 @@ public partial class binance : Exchange
                         { "simple-earn/flexible/history/rewardsRecord", 15 },
                         { "simple-earn/locked/history/rewardsRecord", 15 },
                         { "simple-earn/flexible/history/collateralRecord", 0.1 },
+                        { "dci/product/list", 0.1 },
+                        { "dci/product/positions", 0.1 },
+                        { "dci/product/accounts", 0.1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "asset/dust", 0.06667 },
@@ -561,6 +571,8 @@ public partial class binance : Exchange
                         { "simple-earn/locked/redeem", 0.1 },
                         { "simple-earn/flexible/setAutoSubscribe", 15 },
                         { "simple-earn/locked/setAutoSubscribe", 15 },
+                        { "dci/product/subscribe", 0.1 },
+                        { "dci/product/auto_compound/edit", 0.1 },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "userDataStream", 0.1 },
@@ -3061,7 +3073,7 @@ public partial class binance : Exchange
         object fees = this.fees;
         object linear = null;
         object inverse = null;
-        object strike = this.safeInteger(market, "strikePrice");
+        object strike = this.safeString(market, "strikePrice");
         object symbol = add(add(bs, "/"), quote);
         if (isTrue(contract))
         {
@@ -3073,7 +3085,7 @@ public partial class binance : Exchange
                 symbol = add(add(add(add(symbol, ":"), settle), "-"), this.yymmdd(expiry));
             } else if (isTrue(option))
             {
-                symbol = add(add(add(add(add(add(add(add(symbol, ":"), settle), "-"), this.yymmdd(expiry)), "-"), this.numberToString(strike)), "-"), this.safeString(optionParts, 3));
+                symbol = add(add(add(add(add(add(add(add(symbol, ":"), settle), "-"), this.yymmdd(expiry)), "-"), strike), "-"), this.safeString(optionParts, 3));
             }
             contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
             linear = isEqual(settle, quote);
@@ -3110,6 +3122,11 @@ public partial class binance : Exchange
             unifiedType = "option";
             active = null;
         }
+        object parsedStrike = null;
+        if (isTrue(!isEqual(strike, null)))
+        {
+            parsedStrike = this.parseToNumeric(strike);
+        }
         object entry = new Dictionary<string, object>() {
             { "id", id },
             { "lowercaseId", lowercaseId },
@@ -3135,7 +3152,7 @@ public partial class binance : Exchange
             { "contractSize", contractSize },
             { "expiry", expiry },
             { "expiryDatetime", this.iso8601(expiry) },
-            { "strike", strike },
+            { "strike", parsedStrike },
             { "optionType", this.safeStringLower(market, "side") },
             { "precision", new Dictionary<string, object>() {
                 { "amount", this.safeInteger2(market, "quantityPrecision", "quantityScale") },
@@ -4209,7 +4226,8 @@ public partial class binance : Exchange
         //         "closeTime": 1677097200000
         //     }
         //
-        object volumeIndex = ((bool) isTrue((getValue(market, "inverse")))) ? 7 : 5;
+        object inverse = this.safeBool(market, "inverse");
+        object volumeIndex = ((bool) isTrue(inverse)) ? 7 : 5;
         return new List<object> {this.safeInteger2(ohlcv, 0, "closeTime"), this.safeNumber2(ohlcv, 1, "open"), this.safeNumber2(ohlcv, 2, "high"), this.safeNumber2(ohlcv, 3, "low"), this.safeNumber2(ohlcv, 4, "close"), this.safeNumber2(ohlcv, volumeIndex, "volume")};
     }
 
@@ -8467,7 +8485,6 @@ public partial class binance : Exchange
         /**
         * @method
         * @name binance#fetchTransfers
-        * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
         * @description fetch a history of internal transfers made on an account
         * @see https://binance-docs.github.io/apidocs/spot/en/#query-user-universal-transfer-history-user_data
         * @param {string} code unified currency code of the currency transferred
@@ -12843,6 +12860,50 @@ public partial class binance : Exchange
             { "lastPrice", null },
             { "underlyingPrice", null },
             { "info", greeks },
+        };
+    }
+
+    public async virtual Task<object> fetchPositionMode(object symbol = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#fetchPositionMode
+        * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+        * @param {string} symbol unified symbol of the market to fetch the order book for
+        * @param {object} params extra parameters specific to the exchange API endpoint
+        * @param {string} params.subType "linear" or "inverse"
+        * @returns {object} an object detailing whether the market is in hedged or one-way mode
+        */
+        parameters ??= new Dictionary<string, object>();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositionMode", market, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(subType, "linear")))
+        {
+            response = await this.fapiPrivateGetPositionSideDual(parameters);
+        } else if (isTrue(isEqual(subType, "inverse")))
+        {
+            response = await this.dapiPrivateGetPositionSideDual(parameters);
+        } else
+        {
+            throw new BadRequest ((string)add(this.id, " fetchPositionMode requires either a symbol argument or params[\"subType\"]")) ;
+        }
+        //
+        //    {
+        //        dualSidePosition: false
+        //    }
+        //
+        object dualSidePosition = this.safeBool(response, "dualSidePosition");
+        return new Dictionary<string, object>() {
+            { "info", response },
+            { "hedged", dualSidePosition },
         };
     }
 }

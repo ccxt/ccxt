@@ -1064,6 +1064,7 @@ public partial class bitget : ccxt.bitget
         //                 "clientOid": "798d1425-d31d-4ada-a51b-ec701e00a1d9",
         //                 "price": "35000.00",
         //                 "size": "7.0000",
+        //                 "newSize": "500.0000",
         //                 "notional": "7.000000",
         //                 "orderType": "limit",
         //                 "force": "gtc",
@@ -1237,6 +1238,7 @@ public partial class bitget : ccxt.bitget
         //         "clientOid": "798d1425-d31d-4ada-a51b-ec701e00a1d9",
         //         "price": "35000.00",
         //         "size": "7.0000",
+        //         "newSize": "500.0000",
         //         "notional": "7.000000",
         //         "orderType": "limit",
         //         "force": "gtc",
@@ -1345,6 +1347,29 @@ public partial class bitget : ccxt.bitget
             };
         }
         object triggerPrice = this.safeNumber(order, "triggerPrice");
+        object price = this.safeString(order, "price");
+        object avgPrice = this.omitZero(this.safeString2(order, "priceAvg", "fillPrice"));
+        object cost = this.safeStringN(order, new List<object>() {"notional", "notionalUsd", "quoteSize"});
+        object side = this.safeString(order, "side");
+        object type = this.safeString(order, "orderType");
+        if (isTrue(isTrue(isTrue(isEqual(side, "buy")) && isTrue(getValue(market, "spot"))) && isTrue((isEqual(type, "market")))))
+        {
+            cost = this.safeString(order, "newSize", cost);
+        }
+        object filled = this.safeString2(order, "accBaseVolume", "baseVolume");
+        if (isTrue(isTrue(getValue(market, "spot")) && isTrue((!isEqual(rawStatus, "live")))))
+        {
+            filled = Precise.stringDiv(cost, avgPrice);
+        }
+        object amount = this.safeString(order, "baseVolume");
+        if (isTrue(!isTrue(getValue(market, "spot")) || !isTrue((isTrue(isEqual(side, "buy")) && isTrue(isEqual(type, "market"))))))
+        {
+            amount = this.safeString(order, "newSize", amount);
+        }
+        if (isTrue(isTrue(getValue(market, "swap")) && isTrue((isEqual(amount, null)))))
+        {
+            amount = this.safeString(order, "size");
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "symbol", symbol },
@@ -1353,17 +1378,17 @@ public partial class bitget : ccxt.bitget
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", this.safeInteger(order, "uTime") },
-            { "type", this.safeString(order, "orderType") },
+            { "type", type },
             { "timeInForce", this.safeStringUpper(order, "force") },
             { "postOnly", null },
-            { "side", this.safeString(order, "side") },
-            { "price", this.safeString(order, "price") },
+            { "side", side },
+            { "price", price },
             { "stopPrice", triggerPrice },
             { "triggerPrice", triggerPrice },
-            { "amount", this.safeString(order, "baseVolume") },
-            { "cost", this.safeStringN(order, new List<object>() {"notional", "notionalUsd", "quoteSize"}) },
-            { "average", this.omitZero(this.safeString2(order, "priceAvg", "fillPrice")) },
-            { "filled", this.safeString2(order, "accBaseVolume", "baseVolume") },
+            { "amount", amount },
+            { "cost", cost },
+            { "average", avgPrice },
+            { "filled", filled },
             { "remaining", null },
             { "status", this.parseWsOrderStatus(rawStatus) },
             { "fee", feeObject },

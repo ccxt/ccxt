@@ -589,9 +589,10 @@ export default class testMainClass extends baseMainTestClass {
             return false;
         }
         const symbols = [
+            'BTC/USDT',
+            'BTC/USDC',
             'BTC/CNY',
             'BTC/USD',
-            'BTC/USDT',
             'BTC/EUR',
             'BTC/ETH',
             'ETH/BTC',
@@ -713,8 +714,9 @@ export default class testMainClass extends baseMainTestClass {
             'ZRX',
         ];
         const spotSymbols = [
-            'BTC/USD',
             'BTC/USDT',
+            'BTC/USDC',
+            'BTC/USD',
             'BTC/CNY',
             'BTC/EUR',
             'BTC/ETH',
@@ -728,6 +730,7 @@ export default class testMainClass extends baseMainTestClass {
         ];
         const swapSymbols = [
             'BTC/USDT:USDT',
+            'BTC/USDC:USDC',
             'BTC/USD:USD',
             'ETH/USDT:USDT',
             'ETH/USD:USD',
@@ -800,19 +803,19 @@ export default class testMainClass extends baseMainTestClass {
             dump ('[INFO:MAIN] Selected SWAP SYMBOL:', swapSymbol);
         }
         if (!this.privateTestOnly) {
-            // note, spot & swap tests should run sequentially, because of conflicting `exchange.options['type']` setting
+            // note, spot & swap tests should run sequentially, because of conflicting `exchange.options['defaultType']` setting
             if (exchange.has['spot'] && spotSymbol !== undefined) {
                 if (this.info) {
                     dump ('[INFO] ### SPOT TESTS ###');
                 }
-                exchange.options['type'] = 'spot';
+                exchange.options['defaultType'] = 'spot';
                 await this.runPublicTests (exchange, spotSymbol);
             }
             if (exchange.has['swap'] && swapSymbol !== undefined) {
                 if (this.info) {
                     dump ('[INFO] ### SWAP TESTS ###');
                 }
-                exchange.options['type'] = 'swap';
+                exchange.options['defaultType'] = 'swap';
                 await this.runPublicTests (exchange, swapSymbol);
             }
         }

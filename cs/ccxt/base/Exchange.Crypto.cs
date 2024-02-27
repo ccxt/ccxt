@@ -2,6 +2,7 @@ using System.Text;
 using System.Security.Cryptography;
 using System.IO.Compression;
 using Cryptography.ECDSA;
+using Nethereum.Util;
 
 namespace ccxt;
 
@@ -85,6 +86,12 @@ public partial class Exchange
             case "md5":
                 signature = SignMD5(request);
                 break;
+            case "keccak":
+                signature = SignKeccak(request);
+                break;
+            case "sha3":
+                signature = SignKeccak(request);
+                break;
         }
 
         return digest == "hex" ? binaryToHex(signature) : binaryToBase64(signature);
@@ -161,6 +168,13 @@ public partial class Exchange
         using var encryptor = SHA1.Create();
         var resultBytes = encryptor.ComputeHash(Encoding.UTF8.GetBytes(data));
         return resultBytes;
+    }
+
+    public static byte[] SignKeccak(string data)
+    {
+        Sha3Keccack keccack = new Sha3Keccack();
+        var hash = keccack.CalculateHash(Encoding.UTF8.GetBytes(data));
+        return hash;
     }
 
     public static byte[] SignSHA384(string data)

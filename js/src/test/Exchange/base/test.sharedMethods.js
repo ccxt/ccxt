@@ -286,10 +286,10 @@ function assertFeeStructure(exchange, skippedProperties, method, entry, key) {
 function assertTimestampOrder(exchange, method, codeOrSymbol, items, ascending = true) {
     for (let i = 0; i < items.length; i++) {
         if (i > 0) {
-            const ascendingOrDescending = ascending ? 'ascending' : 'descending';
             const currentTs = items[i - 1]['timestamp'];
             const nextTs = items[i]['timestamp'];
             if (currentTs !== undefined && nextTs !== undefined) {
+                const ascendingOrDescending = ascending ? 'ascending' : 'descending';
                 const comparison = ascending ? (currentTs <= nextTs) : (currentTs >= nextTs);
                 assert(comparison, exchange.id + ' ' + method + ' ' + stringValue(codeOrSymbol) + ' must return a ' + ascendingOrDescending + ' sorted array of items by timestamp, but ' + currentTs.toString() + ' is opposite with its next ' + nextTs.toString() + ' ' + exchange.json(items));
             }

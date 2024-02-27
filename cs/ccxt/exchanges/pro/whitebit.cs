@@ -173,6 +173,7 @@ public partial class whitebit : ccxt.whitebit
         //     "params":[
         //        true,
         //        {
+        //           "timestamp": 1708679568.940867,
         //           "asks":[
         //              [ "21252.45","0.01957"],
         //              ["21252.55","0.126205"],
@@ -209,15 +210,15 @@ public partial class whitebit : ccxt.whitebit
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object data = this.safeValue(parameters, 1);
-        object orderbook = null;
-        if (isTrue(inOp(this.orderbooks, symbol)))
+        object timestamp = this.safeTimestamp(data, "timestamp");
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
-            orderbook = getValue(this.orderbooks, symbol);
-        } else
-        {
-            orderbook = this.orderBook();
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
+            object ob = this.orderBook();
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
         }
+        object orderbook = getValue(this.orderbooks, symbol);
+        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
+        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         if (isTrue(isSnapshot))
         {
             object snapshot = this.parseOrderBook(data, symbol);

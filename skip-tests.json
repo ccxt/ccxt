@@ -1,7 +1,6 @@
 {
     "ace": {
         "skip": "temp",
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "temporary skip, because ids are numeric and we are in wip for numeric id tests",
@@ -22,7 +21,6 @@
         "skipWs": "private endpoints"
     },
     "ascendex": {
-        "skipWs": "unknown https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2416",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
@@ -35,11 +33,14 @@
                 "low":"16 Aug - happened weird negative 24hr low",
                 "bid":"messed bid-ask",
                 "ask":"messed bid-ask"
+            },
+            "watchOrderBook": {
+                "bid":"messed bid-ask",
+                "ask":"messed bid-ask"
             }
         }
     },
     "bequant": {
-        "skipWs": "timeouts",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/264802937#L2194"
@@ -198,7 +199,6 @@
         }
     },
     "bitfinex2": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
@@ -239,6 +239,7 @@
             "fetchTickers": {
                 "bid":"broken bid-ask",
                 "ask":"broken bid-ask",
+                "open": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269099593#L3833",
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             },
@@ -369,7 +370,6 @@
         }
     },
     "bitrue": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies",
@@ -389,6 +389,7 @@
         }
     },
     "bitso": {
+        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "active": "not provided"
@@ -396,8 +397,10 @@
             "fetchOHLCV": "randomly failing with 404 not found"
         }
     },
+    "bitforex": {
+        "skipWs": true
+    },
     "bitstamp": {
-        "skipWs": true,
         "skipMethods": {
             "fetchOrderBook": "bid/ask might be 0",
             "fetchL2OrderBook": "same",
@@ -448,8 +451,6 @@
         }
     },
     "bitvavo": {
-        "skip": "temp",
-        "skipWs": "temp",
         "httpsProxy": "http://51.83.140.52:11230",
         "skipMethods": {
             "fetchCurrencies": {

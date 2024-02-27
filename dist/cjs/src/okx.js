@@ -5228,6 +5228,7 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchPositions
          * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history history
          * @description fetch all open positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5368,13 +5369,38 @@ class okx extends okx$1 {
         //        "vegaBS": "",
         //        "vegaPA": ""
         //    }
+        // history
+        //    {
+        //        "cTime":"1708351230102",
+        //        "ccy":"USDT",
+        //        "closeAvgPx":"1.2567",
+        //        "closeTotalPos":"40",
+        //        "direction":"short",
+        //        "fee":"-0.0351036",
+        //        "fundingFee":"0",
+        //        "instId":"SUSHI-USDT-SWAP",
+        //        "instType":"SWAP",
+        //        "lever":"10.0",
+        //        "liqPenalty":"0",
+        //        "mgnMode":"isolated",
+        //        "openAvgPx":"1.2462",
+        //        "openMaxPos":"40",
+        //        "pnl":"-0.42",
+        //        "pnlRatio":"-0.0912982667308618",
+        //        "posId":"666159086676836352",
+        //        "realizedPnl":"-0.4551036",
+        //        "triggerPx":"",
+        //        "type":"2",
+        //        "uTime":"1708354805699",
+        //        "uly":"SUSHI-USDT"
+        //    }
         //
         const marketId = this.safeString(position, 'instId');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
         const pos = this.safeString(position, 'pos'); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         const contractsAbs = Precise["default"].stringAbs(pos);
-        let side = this.safeString(position, 'posSide');
+        let side = this.safeString2(position, 'posSide', 'direction');
         const hedged = side !== 'net';
         const contracts = this.parseNumber(contractsAbs);
         if (market['margin']) {
@@ -5415,7 +5441,7 @@ class okx extends okx$1 {
         const notional = this.parseNumber(notionalString);
         const marginMode = this.safeString(position, 'mgnMode');
         let initialMarginString = undefined;
-        const entryPriceString = this.safeString(position, 'avgPx');
+        const entryPriceString = this.safeString2(position, 'avgPx', 'openAvgPx');
         const unrealizedPnlString = this.safeString(position, 'upl');
         const leverageString = this.safeString(position, 'lever');
         let initialMarginPercentage = undefined;
@@ -5442,27 +5468,28 @@ class okx extends okx$1 {
         const liquidationPrice = this.safeNumber(position, 'liqPx');
         const percentageString = this.safeString(position, 'uplRatio');
         const percentage = this.parseNumber(Precise["default"].stringMul(percentageString, '100'));
-        const timestamp = this.safeInteger(position, 'uTime');
+        const timestamp = this.safeInteger(position, 'cTime');
         const marginRatio = this.parseNumber(Precise["default"].stringDiv(maintenanceMarginString, collateralString, 4));
         return this.safePosition({
             'info': position,
-            'id': undefined,
+            'id': this.safeString(position, 'posId'),
             'symbol': symbol,
             'notional': notional,
             'marginMode': marginMode,
             'liquidationPrice': liquidationPrice,
             'entryPrice': this.parseNumber(entryPriceString),
             'unrealizedPnl': this.parseNumber(unrealizedPnlString),
+            'realizedPnl': this.safeNumber(position, 'realizedPnl'),
             'percentage': percentage,
             'contracts': contracts,
             'contractSize': contractSize,
             'markPrice': this.parseNumber(markPriceString),
-            'lastPrice': undefined,
+            'lastPrice': this.safeNumber(position, 'closeAvgPx'),
             'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger(position, 'uTime'),
             'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
             'collateral': this.parseNumber(collateralString),
