@@ -3520,13 +3520,14 @@ export default class bingx extends Exchange {
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.side] hedged: ['long' or 'short']. one way: ['both']
          * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
         const side = this.safeStringUpper (params, 'side');
-        this.checkRequiredArgument ('setLeverage', side, 'side', [ 'LONG', 'SHORT' ]);
+        this.checkRequiredArgument ('setLeverage', side, 'side', [ 'LONG', 'SHORT', 'BOTH' ]);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
