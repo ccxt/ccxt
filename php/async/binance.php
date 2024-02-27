@@ -74,6 +74,7 @@ class binance extends Exchange {
                 'fetchBorrowInterest' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => true,
+                'fetchCanceledAndClosedOrders' => 'emulated',
                 'fetchCanceledOrders' => 'emulated',
                 'fetchClosedOrder' => false,
                 'fetchClosedOrders' => 'emulated',
@@ -131,7 +132,7 @@ class binance extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
-                'fetchTradingLimits' => null,
+                'fetchTradingLimits' => 'emulated',
                 'fetchTransactionFee' => 'emulated',
                 'fetchTransactionFees' => true,
                 'fetchTransactions' => false,
@@ -6719,6 +6720,39 @@ class binance extends Exchange {
         }) ();
     }
 
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple canceled $orders made by the user
+             * @see https://binance-docs.github.io/apidocs/spot/en/#all-$orders-user_data
+             * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-$orders-user_data
+             * @see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+             * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-$orders-user_data
+             * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-$orders-user_data
+             * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-$orders-user_data
+             * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-$orders-user_data
+             * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-$orders-user_data
+             * @param {string} $symbol unified market $symbol of the market the $orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch $orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch $orders in a portfolio margin account
+             * @param {boolean} [$params->stop] set to true if you would like to fetch portfolio margin account stop or conditional $orders
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchCanceledAndClosedOrders() requires a $symbol argument');
+            }
+            $orders = Async\await($this->fetch_orders($symbol, $since, null, $params));
+            $canceledOrders = $this->filter_by($orders, 'status', 'canceled');
+            $closedOrders = $this->filter_by($orders, 'status', 'closed');
+            $filteredOrders = $this->array_concat($canceledOrders, $closedOrders);
+            $sortedOrders = $this->sort_by($filteredOrders, 'timestamp');
+            return $this->filter_by_since_limit($sortedOrders, $since, $limit);
+        }) ();
+    }
+
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
@@ -11833,6 +11867,22 @@ class binance extends Exchange {
             'underlyingPrice' => null,
             'info' => $greeks,
         );
+    }
+
+    public function fetch_trading_limits(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            // this method should not be called directly, use loadTradingLimits () instead
+            $markets = Async\await($this->fetch_markets());
+            $tradingLimits = array();
+            for ($i = 0; $i < count($markets); $i++) {
+                $market = $markets[$i];
+                $symbol = $market['symbol'];
+                if (($symbols === null) || ($this->in_array($symbol, $symbols))) {
+                    $tradingLimits[$symbol] = $market['limits']['amount'];
+                }
+            }
+            return $tradingLimits;
+        }) ();
     }
 
     public function fetch_position_mode(?string $symbol = null, $params = array ()) {

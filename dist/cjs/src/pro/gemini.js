@@ -203,7 +203,7 @@ class gemini extends gemini$1 {
         //                 "time_ms": 1655323185000,
         //                 "result": "failure",
         //                 "highest_bid_price": "21661.90",
-        //                 "lowest_ask_price": "21663.79",
+        //                 "lowest_ask_price": "21663.78",
         //                 "collar_price": "21662.845"
         //             },
         //         ]
