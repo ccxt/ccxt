@@ -53,6 +53,7 @@ export default class coinbase extends Exchange {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': false,
                 'createStopOrder': true,
+                'deposit': true,
                 'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
@@ -64,6 +65,7 @@ export default class coinbase extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
+                'fetchDeposit': true,
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
@@ -3643,6 +3645,75 @@ export default class coinbase extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
+        return this.parseTransaction (data);
+    }
+
+    async fetchDeposit (id: string, code: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchDeposit
+         * @description fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
+         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#show-deposit
+         * @param {string} id deposit id
+         * @param {string} [code] unified currency code
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.accountId] the id of the account that the funds were deposited into
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        await this.loadMarkets ();
+        let accountId = this.safeString2 (params, 'account_id', 'accountId');
+        params = this.omit (params, [ 'account_id', 'accountId' ]);
+        if (accountId === undefined) {
+            if (code === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchDeposit() requires an account_id (or accountId) parameter OR a currency code argument');
+            }
+            accountId = await this.findAccountId (code);
+            if (accountId === undefined) {
+                throw new ExchangeError (this.id + ' fetchDeposit() could not find account id for ' + code);
+            }
+        }
+        const request = {
+            'account_id': accountId,
+            'deposit_id': id,
+        };
+        const response = await this.v2PrivateGetAccountsAccountIdDepositsDepositId (this.extend (request, params));
+        //
+        //     {
+        //         "data": {
+        //             "id": "67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //             "status": "completed",
+        //             "payment_method": {
+        //                 "id": "83562370-3e5c-51db-87da-752af5ab9559",
+        //                 "resource": "payment_method",
+        //                 "resource_path": "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
+        //             },
+        //             "transaction": {
+        //                 "id": "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
+        //                 "resource": "transaction",
+        //                 "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
+        //             },
+        //             "amount": {
+        //                 "amount": "10.00",
+        //                 "currency": "USD"
+        //             },
+        //             "subtotal": {
+        //                 "amount": "10.00",
+        //                 "currency": "USD"
+        //             },
+        //             "created_at": "2015-01-31T20:49:02Z",
+        //             "updated_at": "2015-02-11T16:54:02-08:00",
+        //             "resource": "deposit",
+        //             "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/deposits/67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //             "committed": true,
+        //             "fee": {
+        //                 "amount": "0.00",
+        //                 "currency": "USD"
+        //             },
+        //             "payout_at": "2015-02-18T16:54:00-08:00"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
         return this.parseTransaction (data);
     }
 
