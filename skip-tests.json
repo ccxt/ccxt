@@ -48,6 +48,18 @@
             "fetchTickers": {
                 "bid":"broken bid-ask",
                 "ask":"broken bid-ask"
+            },
+            "fetchOrderBook": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269129438#L3841"
+            },
+            "fetchL2OrderBook": {
+                "spread": "same"
+            },
+            "watchOrderBook": {
+                "spread": "same" 
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "same"
             }
         }
     },
