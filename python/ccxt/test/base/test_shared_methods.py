@@ -270,10 +270,10 @@ def assert_fee_structure(exchange, skipped_properties, method, entry, key):
 def assert_timestamp_order(exchange, method, code_or_symbol, items, ascending=True):
     for i in range(0, len(items)):
         if i > 0:
-            ascending_or_descending = 'ascending' if ascending else 'descending'
             current_ts = items[i - 1]['timestamp']
             next_ts = items[i]['timestamp']
             if current_ts is not None and next_ts is not None:
+                ascending_or_descending = 'ascending' if ascending else 'descending'
                 comparison = (current_ts <= next_ts) if ascending else (current_ts >= next_ts)
                 assert comparison, exchange.id + ' ' + method + ' ' + string_value(code_or_symbol) + ' must return a ' + ascending_or_descending + ' sorted array of items by timestamp, but ' + str(current_ts) + ' is opposite with its next ' + str(next_ts) + ' ' + exchange.json(items)
 

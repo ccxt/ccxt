@@ -35,8 +35,12 @@ class binance extends Exchange {
                 'closeAllPositions' => false,
                 'closePosition' => false,  // exchange specific closePosition parameter for binance createOrder is not synonymous with how CCXT uses closePositions
                 'createDepositAddress' => false,
+                'createLimitBuyOrder' => true,
+                'createLimitSellOrder' => true,
+                'createMarketBuyOrder' => true,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrderWithCost' => true,
+                'createMarketSellOrder' => true,
                 'createMarketSellOrderWithCost' => true,
                 'createOrder' => true,
                 'createOrders' => true,
@@ -102,6 +106,7 @@ class binance extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionMode' => true,
                 'fetchPositions' => true,
                 'fetchPositionsRisk' => true,
                 'fetchPremiumIndexOHLCV' => false,
@@ -117,6 +122,7 @@ class binance extends Exchange {
                 'fetchTransactionFee' => 'emulated',
                 'fetchTransactionFees' => true,
                 'fetchTransactions' => false,
+                'fetchTransfer' => false,
                 'fetchTransfers' => true,
                 'fetchUnderlyingAssets' => false,
                 'fetchVolatilityHistory' => false,
@@ -4057,7 +4063,8 @@ class binance extends Exchange {
         //         "closeTime" => 1677097200000
         //     }
         //
-        $volumeIndex = ($market['inverse']) ? 7 : 5;
+        $inverse = $this->safe_bool($market, 'inverse');
+        $volumeIndex = $inverse ? 7 : 5;
         return array(
             $this->safe_integer_2($ohlcv, 0, 'closeTime'),
             $this->safe_number_2($ohlcv, 1, 'open'),
@@ -7886,7 +7893,6 @@ class binance extends Exchange {
 
     public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
          * fetch a history of internal transfers made on an account
          * @see https://binance-docs.github.io/apidocs/spot/en/#query-user-universal-transfer-history-user_data
          * @param {string} $code unified $currency $code of the $currency transferred
@@ -11657,6 +11663,40 @@ class binance extends Exchange {
             'lastPrice' => null,
             'underlyingPrice' => null,
             'info' => $greeks,
+        );
+    }
+
+    public function fetch_position_mode(?string $symbol = null, $params = array ()) {
+        /**
+         * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {array} $params extra parameters specific to the exchange API endpoint
+         * @param {string} $params->subType "linear" or "inverse"
+         * @return {array} an object detailing whether the $market is in hedged or one-way mode
+         */
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchPositionMode', $market, $params);
+        $response = null;
+        if ($subType === 'linear') {
+            $response = $this->fapiPrivateGetPositionSideDual ($params);
+        } elseif ($subType === 'inverse') {
+            $response = $this->dapiPrivateGetPositionSideDual ($params);
+        } else {
+            throw new BadRequest($this->id . ' fetchPositionMode requires either a $symbol argument or $params["subType"]');
+        }
+        //
+        //    {
+        //        $dualSidePosition => false
+        //    }
+        //
+        $dualSidePosition = $this->safe_bool($response, 'dualSidePosition');
+        return array(
+            'info' => $response,
+            'hedged' => $dualSidePosition,
         );
     }
 }

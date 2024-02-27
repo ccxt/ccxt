@@ -41,9 +41,11 @@ class binance extends \ccxt\async\binance {
                 'fetchDepositsWs' => false,
                 'fetchMarketsWs' => false,
                 'fetchMyTradesWs' => true,
+                'fetchOHLCVWs' => true,
                 'fetchOpenOrdersWs' => true,
                 'fetchOrderWs' => true,
                 'fetchOrdersWs' => true,
+                'fetchTradesWs' => true,
                 'fetchTradingFeesWs' => false,
                 'fetchWithdrawalsWs' => false,
             ),
@@ -850,6 +852,96 @@ class binance extends \ccxt\async\binance {
         }
         $stored->append ($parsed);
         $client->resolve ($stored, $messageHash);
+    }
+
+    public function fetch_ohlcv_ws(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * @see https://binance-docs.github.io/apidocs/websocket_api/en/#klines
+             * query historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             * @param {string} $symbol unified $symbol of the market to query OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int} $since timestamp in ms of the earliest candle to fetch
+             * @param {int} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the exchange API endpoint
+             * @param {int} $params->until timestamp in ms of the earliest candle to fetch
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {string} $params->timeZone default=0 (UTC)
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $this->check_is_spot('fetchOHLCVWs', $symbol, $params);
+            $url = $this->urls['api']['ws']['ws'];
+            $requestId = $this->request_id($url);
+            $messageHash = (string) $requestId;
+            $returnRateLimits = false;
+            list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'fetchOHLCVWs', 'returnRateLimits', false);
+            $payload = array(
+                'symbol' => $this->market_id($symbol),
+                'returnRateLimits' => $returnRateLimits,
+                'interval' => $this->timeframes[$timeframe],
+            );
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, 'until');
+            if ($since !== null) {
+                $payload['startTime'] = $since;
+            }
+            if ($limit !== null) {
+                $payload['limit'] = $limit;
+            }
+            if ($until !== null) {
+                $payload['endTime'] = $until;
+            }
+            $message = array(
+                'id' => $messageHash,
+                'method' => 'klines',
+                'params' => array_merge($payload, $params),
+            );
+            $subscription = array(
+                'method' => array($this, 'handle_fetch_ohlcv'),
+            );
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
+        }) ();
+    }
+
+    public function handle_fetch_ohlcv(Client $client, $message) {
+        //
+        //    {
+        //        "id" => "1dbbeb56-8eea-466a-8f6e-86bdcfa2fc0b",
+        //        "status" => 200,
+        //        "result" => array(
+        //            array(
+        //                1655971200000,      // Kline open time
+        //                "0.01086000",       // Open price
+        //                "0.01086600",       // High price
+        //                "0.01083600",       // Low price
+        //                "0.01083800",       // Close price
+        //                "2290.53800000",    // Volume
+        //                1655974799999,      // Kline close time
+        //                "24.85074442",      // Quote asset volume
+        //                2283,               // Number of trades
+        //                "1171.64000000",    // Taker buy base asset volume
+        //                "12.71225884",      // Taker buy quote asset volume
+        //                "0"                 // Unused field, ignore
+        //            )
+        //        ),
+        //        "rateLimits" => array(
+        //            {
+        //                "rateLimitType" => "REQUEST_WEIGHT",
+        //                "interval" => "MINUTE",
+        //                "intervalNum" => 1,
+        //                "limit" => 6000,
+        //                "count" => 2
+        //            }
+        //        )
+        //    }
+        //
+        $result = $this->safe_list($message, 'result');
+        $parsed = $this->parse_ohlcvs($result);
+        // use a reverse lookup in a static map instead
+        $messageHash = $this->safe_string($message, 'id');
+        $client->resolve ($parsed, $messageHash);
     }
 
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
@@ -2567,12 +2659,59 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
+    public function fetch_trades_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * @see https://binance-docs.github.io/apidocs/websocket_api/en/#recent-$trades
+             * fetch all $trades made by the user
+             * @param {string} $symbol unified market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch $trades for
+             * @param {int} [$limit] the maximum number of $trades structures to retrieve, default=500, max=1000
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {int} [$params->fromId] trade ID to begin at
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             */
+            Async\await($this->load_markets());
+            if ($symbol === null) {
+                throw new BadRequest($this->id . ' fetchTradesWs () requires a $symbol argument');
+            }
+            $this->check_is_spot('fetchTradesWs', $symbol, $params);
+            $url = $this->urls['api']['ws']['ws'];
+            $requestId = $this->request_id($url);
+            $messageHash = (string) $requestId;
+            $returnRateLimits = false;
+            list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'fetchTradesWs', 'returnRateLimits', false);
+            $payload = array(
+                'symbol' => $this->market_id($symbol),
+                'returnRateLimits' => $returnRateLimits,
+            );
+            if ($limit !== null) {
+                $payload['limit'] = $limit;
+            }
+            $message = array(
+                'id' => $messageHash,
+                'method' => 'trades.historical',
+                'params' => array_merge($payload, $params),
+            );
+            $subscription = array(
+                'method' => array($this, 'handle_trades_ws'),
+            );
+            $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
+            return $this->filter_by_since_limit($trades, $since, $limit);
+        }) ();
+    }
+
     public function handle_trades_ws(Client $client, $message) {
+        //
+        // fetchMyTradesWs
         //
         //    {
         //        "id" => "f4ce6a53-a29d-4f70-823b-4ab59391d6e8",
         //        "status" => 200,
-        //        "result" => [array(
+        //        "result" => array(
+        //            array(
         //                "symbol" => "BTCUSDT",
         //                "id" => 1650422481,
         //                "orderId" => 12569099453,
@@ -2588,7 +2727,26 @@ class binance extends \ccxt\async\binance {
         //                "isBestMatch" => true
         //            ),
         //            ...
-        //        ],
+        //        ),
+        //    }
+        //
+        // fetchTradesWs
+        //
+        //    {
+        //        "id" => "f4ce6a53-a29d-4f70-823b-4ab59391d6e8",
+        //        "status" => 200,
+        //        "result" => array(
+        //            {
+        //                "id" => 0,
+        //                "price" => "0.00005000",
+        //                "qty" => "40.00000000",
+        //                "quoteQty" => "0.00200000",
+        //                "time" => 1500004800376,
+        //                "isBuyerMaker" => true,
+        //                "isBestMatch" => true
+        //            }
+        //            ...
+        //        ),
         //    }
         //
         $messageHash = $this->safe_string($message, 'id');
