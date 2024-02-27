@@ -1800,6 +1800,7 @@ export default class coinbase extends Exchange {
             request['limit'] = 250;
             response = await this.v3PrivateGetBrokerageAccounts (this.extend (request, params));
         } else {
+            request['limit'] = 100;
             response = await this.v2PrivateGetAccounts (this.extend (request, params));
         }
         //
@@ -3633,6 +3634,10 @@ export default class coinbase extends Exchange {
                     if (Object.keys (query).length) {
                         body = this.json (query);
                         payload = body;
+                    }
+                } else {
+                    if (Object.keys (query).length) {
+                        payload += '?' + this.urlencode (query);
                     }
                 }
                 const auth = nonce + method + savedPath + payload;
