@@ -643,7 +643,6 @@ export default class hyperliquid extends Exchange {
         let defaultSlippage = this.safeString (this.options, 'defaultSlippage');
         defaultSlippage = this.safeString (params, 'slippage', defaultSlippage);
         const vaultAddress = this.safeString (params, 'vaultAddress');
-        const zeroAddress = this.safeString (this.options, 'zeroAddress');
         let hasClientOrderId = false;
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
@@ -664,9 +663,7 @@ export default class hyperliquid extends Exchange {
             }
         }
         params = this.omit (params, [ 'slippage', 'clientOrderId', 'client_id', 'vaultAddress', 'slippage' ]);
-        const base = '100000000';
         const nonce = this.milliseconds ();
-        const orderSig = [];
         const orderReq = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
@@ -704,16 +701,13 @@ export default class hyperliquid extends Exchange {
             const sz = this.amountToPrecision (symbol, amount);
             const reduceOnly = this.safeBool (orderParams, 'reduceOnly', false);
             const orderType = {};
-            let signingOrderType = 0;
             if (isTrigger) {
                 let isTp = false;
                 if (takeProfitPrice !== undefined) {
                     triggerPrice = this.priceToPrecision (symbol, takeProfitPrice);
                     isTp = true;
-                    signingOrderType = (isMarket) ? 4 : 5;
                 } else {
                     triggerPrice = this.priceToPrecision (symbol, stopLossPrice);
-                    signingOrderType = (isMarket) ? 6 : 7;
                 }
                 orderType['trigger'] = {
                     'triggerPx': triggerPrice,
@@ -724,13 +718,6 @@ export default class hyperliquid extends Exchange {
                 orderType['limit'] = {
                     'tif': timeInForce,
                 };
-                if (timeInForce === 'Ioc') {
-                    signingOrderType = 3;
-                } else if (timeInForce === 'Alo') {
-                    signingOrderType = 1;
-                } else if (timeInForce === 'Gtc') {
-                    signingOrderType = 2;
-                }
             }
             if (triggerPrice === undefined) {
                 triggerPrice = '0';
@@ -749,69 +736,6 @@ export default class hyperliquid extends Exchange {
             }
             orderReq.push (orderObj);
         }
-        // if (clientOrderId !== undefined) {
-        //     orderSig.push ([
-        //         this.parseToInt (market['baseId']), // asset
-        //         isBuy, // isBuy
-        //         this.parseToInt (Precise.stringMul (px, base)), // px
-        //         this.parseToInt (Precise.stringMul (sz, base)), // sz
-        //         reduceOnly, // reduceOnly
-        //         signingOrderType, // signingOrderType
-        //         this.parseToInt (Precise.stringMul (triggerPrice, base)), // trigger_px
-        //         this.base16ToBinary (this.remove0xPrefix (clientOrderId)), // clientOid
-        //     ]);
-        // } else {
-        //     orderSig.push ([
-        //         this.parseToInt (market['baseId']), // asset
-        //         isBuy, // isBuy
-        //         this.parseToInt (Precise.stringMul (px, base)), // px
-        //         this.parseToInt (Precise.stringMul (sz, base)), // sz
-        //         reduceOnly, // reduceOnly
-        //         signingOrderType, // signingOrderType
-        //         this.parseToInt (Precise.stringMul (triggerPrice, base)), // trigger_px
-        //     ]);
-        // }
-        // orderReq.push ({
-        //     'asset': this.parseToInt (market['baseId']),
-        //     'isBuy': isBuy,
-        //     'sz': sz,
-        //     'limitPx': px,
-        //     'reduceOnly': reduceOnly,
-        //     'orderType': orderType,
-        //     'cloid': clientOrderId,
-        // });
-        // }
-        // let sig = undefined;
-        // if (hasClientOrderId) {
-        //     const signatureTypes = [ '(uint32,bool,uint64,uint64,bool,uint8,uint64,bytes16)[]', 'uint8', 'address', 'uint256' ];
-        //     const signatureData = [
-        //         orderSig,
-        //         0, // na grouping
-        //         (vaultAddress) ? vaultAddress : zeroAddress,
-        //         nonce,
-        //     ];
-        //     sig = this.buildActionSig (signatureTypes, signatureData, nonce);
-        // } else {
-        //     const signatureTypes = [ '(uint32,bool,uint64,uint64,bool,uint8,uint64)[]', 'uint8', 'address', 'uint256' ];
-        //     const signatureData = [
-        //         orderSig,
-        //         0, // na grouping
-        //         (vaultAddress) ? vaultAddress : zeroAddress,
-        //         nonce,
-        //     ];
-        //     sig = this.buildActionSig (signatureTypes, signatureData, nonce);
-        // }
-        // const orderAction = {
-        //     'action': {
-        //         // 'brokerCode': 1,
-        //         'grouping': 'na',
-        //         'orders': orderReq,
-        //         'type': 'order',
-        //     },
-        //     'nonce': nonce,
-        //     'signature': sig,
-        //     'vaultAddress': vaultAddress,
-        // };
         const orderAction = {
             'type': 'order',
             'orders': orderReq,
@@ -850,11 +774,33 @@ export default class hyperliquid extends Exchange {
         return this.parseOrders (data, undefined);
     }
 
+    constructPhantomAgent (hash, isTestnet = true) {
+        const source = (isTestnet) ? 'b' : 'a';
+        return {
+            'source': source,
+            'connectionId': hash,
+        };
+    }
+
+    actionHash (action, vaultAddress, nonce) {
+        const dataBinary = this.packb (action);
+        const dataHex = this.binaryToBase16 (dataBinary);
+        let data = dataHex;
+        data += '00000' + this.intToBase16 (nonce);
+        if (vaultAddress === undefined) {
+            data += '00';
+        } else {
+            data += '01';
+            data += vaultAddress;
+        }
+        return this.hash (this.base16ToBinary (data), keccak, 'binary');
+    }
+
     signL1Action (action, nonce): object {
         const vaultAdress = this.safeString (action, 'vaultAddress');
         const hash = this.actionHash (action, vaultAdress, nonce);
-        const isMainnet = this.safeBool (this.options, 'sandboxMode', false) === false;
-        const phantomAgent = this.constructPhantomAgent (hash, isMainnet);
+        const isTestnet = this.safeBool (this.options, 'sandboxMode', true);
+        const phantomAgent = this.constructPhantomAgent (hash, isTestnet);
         // const data = {
         //     'domain': {
         //         'chainId': 1337,
@@ -894,14 +840,6 @@ export default class hyperliquid extends Exchange {
         const msg = this.ethEncodeStructuredData (domain, messageTypes, phantomAgent);
         const signature = this.signMessage (msg, this.privateKey);
         return signature;
-    }
-
-    constructPhantomAgent (hash, isMainnet = true) {
-        const source = (isMainnet) ? 'a' : 'b';
-        return {
-            'source': source,
-            'connectionId': hash,
-        };
     }
 
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1078,69 +1016,42 @@ export default class hyperliquid extends Exchange {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const vaultAddress = this.safeString (params, 'vaultAddress');
-        const zeroAddress = this.safeString (this.options, 'zeroAddress');
         let clientOrderId = this.safeValue2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'vaultAddress', 'clientOrderId', 'client_id' ]);
         const nonce = this.milliseconds ();
         const request = {
-            'nonce': nonce,
+            'nonce': nonce
         };
+        const cancelReq = [];
+        const cancelAction = {
+            'type': '',
+            'cancels': [],
+        };
+        const baseId = this.parseToNumeric (market['baseId']);
         if (clientOrderId !== undefined) {
             if (!Array.isArray (clientOrderId)) {
                 clientOrderId = [ clientOrderId ];
             }
-            const signatureTypes = [ '(uint32,bytes16)[]', 'address', 'uint256' ];
-            const ordersSign = [];
-            const ordersReq = [];
+            cancelAction['type'] = 'cancelByCloid';
             for (let i = 0; i < clientOrderId.length; i++) {
-                const encodeClientOrderId = this.base16ToBinary (this.remove0xPrefix (clientOrderId[i]));
-                ordersSign.push ([
-                    this.parseToNumeric (market['baseId']),
-                    encodeClientOrderId,
-                ]);
-                ordersReq.push ({
-                    'asset': this.parseToNumeric (market['baseId']),
+                cancelReq.push ({
+                    'asset': baseId,
                     'cloid': clientOrderId[i],
                 });
             }
-            const signatureData = [
-                ordersSign,
-                (vaultAddress) ? vaultAddress : zeroAddress,
-                nonce,
-            ];
-            const sig = this.buildActionSig (signatureTypes, signatureData);
-            request['action'] = {
-                'type': 'cancelByCloid',
-                'cancels': ordersReq,
-            };
-            request['signature'] = sig;
         } else {
-            const signatureTypes = [ '(uint32,uint64)[]', 'address', 'uint256' ];
-            const ordersSign = [];
-            const ordersReq = [];
+            cancelAction['type'] = 'cancel';
             for (let i = 0; i < ids.length; i++) {
-                ordersSign.push ([
-                    this.parseToNumeric (market['baseId']),
-                    this.parseToNumeric (ids[i]),
-                ]);
-                ordersReq.push ({
-                    'asset': this.parseToNumeric (market['baseId']),
-                    'oid': this.parseToNumeric (ids[i]),
+                cancelReq.push ({
+                    'a': baseId,
+                    'o': this.parseToNumeric (ids[i]),
                 });
             }
-            const signatureData = [
-                ordersSign,
-                (vaultAddress) ? vaultAddress : zeroAddress,
-                nonce,
-            ];
-            const sig = this.buildActionSig (signatureTypes, signatureData);
-            request['action'] = {
-                'type': 'cancel',
-                'cancels': ordersReq,
-            };
-            request['signature'] = sig;
         }
+        cancelAction['cancels'] = cancelReq;
+        const signature = this.signL1Action (cancelAction, nonce);
+        request['action'] = cancelAction;
+        request['signature'] = signature;
         const response = await this.privatePostExchange (request);
         //
         //     {
@@ -2004,20 +1915,6 @@ export default class hyperliquid extends Exchange {
         const msg = this.ethEncodeStructuredData (domain, messageTypes, message);
         const signature = this.signMessage (msg, this.privateKey);
         return signature;
-    }
-
-    actionHash (action, vaultAddress, nonce) {
-        const dataBinary = this.packb (action);
-        const dataHex = this.binaryToBase16 (dataBinary);
-        let data = dataHex;
-        data += '00000' + this.intToBase16 (nonce);
-        if (vaultAddress === undefined) {
-            data += '00';
-        } else {
-            data += '01';
-            data += vaultAddress;
-        }
-        return this.hash (this.base16ToBinary (data), keccak, 'binary');
     }
 
     buildActionSig (signatureTypes, signatureData) {
