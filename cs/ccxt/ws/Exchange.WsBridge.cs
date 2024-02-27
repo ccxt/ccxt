@@ -1,5 +1,4 @@
 namespace ccxt;
-
 using System.Net.WebSockets;
 
 public partial class Exchange
