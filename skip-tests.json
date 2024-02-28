@@ -357,7 +357,8 @@
                 "currency": "undefined",
                 "currencyIdAndCode": "messes codes"
             },
-            "fetchTransactions": "skip"
+            "fetchTransactions": "skip",
+            "watchTrades": "infrequent updates"
         }
     },
     "bitopro": {

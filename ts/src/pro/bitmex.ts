@@ -338,7 +338,6 @@ export default class bitmex extends bitmexRest {
         //         ]
         //     }
         //
-        const table = this.safeString (message, 'table');
         const data = this.safeList (message, 'data', []);
         const tickers = {};
         for (let i = 0; i < data.length; i++) {
