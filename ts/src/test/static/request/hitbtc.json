@@ -654,6 +654,56 @@
                 ],
                 "output": "{\"symbol\":\"TRXUSDT_PERP\",\"margin_mode\":\"cross\"}"
             }
+        ],
+        "fetchMarginModes": [
+            {
+                "description": "Fetch Margin Modes for swap with symbol list",
+                "method": "fetchMarginModes",
+                "url": "https://api.hitbtc.com/api/3/futures/config",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ],
+                  {
+                    "type": "swap"
+                  }
+                ]
+            },
+            {
+                "description": "Fetch Margin Modes for swap without symbol list",
+                "method": "fetchMarginModes",
+                "url": "https://api.hitbtc.com/api/3/futures/config",
+                "input": [
+                  null,
+                  {
+                    "type": "swap"
+                  }
+                ]
+            },
+            {
+                "description": "Fetch Margin Modes for margin with symbol list",
+                "method": "fetchMarginModes",
+                "url": "https://api.hitbtc.com/api/3/margin/config",
+                "input": [
+                  [
+                    "BTC/USDT"
+                  ],
+                  {
+                    "type": "margin"
+                  }
+                ]
+            },
+            {
+                "description": "Fetch Margin Modes for margin without symbol list",
+                "method": "fetchMarginModes",
+                "url": "https://api.hitbtc.com/api/3/margin/config",
+                "input": [
+                  null,
+                  {
+                    "type": "margin"
+                  }
+                ]
+            }
         ]
     }
 }
