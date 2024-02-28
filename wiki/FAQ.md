@@ -3,23 +3,37 @@
   ## How to create an order with takeProfit+stopLoss?
   To create an order with both takeProfit and stopLoss parameters, you'll need to use a method that supports setting these parameters directly if the exchange allows it. You can check by looking at `exchange.has['createOrderWithTakeProfitAndStopLoss']`, `exchange.has['createStopLossOrder']` and `exchange.has['createTakeProfitOrder']`.
 
-  Some exchanges might require you to create separate orders for takeProfit and stopLoss. For exchanges that support it directly, you would typically use the createOrder method with additional parameters for takeProfit and stopLoss. 
+  Some exchanges might require you to create separate orders for takeProfit and stopLoss. For exchanges that support it directly, you would typically use the createOrder method with additional parameters for takeProfit and stopLoss.
   See more at [StopLoss And TakeProfit Orders Attached To A Position](Manual.md#stoploss-and-takeprofit-orders-attached-to-a-position)
 
-  ## How to create a market buy with cost?
-  To create a market buy order with a specific cost (the total amount you want to spend), you can use the createOrder method specifying the type as 'market', and instead of specifying the amount (the quantity of the asset to buy), you specify the cost parameter. Note that not all exchanges support this directly, and you might need to calculate the equivalent amount based on the current market price.
+  ## How to create a spot market buy with cost?
+  To create a market-buy order with cost, first, you need to check if the exchange supports that feature (`exchange.has['createMarketBuyOrderWithCost']).
+  If it does, then you can use the `createMarketBuyOrderWithCost` method.
+  Example:
+  ```Python
+  order = await exchange.createMarketBuyOrderWithCost(symbol, cost)
+  ```
 
   See more: [Market Buys](Manual.md#market-buys)
 
-  ## What's the difference between trading spot and swap?
+  ## What's the difference between trading spot and swap/perpetual futures?
   Spot trading involves buying or selling a financial instrument (like a cryptocurrency) for immediate delivery. It's straightforward, involving the direct exchange of assets.
 
   Swap trading, on the other hand, involves derivative contracts where two parties exchange financial instruments or cash flows at a set date in the future, based on the underlying asset. Swaps are often used for leverage, speculation, or hedging and do not necessarily involve the exchange of the underlying asset until the contract expires.
 
+
+  Besides that, you will be handling contracts if you're trading swaps and not the base currency (e.g., BTC) directly, so if you create an order with `amount = 1`, the amount in BTC will vary depending on the `contractSize`. You can check the contract size by doing:
+
+  ```Python
+  await exchange.loadMarkets()
+  symbol = 'XRP/USDT:USDT'
+  market = exchange.market(symbol)
+  print(market['contractSize'])
+  ```
+
   ## How to place a reduceOnly order?
   A reduceOnly order is a type of order that can only reduce a position, not increase it. To place a reduceOnly order, you typically use the createOrder method with a reduceOnly parameter set to true. This ensures that the order will only execute if it decreases the size of an open position, and it will either partially fill or not fill at all if executing it would increase the position size.
 
-  
 <!-- tabs:start -->
 #### **Javascript**
 ```javascript
