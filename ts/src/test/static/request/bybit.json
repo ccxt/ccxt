@@ -812,6 +812,16 @@
                   }
                 ]
             }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchLeverage",
+                "url": "https://api-testnet.bybit.com/v5/position/list?symbol=SOLUSDT&category=linear",
+                "input": [
+                  "SOL/USDT:USDT"
+                ]
+            }
         ]
     },
     "disabled": []
