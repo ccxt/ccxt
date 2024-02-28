@@ -869,6 +869,7 @@ export default class testMainClass extends baseMainTestClass {
             // 'cancelOrder': [ ],
             // 'cancelOrders': [ ],
             'fetchCanceledOrders': [ symbol ],
+            'fetchMarginModes': [ symbol ],
             // 'fetchClosedOrder': [ ],
             // 'fetchOpenOrder': [ ],
             // 'fetchOrder': [ ],
