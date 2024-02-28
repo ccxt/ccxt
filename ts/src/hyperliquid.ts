@@ -594,186 +594,6 @@ export default class hyperliquid extends Exchange {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
-        /**
-         * @method
-         * @name hyperliquid#createOrder
-         * @description create a trade order
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
-         * @param {bool} [params.postOnly] true or false whether the order is post-only
-         * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
-         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-         * @param {string} [params.clientOrderId] client order id (default undefined)
-         * @param {string} [params.slippage] the slippage for market order
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const order = {
-            'symbol': symbol as string,
-            'type': type as OrderType,
-            'side': side as OrderSide,
-            'amount': amount,
-            'price': price,
-            'params': params,
-        } as OrderRequest;
-        const response = await this.createOrders ([ order ], params);
-        const first = this.safeDict (response, 0);
-        return this.parseOrder (first, market);
-    }
-
-    async createOrders (orders: OrderRequest[], params = {}) {
-        /**
-         * @method
-         * @name hyperliquid#createOrders
-         * @description create a list of trade orders
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
-         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        this.checkRequiredCredentials ();
-        await this.loadMarkets ();
-        let defaultSlippage = this.safeString (this.options, 'defaultSlippage');
-        defaultSlippage = this.safeString (params, 'slippage', defaultSlippage);
-        const vaultAddress = this.safeString (params, 'vaultAddress');
-        let hasClientOrderId = false;
-        for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
-            const orderParams = this.safeDict (rawOrder, 'params', {});
-            const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
-            if (clientOrderId !== undefined) {
-                hasClientOrderId = true;
-            }
-        }
-        if (hasClientOrderId) {
-            for (let i = 0; i < orders.length; i++) {
-                const rawOrder = orders[i];
-                const orderParams = this.safeDict (rawOrder, 'params', {});
-                const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
-                if (clientOrderId === undefined) {
-                    throw new ArgumentsRequired (this.id + ' createOrders() all orders must have clientOrderId if at least one has a clientOrderId');
-                }
-            }
-        }
-        params = this.omit (params, [ 'slippage', 'clientOrderId', 'client_id', 'vaultAddress', 'slippage' ]);
-        const nonce = this.milliseconds ();
-        const orderReq = [];
-        for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
-            const marketId = this.safeString (rawOrder, 'symbol');
-            const market = this.market (marketId);
-            const symbol = market['symbol'];
-            const type = this.safeStringUpper (rawOrder, 'type');
-            const isMarket = (type === 'MARKET');
-            const side = this.safeStringUpper (rawOrder, 'side');
-            const isBuy = (side === 'BUY');
-            const amount = this.safeValue (rawOrder, 'amount');
-            const price = this.safeString (rawOrder, 'price');
-            let orderParams = this.safeValue (rawOrder, 'params', {});
-            orderParams = this.extend (params, orderParams);
-            const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
-            const slippage = this.safeString (orderParams, 'slippage', defaultSlippage);
-            let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
-            const postOnly = this.safeValue (orderParams, 'postOnly', false);
-            if (postOnly) {
-                defaultTimeInForce = 'alo';
-            }
-            let timeInForce = this.safeStringLower (orderParams, 'timeInForce', defaultTimeInForce);
-            timeInForce = this.capitalize (timeInForce);
-            let triggerPrice = this.safeValue2 (orderParams, 'triggerPrice', 'stopPrice');
-            const stopLossPrice = this.safeValue (orderParams, 'stopLossPrice', triggerPrice);
-            const takeProfitPrice = this.safeValue (orderParams, 'takeProfitPrice');
-            const isTrigger = (stopLossPrice || takeProfitPrice);
-            // TODO: round px to 5 significant figures and 6 decimals
-            let px = undefined;
-            if (isMarket) {
-                px = (isBuy) ? Precise.stringMul (price, Precise.stringAdd ('1', slippage)) : Precise.stringMul (price, Precise.stringSub ('1', slippage));
-            } else {
-                px = this.priceToPrecision (symbol, price);
-            }
-            const sz = this.amountToPrecision (symbol, amount);
-            const reduceOnly = this.safeBool (orderParams, 'reduceOnly', false);
-            const orderType = {};
-            if (isTrigger) {
-                let isTp = false;
-                if (takeProfitPrice !== undefined) {
-                    triggerPrice = this.priceToPrecision (symbol, takeProfitPrice);
-                    isTp = true;
-                } else {
-                    triggerPrice = this.priceToPrecision (symbol, stopLossPrice);
-                }
-                orderType['trigger'] = {
-                    'triggerPx': triggerPrice,
-                    'tpsl': (isTp) ? 'tp' : 'sl',
-                    'isMarket': isMarket,
-                };
-            } else {
-                orderType['limit'] = {
-                    'tif': timeInForce,
-                };
-            }
-            if (triggerPrice === undefined) {
-                triggerPrice = '0';
-            }
-            const orderObj = {
-                'a': this.parseToInt (market['baseId']),
-                'b': isBuy,
-                'p': px,
-                's': sz,
-                'r': reduceOnly,
-                't': orderType,
-                // 'c': clientOrderId,
-            };
-            if (clientOrderId !== undefined) {
-                orderObj['c'] = clientOrderId;
-            }
-            orderReq.push (orderObj);
-        }
-        const orderAction = {
-            'type': 'order',
-            'orders': orderReq,
-            'grouping': 'na',
-            'brokerCode': 1,
-        };
-        const signature = this.signL1Action (orderAction, nonce);
-        const request = {
-            'action': orderAction,
-            'nonce': nonce,
-            'signature': signature,
-            // 'vaultAddress': vaultAddress,
-        };
-        if (vaultAddress !== undefined) {
-            request['vaultAddress'] = vaultAddress;
-        }
-        const response = await this.privatePostExchange (this.extend (request, params));
-        //
-        //     {
-        //         "status": "ok",
-        //         "response": {
-        //             "type": "order",
-        //             "data": {
-        //                 "statuses": [
-        //                     {
-        //                         "resting": {
-        //                             "oid": 5063830287
-        //                         }
-        //                     }
-        //                 ]
-        //             }
-        //         }
-        //     }
-        //
-        const data = this.safeValue (this.safeValue (this.safeValue (response, 'response'), 'data'), 'statuses', []);
-        return this.parseOrders (data, undefined);
-    }
-
     constructPhantomAgent (hash, isTestnet = true) {
         const source = (isTestnet) ? 'b' : 'a';
         return {
@@ -840,6 +660,453 @@ export default class hyperliquid extends Exchange {
         const msg = this.ethEncodeStructuredData (domain, messageTypes, phantomAgent);
         const signature = this.signMessage (msg, this.privateKey);
         return signature;
+    }
+
+    buildSig (chainId, messageTypes, message) {
+        const zeroAddress = this.safeString (this.options, 'zeroAddress');
+        const domain = {
+            'chainId': chainId,
+            'name': 'Exchange',
+            'verifyingContract': zeroAddress,
+            'version': '1',
+        };
+        const msg = this.ethEncodeStructuredData (domain, messageTypes, message);
+        const signature = this.signMessage (msg, this.privateKey);
+        return signature;
+    }
+
+    buildTransferSig (message) {
+        const isSandboxMode = this.safeBool (this.options, 'sandboxMode');
+        const chainId = (isSandboxMode) ? 421614 : 42161;
+        const messageTypes = {
+            'UsdTransferSignPayload': [
+                { 'name': 'destination', 'type': 'string' },
+                { 'name': 'amount', 'type': 'string' },
+                { 'name': 'time', 'type': 'uint64' },
+            ],
+        };
+        return this.buildSig (chainId, messageTypes, message);
+    }
+
+    buildWithdrawSig (message) {
+        const isSandboxMode = this.safeBool (this.options, 'sandboxMode');
+        const chainId = (isSandboxMode) ? 421614 : 42161;
+        const messageTypes = {
+            'WithdrawFromBridge2SignPayload': [
+                { 'name': 'destination', 'type': 'string' },
+                { 'name': 'usd', 'type': 'string' },
+                { 'name': 'time', 'type': 'uint64' },
+            ],
+        };
+        return this.buildSig (chainId, messageTypes, message);
+    }
+
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#createOrder
+         * @description create a trade order
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
+         * @param {bool} [params.postOnly] true or false whether the order is post-only
+         * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {string} [params.clientOrderId] client order id (default undefined)
+         * @param {string} [params.slippage] the slippage for market order
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const order = {
+            'symbol': symbol as string,
+            'type': type as OrderType,
+            'side': side as OrderSide,
+            'amount': amount,
+            'price': price,
+            'params': params,
+        } as OrderRequest;
+        const response = await this.createOrders ([ order ], params);
+        const first = this.safeDict (response, 0);
+        return this.parseOrder (first, market);
+    }
+
+    async createOrders (orders: OrderRequest[], params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#createOrders
+         * @description create a list of trade orders
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        let defaultSlippage = this.safeString (this.options, 'defaultSlippage');
+        defaultSlippage = this.safeString (params, 'slippage', defaultSlippage);
+        let hasClientOrderId = false;
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const orderParams = this.safeDict (rawOrder, 'params', {});
+            const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
+            if (clientOrderId !== undefined) {
+                hasClientOrderId = true;
+            }
+        }
+        if (hasClientOrderId) {
+            for (let i = 0; i < orders.length; i++) {
+                const rawOrder = orders[i];
+                const orderParams = this.safeDict (rawOrder, 'params', {});
+                const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
+                if (clientOrderId === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrders() all orders must have clientOrderId if at least one has a clientOrderId');
+                }
+            }
+        }
+        params = this.omit (params, [ 'slippage', 'clientOrderId', 'client_id', 'vaultAddress', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        const nonce = this.milliseconds ();
+        const orderReq = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString (rawOrder, 'symbol');
+            const market = this.market (marketId);
+            const symbol = market['symbol'];
+            const type = this.safeStringUpper (rawOrder, 'type');
+            const isMarket = (type === 'MARKET');
+            const side = this.safeStringUpper (rawOrder, 'side');
+            const isBuy = (side === 'BUY');
+            const amount = this.safeValue (rawOrder, 'amount');
+            const price = this.safeString (rawOrder, 'price');
+            let orderParams = this.safeValue (rawOrder, 'params', {});
+            orderParams = this.extend (params, orderParams);
+            const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
+            const slippage = this.safeString (orderParams, 'slippage', defaultSlippage);
+            let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
+            const postOnly = this.safeValue (orderParams, 'postOnly', false);
+            if (postOnly) {
+                defaultTimeInForce = 'alo';
+            }
+            let timeInForce = this.safeStringLower (orderParams, 'timeInForce', defaultTimeInForce);
+            timeInForce = this.capitalize (timeInForce);
+            let triggerPrice = this.safeValue2 (orderParams, 'triggerPrice', 'stopPrice');
+            const stopLossPrice = this.safeValue (orderParams, 'stopLossPrice', triggerPrice);
+            const takeProfitPrice = this.safeValue (orderParams, 'takeProfitPrice');
+            const isTrigger = (stopLossPrice || takeProfitPrice);
+            // TODO: round px to 5 significant figures and 6 decimals
+            let px = undefined;
+            if (isMarket) {
+                px = (isBuy) ? Precise.stringMul (price, Precise.stringAdd ('1', slippage)) : Precise.stringMul (price, Precise.stringSub ('1', slippage));
+            } else {
+                px = this.priceToPrecision (symbol, price);
+            }
+            const sz = this.amountToPrecision (symbol, amount);
+            const reduceOnly = this.safeBool (orderParams, 'reduceOnly', false);
+            const orderType = {};
+            if (isTrigger) {
+                let isTp = false;
+                if (takeProfitPrice !== undefined) {
+                    triggerPrice = this.priceToPrecision (symbol, takeProfitPrice);
+                    isTp = true;
+                } else {
+                    triggerPrice = this.priceToPrecision (symbol, stopLossPrice);
+                }
+                orderType['trigger'] = {
+                    'triggerPx': triggerPrice,
+                    'tpsl': (isTp) ? 'tp' : 'sl',
+                    'isMarket': isMarket,
+                };
+            } else {
+                orderType['limit'] = {
+                    'tif': timeInForce,
+                };
+            }
+            const orderObj = {
+                'a': this.parseToInt (market['baseId']),
+                'b': isBuy,
+                'p': px,
+                's': sz,
+                'r': reduceOnly,
+                't': orderType,
+                // 'c': clientOrderId,
+            };
+            if (clientOrderId !== undefined) {
+                orderObj['c'] = clientOrderId;
+            }
+            orderReq.push (orderObj);
+        }
+        const orderAction = {
+            'type': 'order',
+            'orders': orderReq,
+            'grouping': 'na',
+            'brokerCode': 1,
+            // 'vaultAddress': vaultAddress,
+        };
+        const signature = this.signL1Action (orderAction, nonce);
+        const request = {
+            'action': orderAction,
+            'nonce': nonce,
+            'signature': signature,
+            // 'vaultAddress': vaultAddress,
+        };
+        const response = await this.privatePostExchange (this.extend (request, params));
+        //
+        //     {
+        //         "status": "ok",
+        //         "response": {
+        //             "type": "order",
+        //             "data": {
+        //                 "statuses": [
+        //                     {
+        //                         "resting": {
+        //                             "oid": 5063830287
+        //                         }
+        //                     }
+        //                 ]
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeValue (this.safeValue (this.safeValue (response, 'response'), 'data'), 'statuses', []);
+        return this.parseOrders (data, undefined);
+    }
+
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#cancelOrder
+         * @description cancels an open order
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.clientOrderId] client order id (default undefined)
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        return await this.cancelOrders ([ id ], symbol, params);
+    }
+
+    async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#cancelOrders
+         * @description cancel multiple orders
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+         * @param {string[]} ids order ids
+         * @param {string} [symbol] unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string|string[]} [params.clientOrderId] client order ids (default undefined)
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let clientOrderId = this.safeValue2 (params, 'clientOrderId', 'client_id');
+        params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
+        const nonce = this.milliseconds ();
+        const request = {
+            'nonce': nonce,
+            // 'vaultAddress': vaultAddress,
+        };
+        const cancelReq = [];
+        const cancelAction = {
+            'type': '',
+            'cancels': [],
+        };
+        const baseId = this.parseToNumeric (market['baseId']);
+        if (clientOrderId !== undefined) {
+            if (!Array.isArray (clientOrderId)) {
+                clientOrderId = [ clientOrderId ];
+            }
+            cancelAction['type'] = 'cancelByCloid';
+            for (let i = 0; i < clientOrderId.length; i++) {
+                cancelReq.push ({
+                    'asset': baseId,
+                    'cloid': clientOrderId[i],
+                });
+            }
+        } else {
+            cancelAction['type'] = 'cancel';
+            for (let i = 0; i < ids.length; i++) {
+                cancelReq.push ({
+                    'a': baseId,
+                    'o': this.parseToNumeric (ids[i]),
+                });
+            }
+        }
+        cancelAction['cancels'] = cancelReq;
+        const signature = this.signL1Action (cancelAction, nonce);
+        request['action'] = cancelAction;
+        request['signature'] = signature;
+        const response = await this.privatePostExchange (this.extend (request, params));
+        //
+        //     {
+        //         "status":"ok",
+        //         "response":{
+        //             "type":"cancel",
+        //             "data":{
+        //                 "statuses":[
+        //                     "success"
+        //                 ]
+        //             }
+        //         }
+        //     }
+        //
+        return response;
+    }
+
+    async editOrder (id: string, symbol: string, type: string, side: string, amount: number = undefined, price: number = undefined, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#editOrder
+         * @description edit a trade order
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+         * @param {string} id cancel order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
+         * @param {bool} [params.postOnly] true or false whether the order is post-only
+         * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        this.checkRequiredCredentials ();
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires an id argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        type = type.toUpperCase ();
+        const isMarket = (type === 'MARKET');
+        side = side.toUpperCase ();
+        const isBuy = (side === 'BUY');
+        const defaultSlippage = this.safeString (this.options, 'defaultSlippage');
+        const slippage = this.safeString (params, 'slippage', defaultSlippage);
+        let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
+        const postOnly = this.safeBool (params, 'postOnly', false);
+        if (postOnly) {
+            defaultTimeInForce = 'alo';
+        }
+        let timeInForce = this.safeStringLower (params, 'timeInForce', defaultTimeInForce);
+        timeInForce = this.capitalize (timeInForce);
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
+        let triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeString (params, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const isTrigger = (stopLossPrice || takeProfitPrice);
+        params = this.omit (params, [ 'slippage', 'vaultAddress', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id' ]);
+        // TODO: round px to 5 significant figures and 6 decimals
+        let px = price.toString ();
+        if (isMarket) {
+            px = (isBuy) ? Precise.stringMul (price.toString (), Precise.stringAdd ('1', slippage)) : Precise.stringMul (price.toString (), Precise.stringSub ('1', slippage));
+        } else {
+            px = this.priceToPrecision (symbol, price.toString ());
+        }
+        const sz = this.amountToPrecision (symbol, amount);
+        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        const orderType = {};
+        if (isTrigger) {
+            let isTp = false;
+            if (takeProfitPrice !== undefined) {
+                triggerPrice = this.priceToPrecision (symbol, takeProfitPrice);
+                isTp = true;
+            } else {
+                triggerPrice = this.priceToPrecision (symbol, stopLossPrice);
+            }
+            orderType['trigger'] = {
+                'triggerPx': triggerPrice,
+                'tpsl': (isTp) ? 'tp' : 'sl',
+                'isMarket': isMarket,
+            };
+        } else {
+            orderType['limit'] = {
+                'tif': timeInForce,
+            };
+        }
+        if (triggerPrice === undefined) {
+            triggerPrice = '0';
+        }
+        const nonce = this.milliseconds ();
+        const orderReq = {
+            'a': this.parseToInt (market['baseId']),
+            'b': isBuy,
+            'p': px,
+            's': sz,
+            'r': reduceOnly,
+            't': orderType,
+            // 'c': clientOrderId,
+        };
+        if (clientOrderId !== undefined) {
+            orderReq['c'] = clientOrderId;
+        }
+        const modifyReq = {
+            'oid': id,
+            'order': orderReq,
+        };
+        const modifyAction = {
+            'type': 'batchModify',
+            'modifies': [ modifyReq ],
+        };
+        const signature = this.signL1Action (modifyAction, nonce);
+        const request = {
+            'action': modifyAction,
+            'nonce': nonce,
+            'signature': signature,
+            // 'vaultAddress': vaultAddress,
+        };
+        const response = await this.privatePostExchange (this.extend (request, params));
+        //
+        //     {
+        //         "status": "ok",
+        //         "response": {
+        //             "type": "order",
+        //             "data": {
+        //                 "statuses": [
+        //                     {
+        //                         "resting": {
+        //                             "oid": 5063830287
+        //                         }
+        //                     }
+        //                 ]
+        //             }
+        //         }
+        //     }
+        // when the order is filled immediately
+        //     {
+        //         "status":"ok",
+        //         "response":{
+        //            "type":"order",
+        //            "data":{
+        //               "statuses":[
+        //                  {
+        //                     "filled":{
+        //                        "totalSz":"0.1",
+        //                        "avgPx":"100.84",
+        //                        "oid":6195281425
+        //                     }
+        //                  }
+        //               ]
+        //            }
+        //         }
+        //     }
+        //
+        const responseObject = this.safeDict (response, 'response', {});
+        const dataObject = this.safeDict (responseObject, 'data', {});
+        const statuses = this.safeList (dataObject, 'statuses', []);
+        const first = this.safeDict (statuses, 0, {});
+        return this.parseOrder (first, market);
     }
 
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -982,293 +1249,6 @@ export default class hyperliquid extends Exchange {
         //
         const data = this.safeDict (response, 'order');
         return this.parseOrder (data, market);
-    }
-
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name hyperliquid#cancelOrder
-         * @description cancels an open order
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.clientOrderId] client order id (default undefined)
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        return await this.cancelOrders ([ id ], symbol, params);
-    }
-
-    async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name hyperliquid#cancelOrders
-         * @description cancel multiple orders
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
-         * @param {string[]} ids order ids
-         * @param {string} [symbol] unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string|string[]} [params.clientOrderId] client order ids (default undefined)
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        this.checkRequiredCredentials ();
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        let clientOrderId = this.safeValue2 (params, 'clientOrderId', 'client_id');
-        params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
-        const nonce = this.milliseconds ();
-        const request = {
-            'nonce': nonce
-        };
-        const cancelReq = [];
-        const cancelAction = {
-            'type': '',
-            'cancels': [],
-        };
-        const baseId = this.parseToNumeric (market['baseId']);
-        if (clientOrderId !== undefined) {
-            if (!Array.isArray (clientOrderId)) {
-                clientOrderId = [ clientOrderId ];
-            }
-            cancelAction['type'] = 'cancelByCloid';
-            for (let i = 0; i < clientOrderId.length; i++) {
-                cancelReq.push ({
-                    'asset': baseId,
-                    'cloid': clientOrderId[i],
-                });
-            }
-        } else {
-            cancelAction['type'] = 'cancel';
-            for (let i = 0; i < ids.length; i++) {
-                cancelReq.push ({
-                    'a': baseId,
-                    'o': this.parseToNumeric (ids[i]),
-                });
-            }
-        }
-        cancelAction['cancels'] = cancelReq;
-        const signature = this.signL1Action (cancelAction, nonce);
-        request['action'] = cancelAction;
-        request['signature'] = signature;
-        const response = await this.privatePostExchange (this.extend (request, params));
-        //
-        //     {
-        //         "status":"ok",
-        //         "response":{
-        //             "type":"cancel",
-        //             "data":{
-        //                 "statuses":[
-        //                     "success"
-        //                 ]
-        //             }
-        //         }
-        //     }
-        //
-        return response;
-    }
-
-    async editOrder (id: string, symbol: string, type: string, side: string, amount: number = undefined, price: number = undefined, params = {}) {
-        /**
-         * @method
-         * @name hyperliquid#editOrder
-         * @description edit a trade order
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
-         * @param {string} id cancel order id
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
-         * @param {bool} [params.postOnly] true or false whether the order is post-only
-         * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
-         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-         * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        this.checkRequiredCredentials ();
-        if (id === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() requires an id argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        type = type.toUpperCase ();
-        const isMarket = (type === 'MARKET');
-        side = side.toUpperCase ();
-        const isBuy = (side === 'BUY');
-        const defaultSlippage = this.safeString (this.options, 'defaultSlippage');
-        const slippage = this.safeString (params, 'slippage', defaultSlippage);
-        const vaultAddress = this.safeString (params, 'vaultAddress');
-        let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
-        const postOnly = this.safeBool (params, 'postOnly', false);
-        if (postOnly) {
-            defaultTimeInForce = 'alo';
-        }
-        let timeInForce = this.safeStringLower (params, 'timeInForce', defaultTimeInForce);
-        timeInForce = this.capitalize (timeInForce);
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
-        const zeroAddress = this.safeString (this.options, 'zeroAddress');
-        let triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeString (params, 'stopLossPrice', triggerPrice);
-        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
-        const isTrigger = (stopLossPrice || takeProfitPrice);
-        params = this.omit (params, [ 'slippage', 'vaultAddress', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id' ]);
-        // TODO: round px to 5 significant figures and 6 decimals
-        // TODO: cloid
-        let px = price.toString ();
-        if (isMarket) {
-            px = (isBuy) ? Precise.stringMul (price.toString (), Precise.stringAdd ('1', slippage)) : Precise.stringMul (price.toString (), Precise.stringSub ('1', slippage));
-        } else {
-            px = this.priceToPrecision (symbol, price.toString ());
-        }
-        const sz = this.amountToPrecision (symbol, amount);
-        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
-        // TODO: trigger order type
-        const orderType = {};
-        let signingOrderType = 0;
-        if (isTrigger) {
-            let isTp = false;
-            if (takeProfitPrice !== undefined) {
-                triggerPrice = this.priceToPrecision (symbol, takeProfitPrice);
-                isTp = true;
-                signingOrderType = (isMarket) ? 4 : 5;
-            } else {
-                triggerPrice = this.priceToPrecision (symbol, stopLossPrice);
-                signingOrderType = (isMarket) ? 6 : 7;
-            }
-            orderType['trigger'] = {
-                'triggerPx': triggerPrice,
-                'tpsl': (isTp) ? 'tp' : 'sl',
-                'isMarket': isMarket,
-            };
-        } else {
-            orderType['limit'] = {
-                'tif': timeInForce,
-            };
-            if (timeInForce === 'Ioc') {
-                signingOrderType = 3;
-            } else if (timeInForce === 'Alo') {
-                signingOrderType = 1;
-            } else if (timeInForce === 'Gtc') {
-                signingOrderType = 2;
-            }
-        }
-        if (triggerPrice === undefined) {
-            triggerPrice = '0';
-        }
-        const base = '100000000';
-        const nonce = this.milliseconds ();
-        let sig = undefined;
-        if (clientOrderId !== undefined) {
-            const signatureTypes = [ '(uint64,uint32,bool,uint64,uint64,bool,uint8,uint64,bytes16)[]', 'address', 'uint256', 'uint16' ];
-            const signatureData = [
-                [
-                    [
-                        this.parseToNumeric (id),
-                        this.parseToInt (market['baseId']),
-                        isBuy,
-                        this.parseToInt (Precise.stringMul (px, base)),
-                        this.parseToInt (Precise.stringMul (sz, base)),
-                        reduceOnly,
-                        signingOrderType,
-                        this.parseToInt (Precise.stringMul (triggerPrice, base)),
-                        this.base16ToBinary (this.remove0xPrefix (clientOrderId)), // clientOid
-                    ],
-                ],
-                (vaultAddress) ? vaultAddress : zeroAddress,
-                nonce,
-                40,
-            ];
-            sig = this.buildActionSig (signatureTypes, signatureData);
-        } else {
-            const signatureTypes = [ '(uint64,uint32,bool,uint64,uint64,bool,uint8,uint64,bytes16)[]', 'address', 'uint256', 'uint16' ];
-            const signatureData = [
-                [
-                    [
-                        this.parseToNumeric (id),
-                        this.parseToInt (market['baseId']),
-                        isBuy,
-                        this.parseToInt (Precise.stringMul (px, base)),
-                        this.parseToInt (Precise.stringMul (sz, base)),
-                        reduceOnly,
-                        signingOrderType,
-                        this.parseToInt (Precise.stringMul (triggerPrice, base)),
-                        this.base16ToBinary (this.remove0xPrefix ('0x00000000000000000000000000000000')),
-                    ],
-                ],
-                (vaultAddress) ? vaultAddress : zeroAddress,
-                nonce,
-                40,
-            ];
-            sig = this.buildActionSig (signatureTypes, signatureData);
-        }
-        const tmpRequest = {
-            'action': {
-                'type': 'batchModify',
-                'modifies': [
-                    {
-                        'oid': this.parseToNumeric (id),
-                        'order': {
-                            'asset': this.parseToInt (market['baseId']),
-                            'isBuy': isBuy,
-                            'sz': sz,
-                            'limitPx': px,
-                            'reduceOnly': reduceOnly,
-                            'orderType': orderType,
-                            'cloid': clientOrderId,
-                        },
-                    },
-                ],
-            },
-            'nonce': nonce,
-            'signature': sig,
-            'vaultAddress': vaultAddress,
-        };
-        const response = await this.privatePostExchange (this.extend (tmpRequest, params));
-        //
-        //     {
-        //         "status": "ok",
-        //         "response": {
-        //             "type": "order",
-        //             "data": {
-        //                 "statuses": [
-        //                     {
-        //                         "resting": {
-        //                             "oid": 5063830287
-        //                         }
-        //                     }
-        //                 ]
-        //             }
-        //         }
-        //     }
-        // when the order is filled immediately
-        //     {
-        //         "status":"ok",
-        //         "response":{
-        //            "type":"order",
-        //            "data":{
-        //               "statuses":[
-        //                  {
-        //                     "filled":{
-        //                        "totalSz":"0.1",
-        //                        "avgPx":"100.84",
-        //                        "oid":6195281425
-        //                     }
-        //                  }
-        //               ]
-        //            }
-        //         }
-        //     }
-        //
-        const responseObject = this.safeDict (response, 'response', {});
-        const dataObject = this.safeDict (responseObject, 'data', {});
-        const statuses = this.safeList (dataObject, 'statuses', []);
-        const first = this.safeDict (statuses, 0, {});
-        return this.parseOrder (first, market);
     }
 
     parseOrder (order, market: Market = undefined): Order {
@@ -1666,6 +1646,7 @@ export default class hyperliquid extends Exchange {
             'action': updateAction,
             'nonce': nonce,
             'signature': signature,
+            // 'vaultAddress': vaultAddress,
         };
         const response = await this.privatePostExchange (this.extend (request, params));
         //
@@ -1714,6 +1695,7 @@ export default class hyperliquid extends Exchange {
             'action': updateAction,
             'nonce': nonce,
             'signature': signature,
+            // 'vaultAddress': vaultAddress,
         };
         const response = await this.privatePostExchange (this.extend (request, params));
         //
@@ -1775,6 +1757,7 @@ export default class hyperliquid extends Exchange {
             'action': updateAction,
             'nonce': nonce,
             'signature': signature,
+            // 'vaultAddress': vaultAddress,
         };
         const response = await this.privatePostExchange (this.extend (request, params));
         //
@@ -1875,63 +1858,6 @@ export default class hyperliquid extends Exchange {
         };
         const response = await this.privatePostExchange (this.extend (request, params));
         return response;
-    }
-
-    buildSig (chainId, messageTypes, message) {
-        const zeroAddress = this.safeString (this.options, 'zeroAddress');
-        const domain = {
-            'chainId': chainId,
-            'name': 'Exchange',
-            'verifyingContract': zeroAddress,
-            'version': '1',
-        };
-        const msg = this.ethEncodeStructuredData (domain, messageTypes, message);
-        const signature = this.signMessage (msg, this.privateKey);
-        return signature;
-    }
-
-    buildActionSig (signatureTypes, signatureData) {
-        const connectionId = this.ethAbiEncode (signatureTypes, signatureData);
-        const connectionIdHash = this.actionHash (connectionId, keccak, 'binary');
-        const isSandboxMode = this.safeBool (this.options, 'sandboxMode');
-        const chainId = 1337;
-        const message = {
-            'source': (isSandboxMode) ? 'b' : 'a',
-            'connectionId': connectionIdHash,
-        };
-        const messageTypes = {
-            'Agent': [
-                { 'name': 'source', 'type': 'string' },
-                { 'name': 'connectionId', 'type': 'bytes32' },
-            ],
-        };
-        return this.buildSig (chainId, messageTypes, message);
-    }
-
-    buildTransferSig (message) {
-        const isSandboxMode = this.safeBool (this.options, 'sandboxMode');
-        const chainId = (isSandboxMode) ? 421614 : 42161;
-        const messageTypes = {
-            'UsdTransferSignPayload': [
-                { 'name': 'destination', 'type': 'string' },
-                { 'name': 'amount', 'type': 'string' },
-                { 'name': 'time', 'type': 'uint64' },
-            ],
-        };
-        return this.buildSig (chainId, messageTypes, message);
-    }
-
-    buildWithdrawSig (message) {
-        const isSandboxMode = this.safeBool (this.options, 'sandboxMode');
-        const chainId = (isSandboxMode) ? 421614 : 42161;
-        const messageTypes = {
-            'WithdrawFromBridge2SignPayload': [
-                { 'name': 'destination', 'type': 'string' },
-                { 'name': 'usd', 'type': 'string' },
-                { 'name': 'time', 'type': 'uint64' },
-            ],
-        };
-        return this.buildSig (chainId, messageTypes, message);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
