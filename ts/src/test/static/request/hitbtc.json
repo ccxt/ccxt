@@ -392,17 +392,6 @@
         ],
         "fetchMarginMode": [
             {
-                "description": "Fetch first margin mode",
-                "method": "fetchMarginMode",
-                "url": "https://api.hitbtc.com/api/3/margin/config",
-                "input": [
-                    null,
-                    {
-                        "type": "margin"
-                    }
-                ]
-            },
-            {
                 "description": "Fetch spot margin mode",
                 "method": "fetchMarginMode",
                 "url": "https://api.hitbtc.com/api/3/margin/config",
@@ -410,17 +399,6 @@
                     "LTC/USDT",
                     {
                         "type": "margin"
-                    }
-                ]
-            },
-            {
-                "description": "Fetch first swap margin mode",
-                "method": "fetchMarginMode",
-                "url": "https://api.hitbtc.com/api/3/futures/config",
-                "input": [
-                    null,
-                    {
-                        "type": "swap"
                     }
                 ]
             },
