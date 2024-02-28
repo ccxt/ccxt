@@ -96,7 +96,7 @@ export default class binance extends Exchange {
                 'fetchLastPrices': true,
                 'fetchLedger': true,
                 'fetchLedgerEntry': true,
-                'fetchLeverage': false,
+                'fetchLeverage': true,
                 'fetchLeverageTiers': true,
                 'fetchLiquidations': false,
                 'fetchMarketLeverageTiers': 'emulated',
@@ -10224,6 +10224,64 @@ export default class binance extends Exchange {
         //       "msg": "success"
         //     }
         //
+        return response;
+    }
+
+    async fetchLeverage (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-um-account-detail-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets ();
+        await this.loadLeverageBrackets (false, params);
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new NotSupported (this.id + ' fetchLeverage() supports linear and inverse contracts only');
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchLeverage', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverage', market, params, 'linear');
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchLeverage', 'papi', 'portfolioMargin', false);
+        let response = undefined;
+        if (this.isLinear (type, subType)) {
+            if (isPortfolioMargin) {
+                response = await this.papiGetUmAccount (params);
+            } else {
+                response = await this.fapiPrivateV2GetAccount (params);
+            }
+        } else if (this.isInverse (type, subType)) {
+            if (isPortfolioMargin) {
+                response = await this.papiGetCmAccount (params);
+            } else {
+                response = await this.dapiPrivateGetAccount (params);
+            }
+        } else {
+            throw new NotSupported (this.id + ' fetchPositions() supports linear and inverse contracts only');
+        }
+        const positions = this.safeList (response, 'positions', []);
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            const innerSymbol = this.safeString (position, 'symbol');
+            if (innerSymbol === market['id']) {
+                const isolated = this.safeBool (position, 'isolated');
+                const marginMode = isolated ? 'isolated' : 'cross';
+                return {
+                    'info': position,
+                    'marginMode': marginMode,
+                    'leverage': this.safeInteger (position, 'leverage'),
+                };
+            }
+        }
         return response;
     }
 
