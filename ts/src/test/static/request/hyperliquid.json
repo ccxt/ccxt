@@ -12,7 +12,7 @@
     "methods": {
         "createOrder": [
             {
-                "description": "create swap limit order",
+                "description": "swap limit order",
                 "method": "createOrder",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",
                 "input": [
@@ -20,14 +20,28 @@
                   "limit",
                   "buy",
                   0.1,
-                  100
+                  100.9
                 ],
-                "output": "{\"action\":{\"type\":\"order\",\"grouping\":\"na\",\"orders\":[{\"asset\":5,\"isBuy\":true,\"sz\":\"0.1\",\"limitPx\":\"100\",\"reduceOnly\":false,\"orderType\":{\"limit\":{\"tif\":\"Gtc\"}},\"broker_code\":1}]},\"nonce\":1708700471045,\"signature\":{\"r\":\"0xd246869b34473a574f9815f1f07e1d164befa371754277c8f429f57d461dbe\",\"s\":\"0xd1d10779993a9f2fae10c1b459fac19998fb6f0f9e27975e0f1a937a1242244\",\"v\":27}}"
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"100.9\",\"s\":\"0.1\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1709144041776,\"signature\":{\"r\":\"0x98e752f90b99d6b52254d471e2096bf1ebcd9af53e41124ad838375eb86268b5\",\"s\":\"0x5ffbec62ad6ad94a14d7db87b6bf8d72c146f9bf49756dfd6359f5ee7580f14d\",\"v\":27}}"
+            },
+            {
+                "description": "swap market buy",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "SOL/USDC:USDC",
+                  "market",
+                  "buy",
+                  1,
+                  110
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"115.5\",\"s\":\"1\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1709144079538,\"signature\":{\"r\":\"0xc51efbead65cfc7fa4b9484faf796e711296709ab361e76632901dc13d6eb9e4\",\"s\":\"0x11b1526c06b7b301ec2129b4aca7fa8570ad435302a9d6245d1613c0abae5176\",\"v\":27}}"
             }
         ],
         "cancelOrder": [
             {
                 "description": "cancel order",
+                "disabled": true,
                 "method": "cancelOrder",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",
                 "input": [
