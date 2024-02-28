@@ -353,6 +353,10 @@ class Transpiler {
 
             // convert javascript primitive types to python ones
             [ /(^\s+(?:let|const|var)\s+\w+:\s+)string/mg, '$1str' ],
+            [ /(^\s+(?:let|const|var)\s+\w+:\s+)Dict/mg, '$1dict' ], // remove from now
+            // [ /(^\s+(?:let|const|var)\s+\w+:\s+)Int/mg, '$1int' ], // remove from now
+            // [ /(^\s+(?:let|const|var)\s+\w+:\s+)Number/mg, '$1float' ], // remove from now
+            [ /(^\s+(?:let|const|var)\s+\w+:\s+)any/mg, '$1Any' ], // remove from now
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] is None' ],
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] is not None' ],
@@ -584,8 +588,8 @@ class Transpiler {
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, "is_int($1)" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
             // we want to remove type hinting variable lines
-            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|MarketType|string|number);\n/mg, '' ],
-            [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number)(\s+=\s+\w+)/g, '$1$2$3$4' ],
+            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|MarketType|string|number|Dict|any);\n/mg, '' ],
+            [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number|Dict|any)(\s+=\s+[\w+\{}])/g, '$1$2$3$4' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] !== null' ],
@@ -984,6 +988,7 @@ class Transpiler {
             'IndexType': /: IndexType/,
             'FundingHistory': /\[FundingHistory/,
             'Num': /: Num =/,
+            'Any': /: Any =/,
             'Str': /: Str =/,
             'Bool': /: Bool =/,
             'Strings': /: Strings =/,
@@ -1639,6 +1644,7 @@ class Transpiler {
                 'OrderType': 'string',
                 'OrderSide': 'string',
                 'Dictionary<any>': 'array',
+                'Dict': 'array',
             }
             const phpArrayRegex = /^(?:Market|Currency|Account|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
@@ -1700,7 +1706,8 @@ class Transpiler {
                 'boolean': 'bool',
                 'Int': 'Int',
                 'OHLCV': 'list',
-                'Dictionary<any>': 'dict'
+                'Dictionary<any>': 'dict',
+                'Dict': 'dict'
             }
             const unwrapLists = (type) => {
                 const output = []
