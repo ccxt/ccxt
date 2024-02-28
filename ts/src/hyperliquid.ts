@@ -722,6 +722,7 @@ export default class hyperliquid extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const order = {
             'symbol': symbol as string,
             'type': type as OrderType,
@@ -732,7 +733,7 @@ export default class hyperliquid extends Exchange {
         } as OrderRequest;
         const response = await this.createOrders ([ order ], params);
         const first = this.safeDict (response, 0);
-        return this.parseOrder (first, market);
+        return first as Order;
     }
 
     async createOrders (orders: OrderRequest[], params = {}) {
