@@ -817,9 +817,9 @@
             {
                 "description": "fetch leverage",
                 "method": "fetchLeverage",
-                "url": "https://api-testnet.bybit.com/v5/position/list?symbol=SOLUSDT&category=linear",
+                "url": "https://api-testnet.bybit.com/v5/position/list?symbol=LTCUSDT&category=linear",
                 "input": [
-                  "SOL/USDT:USDT"
+                  "LTC/USDT:USDT"
                 ]
             }
         ]
