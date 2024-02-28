@@ -643,10 +643,19 @@ export default class binance extends Exchange {
                         'sub-account/futures/account': 0.1,
                         'sub-account/futures/accountSummary': 1,
                         'sub-account/futures/positionRisk': 0.1,
+                        'loan/flexible/ongoing/orders': 30, // Weight(IP): 300 => cost = 0.1 * 300 = 30
+                        'loan/flexible/borrow/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/repay/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/ltv/adjustment/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/loanable/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/collateral/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                     },
                     'post': {
                         'eth-staking/eth/stake': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
                         'sub-account/subAccountApi/ipRestriction': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'loan/flexible/borrow': 40.002, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
+                        'loan/flexible/repay': 40.002, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
+                        'loan/flexible/adjust/ltv': 40.002, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
                     },
                 },
                 'sapiV3': {
