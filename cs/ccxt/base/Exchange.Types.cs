@@ -1127,3 +1127,42 @@ public struct Network
     }
 }
 // }
+
+public struct MarginModes
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, MarginMode> tickers;
+
+    public MarginModes(object marginMode2)
+    {
+        var marginModes = (Dictionary<string, object>)marginMode2;
+
+        info = marginModes.ContainsKey("info") ? (Dictionary<string, object>)marginModes["info"] : null;
+        this.marginModes = new Dictionary<string, MarginMode>();
+        foreach (var marginMode in marginModes)
+        {
+            if (marginMode.Key != "info")
+                this.marginModes.Add(marginMode.Key, new MarginMode(marginMode.Value));
+        }
+    }
+
+    // Indexer
+    public MarginMode this[string key]
+    {
+        get
+        {
+            if (marginModes.ContainsKey(key))
+            {
+                return marginModes[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the marginModes.");
+            }
+        }
+        set
+        {
+            marginMode[key] = value;
+        }
+    }
+}
