@@ -436,8 +436,9 @@ public partial class gate : ccxt.gate
         object parts = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object rawMarketType = this.safeString(parts, 0);
         object marketType = ((bool) isTrue((isEqual(rawMarketType, "futures")))) ? "contract" : "spot";
+        object result = this.safeValue(message, "result");
         object results = new List<object>() {};
-        if (isTrue(isEqual(marketType, "contract")))
+        if (isTrue(((result is IList<object>) || (result.GetType().IsGenericType && result.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             results = this.safeList(message, "result", new List<object>() {});
         } else

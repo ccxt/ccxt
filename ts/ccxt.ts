@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.2.50';
+const version = '4.2.53';
 
 (Exchange as any).ccxtVersion = version
 
@@ -64,7 +64,6 @@ import bitcoincom from  './src/bitcoincom.js'
 import bitfinex from  './src/bitfinex.js'
 import bitfinex2 from  './src/bitfinex2.js'
 import bitflyer from  './src/bitflyer.js'
-import bitforex from  './src/bitforex.js'
 import bitget from  './src/bitget.js'
 import bithumb from  './src/bithumb.js'
 import bitmart from  './src/bitmart.js'
@@ -231,7 +230,6 @@ const exchanges = {
     'bitfinex':               bitfinex,
     'bitfinex2':              bitfinex2,
     'bitflyer':               bitflyer,
-    'bitforex':               bitforex,
     'bitget':                 bitget,
     'bithumb':                bithumb,
     'bitmart':                bitmart,
@@ -476,7 +474,6 @@ export {
     bitfinex,
     bitfinex2,
     bitflyer,
-    bitforex,
     bitget,
     bithumb,
     bitmart,

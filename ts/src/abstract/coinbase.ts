@@ -54,6 +54,7 @@ interface Exchange {
     v2PrivatePutUser (params?: {}): Promise<implicitReturnType>;
     v2PrivateDeleteAccountsId (params?: {}): Promise<implicitReturnType>;
     v2PrivateDeleteAccountsAccountIdTransactionsTransactionId (params?: {}): Promise<implicitReturnType>;
+    v3PublicGetBrokerageTime (params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageAccounts (params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageAccountsAccountUuid (params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageOrdersHistoricalBatch (params?: {}): Promise<implicitReturnType>;
@@ -69,7 +70,6 @@ interface Exchange {
     v3PrivateGetBrokerageProductBook (params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageBestBidAsk (params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageConvertTradeTradeId (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetBrokerageTime (params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageCfmBalanceSummary (params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageCfmPositions (params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageCfmPositionsProductId (params?: {}): Promise<implicitReturnType>;

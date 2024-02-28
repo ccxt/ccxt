@@ -81,6 +81,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPositionMode': True,
                 'fetchPositions': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -91,6 +92,7 @@ class bingx(Exchange, ImplicitAPI):
                 'setLeverage': True,
                 'setMargin': True,
                 'setMarginMode': True,
+                'setPositionMode': True,
                 'transfer': True,
             },
             'hostname': 'bingx.com',
@@ -3282,12 +3284,13 @@ class bingx(Exchange, ImplicitAPI):
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.side]: hedged: ['long' or 'short']. one way: ['both']
         :returns dict: response from the exchange
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         side = self.safe_string_upper(params, 'side')
-        self.check_required_argument('setLeverage', side, 'side', ['LONG', 'SHORT'])
+        self.check_required_argument('setLeverage', side, 'side', ['LONG', 'SHORT', 'BOTH'])
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -3696,6 +3699,32 @@ class bingx(Exchange, ImplicitAPI):
             position = self.parse_position({'positionId': success[i]})
             positions.append(position)
         return positions
+
+    async def fetch_position_mode(self, symbol: Str = None, params={}):
+        """
+        fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Get%20Position%20Mode
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an object detailing whether the market is in hedged or one-way mode
+        """
+        response = await self.swapV1PrivateGetPositionSideDual(params)
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "",
+        #         "timeStamp": "1709002057516",
+        #         "data": {
+        #             "dualSidePosition": "false"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        dualSidePosition = self.safe_string(data, 'dualSidePosition')
+        return {
+            'info': response,
+            'hedged': (dualSidePosition == 'true'),
+        }
 
     async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         """

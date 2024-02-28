@@ -279,7 +279,6 @@ public partial class woo : Exchange
                     { "-1007", typeof(BadRequest) },
                     { "-1008", typeof(InvalidOrder) },
                     { "-1009", typeof(BadRequest) },
-                    { "-1011", typeof(ExchangeError) },
                     { "-1012", typeof(BadRequest) },
                     { "-1101", typeof(InvalidOrder) },
                     { "-1102", typeof(InvalidOrder) },
@@ -288,6 +287,8 @@ public partial class woo : Exchange
                     { "-1105", typeof(InvalidOrder) },
                 } },
                 { "broad", new Dictionary<string, object>() {
+                    { "Can not place", typeof(ExchangeError) },
+                    { "maintenance", typeof(OnMaintenance) },
                     { "symbol must not be blank", typeof(BadRequest) },
                     { "The token is not supported", typeof(BadRequest) },
                     { "Your order and symbol are not valid or already canceled", typeof(BadRequest) },
@@ -2548,6 +2549,7 @@ public partial class woo : Exchange
         }
         //
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
+        //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
         object success = this.safeValue(response, "success");
         object errorCode = this.safeString(response, "code");

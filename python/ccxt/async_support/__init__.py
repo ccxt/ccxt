@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.50'
+__version__ = '4.2.53'
 
 # -----------------------------------------------------------------------------
 
@@ -77,7 +77,6 @@ from ccxt.async_support.bitcoincom import bitcoincom                            
 from ccxt.async_support.bitfinex import bitfinex                                # noqa: F401
 from ccxt.async_support.bitfinex2 import bitfinex2                              # noqa: F401
 from ccxt.async_support.bitflyer import bitflyer                                # noqa: F401
-from ccxt.async_support.bitforex import bitforex                                # noqa: F401
 from ccxt.async_support.bitget import bitget                                    # noqa: F401
 from ccxt.async_support.bithumb import bithumb                                  # noqa: F401
 from ccxt.async_support.bitmart import bitmart                                  # noqa: F401
@@ -180,7 +179,6 @@ exchanges = [
     'bitfinex',
     'bitfinex2',
     'bitflyer',
-    'bitforex',
     'bitget',
     'bithumb',
     'bitmart',

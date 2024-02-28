@@ -30,8 +30,12 @@ public partial class binance : Exchange
                 { "closeAllPositions", false },
                 { "closePosition", false },
                 { "createDepositAddress", false },
+                { "createLimitBuyOrder", true },
+                { "createLimitSellOrder", true },
+                { "createMarketBuyOrder", true },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrderWithCost", true },
+                { "createMarketSellOrder", true },
                 { "createMarketSellOrderWithCost", true },
                 { "createOrder", true },
                 { "createOrders", true },
@@ -52,6 +56,7 @@ public partial class binance : Exchange
                 { "fetchBorrowInterest", true },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", true },
+                { "fetchCanceledAndClosedOrders", "emulated" },
                 { "fetchCanceledOrders", "emulated" },
                 { "fetchClosedOrder", false },
                 { "fetchClosedOrders", "emulated" },
@@ -97,6 +102,7 @@ public partial class binance : Exchange
                 { "fetchOrders", true },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", true },
+                { "fetchPositionMode", true },
                 { "fetchPositions", true },
                 { "fetchPositionsRisk", true },
                 { "fetchPremiumIndexOHLCV", false },
@@ -108,10 +114,11 @@ public partial class binance : Exchange
                 { "fetchTrades", true },
                 { "fetchTradingFee", true },
                 { "fetchTradingFees", true },
-                { "fetchTradingLimits", null },
+                { "fetchTradingLimits", "emulated" },
                 { "fetchTransactionFee", "emulated" },
                 { "fetchTransactionFees", true },
                 { "fetchTransactions", false },
+                { "fetchTransfer", false },
                 { "fetchTransfers", true },
                 { "fetchUnderlyingAssets", false },
                 { "fetchVolatilityHistory", false },
@@ -446,6 +453,9 @@ public partial class binance : Exchange
                         { "simple-earn/flexible/history/rewardsRecord", 15 },
                         { "simple-earn/locked/history/rewardsRecord", 15 },
                         { "simple-earn/flexible/history/collateralRecord", 0.1 },
+                        { "dci/product/list", 0.1 },
+                        { "dci/product/positions", 0.1 },
+                        { "dci/product/accounts", 0.1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "asset/dust", 0.06667 },
@@ -562,6 +572,8 @@ public partial class binance : Exchange
                         { "simple-earn/locked/redeem", 0.1 },
                         { "simple-earn/flexible/setAutoSubscribe", 15 },
                         { "simple-earn/locked/setAutoSubscribe", 15 },
+                        { "dci/product/subscribe", 0.1 },
+                        { "dci/product/auto_compound/edit", 0.1 },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "userDataStream", 0.1 },
@@ -4215,7 +4227,8 @@ public partial class binance : Exchange
         //         "closeTime": 1677097200000
         //     }
         //
-        object volumeIndex = ((bool) isTrue((getValue(market, "inverse")))) ? 7 : 5;
+        object inverse = this.safeBool(market, "inverse");
+        object volumeIndex = ((bool) isTrue(inverse)) ? 7 : 5;
         return new List<object> {this.safeInteger2(ohlcv, 0, "closeTime"), this.safeNumber2(ohlcv, 1, "open"), this.safeNumber2(ohlcv, 2, "high"), this.safeNumber2(ohlcv, 3, "low"), this.safeNumber2(ohlcv, 4, "close"), this.safeNumber2(ohlcv, volumeIndex, "volume")};
     }
 
@@ -7154,6 +7167,42 @@ public partial class binance : Exchange
         return this.filterBySinceLimit(filteredOrders, since, limit);
     }
 
+    public async override Task<object> fetchCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#fetchCanceledAndClosedOrders
+        * @description fetches information on multiple canceled orders made by the user
+        * @see https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
+        * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
+        * @see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+        * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-orders-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-orders-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-orders-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-orders-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-orders-user_data
+        * @param {string} symbol unified market symbol of the market the orders were made in
+        * @param {int} [since] the earliest time in ms to fetch orders for
+        * @param {int} [limit] the maximum number of order structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
+        * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
+        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchCanceledAndClosedOrders() requires a symbol argument")) ;
+        }
+        object orders = await this.fetchOrders(symbol, since, null, parameters);
+        object canceledOrders = this.filterBy(orders, "status", "canceled");
+        object closedOrders = this.filterBy(orders, "status", "closed");
+        object filteredOrders = this.arrayConcat(canceledOrders, closedOrders);
+        object sortedOrders = this.sortBy(filteredOrders, "timestamp");
+        return this.filterBySinceLimit(sortedOrders, since, limit);
+    }
+
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         /**
@@ -8473,7 +8522,6 @@ public partial class binance : Exchange
         /**
         * @method
         * @name binance#fetchTransfers
-        * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
         * @description fetch a history of internal transfers made on an account
         * @see https://binance-docs.github.io/apidocs/spot/en/#query-user-universal-transfer-history-user_data
         * @param {string} code unified currency code of the currency transferred
@@ -12849,6 +12897,68 @@ public partial class binance : Exchange
             { "lastPrice", null },
             { "underlyingPrice", null },
             { "info", greeks },
+        };
+    }
+
+    public async override Task<object> fetchTradingLimits(object symbols = null, object parameters = null)
+    {
+        // this method should not be called directly, use loadTradingLimits () instead
+        parameters ??= new Dictionary<string, object>();
+        object markets = await this.fetchMarkets();
+        object tradingLimits = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        {
+            object market = getValue(markets, i);
+            object symbol = getValue(market, "symbol");
+            if (isTrue(isTrue((isEqual(symbols, null))) || isTrue((this.inArray(symbol, symbols)))))
+            {
+                ((IDictionary<string,object>)tradingLimits)[(string)symbol] = getValue(getValue(market, "limits"), "amount");
+            }
+        }
+        return tradingLimits;
+    }
+
+    public async virtual Task<object> fetchPositionMode(object symbol = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#fetchPositionMode
+        * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+        * @param {string} symbol unified symbol of the market to fetch the order book for
+        * @param {object} params extra parameters specific to the exchange API endpoint
+        * @param {string} params.subType "linear" or "inverse"
+        * @returns {object} an object detailing whether the market is in hedged or one-way mode
+        */
+        parameters ??= new Dictionary<string, object>();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositionMode", market, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(subType, "linear")))
+        {
+            response = await this.fapiPrivateGetPositionSideDual(parameters);
+        } else if (isTrue(isEqual(subType, "inverse")))
+        {
+            response = await this.dapiPrivateGetPositionSideDual(parameters);
+        } else
+        {
+            throw new BadRequest ((string)add(this.id, " fetchPositionMode requires either a symbol argument or params[\"subType\"]")) ;
+        }
+        //
+        //    {
+        //        dualSidePosition: false
+        //    }
+        //
+        object dualSidePosition = this.safeBool(response, "dualSidePosition");
+        return new Dictionary<string, object>() {
+            { "info", response },
+            { "hedged", dualSidePosition },
         };
     }
 }
