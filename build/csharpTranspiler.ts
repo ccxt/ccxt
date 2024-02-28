@@ -294,7 +294,7 @@ class NewTranspiler {
     }
 
     isNumberType(type: string) {
-        return (type === 'number') || (type === 'NumericLiteral') || (type === 'NumericLiteralType')
+        return (type === 'Num') || (type === 'number') || (type === 'NumericLiteral') || (type === 'NumericLiteralType')
     }
 
     isIntegerType(type: string) {
