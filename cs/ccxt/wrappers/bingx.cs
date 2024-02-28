@@ -1003,6 +1003,12 @@ public partial class bingx
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.side</term>
+    /// <description>
+    /// string : hedged: ['long' or 'short']. one way: ['both']
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> response from the exchange.</returns>
@@ -1149,6 +1155,26 @@ public partial class bingx
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchMyLiquidations(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
+    }
+    /// <summary>
+    /// fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Get%20Position%20Mode"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an object detailing whether the market is in hedged or one-way mode.</returns>
+    public async Task<Dictionary<string, object>> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionMode(symbol, parameters);
+        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// set hedged to true or false for a market

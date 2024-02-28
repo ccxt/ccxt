@@ -59,6 +59,7 @@ public partial class bingx : Exchange
                 { "fetchOpenOrders", true },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
+                { "fetchPositionMode", true },
                 { "fetchPositions", true },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
@@ -69,6 +70,7 @@ public partial class bingx : Exchange
                 { "setLeverage", true },
                 { "setMargin", true },
                 { "setMarginMode", true },
+                { "setPositionMode", true },
                 { "transfer", true },
             } },
             { "hostname", "bingx.com" },
@@ -3734,6 +3736,7 @@ public partial class bingx : Exchange
         * @param {float} leverage the rate of leverage
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.side] hedged: ['long' or 'short']. one way: ['both']
         * @returns {object} response from the exchange
         */
         parameters ??= new Dictionary<string, object>();
@@ -3742,7 +3745,7 @@ public partial class bingx : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " setLeverage() requires a symbol argument")) ;
         }
         object side = this.safeStringUpper(parameters, "side");
-        this.checkRequiredArgument("setLeverage", side, "side", new List<object>() {"LONG", "SHORT"});
+        this.checkRequiredArgument("setLeverage", side, "side", new List<object>() {"LONG", "SHORT", "BOTH"});
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
@@ -4196,6 +4199,37 @@ public partial class bingx : Exchange
             ((IList<object>)positions).Add(position);
         }
         return positions;
+    }
+
+    public async virtual Task<object> fetchPositionMode(object symbol = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bingx#fetchPositionMode
+        * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Get%20Position%20Mode
+        * @param {string} symbol unified symbol of the market to fetch the order book for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an object detailing whether the market is in hedged or one-way mode
+        */
+        parameters ??= new Dictionary<string, object>();
+        object response = await this.swapV1PrivateGetPositionSideDual(parameters);
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "timeStamp": "1709002057516",
+        //         "data": {
+        //             "dualSidePosition": "false"
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object dualSidePosition = this.safeString(data, "dualSidePosition");
+        return new Dictionary<string, object>() {
+            { "info", response },
+            { "hedged", (isEqual(dualSidePosition, "true")) },
+        };
     }
 
     public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
