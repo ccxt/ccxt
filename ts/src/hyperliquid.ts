@@ -856,6 +856,9 @@ export default class hyperliquid extends Exchange {
             'signature': signature,
             // 'vaultAddress': vaultAddress,
         };
+        if (vaultAddress !== undefined) {
+            request['vaultAddress'] = vaultAddress;
+        }
         const response = await this.privatePostExchange (this.extend (request, params));
         //
         //     {
@@ -874,8 +877,10 @@ export default class hyperliquid extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (this.safeValue (this.safeValue (response, 'response'), 'data'), 'statuses', []);
-        return this.parseOrders (data, undefined);
+        const responseObj = this.safeDict (response, 'response', {});
+        const data = this.safeDict (responseObj, 'data', {});
+        const statuses = this.safeList (data, 'statuses', []);
+        return this.parseOrders (statuses, undefined);
     }
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
