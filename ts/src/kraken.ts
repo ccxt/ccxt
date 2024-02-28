@@ -474,28 +474,37 @@ export default class kraken extends Exchange {
 
     async fetchWithdrawalMethods () {
         let withdrawalNetworks = this.safeValue (this.options, 'withdrawalNetworks', []);
-        if (withdrawalNetworks.length === 0) {
-            const withdrawNetworkResponse = await this.privatePostWithdrawMethods ();
-            // Withdrawal Methods
-            // {
-            //     "error": [],
-            //     "result": [
-            //       {
-            //         "asset": "XXBT",
-            //         "method": "Bitcoin",
-            //         "network": "Bitcoin",
-            //         "minimum": "0.0004"
-            //       },
-            //       {
-            //         "asset": "XXBT",
-            //         "method": "Bitcoin Lightning",
-            //         "network": "Lightning",
-            //         "minimum": "0.00001"
-            //       }
-            //     ]
-            //  }
-            withdrawalNetworks = this.safeValue (withdrawNetworkResponse, 'result', []);
-            this.options['withdrawalNetworks'] = withdrawalNetworks;
+        if (withdrawalNetworks.length === 0 && this.checkRequiredCredentials (false)) {
+            try {
+                const withdrawNetworkResponse = await this.privatePostWithdrawMethods ();
+                // Withdrawal Methods
+                // {
+                //     "error": [],
+                //     "result": [
+                //       {
+                //         "asset": "XXBT",
+                //         "method": "Bitcoin",
+                //         "network": "Bitcoin",
+                //         "minimum": "0.0004"
+                //       },
+                //       {
+                //         "asset": "XXBT",
+                //         "method": "Bitcoin Lightning",
+                //         "network": "Lightning",
+                //         "minimum": "0.00001"
+                //       }
+                //     ]
+                //  }
+                this.handleErrors (null, null, null, null, null, {}, withdrawNetworkResponse, null, null);
+                withdrawalNetworks = this.safeValue (withdrawNetworkResponse, 'result', []);
+                this.options['withdrawalNetworks'] = withdrawalNetworks;
+            } catch (e) {
+                // The user does not have access to the endpoint, not a big deal we just return an empty array
+                if (e instanceof PermissionDenied) {
+                    return [];
+                }
+                throw e;
+            }
         }
         this.options['methodsByEcids'] = {};
         this.options['ecidsByMethods'] = {};
