@@ -110,6 +110,7 @@ export default class bybit extends Exchange {
                 'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': true,
                 'fetchWithdrawals': true,
+                'fetchLeverage': true,
                 'repayCrossMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,
@@ -6317,6 +6318,25 @@ export default class bybit extends Exchange {
             'stopLossPrice': this.safeNumber2 (position, 'stop_loss', 'stopLoss'),
             'takeProfitPrice': this.safeNumber2 (position, 'take_profit', 'takeProfit'),
         });
+    }
+
+    async fetchLeverage (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://bybit-exchange.github.io/docs/v5/position
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets ();
+        const position = await this.fetchPosition (symbol, params);
+        return {
+            'info': position,
+            'leverage': this.safeInteger (position, 'leverage'),
+            'marginMode': this.safeNumber (position, 'marginMode'),
+        };
     }
 
     async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
