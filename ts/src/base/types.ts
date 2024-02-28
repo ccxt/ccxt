@@ -15,9 +15,9 @@ export interface Dictionary<T> {
     [key: string]: T;
 }
 
-export type Dict = Dictionary<any>;
+export type Dict = Dictionary<any> | undefined;
 
-export type List = Array<any>;
+export type List = Array<any> | undefined;
 
 /** Request parameters */
 // type Params = Dictionary<string | number | boolean | string[]>;
