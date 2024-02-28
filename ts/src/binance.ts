@@ -95,6 +95,7 @@ export default class binance extends Exchange {
                 'fetchL3OrderBook': false,
                 'fetchLastPrices': true,
                 'fetchLedger': true,
+                'fetchLedgerEntry': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
                 'fetchLiquidations': false,
@@ -10410,6 +10411,20 @@ export default class binance extends Exchange {
             result.push (this.parseSettlement (settlements[i], market));
         }
         return result;
+    }
+
+    async fetchLedgerEntry (id: string, code: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchLedgerEntry', undefined, params);
+        const query = {
+            'recordId': id,
+            'type': type,
+        };
+        if (type !== 'option') {
+            throw new BadRequest (this.id + ' fetchLedgerEntry () can only be used for type option');
+        }
+        return await this.fetchLedger (code, undefined, undefined, this.extend (query, params));
     }
 
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
