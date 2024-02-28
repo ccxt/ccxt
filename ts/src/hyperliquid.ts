@@ -799,6 +799,9 @@ export default class hyperliquid extends Exchange {
             // TODO: round px to 5 significant figures and 6 decimals
             let px = undefined;
             if (isMarket) {
+                if (price === undefined) {
+                    throw new ArgumentsRequired (this.id + '  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).');
+                }
                 px = (isBuy) ? Precise.stringMul (price, Precise.stringAdd ('1', slippage)) : Precise.stringMul (price, Precise.stringSub ('1', slippage));
             } else {
                 px = this.priceToPrecision (symbol, price);
