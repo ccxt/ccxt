@@ -616,8 +616,7 @@ export default class hyperliquid extends Exchange {
         return this.hash (this.base16ToBinary (data), keccak, 'binary');
     }
 
-    signL1Action (action, nonce): object {
-        const vaultAdress = this.safeString (action, 'vaultAddress');
+    signL1Action (action, nonce, vaultAdress = undefined): object {
         const hash = this.actionHash (action, vaultAdress, nonce);
         const isTestnet = this.safeBool (this.options, 'sandboxMode', true);
         const phantomAgent = this.constructPhantomAgent (hash, isTestnet);
@@ -816,9 +815,9 @@ export default class hyperliquid extends Exchange {
                     triggerPrice = this.priceToPrecision (symbol, stopLossPrice);
                 }
                 orderType['trigger'] = {
+                    'isMarket': isMarket,
                     'triggerPx': triggerPrice,
                     'tpsl': (isTp) ? 'tp' : 'sl',
-                    'isMarket': isMarket,
                 };
             } else {
                 orderType['limit'] = {
@@ -844,9 +843,9 @@ export default class hyperliquid extends Exchange {
             'orders': orderReq,
             'grouping': 'na',
             'brokerCode': 1,
-            // 'vaultAddress': vaultAddress,
         };
-        const signature = this.signL1Action (orderAction, nonce);
+        const vaultAddress = this.safeString (params, 'vaultAddress');
+        const signature = this.signL1Action (orderAction, nonce, vaultAddress);
         const request = {
             'action': orderAction,
             'nonce': nonce,
@@ -941,7 +940,8 @@ export default class hyperliquid extends Exchange {
             }
         }
         cancelAction['cancels'] = cancelReq;
-        const signature = this.signL1Action (cancelAction, nonce);
+        const vaultAddress = this.safeString (params, 'vaultAddress');
+        const signature = this.signL1Action (cancelAction, nonce, vaultAddress);
         request['action'] = cancelAction;
         request['signature'] = signature;
         const response = await this.privatePostExchange (this.extend (request, params));
@@ -1026,9 +1026,9 @@ export default class hyperliquid extends Exchange {
                 triggerPrice = this.priceToPrecision (symbol, stopLossPrice);
             }
             orderType['trigger'] = {
+                'isMarket': isMarket,
                 'triggerPx': triggerPrice,
                 'tpsl': (isTp) ? 'tp' : 'sl',
-                'isMarket': isMarket,
             };
         } else {
             orderType['limit'] = {
@@ -1059,7 +1059,8 @@ export default class hyperliquid extends Exchange {
             'type': 'batchModify',
             'modifies': [ modifyReq ],
         };
-        const signature = this.signL1Action (modifyAction, nonce);
+        const vaultAddress = this.safeString (params, 'vaultAddress');
+        const signature = this.signL1Action (modifyAction, nonce, vaultAddress);
         const request = {
             'action': modifyAction,
             'nonce': nonce,
@@ -1641,7 +1642,8 @@ export default class hyperliquid extends Exchange {
             'isCross': isCross,
             'leverage': leverage,
         };
-        const signature = this.signL1Action (updateAction, nonce);
+        const vaultAddress = this.safeString (params, 'vaultAddress');
+        const signature = this.signL1Action (updateAction, nonce, vaultAddress);
         const request = {
             'action': updateAction,
             'nonce': nonce,
@@ -1690,7 +1692,8 @@ export default class hyperliquid extends Exchange {
             'isCross': isCross,
             'leverage': leverage,
         };
-        const signature = this.signL1Action (updateAction, nonce);
+        const vaultAddress = this.safeString (params, 'vaultAddress');
+        const signature = this.signL1Action (updateAction, nonce, vaultAddress);
         const request = {
             'action': updateAction,
             'nonce': nonce,
@@ -1752,7 +1755,8 @@ export default class hyperliquid extends Exchange {
             'isBuy': true,
             'ntli': sz,
         };
-        const signature = this.signL1Action (updateAction, nonce);
+        const vaultAddress = this.safeString (params, 'vaultAddress');
+        const signature = this.signL1Action (updateAction, nonce, vaultAddress);
         const request = {
             'action': updateAction,
             'nonce': nonce,
