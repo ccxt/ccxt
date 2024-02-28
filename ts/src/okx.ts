@@ -2957,10 +2957,10 @@ export default class okx extends Exchange {
             }
         }
         let stopLossTriggerPrice = this.safeValue2 (params, 'stopLossPrice', 'newSlTriggerPx');
-        let stopLossPrice = this.safeValue (params, 'newSlOrdPx');
+        let stopLossPrice = this.safeValue (params, 'newSlOrdPx', price);
         const stopLossTriggerPriceType = this.safeString (params, 'newSlTriggerPxType', 'last');
         let takeProfitTriggerPrice = this.safeValue2 (params, 'takeProfitPrice', 'newTpTriggerPx');
-        let takeProfitPrice = this.safeValue (params, 'newTpOrdPx');
+        let takeProfitPrice = this.safeValue (params, 'newTpOrdPx', price);
         const takeProfitTriggerPriceType = this.safeString (params, 'newTpTriggerPxType', 'last');
         const stopLoss = this.safeValue (params, 'stopLoss');
         const takeProfit = this.safeValue (params, 'takeProfit');
