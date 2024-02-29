@@ -457,7 +457,7 @@ export default class huobijp extends Exchange {
         //         ]
         //    }
         //
-        const markets = this.safeValue (response, 'data', []);
+        const markets = this.safeList (response, 'data', []);
         const numMarkets = markets.length;
         if (numMarkets < 1) {
             throw new NetworkError (this.id + ' fetchMarkets() returned empty response: ' + this.json (markets));
@@ -722,7 +722,7 @@ export default class huobijp extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.marketGetTickers (params);
-        const tickers = this.safeValue (response, 'data', []);
+        const tickers = this.safeList (response, 'data', []);
         const timestamp = this.safeInteger (response, 'ts');
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
@@ -913,10 +913,10 @@ export default class huobijp extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         let result = [];
         for (let i = 0; i < data.length; i++) {
-            const trades = this.safeValue (data[i], 'data', []);
+            const trades = this.safeList (data[i], 'data', []);
             for (let j = 0; j < trades.length; j++) {
                 const trade = this.parseTrade (trades[j], market);
                 result.push (trade);
@@ -983,7 +983,7 @@ export default class huobijp extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -1052,7 +1052,7 @@ export default class huobijp extends Exchange {
         //         ]
         //     }
         //
-        const currencies = this.safeValue (response, 'data', []);
+        const currencies = this.safeList (response, 'data', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
@@ -1100,7 +1100,7 @@ export default class huobijp extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const balances = this.safeValue (response['data'], 'list', []);
+        const balances = this.safeList (response['data'], 'list', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -1290,7 +1290,7 @@ export default class huobijp extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 

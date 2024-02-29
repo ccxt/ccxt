@@ -498,8 +498,8 @@ export default class bit2c extends Exchange {
         };
         const response = await this.privateGetOrderMyOrders (this.extend (request, params));
         const orders = this.safeDict (response, market['id'], {});
-        const asks = this.safeValue (orders, 'ask', []);
-        const bids = this.safeValue (orders, 'bid', []);
+        const asks = this.safeList (orders, 'ask', []);
+        const bids = this.safeList (orders, 'bid', []);
         return this.parseOrders (this.arrayConcat (asks, bids), market, since, limit);
     }
 

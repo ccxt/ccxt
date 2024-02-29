@@ -270,8 +270,8 @@ export default class hitbtc extends hitbtcRest {
             const timestamp = this.safeInteger (item, 't');
             const nonce = this.safeInteger (item, 's');
             const orderbook = this.orderbooks[symbol];
-            const asks = this.safeValue (item, 'a', []);
-            const bids = this.safeValue (item, 'b', []);
+            const asks = this.safeList (item, 'a', []);
+            const bids = this.safeList (item, 'b', []);
             this.handleDeltas (orderbook['asks'], asks);
             this.handleDeltas (orderbook['bids'], bids);
             orderbook['timestamp'] = timestamp;
@@ -834,7 +834,7 @@ export default class hitbtc extends hitbtcRest {
             const limit = this.safeInteger (this.options, 'ordersLimit');
             this.orders = new ArrayCacheBySymbolById (limit);
         }
-        const data = this.safeValue (message, 'params', []);
+        const data = this.safeList (message, 'params', []);
         if (Array.isArray (data)) {
             for (let i = 0; i < data.length; i++) {
                 const order = data[i];

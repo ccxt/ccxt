@@ -278,7 +278,7 @@ export default class poloniexfutures extends Exchange {
         //   ]
         // }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseMarkets (data);
     }
 
@@ -684,7 +684,7 @@ export default class poloniexfutures extends Exchange {
         //        },
         //    }
         //
-        const trades = this.safeValue (response, 'data', []);
+        const trades = this.safeList (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -757,7 +757,7 @@ export default class poloniexfutures extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -1169,7 +1169,7 @@ export default class poloniexfutures extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const dataList = this.safeValue (data, 'dataList', []);
+        const dataList = this.safeList (data, 'dataList', []);
         const dataListLength = dataList.length;
         const fees = [];
         for (let i = 0; i < dataListLength; i++) {
@@ -1354,7 +1354,7 @@ export default class poloniexfutures extends Exchange {
         //    }
         //
         const responseData = this.safeDict (response, 'data', {});
-        const orders = this.safeValue (responseData, 'items', []);
+        const orders = this.safeList (responseData, 'items', []);
         const ordersLength = orders.length;
         const result = [];
         for (let i = 0; i < ordersLength; i++) {

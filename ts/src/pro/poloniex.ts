@@ -266,7 +266,7 @@ export default class poloniex extends poloniexRest {
          */
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
-            const clientOrderIds = this.safeValue (params, 'clientOrderId', []);
+            const clientOrderIds = this.safeList (params, 'clientOrderId', []);
             params['clientOrderIds'] = this.arrayConcat (clientOrderIds, [ clientOrderId ]);
         }
         return await this.cancelOrdersWs ([ id ], symbol, params);
@@ -320,7 +320,7 @@ export default class poloniex extends poloniexRest {
         //    }
         //
         const messageHash = this.safeInteger (message, 'id');
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const orders = [];
         for (let i = 0; i < data.length; i++) {
             const order = data[i];
@@ -590,7 +590,7 @@ export default class poloniex extends poloniexRest {
         //        ]
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const item = data[i];
             const marketId = this.safeString (item, 'symbol');
@@ -781,7 +781,7 @@ export default class poloniex extends poloniexRest {
         //        ]
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         let orders = this.orders;
         if (orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit');
@@ -960,7 +960,7 @@ export default class poloniex extends poloniexRest {
         //        ]
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const newTickers = {};
         for (let i = 0; i < data.length; i++) {
             const item = data[i];
@@ -1035,7 +1035,7 @@ export default class poloniex extends poloniexRest {
         //        "action": "update"
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const type = this.safeString (message, 'action');
         const snapshot = type === 'snapshot';
         const update = type === 'update';
@@ -1102,7 +1102,7 @@ export default class poloniex extends poloniexRest {
         //        ]
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const messageHash = 'balances';
         this.balance = this.parseWsBalance (data);
         client.resolve (this.balance, messageHash);
@@ -1211,7 +1211,7 @@ export default class poloniex extends poloniexRest {
                 this.handleOrderRequest (client, message);
             }
         } else {
-            const data = this.safeValue (message, 'data', []);
+            const data = this.safeList (message, 'data', []);
             const dataLength = data.length;
             if (dataLength > 0) {
                 method.call (this, client, message);

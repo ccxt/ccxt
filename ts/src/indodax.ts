@@ -1013,8 +1013,8 @@ export default class indodax extends Exchange {
             }
         } else {
             currency = this.currency (code);
-            const withdraws = this.safeValue (withdraw, currency['id'], []);
-            const deposits = this.safeValue (deposit, currency['id'], []);
+            const withdraws = this.safeList (withdraw, currency['id'], []);
+            const deposits = this.safeList (deposit, currency['id'], []);
             transactions = this.arrayConcat (withdraws, deposits);
         }
         return this.parseTransactions (transactions, currency, since, limit);

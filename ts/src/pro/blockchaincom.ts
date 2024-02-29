@@ -107,7 +107,7 @@ export default class blockchaincom extends blockchaincomRest {
             return;
         }
         const result = { 'info': message };
-        const balances = this.safeValue (message, 'balances', []);
+        const balances = this.safeList (message, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
             const entry = balances[i];
             const currencyId = this.safeString (entry, 'currency');
@@ -186,7 +186,7 @@ export default class blockchaincom extends blockchaincomRest {
             const request = this.safeValue (client.subscriptions, messageHash);
             const timeframeId = this.safeNumber (request, 'granularity');
             const timeframe = this.findTimeframe (timeframeId);
-            const ohlcv = this.safeValue (message, 'price', []);
+            const ohlcv = this.safeList (message, 'price', []);
             this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
@@ -529,7 +529,7 @@ export default class blockchaincom extends blockchaincomRest {
         } else if (event === 'rejected') {
             throw new ExchangeError (this.id + ' ' + this.json (message));
         } else if (event === 'snapshot') {
-            const orders = this.safeValue (message, 'orders', []);
+            const orders = this.safeList (message, 'orders', []);
             for (let i = 0; i < orders.length; i++) {
                 const order = orders[i];
                 const parsedOrder = this.parseWsOrder (order);
@@ -707,8 +707,8 @@ export default class blockchaincom extends blockchaincomRest {
             const snapshot = this.parseOrderBook (message, symbol, timestamp, 'bids', 'asks', 'px', 'qty', 'num');
             orderbook.reset (snapshot);
         } else if (event === 'updated') {
-            const asks = this.safeValue (message, 'asks', []);
-            const bids = this.safeValue (message, 'bids', []);
+            const asks = this.safeList (message, 'asks', []);
+            const bids = this.safeList (message, 'bids', []);
             this.handleDeltas (orderbook['asks'], asks);
             this.handleDeltas (orderbook['bids'], bids);
             orderbook['timestamp'] = timestamp;

@@ -458,7 +458,7 @@ export default class delta extends Exchange {
         //         "success":true
         //     }
         //
-        const currencies = this.safeValue (response, 'result', []);
+        const currencies = this.safeList (response, 'result', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
@@ -695,7 +695,7 @@ export default class delta extends Exchange {
         //         "success":true
         //     }
         //
-        const markets = this.safeValue (response, 'result', []);
+        const markets = this.safeList (response, 'result', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -1249,7 +1249,7 @@ export default class delta extends Exchange {
         //         "success":true
         //     }
         //
-        const tickers = this.safeValue (response, 'result', []);
+        const tickers = this.safeList (response, 'result', []);
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i]);
@@ -1434,7 +1434,7 @@ export default class delta extends Exchange {
         //         "success":true
         //     }
         //
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         return this.parseTrades (result, market, since, limit);
     }
 
@@ -1508,12 +1508,12 @@ export default class delta extends Exchange {
         //         ]
         //     }
         //
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
     parseBalance (response): Balances {
-        const balances = this.safeValue (response, 'result', []);
+        const balances = this.safeList (response, 'result', []);
         const result = { 'info': response };
         const currenciesByNumericId = this.safeDict (this.options, 'currenciesByNumericId', {});
         for (let i = 0; i < balances.length; i++) {
@@ -1627,7 +1627,7 @@ export default class delta extends Exchange {
         //         ]
         //     }
         //
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         return this.parsePositions (result, symbols);
     }
 
@@ -2105,7 +2105,7 @@ export default class delta extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         return this.parseOrders (result, market, since, limit);
     }
 
@@ -2188,7 +2188,7 @@ export default class delta extends Exchange {
         //         "success":true
         //     }
         //
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         return this.parseTrades (result, market, since, limit);
     }
 
@@ -2242,7 +2242,7 @@ export default class delta extends Exchange {
         //         "success":true
         //     }
         //
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         return this.parseLedger (result, currency, since, limit);
     }
 
@@ -2520,7 +2520,7 @@ export default class delta extends Exchange {
         //         "success":true
         //     }
         //
-        const rates = this.safeValue (response, 'result', []);
+        const rates = this.safeList (response, 'result', []);
         const result = this.parseFundingRates (rates);
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -2980,7 +2980,7 @@ export default class delta extends Exchange {
         //         "success": true
         //     }
         //
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         const settlements = this.parseSettlements (result, market);
         const sorted = this.sortBy (settlements, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);

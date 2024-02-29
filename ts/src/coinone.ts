@@ -232,7 +232,7 @@ export default class coinone extends Exchange {
         //     }
         //
         const result = {};
-        const currencies = this.safeValue (response, 'currencies', []);
+        const currencies = this.safeList (response, 'currencies', []);
         for (let i = 0; i < currencies.length; i++) {
             const entry = currencies[i];
             const id = this.safeString (entry, 'symbol');
@@ -314,7 +314,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const tickers = this.safeValue (response, 'tickers', []);
+        const tickers = this.safeList (response, 'tickers', []);
         const result = [];
         for (let i = 0; i < tickers.length; i++) {
             const entry = this.safeValue (tickers, i);
@@ -519,7 +519,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'tickers', []);
+        const data = this.safeList (response, 'tickers', []);
         return this.parseTickers (data, symbols);
     }
 
@@ -573,7 +573,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'tickers', []);
+        const data = this.safeList (response, 'tickers', []);
         const ticker = this.safeDict (data, 0, {});
         return this.parseTicker (ticker, market);
     }
@@ -741,7 +741,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'transactions', []);
+        const data = this.safeList (response, 'transactions', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -991,7 +991,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const limitOrders = this.safeValue (response, 'limitOrders', []);
+        const limitOrders = this.safeList (response, 'limitOrders', []);
         return this.parseOrders (limitOrders, market, since, limit);
     }
 
@@ -1035,7 +1035,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const completeOrders = this.safeValue (response, 'completeOrders', []);
+        const completeOrders = this.safeList (response, 'completeOrders', []);
         return this.parseTrades (completeOrders, market, since, limit);
     }
 

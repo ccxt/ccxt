@@ -726,7 +726,7 @@ export default class idex extends Exchange {
     }
 
     parseSide (book, side) {
-        const bookSide = this.safeValue (book, side, []);
+        const bookSide = this.safeList (book, side, []);
         const result = [];
         for (let i = 0; i < bookSide.length; i++) {
             const order = bookSide[i];
@@ -1103,7 +1103,7 @@ export default class idex extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (order, 'time');
-        const fills = this.safeValue (order, 'fills', []);
+        const fills = this.safeList (order, 'fills', []);
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const marketId = this.safeString (order, 'market');

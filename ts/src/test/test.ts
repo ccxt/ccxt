@@ -1295,7 +1295,7 @@ export default class testMainClass extends baseMainTestClass {
                     continue;
                 }
                 const type = exchange.safeString (exchangeData, 'outputType');
-                const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
+                const skipKeys = exchange.safeList (exchangeData, 'skipKeys', []);
                 await this.testMethodStatically (exchange, method, result, type, skipKeys);
                 // reset options
                 exchange.options = exchange.deepExtend (oldExchangeOptions, {});
@@ -1335,7 +1335,7 @@ export default class testMainClass extends baseMainTestClass {
                 if ((testName !== undefined) && (testName !== description)) {
                     continue;
                 }
-                const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
+                const skipKeys = exchange.safeList (exchangeData, 'skipKeys', []);
                 await this.testResponseStatically (exchange, method, skipKeys, result);
                 // reset options
                 exchange.options = exchange.deepExtend (oldExchangeOptions, {});

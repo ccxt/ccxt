@@ -285,7 +285,7 @@ export default class krakenfutures extends krakenfuturesRest {
             this.positions = new ArrayCacheBySymbolById ();
         }
         const cache = this.positions;
-        const rawPositions = this.safeValue (message, 'positions', []);
+        const rawPositions = this.safeList (message, 'positions', []);
         const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
@@ -490,7 +490,7 @@ export default class krakenfutures extends krakenfuturesRest {
                 this.trades[symbol] = tradesArray;
             }
             if (channel === 'trade_snapshot') {
-                const trades = this.safeValue (message, 'trades', []);
+                const trades = this.safeList (message, 'trades', []);
                 for (let i = 0; i < trades.length; i++) {
                     const item = trades[i];
                     const trade = this.parseWsTrade (item);
@@ -795,7 +795,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //            ...
         //        ]
         //    }
-        const orders = this.safeValue (message, 'orders', []);
+        const orders = this.safeList (message, 'orders', []);
         const limit = this.safeInteger (this.options, 'ordersLimit');
         this.orders = new ArrayCacheBySymbolById (limit);
         const symbols = {};
@@ -1378,7 +1378,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //        ]
         //    }
         //
-        const trades = this.safeValue (message, 'fills', []);
+        const trades = this.safeList (message, 'fills', []);
         let stored = this.myTrades;
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);

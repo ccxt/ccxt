@@ -127,8 +127,8 @@ export default class bitstamp extends bitstampRest {
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
         orderbook['nonce'] = this.safeInteger (delta, 'microtimestamp');
-        const bids = this.safeValue (delta, 'bids', []);
-        const asks = this.safeValue (delta, 'asks', []);
+        const bids = this.safeList (delta, 'bids', []);
+        const asks = this.safeList (delta, 'asks', []);
         const storedBids = orderbook['bids'];
         const storedAsks = orderbook['asks'];
         this.handleBidAsks (storedBids, bids);

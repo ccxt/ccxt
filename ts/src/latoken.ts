@@ -532,7 +532,7 @@ export default class latoken extends Exchange {
         const types = this.safeDict (this.options, 'types', {});
         const accountType = this.safeString (types, type, type);
         const balancesByType = this.groupBy (response, 'type');
-        const balances = this.safeValue (balancesByType, accountType, []);
+        const balances = this.safeList (balancesByType, accountType, []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -1468,7 +1468,7 @@ export default class latoken extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const content = this.safeValue (response, 'content', []);
+        const content = this.safeList (response, 'content', []);
         return this.parseTransactions (content, currency, since, limit);
     }
 
@@ -1599,7 +1599,7 @@ export default class latoken extends Exchange {
         //         "hasContent": true
         //     }
         //
-        const transfers = this.safeValue (response, 'content', []);
+        const transfers = this.safeList (response, 'content', []);
         return this.parseTransfers (transfers, currency, since, limit);
     }
 

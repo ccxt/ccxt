@@ -980,7 +980,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const tickersData = this.safeDict (tickersResponse, 'data', {});
-        const tickers = this.safeValue (tickersData, 'ticker', []);
+        const tickers = this.safeList (tickersData, 'ticker', []);
         const tickersByMarketId = this.indexBy (tickers, 'symbol');
         const result = [];
         for (let i = 0; i < data.length; i++) {
@@ -1128,9 +1128,9 @@ export default class kucoin extends Exchange {
         //
         const responses = await Promise.all (promises);
         const currenciesResponse = this.safeDict (responses, 0, {});
-        const currenciesData = this.safeValue (currenciesResponse, 'data', []);
+        const currenciesData = this.safeList (currenciesResponse, 'data', []);
         const additionalResponse = this.safeDict (responses, 1, {});
-        const additionalData = this.safeValue (additionalResponse, 'data', []);
+        const additionalData = this.safeList (additionalResponse, 'data', []);
         const additionalDataGrouped = this.groupBy (additionalData, 'currency');
         const result = {};
         for (let i = 0; i < currenciesData.length; i++) {
@@ -1141,7 +1141,7 @@ export default class kucoin extends Exchange {
             let isWithdrawEnabled = undefined;
             let isDepositEnabled = undefined;
             const networks = {};
-            const chains = this.safeValue (entry, 'chains', []);
+            const chains = this.safeList (entry, 'chains', []);
             const extraChainsData = this.indexBy (this.safeValue (additionalDataGrouped, id, []), 'chain');
             const rawPrecision = this.safeString (entry, 'precision');
             const precision = this.parseNumber (this.parsePrecision (rawPrecision));
@@ -1243,7 +1243,7 @@ export default class kucoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
@@ -1537,7 +1537,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const tickers = this.safeValue (data, 'ticker', []);
+        const tickers = this.safeList (data, 'ticker', []);
         const time = this.safeInteger (data, 'time');
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
@@ -1669,7 +1669,7 @@ export default class kucoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -1796,7 +1796,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         this.options['versions']['private']['GET']['deposit-addresses'] = version;
-        const chains = this.safeValue (response, 'data', []);
+        const chains = this.safeList (response, 'data', []);
         const parsed = this.parseDepositAddresses (chains, [ currency['code'] ], false, {
             'currency': currency['id'],
         });
@@ -2098,7 +2098,7 @@ export default class kucoin extends Exchange {
         // }
         //
         let data = this.safeDict (response, 'data', {});
-        data = this.safeValue (data, 'data', []);
+        data = this.safeList (data, 'data', []);
         return this.parseOrders (data);
     }
 
@@ -2870,7 +2870,7 @@ export default class kucoin extends Exchange {
         if (parseResponseData) {
             trades = data;
         } else {
-            trades = this.safeValue (data, 'items', []);
+            trades = this.safeList (data, 'items', []);
         }
         return this.parseTrades (trades, market, since, limit);
     }
@@ -2914,7 +2914,7 @@ export default class kucoin extends Exchange {
         //         ]
         //     }
         //
-        const trades = this.safeValue (response, 'data', []);
+        const trades = this.safeList (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -3077,7 +3077,7 @@ export default class kucoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const first = this.safeValue (data, 0);
         const marketId = this.safeString (first, 'symbol');
         return {
@@ -3550,7 +3550,7 @@ export default class kucoin extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -3572,7 +3572,7 @@ export default class kucoin extends Exchange {
                 result[symbol] = this.safeBalance (subResult);
             }
         } else if (cross) {
-            const accounts = this.safeValue (data, 'accounts', []);
+            const accounts = this.safeList (data, 'accounts', []);
             for (let i = 0; i < accounts.length; i++) {
                 const balance = accounts[i];
                 const currencyId = this.safeString (balance, 'currency');
@@ -4133,7 +4133,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const assets = (marginMode === 'isolated') ? this.safeValue (data, 'assets', []) : this.safeValue (data, 'accounts', []);
+        const assets = (marginMode === 'isolated') ? this.safeList (data, 'assets', []) : this.safeValue (data, 'accounts', []);
         return this.parseBorrowInterests (assets, undefined);
     }
 
@@ -4411,7 +4411,7 @@ export default class kucoin extends Exchange {
         //      },
         //  ]
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseDepositWithdrawFees (data, codes, 'currency');
     }
 

@@ -1960,7 +1960,7 @@ export default class ndax extends Exchange {
         //     ]
         //
         const grouped = this.groupBy (response, 'ChangeReason');
-        const trades = this.safeValue (grouped, 'Trade', []);
+        const trades = this.safeList (grouped, 'Trade', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -2363,7 +2363,7 @@ export default class ndax extends Exchange {
         //         ]
         //     }
         //
-        const templateTypes = this.safeValue (withdrawTemplateTypesResponse, 'TemplateTypes', []);
+        const templateTypes = this.safeList (withdrawTemplateTypesResponse, 'TemplateTypes', []);
         const firstTemplateType = this.safeValue (templateTypes, 0);
         if (firstTemplateType === undefined) {
             throw new ExchangeError (this.id + ' withdraw() could not find a withdraw template type for ' + currency['code']);

@@ -154,7 +154,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         //       ]
         //   ]
         //
-        const data = this.safeValue (message, 1, []);
+        const data = this.safeList (message, 1, []);
         let ohlcvs = undefined;
         const first = this.safeValue (data, 0);
         if (Array.isArray (first)) {
@@ -346,7 +346,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                 // since te and tu updates are duplicated on the public stream
                 return;
             }
-            const trade = this.safeValue (message, 2, []);
+            const trade = this.safeList (message, 2, []);
             const parsed = this.parseWsTrade (trade, market);
             stored.append (parsed);
         }
@@ -961,7 +961,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         //        ]
         //    ]
         //
-        const data = this.safeValue (message, 2, []);
+        const data = this.safeList (message, 2, []);
         const messageType = this.safeString (message, 1);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);

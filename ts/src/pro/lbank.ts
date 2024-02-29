@@ -189,7 +189,7 @@ export default class lbank extends lbankRest {
         const timeframes = this.safeDict (watchOHLCVOptions, 'timeframes', {});
         const records = this.safeValue (message, 'records');
         if (records !== undefined) {  // from request
-            const rawOHLCV = this.safeValue (records, 0, []);
+            const rawOHLCV = this.safeList (records, 0, []);
             const parsed = [
                 this.safeInteger (rawOHLCV, 0),
                 this.safeNumber (rawOHLCV, 1),

@@ -316,7 +316,7 @@ export default class krakenfutures extends Exchange {
         //        "serverTime": "2018-07-19T11:32:39.433Z"
         //    }
         //
-        const instruments = this.safeValue (response, 'instruments', []);
+        const instruments = this.safeList (response, 'instruments', []);
         const result = [];
         for (let i = 0; i < instruments.length; i++) {
             const market = instruments[i];
@@ -1029,7 +1029,7 @@ export default class krakenfutures extends Exchange {
         //     ]
         // }
         //
-        const data = this.safeValue (response, 'batchStatus', []);
+        const data = this.safeList (response, 'batchStatus', []);
         return this.parseOrders (data);
     }
 
@@ -1104,7 +1104,7 @@ export default class krakenfutures extends Exchange {
          */
         await this.loadMarkets ();
         const orders = [];
-        const clientOrderIds = this.safeValue (params, 'clientOrderIds', []);
+        const clientOrderIds = this.safeList (params, 'clientOrderIds', []);
         const clientOrderIdsLength = clientOrderIds.length;
         if (clientOrderIdsLength > 0) {
             for (let i = 0; i < clientOrderIds.length; i++) {
@@ -1148,7 +1148,7 @@ export default class krakenfutures extends Exchange {
         //       }
         //     ]
         // }
-        const batchStatus = this.safeValue (response, 'batchStatus', []);
+        const batchStatus = this.safeList (response, 'batchStatus', []);
         return this.parseOrders (batchStatus);
     }
 
@@ -1188,7 +1188,7 @@ export default class krakenfutures extends Exchange {
             market = this.market (symbol);
         }
         const response = await this.privateGetOpenorders (params);
-        const orders = this.safeValue (response, 'openOrders', []);
+        const orders = this.safeList (response, 'openOrders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1563,7 +1563,7 @@ export default class krakenfutures extends Exchange {
         //        }
         //    }
         //
-        const orderEvents = this.safeValue (order, 'orderEvents', []);
+        const orderEvents = this.safeList (order, 'orderEvents', []);
         const errorStatus = this.safeString (order, 'status');
         const orderEventsLength = orderEvents.length;
         if (('orderEvents' in order) && (errorStatus !== undefined) && (orderEventsLength === 0)) {

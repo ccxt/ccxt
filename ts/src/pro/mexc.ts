@@ -520,8 +520,8 @@ export default class mexc extends mexcRest {
             throw new ExchangeError (this.id + ' handleOrderBook received an out-of-order nonce');
         }
         orderbook['nonce'] = deltaNonce;
-        const asks = this.safeValue (delta, 'asks', []);
-        const bids = this.safeValue (delta, 'bids', []);
+        const asks = this.safeList (delta, 'asks', []);
+        const bids = this.safeList (delta, 'bids', []);
         const asksOrderSide = orderbook['asks'];
         const bidsOrderSide = orderbook['bids'];
         this.handleBooksideDelta (asksOrderSide, asks);

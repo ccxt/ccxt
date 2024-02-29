@@ -242,7 +242,7 @@ export default class bitmart extends bitmartRest {
                 const timestamp = this.safeInteger (message, 'event_time');
                 this.balance[type]['timestamp'] = timestamp;
                 this.balance[type]['datetime'] = this.iso8601 (timestamp);
-                const balanceDetails = this.safeValue (data[i], 'balance_details', []);
+                const balanceDetails = this.safeList (data[i], 'balance_details', []);
                 for (let ii = 0; ii < balanceDetails.length; ii++) {
                     const rawBalance = balanceDetails[i];
                     const account = this.account ();
@@ -746,7 +746,7 @@ export default class bitmart extends bitmartRest {
         //        ]
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const cache = this.positions;
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
@@ -1152,7 +1152,7 @@ export default class bitmart extends bitmartRest {
             const marketId = this.safeString (data, 'symbol');
             const market = this.safeMarket (marketId, undefined, undefined, 'swap');
             const symbol = market['symbol'];
-            const items = this.safeValue (data, 'items', []);
+            const items = this.safeList (data, 'items', []);
             this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {

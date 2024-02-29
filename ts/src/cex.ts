@@ -303,8 +303,8 @@ export default class cex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const currencies = this.safeValue (data, 'symbols', []);
+        const data = this.safeList (response, 'data', []);
+        const currencies = this.safeList (data, 'symbols', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
@@ -346,9 +346,9 @@ export default class cex extends Exchange {
          */
         const currenciesResponse = await this.fetchCurrenciesFromCache (params);
         const currenciesData = this.safeDict (currenciesResponse, 'data', {});
-        const currencies = this.safeValue (currenciesData, 'symbols', []);
+        const currencies = this.safeList (currenciesData, 'symbols', []);
         const currenciesById = this.indexBy (currencies, 'code');
-        const pairs = this.safeValue (currenciesData, 'pairs', []);
+        const pairs = this.safeList (currenciesData, 'pairs', []);
         const response = await this.publicGetCurrencyLimits (params);
         //
         //     {
@@ -624,7 +624,7 @@ export default class cex extends Exchange {
             'currencies': currencies.join ('/'),
         };
         const response = await this.publicGetTickersCurrencies (this.extend (request, params));
-        const tickers = this.safeValue (response, 'data', []);
+        const tickers = this.safeList (response, 'data', []);
         const result = {};
         for (let t = 0; t < tickers.length; t++) {
             const ticker = tickers[t];
@@ -1634,7 +1634,7 @@ export default class cex extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const addresses = this.safeValue (data, 'addresses', []);
+        const addresses = this.safeList (data, 'addresses', []);
         const chainsIndexedById = this.indexBy (addresses, 'blockchain');
         const selectedNetworkId = this.selectNetworkIdFromRawNetworks (code, networkCode, chainsIndexedById);
         const addressObject = this.safeDict (chainsIndexedById, selectedNetworkId, {});

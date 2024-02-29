@@ -1081,7 +1081,7 @@ export default class coinbase extends Exchange {
         const response = await this.fetchCurrenciesFromCache (params);
         const currencies = this.safeDict (response, 'currencies', {});
         const exchangeRates = this.safeDict (response, 'exchangeRates', {});
-        const data = this.safeValue (currencies, 'data', []);
+        const data = this.safeList (currencies, 'data', []);
         const dataById = this.indexBy (data, 'id');
         const rates = this.safeDict (this.safeValue (exchangeRates, 'data', {}), 'rates', {});
         const baseIds = Object.keys (rates);
@@ -1207,7 +1207,7 @@ export default class coinbase extends Exchange {
         //     }
         //
         const feeTier = this.safeDict (fees, 'fee_tier', {});
-        const data = this.safeValue (response, 'products', []);
+        const data = this.safeList (response, 'products', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -1218,7 +1218,7 @@ export default class coinbase extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const marketType = this.safeStringLower (market, 'product_type');
             const tradingDisabled = this.safeValue (market, 'trading_disabled');
-            const stablePairs = this.safeValue (this.options, 'stablePairs', []);
+            const stablePairs = this.safeList (this.options, 'stablePairs', []);
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -1512,7 +1512,7 @@ export default class coinbase extends Exchange {
         //         "num_products": 549
         //     }
         //
-        const data = this.safeValue (response, 'products', []);
+        const data = this.safeList (response, 'products', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -1599,7 +1599,7 @@ export default class coinbase extends Exchange {
         //         "best_ask": "28208.62"
         //     }
         //
-        const data = this.safeValue (response, 'trades', []);
+        const data = this.safeList (response, 'trades', []);
         const ticker = this.parseTicker (data[0], market);
         ticker['bid'] = this.safeNumber (response, 'best_bid');
         ticker['ask'] = this.safeNumber (response, 'best_ask');
@@ -1692,8 +1692,8 @@ export default class coinbase extends Exchange {
         let bidVolume = undefined;
         let askVolume = undefined;
         if (('bids' in ticker)) {
-            const bids = this.safeValue (ticker, 'bids', []);
-            const asks = this.safeValue (ticker, 'asks', []);
+            const bids = this.safeList (ticker, 'bids', []);
+            const asks = this.safeList (ticker, 'asks', []);
             bid = this.safeNumber (bids[0], 'price');
             bidVolume = this.safeNumber (bids[0], 'size');
             ask = this.safeNumber (asks[0], 'price');
@@ -2728,7 +2728,7 @@ export default class coinbase extends Exchange {
         //         ]
         //     }
         //
-        const orders = this.safeValue (response, 'results', []);
+        const orders = this.safeList (response, 'results', []);
         for (let i = 0; i < orders.length; i++) {
             const success = this.safeValue (orders[i], 'success');
             if (success !== true) {
@@ -2930,7 +2930,7 @@ export default class coinbase extends Exchange {
         //         "cursor": ""
         //     }
         //
-        const orders = this.safeValue (response, 'orders', []);
+        const orders = this.safeList (response, 'orders', []);
         const first = this.safeValue (orders, 0);
         const cursor = this.safeString (response, 'cursor');
         if ((cursor !== undefined) && (cursor !== '')) {
@@ -3007,7 +3007,7 @@ export default class coinbase extends Exchange {
         //         "cursor": ""
         //     }
         //
-        const orders = this.safeValue (response, 'orders', []);
+        const orders = this.safeList (response, 'orders', []);
         const first = this.safeValue (orders, 0);
         const cursor = this.safeString (response, 'cursor');
         if ((cursor !== undefined) && (cursor !== '')) {
@@ -3137,7 +3137,7 @@ export default class coinbase extends Exchange {
         //         ]
         //     }
         //
-        const candles = this.safeValue (response, 'candles', []);
+        const candles = this.safeList (response, 'candles', []);
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
@@ -3201,7 +3201,7 @@ export default class coinbase extends Exchange {
         //         ]
         //     }
         //
-        const trades = this.safeValue (response, 'trades', []);
+        const trades = this.safeList (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -3268,7 +3268,7 @@ export default class coinbase extends Exchange {
         //         "cursor": ""
         //     }
         //
-        const trades = this.safeValue (response, 'fills', []);
+        const trades = this.safeList (response, 'fills', []);
         const first = this.safeValue (trades, 0);
         const cursor = this.safeString (response, 'cursor');
         if ((cursor !== undefined) && (cursor !== '')) {
@@ -3363,7 +3363,7 @@ export default class coinbase extends Exchange {
         //         ]
         //     }
         //
-        const tickers = this.safeValue (response, 'pricebooks', []);
+        const tickers = this.safeList (response, 'pricebooks', []);
         return this.parseTickers (tickers, symbols);
     }
 

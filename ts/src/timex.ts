@@ -816,7 +816,7 @@ export default class timex extends Exchange {
         //         ]
         //     }
         //
-        const orders = this.safeValue (response, 'orders', []);
+        const orders = this.safeList (response, 'orders', []);
         const order = this.safeDict (orders, 0, {});
         return this.parseOrder (order, market);
     }
@@ -860,14 +860,14 @@ export default class timex extends Exchange {
         //     }
         //
         if ('unchangedOrders' in response) {
-            const orderIds = this.safeValue (response, 'unchangedOrders', []);
+            const orderIds = this.safeList (response, 'unchangedOrders', []);
             const orderId = this.safeString (orderIds, 0);
             return this.safeOrder ({
                 'id': orderId,
                 'info': response,
             });
         }
-        const orders = this.safeValue (response, 'changedOrders', []);
+        const orders = this.safeList (response, 'changedOrders', []);
         const firstOrder = this.safeDict (orders, 0, {});
         const order = this.safeDict (firstOrder, 'newOrder', {});
         return this.parseOrder (order, market);
@@ -980,7 +980,7 @@ export default class timex extends Exchange {
         //     }
         //
         const order = this.safeDict (response, 'order', {});
-        const trades = this.safeValue (response, 'trades', []);
+        const trades = this.safeList (response, 'trades', []);
         return this.parseOrder (this.extend (order, { 'trades': trades }));
     }
 
@@ -1036,7 +1036,7 @@ export default class timex extends Exchange {
         //         ]
         //     }
         //
-        const orders = this.safeValue (response, 'orders', []);
+        const orders = this.safeList (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1097,7 +1097,7 @@ export default class timex extends Exchange {
         //         ]
         //     }
         //
-        const orders = this.safeValue (response, 'orders', []);
+        const orders = this.safeList (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1161,7 +1161,7 @@ export default class timex extends Exchange {
         //         ]
         //     }
         //
-        const trades = this.safeValue (response, 'trades', []);
+        const trades = this.safeList (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1552,7 +1552,7 @@ export default class timex extends Exchange {
         } else {
             status = 'open';
         }
-        const rawTrades = this.safeValue (order, 'trades', []);
+        const rawTrades = this.safeList (order, 'trades', []);
         const clientOrderId = this.safeString (order, 'clientOrderId');
         return this.safeOrder ({
             'info': order,

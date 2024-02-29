@@ -278,7 +278,7 @@ export default class probit extends Exchange {
         //         ]
         //     }
         //
-        const markets = this.safeValue (response, 'data', []);
+        const markets = this.safeList (response, 'data', []);
         return this.parseMarkets (markets);
     }
 
@@ -413,7 +413,7 @@ export default class probit extends Exchange {
         //         ]
         //     }
         //
-        const currencies = this.safeValue (response, 'data', []);
+        const currencies = this.safeList (response, 'data', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
@@ -421,7 +421,7 @@ export default class probit extends Exchange {
             const code = this.safeCurrencyCode (id);
             const displayName = this.safeValue (currency, 'display_name');
             const name = this.safeString (displayName, 'en-us');
-            const platforms = this.safeValue (currency, 'platform', []);
+            const platforms = this.safeList (currency, 'platform', []);
             const platformsByPriority = this.sortBy (platforms, 'priority');
             let platform = undefined;
             const networkList = {};
@@ -438,7 +438,7 @@ export default class probit extends Exchange {
                     platform = network;
                 }
                 const precision = this.parsePrecision (this.safeString (network, 'precision'));
-                const withdrawFee = this.safeValue (network, 'withdrawal_fee', []);
+                const withdrawFee = this.safeList (network, 'withdrawal_fee', []);
                 let networkFee = this.safeDict (withdrawFee, 0, {});
                 for (let k = 0; k < withdrawFee.length; k++) {
                     const withdrawPlatform = withdrawFee[k];
@@ -528,7 +528,7 @@ export default class probit extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const currencyId = this.safeString (balance, 'currency_id');
@@ -592,7 +592,7 @@ export default class probit extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const dataBySide = this.groupBy (data, 'side');
         return this.parseOrderBook (dataBySide, market['symbol'], undefined, 'buy', 'sell', 'price', 'quantity');
     }
@@ -630,7 +630,7 @@ export default class probit extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTickers (data, symbols);
     }
 
@@ -666,7 +666,7 @@ export default class probit extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const ticker = this.safeValue (data, 0);
         if (ticker === undefined) {
             throw new BadResponse (this.id + ' fetchTicker() returned an empty response');
@@ -769,7 +769,7 @@ export default class probit extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -823,7 +823,7 @@ export default class probit extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1011,7 +1011,7 @@ export default class probit extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -1124,7 +1124,7 @@ export default class probit extends Exchange {
         }
         const query = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
         const response = await this.privateGetOrder (this.extend (request, query));
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const order = this.safeValue (data, 0);
         return this.parseOrder (order, market);
     }
@@ -1392,7 +1392,7 @@ export default class probit extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const firstAddress = this.safeValue (data, 0);
         if (firstAddress === undefined) {
             throw new InvalidAddress (this.id + ' fetchDepositAddress() returned an empty response');
@@ -1421,7 +1421,7 @@ export default class probit extends Exchange {
             request['currency_id'] = codes.join (',');
         }
         const response = await this.privateGetDepositAddress (this.extend (request, params));
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseDepositAddresses (data, codes);
     }
 
@@ -1762,7 +1762,7 @@ export default class probit extends Exchange {
         //   }
         //
         const depositWithdrawFee = this.depositWithdrawFee ({});
-        const platforms = this.safeValue (fee, 'platform', []);
+        const platforms = this.safeList (fee, 'platform', []);
         const depositResult = {
             'fee': undefined,
             'percentage': undefined,

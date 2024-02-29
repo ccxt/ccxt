@@ -311,7 +311,7 @@ export default class exmo extends exmoRest {
         const marketId = this.safeString (parts, 1);
         const symbol = this.safeSymbol (marketId);
         const market = this.safeMarket (marketId);
-        const trades = this.safeValue (message, 'data', []);
+        const trades = this.safeList (message, 'data', []);
         const messageHash = 'trades:' + symbol;
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
@@ -436,7 +436,7 @@ export default class exmo extends exmoRest {
             myTrades = this.myTrades;
         }
         if (event === 'snapshot') {
-            rawTrades = this.safeValue (message, 'data', []);
+            rawTrades = this.safeList (message, 'data', []);
         } else if (event === 'update') {
             const rawTrade = this.safeDict (message, 'data', {});
             rawTrades = [ rawTrade ];
@@ -536,8 +536,8 @@ export default class exmo extends exmoRest {
             const snapshot = this.parseOrderBook (orderBook, symbol, timestamp, 'bid', 'ask');
             orderbook.reset (snapshot);
         } else {
-            const asks = this.safeValue (orderBook, 'ask', []);
-            const bids = this.safeValue (orderBook, 'bid', []);
+            const asks = this.safeList (orderBook, 'ask', []);
+            const bids = this.safeList (orderBook, 'bid', []);
             this.handleDeltas (orderbook['asks'], asks);
             this.handleDeltas (orderbook['bids'], bids);
             orderbook['timestamp'] = timestamp;

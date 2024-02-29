@@ -535,7 +535,7 @@ export default class bitfinex extends bitfinexRest {
         //         ]
         //     ]
         //
-        const data = this.safeValue (message, 2, []);
+        const data = this.safeList (message, 2, []);
         const messageType = this.safeString (message, 1);
         if (messageType === 'os') {
             for (let i = 0; i < data.length; i++) {

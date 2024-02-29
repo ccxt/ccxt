@@ -385,7 +385,7 @@ export default class kraken extends krakenRest {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const trades = this.safeValue (message, 1, []);
+        const trades = this.safeList (message, 1, []);
         const parsed = this.parseTrades (trades, market);
         for (let i = 0; i < parsed.length; i++) {
             stored.append (parsed[i]);
@@ -676,7 +676,7 @@ export default class kraken extends krakenRest {
                 const key = keys[i];
                 const side = sides[key];
                 const bookside = orderbook[side];
-                const deltas = this.safeValue (message[1], key, []);
+                const deltas = this.safeList (message[1], key, []);
                 timestamp = this.customHandleDeltas (bookside, deltas, timestamp);
             }
             orderbook['symbol'] = symbol;
@@ -690,16 +690,16 @@ export default class kraken extends krakenRest {
             let b = undefined;
             let c = undefined;
             if (messageLength === 5) {
-                a = this.safeValue (message[1], 'a', []);
-                b = this.safeValue (message[2], 'b', []);
+                a = this.safeList (message[1], 'a', []);
+                b = this.safeList (message[2], 'b', []);
                 c = this.safeInteger (message[1], 'c');
                 c = this.safeInteger (message[2], 'c', c);
             } else {
                 c = this.safeInteger (message[1], 'c');
                 if ('a' in message[1]) {
-                    a = this.safeValue (message[1], 'a', []);
+                    a = this.safeList (message[1], 'a', []);
                 } else {
-                    b = this.safeValue (message[1], 'b', []);
+                    b = this.safeList (message[1], 'b', []);
                 }
             }
             const storedAsks = orderbook['asks'];
@@ -896,7 +896,7 @@ export default class kraken extends krakenRest {
         //         { sequence: 1 }
         //     ]
         //
-        const allTrades = this.safeValue (message, 0, []);
+        const allTrades = this.safeList (message, 0, []);
         const allTradesLength = allTrades.length;
         if (allTradesLength > 0) {
             if (this.myTrades === undefined) {
@@ -1100,7 +1100,7 @@ export default class kraken extends krakenRest {
         //         { "sequence": 59342 }
         //     ]
         //
-        const allOrders = this.safeValue (message, 0, []);
+        const allOrders = this.safeList (message, 0, []);
         const allOrdersLength = allOrders.length;
         if (allOrdersLength > 0) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);

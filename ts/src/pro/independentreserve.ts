@@ -197,8 +197,8 @@ export default class independentreserve extends independentreserveRest {
             orderbook.reset (snapshot);
             subscription['receivedSnapshot'] = true;
         } else {
-            const asks = this.safeValue (orderBook, 'Offers', []);
-            const bids = this.safeValue (orderBook, 'Bids', []);
+            const asks = this.safeList (orderBook, 'Offers', []);
+            const bids = this.safeList (orderBook, 'Bids', []);
             this.handleDeltas (orderbook['asks'], asks);
             this.handleDeltas (orderbook['bids'], bids);
             orderbook['timestamp'] = timestamp;

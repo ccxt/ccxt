@@ -145,7 +145,7 @@ export default class currencycom extends currencycomRest {
         //
         const destination = '/api/v1/ticker/24hr';
         const payload = this.safeValue (message, 'payload');
-        const tickers = this.safeValue (payload, 'tickers', []);
+        const tickers = this.safeList (payload, 'tickers', []);
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i]);
             const symbol = ticker['symbol'];

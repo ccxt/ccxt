@@ -176,7 +176,7 @@ export default class oceanex extends Exchange {
         //        "minimum_trading_amount": "1.0"
         //    },
         //
-        const markets = this.safeValue (response, 'data', []);
+        const markets = this.safeList (response, 'data', []);
         return this.parseMarkets (markets);
     }
 
@@ -312,7 +312,7 @@ export default class oceanex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = data[i];
@@ -455,7 +455,7 @@ export default class oceanex extends Exchange {
         //         ],
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const orderbook = data[i];
@@ -582,7 +582,7 @@ export default class oceanex extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         const response = await this.publicGetFeesTrading (params);
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const group = data[i];
@@ -608,7 +608,7 @@ export default class oceanex extends Exchange {
 
     parseBalance (response): Balances {
         const data = this.safeValue (response, 'data');
-        const balances = this.safeValue (data, 'accounts', []);
+        const balances = this.safeList (data, 'accounts', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -763,10 +763,10 @@ export default class oceanex extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetOrdersFilter (this.extend (request, query));
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         let result = [];
         for (let i = 0; i < data.length; i++) {
-            const orders = this.safeValue (data[i], 'orders', []);
+            const orders = this.safeList (data[i], 'orders', []);
             const status = this.parseOrderStatus (this.safeValue (data[i], 'state'));
             const parsedOrders = this.parseOrders (orders, market, since, limit, { 'status': status });
             result = this.arrayConcat (result, parsedOrders);
@@ -819,7 +819,7 @@ export default class oceanex extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicPostK (this.extend (request, params));
-        const ohlcvs = this.safeValue (response, 'data', []);
+        const ohlcvs = this.safeList (response, 'data', []);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 

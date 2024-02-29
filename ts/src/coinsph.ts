@@ -1079,7 +1079,7 @@ export default class coinsph extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const balances = this.safeValue (response, 'balances', []);
+        const balances = this.safeList (response, 'balances', []);
         const result = {
             'info': response,
             'timestamp': undefined,

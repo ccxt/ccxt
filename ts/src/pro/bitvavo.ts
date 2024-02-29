@@ -117,7 +117,7 @@ export default class bitvavo extends bitvavoRest {
         //     }
         //
         const event = this.safeString (message, 'event');
-        const tickers = this.safeValue (message, 'data', []);
+        const tickers = this.safeList (message, 'data', []);
         for (let i = 0; i < tickers.length; i++) {
             const data = tickers[i];
             const marketId = this.safeString (data, 'market');
@@ -1049,7 +1049,7 @@ export default class bitvavo extends bitvavoRest {
         //
         const action = this.safeString (message, 'action', 'privateGetBalance');
         const messageHash = this.buildMessageHash (action, message);
-        const response = this.safeValue (message, 'response', []);
+        const response = this.safeList (message, 'response', []);
         const balance = this.parseBalance (response);
         client.resolve (balance, messageHash);
     }

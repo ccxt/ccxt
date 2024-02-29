@@ -583,7 +583,7 @@ export default class mercado extends Exchange {
         const amount = this.safeString (order, 'quantity');
         const filled = this.safeString (order, 'executed_quantity');
         const lastTradeTimestamp = this.safeTimestamp (order, 'updated_timestamp');
-        const rawTrades = this.safeValue (order, 'operations', []);
+        const rawTrades = this.safeList (order, 'operations', []);
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -804,7 +804,7 @@ export default class mercado extends Exchange {
         };
         const response = await this.privatePostListOrders (this.extend (request, params));
         const responseData = this.safeDict (response, 'response_data', {});
-        const orders = this.safeValue (responseData, 'orders', []);
+        const orders = this.safeList (responseData, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -830,7 +830,7 @@ export default class mercado extends Exchange {
         };
         const response = await this.privatePostListOrders (this.extend (request, params));
         const responseData = this.safeDict (response, 'response_data', {});
-        const orders = this.safeValue (responseData, 'orders', []);
+        const orders = this.safeList (responseData, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -856,7 +856,7 @@ export default class mercado extends Exchange {
         };
         const response = await this.privatePostListOrders (this.extend (request, params));
         const responseData = this.safeDict (response, 'response_data', {});
-        const ordersRaw = this.safeValue (responseData, 'orders', []);
+        const ordersRaw = this.safeList (responseData, 'orders', []);
         const orders = this.parseOrders (ordersRaw, market, since, limit);
         const trades = this.ordersToTrades (orders);
         return this.filterBySymbolSinceLimit (trades, market['symbol'], since, limit) as Trade[];
@@ -865,7 +865,7 @@ export default class mercado extends Exchange {
     ordersToTrades (orders) {
         const result = [];
         for (let i = 0; i < orders.length; i++) {
-            const trades = this.safeValue (orders[i], 'trades', []);
+            const trades = this.safeList (orders[i], 'trades', []);
             for (let y = 0; y < trades.length; y++) {
                 result.push (trades[y]);
             }

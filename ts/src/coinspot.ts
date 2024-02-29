@@ -362,7 +362,7 @@ export default class coinspot extends Exchange {
         //         ],
         //     }
         //
-        const trades = this.safeValue (response, 'orders', []);
+        const trades = this.safeList (response, 'orders', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -414,11 +414,11 @@ export default class coinspot extends Exchange {
         //     },
         //   ]
         // }
-        const buyTrades = this.safeValue (response, 'buyorders', []);
+        const buyTrades = this.safeList (response, 'buyorders', []);
         for (let i = 0; i < buyTrades.length; i++) {
             buyTrades[i]['side'] = 'buy';
         }
-        const sellTrades = this.safeValue (response, 'sellorders', []);
+        const sellTrades = this.safeList (response, 'sellorders', []);
         for (let i = 0; i < sellTrades.length; i++) {
             sellTrades[i]['side'] = 'sell';
         }

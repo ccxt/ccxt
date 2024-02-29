@@ -740,7 +740,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const services = this.safeValue (data, 'service', []);
+        const services = this.safeList (data, 'service', []);
         const servicesByType = this.indexBy (services, 'service_type');
         if (type === 'swap') {
             type = 'contract';
@@ -795,7 +795,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const symbols = this.safeValue (data, 'symbols', []);
+        const symbols = this.safeList (data, 'symbols', []);
         const result = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = symbols[i];
@@ -899,7 +899,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const symbols = this.safeValue (data, 'symbols', []);
+        const symbols = this.safeList (data, 'symbols', []);
         const result = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = symbols[i];
@@ -1009,7 +1009,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const currencies = this.safeValue (data, 'currencies', []);
+        const currencies = this.safeList (data, 'currencies', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
@@ -1315,7 +1315,7 @@ export default class bitmart extends Exchange {
         //      }
         //
         const data = this.safeDict (response, 'data', {});
-        const tickers = this.safeValue (data, 'tickers', []);
+        const tickers = this.safeList (data, 'tickers', []);
         // fails in naming for contract tickers 'contract_symbol'
         let tickersById = undefined;
         if (market['spot']) {
@@ -1355,7 +1355,7 @@ export default class bitmart extends Exchange {
             throw new NotSupported (this.id + ' fetchTickers() does not support ' + type + ' markets, only spot and swap markets are accepted');
         }
         const data = this.safeDict (response, 'data', {});
-        const tickers = this.safeValue (data, 'tickers', []);
+        const tickers = this.safeList (data, 'tickers', []);
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i]);
@@ -1589,7 +1589,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const trades = this.safeValue (data, 'trades', []);
+        const trades = this.safeList (data, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1756,7 +1756,7 @@ export default class bitmart extends Exchange {
         //         "trace": "96c989db-e0f5-46f5-bba6-60cfcbde699b"
         //     }
         //
-        const ohlcv = this.safeValue (response, 'data', []);
+        const ohlcv = this.safeList (response, 'data', []);
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
@@ -1871,7 +1871,7 @@ export default class bitmart extends Exchange {
         //         "trace": "4cad855074634097ac6ba5257c47305d.62.16959616054873723"
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1901,11 +1901,11 @@ export default class bitmart extends Exchange {
         const data = this.safeDict (response, 'data', {});
         let wallet = undefined;
         if (marketType === 'swap') {
-            wallet = this.safeValue (response, 'data', []);
+            wallet = this.safeList (response, 'data', []);
         } else if (marketType === 'margin') {
-            wallet = this.safeValue (data, 'symbols', []);
+            wallet = this.safeList (data, 'symbols', []);
         } else {
-            wallet = this.safeValue (data, 'wallet', []);
+            wallet = this.safeList (data, 'wallet', []);
         }
         const result = { 'info': response };
         if (marketType === 'margin') {
@@ -2763,7 +2763,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const orders = this.safeValue (data, 'orders', []);
+        const orders = this.safeList (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -2890,7 +2890,7 @@ export default class bitmart extends Exchange {
         //         "trace": "7f9d94g10f9d4513bc08a7rfc3a5559a.71.16957022303515933"
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -2944,7 +2944,7 @@ export default class bitmart extends Exchange {
         } else {
             response = await this.privateGetContractPrivateOrderHistory (this.extend (request, params));
         }
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -3241,7 +3241,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const records = this.safeValue (data, 'records', []);
+        const records = this.safeList (data, 'records', []);
         return this.parseTransactions (records, currency, since, limit);
     }
 
@@ -3596,7 +3596,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const symbols = this.safeValue (data, 'symbols', []);
+        const symbols = this.safeList (data, 'symbols', []);
         const borrowRate = this.safeValue (symbols, 0);
         return this.parseIsolatedBorrowRate (borrowRate, market);
     }
@@ -3688,7 +3688,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const symbols = this.safeValue (data, 'symbols', []);
+        const symbols = this.safeList (data, 'symbols', []);
         const result = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = this.safeValue (symbols, i);
@@ -3898,7 +3898,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const records = this.safeValue (data, 'records', []);
+        const records = this.safeList (data, 'records', []);
         return this.parseTransfers (records, currency, since, limit);
     }
 
@@ -3952,7 +3952,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeValue (data, 'records', []);
+        const rows = this.safeList (data, 'records', []);
         const interest = this.parseBorrowInterests (rows, market);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
@@ -4187,7 +4187,7 @@ export default class bitmart extends Exchange {
         //         "trace":"4cad855074664097ac5ba5257c47305d.67.16963925142065945"
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const first = this.safeDict (data, 0, {});
         return this.parsePosition (first, market);
     }
@@ -4245,7 +4245,7 @@ export default class bitmart extends Exchange {
         //         "trace":"4cad855074664097ac5ba5257c47305d.67.16963925142065945"
         //     }
         //
-        const positions = this.safeValue (response, 'data', []);
+        const positions = this.safeList (response, 'data', []);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
             result.push (this.parsePosition (positions[i]));
@@ -4373,7 +4373,7 @@ export default class bitmart extends Exchange {
         //         "trace": "4cad855074664097ac6ba4257c47305d.71.16965658195443021"
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];

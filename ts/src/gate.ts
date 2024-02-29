@@ -970,9 +970,9 @@ export default class gate extends Exchange {
             rawPromises = this.arrayConcat (rawPromises, mainnetOnly);
         }
         const promises = await Promise.all (rawPromises);
-        const spotMarkets = this.safeValue (promises, 0, []);
-        const contractMarkets = this.safeValue (promises, 1, []);
-        const optionMarkets = this.safeValue (promises, 2, []);
+        const spotMarkets = this.safeList (promises, 0, []);
+        const contractMarkets = this.safeList (promises, 1, []);
+        const optionMarkets = this.safeList (promises, 2, []);
         const markets = this.arrayConcat (spotMarkets, contractMarkets);
         return this.arrayConcat (markets, optionMarkets);
     }
@@ -1659,7 +1659,7 @@ export default class gate extends Exchange {
                 };
             }
             result[code]['networks'] = networks;
-            const info = this.safeValue (result[code], 'info', []);
+            const info = this.safeList (result[code], 'info', []);
             info.push (entry);
             result[code]['info'] = info;
             result[code]['active'] = depositAvailable && withdrawAvailable;
@@ -2840,7 +2840,7 @@ export default class gate extends Exchange {
         let data = response;
         if ('balances' in data) { // True for cross_margin
             const flatBalances = [];
-            const balances = this.safeValue (data, 'balances', []);
+            const balances = this.safeList (data, 'balances', []);
             // inject currency and create an artificial balance object
             // so it can follow the existent flow
             const keys = Object.keys (balances);
@@ -6291,7 +6291,7 @@ export default class gate extends Exchange {
         //     ]
         //
         const result = this.safeDict (response, 'result', {});
-        const data = this.safeValue (result, 'list', []);
+        const data = this.safeList (result, 'list', []);
         const settlements = this.parseSettlements (data, market);
         const sorted = this.sortBy (settlements, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);

@@ -107,7 +107,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
                 response = await this.publicPostBulletPublic (params);
             }
             const data = this.safeDict (response, 'data', {});
-            const instanceServers = this.safeValue (data, 'instanceServers', []);
+            const instanceServers = this.safeList (data, 'instanceServers', []);
             const firstInstanceServer = this.safeValue (instanceServers, 0);
             const pingInterval = this.safeInteger (firstInstanceServer, 'pingInterval');
             const endpoint = this.safeString (firstInstanceServer, 'endpoint');
@@ -922,7 +922,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //        "userId": "1139790"
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const messageHash = '/contractAccount/wallet';
         const currencyId = this.safeString (data, 'currency');
         const currency = this.currency (currencyId);

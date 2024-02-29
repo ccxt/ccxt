@@ -95,7 +95,7 @@ export default class kucoin extends kucoinRest {
                 response = await this.publicPostBulletPublic (params);
             }
             const data = this.safeDict (response, 'data', {});
-            const instanceServers = this.safeValue (data, 'instanceServers', []);
+            const instanceServers = this.safeList (data, 'instanceServers', []);
             const firstInstanceServer = this.safeValue (instanceServers, 0);
             const pingInterval = this.safeInteger (firstInstanceServer, 'pingInterval');
             const endpoint = this.safeString (firstInstanceServer, 'endpoint');
@@ -343,7 +343,7 @@ export default class kucoin extends kucoinRest {
         //
         const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 'symbol');
-        const candles = this.safeValue (data, 'candles', []);
+        const candles = this.safeList (data, 'candles', []);
         const topic = this.safeString (message, 'topic');
         const parts = topic.split ('_');
         const interval = this.safeString (parts, 1);
@@ -647,8 +647,8 @@ export default class kucoin extends kucoinRest {
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
         const changes = this.safeValue (delta, 'changes', delta);
-        const bids = this.safeValue (changes, 'bids', []);
-        const asks = this.safeValue (changes, 'asks', []);
+        const bids = this.safeList (changes, 'bids', []);
+        const asks = this.safeList (changes, 'asks', []);
         const storedBids = orderbook['bids'];
         const storedAsks = orderbook['asks'];
         this.handleBidAsks (storedBids, bids);

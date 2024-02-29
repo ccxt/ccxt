@@ -1526,7 +1526,7 @@ export default class htx extends Exchange {
         //         "success":true
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const first = this.safeDict (data, 0, {});
         return this.parseTradingFee (first, market);
     }
@@ -1769,7 +1769,7 @@ export default class htx extends Exchange {
         //         "ts":1637474774467
         //     }
         //
-        const markets = this.safeValue (response, 'data', []);
+        const markets = this.safeList (response, 'data', []);
         const numMarkets = markets.length;
         if (numMarkets < 1) {
             throw new NetworkError (this.id + ' fetchMarkets() returned an empty response: ' + this.json (markets));
@@ -2366,7 +2366,7 @@ export default class htx extends Exchange {
             throw new NotSupported (this.id + ' fetchLastPrices() does not support ' + type + ' markets yet');
         }
         const tick = this.safeDict (response, 'tick', {});
-        const data = this.safeValue (tick, 'data', []);
+        const data = this.safeList (tick, 'data', []);
         return this.parseLastPrices (data, symbols);
     }
 
@@ -2882,10 +2882,10 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         let result = [];
         for (let i = 0; i < data.length; i++) {
-            const trades = this.safeValue (data[i], 'data', []);
+            const trades = this.safeList (data[i], 'data', []);
             for (let j = 0; j < trades.length; j++) {
                 const trade = this.parseTrade (trades[j], market);
                 result.push (trade);
@@ -3048,7 +3048,7 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -3172,7 +3172,7 @@ export default class htx extends Exchange {
         //    }
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result = {};
         this.options['networkChainIdsByNames'] = {};
         this.options['networkNamesByChainIds'] = {};
@@ -3181,7 +3181,7 @@ export default class htx extends Exchange {
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             this.options['networkChainIdsByNames'][code] = {};
-            const chains = this.safeValue (entry, 'chains', []);
+            const chains = this.safeList (entry, 'chains', []);
             const networks = {};
             const instStatus = this.safeString (entry, 'instStatus');
             const currencyActive = instStatus === 'normal';
@@ -3533,7 +3533,7 @@ export default class htx extends Exchange {
                     result[symbol] = this.safeBalance (subResult);
                 }
             } else {
-                const balances = this.safeValue (data, 'list', []);
+                const balances = this.safeList (data, 'list', []);
                 for (let i = 0; i < balances.length; i++) {
                     const balance = balances[i];
                     const currencyId = this.safeString (balance, 'currency');
@@ -3906,7 +3906,7 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -4147,7 +4147,7 @@ export default class htx extends Exchange {
         //
         let orders = this.safeValue (response, 'data');
         if (!Array.isArray (orders)) {
-            orders = this.safeValue (orders, 'orders', []);
+            orders = this.safeList (orders, 'orders', []);
         }
         return this.parseOrders (orders, market, since, limit);
     }
@@ -4535,7 +4535,7 @@ export default class htx extends Exchange {
         //
         let orders = this.safeValue (response, 'data');
         if (!Array.isArray (orders)) {
-            orders = this.safeValue (orders, 'orders', []);
+            orders = this.safeList (orders, 'orders', []);
         }
         return this.parseOrders (orders, market, since, limit);
     }
@@ -5550,11 +5550,11 @@ export default class htx extends Exchange {
         //
         let result = undefined;
         if (market['spot']) {
-            result = this.safeValue (response, 'data', []);
+            result = this.safeList (response, 'data', []);
         } else {
             const data = this.safeDict (response, 'data', {});
-            const success = this.safeValue (data, 'success', []);
-            const errors = this.safeValue (data, 'errors', []);
+            const success = this.safeList (data, 'success', []);
+            const errors = this.safeList (data, 'errors', []);
             result = this.arrayConcat (success, errors);
         }
         return this.parseOrders (result, market);
@@ -6047,7 +6047,7 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const parsed = this.parseDepositAddresses (data, [ currency['code'] ], false);
         return this.indexBy (parsed, 'network');
     }
@@ -6090,7 +6090,7 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const allAddresses = this.parseDepositAddresses (data, [ currency['code'] ], false) as any; // cjg: to do remove this weird object or array ambiguity
         const addresses = [];
         for (let i = 0; i < allAddresses.length; i++) {
@@ -6556,7 +6556,7 @@ export default class htx extends Exchange {
         //     ]
         // }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const rates = [];
         for (let i = 0; i < data.length; i++) {
             rates.push (this.parseIsolatedBorrowRate (data[i]));
@@ -6590,7 +6590,7 @@ export default class htx extends Exchange {
         //
         const marketId = this.safeString (info, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const currencies = this.safeValue (info, 'currencies', []);
+        const currencies = this.safeList (info, 'currencies', []);
         const baseData = this.safeValue (currencies, 0);
         const quoteData = this.safeValue (currencies, 1);
         const baseId = this.safeString (baseData, 'currency');
@@ -6666,7 +6666,7 @@ export default class htx extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         const cursor = this.safeValue (data, 'current_page');
-        const result = this.safeValue (data, 'data', []);
+        const result = this.safeList (data, 'data', []);
         const rates = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
@@ -6814,7 +6814,7 @@ export default class htx extends Exchange {
         //         "ts": 1643346173103
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result = this.parseFundingRates (data);
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -7184,7 +7184,7 @@ export default class htx extends Exchange {
             request['symbol'] = market['id'];
             response = await this.contractPrivatePostApiV3ContractFinancialRecordExact (this.extend (request, query));
         }
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseIncomes (data, market, since, limit);
     }
 
@@ -7504,7 +7504,7 @@ export default class htx extends Exchange {
             //     }
             //
         }
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const timestamp = this.safeInteger (response, 'ts');
         const result = [];
         for (let i = 0; i < data.length; i++) {
@@ -7913,7 +7913,7 @@ export default class htx extends Exchange {
         //         "ok": true
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseLedger (data, currency, since, limit);
     }
 
@@ -8018,7 +8018,7 @@ export default class htx extends Exchange {
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
-            const list = this.safeValue (item, 'list', []);
+            const list = this.safeList (item, 'list', []);
             const tiers = [];
             const currency = this.safeString (item, 'trade_partition');
             const id = this.safeString (item, marketIdKey);
@@ -8027,7 +8027,7 @@ export default class htx extends Exchange {
                 for (let j = 0; j < list.length; j++) {
                     const obj = list[j];
                     const leverage = this.safeString (obj, 'lever_rate');
-                    const ladders = this.safeValue (obj, 'ladders', []);
+                    const ladders = this.safeList (obj, 'ladders', []);
                     for (let k = 0; k < ladders.length; k++) {
                         const bracket = ladders[k];
                         const adjustFactor = this.safeString (bracket, 'adjust_factor');
@@ -8264,7 +8264,7 @@ export default class htx extends Exchange {
         //         "ts": 1664337928805
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const openInterest = this.parseOpenInterest (data[0], market);
         const timestamp = this.safeInteger (response, 'ts');
         openInterest['timestamp'] = timestamp;
@@ -8441,7 +8441,7 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'Data', []);
+        const data = this.safeList (response, 'Data', []);
         const loan = this.safeValue (data, 0);
         const transaction = this.parseMarginLoan (loan, currency);
         return this.extend (transaction, {
@@ -8481,7 +8481,7 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'Data', []);
+        const data = this.safeList (response, 'Data', []);
         const loan = this.safeValue (data, 0);
         const transaction = this.parseMarginLoan (loan, currency);
         return this.extend (transaction, {
@@ -8710,7 +8710,7 @@ export default class htx extends Exchange {
         //              "instStatus": "normal"
         //          }
         //
-        const chains = this.safeValue (fee, 'chains', []);
+        const chains = this.safeList (fee, 'chains', []);
         let result = this.depositWithdrawFee (fee);
         for (let j = 0; j < chains.length; j++) {
             const chainEntry = chains[j];
@@ -8901,7 +8901,7 @@ export default class htx extends Exchange {
         //         "ts": 1604312615051
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseLiquidations (data, market, since, limit);
     }
 

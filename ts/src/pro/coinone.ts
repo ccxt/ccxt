@@ -116,8 +116,8 @@ export default class coinone extends coinoneRest {
             orderbook.reset ();
         }
         orderbook['symbol'] = symbol;
-        const asks = this.safeValue (data, 'asks', []);
-        const bids = this.safeValue (data, 'bids', []);
+        const asks = this.safeList (data, 'asks', []);
+        const bids = this.safeList (data, 'bids', []);
         this.handleDeltas (orderbook['asks'], asks);
         this.handleDeltas (orderbook['bids'], bids);
         orderbook['timestamp'] = timestamp;

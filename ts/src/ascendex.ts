@@ -449,9 +449,9 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const assetsData = this.safeValue (assets, 'data', []);
-        const marginData = this.safeValue (margin, 'data', []);
-        const cashData = this.safeValue (cash, 'data', []);
+        const assetsData = this.safeList (assets, 'data', []);
+        const marginData = this.safeList (margin, 'data', []);
+        const cashData = this.safeList (cash, 'data', []);
         const assetsById = this.indexBy (assetsData, 'assetCode');
         const marginById = this.indexBy (marginData, 'assetCode');
         const cashById = this.indexBy (cashData, 'assetCode');
@@ -593,10 +593,10 @@ export default class ascendex extends Exchange {
         //        ]
         //    }
         //
-        const productsData = this.safeValue (products, 'data', []);
+        const productsData = this.safeList (products, 'data', []);
         const productsById = this.indexBy (productsData, 'symbol');
-        const cashData = this.safeValue (cash, 'data', []);
-        const perpetualsData = this.safeValue (perpetuals, 'data', []);
+        const cashData = this.safeList (cash, 'data', []);
+        const perpetualsData = this.safeList (perpetuals, 'data', []);
         const cashAndPerpetualsData = this.arrayConcat (cashData, perpetualsData);
         const cashAndPerpetualsById = this.indexBy (cashAndPerpetualsData, 'symbol');
         const dataById = this.deepExtend (productsById, cashAndPerpetualsById);
@@ -768,7 +768,7 @@ export default class ascendex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        const balances = this.safeValue (response, 'data', []);
+        const balances = this.safeList (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const code = this.safeCurrencyCode (this.safeString (balance, 'asset'));
@@ -787,7 +787,7 @@ export default class ascendex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        const balances = this.safeValue (response, 'data', []);
+        const balances = this.safeList (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const code = this.safeCurrencyCode (this.safeString (balance, 'asset'));
@@ -810,7 +810,7 @@ export default class ascendex extends Exchange {
             'datetime': this.iso8601 (timestamp),
         };
         const data = this.safeDict (response, 'data', {});
-        const collaterals = this.safeValue (data, 'collaterals', []);
+        const collaterals = this.safeList (data, 'collaterals', []);
         for (let i = 0; i < collaterals.length; i++) {
             const balance = collaterals[i];
             const code = this.safeCurrencyCode (this.safeString (balance, 'asset'));
@@ -982,8 +982,8 @@ export default class ascendex extends Exchange {
         const delimiter = (type === 'spot') ? '/' : undefined;
         const symbol = this.safeSymbol (marketId, market, delimiter);
         const close = this.safeString (ticker, 'close');
-        const bid = this.safeValue (ticker, 'bid', []);
-        const ask = this.safeValue (ticker, 'ask', []);
+        const bid = this.safeList (ticker, 'bid', []);
+        const ask = this.safeList (ticker, 'ask', []);
         const open = this.safeString (ticker, 'open');
         return this.safeTicker ({
             'symbol': symbol,
@@ -1090,7 +1090,7 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         if (!Array.isArray (data)) {
             return this.parseTickers ([ data ], symbols);
         }
@@ -1179,7 +1179,7 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -1253,8 +1253,8 @@ export default class ascendex extends Exchange {
         //         }
         //     }
         //
-        const records = this.safeValue (response, 'data', []);
-        const trades = this.safeValue (records, 'data', []);
+        const records = this.safeList (response, 'data', []);
+        const trades = this.safeList (records, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1485,7 +1485,7 @@ export default class ascendex extends Exchange {
         //      }
         //
         const data = this.safeDict (response, 'data', {});
-        const fees = this.safeValue (data, 'fees', []);
+        const fees = this.safeList (data, 'fees', []);
         const result = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
@@ -1782,7 +1782,7 @@ export default class ascendex extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const info = this.safeValue (data, 'info', []);
+        const info = this.safeList (data, 'info', []);
         return this.parseOrders (info, market);
     }
 
@@ -1998,7 +1998,7 @@ export default class ascendex extends Exchange {
         //     ]
         // }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         if (accountCategory === 'futures') {
             return this.parseOrders (data, market, since, limit);
         }
@@ -2180,7 +2180,7 @@ export default class ascendex extends Exchange {
         let data = this.safeValue (response, 'data');
         const isArray = Array.isArray (data);
         if (!isArray) {
-            data = this.safeValue (data, 'data', []);
+            data = this.safeList (data, 'data', []);
         }
         return this.parseOrders (data, market, since, limit);
     }
@@ -2578,7 +2578,7 @@ export default class ascendex extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const transactions = this.safeValue (data, 'data', []);
+        const transactions = this.safeList (data, 'data', []);
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
@@ -2705,7 +2705,7 @@ export default class ascendex extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const position = this.safeValue (data, 'contracts', []);
+        const position = this.safeList (data, 'contracts', []);
         const result = [];
         for (let i = 0; i < position.length; i++) {
             result.push (this.parsePosition (position[i]));
@@ -2854,7 +2854,7 @@ export default class ascendex extends Exchange {
         //      }
         //
         const data = this.safeDict (response, 'data', {});
-        const contracts = this.safeValue (data, 'contracts', []);
+        const contracts = this.safeList (data, 'contracts', []);
         const result = this.parseFundingRates (contracts);
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -3069,7 +3069,7 @@ export default class ascendex extends Exchange {
         //        ]
         //    }
         //
-        const marginRequirements = this.safeValue (info, 'marginRequirements', []);
+        const marginRequirements = this.safeList (info, 'marginRequirements', []);
         const id = this.safeString (info, 'symbol');
         market = this.safeMarket (id, market);
         const tiers = [];
@@ -3109,7 +3109,7 @@ export default class ascendex extends Exchange {
         //     ]
         // }
         //
-        const blockChains = this.safeValue (fee, 'blockChain', []);
+        const blockChains = this.safeList (fee, 'blockChain', []);
         const blockChainsLength = blockChains.length;
         const result = {
             'info': fee,
@@ -3283,7 +3283,7 @@ export default class ascendex extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeValue (data, 'data', []);
+        const rows = this.safeList (data, 'data', []);
         return this.parseIncomes (rows, market, since, limit);
     }
 

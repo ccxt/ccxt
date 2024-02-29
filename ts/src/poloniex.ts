@@ -801,7 +801,7 @@ export default class poloniex extends Exchange {
                 };
             }
             result[code]['networks'] = networks;
-            const info = this.safeValue (result[code], 'info', []);
+            const info = this.safeList (result[code], 'info', []);
             const rawInfo = {};
             rawInfo[id] = currency;
             info.push (rawInfo);
@@ -2049,8 +2049,8 @@ export default class poloniex extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const withdrawals = this.safeValue (response, 'withdrawals', []);
-        const deposits = this.safeValue (response, 'deposits', []);
+        const withdrawals = this.safeList (response, 'withdrawals', []);
+        const deposits = this.safeList (response, 'deposits', []);
         const withdrawalTransactions = this.parseTransactions (withdrawals, currency, since, limit);
         const depositTransactions = this.parseTransactions (deposits, currency, since, limit);
         const transactions = this.arrayConcat (depositTransactions, withdrawalTransactions);
@@ -2074,7 +2074,7 @@ export default class poloniex extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const withdrawals = this.safeValue (response, 'withdrawals', []);
+        const withdrawals = this.safeList (response, 'withdrawals', []);
         const transactions = this.parseTransactions (withdrawals, currency, since, limit);
         return this.filterByCurrencySinceLimit (transactions, code, since, limit);
     }
@@ -2224,7 +2224,7 @@ export default class poloniex extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const deposits = this.safeValue (response, 'deposits', []);
+        const deposits = this.safeList (response, 'deposits', []);
         const transactions = this.parseTransactions (deposits, currency, since, limit);
         return this.filterByCurrencySinceLimit (transactions, code, since, limit);
     }

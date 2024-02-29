@@ -441,7 +441,7 @@ export default class bigone extends Exchange {
         //     ],
         // }
         //
-        const currenciesData = this.safeValue (data, 'data', []);
+        const currenciesData = this.safeList (data, 'data', []);
         const result = {};
         for (let i = 0; i < currenciesData.length; i++) {
             const currency = currenciesData[i];
@@ -450,7 +450,7 @@ export default class bigone extends Exchange {
             const name = this.safeString (currency, 'name');
             const type = this.safeValue (currency, 'is_fiat') ? 'fiat' : 'crypto';
             const networks = {};
-            const chains = this.safeValue (currency, 'binding_gateways', []);
+            const chains = this.safeList (currency, 'binding_gateways', []);
             let currencyMaxPrecision = this.parsePrecision (this.safeString2 (currency, 'withdrawal_scale', 'scale'));
             let currencyDepositEnabled: Bool = undefined;
             let currencyWithdrawEnabled: Bool = undefined;
@@ -583,7 +583,7 @@ export default class bigone extends Exchange {
         //        ...
         //    ]
         //
-        const markets = this.safeValue (response, 'data', []);
+        const markets = this.safeList (response, 'data', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -881,7 +881,7 @@ export default class bigone extends Exchange {
             //        ]
             //    }
             //
-            data = this.safeValue (response, 'data', []);
+            data = this.safeList (response, 'data', []);
         } else {
             data = await this.contractPublicGetInstruments (params);
             //
@@ -1213,7 +1213,7 @@ export default class bigone extends Exchange {
         //         ]
         //     }
         //
-        const trades = this.safeValue (response, 'data', []);
+        const trades = this.safeList (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1294,7 +1294,7 @@ export default class bigone extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -1304,7 +1304,7 @@ export default class bigone extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const balances = this.safeValue (response, 'data', []);
+        const balances = this.safeList (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const symbol = this.safeString (balance, 'asset_symbol');
@@ -1687,7 +1687,7 @@ export default class bigone extends Exchange {
         //        "page_token":"dxzef",
         //    }
         //
-        const orders = this.safeValue (response, 'data', []);
+        const orders = this.safeList (response, 'data', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1750,7 +1750,7 @@ export default class bigone extends Exchange {
         //         "page_token":"dxfv"
         //     }
         //
-        const trades = this.safeValue (response, 'data', []);
+        const trades = this.safeList (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1871,7 +1871,7 @@ export default class bigone extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const dataLength = data.length;
         if (dataLength < 1) {
             throw new ExchangeError (this.id + ' fetchDepositAddress() returned empty address response');
@@ -2040,7 +2040,7 @@ export default class bigone extends Exchange {
         //         ]
         //     }
         //
-        const deposits = this.safeValue (response, 'data', []);
+        const deposits = this.safeList (response, 'data', []);
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
@@ -2093,7 +2093,7 @@ export default class bigone extends Exchange {
         //         "page_token":"dxvf"
         //     }
         //
-        const withdrawals = this.safeValue (response, 'data', []);
+        const withdrawals = this.safeList (response, 'data', []);
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 

@@ -132,7 +132,7 @@ export default class coinex extends coinexRest {
         //     }
         //
         const defaultType = this.safeString (this.options, 'defaultType');
-        const params = this.safeValue (message, 'params', []);
+        const params = this.safeList (message, 'params', []);
         const rawTickers = this.safeDict (params, 0, {});
         const keys = Object.keys (rawTickers);
         const newTickers = [];
@@ -265,7 +265,7 @@ export default class coinex extends coinexRest {
         //         "id": null
         //     }
         //
-        const params = this.safeValue (message, 'params', []);
+        const params = this.safeList (message, 'params', []);
         const first = this.safeDict (params, 0, {});
         this.balance['info'] = first;
         const currencies = Object.keys (first);
@@ -301,9 +301,9 @@ export default class coinex extends coinexRest {
         //         "id": null
         //     }
         //
-        const params = this.safeValue (message, 'params', []);
+        const params = this.safeList (message, 'params', []);
         const marketId = this.safeString (params, 0);
-        const trades = this.safeValue (params, 1, []);
+        const trades = this.safeList (params, 1, []);
         const defaultType = this.safeString (this.options, 'defaultType');
         const market = this.safeMarket (marketId, undefined, undefined, defaultType);
         const symbol = market['symbol'];
@@ -475,7 +475,7 @@ export default class coinex extends coinexRest {
         const url = this.urls['api']['ws'][type];
         const messageHash = 'trades:' + symbol;
         const subscriptionHash = 'trades';
-        const subscribedSymbols = this.safeValue (this.options, 'watchTradesSubscriptions', []);
+        const subscribedSymbols = this.safeList (this.options, 'watchTradesSubscriptions', []);
         subscribedSymbols.push (market['id']);
         const message = {
             'method': 'deals.subscribe',
@@ -509,7 +509,7 @@ export default class coinex extends coinexRest {
         const name = 'orderbook';
         const messageHash = name + ':' + symbol;
         const options = this.safeDict (this.options, 'watchOrderBook', {});
-        const limits = this.safeValue (options, 'limits', []);
+        const limits = this.safeList (options, 'limits', []);
         if (limit === undefined) {
             limit = this.safeValue (options, 'defaultLimit', 50);
         }
@@ -517,7 +517,7 @@ export default class coinex extends coinexRest {
             throw new NotSupported (this.id + ' watchOrderBook() limit must be one of ' + limits.join (', '));
         }
         const defaultAggregation = this.safeString (options, 'defaultAggregation', '0');
-        const aggregations = this.safeValue (options, 'aggregations', []);
+        const aggregations = this.safeList (options, 'aggregations', []);
         const aggregation = this.safeString (params, 'aggregation', defaultAggregation);
         if (!this.inArray (aggregation, aggregations)) {
             throw new NotSupported (this.id + ' watchOrderBook() aggregation must be one of ' + aggregations.join (', '));
@@ -672,7 +672,7 @@ export default class coinex extends coinexRest {
         //         "id": null
         //     }
         //
-        const params = this.safeValue (message, 'params', []);
+        const params = this.safeList (message, 'params', []);
         const fullOrderBook = this.safeValue (params, 0);
         let orderbook = this.safeValue (params, 1);
         const marketId = this.safeString (params, 2);
@@ -693,8 +693,8 @@ export default class coinex extends coinexRest {
                 orderbook.reset (snapshot);
             }
         } else {
-            const asks = this.safeValue (orderbook, 'asks', []);
-            const bids = this.safeValue (orderbook, 'bids', []);
+            const asks = this.safeList (orderbook, 'asks', []);
+            const bids = this.safeList (orderbook, 'bids', []);
             this.handleDeltas (currentOrderBook['asks'], asks);
             this.handleDeltas (currentOrderBook['bids'], bids);
             currentOrderBook['nonce'] = timestamp;
@@ -820,7 +820,7 @@ export default class coinex extends coinexRest {
         //          "id": null
         //      }
         //
-        const params = this.safeValue (message, 'params', []);
+        const params = this.safeList (message, 'params', []);
         const order = this.safeDict (params, 1, {});
         const parsedOrder = this.parseWsOrder (order);
         if (this.orders === undefined) {

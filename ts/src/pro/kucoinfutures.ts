@@ -103,7 +103,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
                 response = await this.futuresPublicPostBulletPublic (params);
             }
             const data = this.safeDict (response, 'data', {});
-            const instanceServers = this.safeValue (data, 'instanceServers', []);
+            const instanceServers = this.safeList (data, 'instanceServers', []);
             const firstInstanceServer = this.safeValue (instanceServers, 0);
             const pingInterval = this.safeInteger (firstInstanceServer, 'pingInterval');
             const endpoint = this.safeString (firstInstanceServer, 'endpoint');

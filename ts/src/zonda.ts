@@ -344,7 +344,7 @@ export default class zonda extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         let fees = this.safeDict (this.fees, 'trading', {});
-        const fiatCurrencies = this.safeValue (this.options, 'fiatCurrencies', []);
+        const fiatCurrencies = this.safeList (this.options, 'fiatCurrencies', []);
         if (this.inArray (base, fiatCurrencies) || this.inArray (quote, fiatCurrencies)) {
             fees = this.safeDict (this.fees, 'fiat', {});
         }
@@ -417,7 +417,7 @@ export default class zonda extends Exchange {
         await this.loadMarkets ();
         const request = {};
         const response = await this.v1_01PrivateGetTradingOffer (this.extend (request, params));
-        const items = this.safeValue (response, 'items', []);
+        const items = this.safeList (response, 'items', []);
         return this.parseOrders (items, undefined, since, limit, { 'status': 'open' });
     }
 
@@ -587,8 +587,8 @@ export default class zonda extends Exchange {
         //         "seqNo":"27641254"
         //     }
         //
-        const rawBids = this.safeValue (response, 'buy', []);
-        const rawAsks = this.safeValue (response, 'sell', []);
+        const rawBids = this.safeList (response, 'buy', []);
+        const rawAsks = this.safeList (response, 'sell', []);
         const timestamp = this.safeInteger (response, 'timestamp');
         return {
             'symbol': market['symbol'],
@@ -1235,7 +1235,7 @@ export default class zonda extends Exchange {
         //         ]
         //     }
         //
-        const items = this.safeValue (response, 'items', []);
+        const items = this.safeList (response, 'items', []);
         return this.parseOHLCVs (items, market, timeframe, since, limit);
     }
 

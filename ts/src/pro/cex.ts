@@ -171,7 +171,7 @@ export default class cex extends cexRest {
         //         ]
         //     }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
         const stored = new ArrayCache (limit);
         for (let i = 0; i < data.length; i++) {
@@ -225,7 +225,7 @@ export default class cex extends cexRest {
         //         ]
         //     }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const stored = this.trades as any; // to do fix this, this.trades is not meant to be used like this
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
@@ -380,7 +380,7 @@ export default class cex extends cexRest {
         //        "priceChangePercentage": "0.23",
         //        "pair": ["BTC", "USDT"]
         //    }
-        const pair = this.safeValue (ticker, 'pair', []);
+        const pair = this.safeList (ticker, 'pair', []);
         let baseId = this.safeString (ticker, 'symbol1');
         if (baseId === undefined) {
             baseId = this.safeString (pair, 0);
@@ -903,7 +903,7 @@ export default class cex extends cexRest {
         //     }
         //
         const symbol = this.safeString (message, 'oid'); // symbol is set as requestId in watchOrders
-        const rawOrders = this.safeValue (message, 'data', []);
+        const rawOrders = this.safeList (message, 'data', []);
         let myOrders = this.orders;
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -1035,8 +1035,8 @@ export default class cex extends cexRest {
             client.reject (this.id + ' watchOrderBook() skipped a message', messageHash);
         }
         const timestamp = this.safeInteger (data, 'time');
-        const asks = this.safeValue (data, 'asks', []);
-        const bids = this.safeValue (data, 'bids', []);
+        const asks = this.safeList (data, 'asks', []);
+        const bids = this.safeList (data, 'bids', []);
         this.handleDeltas (storedOrderBook['asks'], asks);
         this.handleDeltas (storedOrderBook['bids'], bids);
         storedOrderBook['timestamp'] = timestamp;
@@ -1115,7 +1115,7 @@ export default class cex extends cexRest {
         const symbol = base + '/' + quote;
         const market = this.safeMarket (symbol);
         const messageHash = 'ohlcv:' + symbol;
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
         const stored = new ArrayCacheByTimestamp (limit);
         const sorted = this.sortBy (data, 0);
@@ -1180,7 +1180,7 @@ export default class cex extends cexRest {
         //         "pair": "BTC:USD"
         //     }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const pair = this.safeString (message, 'pair');
         const symbol = this.pairToSymbol (pair);
         const messageHash = 'ohlcv:' + symbol;

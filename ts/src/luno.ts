@@ -210,7 +210,7 @@ export default class luno extends Exchange {
         //     }
         //
         const result = [];
-        const markets = this.safeValue (response, 'markets', []);
+        const markets = this.safeList (response, 'markets', []);
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'market_id');
@@ -282,7 +282,7 @@ export default class luno extends Exchange {
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
         const response = await this.privateGetBalance (params);
-        const wallets = this.safeValue (response, 'balance', []);
+        const wallets = this.safeList (response, 'balance', []);
         const result = [];
         for (let i = 0; i < wallets.length; i++) {
             const account = wallets[i];
@@ -300,7 +300,7 @@ export default class luno extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const wallets = this.safeValue (response, 'balance', []);
+        const wallets = this.safeList (response, 'balance', []);
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -492,7 +492,7 @@ export default class luno extends Exchange {
             request['pair'] = market['id'];
         }
         const response = await this.privateGetListorders (this.extend (request, params));
-        const orders = this.safeValue (response, 'orders', []);
+        const orders = this.safeList (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -758,7 +758,7 @@ export default class luno extends Exchange {
         //          ]
         //      }
         //
-        const trades = this.safeValue (response, 'trades', []);
+        const trades = this.safeList (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -804,7 +804,7 @@ export default class luno extends Exchange {
         //          "pair": "XBTEUR"
         //     }
         //
-        const ohlcvs = this.safeValue (response, 'candles', []);
+        const ohlcvs = this.safeList (response, 'candles', []);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
@@ -875,7 +875,7 @@ export default class luno extends Exchange {
         //          ]
         //      }
         //
-        const trades = this.safeValue (response, 'trades', []);
+        const trades = this.safeList (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1038,7 +1038,7 @@ export default class luno extends Exchange {
             'max_row': max_row,
         };
         const response = await this.privateGetAccountsIdTransactions (this.extend (params, request));
-        const entries = this.safeValue (response, 'transactions', []);
+        const entries = this.safeList (response, 'transactions', []);
         return this.parseLedger (entries, currency, since, limit);
     }
 

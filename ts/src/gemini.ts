@@ -338,7 +338,7 @@ export default class gemini extends Exchange {
         //    }
         //
         const result = {};
-        const currenciesArray = this.safeValue (data, 'currencies', []);
+        const currenciesArray = this.safeList (data, 'currencies', []);
         for (let i = 0; i < currenciesArray.length; i++) {
             const currency = currenciesArray[i];
             const id = this.safeString (currency, 0);
@@ -532,7 +532,7 @@ export default class gemini extends Exchange {
         if ('test' in this.urls) {
             return []; // sandbox does not have usdt markets
         }
-        const fetchUsdtMarkets = this.safeValue (this.options, 'fetchUsdtMarkets', []);
+        const fetchUsdtMarkets = this.safeList (this.options, 'fetchUsdtMarkets', []);
         const result = [];
         for (let i = 0; i < fetchUsdtMarkets.length; i++) {
             const marketId = fetchUsdtMarkets[i];
@@ -565,7 +565,7 @@ export default class gemini extends Exchange {
         }
         const options = this.safeDict (this.options, 'fetchMarketsFromAPI', {});
         const fetchDetailsForAllSymbols = this.safeBool (options, 'fetchDetailsForAllSymbols', false);
-        const fetchDetailsForMarketIds = this.safeValue (options, 'fetchDetailsForMarketIds', []);
+        const fetchDetailsForMarketIds = this.safeList (options, 'fetchDetailsForMarketIds', []);
         let promises = [];
         let marketIds = [];
         if (fetchDetailsForAllSymbols) {
@@ -1212,7 +1212,7 @@ export default class gemini extends Exchange {
         const id = this.safeString (order, 'order_id');
         const side = this.safeStringLower (order, 'side');
         const clientOrderId = this.safeString (order, 'client_order_id');
-        const optionsArray = this.safeValue (order, 'options', []);
+        const optionsArray = this.safeList (order, 'options', []);
         const option = this.safeString (optionsArray, 0);
         let timeInForce = 'GTC';
         let postOnly = false;

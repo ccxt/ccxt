@@ -355,7 +355,7 @@ export default class exmo extends Exchange {
         //         ]
         //     }
         //
-        const pairs = this.safeValue (response, 'pairs', []);
+        const pairs = this.safeList (response, 'pairs', []);
         const result = {};
         for (let i = 0; i < pairs.length; i++) {
             const pair = pairs[i];
@@ -493,7 +493,7 @@ export default class exmo extends Exchange {
             };
             const currency = this.currency (code);
             const currencyId = this.safeString (currency, 'id');
-            const providers = this.safeValue (cryptoList, currencyId, []);
+            const providers = this.safeList (cryptoList, currencyId, []);
             for (let j = 0; j < providers.length; j++) {
                 const provider = providers[j];
                 const typeInner = this.safeString (provider, 'type');
@@ -905,7 +905,7 @@ export default class exmo extends Exchange {
         //         ]
         //     }
         //
-        const candles = this.safeValue (response, 'candles', []);
+        const candles = this.safeList (response, 'candles', []);
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
@@ -1307,7 +1307,7 @@ export default class exmo extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, market['id'], []);
+        const data = this.safeList (response, market['id'], []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1921,7 +1921,7 @@ export default class exmo extends Exchange {
         }
         const price = this.safeString (order, 'price');
         const cost = this.safeString (order, 'amount');
-        const transactions = this.safeValue (order, 'trades', []);
+        const transactions = this.safeList (order, 'trades', []);
         const clientOrderId = this.safeInteger (order, 'client_id');
         let triggerPrice = this.safeString (order, 'stop_price');
         if (triggerPrice === '0') {
@@ -2438,7 +2438,7 @@ export default class exmo extends Exchange {
         //         "count": 23
         //     }
         //
-        const items = this.safeValue (response, 'items', []);
+        const items = this.safeList (response, 'items', []);
         return this.parseTransactions (items, currency, since, limit);
     }
 
@@ -2490,7 +2490,7 @@ export default class exmo extends Exchange {
         //         "count": 23
         //     }
         //
-        const items = this.safeValue (response, 'items', []);
+        const items = this.safeList (response, 'items', []);
         const first = this.safeDict (items, 0, {});
         return this.parseTransaction (first, currency);
     }
@@ -2543,7 +2543,7 @@ export default class exmo extends Exchange {
         //         "count": 23
         //     }
         //
-        const items = this.safeValue (response, 'items', []);
+        const items = this.safeList (response, 'items', []);
         const first = this.safeDict (items, 0, {});
         return this.parseTransaction (first, currency);
     }
@@ -2599,7 +2599,7 @@ export default class exmo extends Exchange {
         //         "count": 23
         //     }
         //
-        const items = this.safeValue (response, 'items', []);
+        const items = this.safeList (response, 'items', []);
         return this.parseTransactions (items, currency, since, limit);
     }
 

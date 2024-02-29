@@ -981,7 +981,7 @@ export default class whitebit extends Exchange {
             for (let i = 0; i < keys.length; i++) {
                 const marketId = keys[i];
                 const marketNew = this.safeMarket (marketId, undefined, '_');
-                const rawTrades = this.safeValue (response, marketId, []);
+                const rawTrades = this.safeList (response, marketId, []);
                 const parsed = this.parseTrades (rawTrades, marketNew, since, limit);
                 results = this.arrayConcat (results, parsed);
             }
@@ -1114,7 +1114,7 @@ export default class whitebit extends Exchange {
         //         ]
         //     }
         //
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
@@ -1622,7 +1622,7 @@ export default class whitebit extends Exchange {
         //         "limit": 100
         //     }
         //
-        const data = this.safeValue (response, 'records', []);
+        const data = this.safeList (response, 'records', []);
         return this.parseTrades (data, market);
     }
 
@@ -1969,7 +1969,7 @@ export default class whitebit extends Exchange {
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        const records = this.safeValue (response, 'records', []);
+        const records = this.safeList (response, 'records', []);
         const first = this.safeDict (records, 0, {});
         return this.parseTransaction (first, currency);
     }
@@ -2038,7 +2038,7 @@ export default class whitebit extends Exchange {
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        const records = this.safeValue (response, 'records', []);
+        const records = this.safeList (response, 'records', []);
         return this.parseTransactions (records, currency, since, limit);
     }
 
@@ -2197,7 +2197,7 @@ export default class whitebit extends Exchange {
         //        }
         //    ]
         //
-        const data = this.safeValue (response, 'result', []);
+        const data = this.safeList (response, 'result', []);
         const result = this.parseFundingRates (data);
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -2263,7 +2263,7 @@ export default class whitebit extends Exchange {
     }
 
     isFiat (currency) {
-        const fiatCurrencies = this.safeValue (this.options, 'fiatCurrencies', []);
+        const fiatCurrencies = this.safeList (this.options, 'fiatCurrencies', []);
         return this.inArray (currency, fiatCurrencies);
     }
 
@@ -2326,7 +2326,7 @@ export default class whitebit extends Exchange {
                     const errorObject = this.safeValue (response, 'errors');
                     if (errorObject !== undefined) {
                         const errorKey = Object.keys (errorObject)[0];
-                        const errorMessageArray = this.safeValue (errorObject, errorKey, []);
+                        const errorMessageArray = this.safeList (errorObject, errorKey, []);
                         const errorMessageLength = errorMessageArray.length;
                         errorInfo = (errorMessageLength > 0) ? errorMessageArray[0] : body;
                     }

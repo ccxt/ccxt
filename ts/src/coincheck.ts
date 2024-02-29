@@ -221,7 +221,7 @@ export default class coincheck extends Exchange {
             market = this.market (symbol);
         }
         const response = await this.privateGetExchangeOrdersOpens (params);
-        const rawOrders = this.safeValue (response, 'orders', []);
+        const rawOrders = this.safeList (response, 'orders', []);
         const parsedOrders = this.parseOrders (rawOrders, market, since, limit);
         const result = [];
         for (let i = 0; i < parsedOrders.length; i++) {
@@ -494,7 +494,7 @@ export default class coincheck extends Exchange {
         //                  ]
         //      }
         //
-        const transactions = this.safeValue (response, 'data', []);
+        const transactions = this.safeList (response, 'data', []);
         return this.parseTrades (transactions, market, since, limit);
     }
 
@@ -529,7 +529,7 @@ export default class coincheck extends Exchange {
         //          "created_at": "2021-12-08T14:10:33.000Z"
         //      }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -681,7 +681,7 @@ export default class coincheck extends Exchange {
         //     }
         //   ]
         // }
-        const data = this.safeValue (response, 'deposits', []);
+        const data = this.safeList (response, 'deposits', []);
         return this.parseTransactions (data, currency, since, limit, { 'type': 'deposit' });
     }
 
@@ -728,7 +728,7 @@ export default class coincheck extends Exchange {
         //     }
         //   ]
         // }
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit, { 'type': 'withdrawal' });
     }
 

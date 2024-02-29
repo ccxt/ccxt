@@ -442,7 +442,7 @@ export default class coinmetro extends Exchange {
     parseMarketId (marketId) {
         let baseId = undefined;
         let quoteId = undefined;
-        const currencyIds = this.safeValue (this.options, 'currencyIdsListForParseMarket', []);
+        const currencyIds = this.safeList (this.options, 'currencyIdsListForParseMarket', []);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const entryIndex = marketId.indexOf (currencyId);
@@ -546,7 +546,7 @@ export default class coinmetro extends Exchange {
         //         ]
         //     }
         //
-        const candleHistory = this.safeValue (response, 'candleHistory', []);
+        const candleHistory = this.safeList (response, 'candleHistory', []);
         return this.parseOHLCVs (candleHistory, market, timeframe, since, limit);
     }
 
@@ -613,7 +613,7 @@ export default class coinmetro extends Exchange {
         //         ]
         //     }
         //
-        const tickHistory = this.safeValue (response, 'tickHistory', []);
+        const tickHistory = this.safeList (response, 'tickHistory', []);
         return this.parseTrades (tickHistory, market, since, limit);
     }
 
@@ -856,8 +856,8 @@ export default class coinmetro extends Exchange {
         //         ]
         //     }
         //
-        const latestPrices = this.safeValue (response, 'latestPrices', []);
-        const twentyFourHInfos = this.safeValue (response, '24hInfo', []);
+        const latestPrices = this.safeList (response, 'latestPrices', []);
+        const twentyFourHInfos = this.safeList (response, '24hInfo', []);
         const tickersObject = {};
         // merging info from two lists into one
         for (let i = 0; i < latestPrices.length; i++) {
@@ -891,7 +891,7 @@ export default class coinmetro extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.publicGetExchangePrices (params);
-        const latestPrices = this.safeValue (response, 'latestPrices', []);
+        const latestPrices = this.safeList (response, 'latestPrices', []);
         return this.parseTickers (latestPrices, symbols);
     }
 
@@ -1117,12 +1117,12 @@ export default class coinmetro extends Exchange {
         //         ]
         //     }
         //
-        const ledgerByCurrencies = this.safeValue (response, 'list', []);
+        const ledgerByCurrencies = this.safeList (response, 'list', []);
         const ledger = [];
         for (let i = 0; i < ledgerByCurrencies.length; i++) {
             const currencyLedger = ledgerByCurrencies[i];
             const currencyId = this.safeString (currencyLedger, 'currency');
-            const balanceHistory = this.safeValue (currencyLedger, 'balanceHistory', []);
+            const balanceHistory = this.safeList (currencyLedger, 'balanceHistory', []);
             for (let j = 0; j < balanceHistory.length; j++) {
                 const rawLedgerEntry = balanceHistory[j];
                 rawLedgerEntry['currencyId'] = currencyId;
@@ -1789,7 +1789,7 @@ export default class coinmetro extends Exchange {
                 'rate': undefined,
             };
         }
-        const trades = this.safeValue (order, 'fills', []);
+        const trades = this.safeList (order, 'fills', []);
         const userData = this.safeDict (order, 'userData', {});
         const triggerPrice = this.safeString (order, 'stopPrice');
         const clientOrderId = this.safeString (userData, 'comment');

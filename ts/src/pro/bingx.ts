@@ -320,7 +320,7 @@ export default class bingx extends bingxRest {
         //        ]
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const messageHash = this.safeString (message, 'dataType');
         const marketId = messageHash.split ('@')[0];
         const isSwap = client.url.indexOf ('swap') >= 0;
@@ -436,7 +436,7 @@ export default class bingx extends bingxRest {
         //        }
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const messageHash = this.safeString (message, 'dataType');
         const marketId = messageHash.split ('@')[0];
         const isSwap = client.url.indexOf ('swap') >= 0;
@@ -523,7 +523,7 @@ export default class bingx extends bingxRest {
         //        ]
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         let candles = undefined;
         if (Array.isArray (data)) {
             candles = data;
@@ -1035,7 +1035,7 @@ export default class bingx extends bingxRest {
         //     }
         //
         const a = this.safeDict (message, 'a', {});
-        const data = this.safeValue (a, 'B', []);
+        const data = this.safeList (a, 'B', []);
         const timestamp = this.safeInteger2 (message, 'T', 'E');
         const type = ('P' in a) ? 'swap' : 'spot';
         this.balance[type]['info'] = data;

@@ -338,7 +338,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const markets = this.safeValue (result, 'pairs', []);
+        const markets = this.safeList (result, 'pairs', []);
         return this.parseMarkets (markets);
     }
 
@@ -515,7 +515,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const responseResult = this.safeDict (response, 'result', {});
-        const currencies = this.safeValue (responseResult, 'currencies', []);
+        const currencies = this.safeList (responseResult, 'currencies', []);
         // usding another endpoint to fetch statuses of deposits and withdrawals
         let statusesResponse = await this.publicGetTradeApiCmcAssets ();
         //
@@ -676,7 +676,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const data = this.safeValue (result, 'data', []);
+        const data = this.safeList (result, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -860,7 +860,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const orders = this.safeValue (result, 'orders', []);
+        const orders = this.safeList (result, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1862,7 +1862,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const trades = this.safeValue (result, 'trades', []);
+        const trades = this.safeList (result, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -2167,7 +2167,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const transactions = this.safeValue (result, 'transactions', []);
+        const transactions = this.safeList (result, 'transactions', []);
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
@@ -2228,7 +2228,7 @@ export default class bitteam extends Exchange {
         const timestamp = this.safeInteger (transaction, 'timestamp');
         let networkId = this.safeString (transaction, 'blockChain');
         if (networkId === undefined) {
-            const links = this.safeValue (currencyObject, 'links', []);
+            const links = this.safeList (currencyObject, 'links', []);
             const blockChain = this.safeDict (links, 0, {});
             networkId = this.safeString (blockChain, 'blockChain');
         }

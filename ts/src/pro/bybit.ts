@@ -581,8 +581,8 @@ export default class bybit extends bybitRest {
             const snapshot = this.parseOrderBook (data, symbol, timestamp, 'b', 'a');
             orderbook.reset (snapshot);
         } else {
-            const asks = this.safeValue (data, 'a', []);
-            const bids = this.safeValue (data, 'b', []);
+            const asks = this.safeList (data, 'a', []);
+            const bids = this.safeList (data, 'b', []);
             this.handleDeltas (orderbook['asks'], asks);
             this.handleDeltas (orderbook['bids'], bids);
             orderbook['timestamp'] = timestamp;
@@ -882,9 +882,9 @@ export default class bybit extends bybitRest {
         //
         const topic = this.safeString (message, 'topic');
         const spot = topic === 'ticketInfo';
-        let data = this.safeValue (message, 'data', []);
+        let data = this.safeList (message, 'data', []);
         if (!Array.isArray (data)) {
-            data = this.safeValue (data, 'result', []);
+            data = this.safeList (data, 'result', []);
         }
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -1035,7 +1035,7 @@ export default class bybit extends bybitRest {
         }
         const cache = this.positions;
         const newPositions = [];
-        const rawPositions = this.safeValue (message, 'data', []);
+        const rawPositions = this.safeList (message, 'data', []);
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition (rawPosition);
@@ -1179,7 +1179,7 @@ export default class bybit extends bybitRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const orders = this.orders;
-        let rawOrders = this.safeValue (message, 'data', []);
+        let rawOrders = this.safeList (message, 'data', []);
         const first = this.safeDict (rawOrders, 0, {});
         const category = this.safeString (first, 'category');
         const isSpot = category === 'spot';
@@ -1553,9 +1553,9 @@ export default class bybit extends bybitRest {
         let account = undefined;
         if (topic === 'outboundAccountInfo') {
             account = 'spot';
-            const data = this.safeValue (message, 'data', []);
+            const data = this.safeList (message, 'data', []);
             for (let i = 0; i < data.length; i++) {
-                const B = this.safeValue (data[i], 'B', []);
+                const B = this.safeList (data[i], 'B', []);
                 rawBalances = this.arrayConcat (rawBalances, B);
             }
             info = rawBalances;

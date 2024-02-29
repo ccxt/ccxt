@@ -176,11 +176,11 @@ export default class coinbase extends coinbaseRest {
         //    }
         //
         const channel = this.safeString (message, 'channel');
-        const events = this.safeValue (message, 'events', []);
+        const events = this.safeList (message, 'events', []);
         const newTickers = [];
         for (let i = 0; i < events.length; i++) {
             const tickersObj = events[i];
-            const tickers = this.safeValue (tickersObj, 'tickers', []);
+            const tickers = this.safeList (tickersObj, 'tickers', []);
             for (let j = 0; j < tickers.length; j++) {
                 const ticker = tickers[j];
                 const result = this.parseWsTicker (ticker);
@@ -511,7 +511,7 @@ export default class coinbase extends coinbaseRest {
         const datetime = this.safeString (message, 'timestamp');
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
-            const updates = this.safeValue (event, 'updates', []);
+            const updates = this.safeList (event, 'updates', []);
             const marketId = this.safeString (event, 'product_id');
             const messageHash = 'level2::' + marketId;
             const subscription = this.safeDict (client.subscriptions, messageHash, {});

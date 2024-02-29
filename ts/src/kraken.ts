@@ -517,21 +517,21 @@ export default class kraken extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const darkpool = id.indexOf ('.d') >= 0;
             const altname = this.safeString (market, 'altname');
-            const makerFees = this.safeValue (market, 'fees_maker', []);
-            const firstMakerFee = this.safeValue (makerFees, 0, []);
+            const makerFees = this.safeList (market, 'fees_maker', []);
+            const firstMakerFee = this.safeList (makerFees, 0, []);
             const firstMakerFeeRate = this.safeString (firstMakerFee, 1);
             let maker = undefined;
             if (firstMakerFeeRate !== undefined) {
                 maker = this.parseNumber (Precise.stringDiv (firstMakerFeeRate, '100'));
             }
-            const takerFees = this.safeValue (market, 'fees', []);
-            const firstTakerFee = this.safeValue (takerFees, 0, []);
+            const takerFees = this.safeList (market, 'fees', []);
+            const firstTakerFee = this.safeList (takerFees, 0, []);
             const firstTakerFeeRate = this.safeString (firstTakerFee, 1);
             let taker = undefined;
             if (firstTakerFeeRate !== undefined) {
                 taker = this.parseNumber (Precise.stringDiv (firstTakerFeeRate, '100'));
             }
-            const leverageBuy = this.safeValue (market, 'leverage_buy', []);
+            const leverageBuy = this.safeList (market, 'leverage_buy', []);
             const leverageBuyLength = leverageBuy.length;
             const precisionPrice = this.parseNumber (this.parsePrecision (this.safeString (market, 'pair_decimals')));
             result.push ({
@@ -838,17 +838,17 @@ export default class kraken extends Exchange {
         //     }
         //
         const symbol = this.safeSymbol (undefined, market);
-        const v = this.safeValue (ticker, 'v', []);
+        const v = this.safeList (ticker, 'v', []);
         const baseVolume = this.safeString (v, 1);
-        const p = this.safeValue (ticker, 'p', []);
+        const p = this.safeList (ticker, 'p', []);
         const vwap = this.safeString (p, 1);
         const quoteVolume = Precise.stringMul (baseVolume, vwap);
-        const c = this.safeValue (ticker, 'c', []);
+        const c = this.safeList (ticker, 'c', []);
         const last = this.safeString (c, 0);
-        const high = this.safeValue (ticker, 'h', []);
-        const low = this.safeValue (ticker, 'l', []);
-        const bid = this.safeValue (ticker, 'b', []);
-        const ask = this.safeValue (ticker, 'a', []);
+        const high = this.safeList (ticker, 'h', []);
+        const low = this.safeList (ticker, 'l', []);
+        const bid = this.safeList (ticker, 'b', []);
+        const ask = this.safeList (ticker, 'a', []);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
@@ -1008,7 +1008,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         const result = this.safeDict (response, 'result', {});
-        const ohlcvs = this.safeValue (result, market['id'], []);
+        const ohlcvs = this.safeList (result, market['id'], []);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
@@ -1641,7 +1641,7 @@ export default class kraken extends Exchange {
             id = this.safeString (txid, 0);
         }
         const clientOrderId = this.safeString (order, 'userref');
-        const rawTrades = this.safeValue (order, 'trades', []);
+        const rawTrades = this.safeList (order, 'trades', []);
         const trades = [];
         for (let i = 0; i < rawTrades.length; i++) {
             const rawTrade = rawTrades[i];
@@ -1889,7 +1889,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         if (!(id in result)) {
             throw new OrderNotFound (this.id + ' fetchOrder() could not find order id ' + id);
         }
@@ -2166,7 +2166,7 @@ export default class kraken extends Exchange {
             market = this.market (symbol);
         }
         const result = this.safeDict (response, 'result', {});
-        const orders = this.safeValue (result, 'open', []);
+        const orders = this.safeList (result, 'open', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -2240,7 +2240,7 @@ export default class kraken extends Exchange {
             market = this.market (symbol);
         }
         const result = this.safeDict (response, 'result', {});
-        const orders = this.safeValue (result, 'closed', []);
+        const orders = this.safeList (result, 'closed', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -2651,7 +2651,7 @@ export default class kraken extends Exchange {
         //         ]
         //     }
         //
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         const firstResult = this.safeDict (result, 0, {});
         if (firstResult === undefined) {
             throw new InvalidAddress (this.id + ' privatePostDepositAddresses() returned no addresses for ' + code);

@@ -1801,7 +1801,7 @@ export default class binance extends binanceRest {
         //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeValue (message, 'result', []);
+        const result = this.safeList (message, 'result', []);
         const orders = this.parseOrders (result);
         client.resolve (orders, messageHash);
     }
@@ -2578,7 +2578,7 @@ export default class binance extends binanceRest {
         }
         const cache = this.positions[accountType];
         const data = this.safeDict (message, 'a', {});
-        const rawPositions = this.safeValue (data, 'P', []);
+        const rawPositions = this.safeList (data, 'P', []);
         const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
@@ -2787,7 +2787,7 @@ export default class binance extends binanceRest {
         //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeValue (message, 'result', []);
+        const result = this.safeList (message, 'result', []);
         const trades = this.parseTrades (result);
         client.resolve (trades, messageHash);
     }
@@ -2893,7 +2893,7 @@ export default class binance extends binanceRest {
                             order['fee'] = tradeFee;
                         }
                         // save this trade in the order
-                        const orderTrades = this.safeValue (order, 'trades', []);
+                        const orderTrades = this.safeList (order, 'trades', []);
                         orderTrades.push (trade);
                         order['trades'] = orderTrades;
                         // don't append twice cause it breaks newUpdates mode

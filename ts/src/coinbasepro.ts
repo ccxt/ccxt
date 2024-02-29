@@ -668,8 +668,8 @@ export default class coinbasepro extends Exchange {
         const delimiter = '-';
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const entry = this.safeValue (response, marketId, []);
-            const first = this.safeValue (entry, 0, []);
+            const entry = this.safeList (response, marketId, []);
+            const first = this.safeList (entry, 0, []);
             const market = this.safeMarket (marketId, undefined, delimiter);
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker (first, market);

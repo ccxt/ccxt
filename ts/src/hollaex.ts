@@ -387,7 +387,7 @@ export default class hollaex extends Exchange {
             const isActive = this.safeValue (currency, 'active');
             const active = isActive && depositEnabled && withdrawEnabled;
             const fee = this.safeNumber (currency, 'withdrawal_fee');
-            const withdrawalLimits = this.safeValue (currency, 'withdrawal_limits', []);
+            const withdrawalLimits = this.safeList (currency, 'withdrawal_limits', []);
             result[code] = {
                 'id': id,
                 'numericId': numericId,
@@ -643,7 +643,7 @@ export default class hollaex extends Exchange {
         //         ]
         //     }
         //
-        const trades = this.safeValue (response, market['id'], []);
+        const trades = this.safeList (response, market['id'], []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1075,7 +1075,7 @@ export default class hollaex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -1345,7 +1345,7 @@ export default class hollaex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1439,7 +1439,7 @@ export default class hollaex extends Exchange {
         //         ]
         //     }
         //
-        const wallet = this.safeValue (response, 'wallet', []);
+        const wallet = this.safeList (response, 'wallet', []);
         const addresses = (network === undefined) ? wallet : this.filterBy (wallet, 'network', network);
         return this.parseDepositAddresses (addresses, codes);
     }
@@ -1501,7 +1501,7 @@ export default class hollaex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -1549,7 +1549,7 @@ export default class hollaex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const transaction = this.safeDict (data, 0, {});
         return this.parseTransaction (transaction, currency);
     }
@@ -1611,7 +1611,7 @@ export default class hollaex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 

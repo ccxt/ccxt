@@ -121,7 +121,7 @@ export default class bitrue extends bitrueRest {
         //      "u": 2285311
         //    }
         //
-        const balances = this.safeValue (message, 'B', []);
+        const balances = this.safeList (message, 'B', []);
         this.parseWSBalances (balances);
         const messageHash = 'balance';
         client.resolve (this.balance, messageHash);
