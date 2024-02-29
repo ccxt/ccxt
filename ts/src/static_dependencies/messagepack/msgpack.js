@@ -110,7 +110,7 @@
 					// 32 bits for bitwise operations.
 					let hi = data / pow32;
 					let lo = data % pow32;
-					appendBytes([0xd3, hi >>> 24, hi >>> 16, hi >>> 8, hi, lo >>> 24, lo >>> 16, lo >>> 8, lo]);
+					appendBytes([0xcf, hi >>> 24, hi >>> 16, hi >>> 8, hi, lo >>> 24, lo >>> 16, lo >>> 8, lo]);
 				}
 				else if (data >= -0x8000000000000000 && data <= 0x7fffffffffffffff) {   // int64
 					appendByte(0xd3);
