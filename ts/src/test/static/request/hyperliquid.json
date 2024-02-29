@@ -41,17 +41,13 @@
         "cancelOrder": [
             {
                 "description": "cancel order",
-                "disabled": true,
                 "method": "cancelOrder",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",
                 "input": [
-                  6188389423,
-                  "SOL/USDC:USDC",
-                  {
-                    "user": "0x3B3741c0EFf9C6b556Ec813e70589161F416662A"
-                  }
+                  6466108935,
+                  "SOL/USDC:USDC"
                 ],
-                "output": "{\"nonce\":1708702292482,\"action\":{\"type\":\"cancel\",\"cancels\":[{\"asset\":5,\"oid\":6188389423}]},\"signature\":{\"r\":\"0xa69d79cf977accd5cb1415940358d410f8bd0913c110bf23fd680c3231c63d55\",\"s\":\"0x1cd8101e49d0f69c6882f347e7e1094091649503c7d0017f0fde4d3d6d878066\",\"v\":28}}"
+                "output": "{\"nonce\":1709205271182,\"action\":{\"type\":\"cancel\",\"cancels\":[{\"a\":0,\"o\":6466108935}]},\"signature\":{\"r\":\"0xba035847994c83ffeaadf906639c0f82548cbcae8195c527f74e3cb50148cd6b\",\"s\":\"0x64098742b1d2fdac9a11973c991de69b8adbcee4e461acb7dd06f41decf4995d\",\"v\":27}}"
             }
         ],
         "fetchMarkets": [
