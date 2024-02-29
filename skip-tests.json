@@ -606,19 +606,6 @@
             "fetchL2OrderBook": "same"
         }
     },
-    "btctradeua": {
-        "skipMethods": {
-            "loadMarkets": {
-                "precision":"is undefined",
-                "active":"is undefined",
-                "taker":"is undefined",
-                "maker":"is undefined",
-                "info":"null"
-            },
-            "fetchOrderBook": "bid should be greater than next bid",
-            "fetchL2OrderBook": "same"
-        }
-    },
     "btcturk": {
         "skipMethods": {
             "fetchOrderBook": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263287870#L2201"
