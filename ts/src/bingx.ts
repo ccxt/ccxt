@@ -2155,7 +2155,7 @@ export default class bingx extends Exchange {
         return this.parseOrders (result, market);
     }
 
-    parseOrderSide (side: string) {
+    parseOrderSide (side) {
         const sides = {
             'BUY': 'buy',
             'SELL': 'sell',
