@@ -706,15 +706,6 @@
             }
         }
     },
-    "coinbaseprime": {
-        "skipMethods": {
-            "fetchStatus": "request timeout",
-            "fetchCurrencies": {
-                "withdraw": "not provided",
-                "deposit": "not provided"
-            }
-        }
-    },
     "coinmetro": {
         "skipMethods": {
             "fetchTrades": {
