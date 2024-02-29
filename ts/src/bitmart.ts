@@ -4156,10 +4156,12 @@ export default class bitmart extends Exchange {
          */
         await this.loadMarkets ();
         const position = await this.fetchPosition (symbol, params);
+        const marketId = this.safeString (position, 'symbol');
+        const market = this.safeMarket (marketId, undefined, undefined, 'contract');
         return {
             'info': position,
+            'symbol': market['symbol'],
             'leverage': this.safeInteger (position, 'leverage'),
-            'marginMode': this.safeNumber (position, 'marginMode'),
         };
     }
 
@@ -4179,11 +4181,11 @@ export default class bitmart extends Exchange {
         for (let i = 0; i < positions.length; i++) {
             const entry = positions[i];
             const marketId = this.safeString (entry, 'symbol');
+            const market = this.safeMarket (marketId, undefined, undefined, 'contract');
             result.push ({
                 'info': entry,
-                'symbol': this.safeMarket (marketId, undefined, undefined, 'contract'),
+                'symbol': market['symbol'],
                 'leverage': this.safeInteger (entry, 'leverage'),
-                'marginMode': this.safeNumber (entry, 'marginMode'),
             });
         }
         return result;
