@@ -964,21 +964,6 @@
             }
         }
     },
-    "hitbtc3": {
-        "skipMethods": {
-            "loadMarkets": {
-                "limits": "messed min max",
-                "currencyIdAndCode": "messed codes"
-            },
-            "fetchCurrencies": {
-                "fee": "not provided"
-            },
-            "fetchTickers": {
-                "bid":"messed bid-ask",
-                "ask":"messed bid-ask"
-            }
-        }
-    },
     "digifinex": {
         "skipMethods": {
             "loadMarkets": {
