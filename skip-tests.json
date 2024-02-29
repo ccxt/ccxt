@@ -1188,11 +1188,6 @@
             "fetchL2OrderBook": "same"
         }
     },
-    "coinfalcon": {
-        "skipMethods": {
-            "fetchTickers": "negative values"
-        }
-    },
     "kuna": {
         "skip": "temporary glitches with this exchange: https://app.travis-ci.com/github/ccxt/ccxt/builds/267517440#L2304",
         "httpsProxy": "http://5.75.153.75:8002",
