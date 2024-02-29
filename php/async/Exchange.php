@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.2.55';
+$version = '4.2.56';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.2.55';
+    const VERSION = '4.2.56';
 
     public $browser;
     public $marketsLoading = null;
@@ -698,7 +698,7 @@ class Exchange extends \ccxt\Exchange {
         return $this->filter_by_limit($result, $limit, $key, $sinceIsDefined);
     }
 
-    public function set_sandbox_mode($enabled) {
+    public function set_sandbox_mode(bool $enabled) {
         if ($enabled) {
             if (is_array($this->urls) && array_key_exists('test', $this->urls)) {
                 if (gettype($this->urls['api']) === 'string') {
