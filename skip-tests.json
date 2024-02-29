@@ -846,7 +846,6 @@
         }
     },
     "currencycom": {
-        "skipWs": "timeouts",
         "skipMethods": {
             "loadMarkets": {
                 "type": "unexpected market type",
