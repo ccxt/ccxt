@@ -126,6 +126,11 @@ export default class bybit extends Exchange {
     fetchUsdcPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: Market): import("./base/types.js").Position;
+    fetchLeverage(symbol: string, params?: {}): Promise<{
+        info: import("./base/types.js").Position;
+        leverage: number;
+        marginMode: number;
+    }>;
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;

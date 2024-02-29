@@ -48,6 +48,18 @@
             "fetchTickers": {
                 "bid":"broken bid-ask",
                 "ask":"broken bid-ask"
+            },
+            "fetchOrderBook": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269129438#L3841"
+            },
+            "fetchL2OrderBook": {
+                "spread": "same"
+            },
+            "watchOrderBook": {
+                "spread": "same" 
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "same"
             }
         }
     },
@@ -207,9 +219,18 @@
                 "withdraw": "not provided",
                 "deposit": "not provided"
             },
-            "fetchOrderBook": "multiple bids might have same value",
-            "fetchL2OrderBook": "same",
-            "fetchTickers": "negative values"
+            "fetchOrderBook": {
+                "bid": "multiple bids might have same value"
+            },
+            "fetchL2OrderBook": {
+                "bid": "same"
+            },
+            "watchOrderBook": {
+                "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269129438#L3999"  
+            },
+            "watchOrderBookForSymbols": {
+                "bid": "same"  
+            }
         }
     },
     "bitflyer": {
@@ -358,7 +379,7 @@
     },
     "onetrading": {
         "skip": true,
-        "until": "2024-02-28",
+        "until": "2024-03-28",
         "skipWs": true,
         "skipMethods": {
             "fetchOrderBook": "some bid might be lower than next bid",
@@ -394,6 +415,7 @@
             "loadMarkets": {
                 "active": "not provided"
             },
+            "fetchOrderBook": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269129438#L4148",
             "fetchOHLCV": "randomly failing with 404 not found"
         }
     },
@@ -451,7 +473,6 @@
         }
     },
     "bitvavo": {
-        "httpsProxy": "http://51.83.140.52:11230",
         "skipMethods": {
             "fetchCurrencies": {
                 "precision": "not provided",
@@ -470,7 +491,6 @@
         }
     },
     "blockchaincom": {
-        "skipWs": "https://app.travis-ci.com/github/ccxt/ccxt/builds/265225134#L2304",
         "skipMethods": {
             "loadMarkets": {
                 "taker":"not provided",
@@ -764,7 +784,6 @@
         }
     },
     "cryptocom": {
-        "skipWs": "timeout",
         "skipMethods": {
             "proxies": "probably they do not permit our proxy",
             "loadMarkets": {
@@ -848,7 +867,6 @@
         }
     },
     "deribit": {
-        "skipWs": "timeouts",
         "skipMethods": {
             "fetchCurrencies": "deposit/withdraw not provided",
             "loadMarkets": "strike is set when option is not true",
@@ -895,7 +913,6 @@
         }
     },
     "gemini": {
-        "skipWs": "temporary",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes",

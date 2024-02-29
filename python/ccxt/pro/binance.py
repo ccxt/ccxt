@@ -68,6 +68,7 @@ class binance(ccxt.async_support.binance):
                         'future': 'wss://fstream.binance.com/ws',
                         'delivery': 'wss://dstream.binance.com/ws',
                         'ws': 'wss://ws-api.binance.com:443/ws-api/v3',
+                        'papi': 'wss://fstream.binance.com/pm/ws',
                     },
                 },
             },
@@ -1139,41 +1140,44 @@ class binance(ccxt.async_support.binance):
 
     async def authenticate(self, params={}):
         time = self.milliseconds()
-        query = None
         type = None
-        type, query = self.handle_market_type_and_params('authenticate', None, params)
+        type, params = self.handle_market_type_and_params('authenticate', None, params)
         subType = None
-        subType, query = self.handle_sub_type_and_params('authenticate', None, query)
+        subType, params = self.handle_sub_type_and_params('authenticate', None, params)
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'authenticate', 'papi', 'portfolioMargin', False)
         if self.isLinear(type, subType):
             type = 'future'
         elif self.isInverse(type, subType):
             type = 'delivery'
         marginMode = None
-        marginMode, query = self.handle_margin_mode_and_params('authenticate', query)
+        marginMode, params = self.handle_margin_mode_and_params('authenticate', params)
         isIsolatedMargin = (marginMode == 'isolated')
         isCrossMargin = (marginMode == 'cross') or (marginMode is None)
-        symbol = self.safe_string(query, 'symbol')
-        query = self.omit(query, 'symbol')
+        symbol = self.safe_string(params, 'symbol')
+        params = self.omit(params, 'symbol')
         options = self.safe_value(self.options, type, {})
         lastAuthenticatedTime = self.safe_integer(options, 'lastAuthenticatedTime', 0)
         listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 1200000)
         delay = self.sum(listenKeyRefreshRate, 10000)
         if time - lastAuthenticatedTime > delay:
             response = None
-            if type == 'future':
-                response = await self.fapiPrivatePostListenKey(query)
+            if isPortfolioMargin:
+                response = await self.papiPostListenKey(params)
+            elif type == 'future':
+                response = await self.fapiPrivatePostListenKey(params)
             elif type == 'delivery':
-                response = await self.dapiPrivatePostListenKey(query)
+                response = await self.dapiPrivatePostListenKey(params)
             elif type == 'margin' and isCrossMargin:
-                response = await self.sapiPostUserDataStream(query)
+                response = await self.sapiPostUserDataStream(params)
             elif isIsolatedMargin:
                 if symbol is None:
                     raise ArgumentsRequired(self.id + ' authenticate() requires a symbol argument for isolated margin mode')
                 marketId = self.market_id(symbol)
-                query = self.extend(query, {'symbol': marketId})
-                response = await self.sapiPostUserDataStreamIsolated(query)
+                params = self.extend(params, {'symbol': marketId})
+                response = await self.sapiPostUserDataStreamIsolated(params)
             else:
-                response = await self.publicPostUserDataStream(query)
+                response = await self.publicPostUserDataStream(params)
             self.options[type] = self.extend(options, {
                 'listenKey': self.safe_string(response, 'listenKey'),
                 'lastAuthenticatedTime': time,
@@ -1184,6 +1188,8 @@ class binance(ccxt.async_support.binance):
         # https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
         type = self.safe_string_2(self.options, 'defaultType', 'authenticate', 'spot')
         type = self.safe_string(params, 'type', type)
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'keepAliveListenKey', 'papi', 'portfolioMargin', False)
         subTypeInfo = self.handle_sub_type_and_params('keepAliveListenKey', None, params)
         subType = subTypeInfo[0]
         if self.isLinear(type, subType):
@@ -1197,22 +1203,27 @@ class binance(ccxt.async_support.binance):
             return
         request = {}
         symbol = self.safe_string(params, 'symbol')
-        sendParams = self.omit(params, ['type', 'symbol'])
+        params = self.omit(params, ['type', 'symbol'])
         time = self.milliseconds()
         try:
-            if type == 'future':
-                await self.fapiPrivatePutListenKey(self.extend(request, sendParams))
+            if isPortfolioMargin:
+                await self.papiPutListenKey(self.extend(request, params))
+            elif type == 'future':
+                await self.fapiPrivatePutListenKey(self.extend(request, params))
             elif type == 'delivery':
-                await self.dapiPrivatePutListenKey(self.extend(request, sendParams))
+                await self.dapiPrivatePutListenKey(self.extend(request, params))
             else:
                 request['listenKey'] = listenKey
                 if type == 'margin':
                     request['symbol'] = symbol
-                    await self.sapiPutUserDataStream(self.extend(request, sendParams))
+                    await self.sapiPutUserDataStream(self.extend(request, params))
                 else:
-                    await self.publicPutUserDataStream(self.extend(request, sendParams))
+                    await self.publicPutUserDataStream(self.extend(request, params))
         except Exception as error:
-            url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
+            urlType = type
+            if isPortfolioMargin:
+                urlType = 'papi'
+            url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
             client = self.client(url)
             messageHashes = list(client.futures.keys())
             for i in range(0, len(messageHashes)):
@@ -1239,7 +1250,7 @@ class binance(ccxt.async_support.binance):
                     self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
                     return
 
-    def set_balance_cache(self, client: Client, type):
+    def set_balance_cache(self, client: Client, type, isPortfolioMargin=False):
         if type in client.subscriptions:
             return
         options = self.safe_value(self.options, 'watchBalance')
@@ -1248,12 +1259,17 @@ class binance(ccxt.async_support.binance):
             messageHash = type + ':fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
-                self.spawn(self.load_balance_snapshot, client, messageHash, type)
+                self.spawn(self.load_balance_snapshot, client, messageHash, type, isPortfolioMargin)
         else:
             self.balance[type] = {}
 
-    async def load_balance_snapshot(self, client, messageHash, type):
-        response = await self.fetch_balance({'type': type})
+    async def load_balance_snapshot(self, client, messageHash, type, isPortfolioMargin):
+        params = {
+            'type': type,
+        }
+        if isPortfolioMargin:
+            params['portfolioMargin'] = True
+        response = await self.fetch_balance(params)
         self.balance[type] = self.extend(response, self.safe_value(self.balance, type, {}))
         # don't remove the future from the .futures cache
         future = client.futures[messageHash]
@@ -1343,6 +1359,7 @@ class binance(ccxt.async_support.binance):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.portfolioMargin]: set to True if you would like to watch the balance of a portfolio margin account
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
@@ -1351,14 +1368,19 @@ class binance(ccxt.async_support.binance):
         type = self.safe_string(params, 'type', defaultType)
         subType = None
         subType, params = self.handle_sub_type_and_params('watchBalance', None, params)
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'watchBalance', 'papi', 'portfolioMargin', False)
+        urlType = type
+        if isPortfolioMargin:
+            urlType = 'papi'
         if self.isLinear(type, subType):
             type = 'future'
         elif self.isInverse(type, subType):
             type = 'delivery'
-        url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
+        url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
         client = self.client(url)
-        self.set_balance_cache(client, type)
-        self.set_positions_cache(client, type)
+        self.set_balance_cache(client, type, isPortfolioMargin)
+        self.set_positions_cache(client, type, None, isPortfolioMargin)
         options = self.safe_value(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
         awaitBalanceSnapshot = self.safe_bool(options, 'awaitBalanceSnapshot', True)
@@ -1922,11 +1944,14 @@ class binance(ccxt.async_support.binance):
         """
         watches information on multiple orders made by the user
         :see: https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
+        :see: https://binance-docs.github.io/apidocs/pm/en/#event-futures-order-update
+        :see: https://binance-docs.github.io/apidocs/pm/en/#event-margin-order-update
         :param str symbol: unified market symbol of the market the orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str|None [params.marginMode]: 'cross' or 'isolated', for spot margin
+        :param boolean [params.portfolioMargin]: set to True if you would like to watch portfolio margin account orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1951,10 +1976,14 @@ class binance(ccxt.async_support.binance):
         urlType = type
         if (type == 'margin') or ((type == 'spot') and (marginMode is not None)):
             urlType = 'spot'  # spot-margin shares the same stream spot
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'watchOrders', 'papi', 'portfolioMargin', False)
+        if isPortfolioMargin:
+            urlType = 'papi'
         url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
         client = self.client(url)
-        self.set_balance_cache(client, type)
-        self.set_positions_cache(client, type)
+        self.set_balance_cache(client, type, isPortfolioMargin)
+        self.set_positions_cache(client, type, None, isPortfolioMargin)
         message = None
         orders = await self.watch(url, messageHash, message, type)
         if self.newUpdates:
@@ -2199,6 +2228,7 @@ class binance(ccxt.async_support.binance):
         watch all open positions
         :param str[]|None symbols: list of unified market symbols
         :param dict params: extra parameters specific to the exchange API endpoint
+        :param boolean [params.portfolioMargin]: set to True if you would like to watch positions in a portfolio margin account
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
@@ -2224,10 +2254,15 @@ class binance(ccxt.async_support.binance):
         elif self.isInverse(type, subType):
             type = 'delivery'
         messageHash = type + ':positions' + messageHash
-        url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'watchPositions', 'papi', 'portfolioMargin', False)
+        urlType = type
+        if isPortfolioMargin:
+            urlType = 'papi'
+        url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
         client = self.client(url)
-        self.set_balance_cache(client, type)
-        self.set_positions_cache(client, type, symbols)
+        self.set_balance_cache(client, type, isPortfolioMargin)
+        self.set_positions_cache(client, type, symbols, isPortfolioMargin)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
         awaitPositionsSnapshot = self.safe_value('watchPositions', 'awaitPositionsSnapshot', True)
         cache = self.safe_value(self.positions, type)
@@ -2239,7 +2274,7 @@ class binance(ccxt.async_support.binance):
             return newPositions
         return self.filter_by_symbols_since_limit(cache, symbols, since, limit, True)
 
-    def set_positions_cache(self, client: Client, type, symbols: Strings = None):
+    def set_positions_cache(self, client: Client, type, symbols: Strings = None, isPortfolioMargin=False):
         if type == 'spot':
             return
         if self.positions is None:
@@ -2251,12 +2286,17 @@ class binance(ccxt.async_support.binance):
             messageHash = type + ':fetchPositionsSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
-                self.spawn(self.load_positions_snapshot, client, messageHash, type)
+                self.spawn(self.load_positions_snapshot, client, messageHash, type, isPortfolioMargin)
         else:
             self.positions[type] = ArrayCacheBySymbolBySide()
 
-    async def load_positions_snapshot(self, client, messageHash, type):
-        positions = await self.fetch_positions(None, {'type': type})
+    async def load_positions_snapshot(self, client, messageHash, type, isPortfolioMargin):
+        params = {
+            'type': type,
+        }
+        if isPortfolioMargin:
+            params['portfolioMargin'] = True
+        positions = await self.fetch_positions(None, params)
         self.positions[type] = ArrayCacheBySymbolBySide()
         cache = self.positions[type]
         for i in range(0, len(positions)):
@@ -2510,6 +2550,7 @@ class binance(ccxt.async_support.binance):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.portfolioMargin]: set to True if you would like to watch trades in a portfolio margin account
         :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         """
         await self.load_markets()
@@ -2534,10 +2575,14 @@ class binance(ccxt.async_support.binance):
         urlType = type  # we don't change type because the listening key is different
         if type == 'margin':
             urlType = 'spot'  # spot-margin shares the same stream spot
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'watchMyTrades', 'papi', 'portfolioMargin', False)
+        if isPortfolioMargin:
+            urlType = 'papi'
         url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
         client = self.client(url)
-        self.set_balance_cache(client, type)
-        self.set_positions_cache(client, type)
+        self.set_balance_cache(client, type, isPortfolioMargin)
+        self.set_positions_cache(client, type, None, isPortfolioMargin)
         message = None
         trades = await self.watch(url, messageHash, message, type)
         if self.newUpdates:

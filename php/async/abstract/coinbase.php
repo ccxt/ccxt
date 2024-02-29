@@ -142,6 +142,9 @@ abstract class coinbase extends \ccxt\async\Exchange {
     public function v2_private_delete_accounts_account_id_transactions_transaction_id($params = array()) {
         return $this->request('accounts/{account_id}/transactions/{transaction_id}', array('v2', 'private'), 'DELETE', $params, null, null, array());
     }
+    public function v3_public_get_brokerage_time($params = array()) {
+        return $this->request('brokerage/time', array('v3', 'public'), 'GET', $params, null, null, array());
+    }
     public function v3_private_get_brokerage_accounts($params = array()) {
         return $this->request('brokerage/accounts', array('v3', 'private'), 'GET', $params, null, null, array());
     }
@@ -186,9 +189,6 @@ abstract class coinbase extends \ccxt\async\Exchange {
     }
     public function v3_private_get_brokerage_convert_trade_trade_id($params = array()) {
         return $this->request('brokerage/convert/trade/{trade_id}', array('v3', 'private'), 'GET', $params, null, null, array());
-    }
-    public function v3_private_get_brokerage_time($params = array()) {
-        return $this->request('brokerage/time', array('v3', 'private'), 'GET', $params, null, null, array());
     }
     public function v3_private_get_brokerage_cfm_balance_summary($params = array()) {
         return $this->request('brokerage/cfm/balance_summary', array('v3', 'private'), 'GET', $params, null, null, array());
@@ -388,6 +388,9 @@ abstract class coinbase extends \ccxt\async\Exchange {
     public function v2PrivateDeleteAccountsAccountIdTransactionsTransactionId($params = array()) {
         return $this->request('accounts/{account_id}/transactions/{transaction_id}', array('v2', 'private'), 'DELETE', $params, null, null, array());
     }
+    public function v3PublicGetBrokerageTime($params = array()) {
+        return $this->request('brokerage/time', array('v3', 'public'), 'GET', $params, null, null, array());
+    }
     public function v3PrivateGetBrokerageAccounts($params = array()) {
         return $this->request('brokerage/accounts', array('v3', 'private'), 'GET', $params, null, null, array());
     }
@@ -432,9 +435,6 @@ abstract class coinbase extends \ccxt\async\Exchange {
     }
     public function v3PrivateGetBrokerageConvertTradeTradeId($params = array()) {
         return $this->request('brokerage/convert/trade/{trade_id}', array('v3', 'private'), 'GET', $params, null, null, array());
-    }
-    public function v3PrivateGetBrokerageTime($params = array()) {
-        return $this->request('brokerage/time', array('v3', 'private'), 'GET', $params, null, null, array());
     }
     public function v3PrivateGetBrokerageCfmBalanceSummary($params = array()) {
         return $this->request('brokerage/cfm/balance_summary', array('v3', 'private'), 'GET', $params, null, null, array());
