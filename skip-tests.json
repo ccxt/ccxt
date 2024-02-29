@@ -914,12 +914,6 @@
             }
         }
     },
-    "flowbtc": {
-        "skipMethods": {
-            "fetchTrades": "timestamp is more than current utc timestamp",
-            "fetchOHLCV": "same"
-        }
-    },
     "fmfwio": {
         "skipMethods": {
             "fetchCurrencies": {
