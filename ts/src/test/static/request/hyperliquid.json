@@ -47,7 +47,7 @@
                   6466108935,
                   "SOL/USDC:USDC"
                 ],
-                "output": "{\"nonce\":1709205271182,\"action\":{\"type\":\"cancel\",\"cancels\":[{\"a\":0,\"o\":6466108935}]},\"signature\":{\"r\":\"0xba035847994c83ffeaadf906639c0f82548cbcae8195c527f74e3cb50148cd6b\",\"s\":\"0x64098742b1d2fdac9a11973c991de69b8adbcee4e461acb7dd06f41decf4995d\",\"v\":27}}"
+                "output": "{\"nonce\":1709205271182,\"action\":{\"type\":\"cancel\",\"cancels\":[{\"a\":5,\"o\":6466108935}]},\"signature\":{\"r\":\"0xba035847994c83ffeaadf906639c0f82548cbcae8195c527f74e3cb50148cd6b\",\"s\":\"0x64098742b1d2fdac9a11973c991de69b8adbcee4e461acb7dd06f41decf4995d\",\"v\":27}}"
             }
         ],
         "fetchMarkets": [
