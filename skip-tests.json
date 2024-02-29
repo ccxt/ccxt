@@ -1116,26 +1116,6 @@
             }
         }
     },
-    "stex": {
-        "skipMethods": {
-            "fetchCurrencies":{
-                "withdraw":"not provided",
-                "deposit":"not provided"
-            },
-            "fetchTickers":  {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing",
-                "bid":"messed bid-ask",
-                "ask":"messed bid-ask"
-            },
-            "fetchTicker":  {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing",
-                "bid":"messed bid-ask",
-                "ask":"messed bid-ask"
-            }
-        }
-    },
     "probit": {
         "skipWs": "timeouts",
 		"skipMethods": {
