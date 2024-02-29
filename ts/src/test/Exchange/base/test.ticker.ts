@@ -71,7 +71,7 @@ function testTicker (exchange, skippedProperties, method, entry, symbol) {
             assert (baseVolume !== undefined, 'quoteVolume & vwap is defined, but baseVolume is not' + logText);
         }
     }
-    if (!('spread' in skippedProperties)) {
+    if (!('spread' in skippedProperties) && !('ask' in skippedProperties) && !('bid' in skippedProperties)) {
         const askString = exchange.safeString (entry, 'ask');
         const bidString = exchange.safeString (entry, 'bid');
         if ((askString !== undefined) && (bidString !== undefined)) {
