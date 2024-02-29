@@ -2190,12 +2190,13 @@ export default class Exchange {
         if (this.has['fetchMarginModes']) {
             const marginModes = await this.fetchMarginModes ([ symbol ], params);
             return marginModes[0];
+        } else {
+            throw new NotSupported (this.id + ' fetchMarginMode() is not supported yet');
         }
-        throw new NotSupported (this.id + ' fetchMarginMode() is not supported yet');
     }
 
     async fetchMarginModes (symbols: string[] = undefined, params = {}): Promise<MarginModes> {
-        throw new NotSupported (this.id + ' fetchMarginMode() is not supported yet');
+        throw new NotSupported (this.id + ' fetchMarginModes () is not supported yet');
     }
 
     async fetchRestOrderBookSafe (symbol, limit = undefined, params = {}) {
