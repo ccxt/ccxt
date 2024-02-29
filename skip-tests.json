@@ -219,6 +219,12 @@
                 "withdraw": "not provided",
                 "deposit": "not provided"
             },
+            "fetchTickers": {
+                "open": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269177570#L3624"
+            },
+            "watchTickers": {
+                "open": "same"
+            },
             "fetchOrderBook": {
                 "bid": "multiple bids might have same value"
             },
@@ -297,18 +303,30 @@
                 "networks": "missing"
             },
             "fetchTickers": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "same"
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269177564#L3615",
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing"
             },
             "fetchTicker": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "same"
+                "spread": "same",
+                "quoteVolume": "same"
             },
-            "fetchL2OrderBook": "bid==ask , https://app.travis-ci.com/github/ccxt/ccxt/builds/263304041#L2170",
-            "fetchLOrderBook": "same",
+            "watchTickers": {
+                "spread": "same",
+                "quoteVolume": "same"
+            },
+            "fetchOrderBook": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269177564#L3946"
+            },
+            "fetchL2OrderBook": {
+                "spread": "same"
+            },
             "watchOrderBook": {
                 "nonce":"missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4256",
-                "bid": "wrong data https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4325"
+                "spread": "same"
+            },
+            "watchOrderBookForSymbols": {
+                "nonce":"same",
+                "spread": "same"
             },
             "watchTrades":{
                 "side": "not set https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4312"
