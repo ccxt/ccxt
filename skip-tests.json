@@ -1518,7 +1518,6 @@
         "skip": "exchange unavailable, probably api upgrade needed"
     },
     "kraken": {
-        "skipWs": "timeouts",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267515280#L2314"
