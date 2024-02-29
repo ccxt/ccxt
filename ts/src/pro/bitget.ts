@@ -740,15 +740,18 @@ export default class bitget extends bitgetRest {
         //         uTime: '1709221342986'
         //     }
         //
-        market = this.safeMarket (undefined, market);
-        const timestamp = this.safeInteger (trade, 'ts');
+        const instId = this.safeString (trade, 'instId');
+        if (market === undefined) {
+            market = this.safeMarket (instId, undefined, undefined, 'contract');
+        }
+        const timestamp = this.safeIntegerN (trade, [ 'uTime', 'cTime', 'ts' ]);
         const feeCost = this.safeNumber (trade, 'fillFee');
         let fee = undefined;
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fillFeeCoin');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCost,
+                'cost': Precise.stringAbs (feeCost),
                 'currency': feeCurrencyCode,
             };
         }
@@ -1444,76 +1447,13 @@ export default class bitget extends bitgetRest {
             this.myTrades = new ArrayCache (limit);
         }
         const stored = this.myTrades;
-        const parsed = this.parseWsMyTrade (message);
+        const parsed = this.parseWsTrade (message);
         stored.append (parsed);
         const symbol = parsed['symbol'];
         const messageHash = 'myTrades';
         client.resolve (stored, messageHash);
         const symbolSpecificMessageHash = 'myTrades:' + symbol;
         client.resolve (stored, symbolSpecificMessageHash);
-    }
-
-    parseWsMyTrade (trade, market = undefined) {
-        //
-        // order and trade mixin (contract)
-        //
-        //     {
-        //         "accBaseVolume": "0",
-        //         "cTime": "1701920553759",
-        //         "clientOid": "1116501214318198793",
-        //         "enterPointSource": "WEB",
-        //         "feeDetail": [{
-        //             "feeCoin": "USDT",
-        //             "fee": "-0.162003"
-        //         }],
-        //         "force": "gtc",
-        //         "instId": "BTCUSDT",
-        //         "leverage": "20",
-        //         "marginCoin": "USDT",
-        //         "marginMode": "isolated",
-        //         "notionalUsd": "105",
-        //         "orderId": "1116501214293032964",
-        //         "orderType": "limit",
-        //         "posMode": "hedge_mode",
-        //         "posSide": "long",
-        //         "price": "35000",
-        //         "reduceOnly": "no",
-        //         "side": "buy",
-        //         "size": "0.003",
-        //         "status": "canceled",
-        //         "tradeSide": "open",
-        //         "uTime": "1701920595866"
-        //     }
-        //
-        const marketId = this.safeString (trade, 'instId');
-        market = this.safeMarket (marketId, market, undefined, 'contract');
-        const timestamp = this.safeInteger2 (trade, 'uTime', 'cTime');
-        const orderFee = this.safeValue (trade, 'feeDetail', []);
-        const fee = this.safeValue (orderFee, 0);
-        const feeAmount = this.safeString (fee, 'fee');
-        let feeObject = undefined;
-        if (feeAmount !== undefined) {
-            const feeCurrency = this.safeString (fee, 'feeCoin');
-            feeObject = {
-                'cost': Precise.stringAbs (feeAmount),
-                'currency': this.safeCurrencyCode (feeCurrency),
-            };
-        }
-        return this.safeTrade ({
-            'info': trade,
-            'id': undefined,
-            'order': this.safeString (trade, 'orderId'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': this.safeString (trade, 'orderType'),
-            'side': this.safeString (trade, 'side'),
-            'takerOrMaker': undefined,
-            'price': this.safeString (trade, 'price'),
-            'amount': this.safeString (trade, 'size'),
-            'cost': this.safeString (trade, 'notionalUsd'),
-            'fee': feeObject,
-        }, market);
     }
 
     async watchBalance (params = {}): Promise<Balances> {
