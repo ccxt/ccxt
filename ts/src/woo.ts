@@ -173,10 +173,16 @@ export default class woo extends Exchange {
                             'client/trade/{tid}': 1,
                             'order/{oid}/trades': 1,
                             'client/trades': 1,
+                            'client/hist_trades': 1,
+                            'staking/yield_history': 1,
+                            'client/holding': 1,
                             'asset/deposit': 10,
                             'asset/history': 60,
                             'sub_account/all': 60,
                             'sub_account/assets': 60,
+                            'sub_account/asset_detail': 60,
+                            'sub_account/ip_restriction': 10,
+                            'asset/main_sub_transfer_history': 30,
                             'token_interest': 60,
                             'token_interest/{token}': 60,
                             'interest/history': 60,
@@ -189,9 +195,12 @@ export default class woo extends Exchange {
                         'post': {
                             'order': 5, // 2 requests per 1 second per symbol
                             'asset/main_sub_transfer': 30, // 20 requests per 60 seconds
+                            'asset/ltv': 30,
                             'asset/withdraw': 30,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'asset/internal_withdraw': 30,
                             'interest/repay': 60,
                             'client/account_mode': 120,
+                            'client/position_mode': 5,
                             'client/leverage': 120,
                         },
                         'delete': {
