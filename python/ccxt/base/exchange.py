@@ -56,6 +56,8 @@ except ImportError:
 # eth signing
 from ccxt.static_dependencies.ethereum import abi
 from ccxt.static_dependencies.ethereum import account
+from ccxt.static_dependencies.msgpack import packb
+
 
 # -----------------------------------------------------------------------------
 
@@ -1353,6 +1355,14 @@ class Exchange(object):
     def eth_encode_structured_data(domain, messageTypes, message):
         encodedData = account.messages.encode_typed_data(domain, messageTypes, message)
         return Exchange.binary_concat(b"\x19\x01", encodedData.header, encodedData.body)
+
+    @staticmethod
+    def packb(o):
+        return packb(o)
+
+    @staticmethod
+    def int_to_base16(num):
+        return "%0.2X" % num
 
     @staticmethod
     def ecdsa(request, secret, algorithm='p256', hash=None, fixed_length=False):
@@ -4404,7 +4414,6 @@ class Exchange(object):
     def amount_to_precision(self, symbol: str, amount):
         market = self.market(symbol)
         result = self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], self.precisionMode, self.paddingMode)
-        print(self.decimal_to_precision(amount, ROUND, market['precision']['amount'], DECIMAL_PLACES, self.paddingMode))
         if result == '0':
             raise InvalidOrder(self.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + self.number_to_string(market['precision']['amount']))
         return result
