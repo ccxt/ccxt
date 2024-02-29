@@ -93,7 +93,9 @@ export default class bitget extends bitgetRest {
 
     getInstType (market, params = {}) {
         let instType = undefined;
-        if ((market['swap']) || (market['future'])) {
+        if (market === undefined) {
+            [ instType, params ] = this.handleProductTypeAndParams (undefined, params);
+        } else if ((market['swap']) || (market['future'])) {
             [ instType, params ] = this.handleProductTypeAndParams (market, params);
         } else {
             instType = 'SPOT';
