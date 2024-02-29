@@ -564,7 +564,6 @@ export default class Exchange {
                 'createLimitSellOrder': undefined,
                 'createMarketBuyOrder': undefined,
                 'createMarketBuyOrderWithCost': undefined,
-                'createMarketBuyOrderWithCost': undefined,
                 'createMarketOrder': true,
                 'createMarketOrderWithCost': undefined,
                 'createMarketSellOrder': undefined,
