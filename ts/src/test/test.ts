@@ -529,10 +529,13 @@ export default class testMainClass extends baseMainTestClass {
             tests = {
                 // @ts-ignore
                 'watchOHLCV': [ symbol ],
+                'watchOHLCVForSymbols': [ symbol ], // argument type will be handled inside test
                 'watchTicker': [ symbol ],
-                'watchTickers': [ symbol ],
+                'watchTickers': [ [ symbol ] ],
                 'watchOrderBook': [ symbol ],
+                'watchOrderBookForSymbols': [ [ symbol ] ],
                 'watchTrades': [ symbol ],
+                'watchTradesForSymbols': [ [ symbol ] ],
             };
         }
         const market = exchange.market (symbol);
