@@ -575,6 +575,7 @@ export default class okx extends Exchange {
                     '50027': PermissionDenied, // The account is restricted from trading
                     '50028': ExchangeError, // Unable to take the order, please reach out to support center for details
                     '50044': BadRequest, // Must select one broker type
+                    '50062': ExchangeError, // This feature is currently unavailable.
                     // API Class
                     '50100': ExchangeError, // API frozen, please contact customer service
                     '50101': AuthenticationError, // Broker id of APIKey does not match current environment
@@ -629,6 +630,15 @@ export default class okx extends Exchange {
                     '51072': InvalidOrder, // As a spot lead trader, you need to set tdMode to 'spot_isolated' when configured buying lead trade pairs
                     '51073': InvalidOrder, // As a spot lead trader, you need to use '/copytrading/close-subposition' for selling assets through lead trades
                     '51074': InvalidOrder, // Only the tdMode for lead trade pairs configured by spot lead traders can be set to 'spot_isolated'
+                    '51090': InvalidOrder, // You can't modify the amount of an SL order placed with a TP limit order.
+                    '51091': InvalidOrder, // All TP orders in one order must be of the same type.
+                    '51092': InvalidOrder, // TP order prices (tpOrdPx) in one order must be different.
+                    '51093': InvalidOrder, // TP limit order prices (tpOrdPx) in one order can't be –1 (market price).
+                    '51094': InvalidOrder, // You can't place TP limit orders in spot, margin, or options trading.
+                    '51095': InvalidOrder, // To place TP limit orders at this endpoint, you must place an SL order at the same time.
+                    '51096': InvalidOrder, // cxlOnClosePos needs to be true to place a TP limit order
+                    '51098': InvalidOrder, // You can't add a new TP order to an SL order placed with a TP limit order.
+                    '51099': InvalidOrder, // You can't place TP limit orders as a lead trader.
                     '51100': InvalidOrder, // Trading amount does not meet the min tradable amount
                     '51101': InvalidOrder, // Entered amount exceeds the max pending order amount (Cont) per transaction
                     '51102': InvalidOrder, // Entered amount exceeds the max pending count
