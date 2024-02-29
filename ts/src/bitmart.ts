@@ -70,6 +70,7 @@ export default class bitmart extends Exchange {
                 'fetchIsolatedBorrowRate': true,
                 'fetchIsolatedBorrowRates': true,
                 'fetchLeverage': true,
+                'fetchLeverages': true,
                 'fetchLiquidations': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -4160,6 +4161,32 @@ export default class bitmart extends Exchange {
             'leverage': this.safeInteger (position, 'leverage'),
             'marginMode': this.safeNumber (position, 'marginMode'),
         };
+    }
+
+    async fetchLeverages (symbols: string[] = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmart#fetchLeverages
+         * @description fetch the set leverage for all contract markets
+         * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
+         * @param {string[]} [symbols] a list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets ();
+        const positions = await this.fetchPositions (symbols, params);
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            const entry = positions[i];
+            const marketId = this.safeString (entry, 'symbol');
+            result.push ({
+                'info': entry,
+                'symbol': this.safeMarket (marketId, undefined, undefined, 'contract'),
+                'leverage': this.safeInteger (entry, 'leverage'),
+                'marginMode': this.safeNumber (entry, 'marginMode'),
+            });
+        }
+        return result;
     }
 
     async fetchPosition (symbol: string, params = {}) {
