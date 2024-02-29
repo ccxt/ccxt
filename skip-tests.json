@@ -1623,22 +1623,6 @@
             }
         }
 	},
-    "xt": {
-        "skipMethods": {
-            "loadMarkets": "expiry and expiryDatetime are defined for non future/options markets",
-            "fetchCurrencies": {
-                "precision":"is undefined",
-                "withdraw": "undefined",
-                "deposit": "undefined",
-                "fee": "undefined"
-            },
-            "fetchTickers": "some outaded contracts, eg RICHARLISONGBALL2022/USDT:USDT-221219 return bid > ask",
-            "fetchTicker": "same",
-            "fetchTrades": {
-                "side": "messed"
-            }
-        }
-    },
     "yobit": {
         "skipMethods": {
             "loadMarkets":{
