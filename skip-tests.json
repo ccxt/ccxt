@@ -461,23 +461,6 @@
             "watchOrderBook": "something broken https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4473 and https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4504"
         }
     },
-    "bitstamp1": {
-        "skipMethods": {
-            "loadMarkets": {
-                "info": "null",
-                "precision":"not provided",
-                "active": "not provided"
-            },
-            "fetchOrderBook": "bid/ask might be 0",
-            "fetchL2OrderBook": "same",
-            "fetchTicker": {
-                "bid": "greater than ask https://app.travis-ci.com/github/ccxt/ccxt/builds/264241638#L3027"
-            },
-            "fetchTickers": {
-                "bid": "same"
-            }
-        }
-    },
     "bl3p": {
         "skipMethods": {
             "loadMarkets": {
