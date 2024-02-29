@@ -478,11 +478,10 @@ export default class currencycom extends currencycomRest {
         const timestamp = this.safeInteger (data, 'ts');
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
-            orderbook = this.orderBook ({
-                'symbol': symbol,
-            });
+            orderbook = this.orderBook ();
         }
         orderbook.reset ({
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         });
