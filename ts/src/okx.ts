@@ -2993,7 +2993,6 @@ export default class okx extends Exchange {
                 request['newSlTriggerPxType'] = stopLossTriggerPriceType;
             }
             if (takeProfitTriggerPrice !== undefined) {
-                request['newTpOrdKind'] = (type === 'limit') ? type : 'condition';
                 request['newTpTriggerPx'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
                 request['newTpOrdPx'] = (type === 'market') ? '-1' : this.priceToPrecision (symbol, takeProfitPrice);
                 request['newTpTriggerPxType'] = takeProfitTriggerPriceType;
