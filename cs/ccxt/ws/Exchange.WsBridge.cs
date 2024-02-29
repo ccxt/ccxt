@@ -60,25 +60,7 @@ public partial class Exchange
         object tries = 0;
         try
         {
-            var storedRaw = getValue(this.orderbooks, symbol);
-            ccxt.pro.IOrderBook stored = null;
-            if (storedRaw is ccxt.pro.OrderBook)
-            {
-                stored = storedRaw as ccxt.pro.OrderBook;
-            }
-            else if (storedRaw is ccxt.pro.IndexedOrderBook)
-            {
-                stored = storedRaw as ccxt.pro.IndexedOrderBook;
-            }
-            else if (storedRaw is ccxt.pro.CountedOrderBook)
-            {
-                stored = storedRaw as ccxt.pro.CountedOrderBook;
-            }
-            else
-            {
-                (client).reject(new ExchangeError(add(this.id, " loadOrderBook() stored orderbook is not an instance of OrderBook")), messageHash);
-                return;
-            }
+            var stored = getValue(this.orderbooks, symbol) as ccxt.pro.IOrderBook;
             while (isLessThan(tries, maxRetries))
             {
                 var cache = stored.cache;
