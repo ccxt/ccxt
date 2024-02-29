@@ -219,6 +219,12 @@
                 "withdraw": "not provided",
                 "deposit": "not provided"
             },
+            "fetchTickers": {
+                "open": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269177570#L3624"
+            },
+            "watchTickers": {
+                "open": "same"
+            },
             "fetchOrderBook": {
                 "bid": "multiple bids might have same value"
             },
