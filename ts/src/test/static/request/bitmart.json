@@ -493,6 +493,18 @@
                   "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchLeverages": [
+            {
+                "description": "Swap fetch leverages",
+                "method": "fetchLeverages",
+                "url": "https://api-cloud.bitmart.com/contract/private/position?symbol=BTCUSDT",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ]
+                ]
+            }
         ]
     }
 }
