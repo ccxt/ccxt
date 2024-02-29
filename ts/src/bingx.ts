@@ -6,7 +6,7 @@ import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError,
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Num, Dict } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
