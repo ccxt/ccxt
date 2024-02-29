@@ -521,24 +521,6 @@
             }
         }
     },
-    "bkex": {
-        "skipMethods": {
-            "fetchOrderBook": "system busy",
-            "loadMarkets": {
-                "currencyIdAndCode": "broken currencies",
-                "contractSize": "broken for some markets"
-            },
-            "fetchCurrencies": {
-                "precision": "not provided",
-                "networks": "missing"
-            },
-            "fetchTickers": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            },
-            "fetchOHLCV": "open might be greater than high"
-        }
-    },
     "btcbox": {
         "skipMethods": {
             "loadMarkets": {
