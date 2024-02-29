@@ -32,18 +32,20 @@ export default class deribit extends deribitRest {
                 },
             },
             'options': {
-                'timeframes': {
-                    '1m': 1,
-                    '3m': 3,
-                    '5m': 5,
-                    '15m': 15,
-                    '30m': 30,
-                    '1h': 60,
-                    '2h': 120,
-                    '4h': 180,
-                    '6h': 360,
-                    '12h': 720,
-                    '1d': '1D',
+                'ws': {
+                    'timeframes': {
+                        '1m': 1,
+                        '3m': 3,
+                        '5m': 5,
+                        '15m': 15,
+                        '30m': 30,
+                        '1h': 60,
+                        '2h': 120,
+                        '4h': 180,
+                        '6h': 360,
+                        '12h': 720,
+                        '1d': '1D',
+                    },
                 },
                 'currencies': [ 'BTC', 'ETH', 'SOL', 'USDC' ],
             },
@@ -632,7 +634,8 @@ export default class deribit extends deribitRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
-        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        const wsOptions = this.safeDict (this.options, 'ws', {});
+        const timeframes = this.safeDict (wsOptions, 'timeframes', {});
         const interval = this.safeString (timeframes, timeframe);
         if (interval === undefined) {
             throw new NotSupported (this.id + ' this interval is not supported, please provide one of the supported timeframes');
