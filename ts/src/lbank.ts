@@ -2711,7 +2711,7 @@ export default class lbank extends Exchange {
             const uppercaseHash = hash.toUpperCase ();
             let sign = undefined;
             if (signatureMethod === 'RSA') {
-                const cacheSecretAsPem = this.safeValue (this.options, 'cacheSecretAsPem', true);
+                const cacheSecretAsPem = this.safeBool (this.options, 'cacheSecretAsPem', true);
                 let pem = undefined;
                 if (cacheSecretAsPem) {
                     pem = this.safeValue (this.options, 'pem');
