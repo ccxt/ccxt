@@ -1477,7 +1477,10 @@ public partial class bingx : Exchange
         {
             symbols = this.marketSymbols(symbols);
             object firstSymbol = this.safeString(symbols, 0);
-            market = this.market(firstSymbol);
+            if (isTrue(!isEqual(firstSymbol, null)))
+            {
+                market = this.market(firstSymbol);
+            }
         }
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);

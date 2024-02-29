@@ -1399,7 +1399,9 @@ class bingx extends bingx$1 {
         if (symbols !== undefined) {
             symbols = this.marketSymbols(symbols);
             const firstSymbol = this.safeString(symbols, 0);
-            market = this.market(firstSymbol);
+            if (firstSymbol !== undefined) {
+                market = this.market(firstSymbol);
+            }
         }
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);

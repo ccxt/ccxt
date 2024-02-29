@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.54'
+__version__ = '4.2.56'
 
 # -----------------------------------------------------------------------------
 
@@ -2032,7 +2032,7 @@ class Exchange(object):
             return self.arraySlice(result, -limit)
         return self.filter_by_limit(result, limit, key, sinceIsDefined)
 
-    def set_sandbox_mode(self, enabled):
+    def set_sandbox_mode(self, enabled: bool):
         if enabled:
             if 'test' in self.urls:
                 if isinstance(self.urls['api'], str):

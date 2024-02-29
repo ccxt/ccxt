@@ -93,7 +93,9 @@ class bitget extends \ccxt\async\bitget {
 
     public function get_inst_type($market, $params = array ()) {
         $instType = null;
-        if (($market['swap']) || ($market['future'])) {
+        if ($market === null) {
+            list($instType, $params) = $this->handleProductTypeAndParams (null, $params);
+        } elseif (($market['swap']) || ($market['future'])) {
             list($instType, $params) = $this->handleProductTypeAndParams ($market, $params);
         } else {
             $instType = 'SPOT';
@@ -682,9 +684,12 @@ class bitget extends \ccxt\async\bitget {
             $stored = new ArrayCache ($limit);
             $this->trades[$symbol] = $stored;
         }
-        $data = $this->safe_value($message, 'data', array());
-        for ($j = 0; $j < count($data); $j++) {
-            $rawTrade = $data[$j];
+        $data = $this->safe_list($message, 'data', array());
+        $length = count($data);
+        $maxLength = max ($length - 1, 0);
+        // fix chronological order by reversing
+        for ($i = $maxLength; $i >= 0; $i--) {
+            $rawTrade = $data[$i];
             $parsed = $this->parse_ws_trade($rawTrade, $market);
             $stored->append ($parsed);
         }
@@ -702,22 +707,71 @@ class bitget extends \ccxt\async\bitget {
         //         "tradeId" => "1116461060594286593"
         //     }
         //
-        $market = $this->safe_market(null, $market);
-        $timestamp = $this->safe_integer($trade, 'ts');
+        // order with $trade in it
+        //     {
+        //         accBaseVolume => '0.1',
+        //         baseVolume => '0.1',
+        //         cTime => '1709221342922',
+        //         clientOid => '1147122943507734528',
+        //         enterPointSource => 'API',
+        //         feeDetail => [Array],
+        //         fillFee => '-0.0049578',
+        //         fillFeeCoin => 'USDT',
+        //         fillNotionalUsd => '8.263',
+        //         fillPrice => '82.63',
+        //         fillTime => '1709221342986',
+        //         force => 'gtc',
+        //         $instId => 'LTCUSDT',
+        //         leverage => '10',
+        //         marginCoin => 'USDT',
+        //         marginMode => 'crossed',
+        //         notionalUsd => '8.268',
+        //         orderId => '1147122943499345921',
+        //         orderType => 'market',
+        //         pnl => '0',
+        //         posMode => 'hedge_mode',
+        //         posSide => 'short',
+        //         price => '0',
+        //         priceAvg => '82.63',
+        //         reduceOnly => 'no',
+        //         side => 'sell',
+        //         size => '0.1',
+        //         status => 'filled',
+        //         tradeId => '1147122943772479563',
+        //         tradeScope => 'T',
+        //         tradeSide => 'open',
+        //         uTime => '1709221342986'
+        //     }
+        //
+        $instId = $this->safe_string($trade, 'instId');
+        if ($market === null) {
+            $market = $this->safe_market($instId, null, null, 'contract');
+        }
+        $timestamp = $this->safe_integer_n($trade, array( 'uTime', 'cTime', 'ts' ));
+        $feeCost = $this->safe_string($trade, 'fillFee');
+        $fee = null;
+        if ($feeCost !== null) {
+            $feeCurrencyId = $this->safe_string($trade, 'fillFeeCoin');
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
+            $fee = array(
+                'cost' => Precise::string_abs($feeCost),
+                'currency' => $feeCurrencyCode,
+            );
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $this->safe_string($trade, 'tradeId'),
-            'order' => null,
+            'order' => $this->safe_string($trade, 'orderId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $market['symbol'],
             'type' => null,
             'side' => $this->safe_string($trade, 'side'),
             'takerOrMaker' => null,
-            'price' => $this->safe_string($trade, 'price'),
+            'price' => $this->safe_string_2($trade, 'priceAvg', 'price'),
             'amount' => $this->safe_string($trade, 'size'),
-            'cost' => null,
-            'fee' => null,
+            'cost' => $this->safe_string($trade, 'fillNotionalUsd'),
+            'fee' => $fee,
         ), $market);
     }
 
@@ -1124,6 +1178,9 @@ class bitget extends \ccxt\async\bitget {
         $marketSymbols = array();
         for ($i = 0; $i < count($data); $i++) {
             $order = $data[$i];
+            if (is_array($order) && array_key_exists('tradeId', $order)) {
+                $this->handle_my_trades($client, $order);
+            }
             $marketId = $this->safe_string($order, 'instId');
             $market = $this->safe_market($marketId, null, null, $marketType);
             $parsed = $this->parse_ws_order($order, $market);
@@ -1393,76 +1450,13 @@ class bitget extends \ccxt\async\bitget {
             $this->myTrades = new ArrayCache ($limit);
         }
         $stored = $this->myTrades;
-        $parsed = $this->parse_ws_my_trade($message);
+        $parsed = $this->parse_ws_trade($message);
         $stored->append ($parsed);
         $symbol = $parsed['symbol'];
         $messageHash = 'myTrades';
         $client->resolve ($stored, $messageHash);
         $symbolSpecificMessageHash = 'myTrades:' . $symbol;
         $client->resolve ($stored, $symbolSpecificMessageHash);
-    }
-
-    public function parse_ws_my_trade($trade, $market = null) {
-        //
-        // order and $trade mixin (contract)
-        //
-        //     {
-        //         "accBaseVolume" => "0",
-        //         "cTime" => "1701920553759",
-        //         "clientOid" => "1116501214318198793",
-        //         "enterPointSource" => "WEB",
-        //         "feeDetail" => [array(
-        //             "feeCoin" => "USDT",
-        //             "fee" => "-0.162003"
-        //         )],
-        //         "force" => "gtc",
-        //         "instId" => "BTCUSDT",
-        //         "leverage" => "20",
-        //         "marginCoin" => "USDT",
-        //         "marginMode" => "isolated",
-        //         "notionalUsd" => "105",
-        //         "orderId" => "1116501214293032964",
-        //         "orderType" => "limit",
-        //         "posMode" => "hedge_mode",
-        //         "posSide" => "long",
-        //         "price" => "35000",
-        //         "reduceOnly" => "no",
-        //         "side" => "buy",
-        //         "size" => "0.003",
-        //         "status" => "canceled",
-        //         "tradeSide" => "open",
-        //         "uTime" => "1701920595866"
-        //     }
-        //
-        $marketId = $this->safe_string($trade, 'instId');
-        $market = $this->safe_market($marketId, $market, null, 'contract');
-        $timestamp = $this->safe_integer_2($trade, 'uTime', 'cTime');
-        $orderFee = $this->safe_value($trade, 'feeDetail', array());
-        $fee = $this->safe_value($orderFee, 0);
-        $feeAmount = $this->safe_string($fee, 'fee');
-        $feeObject = null;
-        if ($feeAmount !== null) {
-            $feeCurrency = $this->safe_string($fee, 'feeCoin');
-            $feeObject = array(
-                'cost' => Precise::string_abs($feeAmount),
-                'currency' => $this->safe_currency_code($feeCurrency),
-            );
-        }
-        return $this->safe_trade(array(
-            'info' => $trade,
-            'id' => null,
-            'order' => $this->safe_string($trade, 'orderId'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
-            'type' => $this->safe_string($trade, 'orderType'),
-            'side' => $this->safe_string($trade, 'side'),
-            'takerOrMaker' => null,
-            'price' => $this->safe_string($trade, 'price'),
-            'amount' => $this->safe_string($trade, 'size'),
-            'cost' => $this->safe_string($trade, 'notionalUsd'),
-            'fee' => $feeObject,
-        ), $market);
     }
 
     public function watch_balance($params = array ()): PromiseInterface {

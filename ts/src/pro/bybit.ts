@@ -333,15 +333,29 @@ export default class bybit extends bybitRest {
         //             "price24hPcnt": "-0.0388"
         //         }
         //     }
+        // swap delta
+        //     {
+        //         "topic":"tickers.AAVEUSDT",
+        //         "type":"delta",
+        //         "data":{
+        //            "symbol":"AAVEUSDT",
+        //            "bid1Price":"112.89",
+        //            "bid1Size":"2.12",
+        //            "ask1Price":"112.90",
+        //            "ask1Size":"5.02"
+        //         },
+        //         "cs":78039939929,
+        //         "ts":1709210212704
+        //     }
         //
         const topic = this.safeString (message, 'topic', '');
         const updateType = this.safeString (message, 'type', '');
         const data = this.safeDict (message, 'data', {});
-        const isSpot = this.safeString (data, 'fundingRate') === undefined;
+        const isSpot = this.safeString (data, 'usdIndexPrice') !== undefined;
         const type = isSpot ? 'spot' : 'contract';
         let symbol = undefined;
         let parsed = undefined;
-        if ((updateType === 'snapshot') || isSpot) {
+        if ((updateType === 'snapshot')) {
             parsed = this.parseTicker (data);
             symbol = parsed['symbol'];
         } else if (updateType === 'delta') {
