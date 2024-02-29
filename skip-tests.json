@@ -1558,9 +1558,6 @@
             }
         }
     },
-    "ripio": {
-        "httpsProxy": "http://5.75.153.75:8002"
-    },
     "timex": {
         "skipMethods": {
             "loadMarkets": {
