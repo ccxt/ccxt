@@ -704,8 +704,54 @@ export default class bitget extends bitgetRest {
         //         "tradeId": "1116461060594286593"
         //     }
         //
+        // order with trade in it
+        //     {
+        //         accBaseVolume: '0.1',
+        //         baseVolume: '0.1',
+        //         cTime: '1709221342922',
+        //         clientOid: '1147122943507734528',
+        //         enterPointSource: 'API',
+        //         feeDetail: [Array],
+        //         fillFee: '-0.0049578',
+        //         fillFeeCoin: 'USDT',
+        //         fillNotionalUsd: '8.263',
+        //         fillPrice: '82.63',
+        //         fillTime: '1709221342986',
+        //         force: 'gtc',
+        //         instId: 'LTCUSDT',
+        //         leverage: '10',
+        //         marginCoin: 'USDT',
+        //         marginMode: 'crossed',
+        //         notionalUsd: '8.268',
+        //         orderId: '1147122943499345921',
+        //         orderType: 'market',
+        //         pnl: '0',
+        //         posMode: 'hedge_mode',
+        //         posSide: 'short',
+        //         price: '0',
+        //         priceAvg: '82.63',
+        //         reduceOnly: 'no',
+        //         side: 'sell',
+        //         size: '0.1',
+        //         status: 'filled',
+        //         tradeId: '1147122943772479563',
+        //         tradeScope: 'T',
+        //         tradeSide: 'open',
+        //         uTime: '1709221342986'
+        //     }
+        //
         market = this.safeMarket (undefined, market);
         const timestamp = this.safeInteger (trade, 'ts');
+        const feeCost = this.safeNumber (trade, 'fillFee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'fillFeeCoin');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'tradeId'),
@@ -716,10 +762,10 @@ export default class bitget extends bitgetRest {
             'type': undefined,
             'side': this.safeString (trade, 'side'),
             'takerOrMaker': undefined,
-            'price': this.safeString (trade, 'price'),
+            'price': this.safeString2 (trade, 'priceAvg', 'price'),
             'amount': this.safeString (trade, 'size'),
             'cost': undefined,
-            'fee': undefined,
+            'fee': fee,
         }, market);
     }
 
