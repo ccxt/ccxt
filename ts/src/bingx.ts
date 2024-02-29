@@ -1796,7 +1796,7 @@ export default class bingx extends Exchange {
         return await this.createOrder (symbol, 'market', 'sell', cost, undefined, params);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @ignore
@@ -1975,7 +1975,7 @@ export default class bingx extends Exchange {
         return this.extend (request, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name bingx#createOrder
@@ -2173,7 +2173,7 @@ export default class bingx extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // spot
         // createOrder, createOrders, cancelOrder
@@ -3177,7 +3177,7 @@ export default class bingx extends Exchange {
         }
     }
 
-    parseDepositAddress (depositAddress: Dict, currency: Currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         //     {
         //         "coinId": "799",
