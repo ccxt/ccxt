@@ -1224,7 +1224,7 @@
                 "currencyIdAndCode": "messed"
             },
             "fetchCurrencies": {
-                "currencyIdAndCode": "messed",
+                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269188556#L4337",
                 "withdraw":"not provided",
                 "deposit":"not provided"
             },
