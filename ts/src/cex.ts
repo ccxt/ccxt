@@ -215,7 +215,7 @@ export default class cex extends Exchange {
     async fetchCurrenciesFromCache (params = {}) {
         // this method is now redundant
         // currencies are now fetched before markets
-        const options = this.safeValue (this.options, 'fetchCurrencies', {});
+        const options = this.safeDict (this.options, 'fetchCurrencies', {});
         const timestamp = this.safeInteger (options, 'timestamp');
         const expires = this.safeInteger (options, 'expires', 1000);
         const now = this.milliseconds ();
@@ -345,7 +345,7 @@ export default class cex extends Exchange {
          * @returns {object[]} an array of objects representing market data
          */
         const currenciesResponse = await this.fetchCurrenciesFromCache (params);
-        const currenciesData = this.safeValue (currenciesResponse, 'data', {});
+        const currenciesData = this.safeDict (currenciesResponse, 'data', {});
         const currencies = this.safeValue (currenciesData, 'symbols', []);
         const currenciesById = this.indexBy (currencies, 'code');
         const pairs = this.safeValue (currenciesData, 'pairs', []);
@@ -386,8 +386,8 @@ export default class cex extends Exchange {
             const quoteId = this.safeString (market, 'symbol2');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const baseCurrency = this.safeValue (currenciesById, baseId, {});
-            const quoteCurrency = this.safeValue (currenciesById, quoteId, {});
+            const baseCurrency = this.safeDict (currenciesById, baseId, {});
+            const quoteCurrency = this.safeDict (currenciesById, quoteId, {});
             let pricePrecisionString = this.safeString (quoteCurrency, 'precision', '8');
             for (let j = 0; j < pairs.length; j++) {
                 const pair = pairs[j];
@@ -459,7 +459,7 @@ export default class cex extends Exchange {
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
-            const balance = this.safeValue (balances, currencyId, {});
+            const balance = this.safeDict (balances, currencyId, {});
             const account = this.account ();
             account['free'] = this.safeString (balance, 'available');
             // https://github.com/ccxt/ccxt/issues/5484
@@ -734,12 +734,12 @@ export default class cex extends Exchange {
         //          }
         //      }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const result = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
-            const fee = this.safeValue (data, market['id'], {});
+            const fee = this.safeDict (data, market['id'], {});
             const makerString = this.safeString (fee, 'buyMaker');
             const takerString = this.safeString (fee, 'buy');
             const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
@@ -1230,7 +1230,7 @@ export default class cex extends Exchange {
             'id': id.toString (),
         };
         const response = await this.privatePostGetOrderTx (this.extend (request, params));
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         //
         //     {
         //         "id": "5442731603",
@@ -1633,11 +1633,11 @@ export default class cex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const addresses = this.safeValue (data, 'addresses', []);
         const chainsIndexedById = this.indexBy (addresses, 'blockchain');
         const selectedNetworkId = this.selectNetworkIdFromRawNetworks (code, networkCode, chainsIndexedById);
-        const addressObject = this.safeValue (chainsIndexedById, selectedNetworkId, {});
+        const addressObject = this.safeDict (chainsIndexedById, selectedNetworkId, {});
         const address = this.safeString2 (addressObject, 'address', 'destination');
         this.checkAddress (address);
         return {

@@ -125,13 +125,13 @@ export default class ascendex extends ascendexRest {
         const marketId = this.safeString (message, 's');
         const symbol = this.safeSymbol (marketId);
         const channel = this.safeString (message, 'm');
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const interval = this.safeString (data, 'i');
         const messageHash = channel + ':' + interval + ':' + marketId;
         const timeframe = this.findTimeframe (interval);
         const market = this.market (symbol);
         const parsed = this.parseOHLCV (message, market);
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -354,7 +354,7 @@ export default class ascendex extends ascendexRest {
         //     }
         //  }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const seqNum = this.safeInteger (data, 'seqnum');
         if (seqNum > orderbook['nonce']) {
             const asks = this.safeValue (data, 'asks', []);
@@ -382,7 +382,7 @@ export default class ascendex extends ascendexRest {
         let channel = undefined;
         let messageHash = undefined;
         if ((type === 'spot') || (type === 'margin')) {
-            const accountCategories = this.safeValue (this.options, 'accountCategories', {});
+            const accountCategories = this.safeDict (this.options, 'accountCategories', {});
             let accountCategory = this.safeString (accountCategories, type, 'cash'); // cash, margin,
             accountCategory = accountCategory.toUpperCase ();
             channel = 'order:' + accountCategory; // order and balance share the same channel
@@ -459,10 +459,10 @@ export default class ascendex extends ascendexRest {
             quoteAccount['total'] = this.safeString (data, 'qtb');
             if (market['contract']) {
                 type = 'swap';
-                result = this.safeValue (this.balance, type, {});
+                result = this.safeDict (this.balance, type, {});
             } else {
                 type = market['type'];
-                result = this.safeValue (this.balance, type, {});
+                result = this.safeDict (this.balance, type, {});
             }
             result[market['base']] = baseAccount;
             result[market['quote']] = quoteAccount;
@@ -470,7 +470,7 @@ export default class ascendex extends ascendexRest {
             const accountType = this.safeStringLower2 (message, 'ac', 'at');
             const categoriesAccounts = this.safeValue (this.options, 'categoriesAccount');
             type = this.safeString (categoriesAccounts, accountType, 'spot');
-            result = this.safeValue (this.balance, type, {});
+            result = this.safeDict (this.balance, type, {});
             const data = this.safeValue (message, 'data');
             let balances = undefined;
             if (data === undefined) {
@@ -516,7 +516,7 @@ export default class ascendex extends ascendexRest {
             channel = 'futures-order';
             messageHash = 'order:FUTURES';
         } else {
-            const accountCategories = this.safeValue (this.options, 'accountCategories', {});
+            const accountCategories = this.safeDict (this.options, 'accountCategories', {});
             let accountCategory = this.safeString (accountCategories, type, 'cash'); // cash, margin
             accountCategory = accountCategory.toUpperCase ();
             messageHash = 'order' + ':' + accountCategory;

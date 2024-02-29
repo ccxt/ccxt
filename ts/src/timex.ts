@@ -436,7 +436,7 @@ export default class timex extends Exchange {
         const currencies = this.currencies as any;
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
-            const info = this.safeValue (currency, 'info', {});
+            const info = this.safeDict (currency, 'info', {});
             const a = this.safeString (info, 'address');
             if (a === address) {
                 return currency;
@@ -620,7 +620,7 @@ export default class timex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const options = this.safeValue (this.options, 'fetchTrades', {});
+        const options = this.safeDict (this.options, 'fetchTrades', {});
         const defaultSort = this.safeValue (options, 'sort', 'timestamp,asc');
         const sort = this.safeString (params, 'sort', defaultSort);
         const query = this.omit (params, 'sort');
@@ -817,7 +817,7 @@ export default class timex extends Exchange {
         //     }
         //
         const orders = this.safeValue (response, 'orders', []);
-        const order = this.safeValue (orders, 0, {});
+        const order = this.safeDict (orders, 0, {});
         return this.parseOrder (order, market);
     }
 
@@ -868,8 +868,8 @@ export default class timex extends Exchange {
             });
         }
         const orders = this.safeValue (response, 'changedOrders', []);
-        const firstOrder = this.safeValue (orders, 0, {});
-        const order = this.safeValue (firstOrder, 'newOrder', {});
+        const firstOrder = this.safeDict (orders, 0, {});
+        const order = this.safeDict (firstOrder, 'newOrder', {});
         return this.parseOrder (order, market);
     }
 
@@ -979,7 +979,7 @@ export default class timex extends Exchange {
         //         ]
         //     }
         //
-        const order = this.safeValue (response, 'order', {});
+        const order = this.safeDict (response, 'order', {});
         const trades = this.safeValue (response, 'trades', []);
         return this.parseOrder (this.extend (order, { 'trades': trades }));
     }
@@ -997,7 +997,7 @@ export default class timex extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const options = this.safeValue (this.options, 'fetchOpenOrders', {});
+        const options = this.safeDict (this.options, 'fetchOpenOrders', {});
         const defaultSort = this.safeValue (options, 'sort', 'createdAt,asc');
         const sort = this.safeString (params, 'sort', defaultSort);
         const query = this.omit (params, 'sort');
@@ -1053,7 +1053,7 @@ export default class timex extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const options = this.safeValue (this.options, 'fetchClosedOrders', {});
+        const options = this.safeDict (this.options, 'fetchClosedOrders', {});
         const defaultSort = this.safeValue (options, 'sort', 'createdAt,asc');
         const sort = this.safeString (params, 'sort', defaultSort);
         const query = this.omit (params, 'sort');
@@ -1114,7 +1114,7 @@ export default class timex extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const options = this.safeValue (this.options, 'fetchMyTrades', {});
+        const options = this.safeDict (this.options, 'fetchMyTrades', {});
         const defaultSort = this.safeValue (options, 'sort', 'timestamp,asc');
         const sort = this.safeString (params, 'sort', defaultSort);
         const query = this.omit (params, 'sort');
@@ -1206,7 +1206,7 @@ export default class timex extends Exchange {
         //         }
         //     ]
         //
-        const result = this.safeValue (response, 0, {});
+        const result = this.safeDict (response, 0, {});
         return this.parseTradingFee (result, market);
     }
 

@@ -891,8 +891,8 @@ export default class wavesexchange extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const ticker = this.safeValue (data, 0, {});
-        const dataTicker = this.safeValue (ticker, 'data', {});
+        const ticker = this.safeDict (data, 0, {});
+        const dataTicker = this.safeDict (ticker, 'data', {});
         return this.parseTicker (dataTicker, market);
     }
 
@@ -1050,7 +1050,7 @@ export default class wavesexchange extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (ohlcv, 'data', {});
+        const data = this.safeDict (ohlcv, 'data', {});
         return [
             this.parse8601 (this.safeString (data, 'time')),
             this.safeNumber (data, 'open'),
@@ -1071,7 +1071,7 @@ export default class wavesexchange extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.signIn ();
-        const networks = this.safeValue (this.options, 'networks', {});
+        const networks = this.safeDict (this.options, 'networks', {});
         const rawNetwork = this.safeStringUpper (params, 'network');
         const network = this.safeString (networks, rawNetwork, rawNetwork);
         params = this.omit (params, [ 'network' ]);
@@ -1187,7 +1187,7 @@ export default class wavesexchange extends Exchange {
         // }
         const currency = this.safeValue (response, 'currency');
         const networkId = this.safeString (currency, 'platform_id');
-        const networkByIds = this.safeValue (this.options, 'networkByIds', {});
+        const networkByIds = this.safeDict (this.options, 'networkByIds', {});
         const unifiedNetwork = this.safeString (networkByIds, networkId, networkId);
         const addresses = this.safeValue (response, 'deposit_addresses');
         const address = this.safeString (addresses, 0);
@@ -1990,7 +1990,7 @@ export default class wavesexchange extends Exchange {
         //   "confirmations": 0,
         //   "balance": 909085978
         // }
-        result['WAVES'] = this.safeValue (result, 'WAVES', {});
+        result['WAVES'] = this.safeDict (result, 'WAVES', {});
         result['WAVES']['total'] = this.currencyFromPrecision ('WAVES', this.safeString (wavesTotal, 'balance'));
         const codes = Object.keys (result);
         for (let i = 0; i < codes.length; i++) {

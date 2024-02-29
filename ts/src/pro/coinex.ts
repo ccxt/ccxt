@@ -133,7 +133,7 @@ export default class coinex extends coinexRest {
         //
         const defaultType = this.safeString (this.options, 'defaultType');
         const params = this.safeValue (message, 'params', []);
-        const rawTickers = this.safeValue (params, 0, {});
+        const rawTickers = this.safeDict (params, 0, {});
         const keys = Object.keys (rawTickers);
         const newTickers = [];
         for (let i = 0; i < keys.length; i++) {
@@ -266,7 +266,7 @@ export default class coinex extends coinexRest {
         //     }
         //
         const params = this.safeValue (message, 'params', []);
-        const first = this.safeValue (params, 0, {});
+        const first = this.safeDict (params, 0, {});
         this.balance['info'] = first;
         const currencies = Object.keys (first);
         for (let i = 0; i < currencies.length; i++) {
@@ -508,7 +508,7 @@ export default class coinex extends coinexRest {
         const url = this.urls['api']['ws'][type];
         const name = 'orderbook';
         const messageHash = name + ':' + symbol;
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        const options = this.safeDict (this.options, 'watchOrderBook', {});
         const limits = this.safeValue (options, 'limits', []);
         if (limit === undefined) {
             limit = this.safeValue (options, 'defaultLimit', 50);
@@ -523,7 +523,7 @@ export default class coinex extends coinexRest {
             throw new NotSupported (this.id + ' watchOrderBook() aggregation must be one of ' + aggregations.join (', '));
         }
         params = this.omit (params, 'aggregation');
-        const watchOrderBookSubscriptions = this.safeValue (this.options, 'watchOrderBookSubscriptions', {});
+        const watchOrderBookSubscriptions = this.safeDict (this.options, 'watchOrderBookSubscriptions', {});
         watchOrderBookSubscriptions[symbol] = [ market['id'], limit, aggregation, true ];
         const subscribe = {
             'method': 'depth.subscribe_multi',
@@ -561,8 +561,8 @@ export default class coinex extends coinexRest {
         const url = this.urls['api']['ws'][type];
         const messageHash = 'ohlcv';
         const watchOHLCVWarning = this.safeValue (this.options, 'watchOHLCVWarning', true);
-        const client = this.safeValue (this.clients, url, {});
-        const clientSub = this.safeValue (client, 'subscriptions', {});
+        const client = this.safeDict (this.clients, url, {});
+        const clientSub = this.safeDict (client, 'subscriptions', {});
         const existingSubscription = this.safeValue (clientSub, messageHash);
         const subSymbol = this.safeString (existingSubscription, 'symbol');
         const subTimeframe = this.safeString (existingSubscription, 'timeframe');
@@ -570,7 +570,7 @@ export default class coinex extends coinexRest {
         if (watchOHLCVWarning && existingSubscription !== undefined && (subSymbol !== symbol || subTimeframe !== timeframe)) {
             throw new ExchangeError (this.id + ' watchOHLCV() can only watch one symbol and timeframe at a time. To supress this warning set watchOHLCVWarning to false in options');
         }
-        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeDict (this.options, 'timeframes', {});
         const subscribe = {
             'method': 'kline.subscribe',
             'id': this.requestId (),
@@ -611,7 +611,7 @@ export default class coinex extends coinexRest {
         const url = this.urls['api']['ws'][type];
         symbol = market['symbol'];
         const messageHash = 'ohlcv';
-        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeDict (this.options, 'timeframes', {});
         timeframe = this.safeString (timeframes, timeframe, timeframe);
         if (since === undefined) {
             since = 1640995200;  // January 1, 2022
@@ -821,7 +821,7 @@ export default class coinex extends coinexRest {
         //      }
         //
         const params = this.safeValue (message, 'params', []);
-        const order = this.safeValue (params, 1, {});
+        const order = this.safeDict (params, 1, {});
         const parsedOrder = this.parseWsOrder (order);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);

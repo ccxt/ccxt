@@ -696,7 +696,7 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.safeInteger (data, 'server_time');
     }
 
@@ -708,7 +708,7 @@ export default class bitmart extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
-        const options = this.safeValue (this.options, 'fetchStatus', {});
+        const options = this.safeDict (this.options, 'fetchStatus', {});
         const defaultType = this.safeString (this.options, 'defaultType');
         let type = this.safeString (options, 'type', defaultType);
         type = this.safeString (params, 'type', type);
@@ -739,7 +739,7 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const services = this.safeValue (data, 'service', []);
         const servicesByType = this.indexBy (services, 'service_type');
         if (type === 'swap') {
@@ -794,7 +794,7 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const symbols = this.safeValue (data, 'symbols', []);
         const result = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -898,7 +898,7 @@ export default class bitmart extends Exchange {
         //       }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const symbols = this.safeValue (data, 'symbols', []);
         const result = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -1008,7 +1008,7 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const currencies = this.safeValue (data, 'currencies', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
@@ -1314,7 +1314,7 @@ export default class bitmart extends Exchange {
         //          }
         //      }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const tickers = this.safeValue (data, 'tickers', []);
         // fails in naming for contract tickers 'contract_symbol'
         let tickersById = undefined;
@@ -1354,7 +1354,7 @@ export default class bitmart extends Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchTickers() does not support ' + type + ' markets, only spot and swap markets are accepted');
         }
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const tickers = this.safeValue (data, 'tickers', []);
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
@@ -1438,7 +1438,7 @@ export default class bitmart extends Exchange {
         //         "trace": "4cad855074664097ac6ba5258c47305d.72.16952643834721135"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger2 (data, 'ts', 'timestamp');
         return this.parseOrderBook (data, market['symbol'], timestamp);
     }
@@ -1588,7 +1588,7 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const trades = this.safeValue (data, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
@@ -1793,7 +1793,7 @@ export default class bitmart extends Exchange {
             if (marginMode === 'isolated') {
                 request['orderMode'] = 'iso_margin';
             }
-            const options = this.safeValue (this.options, 'fetchMyTrades', {});
+            const options = this.safeDict (this.options, 'fetchMyTrades', {});
             const defaultLimit = this.safeInteger (options, 'limit', 200);
             if (limit === undefined) {
                 limit = defaultLimit;
@@ -1893,12 +1893,12 @@ export default class bitmart extends Exchange {
             'orderId': id,
         };
         const response = await this.privatePostSpotV4QueryOrderTrades (this.extend (request, params));
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTrades (data, undefined, since, limit);
     }
 
     customParseBalance (response, marketType): Balances {
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         let wallet = undefined;
         if (marketType === 'swap') {
             wallet = this.safeValue (response, 'data', []);
@@ -1913,8 +1913,8 @@ export default class bitmart extends Exchange {
                 const entry = wallet[i];
                 const marketId = this.safeString (entry, 'symbol');
                 const symbol = this.safeSymbol (marketId, undefined, '_');
-                const base = this.safeValue (entry, 'base', {});
-                const quote = this.safeValue (entry, 'quote', {});
+                const base = this.safeDict (entry, 'base', {});
+                const quote = this.safeDict (entry, 'quote', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency'));
                 const subResult = {};
@@ -2293,7 +2293,7 @@ export default class bitmart extends Exchange {
                 '4': 'closed', // Completed
             },
         };
-        const statuses = this.safeValue (statusesByType, type, {});
+        const statuses = this.safeDict (statusesByType, type, {});
         return this.safeString (statuses, status, status);
     }
 
@@ -2382,7 +2382,7 @@ export default class bitmart extends Exchange {
         // swap
         // {"code":1000,"message":"Ok","data":{"order_id":231116359426639,"price":"market price"},"trace":"7f9c94e10f9d4513bc08a7bfc2a5559a.62.16996369620521911"}
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const order = this.parseOrder (data, market);
         order['type'] = type;
         order['side'] = side;
@@ -2762,7 +2762,7 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const orders = this.safeValue (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
@@ -3064,7 +3064,7 @@ export default class bitmart extends Exchange {
         //         "trace": "4cad855075664097af6ba5257c47605d.63.14957831547451715"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -3085,7 +3085,7 @@ export default class bitmart extends Exchange {
         if (code === 'USDT') {
             const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
             const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
-            const networks = this.safeValue (this.options, 'networks', {});
+            const networks = this.safeDict (this.options, 'networks', {});
             let networkInner = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
             networkInner = this.safeString (networks, networkInner, networkInner); // handle ERC20>ETH alias
             if (networkInner !== undefined) {
@@ -3107,7 +3107,7 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const address = this.safeString (data, 'address');
         const tag = this.safeString (data, 'address_memo');
         const chain = this.safeString (data, 'chain');
@@ -3160,7 +3160,7 @@ export default class bitmart extends Exchange {
         if (code === 'USDT') {
             const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
             const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
-            const networks = this.safeValue (this.options, 'networks', {});
+            const networks = this.safeDict (this.options, 'networks', {});
             let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
             network = this.safeString (networks, network, network); // handle ERC20>ETH alias
             if (network !== undefined) {
@@ -3206,7 +3206,7 @@ export default class bitmart extends Exchange {
         if (code === 'USDT') {
             const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
             const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
-            const networks = this.safeValue (this.options, 'networks', {});
+            const networks = this.safeDict (this.options, 'networks', {});
             let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
             network = this.safeString (networks, network, network); // handle ERC20>ETH alias
             if (network !== undefined) {
@@ -3240,7 +3240,7 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const records = this.safeValue (data, 'records', []);
         return this.parseTransactions (records, currency, since, limit);
     }
@@ -3282,8 +3282,8 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const record = this.safeValue (data, 'record', {});
+        const data = this.safeDict (response, 'data', {});
+        const record = this.safeDict (data, 'record', {});
         return this.parseTransaction (record);
     }
 
@@ -3338,8 +3338,8 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const record = this.safeValue (data, 'record', {});
+        const data = this.safeDict (response, 'data', {});
+        const record = this.safeDict (data, 'record', {});
         return this.parseTransaction (record);
     }
 
@@ -3475,7 +3475,7 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const transaction = this.parseMarginLoan (data, currency);
         return this.extend (transaction, {
             'amount': amount,
@@ -3514,7 +3514,7 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const transaction = this.parseMarginLoan (data, currency);
         return this.extend (transaction, {
             'amount': amount,
@@ -3595,7 +3595,7 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const symbols = this.safeValue (data, 'symbols', []);
         const borrowRate = this.safeValue (symbols, 0);
         return this.parseIsolatedBorrowRate (borrowRate, market);
@@ -3627,8 +3627,8 @@ export default class bitmart extends Exchange {
         //
         const marketId = this.safeString (info, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const baseData = this.safeValue (info, 'base', {});
-        const quoteData = this.safeValue (info, 'quote', {});
+        const baseData = this.safeDict (info, 'base', {});
+        const quoteData = this.safeDict (info, 'quote', {});
         const baseId = this.safeString (baseData, 'currency');
         const quoteId = this.safeString (quoteData, 'currency');
         return {
@@ -3687,7 +3687,7 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const symbols = this.safeValue (data, 'symbols', []);
         const result = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -3767,7 +3767,7 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.extend (this.parseTransfer (data, currency), {
             'status': this.parseTransferStatus (this.safeString2 (response, 'code', 'message')),
         });
@@ -3897,7 +3897,7 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const records = this.safeValue (data, 'records', []);
         return this.parseTransfers (records, currency, since, limit);
     }
@@ -3951,7 +3951,7 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const rows = this.safeValue (data, 'records', []);
         const interest = this.parseBorrowInterests (rows, market);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
@@ -4018,7 +4018,7 @@ export default class bitmart extends Exchange {
         //         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.72.16946575108274991"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOpenInterest (data, market);
     }
 
@@ -4106,7 +4106,7 @@ export default class bitmart extends Exchange {
         //         "trace": "4cad855074654097ac7ba5257c47305d.54.16951844206655589"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseFundingRate (data, market);
     }
 
@@ -4188,7 +4188,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         return this.parsePosition (first, market);
     }
 

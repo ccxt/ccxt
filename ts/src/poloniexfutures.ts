@@ -530,7 +530,7 @@ export default class poloniexfutures extends Exchange {
         //     ],
         // }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeIntegerProduct (data, 'ts', 0.000001);
         let orderbook = undefined;
         if (level === 3) {
@@ -896,7 +896,7 @@ export default class poloniexfutures extends Exchange {
         //        },
         //    }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.safeOrder ({
             'id': this.safeString (data, 'orderId'),
             'clientOrderId': undefined,
@@ -1353,7 +1353,7 @@ export default class poloniexfutures extends Exchange {
         //        }
         //    }
         //
-        const responseData = this.safeValue (response, 'data', {});
+        const responseData = this.safeDict (response, 'data', {});
         const orders = this.safeValue (responseData, 'items', []);
         const ordersLength = orders.length;
         const result = [];
@@ -1715,8 +1715,8 @@ export default class poloniexfutures extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data', {});
-        const trades = this.safeValue (data, 'items', {});
+        const data = this.safeDict (response, 'data', {});
+        const trades = this.safeDict (data, 'items', {});
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1754,9 +1754,9 @@ export default class poloniexfutures extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
-        const versions = this.safeValue (this.options, 'versions', {});
-        const apiVersions = this.safeValue (versions, api, {});
-        const methodVersions = this.safeValue (apiVersions, method, {});
+        const versions = this.safeDict (this.options, 'versions', {});
+        const apiVersions = this.safeDict (versions, api, {});
+        const methodVersions = this.safeDict (apiVersions, method, {});
         const defaultVersion = this.safeString (methodVersions, path, this.version);
         const version = this.safeString (params, 'version', defaultVersion);
         const tail = '/api/' + version + '/' + this.implodeParams (path, params);

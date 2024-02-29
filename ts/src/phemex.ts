@@ -934,7 +934,7 @@ export default class phemex extends Exchange {
         //         ]
         //     }
         //
-        const v2ProductsData = this.safeValue (v2Products, 'data', {});
+        const v2ProductsData = this.safeDict (v2Products, 'data', {});
         let products = this.safeValue (v2ProductsData, 'products', []);
         const perpetualProductsV2 = this.safeValue (v2ProductsData, 'perpProductsV2', []);
         products = this.arrayConcat (products, perpetualProductsV2);
@@ -951,14 +951,14 @@ export default class phemex extends Exchange {
             const type = this.safeStringLower (market, 'type');
             if ((type === 'perpetual') || (type === 'perpetualv2')) {
                 const id = this.safeString (market, 'symbol');
-                const riskLimitValues = this.safeValue (riskLimitsById, id, {});
+                const riskLimitValues = this.safeDict (riskLimitsById, id, {});
                 market = this.extend (market, riskLimitValues);
-                const v1ProductsValues = this.safeValue (v1ProductsById, id, {});
+                const v1ProductsValues = this.safeDict (v1ProductsById, id, {});
                 market = this.extend (market, v1ProductsValues);
                 market = this.parseSwapMarket (market);
             } else {
                 const baseCurrency = this.safeString (market, 'baseCurrency');
-                const currencyValues = this.safeValue (currenciesByCode, baseCurrency, {});
+                const currencyValues = this.safeDict (currenciesByCode, baseCurrency, {});
                 const valueScale = this.safeString (currencyValues, 'valueScale', '8');
                 market = this.extend (market, { 'valueScale': valueScale });
                 market = this.parseSpotMarket (market);
@@ -991,7 +991,7 @@ export default class phemex extends Exchange {
         //             ...
         //         }
         //     }
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const currencies = this.safeValue (data, 'currencies', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
@@ -1128,7 +1128,7 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         const book = this.safeValue2 (result, 'book', 'orderbook_p', {});
         const timestamp = this.safeIntegerProduct (result, 'timestamp', 0.000001);
         const orderbook = this.customParseOrderBook (book, symbol, timestamp, 'bids', 'asks', 0, 1, market);
@@ -1303,7 +1303,7 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const rows = this.safeValue (data, 'rows', []);
         return this.parseOHLCVs (rows, market, timeframe, since, userLimit);
     }
@@ -1467,7 +1467,7 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseTicker (result, market);
     }
 
@@ -1546,7 +1546,7 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         const trades = this.safeValue2 (result, 'trades', 'trades_p', []);
         return this.parseTrades (trades, market, since, limit);
     }
@@ -1849,7 +1849,7 @@ export default class phemex extends Exchange {
             const balance = data[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            const currency = this.safeValue (this.currencies, code, {});
+            const currency = this.safeDict (this.currencies, code, {});
             const scale = this.safeInteger (currency, 'valueScale', 8);
             const account = this.account ();
             const balanceEv = this.safeString (balance, 'balanceEv');
@@ -1902,8 +1902,8 @@ export default class phemex extends Exchange {
         //     }
         //
         const result = { 'info': response };
-        const data = this.safeValue (response, 'data', {});
-        const balance = this.safeValue (data, 'account', {});
+        const data = this.safeDict (response, 'data', {});
+        const balance = this.safeDict (data, 'account', {});
         const currencyId = this.safeString (balance, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const currency = this.currency (code);
@@ -2719,7 +2719,7 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -2792,7 +2792,7 @@ export default class phemex extends Exchange {
         } else {
             response = await this.privatePutSpotOrders (this.extend (request, params));
         }
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -2835,7 +2835,7 @@ export default class phemex extends Exchange {
         } else {
             response = await this.privateDeleteSpotOrders (this.extend (request, params));
         }
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -2903,7 +2903,7 @@ export default class phemex extends Exchange {
         } else {
             response = await this.privateGetExchangeOrder (this.extend (request, params));
         }
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         let order = data;
         if (Array.isArray (data)) {
             const numOrders = data.length;
@@ -2914,7 +2914,7 @@ export default class phemex extends Exchange {
                     throw new OrderNotFound (this.id + ' fetchOrder() ' + symbol + ' order with id ' + id + ' not found');
                 }
             }
-            order = this.safeValue (data, 0, {});
+            order = this.safeDict (data, 0, {});
         }
         return this.parseOrder (order, market);
     }
@@ -2954,7 +2954,7 @@ export default class phemex extends Exchange {
         } else {
             response = await this.privateGetSpotOrders (this.extend (request, params));
         }
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const rows = this.safeValue (data, 'rows', data);
         return this.parseOrders (rows, market, since, limit);
     }
@@ -2997,7 +2997,7 @@ export default class phemex extends Exchange {
             }
             throw e;
         }
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         if (Array.isArray (data)) {
             return this.parseOrders (data, market, since, limit);
         } else {
@@ -3083,7 +3083,7 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         if (Array.isArray (data)) {
             return this.parseOrders (data, market, since, limit);
         } else {
@@ -3245,7 +3245,7 @@ export default class phemex extends Exchange {
         if (isUSDTSettled) {
             data = this.safeValue (response, 'data', []);
         } else {
-            data = this.safeValue (response, 'data', {});
+            data = this.safeDict (response, 'data', {});
             data = this.safeValue (data, 'rows', []);
         }
         return this.parseTrades (data, market, since, limit);
@@ -3267,7 +3267,7 @@ export default class phemex extends Exchange {
         };
         const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
         const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
-        const networks = this.safeValue (this.options, 'networks', {});
+        const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network', defaultNetwork);
         network = this.safeString (networks, network, network);
         if (network === undefined) {
@@ -3286,7 +3286,7 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const address = this.safeString (data, 'address');
         const tag = this.safeString (data, 'tag');
         this.checkAddress (address);
@@ -3336,7 +3336,7 @@ export default class phemex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -3377,7 +3377,7 @@ export default class phemex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -3649,7 +3649,7 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const positions = this.safeValue (data, 'positions', []);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
@@ -3858,7 +3858,7 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const rows = this.safeValue (data, 'rows', []);
         const result = [];
         for (let i = 0; i < rows.length; i++) {
@@ -3923,7 +3923,7 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseFundingRate (result, market);
     }
 
@@ -4208,7 +4208,7 @@ export default class phemex extends Exchange {
         //     }
         //
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const riskLimits = this.safeValue (data, 'riskLimits');
         return this.parseLeverageTiers (riskLimits, symbols, 'symbol');
     }
@@ -4354,7 +4354,7 @@ export default class phemex extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
         const scaledAmmount = this.toEv (amount, currency);
@@ -4386,7 +4386,7 @@ export default class phemex extends Exchange {
             //         }
             //     }
             //
-            const data = this.safeValue (response, 'data', {});
+            const data = this.safeDict (response, 'data', {});
             transfer = this.parseTransfer (data, currency);
         } else { // sub account transfer
             const request = {
@@ -4406,7 +4406,7 @@ export default class phemex extends Exchange {
             //
             transfer = this.parseTransfer (response);
         }
-        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             if (transfer['fromAccount'] === undefined) {
@@ -4471,7 +4471,7 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const transfers = this.safeValue (data, 'rows', []);
         return this.parseTransfers (transfers, currency, since, limit);
     }
@@ -4608,7 +4608,7 @@ export default class phemex extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const rates = this.safeValue (data, 'rows');
         const result = [];
         for (let i = 0; i < rates.length; i++) {
@@ -4695,7 +4695,7 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTransaction (data, currency);
     }
 

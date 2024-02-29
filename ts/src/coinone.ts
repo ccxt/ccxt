@@ -574,7 +574,7 @@ export default class coinone extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'tickers', []);
-        const ticker = this.safeValue (data, 0, {});
+        const ticker = this.safeDict (data, 0, {});
         return this.parseTicker (ticker, market);
     }
 
@@ -1103,7 +1103,7 @@ export default class coinone extends Exchange {
         //         }
         //     }
         //
-        const walletAddress = this.safeValue (response, 'walletAddress', {});
+        const walletAddress = this.safeDict (response, 'walletAddress', {});
         const keys = Object.keys (walletAddress);
         const result = {};
         for (let i = 0; i < keys.length; i++) {

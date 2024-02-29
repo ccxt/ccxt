@@ -273,7 +273,7 @@ export default class oceanex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTicker (data, market);
     }
 
@@ -338,7 +338,7 @@ export default class oceanex extends Exchange {
         //             }
         //         }
         //
-        const ticker = this.safeValue (data, 'ticker', {});
+        const ticker = this.safeDict (data, 'ticker', {});
         const timestamp = this.safeTimestamp (data, 'at');
         const symbol = this.safeSymbol (undefined, market);
         return this.safeTicker ({
@@ -404,7 +404,7 @@ export default class oceanex extends Exchange {
         //         }
         //     }
         //
-        const orderbook = this.safeValue (response, 'data', {});
+        const orderbook = this.safeDict (response, 'data', {});
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
         return this.parseOrderBook (orderbook, symbol, timestamp);
     }
@@ -586,8 +586,8 @@ export default class oceanex extends Exchange {
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const group = data[i];
-            const maker = this.safeValue (group, 'ask_fee', {});
-            const taker = this.safeValue (group, 'bid_fee', {});
+            const maker = this.safeDict (group, 'ask_fee', {});
+            const taker = this.safeDict (group, 'bid_fee', {});
             const marketId = this.safeString (group, 'market');
             const symbol = this.safeSymbol (marketId);
             result[symbol] = {

@@ -349,7 +349,7 @@ export default class kucoinfutures extends kucoin {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const status = this.safeString (data, 'status');
         return {
             'status': (status === 'open') ? 'ok' : 'maintenance',
@@ -652,7 +652,7 @@ export default class kucoinfutures extends kucoin {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const address = this.safeString (data, 'address');
         if (currencyId !== 'NIM') {
             // contains spaces
@@ -715,7 +715,7 @@ export default class kucoinfutures extends kucoin {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const timestamp = this.parseToInt (this.safeInteger (data, 'ts') / 1000000);
         const orderbook = this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
         orderbook['nonce'] = this.safeInteger (data, 'sequence');
@@ -939,7 +939,7 @@ export default class kucoinfutures extends kucoin {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parsePosition (data, market);
     }
 
@@ -1149,7 +1149,7 @@ export default class kucoinfutures extends kucoin {
         //        },
         //    }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -1173,7 +1173,7 @@ export default class kucoinfutures extends kucoin {
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
-            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const orderParams = this.safeDict (rawOrder, 'params', {});
             const orderRequest = this.createContractOrderRequest (market['id'], type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
@@ -1602,7 +1602,7 @@ export default class kucoinfutures extends kucoin {
         //         }
         //     }
         //
-        const responseData = this.safeValue (response, 'data', {});
+        const responseData = this.safeDict (response, 'data', {});
         const orders = this.safeValue (responseData, 'items', []);
         return this.parseOrders (orders, market, since, limit);
     }
@@ -1921,7 +1921,7 @@ export default class kucoinfutures extends kucoin {
         await this.loadMarkets ();
         // only fetches one balance at a time
         let defaultCode = this.safeString (this.options, 'code');
-        const fetchBalanceOptions = this.safeValue (this.options, 'fetchBalance', {});
+        const fetchBalanceOptions = this.safeDict (this.options, 'fetchBalance', {});
         defaultCode = this.safeString (fetchBalanceOptions, 'code', defaultCode);
         const code = this.safeString (params, 'code', defaultCode);
         const currency = this.currency (code);
@@ -2087,8 +2087,8 @@ export default class kucoinfutures extends kucoin {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data', {});
-        const trades = this.safeValue (data, 'items', {});
+        const data = this.safeDict (response, 'data', {});
+        const trades = this.safeDict (data, 'items', {});
         return this.parseTrades (trades, market, since, limit);
     }
 

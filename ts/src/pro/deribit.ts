@@ -134,8 +134,8 @@ export default class deribit extends deribitRest {
         //         }
         //     }
         //
-        const params = this.safeValue (message, 'params', {});
-        const data = this.safeValue (params, 'data', {});
+        const params = this.safeDict (message, 'params', {});
+        const data = this.safeDict (params, 'data', {});
         this.balance['info'] = data;
         const currencyId = this.safeString (data, 'currency');
         const currencyCode = this.safeCurrencyCode (currencyId);
@@ -208,8 +208,8 @@ export default class deribit extends deribitRest {
         //         }
         //     }
         //
-        const params = this.safeValue (message, 'params', {});
-        const data = this.safeValue (params, 'data', {});
+        const params = this.safeDict (message, 'params', {});
+        const data = this.safeDict (params, 'data', {});
         const marketId = this.safeString (data, 'instrument_name');
         const symbol = this.safeSymbol (marketId);
         const ticker = this.parseTicker (data);
@@ -278,7 +278,7 @@ export default class deribit extends deribitRest {
         //         }
         //     }
         //
-        const params = this.safeValue (message, 'params', {});
+        const params = this.safeDict (message, 'params', {});
         const channel = this.safeString (params, 'channel', '');
         const parts = channel.split ('.');
         const marketId = this.safeString (parts, 1);
@@ -368,7 +368,7 @@ export default class deribit extends deribitRest {
         //         }
         //     }
         //
-        const params = this.safeValue (message, 'params', {});
+        const params = this.safeDict (message, 'params', {});
         const channel = this.safeString (params, 'channel', '');
         const trades = this.safeValue (params, 'data', []);
         let cachedTrades = this.myTrades;
@@ -467,8 +467,8 @@ export default class deribit extends deribitRest {
         //         }
         //     }
         //
-        const params = this.safeValue (message, 'params', {});
-        const data = this.safeValue (params, 'data', {});
+        const params = this.safeDict (message, 'params', {});
+        const data = this.safeDict (params, 'data', {});
         const channel = this.safeString (params, 'channel');
         const marketId = this.safeString (data, 'instrument_name');
         const symbol = this.safeSymbol (marketId);
@@ -599,9 +599,9 @@ export default class deribit extends deribitRest {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
         }
-        const params = this.safeValue (message, 'params', {});
+        const params = this.safeDict (message, 'params', {});
         const channel = this.safeString (params, 'channel', '');
-        const data = this.safeValue (params, 'data', {});
+        const data = this.safeDict (params, 'data', {});
         let orders = [];
         if (Array.isArray (data)) {
             orders = this.parseOrders (data);
@@ -632,7 +632,7 @@ export default class deribit extends deribitRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
-        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeDict (this.options, 'timeframes', {});
         const interval = this.safeString (timeframes, timeframe);
         if (interval === undefined) {
             throw new NotSupported (this.id + ' this interval is not supported, please provide one of the supported timeframes');
@@ -673,12 +673,12 @@ export default class deribit extends deribitRest {
         //         }
         //     }
         //
-        const params = this.safeValue (message, 'params', {});
+        const params = this.safeDict (message, 'params', {});
         const channel = this.safeString (params, 'channel', '');
         const parts = channel.split ('.');
         const marketId = this.safeString (parts, 2);
         const symbol = this.safeSymbol (marketId);
-        const ohlcv = this.safeValue (params, 'data', {});
+        const ohlcv = this.safeDict (params, 'data', {});
         const parsed = [
             this.safeInteger (ohlcv, 'tick'),
             this.safeNumber (ohlcv, 'open'),
@@ -785,7 +785,7 @@ export default class deribit extends deribitRest {
             }
             throw new NotSupported (this.id + ' no handler found for this message ' + this.json (message));
         }
-        const result = this.safeValue (message, 'result', {});
+        const result = this.safeDict (message, 'result', {});
         const accessToken = this.safeString (result, 'access_token');
         if (accessToken !== undefined) {
             this.handleAuthenticationMessage (client, message);

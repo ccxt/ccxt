@@ -267,7 +267,7 @@ export default class bitfinex extends bitfinexRest {
                 throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 25 or 100');
             }
         }
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        const options = this.safeDict (this.options, 'watchOrderBook', {});
         const prec = this.safeString (options, 'prec', 'P0');
         const freq = this.safeString (options, 'freq', 'F0');
         const request = {
@@ -636,7 +636,7 @@ export default class bitfinex extends bitfinexRest {
             if (message[1] === 'hb') {
                 return; // skip heartbeats within subscription channels for now
             }
-            const subscription = this.safeValue (client.subscriptions, channelId, {});
+            const subscription = this.safeDict (client.subscriptions, channelId, {});
             const channel = this.safeString (subscription, 'channel');
             const name = this.safeString (message, 1);
             const methods = {

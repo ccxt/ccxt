@@ -75,7 +75,7 @@ export default class whitebit extends whitebitRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeDict (this.options, 'timeframes', {});
         const interval = this.safeInteger (timeframes, timeframe);
         const marketId = market['id'];
         // currently there is no way of knowing
@@ -149,7 +149,7 @@ export default class whitebit extends whitebitRest {
         }
         const messageHash = 'orderbook' + ':' + market['symbol'];
         const method = 'depth_subscribe';
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        const options = this.safeDict (this.options, 'watchOrderBook', {});
         const defaultPriceInterval = this.safeString (options, 'priceInterval', '0');
         const priceInterval = this.safeString (params, 'priceInterval', defaultPriceInterval);
         params = this.omit (params, 'priceInterval');
@@ -282,7 +282,7 @@ export default class whitebit extends whitebitRest {
         const marketId = this.safeString (tickers, 0);
         const market = this.safeMarket (marketId, undefined);
         const symbol = market['symbol'];
-        const rawTicker = this.safeValue (tickers, 1, {});
+        const rawTicker = this.safeDict (tickers, 1, {});
         const messageHash = 'ticker' + ':' + symbol;
         const ticker = this.parseTicker (rawTicker, market);
         this.tickers[symbol] = ticker;
@@ -752,7 +752,7 @@ export default class whitebit extends whitebitRest {
             const message = this.extend (request, params);
             return await this.watch (url, messageHash, message, method, subscription);
         } else {
-            const subscription = this.safeValue (client.subscriptions, method, {});
+            const subscription = this.safeDict (client.subscriptions, method, {});
             let hasSymbolSubscription = true;
             const market = this.market (symbol);
             const marketId = market['id'];
@@ -883,7 +883,7 @@ export default class whitebit extends whitebitRest {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
-        const result = this.safeValue (message, 'result', {});
+        const result = this.safeDict (message, 'result', {});
         if (result !== undefined) {
             if (result === 'pong') {
                 this.handlePong (client, message);

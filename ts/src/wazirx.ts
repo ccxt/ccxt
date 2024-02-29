@@ -233,7 +233,7 @@ export default class wazirx extends Exchange {
                 minPrice = this.safeNumber (filter, 'minPrice');
             }
         }
-        const fee = this.safeValue (this.fees, quote, {});
+        const fee = this.safeDict (this.fees, quote, {});
         let takerString: Str = this.safeString (fee, 'taker', '0.2');
         takerString = Precise.stringDiv (takerString, '100');
         let makerString: Str = this.safeString (fee, 'maker', '0.2');

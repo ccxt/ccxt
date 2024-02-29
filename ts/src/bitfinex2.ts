@@ -530,7 +530,7 @@ export default class bitfinex2 extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const pair = markets[i];
             const id = this.safeStringUpper (pair, 0);
-            const market = this.safeValue (pair, 1, {});
+            const market = this.safeDict (pair, 1, {});
             let spot = true;
             if (id.indexOf ('F0') >= 0) {
                 spot = false;
@@ -846,7 +846,7 @@ export default class bitfinex2 extends Exchange {
         // this api call does not return the 'used' amount - use the v1 version instead (which also returns zero balances)
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         await this.loadMarkets ();
-        const accountsByType = this.safeValue (this.options, 'v2AccountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'v2AccountsByType', {});
         const requestedType = this.safeString (params, 'type', 'exchange');
         const accountType = this.safeString (accountsByType, requestedType, requestedType);
         if (accountType === undefined) {
@@ -896,7 +896,7 @@ export default class bitfinex2 extends Exchange {
         // transferring between derivatives wallet and regular wallet is not documented in their API
         // however we support it in CCXT (from just looking at web inspector)
         await this.loadMarkets ();
-        const accountsByType = this.safeValue (this.options, 'v2AccountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'v2AccountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount);
         if (fromId === undefined) {
             const keys = Object.keys (accountsByType);
@@ -2185,7 +2185,7 @@ export default class bitfinex2 extends Exchange {
         const currency = this.currency (code);
         // if not provided explicitly we will try to match using the currency name
         const network = this.safeString (params, 'network', code);
-        const currencyNetworks = this.safeValue (currency, 'networks', {});
+        const currencyNetworks = this.safeDict (currency, 'networks', {});
         const currencyNetwork = this.safeValue (currencyNetworks, network);
         const networkId = this.safeString (currencyNetwork, 'id');
         if (networkId === undefined) {
@@ -2467,7 +2467,7 @@ export default class bitfinex2 extends Exchange {
         //     ]
         //
         const result = {};
-        const fiat = this.safeValue (this.options, 'fiat', {});
+        const fiat = this.safeDict (this.options, 'fiat', {});
         const feeData = this.safeValue (response, 4, []);
         const makerData = this.safeValue (feeData, 0, []);
         const takerData = this.safeValue (feeData, 1, []);
@@ -2581,7 +2581,7 @@ export default class bitfinex2 extends Exchange {
         // if not provided explicitly we will try to match using the currency name
         const network = this.safeString (params, 'network', code);
         params = this.omit (params, 'network');
-        const currencyNetworks = this.safeValue (currency, 'networks', {});
+        const currencyNetworks = this.safeDict (currency, 'networks', {});
         const currencyNetwork = this.safeValue (currencyNetworks, network);
         const networkId = this.safeString (currencyNetwork, 'id');
         if (networkId === undefined) {
@@ -2598,7 +2598,7 @@ export default class bitfinex2 extends Exchange {
         if (tag !== undefined) {
             request['payment_id'] = tag;
         }
-        const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
+        const withdrawOptions = this.safeDict (this.options, 'withdraw', {});
         const includeFee = this.safeBool (withdrawOptions, 'includeFee', false);
         if (includeFee) {
             request['fee_deduct'] = 1;

@@ -624,7 +624,7 @@ export default class coinbasepro extends coinbaseproRest {
             const makerOrderId = this.safeString (message, 'maker_order_id');
             const takerOrderId = this.safeString (message, 'taker_order_id');
             const orders = this.orders;
-            const previousOrders = this.safeValue (orders.hashmap, symbol, {});
+            const previousOrders = this.safeDict (orders.hashmap, symbol, {});
             let previousOrder = this.safeValue (previousOrders, orderId);
             if (previousOrder === undefined) {
                 previousOrder = this.safeValue2 (previousOrders, makerOrderId, takerOrderId);
@@ -635,7 +635,7 @@ export default class coinbasepro extends coinbaseproRest {
                 client.resolve (orders, messageHash);
             } else {
                 const sequence = this.safeInteger (message, 'sequence');
-                const previousInfo = this.safeValue (previousOrder, 'info', {});
+                const previousInfo = this.safeDict (previousOrder, 'info', {});
                 const previousSequence = this.safeInteger (previousInfo, 'sequence');
                 if ((previousSequence === undefined) || (sequence > previousSequence)) {
                     if (type === 'match') {
@@ -876,7 +876,7 @@ export default class coinbasepro extends coinbaseproRest {
         const symbol = market['symbol'];
         const name = 'level2';
         const messageHash = name + ':' + marketId;
-        const subscription = this.safeValue (client.subscriptions, messageHash, {});
+        const subscription = this.safeDict (client.subscriptions, messageHash, {});
         const limit = this.safeInteger (subscription, 'limit');
         if (type === 'snapshot') {
             this.orderbooks[symbol] = this.orderBook ({}, limit);

@@ -235,7 +235,7 @@ export default class okx extends okxRest {
         //         ]
         //     }
         //
-        const arg = this.safeValue (message, 'arg', {});
+        const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const marketId = this.safeString (arg, 'instId');
         const symbol = this.safeSymbol (marketId);
@@ -321,7 +321,7 @@ export default class okx extends okxRest {
         //         ]
         //     }
         //
-        const arg = this.safeValue (message, 'arg', {});
+        const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const data = this.safeValue (message, 'data', []);
         const newTickers = [];
@@ -432,7 +432,7 @@ export default class okx extends okxRest {
         //         ]
         //     }
         //
-        const arg = this.safeValue (message, 'arg', {});
+        const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const data = this.safeValue (message, 'data', []);
         const marketId = this.safeString (arg, 'instId');
@@ -443,7 +443,7 @@ export default class okx extends okxRest {
         const timeframe = this.findTimeframe (interval);
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseOHLCV (data[i], market);
-            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -509,7 +509,7 @@ export default class okx extends okxRest {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        const options = this.safeDict (this.options, 'watchOrderBook', {});
         const depth = this.safeString (options, 'depth', 'books');
         if ((depth === 'books-l2-tbt') || (depth === 'books50-l2-tbt')) {
             await this.authenticate ({ 'access': 'public' });
@@ -693,7 +693,7 @@ export default class okx extends okxRest {
         //         ]
         //     }
         //
-        const arg = this.safeValue (message, 'arg', {});
+        const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const action = this.safeString (message, 'action');
         const data = this.safeValue (message, 'data', []);
@@ -834,18 +834,18 @@ export default class okx extends okxRest {
         //         ]
         //     }
         //
-        const arg = this.safeValue (message, 'arg', {});
+        const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const type = 'spot';
         const balance = this.parseTradingBalance (message);
-        const oldBalance = this.safeValue (this.balance, type, {});
+        const oldBalance = this.safeDict (this.balance, type, {});
         const newBalance = this.deepExtend (oldBalance, balance);
         this.balance[type] = this.safeBalance (newBalance);
         client.resolve (this.balance[type], channel);
     }
 
     orderToTrade (order, market = undefined) {
-        const info = this.safeValue (order, 'info', {});
+        const info = this.safeDict (order, 'info', {});
         const timestamp = this.safeInteger (info, 'fillTime');
         const feeMarketId = this.safeString (info, 'fillFeeCcy');
         const isTaker = this.safeString (info, 'execType', '') === 'T';
@@ -1027,7 +1027,7 @@ export default class okx extends okxRest {
         //        }]
         //    }
         //
-        const arg = this.safeValue (message, 'arg', {});
+        const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel', '');
         const data = this.safeValue (message, 'data', []);
         if (this.positions === undefined) {
@@ -1161,7 +1161,7 @@ export default class okx extends okxRest {
         //     }
         //
         this.handleMyTrades (client, message);
-        const arg = this.safeValue (message, 'arg', {});
+        const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const orders = this.safeValue (message, 'data', []);
         const ordersLength = orders.length;
@@ -1244,7 +1244,7 @@ export default class okx extends okxRest {
         //         ]
         //     }
         //
-        const arg = this.safeValue (message, 'arg', {});
+        const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const rawOrders = this.safeValue (message, 'data', []);
         const filteredOrders = [];
@@ -1636,7 +1636,7 @@ export default class okx extends okxRest {
                 method.call (this, client, message);
             }
         } else {
-            const arg = this.safeValue (message, 'arg', {});
+            const arg = this.safeDict (message, 'arg', {});
             const channel = this.safeString (arg, 'channel');
             const methods = {
                 'bbo-tbt': this.handleOrderBook, // newly added channel that sends tick-by-tick Level 1 data, all API users can subscribe, public depth channel, verification not required

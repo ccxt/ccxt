@@ -489,7 +489,7 @@ export default class currencycom extends Exchange {
             let limitPriceMax = undefined;
             let precisionPrice = this.safeNumber (market, 'tickSize');
             if ('PRICE_FILTER' in filtersByType) {
-                const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
+                const filter = this.safeDict (filtersByType, 'PRICE_FILTER', {});
                 precisionPrice = this.safeNumber (filter, 'tickSize');
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
@@ -507,7 +507,7 @@ export default class currencycom extends Exchange {
                 'max': undefined,
             };
             if ('LOT_SIZE' in filtersByType) {
-                const filter = this.safeValue (filtersByType, 'LOT_SIZE', {});
+                const filter = this.safeDict (filtersByType, 'LOT_SIZE', {});
                 precisionAmount = this.safeNumber (filter, 'stepSize');
                 limitAmount = {
                     'min': this.safeNumber (filter, 'minQty'),
@@ -519,7 +519,7 @@ export default class currencycom extends Exchange {
                 'max': undefined,
             };
             if ('MARKET_LOT_SIZE' in filtersByType) {
-                const filter = this.safeValue (filtersByType, 'MARKET_LOT_SIZE', {});
+                const filter = this.safeDict (filtersByType, 'MARKET_LOT_SIZE', {});
                 limitMarket = {
                     'min': this.safeNumber (filter, 'minQty'),
                     'max': this.safeNumber (filter, 'maxQty'),
@@ -527,7 +527,7 @@ export default class currencycom extends Exchange {
             }
             let costMin = undefined;
             if ('MIN_NOTIONAL' in filtersByType) {
-                const filter = this.safeValue (filtersByType, 'MIN_NOTIONAL', {});
+                const filter = this.safeDict (filtersByType, 'MIN_NOTIONAL', {});
                 costMin = this.safeNumber (filter, 'minNotional');
             }
             const isContract = swap || futures;

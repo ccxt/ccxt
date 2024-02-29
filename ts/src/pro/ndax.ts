@@ -72,7 +72,7 @@ export default class ndax extends ndaxRest {
     }
 
     handleTicker (client: Client, message) {
-        const payload = this.safeValue (message, 'o', {});
+        const payload = this.safeDict (message, 'o', {});
         //
         //     {
         //         "OMSId": 1,
@@ -263,7 +263,7 @@ export default class ndax extends ndaxRest {
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             updates[marketId] = {};
-            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
             const keys = Object.keys (this.timeframes);
             for (let j = 0; j < keys.length; j++) {
                 const timeframe = keys[j];

@@ -296,13 +296,13 @@ export default class bitso extends Exchange {
         const operation = this.safeString (item, 'operation');
         const type = this.parseLedgerEntryType (operation);
         const balanceUpdates = this.safeValue (item, 'balance_updates', []);
-        const firstBalance = this.safeValue (balanceUpdates, 0, {});
+        const firstBalance = this.safeDict (balanceUpdates, 0, {});
         let direction = undefined;
         let fee = undefined;
         const amount = this.safeString (firstBalance, 'amount');
         const currencyId = this.safeString (firstBalance, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const details = this.safeValue (item, 'details', {});
+        const details = this.safeDict (item, 'details', {});
         let referenceId = this.safeString2 (details, 'fid', 'wid');
         if (referenceId === undefined) {
             referenceId = this.safeString (details, 'tid');
@@ -393,8 +393,8 @@ export default class bitso extends Exchange {
             let quote = quoteId.toUpperCase ();
             base = this.safeCurrencyCode (base);
             quote = this.safeCurrencyCode (quote);
-            const fees = this.safeValue (market, 'fees', {});
-            const flatRate = this.safeValue (fees, 'flat_rate', {});
+            const fees = this.safeDict (market, 'fees', {});
+            const flatRate = this.safeDict (fees, 'flat_rate', {});
             const takerString = this.safeString (flatRate, 'taker');
             const makerString = this.safeString (flatRate, 'maker');
             const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
@@ -483,7 +483,7 @@ export default class bitso extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const payload = this.safeValue (response, 'payload', {});
+        const payload = this.safeDict (response, 'payload', {});
         const balances = this.safeValue (payload, 'balances', []);
         const result = {
             'info': response,
@@ -905,7 +905,7 @@ export default class bitso extends Exchange {
         //        }
         //    }
         //
-        const payload = this.safeValue (response, 'payload', {});
+        const payload = this.safeDict (response, 'payload', {});
         const fees = this.safeValue (payload, 'fees', []);
         const result = {};
         for (let i = 0; i < fees.length; i++) {
@@ -1265,7 +1265,7 @@ export default class bitso extends Exchange {
         //     }
         //
         const transactions = this.safeValue (response, 'payload', []);
-        const first = this.safeValue (transactions, 0, {});
+        const first = this.safeDict (transactions, 0, {});
         return this.parseTransaction (first);
     }
 
@@ -1403,7 +1403,7 @@ export default class bitso extends Exchange {
         //    }
         //
         const result = {};
-        const payload = this.safeValue (response, 'payload', {});
+        const payload = this.safeDict (response, 'payload', {});
         const depositFees = this.safeValue (payload, 'deposit_fees', []);
         for (let i = 0; i < depositFees.length; i++) {
             const depositFee = depositFees[i];
@@ -1496,7 +1496,7 @@ export default class bitso extends Exchange {
         //        }
         //    }
         //
-        const payload = this.safeValue (response, 'payload', {});
+        const payload = this.safeDict (response, 'payload', {});
         return this.parseDepositWithdrawFees (payload, codes);
     }
 
@@ -1691,7 +1691,7 @@ export default class bitso extends Exchange {
         //
         const currencyId = this.safeString2 (transaction, 'currency', 'asset');
         currency = this.safeCurrency (currencyId, currency);
-        const details = this.safeValue (transaction, 'details', {});
+        const details = this.safeDict (transaction, 'details', {});
         const datetime = this.safeString (transaction, 'created_at');
         const withdrawalAddress = this.safeString (details, 'withdrawal_address');
         const receivingAddress = this.safeString (details, 'receiving_address');

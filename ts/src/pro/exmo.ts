@@ -152,8 +152,8 @@ export default class exmo extends exmoRest {
         const data = this.safeValue (message, 'data');
         this.balance['info'] = data;
         if (event === 'snapshot') {
-            const balances = this.safeValue (data, 'balances', {});
-            const reserved = this.safeValue (data, 'reserved', {});
+            const balances = this.safeDict (data, 'balances', {});
+            const reserved = this.safeDict (data, 'reserved', {});
             const currencies = Object.keys (balances);
             for (let i = 0; i < currencies.length; i++) {
                 const currencyId = currencies[i];
@@ -254,7 +254,7 @@ export default class exmo extends exmoRest {
         const topicParts = topic.split (':');
         const marketId = this.safeString (topicParts, 1);
         const symbol = this.safeSymbol (marketId);
-        const ticker = this.safeValue (message, 'data', {});
+        const ticker = this.safeDict (message, 'data', {});
         const market = this.safeMarket (marketId);
         const parsedTicker = this.parseTicker (ticker, market);
         const messageHash = 'ticker:' + symbol;
@@ -438,7 +438,7 @@ export default class exmo extends exmoRest {
         if (event === 'snapshot') {
             rawTrades = this.safeValue (message, 'data', []);
         } else if (event === 'update') {
-            const rawTrade = this.safeValue (message, 'data', {});
+            const rawTrade = this.safeDict (message, 'data', {});
             rawTrades = [ rawTrade ];
         }
         const trades = this.parseTrades (rawTrades);
@@ -523,7 +523,7 @@ export default class exmo extends exmoRest {
         const parts = topic.split (':');
         const marketId = this.safeString (parts, 1);
         const symbol = this.safeSymbol (marketId);
-        const orderBook = this.safeValue (message, 'data', {});
+        const orderBook = this.safeDict (message, 'data', {});
         const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeInteger (message, 'ts');
         let orderbook = this.safeValue (this.orderbooks, symbol);

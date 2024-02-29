@@ -82,7 +82,7 @@ export default class wazirx extends wazirxRest {
         //         "stream":"outboundAccountPosition"
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const balances = this.safeValue (data, 'B', []);
         const timestamp = this.safeInteger (data, 'E');
         this.balance['info'] = balances;
@@ -339,7 +339,7 @@ export default class wazirx extends wazirxRest {
         //         "stream": "btcinr@trades"
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const rawTrades = this.safeValue (data, 'trades', []);
         const messageHash = this.safeString (message, 'stream');
         const split = messageHash.split ('@');
@@ -440,12 +440,12 @@ export default class wazirx extends wazirxRest {
         //         "stream": "btcinr@kline_1m"
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId);
         const symbol = this.safeSymbol (marketId, market);
         const timeframe = this.safeString (data, 'i');
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -536,7 +536,7 @@ export default class wazirx extends wazirxRest {
         //         "stream": "btcusdt@depth"
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const timestamp = this.safeInteger (data, 'E');
         const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId);
@@ -602,7 +602,7 @@ export default class wazirx extends wazirxRest {
         //         "stream": "orderUpdate"
         //     }
         //
-        const order = this.safeValue (message, 'data', {});
+        const order = this.safeDict (message, 'data', {});
         const parsedOrder = this.parseWsOrder (order);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -686,7 +686,7 @@ export default class wazirx extends wazirxRest {
         //         "stream": "ownTrade"
         //     }
         //
-        const trade = this.safeValue (message, 'data', {});
+        const trade = this.safeDict (message, 'data', {});
         const messageHash = 'myTrades';
         let myTrades = undefined;
         if (this.myTrades === undefined) {

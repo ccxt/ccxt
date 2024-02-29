@@ -514,7 +514,7 @@ export default class coinbase extends coinbaseRest {
             const updates = this.safeValue (event, 'updates', []);
             const marketId = this.safeString (event, 'product_id');
             const messageHash = 'level2::' + marketId;
-            const subscription = this.safeValue (client.subscriptions, messageHash, {});
+            const subscription = this.safeDict (client.subscriptions, messageHash, {});
             const limit = this.safeInteger (subscription, 'limit');
             const symbol = this.safeSymbol (marketId);
             const type = this.safeString (event, 'type');

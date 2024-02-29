@@ -273,7 +273,7 @@ export default class coinbasepro extends Exchange {
             const id = this.safeString (currency, 'id');
             const name = this.safeString (currency, 'name');
             const code = this.safeCurrencyCode (id);
-            const details = this.safeValue (currency, 'details', {});
+            const details = this.safeDict (currency, 'details', {});
             const status = this.safeString (currency, 'status');
             const active = (status === 'online');
             result[code] = {
@@ -1469,7 +1469,7 @@ export default class coinbasepro extends Exchange {
         const timestamp = this.parse8601 (this.safeValue (item, 'created_at'));
         const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
         const code = this.safeCurrencyCode (undefined, currency);
-        const details = this.safeValue (item, 'details', {});
+        const details = this.safeDict (item, 'details', {});
         let account = undefined;
         let referenceAccount = undefined;
         let referenceId = undefined;
@@ -1739,7 +1739,7 @@ export default class coinbasepro extends Exchange {
         //        }
         //    ]
         //
-        const details = this.safeValue (transaction, 'details', {});
+        const details = this.safeDict (transaction, 'details', {});
         const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);

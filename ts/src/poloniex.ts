@@ -771,7 +771,7 @@ export default class poloniex extends Exchange {
             depositAvailable = (depositEnabled) ? depositEnabled : depositAvailable;
             let withdrawAvailable = this.safeValue (result[code], 'withdraw');
             withdrawAvailable = (withdrawEnabled) ? withdrawEnabled : withdrawAvailable;
-            const networks = this.safeValue (result[code], 'networks', {});
+            const networks = this.safeDict (result[code], 'networks', {});
             if (networkCode !== undefined) {
                 networks[networkCode] = {
                     'info': currency,
@@ -1609,7 +1609,7 @@ export default class poloniex extends Exchange {
             'datetime': undefined,
         };
         for (let i = 0; i < response.length; i++) {
-            const account = this.safeValue (response, i, {});
+            const account = this.safeDict (response, i, {});
             const balances = this.safeValue (account, 'balances');
             for (let j = 0; j < balances.length; j++) {
                 const balance = this.safeValue (balances, j);
@@ -1764,7 +1764,7 @@ export default class poloniex extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const networks = this.safeValue (this.options, 'networks', {});
+        const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
@@ -1815,7 +1815,7 @@ export default class poloniex extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const networks = this.safeValue (this.options, 'networks', {});
+        const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
@@ -1867,7 +1867,7 @@ export default class poloniex extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         amount = this.currencyToPrecision (code, amount);
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, fromAccount);
         const request = {
@@ -1929,7 +1929,7 @@ export default class poloniex extends Exchange {
         if (tag !== undefined) {
             request['paymentId'] = tag;
         }
-        const networks = this.safeValue (this.options, 'networks', {});
+        const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {

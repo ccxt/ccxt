@@ -307,7 +307,7 @@ export default class testMainClass extends baseMainTestClass {
         const globalSettings = keysGlobalExists ? ioFileRead (keysGlobal) : {};
         const localSettings = keysLocalExists ? ioFileRead (keysLocal) : {};
         const allSettings = exchange.deepExtend (globalSettings, localSettings);
-        const exchangeSettings = exchange.safeValue (allSettings, exchangeId, {});
+        const exchangeSettings = exchange.safeDict (allSettings, exchangeId, {});
         if (exchangeSettings) {
             const settingKeys = Object.keys (exchangeSettings);
             for (let i = 0; i < settingKeys.length; i++) {
@@ -331,7 +331,7 @@ export default class testMainClass extends baseMainTestClass {
         // skipped tests
         const skippedFile = this.rootDirForSkips + 'skip-tests.json';
         const skippedSettings = ioFileRead (skippedFile);
-        const skippedSettingsForExchange = exchange.safeValue (skippedSettings, exchangeId, {});
+        const skippedSettingsForExchange = exchange.safeDict (skippedSettings, exchangeId, {});
         // others
         const timeout = exchange.safeValue (skippedSettingsForExchange, 'timeout');
         if (timeout !== undefined) {
@@ -343,7 +343,7 @@ export default class testMainClass extends baseMainTestClass {
             exchange.wsProxy = exchange.safeString (skippedSettingsForExchange, 'wsProxy');
             exchange.wssProxy = exchange.safeString (skippedSettingsForExchange, 'wssProxy');
         }
-        this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
+        this.skippedMethods = exchange.safeDict (skippedSettingsForExchange, 'skipMethods', {});
         this.checkedPublicTests = {};
     }
 
@@ -419,7 +419,7 @@ export default class testMainClass extends baseMainTestClass {
             const argsStringified = '(' + args.join (',') + ')';
             dump (this.addPadding ('[INFO] TESTING', 25), this.exchangeHint (exchange), methodName, argsStringified);
         }
-        const skippedProperties = exchange.safeValue (this.skippedMethods, methodName, {});
+        const skippedProperties = exchange.safeDict (this.skippedMethods, methodName, {});
         await callMethod (this.testFiles, methodName, exchange, skippedProperties, args);
         // if it was passed successfully, add to the list of successfull tests
         if (isPublic) {
@@ -1276,7 +1276,7 @@ export default class testMainClass extends baseMainTestClass {
     async testExchangeRequestStatically (exchangeName: string, exchangeData: object, testName: string = undefined) {
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         const exchange = this.initOfflineExchange (exchangeName);
-        const methods = exchange.safeValue (exchangeData, 'methods', {});
+        const methods = exchange.safeDict (exchangeData, 'methods', {});
         const methodsNames = Object.keys (methods);
         for (let i = 0; i < methodsNames.length; i++) {
             const method = methodsNames[i];
@@ -1284,7 +1284,7 @@ export default class testMainClass extends baseMainTestClass {
             for (let j = 0; j < results.length; j++) {
                 const result = results[j];
                 const oldExchangeOptions = exchange.options; // snapshot options;
-                const testExchangeOptions = exchange.safeValue (result, 'options', {});
+                const testExchangeOptions = exchange.safeDict (result, 'options', {});
                 exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
                 const description = exchange.safeValue (result, 'description');
                 if ((testName !== undefined) && (testName !== description)) {
@@ -1307,8 +1307,8 @@ export default class testMainClass extends baseMainTestClass {
 
     async testExchangeResponseStatically (exchangeName: string, exchangeData: object, testName: string = undefined) {
         const exchange = this.initOfflineExchange (exchangeName);
-        const methods = exchange.safeValue (exchangeData, 'methods', {});
-        const options = exchange.safeValue (exchangeData, 'options', {});
+        const methods = exchange.safeDict (exchangeData, 'methods', {});
+        const options = exchange.safeDict (exchangeData, 'options', {});
         exchange.options = exchange.deepExtend (exchange.options, options); // custom options to be used in the tests
         const methodsNames = Object.keys (methods);
         for (let i = 0; i < methodsNames.length; i++) {
@@ -1318,7 +1318,7 @@ export default class testMainClass extends baseMainTestClass {
                 const result = results[j];
                 const description = exchange.safeValue (result, 'description');
                 const oldExchangeOptions = exchange.options; // snapshot options;
-                const testExchangeOptions = exchange.safeValue (result, 'options', {});
+                const testExchangeOptions = exchange.safeDict (result, 'options', {});
                 exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
                 const isDisabled = exchange.safeValue (result, 'disabled', false);
                 if (isDisabled) {

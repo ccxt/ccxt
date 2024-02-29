@@ -203,12 +203,12 @@ export default class bithumb extends Exchange {
          * @returns {object[]} an array of objects representing market data
          */
         const result = [];
-        const quoteCurrencies = this.safeValue (this.options, 'quoteCurrencies', {});
+        const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
         const quotes = Object.keys (quoteCurrencies);
         for (let i = 0; i < quotes.length; i++) {
             const quote = quotes[i];
             const quoteId = quote;
-            const extension = this.safeValue (quoteCurrencies, quote, {});
+            const extension = this.safeDict (quoteCurrencies, quote, {});
             const request = {
                 'quoteId': quoteId,
             };
@@ -356,7 +356,7 @@ export default class bithumb extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (data, 'timestamp');
         return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
@@ -422,7 +422,7 @@ export default class bithumb extends Exchange {
          */
         await this.loadMarkets ();
         const result = {};
-        const quoteCurrencies = this.safeValue (this.options, 'quoteCurrencies', {});
+        const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
         const quotes = Object.keys (quoteCurrencies);
         for (let i = 0; i < quotes.length; i++) {
             const quote = quotes[i];
@@ -452,7 +452,7 @@ export default class bithumb extends Exchange {
             //         }
             //     }
             //
-            const data = this.safeValue (response, 'data', {});
+            const data = this.safeDict (response, 'data', {});
             const timestamp = this.safeInteger (data, 'date');
             const tickers = this.omit (data, 'date');
             const currencyIds = Object.keys (tickers);
@@ -505,7 +505,7 @@ export default class bithumb extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTicker (data, market);
     }
 

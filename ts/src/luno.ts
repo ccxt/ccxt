@@ -1075,7 +1075,7 @@ export default class luno extends Exchange {
     }
 
     parseLedgerEntry (entry, currency: Currency = undefined) {
-        // const details = this.safeValue (entry, 'details', {});
+        // const details = this.safeDict (entry, 'details', {});
         const id = this.safeString (entry, 'row_index');
         const account_id = this.safeString (entry, 'account_id');
         const timestamp = this.safeInteger (entry, 'timestamp');

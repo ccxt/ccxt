@@ -438,8 +438,8 @@ export default class alpaca extends alpacaRest {
         //        }
         //      }
         //
-        const data = this.safeValue (message, 'data', {});
-        const rawOrder = this.safeValue (data, 'order', {});
+        const data = this.safeDict (message, 'data', {});
+        const rawOrder = this.safeDict (data, 'order', {});
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -499,12 +499,12 @@ export default class alpaca extends alpacaRest {
         //        }
         //      }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const event = this.safeString (data, 'event');
         if (event !== 'fill' && event !== 'partial_fill') {
             return;
         }
-        const rawOrder = this.safeValue (data, 'order', {});
+        const rawOrder = this.safeDict (data, 'order', {});
         let myTrades = this.myTrades;
         if (myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -616,7 +616,7 @@ export default class alpaca extends alpacaRest {
         //    }
         //
         const code = this.safeString (message, 'code');
-        const msg = this.safeValue (message, 'msg', {});
+        const msg = this.safeDict (message, 'msg', {});
         throw new ExchangeError (this.id + ' code: ' + code + ' message: ' + msg);
     }
 
@@ -634,7 +634,7 @@ export default class alpaca extends alpacaRest {
         for (let i = 0; i < message.length; i++) {
             const data = message[i];
             const T = this.safeString (data, 'T');
-            const msg = this.safeValue (data, 'msg', {});
+            const msg = this.safeDict (data, 'msg', {});
             if (T === 'subscription') {
                 this.handleSubscription (client, data);
                 return;
@@ -709,7 +709,7 @@ export default class alpaca extends alpacaRest {
         //    }
         //
         const T = this.safeString (message, 'T');
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const status = this.safeString (data, 'status');
         if (T === 'success' || status === 'authorized') {
             const promise = client.futures['authenticated'];

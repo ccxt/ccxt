@@ -1359,7 +1359,7 @@ export default class bitmex extends bitmexRest {
                 this.safeFloat (candle, 'close'),
                 this.safeFloat (candle, 'volume'),
             ];
-            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -1438,7 +1438,7 @@ export default class bitmex extends bitmexRest {
         const data = this.safeValue (message, 'data', []);
         // if it's an initial snapshot
         if (action === 'partial') {
-            const filter = this.safeValue (message, 'filter', {});
+            const filter = this.safeDict (message, 'filter', {});
             const marketId = this.safeValue (filter, 'symbol');
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
@@ -1546,7 +1546,7 @@ export default class bitmex extends bitmexRest {
         //
         const error = this.safeString (message, 'error');
         if (error !== undefined) {
-            const request = this.safeValue (message, 'request', {});
+            const request = this.safeDict (message, 'request', {});
             const args = this.safeValue (request, 'args', []);
             const numArgs = args.length;
             if (numArgs > 0) {
@@ -1620,7 +1620,7 @@ export default class bitmex extends bitmexRest {
             };
             const method = this.safeValue (methods, table);
             if (method === undefined) {
-                const request = this.safeValue (message, 'request', {});
+                const request = this.safeDict (message, 'request', {});
                 const op = this.safeValue (request, 'op');
                 if (op === 'authKeyExpires') {
                     this.handleAuthenticationMessage (client, message);

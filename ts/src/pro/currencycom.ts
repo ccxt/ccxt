@@ -263,7 +263,7 @@ export default class currencycom extends currencycomRest {
         //
         // const destination = this.safeString (message, 'destination');
         const destination = 'OHLCMarketData.subscribe';
-        const payload = this.safeValue (message, 'payload', {});
+        const payload = this.safeDict (message, 'payload', {});
         const interval = this.safeString (payload, 'interval');
         const timeframe = this.findTimeframe (interval);
         const marketId = this.safeString (payload, 'symbol');
@@ -278,7 +278,7 @@ export default class currencycom extends currencycomRest {
             this.safeNumber (payload, 'c'),
             undefined, // no volume v in OHLCV
         ];
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -468,8 +468,8 @@ export default class currencycom extends currencycomRest {
         //         }
         //     }
         //
-        const payload = this.safeValue (message, 'payload', {});
-        const data = this.safeValue (payload, 'data', {});
+        const payload = this.safeDict (message, 'payload', {});
+        const data = this.safeDict (payload, 'data', {});
         const marketId = this.safeString (payload, 'symbol');
         const symbol = this.safeSymbol (marketId, undefined, '/');
         // const destination = this.safeString (message, 'destination');
@@ -484,8 +484,8 @@ export default class currencycom extends currencycomRest {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         });
-        const bids = this.safeValue (data, 'bid', {});
-        const asks = this.safeValue (data, 'ofr', {});
+        const bids = this.safeDict (data, 'bid', {});
+        const asks = this.safeDict (data, 'ofr', {});
         this.handleDeltas (orderbook['bids'], bids);
         this.handleDeltas (orderbook['asks'], asks);
         this.orderbooks[symbol] = orderbook;

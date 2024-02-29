@@ -250,7 +250,7 @@ export default class exmo extends Exchange {
         //      {}
         //
         const margin = this.parseMarginModification (response, market);
-        const options = this.safeValue (this.options, 'margin', {});
+        const options = this.safeDict (this.options, 'margin', {});
         const fillResponseFromRequest = this.safeBool (options, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             margin['type'] = type;
@@ -312,7 +312,7 @@ export default class exmo extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
-        const options = this.safeValue (this.options, 'fetchTradingFees', {});
+        const options = this.safeDict (this.options, 'fetchTradingFees', {});
         const defaultMethod = this.safeString (options, 'method', 'fetchPrivateTradingFees');
         const method = this.safeString (params, 'method', defaultMethod);
         params = this.omit (params, 'method');
@@ -399,7 +399,7 @@ export default class exmo extends Exchange {
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
-            const fee = this.safeValue (response, market['id'], {});
+            const fee = this.safeDict (response, market['id'], {});
             const makerString = this.safeString (fee, 'commission_maker_percent');
             const takerString = this.safeString (fee, 'commission_taker_percent');
             const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
@@ -946,8 +946,8 @@ export default class exmo extends Exchange {
                 result[currency] = account;
             }
         } else {
-            const free = this.safeValue (response, 'balances', {});
-            const used = this.safeValue (response, 'reserved', {});
+            const free = this.safeDict (response, 'balances', {});
+            const used = this.safeDict (response, 'reserved', {});
             const currencyIds = Object.keys (free);
             for (let i = 0; i < currencyIds.length; i++) {
                 const currencyId = currencyIds[i];
@@ -2174,7 +2174,7 @@ export default class exmo extends Exchange {
         if (tag !== undefined) {
             request['invoice'] = tag;
         }
-        const networks = this.safeValue (this.options, 'networks', {});
+        const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
@@ -2255,7 +2255,7 @@ export default class exmo extends Exchange {
         }
         let txid = this.safeString (transaction, 'txid');
         if (txid === undefined) {
-            const extra = this.safeValue (transaction, 'extra', {});
+            const extra = this.safeDict (transaction, 'extra', {});
             const extraTxid = this.safeString (extra, 'txid');
             if (extraTxid !== '') {
                 txid = extraTxid;
@@ -2290,8 +2290,8 @@ export default class exmo extends Exchange {
             const key = (type === 'withdrawal') ? 'withdraw' : 'deposit';
             let feeCost = this.safeString (transaction, 'commission');
             if (feeCost === undefined) {
-                const transactionFees = this.safeValue (this.options, 'transactionFees', {});
-                const codeFees = this.safeValue (transactionFees, code, {});
+                const transactionFees = this.safeDict (this.options, 'transactionFees', {});
+                const codeFees = this.safeDict (transactionFees, code, {});
                 feeCost = this.safeString (codeFees, key);
             }
             // users don't pay for cashbacks, no fees for that
@@ -2491,7 +2491,7 @@ export default class exmo extends Exchange {
         //     }
         //
         const items = this.safeValue (response, 'items', []);
-        const first = this.safeValue (items, 0, {});
+        const first = this.safeDict (items, 0, {});
         return this.parseTransaction (first, currency);
     }
 
@@ -2544,7 +2544,7 @@ export default class exmo extends Exchange {
         //     }
         //
         const items = this.safeValue (response, 'items', []);
-        const first = this.safeValue (items, 0, {});
+        const first = this.safeDict (items, 0, {});
         return this.parseTransaction (first, currency);
     }
 
@@ -2640,7 +2640,7 @@ export default class exmo extends Exchange {
             //     "msg": "Your margin balance is not sufficient to place the order for '5 TON'. Please top up your margin wallet by "2.5 USDT"."
             // }
             //
-            const errorCode = this.safeValue (response, 'error', {});
+            const errorCode = this.safeDict (response, 'error', {});
             const messageError = this.safeString (errorCode, 'msg');
             const code = this.safeString (errorCode, 'code');
             const feedback = this.id + ' ' + body;

@@ -48,9 +48,9 @@ function testCurrency (exchange, skippedProperties, method, entry) {
     testSharedMethods.checkPrecisionAccuracy (exchange, skippedProperties, method, entry, 'precision');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'fee', '0');
     if (!('limits' in skippedProperties)) {
-        const limits = exchange.safeValue (entry, 'limits', {});
-        const withdrawLimits = exchange.safeValue (limits, 'withdraw', {});
-        const depositLimits = exchange.safeValue (limits, 'deposit', {});
+        const limits = exchange.safeDict (entry, 'limits', {});
+        const withdrawLimits = exchange.safeDict (limits, 'withdraw', {});
+        const depositLimits = exchange.safeDict (limits, 'deposit', {});
         testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, withdrawLimits, 'min', '0');
         testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, withdrawLimits, 'max', '0');
         testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, depositLimits, 'min', '0');

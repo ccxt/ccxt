@@ -590,7 +590,7 @@ export default class bitstamp extends Exchange {
     async fetchMarketsFromCache (params = {}) {
         // this method is now redundant
         // currencies are now fetched before markets
-        const options = this.safeValue (this.options, 'fetchMarkets', {});
+        const options = this.safeDict (this.options, 'fetchMarkets', {});
         const timestamp = this.safeInteger (options, 'timestamp');
         const expires = this.safeInteger (options, 'expires', 1000);
         const now = this.milliseconds ();
@@ -1117,7 +1117,7 @@ export default class bitstamp extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const ohlc = this.safeValue (data, 'ohlc', []);
         return this.parseOHLCVs (ohlc, market, timeframe, since, limit);
     }
@@ -2218,7 +2218,7 @@ export default class bitstamp extends Exchange {
                     }
                 }
             }
-            const reasonInner = this.safeValue (response, 'reason', {});
+            const reasonInner = this.safeDict (response, 'reason', {});
             if (typeof reasonInner === 'string') {
                 errors.push (reasonInner);
             } else {

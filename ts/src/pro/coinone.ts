@@ -102,7 +102,7 @@ export default class coinone extends coinoneRest {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const baseId = this.safeStringUpper (data, 'target_currency');
         const quoteId = this.safeStringUpper (data, 'quote_currency');
         const base = this.safeCurrencyCode (baseId);
@@ -188,7 +188,7 @@ export default class coinone extends coinoneRest {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const ticker = this.parseWsTicker (data);
         const symbol = ticker['symbol'];
         this.tickers[symbol] = ticker;
@@ -301,7 +301,7 @@ export default class coinone extends coinoneRest {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const trade = this.parseWsTrade (data);
         const symbol = trade['symbol'];
         let stored = this.safeValue (this.trades, symbol);

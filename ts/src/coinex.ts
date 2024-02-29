@@ -442,7 +442,7 @@ export default class coinex extends Exchange {
             if (precisionString !== undefined) {
                 minPrecisionString = (minPrecisionString === undefined) ? precisionString : Precise.stringMin (precisionString, minPrecisionString);
             }
-            const networks = this.safeValue (result[code], 'networks', {});
+            const networks = this.safeDict (result[code], 'networks', {});
             const network = {
                 'info': currency,
                 'id': networkId,
@@ -523,7 +523,7 @@ export default class coinex extends Exchange {
         //         }
         //     }
         //
-        const markets = this.safeValue (response, 'data', {});
+        const markets = this.safeDict (response, 'data', {});
         const result = [];
         const keys = Object.keys (markets);
         for (let i = 0; i < keys.length; i++) {
@@ -735,7 +735,7 @@ export default class coinex extends Exchange {
         //
         const timestamp = this.safeInteger (ticker, 'date');
         const symbol = this.safeSymbol (undefined, market);
-        ticker = this.safeValue (ticker, 'ticker', {});
+        ticker = this.safeDict (ticker, 'ticker', {});
         const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
             'symbol': symbol,
@@ -925,7 +925,7 @@ export default class coinex extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         const timestamp = this.safeInteger (data, 'date');
-        const tickers = this.safeValue (data, 'ticker', {});
+        const tickers = this.safeDict (data, 'ticker', {});
         const marketIds = Object.keys (tickers);
         const result = {};
         for (let i = 0; i < marketIds.length; i++) {
@@ -1035,7 +1035,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const result = this.safeValue (response, 'data', {});
+        const result = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (result, 'time');
         return this.parseOrderBook (result, symbol, timestamp);
     }
@@ -1245,7 +1245,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //      }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTradingFee (data, market);
     }
 
@@ -1278,12 +1278,12 @@ export default class coinex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const result = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
-            const fee = this.safeValue (data, market['id'], {});
+            const fee = this.safeDict (data, market['id'], {});
             result[symbol] = this.parseTradingFee (fee, market);
         }
         return result;
@@ -1435,11 +1435,11 @@ export default class coinex extends Exchange {
         //      }
         //
         const result = { 'info': response };
-        const data = this.safeValue (response, 'data', {});
-        const free = this.safeValue (data, 'can_transfer', {});
-        const total = this.safeValue (data, 'balance', {});
-        const loan = this.safeValue (data, 'loan', {});
-        const interest = this.safeValue (data, 'interest', {});
+        const data = this.safeDict (response, 'data', {});
+        const free = this.safeDict (data, 'can_transfer', {});
+        const total = this.safeDict (data, 'balance', {});
+        const loan = this.safeDict (data, 'loan', {});
+        const interest = this.safeDict (data, 'interest', {});
         //
         const sellAccount = this.account ();
         const sellCurrencyId = this.safeString (data, 'sell_asset_type');
@@ -1488,12 +1488,12 @@ export default class coinex extends Exchange {
         //     }
         //
         const result = { 'info': response };
-        const balances = this.safeValue (response, 'data', {});
+        const balances = this.safeDict (response, 'data', {});
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
-            const balance = this.safeValue (balances, currencyId, {});
+            const balance = this.safeDict (balances, currencyId, {});
             const account = this.account ();
             account['free'] = this.safeString (balance, 'available');
             account['used'] = this.safeString (balance, 'frozen');
@@ -1522,12 +1522,12 @@ export default class coinex extends Exchange {
         //     }
         //
         const result = { 'info': response };
-        const balances = this.safeValue (response, 'data', {});
+        const balances = this.safeDict (response, 'data', {});
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
-            const balance = this.safeValue (balances, currencyId, {});
+            const balance = this.safeDict (balances, currencyId, {});
             const account = this.account ();
             account['free'] = this.safeString (balance, 'available');
             account['used'] = this.safeString (balance, 'frozen');
@@ -1561,7 +1561,7 @@ export default class coinex extends Exchange {
         //      }
         //
         const result = { 'info': response };
-        const balances = this.safeValue (response, 'data', {});
+        const balances = this.safeDict (response, 'data', {});
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'asset');
@@ -2281,7 +2281,7 @@ export default class coinex extends Exchange {
         //
         //     {"code":0,"data":{"status":"success"},"message":"OK"}
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -2312,7 +2312,7 @@ export default class coinex extends Exchange {
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
-            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const orderParams = this.safeDict (rawOrder, 'params', {});
             if (type !== 'limit') {
                 throw new NotSupported (this.id + ' createOrders() does not support ' + type + ' orders, only limit orders are accepted');
             }
@@ -2378,7 +2378,7 @@ export default class coinex extends Exchange {
                     status = 'open';
                 }
             }
-            const item = this.safeValue (entry, 'data', {});
+            const item = this.safeDict (entry, 'data', {});
             item['status'] = status;
             const order = this.parseOrder (item, market);
             results.push (order);
@@ -2511,7 +2511,7 @@ export default class coinex extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const dataRequest = market['spot'] ? 'data' : 'order';
-            const item = this.safeValue (entry, dataRequest, {});
+            const item = this.safeDict (entry, dataRequest, {});
             const order = this.parseOrder (item, market);
             results.push (order);
         }
@@ -2583,7 +2583,7 @@ export default class coinex extends Exchange {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -3250,7 +3250,7 @@ export default class coinex extends Exchange {
         //         },
         //         "message": "Success"
         //     }
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseDepositAddress (data, currency);
     }
 
@@ -3269,7 +3269,7 @@ export default class coinex extends Exchange {
         const request = {
             'coin_type': currency['id'],
         };
-        const networks = this.safeValue (currency, 'networks', {});
+        const networks = this.safeDict (currency, 'networks', {});
         const network = this.safeString (params, 'network');
         params = this.omit (params, 'network');
         const networksKeys = Object.keys (networks);
@@ -3297,9 +3297,9 @@ export default class coinex extends Exchange {
         //          "message": "Success"
         //      }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const depositAddress = this.parseDepositAddress (data, currency);
-        const options = this.safeValue (this.options, 'fetchDepositAddress', {});
+        const options = this.safeDict (this.options, 'fetchDepositAddress', {});
         const fillResponseFromRequest = this.safeBool (options, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             depositAddress['network'] = this.safeNetworkCode (network, currency);
@@ -3308,7 +3308,7 @@ export default class coinex extends Exchange {
     }
 
     safeNetwork (networkId, currency: Currency = undefined) {
-        const networks = this.safeValue (currency, 'networks', {});
+        const networks = this.safeDict (currency, 'networks', {});
         const networksCodes = Object.keys (networks);
         const networksCodesLength = networksCodes.length;
         if (networkId === undefined && networksCodesLength === 1) {
@@ -3906,7 +3906,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseLeverageTiers (data, symbols, undefined);
     }
 
@@ -4131,7 +4131,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const resultList = this.safeValue (data, 'records', []);
         const result = [];
         for (let i = 0; i < resultList.length; i++) {
@@ -4203,8 +4203,8 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const ticker = this.safeValue (data, 'ticker', {});
+        const data = this.safeDict (response, 'data', {});
+        const ticker = this.safeDict (data, 'ticker', {});
         const timestamp = this.safeInteger (data, 'date');
         ticker['timestamp'] = timestamp; // avoid changing parseFundingRate signature
         return this.parseFundingRate (ticker, market);
@@ -4317,8 +4317,8 @@ export default class coinex extends Exchange {
         //         },
         //         "message": "OK"
         //     }
-        const data = this.safeValue (response, 'data', {});
-        const tickers = this.safeValue (data, 'ticker', {});
+        const data = this.safeDict (response, 'data', {});
+        const tickers = this.safeDict (data, 'ticker', {});
         const timestamp = this.safeInteger (data, 'date');
         const result = [];
         const marketIds = Object.keys (tickers);
@@ -4385,7 +4385,7 @@ export default class coinex extends Exchange {
         //         "message": "Ok"
         //     }
         //
-        const transaction = this.safeValue (response, 'data', {});
+        const transaction = this.safeDict (response, 'data', {});
         return this.parseTransaction (transaction, currency);
     }
 
@@ -4623,7 +4623,7 @@ export default class coinex extends Exchange {
             request['transfer_side'] = 'out'; // 'in' spot to swap, 'out' swap to spot
             response = await this.privatePostContractBalanceTransfer (this.extend (request, params));
         } else {
-            const accountsById = this.safeValue (this.options, 'accountsById', {});
+            const accountsById = this.safeDict (this.options, 'accountsById', {});
             const fromId = this.safeString (accountsById, fromAccount, fromAccount);
             const toId = this.safeString (accountsById, toAccount, toAccount);
             // fromAccount and toAccount must be integers for margin transfers
@@ -4800,7 +4800,7 @@ export default class coinex extends Exchange {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const transfers = this.safeValue (data, 'records', []);
         return this.parseTransfers (transfers, currency, since, limit);
     }
@@ -5011,7 +5011,7 @@ export default class coinex extends Exchange {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseIsolatedBorrowRate (data, market);
     }
 
@@ -5098,7 +5098,7 @@ export default class coinex extends Exchange {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const rows = this.safeValue (data, 'data', []);
         const interest = this.parseBorrowInterests (rows, market);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
@@ -5175,7 +5175,7 @@ export default class coinex extends Exchange {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const transaction = this.parseMarginLoan (data, currency);
         return this.extend (transaction, {
             'amount': amount,

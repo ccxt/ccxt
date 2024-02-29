@@ -563,7 +563,7 @@ export default class gemini extends Exchange {
             };
             result[marketId] = this.parseMarket (market);
         }
-        const options = this.safeValue (this.options, 'fetchMarketsFromAPI', {});
+        const options = this.safeDict (this.options, 'fetchMarketsFromAPI', {});
         const fetchDetailsForAllSymbols = this.safeBool (options, 'fetchDetailsForAllSymbols', false);
         const fetchDetailsForMarketIds = this.safeValue (options, 'fetchDetailsForMarketIds', []);
         let promises = [];
@@ -808,7 +808,7 @@ export default class gemini extends Exchange {
         //         "ask":"9115.87"
         //     }
         //
-        const volume = this.safeValue (ticker, 'volume', {});
+        const volume = this.safeDict (ticker, 'volume', {});
         const timestamp = this.safeInteger (volume, 'timestamp');
         let symbol = undefined;
         const marketId = this.safeStringLower (ticker, 'pair');

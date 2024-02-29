@@ -34,7 +34,7 @@ export default class upbit extends upbitRest {
         symbol = market['symbol'];
         const marketId = market['id'];
         const url = this.urls['api']['ws'];
-        this.options[channel] = this.safeValue (this.options, channel, {});
+        this.options[channel] = this.safeDict (this.options, channel, {});
         this.options[channel][symbol] = true;
         const symbols = Object.keys (this.options[channel]);
         const marketIds = this.marketIds (symbols);
@@ -167,7 +167,7 @@ export default class upbit extends upbitRest {
         const marketId = this.safeString (message, 'code');
         const symbol = this.safeSymbol (marketId, undefined, '-');
         const type = this.safeString (message, 'stream_type');
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        const options = this.safeDict (this.options, 'watchOrderBook', {});
         const limit = this.safeInteger (options, 'limit', 15);
         if (type === 'SNAPSHOT') {
             this.orderbooks[symbol] = this.orderBook ({}, limit);

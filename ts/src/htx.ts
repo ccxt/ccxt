@@ -1430,10 +1430,10 @@ export default class htx extends Exchange {
             }
             updated = this.safeString (response, 'ts');
         } else {
-            const statusData = this.safeValue (response, 'status', {});
+            const statusData = this.safeDict (response, 'status', {});
             const statusRaw = this.safeString (statusData, 'indicator');
             status = (statusRaw === 'none') ? 'ok' : 'maintenance'; // none, minor, major, critical, maintenance
-            const pageData = this.safeValue (response, 'page', {});
+            const pageData = this.safeDict (response, 'page', {});
             const datetime = this.safeString (pageData, 'updated_at');
             updated = this.parse8601 (datetime);
             url = this.safeString (pageData, 'url');
@@ -1455,7 +1455,7 @@ export default class htx extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const options = this.safeValue (this.options, 'fetchTime', {});
+        const options = this.safeDict (this.options, 'fetchTime', {});
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         let type = this.safeString (options, 'type', defaultType);
         type = this.safeString (params, 'type', type);
@@ -1527,7 +1527,7 @@ export default class htx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         return this.parseTradingFee (first, market);
     }
 
@@ -1610,8 +1610,8 @@ export default class htx extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const options = this.safeValue (this.options, 'fetchMarkets', {});
-        const types = this.safeValue (options, 'types', {});
+        const options = this.safeDict (this.options, 'fetchMarkets', {});
+        const types = this.safeDict (options, 'types', {});
         let allMarkets = [];
         let promises = [];
         const keys = Object.keys (types);
@@ -2105,7 +2105,7 @@ export default class htx extends Exchange {
         //         "ts":1637502670059
         //     }
         //
-        const tick = this.safeValue (response, 'tick', {});
+        const tick = this.safeDict (response, 'tick', {});
         const ticker = this.parseTicker (tick, market);
         const timestamp = this.safeInteger (response, 'ts');
         ticker['timestamp'] = timestamp;
@@ -2365,7 +2365,7 @@ export default class htx extends Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchLastPrices() does not support ' + type + ' markets yet');
         }
-        const tick = this.safeValue (response, 'tick', {});
+        const tick = this.safeDict (response, 'tick', {});
         const data = this.safeValue (tick, 'data', []);
         return this.parseLastPrices (data, symbols);
     }
@@ -3085,7 +3085,7 @@ export default class htx extends Exchange {
         //     }
         //
         const typeId = this.safeString (account, 'type');
-        const accountsById = this.safeValue (this.options, 'accountsById', {});
+        const accountsById = this.safeDict (this.options, 'accountsById', {});
         const type = this.safeValue (accountsById, typeId, typeId);
         return {
             'info': account,
@@ -3122,7 +3122,7 @@ export default class htx extends Exchange {
                 return this.safeString (account, 'id');
             }
         }
-        const defaultAccount = this.safeValue (accounts, 0, {});
+        const defaultAccount = this.safeDict (accounts, 0, {});
         return this.safeString (defaultAccount, 'id');
     }
 
@@ -3282,7 +3282,7 @@ export default class htx extends Exchange {
         if (keysLength === 0) {
             throw new ExchangeError (this.id + ' networkCodeToId() - markets need to be loaded at first');
         }
-        const uniqueNetworkIds = this.safeValue (this.options['networkChainIdsByNames'], currencyCode, {});
+        const uniqueNetworkIds = this.safeDict (this.options['networkChainIdsByNames'], currencyCode, {});
         if (networkCode in uniqueNetworkIds) {
             return uniqueNetworkIds[networkCode];
         } else {
@@ -3310,7 +3310,7 @@ export default class htx extends Exchange {
         await this.loadMarkets ();
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        const options = this.safeValue (this.options, 'fetchBalance', {});
+        const options = this.safeDict (this.options, 'fetchBalance', {});
         const isUnifiedAccount = this.safeValue2 (params, 'isUnifiedAccount', 'unified', false);
         params = this.omit (params, [ 'isUnifiedAccount', 'unified' ]);
         const request = {};
@@ -3548,7 +3548,7 @@ export default class htx extends Exchange {
                 const marginAsset = this.safeString (entry, 'margin_asset');
                 const currencyCode = this.safeCurrencyCode (marginAsset);
                 if (isolated) {
-                    const isolated_swap = this.safeValue (entry, 'isolated_swap', {});
+                    const isolated_swap = this.safeDict (entry, 'isolated_swap', {});
                     for (let j = 0; j < isolated_swap.length; j++) {
                         const balance = isolated_swap[j];
                         const marketId = this.safeString (balance, 'contract_code');
@@ -3569,7 +3569,7 @@ export default class htx extends Exchange {
                 }
             }
         } else if (linear) {
-            const first = this.safeValue (data, 0, {});
+            const first = this.safeDict (data, 0, {});
             if (isolated) {
                 for (let i = 0; i < data.length; i++) {
                     const balance = data[i];
@@ -5086,10 +5086,10 @@ export default class htx extends Exchange {
         };
         let orderType = type.replace ('buy-', '');
         orderType = orderType.replace ('sell-', '');
-        const options = this.safeValue (this.options, market['type'], {});
+        const options = this.safeDict (this.options, market['type'], {});
         const stopPrice = this.safeString2 (params, 'stopPrice', 'stop-price');
         if (stopPrice === undefined) {
-            const stopOrderTypes = this.safeValue (options, 'stopOrderTypes', {});
+            const stopOrderTypes = this.safeDict (options, 'stopOrderTypes', {});
             if (orderType in stopOrderTypes) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice or a stop-price parameter for a stop order');
             }
@@ -5118,7 +5118,7 @@ export default class htx extends Exchange {
         request['type'] = side + '-' + orderType;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
         if (clientOrderId === undefined) {
-            const broker = this.safeValue (this.options, 'broker', {});
+            const broker = this.safeDict (this.options, 'broker', {});
             const brokerId = this.safeString (broker, 'id');
             request['client-order-id'] = brokerId + this.uuid ();
         } else {
@@ -5160,7 +5160,7 @@ export default class htx extends Exchange {
         } else {
             request['amount'] = this.amountToPrecision (symbol, amount);
         }
-        const limitOrderTypes = this.safeValue (options, 'limitOrderTypes', {});
+        const limitOrderTypes = this.safeDict (options, 'limitOrderTypes', {});
         if (orderType in limitOrderTypes) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
@@ -5257,7 +5257,7 @@ export default class htx extends Exchange {
                 request['order_price_type'] = type;
             }
         }
-        const broker = this.safeValue (this.options, 'broker', {});
+        const broker = this.safeDict (this.options, 'broker', {});
         const brokerId = this.safeString (broker, 'id');
         request['channel_code'] = brokerId;
         params = this.omit (params, [ 'reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice' ]);
@@ -5420,13 +5420,13 @@ export default class htx extends Exchange {
                 'average': undefined,
             }, market);
         } else if (isStopLossTriggerOrder) {
-            data = this.safeValue (response, 'data', {});
-            result = this.safeValue (data, 'sl_order', {});
+            data = this.safeDict (response, 'data', {});
+            result = this.safeDict (data, 'sl_order', {});
         } else if (isTakeProfitTriggerOrder) {
-            data = this.safeValue (response, 'data', {});
-            result = this.safeValue (data, 'tp_order', {});
+            data = this.safeDict (response, 'data', {});
+            result = this.safeDict (data, 'tp_order', {});
         } else {
-            result = this.safeValue (response, 'data', {});
+            result = this.safeDict (response, 'data', {});
         }
         return this.parseOrder (result, market);
     }
@@ -5464,7 +5464,7 @@ export default class htx extends Exchange {
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
-            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const orderParams = this.safeDict (rawOrder, 'params', {});
             const marginResult = this.handleMarginModeAndParams ('createOrders', orderParams);
             const currentMarginMode = marginResult[0];
             if (currentMarginMode !== undefined) {
@@ -5552,7 +5552,7 @@ export default class htx extends Exchange {
         if (market['spot']) {
             result = this.safeValue (response, 'data', []);
         } else {
-            const data = this.safeValue (response, 'data', {});
+            const data = this.safeDict (response, 'data', {});
             const success = this.safeValue (data, 'success', []);
             const errors = this.safeValue (data, 'errors', []);
             result = this.arrayConcat (success, errors);
@@ -6371,13 +6371,13 @@ export default class htx extends Exchange {
             request['chain'] = this.networkCodeToId (networkCode, code);
         }
         amount = parseFloat (this.currencyToPrecision (code, amount, networkCode));
-        const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
+        const withdrawOptions = this.safeDict (this.options, 'withdraw', {});
         if (this.safeBool (withdrawOptions, 'includeFee', false)) {
             let fee = this.safeNumber (params, 'fee');
             if (fee === undefined) {
                 const currencies = await this.fetchCurrencies ();
                 this.currencies = this.deepExtend (this.currencies, currencies);
-                const targetNetwork = this.safeValue (currency['networks'], networkCode, {});
+                const targetNetwork = this.safeDict (currency['networks'], networkCode, {});
                 fee = this.safeNumber (targetNetwork, 'fee');
                 if (fee === undefined) {
                     throw new ArgumentsRequired (this.id + ' withdraw() function can not find withdraw fee for chosen network. You need to re-load markets with "exchange.loadMarkets(true)", or provide the "fee" parameter');
@@ -6765,7 +6765,7 @@ export default class htx extends Exchange {
         //     "ts": 1603696494714
         // }
         //
-        const result = this.safeValue (response, 'data', {});
+        const result = this.safeDict (response, 'data', {});
         return this.parseFundingRate (result, market);
     }
 
@@ -6780,7 +6780,7 @@ export default class htx extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const options = this.safeValue (this.options, 'fetchFundingRates', {});
+        const options = this.safeDict (this.options, 'fetchFundingRates', {});
         const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
         let subType = this.safeString (options, 'subType', defaultSubType);
         subType = this.safeString (params, 'subType', subType);
@@ -7017,7 +7017,7 @@ export default class htx extends Exchange {
             } else if (access === 'private') {
                 this.checkRequiredCredentials ();
                 if (method === 'POST') {
-                    const options = this.safeValue (this.options, 'broker', {});
+                    const options = this.safeDict (this.options, 'broker', {});
                     const id = this.safeString (options, 'id', 'AA03022abc');
                     if (path.indexOf ('cancel') === -1 && path.endsWith ('order')) {
                         // swap order placement

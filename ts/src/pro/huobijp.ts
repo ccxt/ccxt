@@ -97,7 +97,7 @@ export default class huobijp extends huobijpRest {
         //         }
         //     }
         //
-        const tick = this.safeValue (message, 'tick', {});
+        const tick = this.safeDict (message, 'tick', {});
         const ch = this.safeString (message, 'ch');
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
@@ -170,8 +170,8 @@ export default class huobijp extends huobijpRest {
         //         }
         //     }
         //
-        const tick = this.safeValue (message, 'tick', {});
-        const data = this.safeValue (tick, 'data', {});
+        const tick = this.safeDict (message, 'tick', {});
+        const data = this.safeDict (tick, 'data', {});
         const ch = this.safeString (message, 'ch');
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
@@ -254,7 +254,7 @@ export default class huobijp extends huobijpRest {
         const symbol = market['symbol'];
         const interval = this.safeString (parts, 3);
         const timeframe = this.findTimeframe (interval);
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -409,7 +409,7 @@ export default class huobijp extends huobijpRest {
         //         }
         //     }
         //
-        const tick = this.safeValue (message, 'tick', {});
+        const tick = this.safeDict (message, 'tick', {});
         const seqNum = this.safeInteger (tick, 'seqNum');
         const prevSeqNum = this.safeInteger (tick, 'prevSeqNum');
         if ((prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce'])) {

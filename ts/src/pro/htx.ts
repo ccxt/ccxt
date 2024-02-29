@@ -142,7 +142,7 @@ export default class htx extends htxRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const options = this.safeValue (this.options, 'watchTicker', {});
+        const options = this.safeDict (this.options, 'watchTicker', {});
         const topic = this.safeString (options, 'name', 'market.{marketId}.detail');
         if (topic === 'market.{marketId}.ticker' && market['type'] !== 'spot') {
             throw new BadRequest (this.id + ' watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead');
@@ -185,7 +185,7 @@ export default class htx extends htxRest {
         //         }
         //     }
         //
-        const tick = this.safeValue (message, 'tick', {});
+        const tick = this.safeDict (message, 'tick', {});
         const ch = this.safeString (message, 'ch');
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
@@ -244,8 +244,8 @@ export default class htx extends htxRest {
         //         }
         //     }
         //
-        const tick = this.safeValue (message, 'tick', {});
-        const data = this.safeValue (tick, 'data', {});
+        const tick = this.safeDict (message, 'tick', {});
+        const data = this.safeDict (tick, 'data', {});
         const ch = this.safeString (message, 'ch');
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
@@ -314,7 +314,7 @@ export default class htx extends htxRest {
         const symbol = market['symbol'];
         const interval = this.safeString (parts, 3);
         const timeframe = this.findTimeframe (interval);
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -401,7 +401,7 @@ export default class htx extends htxRest {
             const orderbook = this.orderbooks[symbol];
             const data = this.safeValue (message, 'data');
             const messages = orderbook.cache;
-            const firstMessage = this.safeValue (messages, 0, {});
+            const firstMessage = this.safeDict (messages, 0, {});
             const snapshot = this.parseOrderBook (data, symbol);
             const tick = this.safeValue (firstMessage, 'tick');
             const sequence = this.safeInteger (tick, 'prevSeqNum');
@@ -565,7 +565,7 @@ export default class htx extends htxRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const orderbook = this.orderbooks[symbol];
-        const tick = this.safeValue (message, 'tick', {});
+        const tick = this.safeDict (message, 'tick', {});
         const seqNum = this.safeInteger (tick, 'seqNum');
         const prevSeqNum = this.safeInteger (tick, 'prevSeqNum');
         const event = this.safeString (tick, 'event');
@@ -1575,7 +1575,7 @@ export default class htx extends htxRest {
             if (dataLength === 0) {
                 return;
             }
-            const first = this.safeValue (data, 0, {});
+            const first = this.safeDict (data, 0, {});
             const topic = this.safeString (message, 'topic');
             const splitTopic = topic.split ('.');
             let messageHash = this.safeString (splitTopic, 0);

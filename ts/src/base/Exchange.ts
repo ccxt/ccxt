@@ -1393,7 +1393,7 @@ export default class Exchange {
             const onClose = this.onClose.bind (this);
             const onConnected = this.onConnected.bind (this);
             // decide client type here: ws / signalr / socketio
-            const wsOptions = this.safeValue (this.options, 'ws', {});
+            const wsOptions = this.safeDict (this.options, 'ws', {});
             // proxy agents
             const [ httpProxy, httpsProxy, socksProxy ] = this.checkWsProxySettings ();
             const chosenAgent = this.setProxyAgents (httpProxy, httpsProxy, socksProxy);
@@ -3388,7 +3388,7 @@ export default class Exchange {
 
     async fetchWebEndpoint (method, endpointMethod, returnAsJson, startRegex = undefined, endRegex = undefined) {
         let errorMessage = '';
-        const options = this.safeValue (this.options, method, {});
+        const options = this.safeDict (this.options, method, {});
         const muteOnFailure = this.safeBool (options, 'webApiMuteFailure', true);
         try {
             // if it was not explicitly disabled, then don't fetch
@@ -3560,7 +3560,7 @@ export default class Exchange {
         if (networkCode === undefined) {
             return undefined;
         }
-        const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
+        const networkIdsByCodes = this.safeDict (this.options, 'networks', {});
         let networkId = this.safeString (networkIdsByCodes, networkCode);
         // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
         if (networkId === undefined) {
@@ -3569,7 +3569,7 @@ export default class Exchange {
                 networkId = networkCode;
             } else {
                 // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH)
-                const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
+                const defaultNetworkCodeReplacements = this.safeDict (this.options, 'defaultNetworkCodeReplacements', {});
                 if (currencyCode in defaultNetworkCodeReplacements) {
                     // if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
                     const replacementObject = defaultNetworkCodeReplacements[currencyCode]; // i.e. { 'ERC20': 'ETH' }

@@ -261,7 +261,7 @@ export default class bitvavo extends bitvavoRest {
         const timeframe = this.findTimeframe (interval);
         const messageHash = name + '@' + marketId + '_' + interval;
         const candles = this.safeValue (message, 'candle');
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -376,12 +376,12 @@ export default class bitvavo extends bitvavoRest {
             return;
         }
         if (orderbook['nonce'] === undefined) {
-            const subscription = this.safeValue (client.subscriptions, messageHash, {});
+            const subscription = this.safeDict (client.subscriptions, messageHash, {});
             const watchingOrderBookSnapshot = this.safeValue (subscription, 'watchingOrderBookSnapshot');
             if (watchingOrderBookSnapshot === undefined) {
                 subscription['watchingOrderBookSnapshot'] = true;
                 client.subscriptions[messageHash] = subscription;
-                const options = this.safeValue (this.options, 'watchOrderBookSnapshot', {});
+                const options = this.safeDict (this.options, 'watchOrderBookSnapshot', {});
                 const delay = this.safeInteger (options, 'delay', this.rateLimit);
                 // fetch the snapshot in a separate async call after a warmup delay
                 this.delay (delay, this.watchOrderBookSnapshot, client, message, subscription);
@@ -651,7 +651,7 @@ export default class bitvavo extends bitvavoRest {
         //
         const action = this.safeString (message, 'action');
         const response = this.safeValue (message, 'response');
-        const firstRawOrder = this.safeValue (response, 0, {});
+        const firstRawOrder = this.safeDict (response, 0, {});
         const marketId = this.safeString (firstRawOrder, 'market');
         const orders = this.parseOrders (response);
         let messageHash = this.buildMessageHash (action, { 'market': marketId });
@@ -784,7 +784,7 @@ export default class bitvavo extends bitvavoRest {
         //
         const action = this.safeString (message, 'action');
         const response = this.safeValue (message, 'response');
-        const firstRawTrade = this.safeValue (response, 0, {});
+        const firstRawTrade = this.safeDict (response, 0, {});
         const marketId = this.safeString (firstRawTrade, 'market');
         const trades = this.parseTrades (response, undefined, undefined, undefined);
         const messageHash = this.buildMessageHash (action, { 'market': marketId });
@@ -1084,7 +1084,7 @@ export default class bitvavo extends bitvavoRest {
         //    }
         //
         const action = this.safeString (message, 'action');
-        const response = this.safeValue (message, 'response', {});
+        const response = this.safeDict (message, 'response', {});
         const order = this.parseOrder (response);
         const messageHash = this.buildMessageHash (action, response);
         client.resolve (order, messageHash);
@@ -1111,7 +1111,7 @@ export default class bitvavo extends bitvavoRest {
         //    }
         //
         const action = this.safeString (message, 'action');
-        const response = this.safeValue (message, 'response', {});
+        const response = this.safeDict (message, 'response', {});
         const markets = this.parseMarkets (response);
         const messageHash = this.buildMessageHash (action, response);
         client.resolve (markets, messageHash);
@@ -1234,7 +1234,7 @@ export default class bitvavo extends bitvavoRest {
         //         }
         //     }
         //
-        const subscriptions = this.safeValue (message, 'subscriptions', {});
+        const subscriptions = this.safeDict (message, 'subscriptions', {});
         const methods = {
             'book': this.handleOrderBookSubscriptions,
         };

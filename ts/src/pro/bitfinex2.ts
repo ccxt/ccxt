@@ -175,7 +175,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const timeframe = this.findTimeframe (interval);
         const symbol = market['symbol'];
         const messageHash = channel + ':' + interval + ':' + marketId;
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -542,7 +542,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                 throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 25 or 100');
             }
         }
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        const options = this.safeDict (this.options, 'watchOrderBook', {});
         const prec = this.safeString (options, 'prec', 'P0');
         const freq = this.safeString (options, 'freq', 'F0');
         const request = {
@@ -789,7 +789,7 @@ export default class bitfinex2 extends bitfinex2Rest {
             const code = this.safeCurrencyCode (currencyId);
             const balance = this.parseWsBalance (rawBalance);
             const balanceType = this.safeString (rawBalance, 0);
-            const oldBalance = this.safeValue (this.balance, balanceType, {});
+            const oldBalance = this.safeDict (this.balance, balanceType, {});
             oldBalance[code] = balance;
             oldBalance['info'] = message;
             this.balance[balanceType] = this.safeBalance (oldBalance);
@@ -1126,7 +1126,7 @@ export default class bitfinex2 extends bitfinex2Rest {
             if (message[1] === 'hb') {
                 return; // skip heartbeats within subscription channels for now
             }
-            const subscription = this.safeValue (client.subscriptions, channelId, {});
+            const subscription = this.safeDict (client.subscriptions, channelId, {});
             const channel = this.safeString (subscription, 'channel');
             const name = this.safeString (message, 1);
             const publicMethods = {

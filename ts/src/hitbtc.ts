@@ -1013,7 +1013,7 @@ export default class hitbtc extends Exchange {
          */
         const type = this.safeStringLower (params, 'type', 'spot');
         params = this.omit (params, [ 'type' ]);
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const account = this.safeString (accountsByType, type, type);
         let response = undefined;
         if (account === 'wallet') {
@@ -1328,7 +1328,7 @@ export default class hitbtc extends Exchange {
             takerOrMaker = 'taker'; // the only case when `taker` field is missing, is public fetchTrades and it must be taker
         }
         if (feeCostString !== undefined) {
-            const info = this.safeValue (market, 'info', {});
+            const info = this.safeDict (market, 'info', {});
             const feeCurrency = this.safeString (info, 'fee_currency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrency);
             fee = {
@@ -1459,7 +1459,7 @@ export default class hitbtc extends Exchange {
         const updated = this.parse8601 (this.safeString (transaction, 'updated_at'));
         const type = this.parseTransactionType (this.safeString (transaction, 'type'));
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const native = this.safeValue (transaction, 'native', {});
+        const native = this.safeDict (transaction, 'native', {});
         const currencyId = this.safeString (native, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const txhash = this.safeString (native, 'hash');
@@ -2585,7 +2585,7 @@ export default class hitbtc extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const requestAmount = this.currencyToPrecision (code, amount);
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         fromAccount = fromAccount.toLowerCase ();
         toAccount = toAccount.toLowerCase ();
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
@@ -2634,7 +2634,7 @@ export default class hitbtc extends Exchange {
         if (code !== 'USDT') {
             throw new ExchangeError (this.id + ' convertCurrencyNetwork() only supports USDT currently');
         }
-        const networks = this.safeValue (this.options, 'networks', {});
+        const networks = this.safeDict (this.options, 'networks', {});
         fromNetwork = fromNetwork.toUpperCase ();
         toNetwork = toNetwork.toUpperCase ();
         fromNetwork = this.safeString (networks, fromNetwork); // handle ETH>ERC20 alias
@@ -2683,7 +2683,7 @@ export default class hitbtc extends Exchange {
         if (tag !== undefined) {
             request['payment_id'] = tag;
         }
-        const networks = this.safeValue (this.options, 'networks', {});
+        const networks = this.safeDict (this.options, 'networks', {});
         const network = this.safeStringUpper (params, 'network');
         if ((network !== undefined) && (code === 'USDT')) {
             const parsedNetwork = this.safeString (networks, network);
@@ -2692,7 +2692,7 @@ export default class hitbtc extends Exchange {
             }
             params = this.omit (params, 'network');
         }
-        const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
+        const withdrawOptions = this.safeDict (this.options, 'withdraw', {});
         const includeFee = this.safeBool (withdrawOptions, 'includeFee', false);
         if (includeFee) {
             request['include_fee'] = true;

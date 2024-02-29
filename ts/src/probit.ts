@@ -439,7 +439,7 @@ export default class probit extends Exchange {
                 }
                 const precision = this.parsePrecision (this.safeString (network, 'precision'));
                 const withdrawFee = this.safeValue (network, 'withdrawal_fee', []);
-                let networkFee = this.safeValue (withdrawFee, 0, {});
+                let networkFee = this.safeDict (withdrawFee, 0, {});
                 for (let k = 0; k < withdrawFee.length; k++) {
                     const withdrawPlatform = withdrawFee[k];
                     const feeCurrencyId = this.safeString (withdrawPlatform, 'currency_id');
@@ -470,14 +470,14 @@ export default class probit extends Exchange {
                 };
             }
             if (platform === undefined) {
-                platform = this.safeValue (platformsByPriority, 0, {});
+                platform = this.safeDict (platformsByPriority, 0, {});
             }
             const depositSuspended = this.safeValue (platform, 'deposit_suspended');
             const withdrawalSuspended = this.safeValue (platform, 'withdrawal_suspended');
             const deposit = !depositSuspended;
             const withdraw = !withdrawalSuspended;
             const active = deposit && withdraw;
-            const withdrawalFees = this.safeValue (platform, 'withdrawal_fee', {});
+            const withdrawalFees = this.safeDict (platform, 'withdrawal_fee', {});
             const fees = [];
             // sometimes the withdrawal fee is an empty object
             // [ { 'amount': '0.015', 'priority': 1, 'currency_id': 'ETH' }, {} ]
@@ -490,7 +490,7 @@ export default class probit extends Exchange {
                 }
             }
             const withdrawalFeesByPriority = this.sortBy (fees, 'priority');
-            const withdrawalFee = this.safeValue (withdrawalFeesByPriority, 0, {});
+            const withdrawalFee = this.safeDict (withdrawalFeesByPriority, 0, {});
             const fee = this.safeNumber (withdrawalFee, 'amount');
             result[code] = {
                 'id': id,
@@ -1361,7 +1361,7 @@ export default class probit extends Exchange {
             'currency_id': currency['id'],
             // 'platform_id': 'TRON', (undocumented)
         };
-        const networks = this.safeValue (this.options, 'networks', {});
+        const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
@@ -1461,7 +1461,7 @@ export default class probit extends Exchange {
             // whether the amount field includes fees
             // 'include_fee': false, // makes sense only when fee_currency_id is equal to currency_id
         };
-        const networks = this.safeValue (this.options, 'networks', {});
+        const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
@@ -1572,7 +1572,7 @@ export default class probit extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -1771,7 +1771,7 @@ export default class probit extends Exchange {
             const network = platforms[i];
             const networkId = this.safeString (network, 'id');
             const networkCode = this.networkIdToCode (networkId, currency['code']);
-            const withdrawalFees = this.safeValue (network, 'withdrawal_fee', {});
+            const withdrawalFees = this.safeDict (network, 'withdrawal_fee', {});
             const withdrawFee = this.safeNumber (withdrawalFees[0], 'amount');
             if (withdrawalFees.length) {
                 const withdrawResult = {

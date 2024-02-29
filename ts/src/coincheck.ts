@@ -423,7 +423,7 @@ export default class coincheck extends Exchange {
             } else if (this.safeString (trade, 'liquidity') === 'M') {
                 takerOrMaker = 'maker';
             }
-            const funds = this.safeValue (trade, 'funds', {});
+            const funds = this.safeDict (trade, 'funds', {});
             amountString = this.safeString (funds, baseId);
             costString = this.safeString (funds, quoteId);
             fee = {
@@ -563,12 +563,12 @@ export default class coincheck extends Exchange {
         //         }
         //     }
         //
-        const fees = this.safeValue (response, 'exchange_fees', {});
+        const fees = this.safeDict (response, 'exchange_fees', {});
         const result = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
-            const fee = this.safeValue (fees, market['id'], {});
+            const fee = this.safeDict (fees, market['id'], {});
             result[symbol] = {
                 'info': fee,
                 'symbol': symbol,

@@ -219,7 +219,7 @@ export default class cryptocom extends cryptocomRest {
             orderbook['datetime'] = this.iso8601 (timestamp);
             orderbook['nonce'] = nonce;
         } else {
-            books = this.safeValue (data, 'update', {});
+            books = this.safeDict (data, 'update', {});
             const previousNonce = this.safeInteger (data, 'pu');
             const currentNonce = orderbook['nonce'];
             if (currentNonce !== previousNonce) {
@@ -448,7 +448,7 @@ export default class cryptocom extends cryptocomRest {
         const symbol = market['symbol'];
         const interval = this.safeString (message, 'interval');
         const timeframe = this.findTimeframe (interval);
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -642,7 +642,7 @@ export default class cryptocom extends cryptocomRest {
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
         const data = this.safeValue (message, 'data', []);
-        const firstData = this.safeValue (data, 0, {});
+        const firstData = this.safeDict (data, 0, {});
         const rawPositions = this.safeValue (firstData, 'positions', []);
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
@@ -784,7 +784,7 @@ export default class cryptocom extends cryptocomRest {
         //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const rawOrder = this.safeValue (message, 'result', {});
+        const rawOrder = this.safeDict (message, 'result', {});
         const order = this.parseOrder (rawOrder);
         client.resolve (order, messageHash);
     }

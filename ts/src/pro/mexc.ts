@@ -225,7 +225,7 @@ export default class mexc extends mexcRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeDict (this.options, 'timeframes', {});
         const timeframeId = this.safeString (timeframes, timeframe);
         const messageHash = 'candles:' + symbol + ':' + timeframe;
         let ohlcv = undefined;
@@ -296,14 +296,14 @@ export default class mexc extends mexcRest {
         const d = this.safeValue2 (message, 'd', 'data', {});
         const rawOhlcv = this.safeValue (d, 'k', d);
         const timeframeId = this.safeString2 (rawOhlcv, 'i', 'interval');
-        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeDict (this.options, 'timeframes', {});
         const timeframe = this.findTimeframe (timeframeId, timeframes);
         const marketId = this.safeString2 (message, 's', 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const messageHash = 'candles:' + symbol + ':' + timeframe;
         const parsed = this.parseWsOHLCV (rawOhlcv, market);
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);

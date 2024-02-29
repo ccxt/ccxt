@@ -855,8 +855,8 @@ export default class bitrue extends Exchange {
         const filters = this.safeValue (market, 'filters', []);
         const filtersByType = this.indexBy (filters, 'filterType');
         const status = this.safeString (market, 'status');
-        const priceFilter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
-        const amountFilter = this.safeValue (filtersByType, 'LOT_SIZE', {});
+        const priceFilter = this.safeDict (filtersByType, 'PRICE_FILTER', {});
+        const amountFilter = this.safeDict (filtersByType, 'LOT_SIZE', {});
         const defaultPricePrecision = this.safeString (market, 'pricePrecision');
         const defaultAmountPrecision = this.safeString (market, 'quantityPrecision');
         const pricePrecision = this.safeString (priceFilter, 'priceScale', defaultPricePrecision);
@@ -1011,7 +1011,7 @@ export default class bitrue extends Exchange {
         if (type === 'swap') {
             if (subType !== undefined && subType === 'inverse') {
                 response = await this.dapiV2PrivateGetAccount (params);
-                result = this.safeValue (response, 'data', {});
+                result = this.safeDict (response, 'data', {});
                 //
                 // {
                 //         "code":"0",
@@ -1044,7 +1044,7 @@ export default class bitrue extends Exchange {
                 //
             } else {
                 response = await this.fapiV2PrivateGetAccount (params);
-                result = this.safeValue (response, 'data', {});
+                result = this.safeDict (response, 'data', {});
                 //
                 //     {
                 //         "code":"0",
@@ -1276,7 +1276,7 @@ export default class bitrue extends Exchange {
                 'symbol': market['id'],
             };
             response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
-            data = this.safeValue (response, 0, {});
+            data = this.safeDict (response, 0, {});
         } else {
             throw new NotSupported (this.id + ' fetchTicker only support spot & swap markets');
         }
@@ -1338,11 +1338,11 @@ export default class bitrue extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeDict (this.options, 'timeframes', {});
         let response = undefined;
         let data = undefined;
         if (market['swap']) {
-            const timeframesFuture = this.safeValue (timeframes, 'future', {});
+            const timeframesFuture = this.safeDict (timeframes, 'future', {});
             const request = {
                 'contractName': market['id'],
                 // 1min / 5min / 15min / 30min / 1h / 1day / 1week / 1month
@@ -1361,7 +1361,7 @@ export default class bitrue extends Exchange {
             }
             data = response;
         } else if (market['spot']) {
-            const timeframesSpot = this.safeValue (timeframes, 'spot', {});
+            const timeframesSpot = this.safeDict (timeframes, 'spot', {});
             const request = {
                 'symbol': market['id'],
                 // 1m / 5m / 15m / 30m / 1H / 2H / 4H / 12H / 1D / 1W
@@ -1598,7 +1598,7 @@ export default class bitrue extends Exchange {
         // https://github.com/ccxt/ccxt/issues/13856
         const tickers = {};
         for (let i = 0; i < data.length; i++) {
-            const ticker = this.safeValue (data, i, {});
+            const ticker = this.safeDict (data, i, {});
             const market = this.market (this.safeValue (ticker, 'symbol'));
             tickers[market['id']] = ticker;
         }
@@ -1986,7 +1986,7 @@ export default class bitrue extends Exchange {
             } else if (market['inverse']) {
                 response = await this.dapiV2PrivatePostOrder (this.extend (request, params));
             }
-            data = this.safeValue (response, 'data', {});
+            data = this.safeDict (response, 'data', {});
         } else if (market['spot']) {
             request['symbol'] = market['id'];
             request['quantity'] = this.amountToPrecision (symbol, amount);
@@ -2071,7 +2071,7 @@ export default class bitrue extends Exchange {
             } else if (market['inverse']) {
                 response = await this.dapiV2PrivateGetOrder (this.extend (request, params));
             }
-            data = this.safeValue (response, 'data', {});
+            data = this.safeDict (response, 'data', {});
         } else if (market['spot']) {
             request['orderId'] = id; // spot market id is mandatory
             request['symbol'] = market['id'];
@@ -2310,7 +2310,7 @@ export default class bitrue extends Exchange {
             } else if (market['inverse']) {
                 response = await this.dapiV2PrivatePostCancel (this.extend (request, params));
             }
-            data = this.safeValue (response, 'data', {});
+            data = this.safeDict (response, 'data', {});
         } else if (market['spot']) {
             request['symbol'] = market['id'];
             response = await this.spotV1PrivateDeleteOrder (this.extend (request, params));
@@ -2596,7 +2596,7 @@ export default class bitrue extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTransactions (data, currency);
     }
 
@@ -2612,7 +2612,7 @@ export default class bitrue extends Exchange {
                 '6': 'canceled',
             },
         };
-        const statuses = this.safeValue (statusesByType, type, {});
+        const statuses = this.safeDict (statusesByType, type, {});
         return this.safeString (statuses, status, status);
     }
 
@@ -2793,7 +2793,7 @@ export default class bitrue extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTransaction (data, currency);
     }
 
@@ -2946,7 +2946,7 @@ export default class bitrue extends Exchange {
         //         }]
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTransfers (data, currency, since, limit);
     }
 
@@ -2966,7 +2966,7 @@ export default class bitrue extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const accountTypes = this.safeValue (this.options, 'accountsByType', {});
+        const accountTypes = this.safeDict (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountTypes, fromAccount, fromAccount);
         const toId = this.safeString (accountTypes, toAccount, toAccount);
         const request = {
@@ -2982,7 +2982,7 @@ export default class bitrue extends Exchange {
         //         'data': null
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTransfer (data, currency);
     }
 

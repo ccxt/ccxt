@@ -388,7 +388,7 @@ export default class latoken extends Exchange {
     async fetchCurrenciesFromCache (params = {}) {
         // this method is now redundant
         // currencies are now fetched before markets
-        const options = this.safeValue (this.options, 'fetchCurrencies', {});
+        const options = this.safeDict (this.options, 'fetchCurrencies', {});
         const timestamp = this.safeInteger (options, 'timestamp');
         const expires = this.safeInteger (options, 'expires', 1000);
         const now = this.milliseconds ();
@@ -529,7 +529,7 @@ export default class latoken extends Exchange {
         let maxTimestamp = undefined;
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const types = this.safeValue (this.options, 'types', {});
+        const types = this.safeDict (this.options, 'types', {});
         const accountType = this.safeString (types, type, type);
         const balancesByType = this.groupBy (response, 'type');
         const balances = this.safeValue (balancesByType, accountType, []);
@@ -851,7 +851,7 @@ export default class latoken extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
-        const options = this.safeValue (this.options, 'fetchTradingFee', {});
+        const options = this.safeDict (this.options, 'fetchTradingFee', {});
         const defaultMethod = this.safeString (options, 'method', 'fetchPrivateTradingFee');
         const method = this.safeString (params, 'method', defaultMethod);
         params = this.omit (params, 'method');

@@ -247,9 +247,9 @@ export default class upbit extends Exchange {
         //         }
         //     }
         //
-        const memberInfo = this.safeValue (response, 'member_level', {});
-        const currencyInfo = this.safeValue (response, 'currency', {});
-        const withdrawLimits = this.safeValue (response, 'withdraw_limit', {});
+        const memberInfo = this.safeDict (response, 'member_level', {});
+        const currencyInfo = this.safeDict (response, 'currency', {});
+        const withdrawLimits = this.safeDict (response, 'withdraw_limit', {});
         const canWithdraw = this.safeValue (withdrawLimits, 'can_withdraw');
         const walletState = this.safeString (currencyInfo, 'wallet_state');
         const walletLocked = this.safeValue (memberInfo, 'wallet_locked');
@@ -1519,7 +1519,7 @@ export default class upbit extends Exchange {
                 const trade = trades[i];
                 cost = Precise.stringAdd (cost, this.safeString (trade, 'cost'));
                 if (getFeesFromTrades) {
-                    const tradeFee = this.safeValue (trades[i], 'fee', {});
+                    const tradeFee = this.safeDict (trades[i], 'fee', {});
                     const tradeFeeCost = this.safeString (tradeFee, 'cost');
                     if (tradeFeeCost !== undefined) {
                         feeCost = Precise.stringAdd (feeCost, tradeFeeCost);

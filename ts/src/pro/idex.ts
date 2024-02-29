@@ -301,7 +301,7 @@ export default class idex extends idexRest {
         const interval = this.safeString (data, 'i');
         const timeframe = this.findTimeframe (interval);
         // TODO: move to base class
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -332,7 +332,7 @@ export default class idex extends idexRest {
                 const markets = this.safeValue (subscription, 'markets');
                 for (let j = 0; j < markets.length; j++) {
                     const marketId = markets[j];
-                    const orderBookSubscriptions = this.safeValue (this.options, 'orderBookSubscriptions', {});
+                    const orderBookSubscriptions = this.safeDict (this.options, 'orderBookSubscriptions', {});
                     if (!(marketId in orderBookSubscriptions)) {
                         const symbol = this.safeSymbol (marketId);
                         if (!(symbol in this.orderbooks)) {

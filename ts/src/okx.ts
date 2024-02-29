@@ -1096,7 +1096,7 @@ export default class okx extends Exchange {
     }
 
     convertToInstrumentType (type) {
-        const exchangeTypes = this.safeValue (this.options, 'exchangeType', {});
+        const exchangeTypes = this.safeDict (this.options, 'exchangeType', {});
         return this.safeString (exchangeTypes, type, type);
     }
 
@@ -1258,7 +1258,7 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         return this.safeInteger (first, 'ts');
     }
 
@@ -1491,7 +1491,7 @@ export default class okx extends Exchange {
             const promisesResult = await Promise.all (promises);
             let markets = [];
             for (let i = 0; i < promisesResult.length; i++) {
-                const res = this.safeValue (promisesResult, i, {});
+                const res = this.safeDict (promisesResult, i, {});
                 const options = this.safeValue (res, 'data', []);
                 markets = this.arrayConcat (markets, options);
             }
@@ -1739,7 +1739,7 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         const timestamp = this.safeInteger (first, 'ts');
         return this.parseOrderBook (first, symbol, timestamp);
     }
@@ -1843,7 +1843,7 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         return this.parseTicker (first, market);
     }
 
@@ -2140,7 +2140,7 @@ export default class okx extends Exchange {
         }
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
-        const options = this.safeValue (this.options, 'fetchOHLCV', {});
+        const options = this.safeDict (this.options, 'fetchOHLCV', {});
         const timezone = this.safeString (options, 'timezone', 'UTC');
         if (limit === undefined) {
             limit = 100; // default 100, max 100
@@ -2296,7 +2296,7 @@ export default class okx extends Exchange {
     parseTradingBalance (response) {
         const result = { 'info': response };
         const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         const timestamp = this.safeInteger (first, 'uTime');
         const details = this.safeValue (first, 'details', []);
         for (let i = 0; i < details.length; i++) {
@@ -2406,7 +2406,7 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         return this.parseTradingFee (first, market);
     }
 
@@ -2897,7 +2897,7 @@ export default class okx extends Exchange {
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
-            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const orderParams = this.safeDict (rawOrder, 'params', {});
             const extendedParams = this.extend (orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, extendedParams);
             ordersRequests.push (orderRequest);
@@ -3169,7 +3169,7 @@ export default class okx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = [];
-        const options = this.safeValue (this.options, 'cancelOrders', {});
+        const options = this.safeDict (this.options, 'cancelOrders', {});
         const defaultMethod = this.safeString (options, 'method', 'privatePostTradeCancelBatchOrders');
         let method = this.safeString (params, 'method', defaultMethod);
         const clientOrderIds = this.parseIds (this.safeValue2 (params, 'clOrdId', 'clientOrderId'));
@@ -3493,7 +3493,7 @@ export default class okx extends Exchange {
             // 'instType': // spot, swap, futures, margin
         };
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
-        const options = this.safeValue (this.options, 'fetchOrder', {});
+        const options = this.safeDict (this.options, 'fetchOrder', {});
         const defaultMethod = this.safeString (options, 'method', 'privateGetTradeOrder');
         let method = this.safeString (params, 'method', defaultMethod);
         const stop = this.safeValue2 (params, 'stop', 'trigger');
@@ -3661,8 +3661,8 @@ export default class okx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        const options = this.safeValue (this.options, 'fetchOpenOrders', {});
-        const algoOrderTypes = this.safeValue (this.options, 'algoOrderTypes', {});
+        const options = this.safeDict (this.options, 'fetchOpenOrders', {});
+        const algoOrderTypes = this.safeDict (this.options, 'algoOrderTypes', {});
         const defaultMethod = this.safeString (options, 'method', 'privateGetTradeOrdersPending');
         let method = this.safeString (params, 'method', defaultMethod);
         const ordType = this.safeString (params, 'ordType');
@@ -3825,8 +3825,8 @@ export default class okx extends Exchange {
             request['limit'] = limit; // default 100, max 100
         }
         request['state'] = 'canceled';
-        const options = this.safeValue (this.options, 'fetchCanceledOrders', {});
-        const algoOrderTypes = this.safeValue (this.options, 'algoOrderTypes', {});
+        const options = this.safeDict (this.options, 'fetchCanceledOrders', {});
+        const algoOrderTypes = this.safeDict (this.options, 'algoOrderTypes', {});
         const defaultMethod = this.safeString (options, 'method', 'privateGetTradeOrdersHistory');
         let method = this.safeString (params, 'method', defaultMethod);
         const ordType = this.safeString (params, 'ordType');
@@ -4272,7 +4272,7 @@ export default class okx extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params);
         }
-        const options = this.safeValue (this.options, 'fetchLedger', {});
+        const options = this.safeDict (this.options, 'fetchLedger', {});
         let method = this.safeString (options, 'method');
         method = this.safeString (params, 'method', method);
         params = this.omit (params, 'method');
@@ -4500,14 +4500,14 @@ export default class okx extends Exchange {
         const address = this.safeString (depositAddress, 'addr');
         let tag = this.safeStringN (depositAddress, [ 'tag', 'pmtId', 'memo' ]);
         if (tag === undefined) {
-            const addrEx = this.safeValue (depositAddress, 'addrEx', {});
+            const addrEx = this.safeDict (depositAddress, 'addrEx', {});
             tag = this.safeString (addrEx, 'comment');
         }
         const currencyId = this.safeString (depositAddress, 'ccy');
         currency = this.safeCurrency (currencyId, currency);
         const code = currency['code'];
         const chain = this.safeString (depositAddress, 'chain');
-        const networks = this.safeValue (currency, 'networks', {});
+        const networks = this.safeDict (currency, 'networks', {});
         const networksById = this.indexBy (networks, 'id');
         let networkData = this.safeValue (networksById, chain);
         // inconsistent naming responses from exchange
@@ -4620,7 +4620,7 @@ export default class okx extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         const rawNetwork = this.safeStringUpper (params, 'network');
-        const networks = this.safeValue (this.options, 'networks', {});
+        const networks = this.safeDict (this.options, 'networks', {});
         const network = this.safeString (networks, rawNetwork, rawNetwork);
         params = this.omit (params, 'network');
         const response = await this.fetchDepositAddressesByNetwork (code, params);
@@ -4679,7 +4679,7 @@ export default class okx extends Exchange {
         };
         let network = this.safeString (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         if (network !== undefined) {
-            const networks = this.safeValue (this.options, 'networks', {});
+            const networks = this.safeDict (this.options, 'networks', {});
             network = this.safeString (networks, network.toUpperCase (), network); // handle ETH>ERC20 alias
             request['chain'] = currency['id'] + '-' + network;
             params = this.omit (params, 'network');
@@ -4688,7 +4688,7 @@ export default class okx extends Exchange {
         if (fee === undefined) {
             const currencies = await this.fetchCurrencies ();
             this.currencies = this.deepExtend (this.currencies, currencies);
-            const targetNetwork = this.safeValue (currency['networks'], this.networkIdToCode (network), {});
+            const targetNetwork = this.safeDict (currency['networks'], this.networkIdToCode (network), {});
             fee = this.safeString (targetNetwork, 'fee');
             if (fee === undefined) {
                 throw new ArgumentsRequired (this.id + ' withdraw() requires a "fee" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set "0". Withdrawing to external digital asset address requires network transaction fee.');
@@ -4700,7 +4700,7 @@ export default class okx extends Exchange {
         } else if ('pwd' in params) {
             request['pwd'] = params['pwd'];
         } else {
-            const options = this.safeValue (this.options, 'withdraw', {});
+            const options = this.safeDict (this.options, 'withdraw', {});
             const password = this.safeString2 (options, 'password', 'pwd');
             if (password !== undefined) {
                 request['pwd'] = password;
@@ -4833,7 +4833,7 @@ export default class okx extends Exchange {
         }
         const response = await this.privateGetAssetDepositHistory (this.extend (request, params));
         const data = this.safeValue (response, 'data');
-        const deposit = this.safeValue (data, 0, {});
+        const deposit = this.safeDict (data, 0, {});
         return this.parseTransaction (deposit, currency);
     }
 
@@ -4954,7 +4954,7 @@ export default class okx extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const withdrawal = this.safeValue (data, 0, {});
+        const withdrawal = this.safeDict (data, 0, {});
         return this.parseTransaction (withdrawal);
     }
 
@@ -5242,7 +5242,7 @@ export default class okx extends Exchange {
                 request['instId'] = marketIds.join (',');
             }
         }
-        const fetchPositionsOptions = this.safeValue (this.options, 'fetchPositions', {});
+        const fetchPositionsOptions = this.safeDict (this.options, 'fetchPositions', {});
         const method = this.safeString (fetchPositionsOptions, 'method', 'privateGetAccountPositions');
         let response = undefined;
         if (method === 'privateGetAccountPositionsHistory') {
@@ -5502,7 +5502,7 @@ export default class okx extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
         const request = {
@@ -5544,7 +5544,7 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const rawTransfer = this.safeValue (data, 0, {});
+        const rawTransfer = this.safeDict (data, 0, {});
         return this.parseTransfer (rawTransfer, currency);
     }
 
@@ -5607,7 +5607,7 @@ export default class okx extends Exchange {
         let amount = this.safeNumber (transfer, 'amt');
         const fromAccountId = this.safeString (transfer, 'from');
         const toAccountId = this.safeString (transfer, 'to');
-        const accountsById = this.safeValue (this.options, 'accountsById', {});
+        const accountsById = this.safeDict (this.options, 'accountsById', {});
         const timestamp = this.safeInteger (transfer, 'ts', this.milliseconds ());
         const balanceChange = this.safeString (transfer, 'sz');
         if (balanceChange !== undefined) {
@@ -5868,7 +5868,7 @@ export default class okx extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data', []);
-        const entry = this.safeValue (data, 0, {});
+        const entry = this.safeDict (data, 0, {});
         return this.parseFundingRate (entry, market);
     }
 
@@ -6429,7 +6429,7 @@ export default class okx extends Exchange {
 
     parseMarginModification (data, market: Market = undefined) {
         const innerData = this.safeValue (data, 'data', []);
-        const entry = this.safeValue (innerData, 0, {});
+        const entry = this.safeDict (innerData, 0, {});
         const errorCode = this.safeString (data, 'code');
         const status = (errorCode === '0') ? 'ok' : 'failed';
         const amountRaw = this.safeNumber (entry, 'amt');
@@ -6825,8 +6825,8 @@ export default class okx extends Exchange {
          * @param {int} [params.until] The time in ms of the latest record to retrieve as a unix timestamp
          * @returns An array of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
          */
-        const options = this.safeValue (this.options, 'fetchOpenInterestHistory', {});
-        const timeframes = this.safeValue (options, 'timeframes', {});
+        const options = this.safeDict (this.options, 'fetchOpenInterestHistory', {});
+        const timeframes = this.safeDict (options, 'timeframes', {});
         timeframe = this.safeString (timeframes, timeframe, timeframe);
         if (timeframe !== '5m' && timeframe !== '1H' && timeframe !== '1D') {
             throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe');

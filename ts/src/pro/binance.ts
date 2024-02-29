@@ -130,7 +130,7 @@ export default class binance extends binanceRest {
     }
 
     requestId (url) {
-        const options = this.safeValue (this.options, 'requestId', {});
+        const options = this.safeDict (this.options, 'requestId', {});
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);
         this.options['requestId'][url] = newValue;
@@ -138,7 +138,7 @@ export default class binance extends binanceRest {
     }
 
     stream (type, subscriptionHash, numSubscriptions = 1) {
-        const streamBySubscriptionsHash = this.safeValue (this.options, 'streamBySubscriptionsHash', {});
+        const streamBySubscriptionsHash = this.safeDict (this.options, 'streamBySubscriptionsHash', {});
         let stream = this.safeString (streamBySubscriptionsHash, subscriptionHash);
         if (stream === undefined) {
             let streamIndex = this.safeInteger (this.options, 'streamIndex', -1);
@@ -476,7 +476,7 @@ export default class binance extends binanceRest {
         //
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeValue (subscriptionsById, id, {});
+        const subscription = this.safeDict (subscriptionsById, id, {});
         const method = this.safeValue (subscription, 'method');
         if (method !== undefined) {
             method.call (this, client, message, subscription);
@@ -505,7 +505,7 @@ export default class binance extends binanceRest {
             }
             streamHash += '::' + symbols.join (',');
         }
-        const options = this.safeValue (this.options, 'watchTradesForSymbols', {});
+        const options = this.safeDict (this.options, 'watchTradesForSymbols', {});
         const name = this.safeString (options, 'name', 'trade');
         const firstMarket = this.market (symbols[0]);
         let type = firstMarket['type'];
@@ -755,7 +755,7 @@ export default class binance extends binanceRest {
         const market = this.market (symbol);
         let marketId = market['lowercaseId'];
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
-        const options = this.safeValue (this.options, 'watchOHLCV', {});
+        const options = this.safeDict (this.options, 'watchOHLCV', {});
         const nameOption = this.safeString (options, 'name', 'kline');
         const name = this.safeString (params, 'name', nameOption);
         if (name === 'indexPriceKline') {
@@ -842,7 +842,7 @@ export default class binance extends binanceRest {
         const isSpot = ((client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('/testnet.binance') > -1));
         const marketType = (isSpot) ? 'spot' : 'contract';
         const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -960,7 +960,7 @@ export default class binance extends binanceRest {
         if (market['contract']) {
             type = market['linear'] ? 'future' : 'delivery';
         }
-        const options = this.safeValue (this.options, 'watchTicker', {});
+        const options = this.safeDict (this.options, 'watchTicker', {});
         let name = this.safeString (options, 'name', 'ticker');
         name = this.safeString (params, 'name', name);
         params = this.omit (params, 'name');
@@ -1005,7 +1005,7 @@ export default class binance extends binanceRest {
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
-        const options = this.safeValue (this.options, 'watchTickers', {});
+        const options = this.safeDict (this.options, 'watchTickers', {});
         let name = this.safeString (options, 'name', 'ticker');
         name = this.safeString (params, 'name', name);
         params = this.omit (params, 'name');
@@ -1270,7 +1270,7 @@ export default class binance extends binanceRest {
         const isCrossMargin = (marginMode === 'cross') || (marginMode === undefined);
         const symbol = this.safeString (params, 'symbol');
         params = this.omit (params, 'symbol');
-        const options = this.safeValue (this.options, type, {});
+        const options = this.safeDict (this.options, type, {});
         const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
         const delay = this.sum (listenKeyRefreshRate, 10000);
@@ -1315,7 +1315,7 @@ export default class binance extends binanceRest {
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
-        const options = this.safeValue (this.options, type, {});
+        const options = this.safeDict (this.options, type, {});
         const listenKey = this.safeString (options, 'listenKey');
         if (listenKey === undefined) {
             // A network error happened: we can't renew a listen key that does not exist.
@@ -1489,7 +1489,7 @@ export default class binance extends binanceRest {
         //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeValue (message, 'result', {});
+        const result = this.safeDict (message, 'result', {});
         const parsedBalances = this.parseBalance (result);
         client.resolve (parsedBalances, messageHash);
     }
@@ -1757,7 +1757,7 @@ export default class binance extends binanceRest {
         //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeValue (message, 'result', {});
+        const result = this.safeDict (message, 'result', {});
         const order = this.parseOrder (result);
         client.resolve (order, messageHash);
     }
@@ -1909,8 +1909,8 @@ export default class binance extends binanceRest {
         //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeValue (message, 'result', {});
-        const rawOrder = this.safeValue (result, 'newOrderResponse', {});
+        const result = this.safeDict (message, 'result', {});
+        const rawOrder = this.safeDict (result, 'newOrderResponse', {});
         const order = this.parseOrder (rawOrder);
         client.resolve (order, messageHash);
     }
@@ -2577,7 +2577,7 @@ export default class binance extends binanceRest {
             this.positions[accountType] = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions[accountType];
-        const data = this.safeValue (message, 'a', {});
+        const data = this.safeDict (message, 'a', {});
         const rawPositions = this.safeValue (data, 'P', []);
         const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
@@ -2853,13 +2853,13 @@ export default class binance extends binanceRest {
         if (executionType === 'TRADE') {
             const trade = this.parseWsTrade (message);
             const orderId = this.safeString (trade, 'order');
-            let tradeFee = this.safeValue (trade, 'fee', {});
+            let tradeFee = this.safeDict (trade, 'fee', {});
             tradeFee = this.extend ({}, tradeFee);
             const symbol = this.safeString (trade, 'symbol');
             if (orderId !== undefined && tradeFee !== undefined && symbol !== undefined) {
                 const cachedOrders = this.orders;
                 if (cachedOrders !== undefined) {
-                    const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
+                    const orders = this.safeDict (cachedOrders.hashmap, symbol, {});
                     const order = this.safeValue (orders, orderId);
                     if (order !== undefined) {
                         // accumulate order fees
@@ -2923,7 +2923,7 @@ export default class binance extends binanceRest {
                 this.orders = new ArrayCacheBySymbolById (limit);
             }
             const cachedOrders = this.orders;
-            const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
+            const orders = this.safeDict (cachedOrders.hashmap, symbol, {});
             const order = this.safeValue (orders, orderId);
             if (order !== undefined) {
                 const fee = this.safeValue (order, 'fee');
@@ -2966,7 +2966,7 @@ export default class binance extends binanceRest {
         //
         const id = this.safeString (message, 'id');
         let rejected = false;
-        const error = this.safeValue (message, 'error', {});
+        const error = this.safeDict (message, 'error', {});
         const code = this.safeInteger (error, 'code');
         const msg = this.safeString (error, 'msg');
         try {

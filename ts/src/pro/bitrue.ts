@@ -355,7 +355,7 @@ export default class bitrue extends bitrueRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (message, 'ts');
-        const tick = this.safeValue (message, 'tick', {});
+        const tick = this.safeDict (message, 'tick', {});
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
             orderbook = this.orderBook ();
@@ -443,7 +443,7 @@ export default class bitrue extends bitrueRest {
             //         }
             //     }
             //
-            const data = this.safeValue (response, 'data', {});
+            const data = this.safeDict (response, 'data', {});
             const key = this.safeString (data, 'listenKey');
             this.options['listenKey'] = key;
             this.options['listenKeyUrl'] = this.urls['api']['ws']['private'] + '/stream?listenKey=' + key;

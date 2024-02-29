@@ -284,15 +284,15 @@ export default class yobit extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const balances = this.safeValue (response, 'return', {});
+        const balances = this.safeDict (response, 'return', {});
         const timestamp = this.safeInteger (balances, 'server_time');
         const result = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        const free = this.safeValue (balances, 'funds', {});
-        const total = this.safeValue (balances, 'funds_incl_orders', {});
+        const free = this.safeDict (balances, 'funds', {});
+        const total = this.safeDict (balances, 'funds_incl_orders', {});
         const currencyIds = Object.keys (this.extend (free, total));
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
@@ -372,7 +372,7 @@ export default class yobit extends Exchange {
         //         },
         //     }
         //
-        const markets = this.safeValue (response, 'pairs', {});
+        const markets = this.safeDict (response, 'pairs', {});
         const keys = Object.keys (markets);
         const result = [];
         for (let i = 0; i < keys.length; i++) {
@@ -765,12 +765,12 @@ export default class yobit extends Exchange {
         //         },
         //     }
         //
-        const pairs = this.safeValue (response, 'pairs', {});
+        const pairs = this.safeDict (response, 'pairs', {});
         const marketIds = Object.keys (pairs);
         const result = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const pair = this.safeValue (pairs, marketId, {});
+            const pair = this.safeDict (pairs, marketId, {});
             const symbol = this.safeSymbol (marketId, undefined, '_');
             const takerString = this.safeString (pair, 'fee_buyer');
             const makerString = this.safeString (pair, 'fee_seller');
@@ -874,7 +874,7 @@ export default class yobit extends Exchange {
         //          }
         //      }
         //
-        const result = this.safeValue (response, 'return', {});
+        const result = this.safeDict (response, 'return', {});
         return this.parseOrder (result);
     }
 
@@ -1008,7 +1008,7 @@ export default class yobit extends Exchange {
         };
         const response = await this.privatePostOrderInfo (this.extend (request, params));
         id = id.toString ();
-        const orders = this.safeValue (response, 'return', {});
+        const orders = this.safeDict (response, 'return', {});
         //
         //      {
         //          "success":1,
@@ -1074,7 +1074,7 @@ export default class yobit extends Exchange {
         //          }
         //      }
         //
-        const result = this.safeValue (response, 'return', {});
+        const result = this.safeDict (response, 'return', {});
         return this.parseOrders (result, market, since, limit);
     }
 
@@ -1129,7 +1129,7 @@ export default class yobit extends Exchange {
         //          }
         //      }
         //
-        const trades = this.safeValue (response, 'return', {});
+        const trades = this.safeDict (response, 'return', {});
         const ids = Object.keys (trades);
         const result = [];
         for (let i = 0; i < ids.length; i++) {
@@ -1179,7 +1179,7 @@ export default class yobit extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         let currencyId = currency['id'];
-        const networks = this.safeValue (this.options, 'networks', {});
+        const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {

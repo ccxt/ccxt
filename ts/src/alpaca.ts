@@ -487,8 +487,8 @@ export default class alpaca extends Exchange {
         //     }
         // }
         //
-        const trades = this.safeValue (response, 'trades', {});
-        let symbolTrades = this.safeValue (trades, marketId, {});
+        const trades = this.safeDict (response, 'trades', {});
+        let symbolTrades = this.safeDict (trades, marketId, {});
         if (!Array.isArray (symbolTrades)) {
             symbolTrades = [ symbolTrades ];
         }
@@ -553,8 +553,8 @@ export default class alpaca extends Exchange {
         //       }
         //   }
         //
-        const orderbooks = this.safeValue (response, 'orderbooks', {});
-        const rawOrderbook = this.safeValue (orderbooks, id, {});
+        const orderbooks = this.safeDict (response, 'orderbooks', {});
+        const rawOrderbook = this.safeDict (orderbooks, id, {});
         const timestamp = this.parse8601 (this.safeString (rawOrderbook, 't'));
         return this.parseOrderBook (rawOrderbook, market['symbol'], timestamp, 'b', 'a', 'p', 's');
     }
@@ -644,8 +644,8 @@ export default class alpaca extends Exchange {
         //        }
         //     }
         //
-        const bars = this.safeValue (response, 'bars', {});
-        let ohlcvs = this.safeValue (bars, marketId, {});
+        const bars = this.safeDict (response, 'bars', {});
+        let ohlcvs = this.safeDict (bars, marketId, {});
         if (!Array.isArray (ohlcvs)) {
             ohlcvs = [ ohlcvs ];
         }
@@ -787,7 +787,7 @@ export default class alpaca extends Exchange {
         //       "message": "order is not found."
         //   }
         //
-        return this.safeValue (response, 'message', {});
+        return this.safeDict (response, 'message', {});
     }
 
     async cancelAllOrders (symbol: Str = undefined, params = {}) {

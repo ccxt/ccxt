@@ -1432,7 +1432,7 @@ export default class huobijp extends Exchange {
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
         if (clientOrderId === undefined) {
-            const broker = this.safeValue (this.options, 'broker', {});
+            const broker = this.safeDict (this.options, 'broker', {});
             const brokerId = this.safeString (broker, 'id');
             request['client-order-id'] = brokerId + this.uuid ();
         } else {
@@ -1639,7 +1639,7 @@ export default class huobijp extends Exchange {
         currency = this.safeCurrency (currencyId, currency);
         const code = this.safeCurrencyCode (currencyId, currency);
         const networkId = this.safeString (depositAddress, 'chain');
-        const networks = this.safeValue (currency, 'networks', {});
+        const networks = this.safeDict (currency, 'networks', {});
         const networksById = this.indexBy (networks, 'id');
         const networkValue = this.safeValue (networksById, networkId, networkId);
         const network = this.safeString (networkValue, 'network');
@@ -1850,7 +1850,7 @@ export default class huobijp extends Exchange {
         if (tag !== undefined) {
             request['addr-tag'] = tag; // only for XRP?
         }
-        const networks = this.safeValue (this.options, 'networks', {});
+        const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeStringLower (networks, network, network); // handle ETH>ERC20 alias
         if (network !== undefined) {

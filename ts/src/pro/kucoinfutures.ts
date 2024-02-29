@@ -62,7 +62,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
 
     async negotiate (privateChannel, params = {}) {
         const connectId = privateChannel ? 'private' : 'public';
-        const urls = this.safeValue (this.options, 'urls', {});
+        const urls = this.safeDict (this.options, 'urls', {});
         const spawaned = this.safeValue (urls, connectId);
         if (spawaned !== undefined) {
             return await spawaned;
@@ -102,7 +102,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             } else {
                 response = await this.futuresPublicPostBulletPublic (params);
             }
-            const data = this.safeValue (response, 'data', {});
+            const data = this.safeDict (response, 'data', {});
             const instanceServers = this.safeValue (data, 'instanceServers', []);
             const firstInstanceServer = this.safeValue (instanceServers, 0);
             const pingInterval = this.safeInteger (firstInstanceServer, 'pingInterval');
@@ -184,7 +184,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const url = await this.negotiate (false);
-        const options = this.safeValue (this.options, 'watchTicker', {});
+        const options = this.safeDict (this.options, 'watchTicker', {});
         const channel = this.safeString (options, 'name', 'contractMarket/tickerV2');
         const topic = '/' + channel + ':' + market['id'];
         const messageHash = 'ticker:' + symbol;
@@ -210,7 +210,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         //        }
         //    }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const marketId = this.safeValue (data, 'symbol');
         const market = this.safeMarket (marketId, undefined, '-');
         const ticker = this.parseTicker (data, market);
@@ -258,7 +258,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             return undefined;
         }
         const cache = this.positions.hashmap;
-        const symbolCache = this.safeValue (cache, symbol, {});
+        const symbolCache = this.safeDict (cache, symbol, {});
         const values = Object.values (symbolCache);
         return this.safeValue (values, 0);
     }
@@ -385,7 +385,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const cache = this.positions;
         const currentPosition = this.getCurrentPosition (symbol);
         const messageHash = 'position:' + symbol;
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const newPosition = this.parsePosition (data);
         const keys = Object.keys (newPosition);
         for (let i = 0; i < keys.length; i++) {
@@ -473,7 +473,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         //        }
         //    }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const trade = this.parseTrade (data);
         const symbol = trade['symbol'];
         let trades = this.safeValue (this.trades, symbol);
@@ -554,7 +554,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const timestamp = this.safeInteger (delta, 'timestamp');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
-        const change = this.safeValue (delta, 'change', {});
+        const change = this.safeDict (delta, 'change', {});
         const splitChange = change.split (',');
         const price = this.safeNumber (splitChange, 0);
         const side = this.safeString (splitChange, 1);
@@ -676,7 +676,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         //
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeValue (subscriptionsById, id, {});
+        const subscription = this.safeDict (subscriptionsById, id, {});
         const method = this.safeValue (subscription, 'method');
         if (method !== undefined) {
             method.call (this, client, message, subscription);
@@ -807,7 +807,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
                 this.orders = new ArrayCacheBySymbolById (limit);
             }
             const cachedOrders = this.orders;
-            const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
+            const orders = this.safeDict (cachedOrders.hashmap, symbol, {});
             const order = this.safeValue (orders, orderId);
             if (order !== undefined) {
                 // todo add others to calculate average etc
@@ -865,7 +865,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         //        }
         //    }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         this.balance['info'] = data;
         const currencyId = this.safeString (data, 'currency');
         const code = this.safeCurrencyCode (currencyId);
@@ -930,7 +930,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
                 this.balance[code] = snapshot[code];
             }
         }
-        this.balance['info'] = this.safeValue (snapshot, 'info', {});
+        this.balance['info'] = this.safeDict (snapshot, 'info', {});
         client.resolve (this.balance, messageHash);
     }
 

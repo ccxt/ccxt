@@ -234,7 +234,7 @@ export default class bitopro extends bitoproRest {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const baseId = this.safeString (data, 'base');
         const quoteId = this.safeString (data, 'quote');
         const base = this.safeCurrencyCode (baseId);

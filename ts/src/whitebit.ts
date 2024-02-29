@@ -501,9 +501,9 @@ export default class whitebit extends Exchange {
             const currency = currenciesIds[i];
             const data = response[currency];
             const code = this.safeCurrencyCode (currency);
-            const withdraw = this.safeValue (data, 'withdraw', {});
+            const withdraw = this.safeDict (data, 'withdraw', {});
             withdrawFees[code] = this.safeString (withdraw, 'fixed');
-            const deposit = this.safeValue (data, 'deposit', {});
+            const deposit = this.safeDict (data, 'deposit', {});
             depositFees[code] = this.safeString (deposit, 'fixed');
         }
         return {
@@ -696,7 +696,7 @@ export default class whitebit extends Exchange {
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
-            const fee = this.safeValue (response, market['baseId'], {});
+            const fee = this.safeDict (response, market['baseId'], {});
             let makerFee = this.safeString (fee, 'maker_fee');
             let takerFee = this.safeString (fee, 'taker_fee');
             makerFee = Precise.stringDiv (makerFee, '100');
@@ -746,7 +746,7 @@ export default class whitebit extends Exchange {
         //         },
         //     }
         //
-        const ticker = this.safeValue (response, 'result', {});
+        const ticker = this.safeDict (response, 'result', {});
         return this.parseTicker (ticker, market);
     }
 
@@ -1331,7 +1331,7 @@ export default class whitebit extends Exchange {
         if (marketType === 'swap') {
             response = await this.v4PrivatePostCollateralAccountBalance (params);
         } else {
-            const options = this.safeValue (this.options, 'fetchBalance', {});
+            const options = this.safeDict (this.options, 'fetchBalance', {});
             const defaultAccount = this.safeString (options, 'account');
             const account = this.safeString2 (params, 'account', 'type', defaultAccount);
             params = this.omit (params, [ 'account', 'type' ]);
@@ -1689,7 +1689,7 @@ export default class whitebit extends Exchange {
         //     }
         //
         const url = this.safeString (response, 'url');
-        const account = this.safeValue (response, 'account', {});
+        const account = this.safeDict (response, 'account', {});
         const address = this.safeString (account, 'address', url);
         const tag = this.safeString (account, 'memo');
         this.checkAddress (address);
@@ -1970,7 +1970,7 @@ export default class whitebit extends Exchange {
         //     }
         //
         const records = this.safeValue (response, 'records', []);
-        const first = this.safeValue (records, 0, {});
+        const first = this.safeDict (records, 0, {});
         return this.parseTransaction (first, currency);
     }
 

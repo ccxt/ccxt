@@ -430,7 +430,7 @@ export default class bitopro extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetTickersPair (this.extend (request, params));
-        const ticker = this.safeValue (response, 'data', {});
+        const ticker = this.safeDict (response, 'data', {});
         //
         //     {
         //         "data":{
@@ -653,7 +653,7 @@ export default class bitopro extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.publicGetProvisioningLimitationsAndFees (params);
-        const tradingFeeRate = this.safeValue (response, 'tradingFeeRate', {});
+        const tradingFeeRate = this.safeDict (response, 'tradingFeeRate', {});
         const first = this.safeValue (tradingFeeRate, 0);
         //
         //     {
@@ -1147,7 +1147,7 @@ export default class bitopro extends Exchange {
         } else {
             response = await this.privateDeleteOrdersAll (this.extend (request, params));
         }
-        const result = this.safeValue (response, 'data', {});
+        const result = this.safeDict (response, 'data', {});
         //
         //     {
         //         "data":{
@@ -1564,7 +1564,7 @@ export default class bitopro extends Exchange {
             'currency': currency['id'],
         };
         const response = await this.privateGetWalletWithdrawCurrencySerial (this.extend (request, params));
-        const result = this.safeValue (response, 'data', {});
+        const result = this.safeDict (response, 'data', {});
         //
         //     {
         //         "data":{
@@ -1607,7 +1607,7 @@ export default class bitopro extends Exchange {
             'address': address,
         };
         if ('network' in params) {
-            const networks = this.safeValue (this.options, 'networks', {});
+            const networks = this.safeDict (this.options, 'networks', {});
             const requestedNetwork = this.safeStringUpper (params, 'network');
             params = this.omit (params, [ 'network' ]);
             const networkId = this.safeString (networks, requestedNetwork);
@@ -1620,7 +1620,7 @@ export default class bitopro extends Exchange {
             request['message'] = tag;
         }
         const response = await this.privatePostWalletWithdrawCurrency (this.extend (request, params));
-        const result = this.safeValue (response, 'data', {});
+        const result = this.safeDict (response, 'data', {});
         //
         //     {
         //         "data":{

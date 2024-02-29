@@ -676,7 +676,7 @@ export default class krakenfutures extends krakenfuturesRest {
             const messageHash = 'orders';
             const symbol = this.safeSymbol (marketId);
             const orderId = this.safeString (order, 'order_id');
-            const previousOrders = this.safeValue (orders.hashmap, symbol, {});
+            const previousOrders = this.safeDict (orders.hashmap, symbol, {});
             const previousOrder = this.safeValue (previousOrders, orderId);
             const reason = this.safeString (message, 'reason');
             if ((previousOrder === undefined) || (reason === 'edited_by_user')) {
@@ -1074,7 +1074,7 @@ export default class krakenfutures extends krakenfuturesRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const messageHash = 'book:' + symbol;
-        const subscription = this.safeValue (client.subscriptions, messageHash, {});
+        const subscription = this.safeDict (client.subscriptions, messageHash, {});
         const limit = this.safeInteger (subscription, 'limit');
         const timestamp = this.safeInteger (message, 'timestamp');
         this.orderbooks[symbol] = this.orderBook ({}, limit);
@@ -1328,7 +1328,7 @@ export default class krakenfutures extends krakenfuturesRest {
             client.resolve (this.balance['margin'], messageHash + 'futures');
         }
         if (flexFutures !== undefined) {
-            const flexFutureCurrencies = this.safeValue (flexFutures, 'currencies', {});
+            const flexFutureCurrencies = this.safeDict (flexFutures, 'currencies', {});
             const flexFuturesKeys = Object.keys (flexFutureCurrencies); // multi-collateral margin account
             const flexFuturesResult = {
                 'info': message,

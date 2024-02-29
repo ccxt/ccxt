@@ -320,7 +320,7 @@ export default class bitstamp extends bitstampRest {
         // }
         //
         const channel = this.safeString (message, 'channel');
-        const order = this.safeValue (message, 'data', {});
+        const order = this.safeDict (message, 'data', {});
         const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
         if (this.orders === undefined) {
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -471,7 +471,7 @@ export default class bitstamp extends bitstampRest {
         const event = this.safeString (message, 'event');
         if (event === 'bts:error') {
             const feedback = this.id + ' ' + this.json (message);
-            const data = this.safeValue (message, 'data', {});
+            const data = this.safeDict (message, 'data', {});
             const code = this.safeNumber (data, 'code');
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
         }

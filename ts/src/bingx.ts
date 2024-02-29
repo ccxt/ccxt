@@ -631,7 +631,7 @@ export default class bingx extends Exchange {
         if (settle !== undefined) {
             symbol += ':' + settle;
         }
-        const fees = this.safeValue (this.fees, type, {});
+        const fees = this.safeDict (this.fees, type, {});
         const contractSize = this.safeNumber (market, 'size');
         const isActive = this.safeString (market, 'status') === '1';
         const isInverse = (spot) ? undefined : false;
@@ -1146,7 +1146,7 @@ export default class bingx extends Exchange {
         //         ]}
         //     }
         //
-        const orderbook = this.safeValue (response, 'data', {});
+        const orderbook = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger2 (orderbook, 'T', 'ts');
         return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
     }
@@ -1183,7 +1183,7 @@ export default class bingx extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseFundingRate (data, market);
     }
 
@@ -1345,7 +1345,7 @@ export default class bingx extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOpenInterest (data, market);
     }
 
@@ -2056,7 +2056,7 @@ export default class bingx extends Exchange {
             response = this.fixStringifiedJsonMembers (response);
             response = this.parseJson (response);
         }
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const order = this.safeValue (data, 'order', data);
         return this.parseOrder (order, market);
     }
@@ -2089,7 +2089,7 @@ export default class bingx extends Exchange {
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
-            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const orderParams = this.safeDict (rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
@@ -2148,7 +2148,7 @@ export default class bingx extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const result = this.safeValue (data, 'orders', []);
         return this.parseOrders (result, market);
     }
@@ -2996,7 +2996,7 @@ export default class bingx extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
         const request = {
@@ -3040,7 +3040,7 @@ export default class bingx extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromAccount = this.safeString (params, 'fromAccount');
         const toAccount = this.safeString (params, 'toAccount');
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
@@ -3082,7 +3082,7 @@ export default class bingx extends Exchange {
         const timestamp = this.safeInteger (transfer, 'timestamp');
         const currencyCode = this.safeCurrencyCode (undefined, currency);
         const status = this.safeString (transfer, 'status');
-        const accountsById = this.safeValue (this.options, 'accountsById', {});
+        const accountsById = this.safeDict (this.options, 'accountsById', {});
         const typeId = this.safeString (transfer, 'type');
         const typeIdSplit = typeId.split ('_');
         const fromId = this.safeString (typeIdSplit, 0);
@@ -3855,7 +3855,7 @@ export default class bingx extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const liquidations = this.safeValue (data, 'orders', []);
         return this.parseLiquidations (liquidations, market, since, limit);
     }
@@ -3970,7 +3970,7 @@ export default class bingx extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const success = this.safeValue (data, 'success', []);
         const positions = [];
         for (let i = 0; i < success.length; i++) {

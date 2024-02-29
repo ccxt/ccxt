@@ -550,9 +550,9 @@ export default class coinsph extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const limits = this.indexBy (this.safeValue (market, 'filters'), 'filterType');
-            const amountLimits = this.safeValue (limits, 'LOT_SIZE', {});
-            const priceLimits = this.safeValue (limits, 'PRICE_FILTER', {});
-            const costLimits = this.safeValue (limits, 'NOTIONAL', {});
+            const amountLimits = this.safeDict (limits, 'LOT_SIZE', {});
+            const priceLimits = this.safeDict (limits, 'PRICE_FILTER', {});
+            const costLimits = this.safeDict (limits, 'NOTIONAL', {});
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -633,7 +633,7 @@ export default class coinsph extends Exchange {
             request['symbols'] = ids;
         }
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
-        const options = this.safeValue (this.options, 'fetchTickers', {});
+        const options = this.safeDict (this.options, 'fetchTickers', {});
         const method = this.safeString (options, 'method', defaultMethod);
         let tickers = undefined;
         if (method === 'publicGetOpenapiQuoteV1TickerPrice') {
@@ -664,7 +664,7 @@ export default class coinsph extends Exchange {
             'symbol': market['id'],
         };
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
-        const options = this.safeValue (this.options, 'fetchTicker', {});
+        const options = this.safeDict (this.options, 'fetchTicker', {});
         const method = this.safeString (options, 'method', defaultMethod);
         let ticker = undefined;
         if (method === 'publicGetOpenapiQuoteV1TickerPrice') {
@@ -1127,8 +1127,8 @@ export default class coinsph extends Exchange {
             'type': orderType,
             'side': orderSide,
         };
-        const options = this.safeValue (this.options, 'createOrder', {});
-        let newOrderRespType = this.safeValue (options, 'newOrderRespType', {});
+        const options = this.safeDict (this.options, 'createOrder', {});
+        let newOrderRespType = this.safeDict (options, 'newOrderRespType', {});
         // if limit order
         if (orderType === 'LIMIT' || orderType === 'STOP_LOSS_LIMIT' || orderType === 'TAKE_PROFIT_LIMIT' || orderType === 'LIMIT_MAKER') {
             if (price === undefined) {
@@ -1531,7 +1531,7 @@ export default class coinsph extends Exchange {
         //       }
         //     ]
         //
-        const tradingFee = this.safeValue (response, 0, {});
+        const tradingFee = this.safeDict (response, 0, {});
         return this.parseTradingFee (tradingFee, market);
     }
 

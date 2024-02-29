@@ -832,7 +832,7 @@ export default class okcoin extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         const timestamp = this.safeInteger (first, 'ts');
         return this.parseOrderBook (first, symbol, timestamp);
     }
@@ -910,7 +910,7 @@ export default class okcoin extends Exchange {
         };
         const response = await this.publicGetMarketTicker (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         //
         //     {
         //         "code": "0",
@@ -1109,7 +1109,7 @@ export default class okcoin extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const duration = this.parseTimeframe (timeframe);
-        const options = this.safeValue (this.options, 'fetchOHLCV', {});
+        const options = this.safeDict (this.options, 'fetchOHLCV', {});
         let bar = this.safeString (this.timeframes, timeframe, timeframe);
         const timezone = this.safeString (options, 'timezone', 'UTC');
         if ((timezone === 'UTC') && (duration >= 21600)) { // if utc and timeframe >= 6h
@@ -1239,7 +1239,7 @@ export default class okcoin extends Exchange {
     parseTradingBalance (response) {
         const result = { 'info': response };
         const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         const timestamp = this.safeInteger (first, 'uTime');
         const details = this.safeValue (first, 'details', []);
         for (let i = 0; i < details.length; i++) {
@@ -2153,7 +2153,7 @@ export default class okcoin extends Exchange {
         const address = this.safeString (depositAddress, 'addr');
         let tag = this.safeStringN (depositAddress, [ 'tag', 'pmtId', 'memo' ]);
         if (tag === undefined) {
-            const addrEx = this.safeValue (depositAddress, 'addrEx', {});
+            const addrEx = this.safeDict (depositAddress, 'addrEx', {});
             tag = this.safeString (addrEx, 'comment');
         }
         const currencyId = this.safeString (depositAddress, 'ccy');
@@ -2294,7 +2294,7 @@ export default class okcoin extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
         const request = {
@@ -2336,7 +2336,7 @@ export default class okcoin extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const rawTransfer = this.safeValue (data, 0, {});
+        const rawTransfer = this.safeDict (data, 0, {});
         return this.parseTransfer (rawTransfer, currency);
     }
 
@@ -2399,7 +2399,7 @@ export default class okcoin extends Exchange {
         let amount = this.safeNumber (transfer, 'amt');
         const fromAccountId = this.safeString (transfer, 'from');
         const toAccountId = this.safeString (transfer, 'to');
-        const accountsById = this.safeValue (this.options, 'accountsById', {});
+        const accountsById = this.safeDict (this.options, 'accountsById', {});
         const timestamp = this.safeInteger (transfer, 'ts', this.milliseconds ());
         const balanceChange = this.safeString (transfer, 'sz');
         if (balanceChange !== undefined) {
@@ -2453,14 +2453,14 @@ export default class okcoin extends Exchange {
         };
         let network = this.safeString (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         if (network !== undefined) {
-            const networks = this.safeValue (this.options, 'networks', {});
+            const networks = this.safeDict (this.options, 'networks', {});
             network = this.safeString (networks, network.toUpperCase (), network); // handle ETH>ERC20 alias
             request['chain'] = currency['id'] + '-' + network;
             params = this.omit (params, 'network');
         }
         let fee = this.safeString (params, 'fee');
         if (fee === undefined) {
-            const targetNetwork = this.safeValue (currency['networks'], this.networkIdToCode (network), {});
+            const targetNetwork = this.safeDict (currency['networks'], this.networkIdToCode (network), {});
             fee = this.safeString (targetNetwork, 'fee');
             if (fee === undefined) {
                 throw new ArgumentsRequired (this.id + ' withdraw() requires a "fee" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set "0". Withdrawing to external digital asset address requires network transaction fee.');

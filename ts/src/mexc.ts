@@ -1757,8 +1757,8 @@ export default class mexc extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
         }
-        const options = this.safeValue (this.options, 'timeframes', {});
-        const timeframes = this.safeValue (options, market['type'], {});
+        const options = this.safeDict (this.options, 'timeframes', {});
+        const timeframes = this.safeDict (options, market['type'], {});
         const timeframeValue = this.safeString (timeframes, timeframe);
         const duration = this.parseTimeframe (timeframe) * 1000;
         const request = {
@@ -2008,7 +2008,7 @@ export default class mexc extends Exchange {
             //         }
             //     }
             //
-            ticker = this.safeValue (response, 'data', {});
+            ticker = this.safeDict (response, 'data', {});
         }
         // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
         return this.parseTicker (ticker, market);
@@ -2305,7 +2305,7 @@ export default class mexc extends Exchange {
     async createSwapOrder (market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
         await this.loadMarkets ();
         const symbol = market['symbol'];
-        const unavailableContracts = this.safeValue (this.options, 'unavailableContracts', {});
+        const unavailableContracts = this.safeDict (this.options, 'unavailableContracts', {});
         const isContractUnavaiable = this.safeBool (unavailableContracts, symbol, false);
         if (isContractUnavaiable) {
             throw new NotSupported (this.id + ' createSwapOrder() does not support yet this symbol:' + symbol);
@@ -2434,7 +2434,7 @@ export default class mexc extends Exchange {
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
-            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const orderParams = this.safeDict (rawOrder, 'params', {});
             let marginMode = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
             const orderRequest = this.createSpotOrderRequest (market, type, side, amount, price, marginMode, orderParams);
@@ -3636,8 +3636,8 @@ export default class mexc extends Exchange {
                 const entry = wallet[i];
                 const marketId = this.safeString (entry, 'symbol');
                 const symbol = this.safeSymbol (marketId, undefined);
-                const base = this.safeValue (entry, 'baseAsset', {});
-                const quote = this.safeValue (entry, 'quoteAsset', {});
+                const base = this.safeDict (entry, 'baseAsset', {});
+                const quote = this.safeDict (entry, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'asset'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'asset'));
                 const subResult = {};
@@ -4119,7 +4119,7 @@ export default class mexc extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const resultList = this.safeValue (data, 'resultList', []);
         const result = [];
         for (let i = 0; i < resultList.length; i++) {
@@ -4207,7 +4207,7 @@ export default class mexc extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'data', {});
+        const result = this.safeDict (response, 'data', {});
         return this.parseFundingRate (result, market);
     }
 
@@ -4741,7 +4741,7 @@ export default class mexc extends Exchange {
                 '10': 'pending', // MANUAL
             },
         };
-        const statuses = this.safeValue (statusesByType, type, {});
+        const statuses = this.safeDict (statusesByType, type, {});
         return this.safeString (statuses, status, status);
     }
 
@@ -4897,7 +4897,7 @@ export default class mexc extends Exchange {
             //         }
             //     }
             //
-            const data = this.safeValue (response, 'data', {});
+            const data = this.safeDict (response, 'data', {});
             return this.parseTransfer (data);
         } else if (marketType === 'swap') {
             throw new BadRequest (this.id + ' fetchTransfer() is not supported for ' + marketType);
@@ -4955,7 +4955,7 @@ export default class mexc extends Exchange {
             //         }
             //     }
             //
-            const data = this.safeValue (response, 'data', {});
+            const data = this.safeDict (response, 'data', {});
             resultList = this.safeValue (data, 'result_list', []);
         } else if (marketType === 'swap') {
             if (limit !== undefined) {
@@ -5142,7 +5142,7 @@ export default class mexc extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        const networks = this.safeValue (this.options, 'networks', {});
+        const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeString2 (params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ETH > ERC-20 alias
         this.checkAddress (address);

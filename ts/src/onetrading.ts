@@ -386,8 +386,8 @@ export default class onetrading extends Exchange {
     }
 
     parseMarket (market): Market {
-        const baseAsset = this.safeValue (market, 'base', {});
-        const quoteAsset = this.safeValue (market, 'quote', {});
+        const baseAsset = this.safeDict (market, 'base', {});
+        const quoteAsset = this.safeDict (market, 'quote', {});
         const baseId = this.safeString (baseAsset, 'code');
         const quoteId = this.safeString (quoteAsset, 'code');
         const id = baseId + '_' + quoteId;
@@ -456,7 +456,7 @@ export default class onetrading extends Exchange {
         let method = this.safeString (params, 'method');
         params = this.omit (params, 'method');
         if (method === undefined) {
-            const options = this.safeValue (this.options, 'fetchTradingFees', {});
+            const options = this.safeDict (this.options, 'fetchTradingFees', {});
             method = this.safeString (options, 'method', 'fetchPrivateTradingFees');
         }
         return await this[method] (params);
@@ -484,10 +484,10 @@ export default class onetrading extends Exchange {
         //         }
         //     ]
         //
-        const first = this.safeValue (response, 0, {});
+        const first = this.safeDict (response, 0, {});
         const feeTiers = this.safeValue (first, 'fee_tiers');
         const tiers = this.parseFeeTiers (feeTiers);
-        const firstTier = this.safeValue (feeTiers, 0, {});
+        const firstTier = this.safeDict (feeTiers, 0, {});
         const result = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
@@ -528,7 +528,7 @@ export default class onetrading extends Exchange {
         //         "active_fee_tier": { "volume": "0.0", "fee_group_id": "default", "maker_fee": "0.1", "taker_fee": "0.1" }
         //     }
         //
-        const activeFeeTier = this.safeValue (response, 'active_fee_tier', {});
+        const activeFeeTier = this.safeDict (response, 'active_fee_tier', {});
         let makerFee = this.safeString (activeFeeTier, 'maker_fee');
         let takerFee = this.safeString (activeFeeTier, 'taker_fee');
         makerFee = Precise.stringDiv (makerFee, '100');
@@ -815,7 +815,7 @@ export default class onetrading extends Exchange {
         const duration = durationInSeconds * 1000;
         const timestamp = this.parse8601 (this.safeString (ohlcv, 'time'));
         const alignedTimestamp = duration * this.parseToInt (timestamp / duration);
-        const options = this.safeValue (this.options, 'fetchOHLCV', {});
+        const options = this.safeDict (this.options, 'fetchOHLCV', {});
         const volumeField = this.safeString (options, 'volume', 'total_amount');
         return [
             alignedTimestamp,
@@ -913,7 +913,7 @@ export default class onetrading extends Exchange {
         //         }
         //     }
         //
-        const feeInfo = this.safeValue (trade, 'fee', {});
+        const feeInfo = this.safeDict (trade, 'fee', {});
         trade = this.safeValue (trade, 'trade', trade);
         let timestamp = this.safeInteger (trade, 'trade_timestamp');
         if (timestamp === undefined) {

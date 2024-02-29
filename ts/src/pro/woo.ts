@@ -61,7 +61,7 @@ export default class woo extends wooRest {
     }
 
     requestId (url) {
-        const options = this.safeValue (this.options, 'requestId', {});
+        const options = this.safeDict (this.options, 'requestId', {});
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);
         this.options['requestId'][url] = newValue;
@@ -322,7 +322,7 @@ export default class woo extends wooRest {
             this.safeFloat (data, 'close'),
             this.safeFloat (data, 'volume'),
         ];
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -609,7 +609,7 @@ export default class woo extends wooRest {
                 this.orders = new ArrayCacheBySymbolById (limit);
             }
             const cachedOrders = this.orders;
-            const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
+            const orders = this.safeDict (cachedOrders.hashmap, symbol, {});
             const order = this.safeValue (orders, orderId);
             if (order !== undefined) {
                 const fee = this.safeValue (order, 'fee');
@@ -724,8 +724,8 @@ export default class woo extends wooRest {
         //        }
         //    }
         //
-        const data = this.safeValue (message, 'data', {});
-        const rawPositions = this.safeValue (data, 'positions', {});
+        const data = this.safeDict (message, 'data', {});
+        const rawPositions = this.safeDict (data, 'positions', {});
         const postitionsIds = Object.keys (rawPositions);
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();

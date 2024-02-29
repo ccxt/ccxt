@@ -276,9 +276,9 @@ export default class bitget extends bitgetRest {
         //         "ts": 1701843962812
         //     }
         //
-        const arg = this.safeValue (message, 'arg', {});
+        const arg = this.safeDict (message, 'arg', {});
         const data = this.safeValue (message, 'data', []);
-        const ticker = this.safeValue (data, 0, {});
+        const ticker = this.safeDict (data, 0, {});
         const timestamp = this.safeInteger (ticker, 'ts');
         const instType = this.safeString (arg, 'instType');
         const marketType = (instType === 'SPOT') ? 'spot' : 'contract';
@@ -379,13 +379,13 @@ export default class bitget extends bitgetRest {
         //         "ts": 1701901610417
         //     }
         //
-        const arg = this.safeValue (message, 'arg', {});
+        const arg = this.safeDict (message, 'arg', {});
         const instType = this.safeString (arg, 'instType');
         const marketType = (instType === 'SPOT') ? 'spot' : 'contract';
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         const channel = this.safeString (arg, 'channel');
         const interval = channel.replace ('candle', '');
         const timeframes = this.safeValue (this.options, 'timeframes');
@@ -670,7 +670,7 @@ export default class bitget extends bitgetRest {
         //         "ts": 1701910980730
         //     }
         //
-        const arg = this.safeValue (message, 'arg', {});
+        const arg = this.safeDict (message, 'arg', {});
         const instType = this.safeString (arg, 'instType');
         const marketType = (instType === 'SPOT') ? 'spot' : 'contract';
         const marketId = this.safeString (arg, 'instId');
@@ -793,7 +793,7 @@ export default class bitget extends bitgetRest {
         //         "ts": 1701913043767
         //     }
         //
-        const arg = this.safeValue (message, 'arg', {});
+        const arg = this.safeDict (message, 'arg', {});
         const instType = this.safeString (arg, 'instType', '');
         if (this.positions === undefined) {
             this.positions = {};
@@ -1102,7 +1102,7 @@ export default class bitget extends bitgetRest {
         //         "ts": 1701923982497
         //     }
         //
-        const arg = this.safeValue (message, 'arg', {});
+        const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const instType = this.safeString (arg, 'instType');
         let marketType = undefined;
@@ -1754,7 +1754,7 @@ export default class bitget extends bitgetRest {
             'account': this.handleBalance,
             'positions': this.handlePositions,
         };
-        const arg = this.safeValue (message, 'arg', {});
+        const arg = this.safeDict (message, 'arg', {});
         const topic = this.safeValue (arg, 'channel', '');
         const method = this.safeValue (methods, topic);
         if (method !== undefined) {

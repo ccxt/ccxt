@@ -104,7 +104,7 @@ export default class probit extends probitRest {
         //     }
         //
         const reset = this.safeBool (message, 'reset', false);
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const currencyIds = Object.keys (data);
         if (reset) {
             this.balance = {};
@@ -158,7 +158,7 @@ export default class probit extends probitRest {
         //
         const marketId = this.safeString (message, 'market_id');
         const symbol = this.safeSymbol (marketId);
-        const ticker = this.safeValue (message, 'ticker', {});
+        const ticker = this.safeDict (message, 'ticker', {});
         const market = this.safeMarket (marketId);
         const parsedTicker = this.parseTicker (ticker, market);
         const messageHash = 'ticker:' + symbol;

@@ -187,7 +187,7 @@ export default class blockchaincom extends blockchaincomRest {
             const timeframeId = this.safeNumber (request, 'granularity');
             const timeframe = this.findTimeframe (timeframeId);
             const ohlcv = this.safeValue (message, 'price', []);
-            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);

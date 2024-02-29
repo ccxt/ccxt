@@ -2034,7 +2034,7 @@ export default class bitmex extends Exchange {
             params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
         const response = await this.privateDeleteOrder (this.extend (request, params));
-        const order = this.safeValue (response, 0, {});
+        const order = this.safeDict (response, 0, {});
         const error = this.safeString (order, 'error');
         if (error !== undefined) {
             if (error.indexOf ('Unable to cancel order due to existing state') >= 0) {
@@ -2872,7 +2872,7 @@ export default class bitmex extends Exchange {
             throw new DDoSProtection (this.id + ' ' + body);
         }
         if (code >= 400) {
-            const error = this.safeValue (response, 'error', {});
+            const error = this.safeDict (response, 'error', {});
             const message = this.safeString (error, 'message');
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);

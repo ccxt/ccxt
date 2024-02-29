@@ -96,9 +96,9 @@ export default class cex extends cexRest {
         //         "ok": "ok"
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
-        const freeBalance = this.safeValue (data, 'balance', {});
-        const usedBalance = this.safeValue (data, 'obalance', {});
+        const data = this.safeDict (message, 'data', {});
+        const freeBalance = this.safeDict (data, 'balance', {});
+        const usedBalance = this.safeDict (data, 'obalance', {});
         const result = {
             'info': data,
         };
@@ -345,7 +345,7 @@ export default class cex extends cexRest {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const ticker = this.parseWsTicker (data);
         const symbol = ticker['symbol'];
         this.tickers[symbol] = ticker;
@@ -568,7 +568,7 @@ export default class cex extends cexRest {
         //             "id": "59091012962"
         //         }
         //     }
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         let stored = this.myTrades;
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -713,7 +713,7 @@ export default class cex extends cexRest {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const isTransaction = this.safeString (message, 'e') === 'tx';
         const orderId = this.safeString2 (data, 'id', 'order');
         let remains = this.safeString (data, 'remains');
@@ -734,7 +734,7 @@ export default class cex extends cexRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const storedOrders = this.orders;
-        const ordersBySymbol = this.safeValue (storedOrders.hashmap, symbol, {});
+        const ordersBySymbol = this.safeDict (storedOrders.hashmap, symbol, {});
         let order = this.safeValue (ordersBySymbol, orderId);
         if (order === undefined) {
             order = this.parseWsOrderUpdate (data, market);
@@ -982,7 +982,7 @@ export default class cex extends cexRest {
         //         "ok": "ok"
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const pair = this.safeString (data, 'pair');
         const symbol = this.pairToSymbol (pair);
         const messageHash = 'orderbook:' + symbol;
@@ -1024,7 +1024,7 @@ export default class cex extends cexRest {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const incrementalId = this.safeNumber (data, 'id');
         const pair = this.safeString (data, 'pair', '');
         const symbol = this.pairToSymbol (pair);
@@ -1153,7 +1153,7 @@ export default class cex extends cexRest {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const pair = this.safeString (data, 'pair');
         const symbol = this.pairToSymbol (pair);
         const messageHash = 'ohlcv:' + symbol;
@@ -1458,7 +1458,7 @@ export default class cex extends cexRest {
         //     }
         //
         try {
-            const data = this.safeValue (message, 'data', {});
+            const data = this.safeDict (message, 'data', {});
             const error = this.safeString (data, 'error');
             const event = this.safeString (message, 'e', '');
             const feedback = this.id + ' ' + event + ' ' + error;

@@ -484,7 +484,7 @@ export default class woo extends Exchange {
         //      ]
         // }
         //
-        const resultResponse = this.safeValue (response, 'rows', {});
+        const resultResponse = this.safeDict (response, 'rows', {});
         return this.parseTrades (resultResponse, market, since, limit);
     }
 
@@ -603,7 +603,7 @@ export default class woo extends Exchange {
         //         "timestamp": 1673323685109
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const maker = this.safeString (data, 'makerFeeRate');
         const taker = this.safeString (data, 'takerFeeRate');
         const result = {};
@@ -1115,7 +1115,7 @@ export default class woo extends Exchange {
         //         "timestamp": 0
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -2127,7 +2127,7 @@ export default class woo extends Exchange {
         //     }
         //
         const transfer = this.parseTransfer (response, currency);
-        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             transfer['amount'] = amount;
@@ -2252,11 +2252,11 @@ export default class woo extends Exchange {
         if (tag !== undefined) {
             request['extra'] = tag;
         }
-        const networks = this.safeValue (this.options, 'networks', {});
-        const currencyNetworks = this.safeValue (currency, 'networks', {});
+        const networks = this.safeDict (this.options, 'networks', {});
+        const currencyNetworks = this.safeDict (currency, 'networks', {});
         const network = this.safeStringUpper (params, 'network');
         const networkId = this.safeString (networks, network, network);
-        const coinNetwork = this.safeValue (currencyNetworks, networkId, {});
+        const coinNetwork = this.safeDict (currencyNetworks, networkId, {});
         const coinNetworkId = this.safeString (coinNetwork, 'id');
         if (coinNetworkId === undefined) {
             throw new BadRequest (this.id + ' withdraw() require network parameter');
@@ -2563,7 +2563,7 @@ export default class woo extends Exchange {
         //         "timestamp":1653633985646
         //     }
         //
-        const rows = this.safeValue (response, 'rows', {});
+        const rows = this.safeDict (response, 'rows', {});
         const result = this.parseFundingRates (rows);
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -2737,7 +2737,7 @@ export default class woo extends Exchange {
         //         "timestamp": 1673323880342
         //     }
         //
-        const result = this.safeValue (response, 'data', {});
+        const result = this.safeDict (response, 'data', {});
         const positions = this.safeValue (result, 'positions', []);
         return this.parsePositions (positions, symbols);
     }

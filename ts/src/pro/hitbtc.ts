@@ -263,7 +263,7 @@ export default class hitbtc extends hitbtcRest {
             const item = data[marketId];
             const messageHash = 'orderbooks::' + symbol;
             if (!(symbol in this.orderbooks)) {
-                const subscription = this.safeValue (client.subscriptions, messageHash, {});
+                const subscription = this.safeDict (client.subscriptions, messageHash, {});
                 const limit = this.safeInteger (subscription, 'limit');
                 this.orderbooks[symbol] = this.orderBook ({}, limit);
             }
@@ -404,7 +404,7 @@ export default class hitbtc extends hitbtcRest {
         //        }
         //    }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const marketIds = Object.keys (data);
         const newTickers = {};
         for (let i = 0; i < marketIds.length; i++) {
@@ -695,7 +695,7 @@ export default class hitbtc extends hitbtcRest {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
-            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -1209,7 +1209,7 @@ export default class hitbtc extends hitbtcRest {
         //    }
         //
         const messageHash = this.safeInteger (message, 'id');
-        const result = this.safeValue (message, 'result', {});
+        const result = this.safeDict (message, 'result', {});
         if (Array.isArray (result)) {
             const parsedOrders = [];
             for (let i = 0; i < result.length; i++) {
@@ -1259,7 +1259,7 @@ export default class hitbtc extends hitbtcRest {
             }
             if (Array.isArray (result)) {
                 // to do improve this, not very reliable right now
-                const first = this.safeValue (result, 0, {});
+                const first = this.safeDict (result, 0, {});
                 const arrayLength = result.length;
                 if ((arrayLength === 0) || ('client_order_id' in first)) {
                     this.handleOrderRequest (client, message);

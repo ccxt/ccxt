@@ -1546,8 +1546,8 @@ export default class gate extends Exchange {
     }
 
     getSettlementCurrencies (type, method) {
-        const options = this.safeValue (this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
-        const fetchMarketsContractOptions = this.safeValue (options, method, {});
+        const options = this.safeDict (this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
+        const fetchMarketsContractOptions = this.safeDict (options, method, {});
         const defaultSettle = (type === 'swap') ? [ 'usdt' ] : [ 'btc' ];
         return this.safeValue (fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle);
     }
@@ -1629,7 +1629,7 @@ export default class gate extends Exchange {
             depositAvailable = (depositEnabled) ? depositEnabled : depositAvailable;
             let withdrawAvailable = this.safeValue (result[code], 'withdraw');
             withdrawAvailable = (withdrawEnabled) ? withdrawEnabled : withdrawAvailable;
-            const networks = this.safeValue (result[code], 'networks', {});
+            const networks = this.safeDict (result[code], 'networks', {});
             if (networkCode !== undefined) {
                 networks[networkCode] = {
                     'info': entry,
@@ -2857,8 +2857,8 @@ export default class gate extends Exchange {
             if (isolated) {
                 const marketId = this.safeString (entry, 'currency_pair');
                 const symbolInner = this.safeSymbol (marketId, undefined, '_', 'margin');
-                const base = this.safeValue (entry, 'base', {});
-                const quote = this.safeValue (entry, 'quote', {});
+                const base = this.safeDict (entry, 'base', {});
+                const quote = this.safeDict (entry, 'quote', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency'));
                 const subResult = {};
@@ -3601,7 +3601,7 @@ export default class gate extends Exchange {
         if (tag !== undefined) {
             request['memo'] = tag;
         }
-        const networks = this.safeValue (this.options, 'networks', {});
+        const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeStringLower (networks, network, network); // handle ETH>ERC20 alias
         if (network !== undefined) {
@@ -3890,7 +3890,7 @@ export default class gate extends Exchange {
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
-            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const orderParams = this.safeDict (rawOrder, 'params', {});
             const extendedParams = this.extend (orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             const triggerValue = this.safeValueN (orderParams, [ 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ]);
             if (triggerValue !== undefined) {
@@ -4114,7 +4114,7 @@ export default class gate extends Exchange {
                 }
             } else {
                 // spot conditional order
-                const options = this.safeValue (this.options, 'createOrder', {});
+                const options = this.safeDict (this.options, 'createOrder', {});
                 let marginMode = undefined;
                 [ marginMode, params ] = this.getMarginMode (true, params);
                 if (timeInForce === undefined) {
@@ -4423,7 +4423,7 @@ export default class gate extends Exchange {
             });
         }
         const put = this.safeValue2 (order, 'put', 'initial', {});
-        const trigger = this.safeValue (order, 'trigger', {});
+        const trigger = this.safeDict (order, 'trigger', {});
         let contract = this.safeString (put, 'contract');
         let type = this.safeString (put, 'type');
         let timeInForce = this.safeStringUpper2 (put, 'time_in_force', 'tif');
@@ -5949,7 +5949,7 @@ export default class gate extends Exchange {
             // endpoints like createOrders use an array instead of an object
             // so we infer the settle from one of the elements
             // they have to be all the same so relying on the first one is fine
-            const first = this.safeValue (params, 0, {});
+            const first = this.safeDict (params, 0, {});
             path = this.implodeParams (path, first);
         } else {
             path = this.implodeParams (path, params);
@@ -5986,7 +5986,7 @@ export default class gate extends Exchange {
                     body = this.json (query);
                 }
             } else {
-                const urlQueryParams = this.safeValue (query, 'query', {});
+                const urlQueryParams = this.safeDict (query, 'query', {});
                 if (Object.keys (urlQueryParams).length) {
                     queryString = this.urlencode (urlQueryParams);
                     url += '?' + queryString;
@@ -6290,7 +6290,7 @@ export default class gate extends Exchange {
         //         }
         //     ]
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         const data = this.safeValue (result, 'list', []);
         const settlements = this.parseSettlements (data, market);
         const sorted = this.sortBy (settlements, 'timestamp');

@@ -338,7 +338,7 @@ export default class hollaex extends hollaexRest {
         //       }
         //
         const channel = this.safeString (message, 'topic');
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         // usually the first message is an empty array
         const dataLength = data.length;
         if (dataLength === 0) {

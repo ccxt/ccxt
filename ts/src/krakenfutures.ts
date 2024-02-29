@@ -999,7 +999,7 @@ export default class krakenfutures extends Exchange {
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
-            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const orderParams = this.safeDict (rawOrder, 'params', {});
             const extendedParams = this.extend (orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             if (!('order_tag' in extendedParams)) {
                 // order tag is mandatory so we will generate one if not provided
@@ -2523,13 +2523,13 @@ export default class krakenfutures extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiVersions = this.safeValue (this.options['versions'], api, {});
-        const methodVersions = this.safeValue (apiVersions, method, {});
+        const apiVersions = this.safeDict (this.options['versions'], api, {});
+        const methodVersions = this.safeDict (apiVersions, method, {});
         const defaultVersion = this.safeString (methodVersions, path, this.version);
         const version = this.safeString (params, 'version', defaultVersion);
         params = this.omit (params, 'version');
-        const apiAccess = this.safeValue (this.options['access'], api, {});
-        const methodAccess = this.safeValue (apiAccess, method, {});
+        const apiAccess = this.safeDict (this.options['access'], api, {});
+        const methodAccess = this.safeDict (apiAccess, method, {});
         const access = this.safeString (methodAccess, path, 'public');
         const endpoint = version + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));

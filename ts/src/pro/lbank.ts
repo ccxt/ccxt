@@ -76,8 +76,8 @@ export default class lbank extends lbankRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
-        const watchOHLCVOptions = this.safeValue (this.options, 'watchOHLCV', {});
-        const timeframes = this.safeValue (watchOHLCVOptions, 'timeframes', {});
+        const watchOHLCVOptions = this.safeDict (this.options, 'watchOHLCV', {});
+        const timeframes = this.safeDict (watchOHLCVOptions, 'timeframes', {});
         const timeframeId = this.safeString (timeframes, timeframe, timeframe);
         const messageHash = 'fetchOHLCV:' + market['symbol'] + ':' + timeframeId;
         const message = {
@@ -112,8 +112,8 @@ export default class lbank extends lbankRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const watchOHLCVOptions = this.safeValue (this.options, 'watchOHLCV', {});
-        const timeframes = this.safeValue (watchOHLCVOptions, 'timeframes', {});
+        const watchOHLCVOptions = this.safeDict (this.options, 'watchOHLCV', {});
+        const timeframes = this.safeDict (watchOHLCVOptions, 'timeframes', {});
         const timeframeId = this.safeString (timeframes, timeframe, timeframe);
         const messageHash = 'ohlcv:' + market['symbol'] + ':' + timeframeId;
         const url = this.urls['api']['ws'];
@@ -185,8 +185,8 @@ export default class lbank extends lbankRest {
         //
         const marketId = this.safeString (message, 'pair');
         const symbol = this.safeSymbol (marketId, undefined, '_');
-        const watchOHLCVOptions = this.safeValue (this.options, 'watchOHLCV', {});
-        const timeframes = this.safeValue (watchOHLCVOptions, 'timeframes', {});
+        const watchOHLCVOptions = this.safeDict (this.options, 'watchOHLCV', {});
+        const timeframes = this.safeDict (watchOHLCVOptions, 'timeframes', {});
         const records = this.safeValue (message, 'records');
         if (records !== undefined) {  // from request
             const rawOHLCV = this.safeValue (records, 0, []);
@@ -200,7 +200,7 @@ export default class lbank extends lbankRest {
             ];
             const timeframeId = this.safeString (message, 'kbar');
             const timeframe = this.findTimeframe (timeframeId, timeframes);
-            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -211,7 +211,7 @@ export default class lbank extends lbankRest {
             const messageHash = 'fetchOHLCV:' + symbol + ':' + timeframeId;
             client.resolve (stored, messageHash);
         } else {  // from subscription
-            const rawOHLCV = this.safeValue (message, 'kbar', {});
+            const rawOHLCV = this.safeDict (message, 'kbar', {});
             const timeframeId = this.safeString (rawOHLCV, 'slot');
             const datetime = this.safeString (rawOHLCV, 't');
             const parsed = [
@@ -223,7 +223,7 @@ export default class lbank extends lbankRest {
                 this.safeNumber (rawOHLCV, 'v'),
             ];
             const timeframe = this.findTimeframe (timeframeId, timeframes);
-            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -621,7 +621,7 @@ export default class lbank extends lbankRest {
         //         "TS": "2024-01-19T23:05:18.548"
         //     }
         //
-        const orderUpdate = this.safeValue (order, 'orderUpdate', {});
+        const orderUpdate = this.safeDict (order, 'orderUpdate', {});
         const rawType = this.safeString (orderUpdate, 'type', '');
         const typeParts = rawType.split ('_');
         const side = this.safeString (typeParts, 0);

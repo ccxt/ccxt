@@ -160,7 +160,7 @@ export default class bingx extends bingxRest {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 's');
         // const marketId = messageHash.split('@')[0];
         const isSwap = client.url.indexOf ('swap') >= 0;
@@ -537,7 +537,7 @@ export default class bingx extends bingxRest {
         const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframeId);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -572,8 +572,8 @@ export default class bingx extends bingxRest {
         if (url === undefined) {
             throw new BadRequest (this.id + ' watchOHLCV is not supported for ' + marketType + ' markets.');
         }
-        const options = this.safeValue (this.options, marketType, {});
-        const timeframes = this.safeValue (options, 'timeframes', {});
+        const options = this.safeDict (this.options, marketType, {});
+        const timeframes = this.safeDict (options, 'timeframes', {});
         const interval = this.safeString (timeframes, timeframe, timeframe);
         const messageHash = market['id'] + '@kline_' + interval;
         const uuid = this.uuid ();
@@ -1034,7 +1034,7 @@ export default class bingx extends bingxRest {
         //         }
         //     }
         //
-        const a = this.safeValue (message, 'a', {});
+        const a = this.safeDict (message, 'a', {});
         const data = this.safeValue (a, 'B', []);
         const timestamp = this.safeInteger2 (message, 'T', 'E');
         const type = ('P' in a) ? 'swap' : 'spot';
@@ -1084,7 +1084,7 @@ export default class bingx extends bingxRest {
             return;
         }
         if (dataType.indexOf ('executionReport') >= 0) {
-            const data = this.safeValue (message, 'data', {});
+            const data = this.safeDict (message, 'data', {});
             const type = this.safeString (data, 'x');
             if (type === 'TRADE') {
                 this.handleMyTrades (client, message);
@@ -1098,7 +1098,7 @@ export default class bingx extends bingxRest {
         }
         if (e === 'ORDER_TRADE_UPDATE') {
             this.handleOrder (client, message);
-            const data = this.safeValue (message, 'o', {});
+            const data = this.safeDict (message, 'o', {});
             const type = this.safeString (data, 'x');
             const status = this.safeString (data, 'X');
             if ((type === 'TRADE') && (status === 'FILLED')) {

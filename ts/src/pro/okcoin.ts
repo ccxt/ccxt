@@ -314,7 +314,7 @@ export default class okcoin extends okcoinRest {
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             const parsed = this.parseOHLCV (candle, market);
-            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -337,7 +337,7 @@ export default class okcoin extends okcoinRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        const options = this.safeDict (this.options, 'watchOrderBook', {});
         const depth = this.safeString (options, 'depth', 'depth_l2_tbt');
         const orderbook = await this.subscribe (depth, symbol, params);
         return orderbook.limit ();
@@ -442,7 +442,7 @@ export default class okcoin extends okcoinRest {
                 const marketId = this.safeString (update, 'instrument_id');
                 const market = this.safeMarket (marketId);
                 const symbol = market['symbol'];
-                const options = this.safeValue (this.options, 'watchOrderBook', {});
+                const options = this.safeDict (this.options, 'watchOrderBook', {});
                 // default limit is 400 bidasks
                 const limit = this.safeInteger (options, 'limit', 400);
                 const orderbook = this.orderBook ({}, limit);
@@ -608,7 +608,7 @@ export default class okcoin extends okcoinRest {
         }
         for (let i = 0; i < data.length; i++) {
             const balance = this.parseBalanceByType (type, data);
-            const oldBalance = this.safeValue (this.balance, type, {});
+            const oldBalance = this.safeDict (this.balance, type, {});
             const newBalance = this.deepExtend (oldBalance, balance);
             this.balance[type] = this.safeBalance (newBalance);
             client.resolve (this.balance[type], table);
