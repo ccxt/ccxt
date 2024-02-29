@@ -1,6 +1,6 @@
 import sys
 import types
-from typing import Union, List, Optional, Any
+from typing import Union, List, Optional, Any as PythonAny
 from decimal import Decimal
 
 
@@ -20,6 +20,7 @@ else:
 OrderSide = Literal['buy', 'sell']
 OrderType = Literal['limit', 'market']
 PositionSide = Literal['long', 'short']
+Any = PythonAny
 
 
 class Entry:
