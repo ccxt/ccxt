@@ -303,14 +303,18 @@
                 "networks": "missing"
             },
             "fetchTickers": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "same"
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269177564#L3615",
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing"
             },
             "fetchTicker": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "same"
+                "spread": "same",
+                "quoteVolume": "same"
             },
-            "fetchLOrderBook": {
+            "watchTickers": {
+                "spread": "same",
+                "quoteVolume": "same"
+            },
+            "fetchOrderBook": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269177564#L3946"
             },
             "fetchL2OrderBook": {
