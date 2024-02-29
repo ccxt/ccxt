@@ -849,6 +849,7 @@
         }
     },
     "delta": {
+        "httpsProxy": "http://5.75.153.75:8002",
         "skipMethods": {
             "loadMarkets": "expiryDatetime must be equal to expiry in iso8601 format",
             "fetchOrderBook": "ask crossing bids test failing",
@@ -1223,6 +1224,7 @@
                 "currencyIdAndCode": "messed"
             },
             "fetchCurrencies": {
+                "currencyIdAndCode": "messed",
                 "withdraw":"not provided",
                 "deposit":"not provided"
             },
