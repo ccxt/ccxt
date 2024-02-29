@@ -1547,7 +1547,6 @@
         "timeout": 120000
     },
     "upbit": {
-        "skipWs":"timeouts",
         "skipMethods": {
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
