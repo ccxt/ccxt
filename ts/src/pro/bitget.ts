@@ -755,7 +755,7 @@ export default class bitget extends bitgetRest {
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'tradeId'),
-            'order': undefined,
+            'order': this.safeString (trade, 'orderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
@@ -764,7 +764,7 @@ export default class bitget extends bitgetRest {
             'takerOrMaker': undefined,
             'price': this.safeString2 (trade, 'priceAvg', 'price'),
             'amount': this.safeString (trade, 'size'),
-            'cost': undefined,
+            'cost': this.safeString (trade, 'fillNotionalUsd'),
             'fee': fee,
         }, market);
     }
