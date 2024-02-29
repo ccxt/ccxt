@@ -79,8 +79,6 @@ interface binance {
     sapiGetLoanFlexibleBorrowHistory (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanFlexibleRepayHistory (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanFlexibleLtvAdjustmentHistory (params?: {}): Promise<implicitReturnType>;
-    sapiGetLoanFlexibleLoanableData (params?: {}): Promise<implicitReturnType>;
-    sapiGetLoanFlexibleCollateralData (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipOngoingOrders (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipRepayHistory (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipCollateralAccount (params?: {}): Promise<implicitReturnType>;
@@ -375,7 +373,6 @@ interface binance {
     sapiPostLoanRepay (params?: {}): Promise<implicitReturnType>;
     sapiPostLoanAdjustLtv (params?: {}): Promise<implicitReturnType>;
     sapiPostLoanCustomizeMarginCall (params?: {}): Promise<implicitReturnType>;
-    sapiPostLoanFlexibleBorrow (params?: {}): Promise<implicitReturnType>;
     sapiPostLoanFlexibleRepay (params?: {}): Promise<implicitReturnType>;
     sapiPostLoanFlexibleAdjustLtv (params?: {}): Promise<implicitReturnType>;
     sapiPostLoanVipRepay (params?: {}): Promise<implicitReturnType>;
@@ -432,10 +429,19 @@ interface binance {
     sapiV2GetSubAccountFuturesAccount (params?: {}): Promise<implicitReturnType>;
     sapiV2GetSubAccountFuturesAccountSummary (params?: {}): Promise<implicitReturnType>;
     sapiV2GetSubAccountFuturesPositionRisk (params?: {}): Promise<implicitReturnType>;
+    sapiV2GetLoanFlexibleOngoingOrders (params?: {}): Promise<implicitReturnType>;
+    sapiV2GetLoanFlexibleBorrowHistory (params?: {}): Promise<implicitReturnType>;
+    sapiV2GetLoanFlexibleRepayHistory (params?: {}): Promise<implicitReturnType>;
+    sapiV2GetLoanFlexibleLtvAdjustmentHistory (params?: {}): Promise<implicitReturnType>;
+    sapiV2GetLoanFlexibleLoanableData (params?: {}): Promise<implicitReturnType>;
+    sapiV2GetLoanFlexibleCollateralData (params?: {}): Promise<implicitReturnType>;
     sapiV2GetClAccount (params?: {}): Promise<implicitReturnType>;
     sapiV2GetClAlertHistory (params?: {}): Promise<implicitReturnType>;
     sapiV2PostEthStakingEthStake (params?: {}): Promise<implicitReturnType>;
     sapiV2PostSubAccountSubAccountApiIpRestriction (params?: {}): Promise<implicitReturnType>;
+    sapiV2PostLoanFlexibleBorrow (params?: {}): Promise<implicitReturnType>;
+    sapiV2PostLoanFlexibleRepay (params?: {}): Promise<implicitReturnType>;
+    sapiV2PostLoanFlexibleAdjustLtv (params?: {}): Promise<implicitReturnType>;
     sapiV3GetSubAccountAssets (params?: {}): Promise<implicitReturnType>;
     sapiV3GetAccountStatus (params?: {}): Promise<implicitReturnType>;
     sapiV3GetApiTradingStatus (params?: {}): Promise<implicitReturnType>;

@@ -106,7 +106,7 @@ public partial class bitvavo : ccxt.bitvavo
         //                 "volume": "3587.05020246",
         //                 "volumeQuote": "708030.17",
         //                 "bid": "199.56",
-        //                 "bidSize": "4.14730803",
+        //                 "bidSize": "4.14730802",
         //                 "ask": "199.57",
         //                 "askSize": "6.13642074",
         //                 "timestamp": 1590770885217

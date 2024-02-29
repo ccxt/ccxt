@@ -41,13 +41,13 @@ class binance extends binance$1 {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createDepositAddress': false,
-                'createMarketBuyOrderWithCost': true,
-                'createMarketOrderWithCost': true,
-                'createMarketSellOrderWithCost': true,
                 'createLimitBuyOrder': true,
                 'createLimitSellOrder': true,
                 'createMarketBuyOrder': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': true,
                 'createMarketSellOrder': true,
+                'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': true,
@@ -67,6 +67,7 @@ class binance extends binance$1 {
                 'fetchBorrowInterest': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': true,
+                'fetchCanceledAndClosedOrders': 'emulated',
                 'fetchCanceledOrders': 'emulated',
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': 'emulated',
@@ -92,7 +93,8 @@ class binance extends binance$1 {
                 'fetchL3OrderBook': false,
                 'fetchLastPrices': true,
                 'fetchLedger': true,
-                'fetchLeverage': false,
+                'fetchLedgerEntry': true,
+                'fetchLeverage': true,
                 'fetchLeverageTiers': true,
                 'fetchLiquidations': false,
                 'fetchMarketLeverageTiers': 'emulated',
@@ -124,7 +126,7 @@ class binance extends binance$1 {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
-                'fetchTradingLimits': undefined,
+                'fetchTradingLimits': 'emulated',
                 'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
                 'fetchTransactions': false,
@@ -292,8 +294,6 @@ class binance extends binance$1 {
                         'loan/flexible/borrow/history': 40,
                         'loan/flexible/repay/history': 40,
                         'loan/flexible/ltv/adjustment/history': 40,
-                        'loan/flexible/loanable/data': 40,
-                        'loan/flexible/collateral/data': 40,
                         'loan/vip/ongoing/orders': 40,
                         'loan/vip/repay/history': 40,
                         'loan/vip/collateral/account': 600,
@@ -585,7 +585,6 @@ class binance extends binance$1 {
                         'loan/repay': 40.002,
                         'loan/adjust/ltv': 40.002,
                         'loan/customize/margin_call': 40.002,
-                        'loan/flexible/borrow': 40.002,
                         'loan/flexible/repay': 40.002,
                         'loan/flexible/adjust/ltv': 40.002,
                         'loan/vip/repay': 40.002,
@@ -640,10 +639,19 @@ class binance extends binance$1 {
                         'sub-account/futures/account': 0.1,
                         'sub-account/futures/accountSummary': 1,
                         'sub-account/futures/positionRisk': 0.1,
+                        'loan/flexible/ongoing/orders': 30,
+                        'loan/flexible/borrow/history': 40,
+                        'loan/flexible/repay/history': 40,
+                        'loan/flexible/ltv/adjustment/history': 40,
+                        'loan/flexible/loanable/data': 40,
+                        'loan/flexible/collateral/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                     },
                     'post': {
                         'eth-staking/eth/stake': 15,
-                        'sub-account/subAccountApi/ipRestriction': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'sub-account/subAccountApi/ipRestriction': 20.001,
+                        'loan/flexible/borrow': 40.002,
+                        'loan/flexible/repay': 40.002,
+                        'loan/flexible/adjust/ltv': 40.002, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
                     },
                 },
                 'sapiV3': {
@@ -6823,6 +6831,38 @@ class binance extends binance$1 {
         const filteredOrders = this.filterBy(orders, 'status', 'canceled');
         return this.filterBySinceLimit(filteredOrders, since, limit);
     }
+    async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchCanceledAndClosedOrders
+         * @description fetches information on multiple canceled orders made by the user
+         * @see https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-orders-user_data
+         * @param {string} symbol unified market symbol of the market the orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
+         * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchCanceledAndClosedOrders() requires a symbol argument');
+        }
+        const orders = await this.fetchOrders(symbol, since, undefined, params);
+        const canceledOrders = this.filterBy(orders, 'status', 'canceled');
+        const closedOrders = this.filterBy(orders, 'status', 'closed');
+        const filteredOrders = this.arrayConcat(canceledOrders, closedOrders);
+        const sortedOrders = this.sortBy(filteredOrders, 'timestamp');
+        return this.filterBySinceLimit(sortedOrders, since, limit);
+    }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
          * @method
@@ -10346,6 +10386,67 @@ class binance extends binance$1 {
         //
         return response;
     }
+    async fetchLeverage(symbol, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-um-account-detail-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets();
+        await this.loadLeverageBrackets(false, params);
+        const market = this.market(symbol);
+        if (!market['contract']) {
+            throw new errors.NotSupported(this.id + ' fetchLeverage() supports linear and inverse contracts only');
+        }
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchLeverage', market, params);
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchLeverage', market, params, 'linear');
+        let isPortfolioMargin = undefined;
+        [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'fetchLeverage', 'papi', 'portfolioMargin', false);
+        let response = undefined;
+        if (this.isLinear(type, subType)) {
+            if (isPortfolioMargin) {
+                response = await this.papiGetUmAccount(params);
+            }
+            else {
+                response = await this.fapiPrivateV2GetAccount(params);
+            }
+        }
+        else if (this.isInverse(type, subType)) {
+            if (isPortfolioMargin) {
+                response = await this.papiGetCmAccount(params);
+            }
+            else {
+                response = await this.dapiPrivateGetAccount(params);
+            }
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchPositions() supports linear and inverse contracts only');
+        }
+        const positions = this.safeList(response, 'positions', []);
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            const innerSymbol = this.safeString(position, 'symbol');
+            if (innerSymbol === market['id']) {
+                const isolated = this.safeBool(position, 'isolated');
+                const marginMode = isolated ? 'isolated' : 'cross';
+                return {
+                    'info': position,
+                    'marginMode': marginMode,
+                    'leverage': this.safeInteger(position, 'leverage'),
+                };
+            }
+        }
+        return response;
+    }
     async fetchSettlementHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -10527,6 +10628,19 @@ class binance extends binance$1 {
             result.push(this.parseSettlement(settlements[i], market));
         }
         return result;
+    }
+    async fetchLedgerEntry(id, code = undefined, params = {}) {
+        await this.loadMarkets();
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchLedgerEntry', undefined, params);
+        const query = {
+            'recordId': id,
+            'type': type,
+        };
+        if (type !== 'option') {
+            throw new errors.BadRequest(this.id + ' fetchLedgerEntry () can only be used for type option');
+        }
+        return await this.fetchLedger(code, undefined, undefined, this.extend(query, params));
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -11993,6 +12107,19 @@ class binance extends binance$1 {
             'underlyingPrice': undefined,
             'info': greeks,
         };
+    }
+    async fetchTradingLimits(symbols = undefined, params = {}) {
+        // this method should not be called directly, use loadTradingLimits () instead
+        const markets = await this.fetchMarkets();
+        const tradingLimits = {};
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const symbol = market['symbol'];
+            if ((symbols === undefined) || (this.inArray(symbol, symbols))) {
+                tradingLimits[symbol] = market['limits']['amount'];
+            }
+        }
+        return tradingLimits;
     }
     async fetchPositionMode(symbol = undefined, params = {}) {
         /**

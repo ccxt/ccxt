@@ -95,7 +95,8 @@ export default class binance extends Exchange {
                 'fetchL3OrderBook': false,
                 'fetchLastPrices': true,
                 'fetchLedger': true,
-                'fetchLeverage': false,
+                'fetchLedgerEntry': true,
+                'fetchLeverage': true,
                 'fetchLeverageTiers': true,
                 'fetchLiquidations': false,
                 'fetchMarketLeverageTiers': 'emulated',
@@ -291,12 +292,10 @@ export default class binance extends Exchange {
                         'loan/loanable/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/collateral/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/repay/collateral/rate': 600, // Weight(IP): 6000 => cost = 0.1 * 6000 = 600
-                        'loan/flexible/ongoing/orders': 30, // Weight(IP): 300 => cost = 0.1 * 300 = 30
-                        'loan/flexible/borrow/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/flexible/repay/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/flexible/ltv/adjustment/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/flexible/loanable/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/flexible/collateral/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/ongoing/orders': 30, // TODO: Deprecating at 2024-04-24 03:00 (UTC)
+                        'loan/flexible/borrow/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40, check flexible rate loans order history before 2024-02-27 08:00 (UTC)
+                        'loan/flexible/repay/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40, check flexible rate loans order history before 2024-02-27 08:00 (UTC)
+                        'loan/flexible/ltv/adjustment/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40, check flexible rate loans order history before 2024-02-27 08:00 (UTC)
                         'loan/vip/ongoing/orders': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/vip/repay/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/vip/collateral/account': 600, // Weight(IP): 6000 => cost = 0.1 * 6000 = 600
@@ -588,9 +587,8 @@ export default class binance extends Exchange {
                         'loan/repay': 40.002,
                         'loan/adjust/ltv': 40.002,
                         'loan/customize/margin_call': 40.002,
-                        'loan/flexible/borrow': 40.002, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
-                        'loan/flexible/repay': 40.002, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
-                        'loan/flexible/adjust/ltv': 40.002, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
+                        'loan/flexible/repay': 40.002, // TODO: Deprecating at 2024-04-24 03:00 (UTC)
+                        'loan/flexible/adjust/ltv': 40.002, // TODO: Deprecating at 2024-04-24 03:00 (UTC)
                         'loan/vip/repay': 40.002,
                         'convert/getQuote': 1.3334, // Weight(UID): 200 => cost = 0.006667 * 200 = 1.3334
                         'convert/acceptQuote': 3.3335, // Weight(UID): 500 => cost = 0.006667 * 500 = 3.3335
@@ -643,10 +641,19 @@ export default class binance extends Exchange {
                         'sub-account/futures/account': 0.1,
                         'sub-account/futures/accountSummary': 1,
                         'sub-account/futures/positionRisk': 0.1,
+                        'loan/flexible/ongoing/orders': 30, // Weight(IP): 300 => cost = 0.1 * 300 = 30
+                        'loan/flexible/borrow/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/repay/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/ltv/adjustment/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/loanable/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/collateral/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                     },
                     'post': {
                         'eth-staking/eth/stake': 15, // Weight(IP): 150 => cost = 0.1 * 150 = 15
                         'sub-account/subAccountApi/ipRestriction': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'loan/flexible/borrow': 40.002, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
+                        'loan/flexible/repay': 40.002, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
+                        'loan/flexible/adjust/ltv': 40.002, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
                     },
                 },
                 'sapiV3': {
@@ -10220,6 +10227,64 @@ export default class binance extends Exchange {
         return response;
     }
 
+    async fetchLeverage (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-um-account-detail-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets ();
+        await this.loadLeverageBrackets (false, params);
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new NotSupported (this.id + ' fetchLeverage() supports linear and inverse contracts only');
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchLeverage', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverage', market, params, 'linear');
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchLeverage', 'papi', 'portfolioMargin', false);
+        let response = undefined;
+        if (this.isLinear (type, subType)) {
+            if (isPortfolioMargin) {
+                response = await this.papiGetUmAccount (params);
+            } else {
+                response = await this.fapiPrivateV2GetAccount (params);
+            }
+        } else if (this.isInverse (type, subType)) {
+            if (isPortfolioMargin) {
+                response = await this.papiGetCmAccount (params);
+            } else {
+                response = await this.dapiPrivateGetAccount (params);
+            }
+        } else {
+            throw new NotSupported (this.id + ' fetchPositions() supports linear and inverse contracts only');
+        }
+        const positions = this.safeList (response, 'positions', []);
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            const innerSymbol = this.safeString (position, 'symbol');
+            if (innerSymbol === market['id']) {
+                const isolated = this.safeBool (position, 'isolated');
+                const marginMode = isolated ? 'isolated' : 'cross';
+                return {
+                    'info': position,
+                    'marginMode': marginMode,
+                    'leverage': this.safeInteger (position, 'leverage'),
+                };
+            }
+        }
+        return response;
+    }
+
     async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
@@ -10404,6 +10469,20 @@ export default class binance extends Exchange {
             result.push (this.parseSettlement (settlements[i], market));
         }
         return result;
+    }
+
+    async fetchLedgerEntry (id: string, code: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchLedgerEntry', undefined, params);
+        const query = {
+            'recordId': id,
+            'type': type,
+        };
+        if (type !== 'option') {
+            throw new BadRequest (this.id + ' fetchLedgerEntry () can only be used for type option');
+        }
+        return await this.fetchLedger (code, undefined, undefined, this.extend (query, params));
     }
 
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

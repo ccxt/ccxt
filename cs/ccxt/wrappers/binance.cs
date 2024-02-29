@@ -2022,6 +2022,29 @@ public partial class binance
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
+    /// fetch the set leverage for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#get-um-account-detail-user_data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
+    public async Task<Int64> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLeverage(symbol, parameters);
+        return (Int64)res;
+    }
+    /// <summary>
     /// fetches historical settlement records
     /// </summary>
     /// <remarks>
@@ -2087,6 +2110,11 @@ public partial class binance
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchMySettlementHistory(symbol, since, limit, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    public async Task<Dictionary<string, object>> FetchLedgerEntry(string id, string code = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLedgerEntry(id, code, parameters);
         return ((Dictionary<string, object>)res);
     }
     /// <summary>

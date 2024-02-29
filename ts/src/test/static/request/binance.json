@@ -2701,6 +2701,8 @@
         ],
         "fetchTradingLimits": [
             {
+                "disabled": true,
+                "reason": "fetchMarkets performs multiple requests and that's not supported by static-tests",
                 "description": "Fetch Trading Limits with a symbol array argument",
                 "method": "fetchTradingLimits",
                 "url": "https://testnet.binancefuture.com/dapi/v1/exchangeInfo",
@@ -2712,6 +2714,7 @@
                 ]
             },
             {
+                "disabled": true,
                 "description": "Fetch Trading Limits with no input arguments",
                 "method": "fetchTradingLimits",
                 "url": "https://testnet.binancefuture.com/dapi/v1/exchangeInfo",
@@ -2725,6 +2728,16 @@
                 "url": "https://testnet.binance.vision/api/v3/allOrders?timestamp=1708947070267&symbol=XRPUSDT&recvWindow=10000&signature=e3492363f286490a957b9500d81d89ea16bd7d21460150051055c5642b2c2ae1",
                 "input": [
                     "XRP/USDT"
+                ]
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "fetch leverage",
+                "method": "fetchLeverage",
+                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1709136468103&recvWindow=10000&signature=b24aa2014e8f5e24af708947eac62196161221c58f303a67e6755f725a7ab650",
+                "input": [
+                  "BTC/USDT:USDT"
                 ]
             }
         ]

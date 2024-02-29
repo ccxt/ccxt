@@ -93,6 +93,7 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
                 'fetchLedger': True,
+                'fetchLeverage': True,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -5908,6 +5909,22 @@ class bybit(Exchange, ImplicitAPI):
             'stopLossPrice': self.safe_number_2(position, 'stop_loss', 'stopLoss'),
             'takeProfitPrice': self.safe_number_2(position, 'take_profit', 'takeProfit'),
         })
+
+    async def fetch_leverage(self, symbol: str, params={}):
+        """
+        fetch the set leverage for a market
+        :see: https://bybit-exchange.github.io/docs/v5/position
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
+        """
+        await self.load_markets()
+        position = await self.fetch_position(symbol, params)
+        return {
+            'info': position,
+            'leverage': self.safe_integer(position, 'leverage'),
+            'marginMode': self.safe_number(position, 'marginMode'),
+        }
 
     async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
