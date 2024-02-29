@@ -745,7 +745,7 @@ export default class bitget extends bitgetRest {
             market = this.safeMarket (instId, undefined, undefined, 'contract');
         }
         const timestamp = this.safeIntegerN (trade, [ 'uTime', 'cTime', 'ts' ]);
-        const feeCost = this.safeNumber (trade, 'fillFee');
+        const feeCost = this.safeString (trade, 'fillFee');
         let fee = undefined;
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fillFeeCoin');
