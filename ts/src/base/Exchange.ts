@@ -2189,7 +2189,7 @@ export default class Exchange {
     async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
         if (this.has['fetchMarginModes']) {
             const marginModes = await this.fetchMarginModes ([ symbol ], params);
-            return marginModes[0];
+            return this.safeDict (marginModes, symbol) as MarginMode;
         } else {
             throw new NotSupported (this.id + ' fetchMarginMode() is not supported yet');
         }
