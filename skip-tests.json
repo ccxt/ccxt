@@ -250,7 +250,6 @@
         }
     },
     "bitget": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "precision": "broken precision",
