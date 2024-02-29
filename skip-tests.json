@@ -437,9 +437,6 @@
             "fetchOHLCV": "randomly failing with 404 not found"
         }
     },
-    "bitforex": {
-        "skipWs": true
-    },
     "bitstamp": {
         "skipMethods": {
             "fetchOrderBook": "bid/ask might be 0",
