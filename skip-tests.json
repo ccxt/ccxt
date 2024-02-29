@@ -558,28 +558,8 @@
             }
         }
     },
-    "btcex": {
-        "skipMethods": {
-            "loadMarkets": {
-                "active": "is undefined",
-                "limits": "sometimes 'max' value is zero, lower than 'min'"
-            },
-            "fetchCurrencies": {
-                "withdraw": "not provided",
-                "deposit": "not provided"
-            },
-            "fetchTickers": {
-                "bid": "messed bid-ask : https://app.travis-ci.com/github/ccxt/ccxt/builds/263319874#L2090",
-                "ask": "same as above"
-            },
-            "fetchTicker": {
-                "bid": "same as above",
-                "ask": "same as above"
-            }
-        }
-    },
     "btcalpha": {
-	"skip": true,
+	    "skip": true,
         "skipMethods": {
             "fetchOrderBook": "bids[0][0] is not < asks[0][0]",
             "fetchL2OrderBook": "same",
