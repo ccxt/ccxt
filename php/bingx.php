@@ -64,6 +64,7 @@ class bingx extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchPositionMode' => true,
                 'fetchPositions' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -74,6 +75,7 @@ class bingx extends Exchange {
                 'setLeverage' => true,
                 'setMargin' => true,
                 'setMarginMode' => true,
+                'setPositionMode' => true,
                 'transfer' => true,
             ),
             'hostname' => 'bingx.com',
@@ -3442,13 +3444,14 @@ class bingx extends Exchange {
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->side] hedged => ['long' or 'short']. one way => ['both']
          * @return {array} response from the exchange
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
         $side = $this->safe_string_upper($params, 'side');
-        $this->check_required_argument('setLeverage', $side, 'side', array( 'LONG', 'SHORT' ));
+        $this->check_required_argument('setLeverage', $side, 'side', array( 'LONG', 'SHORT', 'BOTH' ));
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -3885,6 +3888,33 @@ class bingx extends Exchange {
             $positions[] = $position;
         }
         return $positions;
+    }
+
+    public function fetch_position_mode(?string $symbol = null, $params = array ()) {
+        /**
+         * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Get%20Position%20Mode
+         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an object detailing whether the market is in hedged or one-way mode
+         */
+        $response = $this->swapV1PrivateGetPositionSideDual ($params);
+        //
+        //     {
+        //         "code" => "0",
+        //         "msg" => "",
+        //         "timeStamp" => "1709002057516",
+        //         "data" => {
+        //             "dualSidePosition" => "false"
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $dualSidePosition = $this->safe_string($data, 'dualSidePosition');
+        return array(
+            'info' => $response,
+            'hedged' => ($dualSidePosition === 'true'),
+        );
     }
 
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {

@@ -6,6 +6,7 @@ import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSid
  */
 export default class timex extends Exchange {
     describe(): any;
+    fetchTime(params?: {}): Promise<number>;
     fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.2.49';
+$version = '4.2.54';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.49';
+    const VERSION = '4.2.54';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -389,7 +389,6 @@ class Exchange {
         'bitfinex',
         'bitfinex2',
         'bitflyer',
-        'bitforex',
         'bitget',
         'bithumb',
         'bitmart',
@@ -937,7 +936,7 @@ class Exchange {
                 $array[$key] = var_export($value, true);
             }
         }
-        return http_build_query($array, '', $this->urlencode_glue);
+        return http_build_query($array, '', $this->urlencode_glue, PHP_QUERY_RFC3986);
     }
 
     public function urlencode_nested($array) {
@@ -3084,6 +3083,12 @@ class Exchange {
         $currenciesSortedByCode = $this->keysort ($this->currencies);
         $this->codes = is_array($currenciesSortedByCode) ? array_keys($currenciesSortedByCode) : array();
         return $this->markets;
+    }
+
+    public function get_describe_for_extended_ws_exchange(mixed $currentRestInstance, mixed $parentRestInstance, array $wsBaseDescribe) {
+        $extendedRestDescribe = $this->deep_extend($parentRestInstance->describe (), $currentRestInstance->describe ());
+        $superWithRestDescribe = $this->deep_extend($extendedRestDescribe, $wsBaseDescribe);
+        return $superWithRestDescribe;
     }
 
     public function safe_balance(array $balance) {

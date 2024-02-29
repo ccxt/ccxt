@@ -3761,6 +3761,7 @@ public partial class bitget : Exchange
             { "not_trigger", "open" },
             { "partial_fill", "open" },
             { "partially_fill", "open" },
+            { "partially_filled", "open" },
             { "triggered", "closed" },
             { "full_fill", "closed" },
             { "filled", "closed" },

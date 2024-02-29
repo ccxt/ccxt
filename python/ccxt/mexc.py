@@ -903,6 +903,7 @@ class mexc(Exchange, ImplicitAPI):
                     '700006': BadRequest,  # IP non white list
                     '700007': AuthenticationError,  # No permission to access the endpoint
                     '700008': BadRequest,  # Illegal characters found in parameter
+                    '700013': AuthenticationError,  # Invalid Content-Type v3
                     '730001': BadRequest,  # Pair not found
                     '730002': BadRequest,  # Your input param is invalid
                     '730000': ExchangeError,  # Request failed, please contact the customer service
@@ -5077,7 +5078,7 @@ class mexc(Exchange, ImplicitAPI):
                     'X-MEXC-APIKEY': self.apiKey,
                     'source': self.safe_string(self.options, 'broker', 'CCXT'),
                 }
-            if method == 'POST':
+            if (method == 'POST') or (method == 'PUT'):
                 headers['Content-Type'] = 'application/json'
         elif section == 'contract' or section == 'spot2':
             url = self.urls['api'][section][access] + '/' + self.implode_params(path, params)

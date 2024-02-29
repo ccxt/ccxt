@@ -1137,11 +1137,12 @@ public partial class htx : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object marketType = null;
-        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", null, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchStatus", null, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object enabledForContracts = this.handleOption("fetchStatus", "enableForContracts", false); // temp fix for: https://status-linear-swap.huobigroup.com/api/v2/summary.json
         object response = null;
-        if (isTrue(!isEqual(marketType, "spot")))
+        if (isTrue(isTrue(!isEqual(marketType, "spot")) && isTrue(enabledForContracts)))
         {
             object subType = this.safeString(parameters, "subType", getValue(this.options, "defaultSubType"));
             if (isTrue(isEqual(marketType, "swap")))
@@ -1166,7 +1167,7 @@ public partial class htx : Exchange
             {
                 response = await this.contractPublicGetHeartbeat();
             }
-        } else
+        } else if (isTrue(isEqual(marketType, "spot")))
         {
             response = await this.statusPublicSpotGetApiV2SummaryJson();
         }
@@ -1337,7 +1338,13 @@ public partial class htx : Exchange
         if (isTrue(isEqual(marketType, "contract")))
         {
             object statusRaw = this.safeString(response, "status");
-            status = ((bool) isTrue((isEqual(statusRaw, "ok")))) ? "ok" : "maintenance"; // 'ok', 'error'
+            if (isTrue(isEqual(statusRaw, null)))
+            {
+                status = null;
+            } else
+            {
+                status = ((bool) isTrue((isEqual(statusRaw, "ok")))) ? "ok" : "maintenance"; // 'ok', 'error'
+            }
             updated = this.safeString(response, "ts");
         } else
         {
