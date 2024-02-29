@@ -56,6 +56,7 @@ public partial class binance : Exchange
                 { "fetchBorrowInterest", true },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", true },
+                { "fetchCanceledAndClosedOrders", "emulated" },
                 { "fetchCanceledOrders", "emulated" },
                 { "fetchClosedOrder", false },
                 { "fetchClosedOrders", "emulated" },
@@ -81,7 +82,8 @@ public partial class binance : Exchange
                 { "fetchL3OrderBook", false },
                 { "fetchLastPrices", true },
                 { "fetchLedger", true },
-                { "fetchLeverage", false },
+                { "fetchLedgerEntry", true },
+                { "fetchLeverage", true },
                 { "fetchLeverageTiers", true },
                 { "fetchLiquidations", false },
                 { "fetchMarketLeverageTiers", "emulated" },
@@ -113,7 +115,7 @@ public partial class binance : Exchange
                 { "fetchTrades", true },
                 { "fetchTradingFee", true },
                 { "fetchTradingFees", true },
-                { "fetchTradingLimits", null },
+                { "fetchTradingLimits", "emulated" },
                 { "fetchTransactionFee", "emulated" },
                 { "fetchTransactionFees", true },
                 { "fetchTransactions", false },
@@ -277,8 +279,6 @@ public partial class binance : Exchange
                         { "loan/flexible/borrow/history", 40 },
                         { "loan/flexible/repay/history", 40 },
                         { "loan/flexible/ltv/adjustment/history", 40 },
-                        { "loan/flexible/loanable/data", 40 },
-                        { "loan/flexible/collateral/data", 40 },
                         { "loan/vip/ongoing/orders", 40 },
                         { "loan/vip/repay/history", 40 },
                         { "loan/vip/collateral/account", 600 },
@@ -547,7 +547,6 @@ public partial class binance : Exchange
                         { "loan/repay", 40.002 },
                         { "loan/adjust/ltv", 40.002 },
                         { "loan/customize/margin_call", 40.002 },
-                        { "loan/flexible/borrow", 40.002 },
                         { "loan/flexible/repay", 40.002 },
                         { "loan/flexible/adjust/ltv", 40.002 },
                         { "loan/vip/repay", 40.002 },
@@ -598,10 +597,19 @@ public partial class binance : Exchange
                         { "sub-account/futures/account", 0.1 },
                         { "sub-account/futures/accountSummary", 1 },
                         { "sub-account/futures/positionRisk", 0.1 },
+                        { "loan/flexible/ongoing/orders", 30 },
+                        { "loan/flexible/borrow/history", 40 },
+                        { "loan/flexible/repay/history", 40 },
+                        { "loan/flexible/ltv/adjustment/history", 40 },
+                        { "loan/flexible/loanable/data", 40 },
+                        { "loan/flexible/collateral/data", 40 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "eth-staking/eth/stake", 15 },
                         { "sub-account/subAccountApi/ipRestriction", 20.001 },
+                        { "loan/flexible/borrow", 40.002 },
+                        { "loan/flexible/repay", 40.002 },
+                        { "loan/flexible/adjust/ltv", 40.002 },
                     } },
                 } },
                 { "sapiV3", new Dictionary<string, object>() {
@@ -7166,6 +7174,42 @@ public partial class binance : Exchange
         return this.filterBySinceLimit(filteredOrders, since, limit);
     }
 
+    public async override Task<object> fetchCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#fetchCanceledAndClosedOrders
+        * @description fetches information on multiple canceled orders made by the user
+        * @see https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
+        * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
+        * @see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+        * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-orders-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-orders-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-orders-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-orders-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-orders-user_data
+        * @param {string} symbol unified market symbol of the market the orders were made in
+        * @param {int} [since] the earliest time in ms to fetch orders for
+        * @param {int} [limit] the maximum number of order structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
+        * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
+        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchCanceledAndClosedOrders() requires a symbol argument")) ;
+        }
+        object orders = await this.fetchOrders(symbol, since, null, parameters);
+        object canceledOrders = this.filterBy(orders, "status", "canceled");
+        object closedOrders = this.filterBy(orders, "status", "closed");
+        object filteredOrders = this.arrayConcat(canceledOrders, closedOrders);
+        object sortedOrders = this.sortBy(filteredOrders, "timestamp");
+        return this.filterBySinceLimit(sortedOrders, since, limit);
+    }
+
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         /**
@@ -10982,6 +11026,82 @@ public partial class binance : Exchange
         return response;
     }
 
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#fetchLeverage
+        * @description fetch the set leverage for a market
+        * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#get-um-account-detail-user_data
+        * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        await this.loadLeverageBrackets(false, parameters);
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "contract")))
+        {
+            throw new NotSupported ((string)add(this.id, " fetchLeverage() supports linear and inverse contracts only")) ;
+        }
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchLeverage", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchLeverage", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object isPortfolioMargin = null;
+        var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "fetchLeverage", "papi", "portfolioMargin", false);
+        isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
+        parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
+        object response = null;
+        if (isTrue(this.isLinear(type, subType)))
+        {
+            if (isTrue(isPortfolioMargin))
+            {
+                response = await this.papiGetUmAccount(parameters);
+            } else
+            {
+                response = await this.fapiPrivateV2GetAccount(parameters);
+            }
+        } else if (isTrue(this.isInverse(type, subType)))
+        {
+            if (isTrue(isPortfolioMargin))
+            {
+                response = await this.papiGetCmAccount(parameters);
+            } else
+            {
+                response = await this.dapiPrivateGetAccount(parameters);
+            }
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " fetchPositions() supports linear and inverse contracts only")) ;
+        }
+        object positions = this.safeList(response, "positions", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        {
+            object position = getValue(positions, i);
+            object innerSymbol = this.safeString(position, "symbol");
+            if (isTrue(isEqual(innerSymbol, getValue(market, "id"))))
+            {
+                object isolated = this.safeBool(position, "isolated");
+                object marginMode = ((bool) isTrue(isolated)) ? "isolated" : "cross";
+                return new Dictionary<string, object>() {
+                    { "info", position },
+                    { "marginMode", marginMode },
+                    { "leverage", this.safeInteger(position, "leverage") },
+                };
+            }
+        }
+        return response;
+    }
+
     public async virtual Task<object> fetchSettlementHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         /**
@@ -11185,6 +11305,25 @@ public partial class binance : Exchange
             ((IList<object>)result).Add(this.parseSettlement(getValue(settlements, i), market));
         }
         return result;
+    }
+
+    public async override Task<object> fetchLedgerEntry(object id, object code = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchLedgerEntry", null, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object query = new Dictionary<string, object>() {
+            { "recordId", id },
+            { "type", type },
+        };
+        if (isTrue(!isEqual(type, "option")))
+        {
+            throw new BadRequest ((string)add(this.id, " fetchLedgerEntry () can only be used for type option")) ;
+        }
+        return await this.fetchLedger(code, null, null, this.extend(query, parameters));
     }
 
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
@@ -12861,6 +13000,24 @@ public partial class binance : Exchange
             { "underlyingPrice", null },
             { "info", greeks },
         };
+    }
+
+    public async override Task<object> fetchTradingLimits(object symbols = null, object parameters = null)
+    {
+        // this method should not be called directly, use loadTradingLimits () instead
+        parameters ??= new Dictionary<string, object>();
+        object markets = await this.fetchMarkets();
+        object tradingLimits = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        {
+            object market = getValue(markets, i);
+            object symbol = getValue(market, "symbol");
+            if (isTrue(isTrue((isEqual(symbols, null))) || isTrue((this.inArray(symbol, symbols)))))
+            {
+                ((IDictionary<string,object>)tradingLimits)[(string)symbol] = getValue(getValue(market, "limits"), "amount");
+            }
+        }
+        return tradingLimits;
     }
 
     public async virtual Task<object> fetchPositionMode(object symbol = null, object parameters = null)
