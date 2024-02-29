@@ -69,6 +69,7 @@ export default class bitmart extends Exchange {
                 'fetchFundingRates': false,
                 'fetchIsolatedBorrowRate': true,
                 'fetchIsolatedBorrowRates': true,
+                'fetchLeverage': true,
                 'fetchLiquidations': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -4139,6 +4140,25 @@ export default class bitmart extends Exchange {
             'previousFundingRate': this.safeNumber (contract, 'rate_value'),
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+        };
+    }
+
+    async fetchLeverage (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name bitmart#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets ();
+        const position = await this.fetchPosition (symbol, params);
+        return {
+            'info': position,
+            'leverage': this.safeInteger (position, 'leverage'),
+            'marginMode': this.safeNumber (position, 'marginMode'),
         };
     }
 
