@@ -214,8 +214,6 @@ public partial class Exchange
 
         var encodedFromRaw = typedEncoder.EncodeTypedDataRaw((typeRaw));
 
-        Console.WriteLine(this.binaryToBase16(encodedFromRaw));
-
         return encodedFromRaw;
     }
 }
