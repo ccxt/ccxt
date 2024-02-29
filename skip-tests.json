@@ -653,9 +653,6 @@
             "fetchBorrowRate": "does not work with unified account"
         }
     },
-    "buda": {
-        "httpsProxy": "http://5.75.153.75:8002"
-    },
     "bigone": {
         "skipMethods": {
             "fetchCurrencies": {
