@@ -1104,6 +1104,9 @@ export default class bitget extends bitgetRest {
         //         "ts": 1701923982497
         //     }
         //
+        if ('tradeId' in message) {
+            this.handleMyTrades (client, message);
+        }
         const arg = this.safeValue (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const instType = this.safeString (arg, 'instType');
