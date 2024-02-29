@@ -453,7 +453,7 @@ export default class bingx extends Exchange {
         if (!this.checkRequiredCredentials (false)) {
             return undefined;
         }
-        const isSandbox = this.safeValue (this.options, 'sandboxMode', false);
+        const isSandbox = this.safeBool (this.options, 'sandboxMode', false);
         if (isSandbox) {
             return undefined;
         }
@@ -701,7 +701,7 @@ export default class bingx extends Exchange {
          * @returns {object[]} an array of objects representing market data
          */
         const requests = [ this.fetchSwapMarkets (params) ];
-        const isSandbox = this.safeValue (this.options, 'sandboxMode', false);
+        const isSandbox = this.safeBool (this.options, 'sandboxMode', false);
         if (!isSandbox) {
             requests.push (this.fetchSpotMarkets (params)); // sandbox is swap only
         }
@@ -4184,7 +4184,7 @@ export default class bingx extends Exchange {
         const type = section[0];
         const version = section[1];
         const access = section[2];
-        const isSandbox = this.safeValue (this.options, 'sandboxMode', false);
+        const isSandbox = this.safeBool (this.options, 'sandboxMode', false);
         if (isSandbox && (type !== 'swap')) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + type + ' endpoints');
         }
