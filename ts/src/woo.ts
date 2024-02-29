@@ -99,6 +99,7 @@ export default class woo extends Exchange {
                 'reduceMargin': false,
                 'setLeverage': true,
                 'setMargin': false,
+                'setPositionMode': true,
                 'transfer': true,
                 'withdraw': true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
             },
@@ -2643,6 +2644,37 @@ export default class woo extends Exchange {
         }
         const sorted = this.sortBy (rates, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
+    }
+
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#setPositionMode
+         * @description set hedged to true or false for a market
+         * @see https://docs.woo.org/#update-position-mode
+         * @param {bool} hedged set to true to use HEDGE_MODE, false for ONE_WAY
+         * @param {string} symbol not used by woo setPositionMode
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} response from the exchange
+         */
+        let hedgeMode = undefined;
+        if (hedged) {
+            hedgeMode = 'HEDGE_MODE';
+        } else {
+            hedgeMode = 'ONE_WAY';
+        }
+        const request = {
+            'position_mode': hedgeMode,
+        };
+        const response = await this.v1PrivatePostClientPositionMode (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {},
+        //         "timestamp": "1709195608551"
+        //     }
+        //
+        return response;
     }
 
     async fetchLeverage (symbol: string, params = {}) {
