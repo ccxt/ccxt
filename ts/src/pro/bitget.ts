@@ -1104,9 +1104,6 @@ export default class bitget extends bitgetRest {
         //         "ts": 1701923982497
         //     }
         //
-        if ('tradeId' in message) {
-            this.handleMyTrades (client, message);
-        }
         const arg = this.safeValue (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const instType = this.safeString (arg, 'instType');
@@ -1129,6 +1126,9 @@ export default class bitget extends bitgetRest {
         const marketSymbols = {};
         for (let i = 0; i < data.length; i++) {
             const order = data[i];
+            if ('tradeId' in order) {
+                this.handleMyTrades (client, order);
+            }
             const marketId = this.safeString (order, 'instId');
             const market = this.safeMarket (marketId, undefined, undefined, marketType);
             const parsed = this.parseWsOrder (order, market);
