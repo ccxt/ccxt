@@ -2186,7 +2186,7 @@ export default class woo extends Exchange {
         const currency = this.currency (code);
         const request = {
             'token': currency['id'],
-            'amount': this.parseNumber (amount),
+            'amount': this.parseToNumeric (amount),
             'from_application_id': fromAccount,
             'to_application_id': toAccount,
         };
@@ -2213,42 +2213,72 @@ export default class woo extends Exchange {
          * @method
          * @name woo#fetchTransfers
          * @description fetch a history of internal transfers made on an account
+         * @see https://docs.woo.org/#get-transfer-history
          * @param {string} code unified currency code of the currency transferred
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of  transfers structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
-        const request = {
-            'type': 'COLLATERAL',
-        };
-        const [ currency, rows ] = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
-        return this.parseTransfers (rows, currency, since, limit, params);
+        const request = {};
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        if (since !== undefined) {
+            request['start_t'] = since;
+        }
+        const until = this.safeInteger2 (params, 'until', 'till'); // unified in milliseconds
+        params = this.omit (params, [ 'until', 'till' ]);
+        if (until !== undefined) {
+            request['end_t'] = until;
+        }
+        const response = await this.v1PrivateGetAssetMainSubTransferHistory (this.extend (request, params));
+        //
+        //     {
+        //         "rows": [
+        //             {
+        //                 "id": 46704,
+        //                 "token": "USDT",
+        //                 "amount": 30000.00000000,
+        //                 "status": "COMPLETED",
+        //                 "from_application_id": "0f1bd3cd-dba2-4563-b8bb-0adb1bfb83a3",
+        //                 "to_application_id": "c01e6940-a735-4022-9b6c-9d3971cdfdfa",
+        //                 "from_user": "LeverageLow",
+        //                 "to_user": "dev",
+        //                 "created_time": "1709022325.427",
+        //                 "updated_time": "1709022325.542"
+        //             }
+        //         ],
+        //         "meta": {
+        //             "total": 50,
+        //             "records_per_page": 25,
+        //             "current_page": 1
+        //         },
+        //         "success": true
+        //     }
+        //
+        const data = this.safeValue (response, 'rows', []);
+        return this.parseTransfers (data, undefined, since, limit, params);
     }
 
     parseTransfer (transfer, currency: Currency = undefined) {
         //
-        //    getAssetHistoryRows
-        //        {
-        //            "created_time": "1579399877.041",  // Unix epoch time in seconds
-        //            "updated_time": "1579399877.041",  // Unix epoch time in seconds
-        //            "id": "202029292829292",
-        //            "external_id": "202029292829292",
-        //            "application_id": null,
-        //            "token": "ETH",
-        //            "target_address": "0x31d64B3230f8baDD91dE1710A65DF536aF8f7cDa",
-        //            "source_address": "0x70fd25717f769c7f9a46b319f0f9103c0d887af0",
-        //            "extra": "",
-        //            "type": "BALANCE",
-        //            "token_side": "DEPOSIT",
-        //            "amount": 1000,
-        //            "tx_id": "0x8a74c517bc104c8ebad0c3c3f64b1f302ed5f8bca598ae4459c63419038106b6",
-        //            "fee_token": null,
-        //            "fee_amount": null,
-        //            "status": "CONFIRMING"
-        //        }
+        //    fetchTransfers
+        //     {
+        //         "id": 46704,
+        //         "token": "USDT",
+        //         "amount": 30000.00000000,
+        //         "status": "COMPLETED",
+        //         "from_application_id": "0f1bd3cd-dba2-4563-b8bb-0adb1bfb83a3",
+        //         "to_application_id": "c01e6940-a735-4022-9b6c-9d3971cdfdfa",
+        //         "from_user": "LeverageLow",
+        //         "to_user": "dev",
+        //         "created_time": "1709022325.427",
+        //         "updated_time": "1709022325.542"
+        //     }
         //
-        //    v1PrivatePostAssetMainSubTransfer
+        //    transfer
         //        {
         //            "success": true,
         //            "id": 200
@@ -2257,19 +2287,6 @@ export default class woo extends Exchange {
         const networkizedCode = this.safeString (transfer, 'token');
         const currencyDefined = this.getCurrencyFromChaincode (networkizedCode, currency);
         const code = currencyDefined['code'];
-        let movementDirection = this.safeStringLower (transfer, 'token_side');
-        if (movementDirection === 'withdraw') {
-            movementDirection = 'withdrawal';
-        }
-        let fromAccount: Str = undefined;
-        let toAccount: Str = undefined;
-        if (movementDirection === 'withdraw') {
-            fromAccount = undefined;
-            toAccount = 'spot';
-        } else if (movementDirection === 'deposit') {
-            fromAccount = 'spot';
-            toAccount = undefined;
-        }
         const timestamp = this.safeTimestamp (transfer, 'created_time');
         const success = this.safeValue (transfer, 'success');
         let status: Str = undefined;
@@ -2282,8 +2299,8 @@ export default class woo extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'currency': code,
             'amount': this.safeNumber (transfer, 'amount'),
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
+            'fromAccount': this.safeString (transfer, 'from_application_id'),
+            'toAccount': this.safeString (transfer, 'to_application_id'),
             'status': this.parseTransferStatus (this.safeString (transfer, 'status', status)),
             'info': transfer,
         };
