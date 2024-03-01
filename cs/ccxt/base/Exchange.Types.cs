@@ -1131,7 +1131,7 @@ public struct Network
 public struct MarginModes
 {
     public Dictionary<string, object> info;
-    public Dictionary<string, MarginMode> tickers;
+    public Dictionary<string, MarginMode> marginModes;
 
     public MarginModes(object marginMode2)
     {
@@ -1162,7 +1162,7 @@ public struct MarginModes
         }
         set
         {
-            marginMode[key] = value;
+            marginModes[key] = value;
         }
     }
 }
