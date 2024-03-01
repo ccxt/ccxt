@@ -1,7 +1,9 @@
 /* eslint-disable indent */
 import Exchange from './abstract/commex.js';
-import type { Int, OHLCV, Trade, Market, Ticker, Str, Tickers, Strings, Balances } from './base/types.js';
-import { ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, InvalidOrder } from './base/errors.js';
+import type { Int, OHLCV, Trade, Market, Ticker, Str, Tickers, Strings, Balances, Order, OrderType, OrderSide, Transaction } from './base/types.js';
+import { TRUNCATE } from './base/functions/number.js';
+import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -64,6 +66,7 @@ export default class commex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchOrders': true,
                 'fetchOrderTrades': 'emulated',
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
@@ -80,7 +83,8 @@ export default class commex extends Exchange {
                 'withdraw': true,
             },
             'options': {
-                'recvWindow': 5 * 1000, // 5 sec
+                'recvWindow': 5 * 1000, // 5 sec,
+                'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             },
             // https://www.commex.com/api-docs/en/?shell#public-api-definitions
             'timeframes': {
@@ -153,6 +157,16 @@ export default class commex extends Exchange {
                     'get': [
                         'allOrders',
                         'account',
+                        'openOrders',
+                        'allOrders',
+                        'order',
+                        'captial/deposit/histsory',
+                    ],
+                    'delete': [
+                        'order',
+                    ],
+                        'post': [
+                        'order',
                     ],
                 },
             },
@@ -704,7 +718,7 @@ export default class commex extends Exchange {
         }
         const request = {};
         let market = undefined;
-        let method = undefined;
+        // let method = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -714,7 +728,7 @@ export default class commex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         [ params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
-        method = 'privateGetMyTrades';
+        // method = 'privateGetMyTrades';
         let endTime = this.safeInteger2 (params, 'until', 'endTime');
         // ????
         if (since !== undefined) {
@@ -740,7 +754,7 @@ export default class commex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.privateGetAllOrders (this.extend (request, params));
         // Commex
         // [  {    "symbol": "LTCBTC",    "orderId": 1,    "clientOrderId": "myOrder1",    "price": "0.1",    "origQty": "1.0",    "executedQty": "0.0",
         //    "cumulativeQuoteQty": "0.0",    "status": "NEW",    "timeInForce": "GTC",    "type": "LIMIT",    "side": "BUY",    "stopPrice": "0.0",
@@ -850,9 +864,6 @@ export default class commex extends Exchange {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://www.commex.com/api-docs/en/#symbol-price-ticker                  // spot
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
-         * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
-         * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
@@ -864,24 +875,634 @@ export default class commex extends Exchange {
         const request = {};
         const requestParams = this.omit (query, [ 'type', 'symbols' ]);
         const response = await this[method] (this.extend (request, requestParams));
-        //
-        // spot
-        //
-        //     {
-        //         "makerCommission": 10,
-        //         "takerCommission": 10,
-        //         "buyerCommission": 0,
-        //         "sellerCommission": 0,
-        //         "canTrade": true,
-        //         "canWithdraw": true,
-        //         "canDeposit": true,
-        //         "updateTime": 1575357359602,
-        //         "accountType": "MARGIN",
-        //         "balances": [
-        //             { asset: "BTC", free: "0.00219821", locked: "0.00000000"  },
-        //         ]
-        //     }
-        //
         return this.parseBalance (response, type, marginMode);
+    }
+
+    isInverse (type, subType = undefined): boolean {
+        if (subType === undefined) {
+            return type === 'delivery';
+        } else {
+            return subType === 'inverse';
+        }
+    }
+
+    isLinear (type, subType = undefined): boolean {
+        if (subType === undefined) {
+            return (type === 'future') || (type === 'swap');
+        } else {
+            return subType === 'linear';
+        }
+    }
+
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name commex#fetchOpenOrders
+         * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of open orders structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        let type = undefined;
+        const request = {};
+        let marginMode = undefined;
+        let query = undefined;
+        [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+            const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
+            const marketType = ('type' in market) ? market['type'] : defaultType;
+            type = this.safeString (query, 'type', marketType);
+        } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
+            const symbols = this.symbols;
+            const numSymbols = symbols.length;
+            const fetchOpenOrdersRateLimit = this.parseToInt (numSymbols / 2);
+            throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
+        } else {
+            const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
+            type = this.safeString (query, 'type', defaultType);
+        }
+        let subType = undefined;
+        [ subType, query ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, query);
+        const requestParams = this.omit (query, 'type');
+        let method = 'privateGetOpenOrders';
+        if (type === 'option') {
+            method = 'eapiPrivateGetOpenOrders';
+            if (since !== undefined) {
+                request['startTime'] = since;
+            }
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+        } else if (this.isLinear (type, subType)) {
+            method = 'fapiPrivateGetOpenOrders';
+        } else if (this.isInverse (type, subType)) {
+            method = 'dapiPrivateGetOpenOrders';
+        } else if (type === 'margin' || marginMode !== undefined) {
+            method = 'sapiGetMarginOpenOrders';
+            if (marginMode === 'isolated') {
+                request['isIsolated'] = true;
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument for isolated markets');
+                }
+            }
+        }
+        const response = await this[method] (this.extend (request, requestParams));
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'ACCEPTED': 'open',
+            'FILLED': 'closed',
+            'CANCELED': 'canceled',
+            'CANCELLED': 'canceled',
+            'PENDING_CANCEL': 'canceling', // currently unused
+            'REJECTED': 'rejected',
+            'EXPIRED': 'expired',
+            'EXPIRED_IN_MATCH': 'expired',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrder (order, market: Market = undefined): Order {
+        const code = this.safeString (order, 'code');
+        if (code !== undefined) {
+            // cancelOrders/createOrders might have a partial success
+            return this.safeOrder ({ 'info': order, 'status': 'rejected' }, market);
+        }
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const marketId = this.safeString (order, 'symbol');
+        const marketType = ('closePosition' in order) ? 'contract' : 'spot';
+        const symbol = this.safeSymbol (marketId, market, undefined, marketType);
+        const filled = this.safeString (order, 'executedQty', '0');
+        const timestamp = this.safeIntegerN (order, [ 'time', 'createTime', 'workingTime', 'transactTime', 'updateTime' ]); // order of the keys matters here
+        let lastTradeTimestamp = undefined;
+        if (('transactTime' in order) || ('updateTime' in order)) {
+            const timestampValue = this.safeInteger2 (order, 'updateTime', 'transactTime');
+            if (status === 'open') {
+                if (Precise.stringGt (filled, '0')) {
+                    lastTradeTimestamp = timestampValue;
+                }
+            } else if (status === 'closed') {
+                lastTradeTimestamp = timestampValue;
+            }
+        }
+        const lastUpdateTimestamp = this.safeInteger2 (order, 'transactTime', 'updateTime');
+        const average = this.safeString (order, 'avgPrice');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString2 (order, 'origQty', 'quantity');
+        // - Spot/Margin market: cummulativeQuoteQty
+        // - Futures market: cumQuote.
+        //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
+        let cost = this.safeString2 (order, 'cummulativeQuoteQty', 'cumQuote');
+        cost = this.safeString (order, 'cumBase', cost);
+        const id = this.safeString (order, 'orderId');
+        let type = this.safeStringLower (order, 'type');
+        const side = this.safeStringLower (order, 'side');
+        const fills = this.safeValue (order, 'fills', []);
+        const clientOrderId = this.safeString (order, 'clientOrderId');
+        let timeInForce = this.safeString (order, 'timeInForce');
+        if (timeInForce === 'GTX') {
+            // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
+            timeInForce = 'PO';
+        }
+        const postOnly = (type === 'limit_maker') || (timeInForce === 'PO');
+        if (type === 'limit_maker') {
+            type = 'limit';
+        }
+        const stopPriceString = this.safeString (order, 'stopPrice');
+        const stopPrice = this.parseNumber (this.omitZero (stopPriceString));
+        return this.safeOrder ({
+            'info': order,
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
+            'reduceOnly': this.safeValue (order, 'reduceOnly'),
+            'side': side,
+            'price': price,
+            'triggerPrice': stopPrice,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': undefined,
+            'status': status,
+            'fee': {
+                'currency': this.safeString (order, 'quoteAsset'),
+                'cost': this.safeNumber (order, 'fee'),
+                'rate': undefined,
+            },
+            'trades': fills,
+        }, market);
+    }
+
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name commex#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @see https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        const orders = await this.fetchOrders (symbol, since, limit, params);
+        return this.filterBy (orders, 'status', 'closed') as Order[];
+    }
+
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name commex#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @see https://www.commex.com/api-docs/en/#all-orders
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+         * @param {int} [params.until] the latest time in ms to fetch orders for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params) as Order[];
+        }
+        const market = this.market (symbol);
+        const defaultType = this.safeString2 (this.options, 'fetchOrders', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrders', params);
+        const request = {
+            'symbol': market['id'],
+        };
+        let method = 'privateGetAllOrders';
+        if (market['option']) {
+            method = 'eapiPrivateGetHistoryOrders';
+        } else if (market['linear']) {
+            method = 'fapiPrivateGetAllOrders';
+        } else if (market['inverse']) {
+            method = 'dapiPrivateGetAllOrders';
+        } else if (type === 'margin' || marginMode !== undefined) {
+            method = 'sapiGetMarginAllOrders';
+            if (marginMode === 'isolated') {
+                request['isIsolated'] = true;
+            }
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['endTime'] = until;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this[method] (this.extend (request, query));
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name commex#cancelOrder
+         * @description cancels an open order
+         * @see https://www.commex.com/api-docs/en/#delete-order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const [ query ] = this.handleMarginModeAndParams ('cancelOrder', params);
+        const request = {
+            'symbol': market['id'],
+            // 'orderId': id,
+            // 'origClientOrderId': id,
+        };
+        const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['origClientOrderId'] = clientOrderId;
+        } else {
+            request['orderId'] = id;
+        }
+        const requestParams = this.omit (query, [ 'type', 'origClientOrderId', 'clientOrderId' ]);
+        const response = await this.privateDeleteOrder (this.extend (request, requestParams));
+        return this.parseOrder (response, market);
+    }
+
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchOrder
+         * @description fetches information on an order made by the user
+         * @see https://www.commex.com/api-docs/en/#query-order
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const [ query ] = this.handleMarginModeAndParams ('fetchOrder', params);
+        const request = {
+            'symbol': market['id'],
+        };
+        const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['origClientOrderId'] = clientOrderId;
+        } else {
+            request['orderId'] = id;
+        }
+        const requestParams = this.omit (query, [ 'type', 'clientOrderId', 'origClientOrderId' ]);
+        const response = await this.privateGetOrder (this.extend (request, requestParams));
+        return this.parseOrder (response, market);
+    }
+
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @ignore
+         * @name binance#createOrderRequest
+         * @description helper function to build request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the exchange API endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot margin trading
+         * @returns {object} request to be sent to the exchange
+         */
+        const market = this.market (symbol);
+        const marketType = this.safeString (params, 'type', market['type']);
+        const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
+        const initialUppercaseType = type.toUpperCase ();
+        const isMarketOrder = initialUppercaseType === 'MARKET';
+        const isLimitOrder = initialUppercaseType === 'LIMIT';
+        const postOnly = this.isPostOnly (isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', params);
+        const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);  // fallback to stopLoss
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const trailingDelta = this.safeValue (params, 'trailingDelta');
+        const isStopLoss = stopLossPrice !== undefined || trailingDelta !== undefined;
+        const isTakeProfit = takeProfitPrice !== undefined;
+        params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice' ]);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
+        const request = {
+            'symbol': market['id'],
+            'side': side.toUpperCase (),
+        };
+        if (market['spot'] || marketType === 'margin') {
+            // only supported for spot/margin api (all margin markets are spot markets)
+            if (postOnly) {
+                type = 'LIMIT_MAKER';
+            }
+        }
+        if (marketType === 'margin' || marginMode !== undefined) {
+            const reduceOnly = this.safeValue (params, 'reduceOnly');
+            if (reduceOnly) {
+                request['sideEffectType'] = 'AUTO_REPAY';
+                params = this.omit (params, 'reduceOnly');
+            }
+        }
+        let uppercaseType = type.toUpperCase ();
+        let stopPrice = undefined;
+        if (isStopLoss) {
+            stopPrice = stopLossPrice;
+            if (isMarketOrder) {
+                // spot STOP_LOSS market orders are not a valid order type
+                uppercaseType = market['contract'] ? 'STOP_MARKET' : 'STOP_LOSS';
+            } else if (isLimitOrder) {
+                uppercaseType = market['contract'] ? 'STOP' : 'STOP_LOSS_LIMIT';
+            }
+        } else if (isTakeProfit) {
+            stopPrice = takeProfitPrice;
+            if (isMarketOrder) {
+                // spot TAKE_PROFIT market orders are not a valid order type
+                uppercaseType = market['contract'] ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT';
+            } else if (isLimitOrder) {
+                uppercaseType = market['contract'] ? 'TAKE_PROFIT' : 'TAKE_PROFIT_LIMIT';
+            }
+        }
+        if (marginMode === 'isolated') {
+            request['isIsolated'] = true;
+        }
+        if (clientOrderId === undefined) {
+            const broker = this.safeValue (this.options, 'broker', {});
+            const defaultId = (market['contract']) ? 'x-xcKtGhcu' : 'x-R4BD3S82';
+            const brokerId = this.safeString (broker, marketType, defaultId);
+            request['newClientOrderId'] = brokerId + this.uuid22 ();
+        } else {
+            request['newClientOrderId'] = clientOrderId;
+        }
+        if ((marketType === 'spot') || (marketType === 'margin')) {
+            request['newOrderRespType'] = this.safeValue (this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        } else {
+            // swap, futures and options
+            request['newOrderRespType'] = 'RESULT';  // "ACK", "RESULT", default "ACK"
+        }
+        // if (market['option']) {
+        //     if (type === 'market') {
+        //         throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
+        //     }
+        // } else {
+        //     const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
+        //     if (!this.inArray (uppercaseType, validOrderTypes)) {
+        //         if (initialUppercaseType !== uppercaseType) {
+        //             throw new InvalidOrder (this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
+        //         } else {
+        //             throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
+        //         }
+        //     }
+        // }
+        request['type'] = uppercaseType;
+        // additional required fields depending on the order type
+        let timeInForceIsRequired = false;
+        let priceIsRequired = false;
+        let stopPriceIsRequired = false;
+        let quantityIsRequired = false;
+        //
+        // spot/margin
+        //
+        //     LIMIT                timeInForce, quantity, price
+        //     MARKET               quantity or quoteOrderQty
+        //     STOP_LOSS            quantity, stopPrice
+        //     STOP_LOSS_LIMIT      timeInForce, quantity, price, stopPrice
+        //     TAKE_PROFIT          quantity, stopPrice
+        //     TAKE_PROFIT_LIMIT    timeInForce, quantity, price, stopPrice
+        //     LIMIT_MAKER          quantity, price
+        //
+        // futures
+        //
+        //     LIMIT                timeInForce, quantity, price
+        //     MARKET               quantity
+        //     STOP/TAKE_PROFIT     quantity, price, stopPrice
+        //     STOP_MARKET          stopPrice
+        //     TAKE_PROFIT_MARKET   stopPrice
+        //     TRAILING_STOP_MARKET callbackRate
+        //
+        if (uppercaseType === 'MARKET') {
+            if (market['spot']) {
+                const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', true);
+                if (quoteOrderQty) {
+                    const quoteOrderQtyNew = this.safeValue2 (query, 'quoteOrderQty', 'cost');
+                    const precision = market['precision']['price'];
+                    if (quoteOrderQtyNew !== undefined) {
+                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
+                    } else if (price !== undefined) {
+                        const amountString = this.numberToString (amount);
+                        const priceString = this.numberToString (price);
+                        const quoteOrderQuantity = Precise.stringMul (amountString, priceString);
+                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQuantity, TRUNCATE, precision, this.precisionMode);
+                    } else {
+                        quantityIsRequired = true;
+                    }
+                } else {
+                    quantityIsRequired = true;
+                }
+            } else {
+                quantityIsRequired = true;
+            }
+        } else if (uppercaseType === 'LIMIT') {
+            priceIsRequired = true;
+            timeInForceIsRequired = true;
+            quantityIsRequired = true;
+        } else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
+            stopPriceIsRequired = true;
+            quantityIsRequired = true;
+            if (market['linear'] || market['inverse']) {
+                priceIsRequired = true;
+            }
+        } else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+            quantityIsRequired = true;
+            stopPriceIsRequired = true;
+            priceIsRequired = true;
+            timeInForceIsRequired = true;
+        } else if (uppercaseType === 'LIMIT_MAKER') {
+            priceIsRequired = true;
+            quantityIsRequired = true;
+        } else if (uppercaseType === 'STOP') {
+            quantityIsRequired = true;
+            stopPriceIsRequired = true;
+            priceIsRequired = true;
+        } else if ((uppercaseType === 'STOP_MARKET') || (uppercaseType === 'TAKE_PROFIT_MARKET')) {
+            const closePosition = this.safeValue (query, 'closePosition');
+            if (closePosition === undefined) {
+                quantityIsRequired = true;
+            }
+            stopPriceIsRequired = true;
+        } else if (uppercaseType === 'TRAILING_STOP_MARKET') {
+            quantityIsRequired = true;
+            const callbackRate = this.safeNumber (query, 'callbackRate');
+            if (callbackRate === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder() requires a callbackRate extra param for a ' + type + ' order');
+            }
+        }
+        if (quantityIsRequired) {
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+        }
+        if (priceIsRequired) {
+            if (price === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
+            }
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (timeInForceIsRequired) {
+            request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+        }
+        if (market['contract'] && postOnly) {
+            request['timeInForce'] = 'GTX';
+        }
+        if (stopPriceIsRequired) {
+            if (market['contract']) {
+                if (stopPrice === undefined) {
+                    throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
+                }
+            } else {
+                // check for delta price as well
+                if (trailingDelta === undefined && stopPrice === undefined) {
+                    throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice or trailingDelta param for a ' + type + ' order');
+                }
+            }
+            if (stopPrice !== undefined) {
+                request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            }
+        }
+        // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
+        if (this.safeString (params, 'timeInForce') === 'PO') {
+            params = this.omit (params, [ 'timeInForce' ]);
+        }
+        const requestParams = this.omit (params, [ 'quoteOrderQty', 'cost', 'stopPrice', 'test', 'type', 'newClientOrderId', 'clientOrderId', 'postOnly' ]);
+        return this.extend (request, requestParams);
+    }
+
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#createOrder
+         * @description create a trade order
+         * @see https://binance-docs.github.io/apidocs/spot/en/#new-order-trade
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+         * @param {boolean} [params.sor] *spot only* whether to use SOR (Smart Order Routing) or not, default is false
+         * @param {boolean} [params.test] *spot only* whether to use the test endpoint or not, default is false
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketType = this.safeString (params, 'type', market['type']);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
+        const sor = this.safeValue2 (params, 'sor', 'SOR', false);
+        params = this.omit (params, 'sor', 'SOR');
+        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
+        let method = 'privatePostOrder';
+        if (sor) {
+            method = 'privatePostSorOrder';
+        } else if (market['linear']) {
+            method = 'fapiPrivatePostOrder';
+        } else if (market['inverse']) {
+            method = 'dapiPrivatePostOrder';
+        } else if (marketType === 'margin' || marginMode !== undefined) {
+            method = 'sapiPostMarginOrder';
+        }
+        if (market['option']) {
+            method = 'eapiPrivatePostOrder';
+        }
+        // support for testing orders
+        if (market['spot'] || marketType === 'margin') {
+            const test = this.safeValue (query, 'test', false);
+            if (test) {
+                method += 'Test';
+            }
+        }
+        const response = await this[method] (request);
+        return this.parseOrder (response, market);
+    }
+
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        /**
+         * @method
+         * @name binance#fetchDeposits
+         * @see https://www.commex.com/api-docs/en/#user-deposit-history
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch deposits for
+         * @param {int} [limit] the maximum number of deposits structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [params.fiat] if true, only fiat deposits will be returned
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchDeposits', code, since, limit, params);
+        }
+        let currency = undefined;
+        let response = undefined;
+        const request = {};
+        params = this.omit (params, 'fiatOnly');
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+            let endTime = this.sum (since, 7776000000);
+            if (until !== undefined) {
+                endTime = Math.min (endTime, until);
+            }
+            request['endTime'] = endTime;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        response = await this.privateGetCaptialDepositHistsory (this.extend (request, params));
+        for (let i = 0; i < response.length; i++) {
+            response[i]['type'] = 'deposit';
+        }
+        return this.parseTransactions (response, currency, since, limit);
     }
 }
