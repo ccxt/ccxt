@@ -248,7 +248,7 @@ export default class Exchange {
     triggerOrders: ArrayCache = undefined
     trades: Dictionary<ArrayCache>
     transactions = {}
-    ohlcvs: any
+    ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>
     myTrades: ArrayCache;
     positions: any;
     urls: {
