@@ -5,35 +5,18 @@ namespace examples;
 
 partial class Examples
 {
-// AUTO-TRANSPILE //    
-    async public Task createOrdersExample()
+    // AUTO-TRANSPILE //    
+    async static public Task getActiveMarkets()
     {
-        var exchange = new ccxt.binance(new Dictionary<string, object>()
+        var exchange = new ccxt.bitget(new Dictionary<string, object>()
         {
-            { "apiKey", "MY_API_KEY" },
-            { "secret", "MY_SECRET" },
+            // { "apiKey", "MY_API_KEY" },
+            // { "secret", "MY_SECRET" },
         });
-        exchange.setSandboxMode(true);
-        await exchange.LoadMarkets();
-        exchange.verbose = true; // uncomment for debugging purposes if necessary
-        var orders = await exchange.createOrders(new List<Dictionary<string, object>>()
-        {
-            new Dictionary<string, object>()
-            {
-                { "symbol", "LTC/USDT:USDT" },
-                { "type", "limit" },
-                { "side", "buy" },
-                { "amount", 10 },
-                { "price", 55 },
-            },
-            new Dictionary<string, object>()
-            {
-                { "symbol", "ETH/USDT:USDT" },
-                { "type", "market" },
-                { "side", "buy" },
-                { "amount", 0.5 },
-            }
-        });
-        Console.WriteLine(orders);
+        var markets = await exchange.LoadMarkets();
+        var marketValues = markets.Values.ToList();
+        var activeMarkets = marketValues.FindAll(m => m.active != null && m.active.Value);
+        var activeSymbols = activeMarkets.Select(m => m.symbol);
+        Console.WriteLine(string.Join(",", activeSymbols));
     }
 }
