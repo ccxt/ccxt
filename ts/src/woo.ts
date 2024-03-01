@@ -86,10 +86,10 @@ export default class woo extends Exchange {
                 'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
-                'fetchStatus': false,
+                'fetchStatus': true,
                 'fetchTicker': false,
                 'fetchTickers': false,
-                'fetchTime': false,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
@@ -325,6 +325,67 @@ export default class woo extends Exchange {
             },
             'precisionMode': TICK_SIZE,
         });
+    }
+
+    async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name woo#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @see https://docs.woo.org/#get-system-maintenance-status-public
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+         */
+        const response = await this.v1PublicGetSystemInfo (params);
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "status": "0",
+        //             "msg": "System is functioning properly."
+        //         },
+        //         "timestamp": "1709274106602"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        let status = this.safeString (data, 'status');
+        if (status === undefined) {
+            status = 'error';
+        } else if (status === '0') {
+            status = 'ok';
+        } else {
+            status = 'maintenance';
+        }
+        return {
+            'status': status,
+            'updated': undefined,
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
+    }
+
+    async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name woo#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://docs.woo.org/#get-system-maintenance-status-public
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        const response = await this.v1PublicGetSystemInfo (params);
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "status": "0",
+        //             "msg": "System is functioning properly."
+        //         },
+        //         "timestamp": "1709274106602"
+        //     }
+        //
+        return this.safeInteger (response, 'timestamp');
     }
 
     async fetchMarkets (params = {}) {
