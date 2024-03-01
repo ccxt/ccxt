@@ -60,7 +60,7 @@ import type {
     MarginMode,
     MarginModes,
     Market,
-      rketInterface,
+    MarketInterface,
     MarketType,
     MinMax,
     Num,
