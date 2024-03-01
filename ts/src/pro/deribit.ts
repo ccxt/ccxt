@@ -270,6 +270,27 @@ export default class deribit extends deribitRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
+    async subscribeMultiple (channelName: string, channelDescriptor: string, symbols: string[], params = {}) {
+        await this.loadMarkets ();
+        const url = this.urls['api']['ws'];
+        const rawSubscriptions = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            const message = channelName + market['id'] + channelDescriptor;
+            rawSubscriptions.push (message);
+            messageHashes.push (channelName + ':' + market['symbol'] + ':' + channelDescriptor);
+        }
+        const request = {
+            'jsonrpc': '2.0',
+            'method': 'public/subscribe',
+            'params': {
+                'channels': rawSubscriptions,
+            },
+            'id': this.requestId (),
+        };
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), rawSubscriptions);
+    }
 
     handleTrades (client: Client, message) {
         //
