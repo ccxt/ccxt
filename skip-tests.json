@@ -333,10 +333,14 @@
         }
     },
     "bitmex": {
-        "skipWs": "timeouts",
         "skipMethods": {
             "loadMarkets": "some market types are out of expected market-types",
-            "fetchOHLCV": "open might be greater than high",
+            "fetchOHLCV": {
+                "1": "open value is greater than high: https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862"
+            },
+            "watchOHLCV": {
+                "1": "same as above"
+            },
             "fetchTickers": "negative values",
             "fetchPositions": {
                 "stopLossPrice": "undefined",
@@ -375,7 +379,8 @@
                 "currency": "undefined",
                 "currencyIdAndCode": "messes codes"
             },
-            "fetchTransactions": "skip"
+            "fetchTransactions": "skip",
+            "watchTrades": "infrequent updates"
         }
     },
     "bitopro": {
