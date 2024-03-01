@@ -22,6 +22,7 @@ export default class deribit extends deribitRest {
                 'watchMyTrades': true,
                 'watchOrders': true,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
             },
             'urls': {
@@ -427,7 +428,7 @@ export default class deribit extends deribitRest {
         /**
          * @method
          * @name deribit#watchOrderBook
-         * @see https://docs.deribit.com/#public-get_book_summary_by_instrument
+         * @see https://docs.deribit.com/#book-instrument_name-group-depth-interval
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -435,26 +436,49 @@ export default class deribit extends deribitRest {
          * @param {string} [params.interval] Frequency of notifications. Events will be aggregated over this interval. Possible values: 100ms, raw
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    }
+
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name deribit#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.deribit.com/#book-instrument_name-group-depth-interval
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const url = this.urls['api']['ws'];
-        const interval = this.safeString (params, 'interval', '100ms');
-        params = this.omit (params, 'interval');
-        if (interval === 'raw') {
-            await this.authenticate ();
+        symbols = this.marketSymbols (symbols);
+        let channel = 'books';
+        let incrementalFeed = true;
+        if ((limit === 1) || (limit === 5) || (limit === 15)) {
+            channel += limit.toString ();
+            incrementalFeed = false;
         }
-        const channel = 'book.' + market['id'] + '.' + interval;
-        const subscribe = {
-            'jsonrpc': '2.0',
-            'method': 'public/subscribe',
-            'params': {
-                'channels': [ channel ],
-            },
-            'id': this.requestId (),
-        };
-        const request = this.deepExtend (subscribe, params);
-        const orderbook = await this.watch (url, channel, request, channel);
-        return orderbook.limit ();
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            let instType = undefined;
+            [ instType, params ] = this.getInstType (market, params);
+            const args = {
+                'instType': instType,
+                'channel': channel,
+                'instId': market['id'],
+            };
+            topics.push (args);
+            messageHashes.push ('orderbook:' + symbol);
+        }
+        const orderbook = await this.watchPublicMultiple (messageHashes, topics, params);
+        if (incrementalFeed) {
+            return orderbook.limit ();
+        } else {
+            return orderbook;
+        }
     }
 
     handleOrderBook (client: Client, message) {
