@@ -261,7 +261,7 @@ export default class deribit extends deribitRest {
         if (interval === 'raw') {
             await this.authenticate ();
         }
-        const trades = await this.subscribeMultiple ('trades.', '.' + interval, symbols, params);
+        const trades = await this.subscribeMultiple ('trades', interval, symbols, params);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -277,7 +277,7 @@ export default class deribit extends deribitRest {
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
-            const message = channelName + market['id'] + channelDescriptor;
+            const message = channelName + '.' + market['id'] + '.' + channelDescriptor;
             rawSubscriptions.push (message);
             messageHashes.push (channelName + ':' + market['symbol'] + ':' + channelDescriptor);
         }
@@ -314,10 +314,11 @@ export default class deribit extends deribitRest {
         //         }
         //     }
         //
-        const params = this.safeValue (message, 'params', {});
+        const params = this.safeDict (message, 'params', {});
         const channel = this.safeString (params, 'channel', '');
         const parts = channel.split ('.');
         const marketId = this.safeString (parts, 1);
+        const interval = this.safeString (parts, 2);
         const symbol = this.safeSymbol (marketId);
         const market = this.safeMarket (marketId);
         const trades = this.safeValue (params, 'data', []);
@@ -333,7 +334,7 @@ export default class deribit extends deribitRest {
             stored.append (parsed);
         }
         this.trades[symbol] = stored;
-        client.resolve (this.trades[symbol], channel);
+        client.resolve (this.trades[symbol], 'trades:' + symbol + ':' + interval);
     }
 
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
