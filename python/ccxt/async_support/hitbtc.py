@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.hitbtc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, MarginMode, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, MarginMode, MarginModes, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -80,7 +80,8 @@ class hitbtc(Exchange, ImplicitAPI):
                 'fetchLeverage': True,
                 'fetchLeverageTiers': None,
                 'fetchLiquidations': False,
-                'fetchMarginMode': True,
+                'fetchMarginMode': 'emulated',
+                'fetchMarginModes': True,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -155,6 +156,8 @@ class hitbtc(Exchange, ImplicitAPI):
                         'public/orderbook/{symbol}': 10,
                         'public/candles': 10,
                         'public/candles/{symbol}': 10,
+                        'public/converted/candles': 10,
+                        'public/converted/candles/{symbol}': 10,
                         'public/futures/info': 10,
                         'public/futures/info/{symbol}': 10,
                         'public/futures/history/funding': 10,
@@ -2075,7 +2078,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 raise NotSupported(self.id + ' cancelOrder() not support self market type')
         return self.parse_order(response, market)
 
-    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         await self.load_markets()
         market = None
         request = {
@@ -2329,7 +2332,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'stopLossPrice': None,
         }, market)
 
-    async def fetch_margin_mode(self, symbol: Str = None, params={}) -> MarginMode:
+    async def fetch_margin_modes(self, symbols: List[Str] = None, params={}) -> MarginModes:
         """
         fetches margin mode of the user
         :see: https://api.hitbtc.com/#get-margin-position-parameters
@@ -2340,67 +2343,64 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = None
-        if symbol is not None:
-            market = self.market(symbol)
+        if symbols is not None:
+            symbols = self.market_symbols(symbols)
+            market = self.market(symbols[0])
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchMarginMode', market, params)
         response = None
         if marketType == 'margin':
             response = await self.privateGetMarginConfig(params)
+            #
+            #     {
+            #         "config": [{
+            #             "symbol": "BTCUSD",
+            #             "margin_call_leverage_mul": "1.50",
+            #             "liquidation_leverage_mul": "2.00",
+            #             "max_initial_leverage": "10.00",
+            #             "margin_mode": "Isolated",
+            #             "force_close_fee": "0.05",
+            #             "enabled": True,
+            #             "active": True,
+            #             "limit_base": "50000.00",
+            #             "limit_power": "2.2",
+            #             "unlimited_threshold": "10.0"
+            #         }]
+            #     }
+            #
         elif marketType == 'swap':
             response = await self.privateGetFuturesConfig(params)
+            #
+            #     {
+            #         "config": [{
+            #             "symbol": "BTCUSD_PERP",
+            #             "margin_call_leverage_mul": "1.20",
+            #             "liquidation_leverage_mul": "2.00",
+            #             "max_initial_leverage": "100.00",
+            #             "margin_mode": "Isolated",
+            #             "force_close_fee": "0.001",
+            #             "enabled": True,
+            #             "active": False,
+            #             "limit_base": "5000000.000000000000",
+            #             "limit_power": "1.25",
+            #             "unlimited_threshold": "2.00"
+            #         }]
+            #     }
+            #
         else:
-            raise BadSymbol(self.id + ' fetchMarginMode() supports swap contracts and margin only')
-        #
-        # margin
-        #     {
-        #         "config": [{
-        #             "symbol": "BTCUSD",
-        #             "margin_call_leverage_mul": "1.50",
-        #             "liquidation_leverage_mul": "2.00",
-        #             "max_initial_leverage": "10.00",
-        #             "margin_mode": "Isolated",
-        #             "force_close_fee": "0.05",
-        #             "enabled": True,
-        #             "active": True,
-        #             "limit_base": "50000.00",
-        #             "limit_power": "2.2",
-        #             "unlimited_threshold": "10.0"
-        #         }]
-        #     }
-        #
-        # swap
-        #     {
-        #         "config": [{
-        #             "symbol": "BTCUSD_PERP",
-        #             "margin_call_leverage_mul": "1.20",
-        #             "liquidation_leverage_mul": "2.00",
-        #             "max_initial_leverage": "100.00",
-        #             "margin_mode": "Isolated",
-        #             "force_close_fee": "0.001",
-        #             "enabled": True,
-        #             "active": False,
-        #             "limit_base": "5000000.000000000000",
-        #             "limit_power": "1.25",
-        #             "unlimited_threshold": "2.00"
-        #         }]
-        #     }
-        #
-        config = self.safe_value(response, 'config', [])
-        marginModes = []
-        for i in range(0, len(config)):
-            data = self.safe_value(config, i)
-            marketId = self.safe_string(data, 'symbol')
-            marketInner = self.safe_market(marketId)
-            marginModes.append({
-                'info': data,
-                'symbol': self.safe_string(marketInner, 'symbol'),
-                'marginMode': self.safe_string_lower(data, 'margin_mode'),
-            })
-        filteredMargin = self.filter_by_symbol(marginModes, symbol)
-        return self.safe_value(filteredMargin, 0)
+            raise BadSymbol(self.id + ' fetchMarginModes() supports swap contracts and margin only')
+        config = self.safe_list(response, 'config', [])
+        return self.parse_margin_modes(config, symbols, 'symbol')
 
-    async def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    def parse_margin_mode(self, marginMode, market=None) -> MarginMode:
+        marketId = self.safe_string(marginMode, 'symbol')
+        return {
+            'info': marginMode,
+            'symbol': self.safe_symbol(marketId, market),
+            'marginMode': self.safe_string_lower(marginMode, 'margin_mode'),
+        }
+
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://api.hitbtc.com/#transfer-between-wallet-and-exchange

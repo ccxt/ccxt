@@ -37,7 +37,7 @@ export default class bitvavo extends Exchange {
     createOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): any;
     createOrder(symbol: Str, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     editOrderRequest(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): {};
-    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
     cancelOrderRequest(id: Str, symbol?: Str, params?: {}): any;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;

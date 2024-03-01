@@ -64,7 +64,7 @@ export default class bitmart extends Exchange {
     parseOrder(order: any, market?: Market): Order;
     parseOrderSide(side: any): string;
     parseOrderStatusByType(type: any, status: any): string;
-    createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
+    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     createSwapOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): any;
     createSpotOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): any;
@@ -125,7 +125,7 @@ export default class bitmart extends Exchange {
         info: any;
     };
     fetchIsolatedBorrowRates(params?: {}): Promise<any[]>;
-    transfer(code: string, amount: number, fromAccount: any, toAccount: any, params?: {}): Promise<TransferEntry>;
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransferStatus(status: any): string;
     parseTransferToAccount(type: any): string;
     parseTransferFromAccount(type: any): string;

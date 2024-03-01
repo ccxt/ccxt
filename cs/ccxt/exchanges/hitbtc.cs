@@ -55,7 +55,8 @@ public partial class hitbtc : Exchange
                 { "fetchLeverage", true },
                 { "fetchLeverageTiers", null },
                 { "fetchLiquidations", false },
-                { "fetchMarginMode", true },
+                { "fetchMarginMode", "emulated" },
+                { "fetchMarginModes", true },
                 { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
@@ -124,6 +125,8 @@ public partial class hitbtc : Exchange
                         { "public/orderbook/{symbol}", 10 },
                         { "public/candles", 10 },
                         { "public/candles/{symbol}", 10 },
+                        { "public/converted/candles", 10 },
+                        { "public/converted/candles/{symbol}", 10 },
                         { "public/futures/info", 10 },
                         { "public/futures/info/{symbol}", 10 },
                         { "public/futures/history/funding", 10 },
@@ -490,7 +493,7 @@ public partial class hitbtc : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
-            if (isTrue(((string)id).EndsWith("_BQX")))
+            if (isTrue(((string)id).EndsWith(((string)"_BQX"))))
             {
                 continue;
             }
@@ -2535,7 +2538,7 @@ public partial class hitbtc : Exchange
         }, market);
     }
 
-    public async override Task<object> fetchMarginMode(object symbol = null, object parameters = null)
+    public async override Task<object> fetchMarginModes(object symbols = null, object parameters = null)
     {
         /**
         * @method
@@ -2550,9 +2553,10 @@ public partial class hitbtc : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
-        if (isTrue(!isEqual(symbol, null)))
+        if (isTrue(!isEqual(symbols, null)))
         {
-            market = this.market(symbol);
+            symbols = this.marketSymbols(symbols);
+            market = this.market(getValue(symbols, 0));
         }
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMarginMode", market, parameters);
@@ -2567,58 +2571,20 @@ public partial class hitbtc : Exchange
             response = await this.privateGetFuturesConfig(parameters);
         } else
         {
-            throw new BadSymbol ((string)add(this.id, " fetchMarginMode() supports swap contracts and margin only")) ;
+            throw new BadSymbol ((string)add(this.id, " fetchMarginModes () supports swap contracts and margin only")) ;
         }
-        //
-        // margin
-        //     {
-        //         "config": [{
-        //             "symbol": "BTCUSD",
-        //             "margin_call_leverage_mul": "1.50",
-        //             "liquidation_leverage_mul": "2.00",
-        //             "max_initial_leverage": "10.00",
-        //             "margin_mode": "Isolated",
-        //             "force_close_fee": "0.05",
-        //             "enabled": true,
-        //             "active": true,
-        //             "limit_base": "50000.00",
-        //             "limit_power": "2.2",
-        //             "unlimited_threshold": "10.0"
-        //         }]
-        //     }
-        //
-        // swap
-        //     {
-        //         "config": [{
-        //             "symbol": "BTCUSD_PERP",
-        //             "margin_call_leverage_mul": "1.20",
-        //             "liquidation_leverage_mul": "2.00",
-        //             "max_initial_leverage": "100.00",
-        //             "margin_mode": "Isolated",
-        //             "force_close_fee": "0.001",
-        //             "enabled": true,
-        //             "active": false,
-        //             "limit_base": "5000000.000000000000",
-        //             "limit_power": "1.25",
-        //             "unlimited_threshold": "2.00"
-        //         }]
-        //     }
-        //
-        object config = this.safeValue(response, "config", new List<object>() {});
-        object marginModes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(config)); postFixIncrement(ref i))
-        {
-            object data = this.safeValue(config, i);
-            object marketId = this.safeString(data, "symbol");
-            object marketInner = this.safeMarket(marketId);
-            ((IList<object>)marginModes).Add(new Dictionary<string, object>() {
-                { "info", data },
-                { "symbol", this.safeString(marketInner, "symbol") },
-                { "marginMode", this.safeStringLower(data, "margin_mode") },
-            });
-        }
-        object filteredMargin = this.filterBySymbol(marginModes, symbol);
-        return this.safeValue(filteredMargin, 0);
+        object config = this.safeList(response, "config", new List<object>() {});
+        return this.parseMarginModes(config, symbols, "symbol");
+    }
+
+    public override object parseMarginMode(object marginMode, object market = null)
+    {
+        object marketId = this.safeString(marginMode, "symbol");
+        return new Dictionary<string, object>() {
+            { "info", marginMode },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "marginMode", this.safeStringLower(marginMode, "margin_mode") },
+        };
     }
 
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
@@ -3415,7 +3381,7 @@ public partial class hitbtc : Exchange
         };
     }
 
-    public async virtual Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
@@ -3438,7 +3404,7 @@ public partial class hitbtc : Exchange
         return await this.modifyMarginHelper(symbol, amount, "reduce", parameters);
     }
 
-    public async virtual Task<object> addMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
@@ -3457,7 +3423,7 @@ public partial class hitbtc : Exchange
         return await this.modifyMarginHelper(symbol, amount, "add", parameters);
     }
 
-    public async virtual Task<object> fetchLeverage(object symbol, object parameters = null)
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
         /**
         * @method

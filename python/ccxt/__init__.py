@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.2.36'
+__version__ = '4.2.57'
 
 # ----------------------------------------------------------------------------
 
@@ -97,7 +97,6 @@ from ccxt.bitcoincom import bitcoincom                                # noqa: F4
 from ccxt.bitfinex import bitfinex                                    # noqa: F401
 from ccxt.bitfinex2 import bitfinex2                                  # noqa: F401
 from ccxt.bitflyer import bitflyer                                    # noqa: F401
-from ccxt.bitforex import bitforex                                    # noqa: F401
 from ccxt.bitget import bitget                                        # noqa: F401
 from ccxt.bithumb import bithumb                                      # noqa: F401
 from ccxt.bitmart import bitmart                                      # noqa: F401
@@ -111,6 +110,7 @@ from ccxt.bitteam import bitteam                                      # noqa: F4
 from ccxt.bitvavo import bitvavo                                      # noqa: F401
 from ccxt.bl3p import bl3p                                            # noqa: F401
 from ccxt.blockchaincom import blockchaincom                          # noqa: F401
+from ccxt.blofin import blofin                                        # noqa: F401
 from ccxt.btcalpha import btcalpha                                    # noqa: F401
 from ccxt.btcbox import btcbox                                        # noqa: F401
 from ccxt.btcmarkets import btcmarkets                                # noqa: F401
@@ -199,7 +199,6 @@ exchanges = [
     'bitfinex',
     'bitfinex2',
     'bitflyer',
-    'bitforex',
     'bitget',
     'bithumb',
     'bitmart',
@@ -213,6 +212,7 @@ exchanges = [
     'bitvavo',
     'bl3p',
     'blockchaincom',
+    'blofin',
     'btcalpha',
     'btcbox',
     'btcmarkets',

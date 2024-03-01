@@ -10,6 +10,8 @@ public partial class exmo
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
+    /// See <see href="https://documenter.getpostman.com/view/10287440/SzYXWKPi#90927062-256c-4b03-900f-2b99131f9a54"/>  <br/>
+    /// See <see href="https://documenter.getpostman.com/view/10287440/SzYXWKPi#7de7e75c-5833-45a8-b937-c2276d235aaa"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -50,7 +52,7 @@ public partial class exmo
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of [transaction fees structures]{@link https://docs.ccxt.com/#/?id=fees-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTransactionFees(object codes = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> FetchTransactionFees(List<string> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTransactionFees(codes, parameters);
         return ((Dictionary<string, object>)res);
@@ -79,6 +81,7 @@ public partial class exmo
     /// retrieves data on all markets for exmo
     /// </summary>
     /// <remarks>
+    /// See <see href="https://documenter.getpostman.com/view/10287440/SzYXWKPi#7de7e75c-5833-45a8-b937-c2276d235aaa"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -98,6 +101,7 @@ public partial class exmo
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://documenter.getpostman.com/view/10287440/SzYXWKPi#65eeb949-74e5-4631-9184-c38387fe53e8"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -131,6 +135,8 @@ public partial class exmo
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://documenter.getpostman.com/view/10287440/SzYXWKPi#59c5160f-27a1-4d9a-8cfb-7979c7ffaac6"/>  <br/>
+    /// See <see href="https://documenter.getpostman.com/view/10287440/SzYXWKPi#c8388df7-1f9f-4d41-81c4-5a387d171dc6"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -156,6 +162,7 @@ public partial class exmo
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://documenter.getpostman.com/view/10287440/SzYXWKPi#c60c51a8-e683-4f45-a000-820723d37871"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -182,6 +189,7 @@ public partial class exmo
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
     /// </summary>
     /// <remarks>
+    /// See <see href="https://documenter.getpostman.com/view/10287440/SzYXWKPi#c60c51a8-e683-4f45-a000-820723d37871"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -208,6 +216,7 @@ public partial class exmo
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://documenter.getpostman.com/view/10287440/SzYXWKPi#4c8e6459-3503-4361-b012-c34bb9f7e385"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -227,6 +236,7 @@ public partial class exmo
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://documenter.getpostman.com/view/10287440/SzYXWKPi#4c8e6459-3503-4361-b012-c34bb9f7e385"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -246,6 +256,7 @@ public partial class exmo
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://documenter.getpostman.com/view/10287440/SzYXWKPi#5a5a9c0d-cf17-47f6-9d62-6d4404ebd5ac"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -591,8 +602,10 @@ public partial class exmo
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Order> EditOrder(string id, object symbol, object type, object side, object amount = null, object price = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var price = price2 == 0 ? null : (object)price2;
         var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
@@ -600,6 +613,7 @@ public partial class exmo
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://documenter.getpostman.com/view/10287440/SzYXWKPi#c8f9ced9-7ab6-4383-a6a4-bc54469ba60e"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -619,6 +633,7 @@ public partial class exmo
     /// make a withdrawal
     /// </summary>
     /// <remarks>
+    /// See <see href="https://documenter.getpostman.com/view/10287440/SzYXWKPi#3ab9c34d-ad58-4f87-9c57-2e2ea88a8325"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -638,6 +653,7 @@ public partial class exmo
     /// fetch history of deposits and withdrawals
     /// </summary>
     /// <remarks>
+    /// See <see href="https://documenter.getpostman.com/view/10287440/SzYXWKPi#31e69a33-4849-4e6a-b4b4-6d574238f6a7"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -677,6 +693,7 @@ public partial class exmo
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -710,6 +727,7 @@ public partial class exmo
     /// fetch data on a currency withdrawal via the withdrawal id
     /// </summary>
     /// <remarks>
+    /// See <see href="https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -729,6 +747,7 @@ public partial class exmo
     /// fetch information on a deposit
     /// </summary>
     /// <remarks>
+    /// See <see href="https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -748,6 +767,7 @@ public partial class exmo
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

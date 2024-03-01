@@ -35,6 +35,7 @@ export default class phemex extends Exchange {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closePosition': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -2722,7 +2723,7 @@ export default class phemex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async editOrder (id: string, symbol, type = undefined, side = undefined, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType = undefined, side: OrderSide = undefined, amount: number = undefined, price: number = undefined, params = {}) {
         /**
          * @method
          * @name phemex#editOrder
@@ -3988,7 +3989,7 @@ export default class phemex extends Exchange {
         };
     }
 
-    async setMargin (symbol: string, amount, params = {}) {
+    async setMargin (symbol: string, amount: number, params = {}) {
         /**
          * @method
          * @name phemex#setMargin
@@ -4047,7 +4048,7 @@ export default class phemex extends Exchange {
         };
     }
 
-    async setMarginMode (marginMode, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name phemex#setMarginMode
@@ -4083,7 +4084,7 @@ export default class phemex extends Exchange {
         return await this.privatePutPositionsLeverage (this.extend (request, params));
     }
 
-    async setPositionMode (hedged, symbol: Str = undefined, params = {}) {
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name phemex#setPositionMode
@@ -4338,7 +4339,7 @@ export default class phemex extends Exchange {
         return response;
     }
 
-    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name phemex#transfer
@@ -4645,7 +4646,10 @@ export default class phemex extends Exchange {
         const currency = this.currency (code);
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        let networkId = this.networkCodeToId (networkCode);
+        let networkId = undefined;
+        if (networkCode !== undefined) {
+            networkId = this.networkCodeToId (networkCode);
+        }
         const stableCoins = this.safeValue (this.options, 'stableCoins');
         if (networkId === undefined) {
             if (!(this.inArray (code, stableCoins))) {

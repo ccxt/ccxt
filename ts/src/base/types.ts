@@ -9,9 +9,15 @@ export type OrderType = 'limit' | 'market' | string;
 export type Str = string | undefined;
 export type Strings = string[] | undefined;
 export type SubType = 'linear' | 'inverse' | undefined;
+
 export interface Dictionary<T> {
     [key: string]: T;
 }
+
+export type Dict = Dictionary<any> | undefined;
+
+export type List = Array<any> | undefined;
+
 /** Request parameters */
 // type Params = Dictionary<string | number | boolean | string[]>;
 
@@ -176,6 +182,7 @@ export interface Transaction {
 
 export interface Tickers extends Dictionary<Ticker> {
 }
+
 
 export interface CurrencyInterface {
     code?: string;
@@ -399,7 +406,7 @@ export interface FundingHistory {
 }
 
 export interface MarginMode {
-    infp: any;
+    info: any;
     marginMode: 'isolated' | 'cross' | string;
     symbol: string;
 }
@@ -424,6 +431,9 @@ export interface Greeks {
     timestamp?: number
     underlyingPrice: number;
     vega: number;
+}
+
+export interface MarginModes extends Dictionary<MarginMode> {
 }
 
 /** [ timestamp, open, high, low, close, volume ] */

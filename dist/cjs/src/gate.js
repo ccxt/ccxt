@@ -45,7 +45,7 @@ class gate extends gate$1 {
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
                         'subAccounts': 'https://api.gateio.ws/api/v4',
-                        'portfolio': 'https://api.gateio.ws/api/v4',
+                        'unified': 'https://api.gateio.ws/api/v4',
                         'rebate': 'https://api.gateio.ws/api/v4',
                         'earn': 'https://api.gateio.ws/api/v4',
                         'account': 'https://api.gateio.ws/api/v4',
@@ -268,11 +268,14 @@ class gate extends gate$1 {
                             'saved_address': 1,
                             'fee': 1,
                             'total_balance': 2.5,
+                            'small_balance': 1,
+                            'small_balance_history': 1,
                         },
                         'post': {
                             'transfers': 2.5,
                             'sub_account_transfers': 2.5,
                             'sub_account_to_sub_account': 2.5,
+                            'small_balance': 1,
                         },
                     },
                     'subAccounts': {
@@ -295,7 +298,7 @@ class gate extends gate$1 {
                             'sub_accounts/{user_id}/keys/{key}': 2.5,
                         },
                     },
-                    'portfolio': {
+                    'unified': {
                         'get': {
                             'accounts': 20 / 15,
                             'account_mode': 20 / 15,
@@ -304,6 +307,7 @@ class gate extends gate$1 {
                             'loans': 20 / 15,
                             'loan_records': 20 / 15,
                             'interest_records': 20 / 15,
+                            'estimate_rate': 20 / 15,
                         },
                         'post': {
                             'account_mode': 20 / 15,
@@ -1587,7 +1591,10 @@ class gate extends gate$1 {
             const currency = parts[0];
             const code = this.safeCurrencyCode(currency);
             const networkId = this.safeString(entry, 'chain');
-            const networkCode = this.networkIdToCode(networkId, code);
+            let networkCode = undefined;
+            if (networkId !== undefined) {
+                networkCode = this.networkIdToCode(networkId, code);
+            }
             const delisted = this.safeValue(entry, 'delisted');
             const withdrawDisabled = this.safeBool(entry, 'withdraw_disabled', false);
             const depositDisabled = this.safeBool(entry, 'deposit_disabled', false);

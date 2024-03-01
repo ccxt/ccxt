@@ -30,6 +30,7 @@ public partial class bitmex
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/User/User_getMargin"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -49,6 +50,7 @@ public partial class bitmex
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/OrderBook/OrderBook_getL2"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -75,6 +77,7 @@ public partial class bitmex
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -140,6 +143,7 @@ public partial class bitmex
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -173,6 +177,7 @@ public partial class bitmex
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -246,6 +251,7 @@ public partial class bitmex
     /// fetch the history of changes, actions done by the user or operations that altered balance of the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -279,6 +285,7 @@ public partial class bitmex
     /// fetch history of deposits and withdrawals
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -318,6 +325,7 @@ public partial class bitmex
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -337,6 +345,7 @@ public partial class bitmex
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -477,8 +486,10 @@ public partial class bitmex
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> EditOrder(string id, object symbol, object type, object side, object amount = null, object price = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var price = price2 == 0 ? null : (object)price2;
         var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
@@ -486,6 +497,7 @@ public partial class bitmex
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Order/Order_cancel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -505,6 +517,7 @@ public partial class bitmex
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Order/Order_cancel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -524,6 +537,7 @@ public partial class bitmex
     /// cancel all open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAll"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -540,9 +554,50 @@ public partial class bitmex
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
+    /// fetch the set leverage for all contract markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Position/Position_get"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
+    public async Task<List<Dictionary<string, object>>> FetchLeverages(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLeverages(symbols, parameters);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+    }
+    /// <summary>
+    /// fetch the set leverage for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Position/Position_get"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
+    public async Task<Int64> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLeverage(symbol, parameters);
+        return (Int64)res;
+    }
+    /// <summary>
     /// fetch all open positions
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Position/Position_get"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -562,6 +617,7 @@ public partial class bitmex
     /// make a withdrawal
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/User/User_requestWithdrawal"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -581,6 +637,7 @@ public partial class bitmex
     /// fetch the funding rate for multiple markets
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -600,6 +657,7 @@ public partial class bitmex
     /// Fetches the history of funding rates
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Funding/Funding_get"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -663,6 +721,7 @@ public partial class bitmex
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Position/Position_updateLeverage"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -682,6 +741,7 @@ public partial class bitmex
     /// set margin mode to 'cross' or 'isolated'
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Position/Position_isolateMargin"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -692,7 +752,7 @@ public partial class bitmex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> response from the exchange.</returns>
-    public async Task<Dictionary<string, object>> SetMarginMode(object marginMode, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.setMarginMode(marginMode, symbol, parameters);
         return ((Dictionary<string, object>)res);

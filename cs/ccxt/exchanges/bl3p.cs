@@ -26,6 +26,7 @@ public partial class bl3p : Exchange
                 { "cancelOrder", true },
                 { "closeAllPositions", false },
                 { "closePosition", false },
+                { "createDepositAddress", true },
                 { "createOrder", true },
                 { "createReduceOnlyOrder", false },
                 { "createStopLimitOrder", false },
@@ -36,6 +37,9 @@ public partial class bl3p : Exchange
                 { "fetchBorrowRateHistory", false },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
+                { "fetchDepositAddress", false },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
@@ -130,6 +134,7 @@ public partial class bl3p : Exchange
         * @method
         * @name bl3p#fetchBalance
         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+        * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#35---get-account-info--balance
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
@@ -155,6 +160,7 @@ public partial class bl3p : Exchange
         * @method
         * @name bl3p#fetchOrderBook
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/public_api/http.md#22---orderbook
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -221,6 +227,7 @@ public partial class bl3p : Exchange
         * @method
         * @name bl3p#fetchTicker
         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/public_api/http.md#21---ticker
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -289,6 +296,7 @@ public partial class bl3p : Exchange
         * @method
         * @name bl3p#fetchTrades
         * @description get the list of most recent trades for a particular symbol
+        * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/public_api/http.md#23---last-1000-trades
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -324,6 +332,7 @@ public partial class bl3p : Exchange
         * @method
         * @name bl3p#fetchTradingFees
         * @description fetch the trading fees for multiple markets
+        * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#35---get-account-info--balance
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
         */
@@ -424,6 +433,7 @@ public partial class bl3p : Exchange
         * @method
         * @name bl3p#cancelOrder
         * @description cancels an open order
+        * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#22---cancel-an-order
         * @param {string} id order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -434,6 +444,54 @@ public partial class bl3p : Exchange
             { "order_id", id },
         };
         return await this.privatePostMarketMoneyOrderCancel(this.extend(request, parameters));
+    }
+
+    public async override Task<object> createDepositAddress(object code, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bl3p#createDepositAddress
+        * @description create a currency deposit address
+        * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#32---create-a-new-deposit-address
+        * @param {string} code unified currency code of the currency for the deposit address
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "currency", getValue(currency, "id") },
+        };
+        object response = await this.privatePostGENMKTMoneyNewDepositAddress(this.extend(request, parameters));
+        //
+        //    {
+        //        "result": "success",
+        //        "data": {
+        //            "address": "36Udu9zi1uYicpXcJpoKfv3bewZeok5tpk"
+        //        }
+        //    }
+        //
+        object data = this.safeDict(response, "data");
+        return this.parseDepositAddress(data, currency);
+    }
+
+    public override object parseDepositAddress(object depositAddress, object currency = null)
+    {
+        //
+        //    {
+        //        "address": "36Udu9zi1uYicpXcJpoKfv3bewZeok5tpk"
+        //    }
+        //
+        object address = this.safeString(depositAddress, "address");
+        this.checkAddress(address);
+        return new Dictionary<string, object>() {
+            { "info", depositAddress },
+            { "currency", this.safeString(currency, "code") },
+            { "address", address },
+            { "tag", null },
+            { "network", null },
+        };
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

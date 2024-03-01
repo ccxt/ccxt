@@ -412,7 +412,10 @@ class digifinex extends digifinex$1 {
             const minFoundPrecision = Precise["default"].stringMin(feeString, Precise["default"].stringMin(minDepositString, minWithdrawString));
             const precision = this.parseNumber(minFoundPrecision);
             const networkId = this.safeString(currency, 'chain');
-            const networkCode = this.networkIdToCode(networkId);
+            let networkCode = undefined;
+            if (networkId !== undefined) {
+                networkCode = this.networkIdToCode(networkId);
+            }
             const network = {
                 'info': currency,
                 'id': networkId,

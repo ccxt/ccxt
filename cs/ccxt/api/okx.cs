@@ -496,6 +496,11 @@ public partial class okx : Exchange
         return await this.callAsync ("privateGetTradeOneClickRepayHistory",parameters);
     }
 
+    public async Task<object> privateGetTradeAccountRateLimit (object parameters = null)
+    {
+        return await this.callAsync ("privateGetTradeAccountRateLimit",parameters);
+    }
+
     public async Task<object> privateGetAssetCurrencies (object parameters = null)
     {
         return await this.callAsync ("privateGetAssetCurrencies",parameters);
@@ -1224,6 +1229,11 @@ public partial class okx : Exchange
     public async Task<object> privatePostAccountSimulatedMargin (object parameters = null)
     {
         return await this.callAsync ("privatePostAccountSimulatedMargin",parameters);
+    }
+
+    public async Task<object> privatePostAccountPositionBuilder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountPositionBuilder",parameters);
     }
 
     public async Task<object> privatePostAccountSetRiskOffsetType (object parameters = null)

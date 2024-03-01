@@ -97,7 +97,7 @@ class currencycom extends \ccxt\async\currencycom {
         //                     "accountId" => 5470310874305732,
         //                     "collateralCurrency" => true,
         //                     "asset" => "USD",
-        //                     "free" => 47.82576735,
+        //                     "free" => 47.82576736,
         //                     "locked" => 1.187925,
         //                     "default" => true
         //                 ),
@@ -486,6 +486,7 @@ class currencycom extends \ccxt\async\currencycom {
             $orderbook = $this->order_book();
         }
         $orderbook->reset (array(
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ));

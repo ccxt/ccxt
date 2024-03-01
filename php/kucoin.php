@@ -1936,7 +1936,7 @@ class kucoin extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function create_market_order_with_cost(string $symbol, string $side, $cost, $params = array ()) {
+    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array ()) {
         /**
          * create a market order by providing the $symbol, $side and $cost
          * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
@@ -1951,7 +1951,7 @@ class kucoin extends Exchange {
         return $this->create_order($symbol, 'market', $side, $cost, null, $params);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * create a market buy order by providing the $symbol and $cost
          * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
@@ -1964,7 +1964,7 @@ class kucoin extends Exchange {
         return $this->create_market_order_with_cost($symbol, 'buy', $cost, $params);
     }
 
-    public function create_market_sell_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * create a market sell order by providing the $symbol and $cost
          * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
@@ -2125,7 +2125,7 @@ class kucoin extends Exchange {
         return array_merge($request, $params);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * edit an order, kucoin currently only supports the modification of HF orders
          * @see https://docs.kucoin.com/spot-hf/#modify-order
@@ -3525,7 +3525,7 @@ class kucoin extends Exchange {
         return $returnType;
     }
 
-    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://docs.kucoin.com/#inner-transfer
@@ -3784,11 +3784,11 @@ class kucoin extends Exchange {
             }
         }
         $fee = null;
-        $feeCost = $this->safe_number($item, 'fee');
+        $feeCost = $this->safe_string($item, 'fee');
         $feeCurrency = null;
-        if ($feeCost !== 0) {
+        if ($feeCost !== '0') {
             $feeCurrency = $code;
-            $fee = array( 'cost' => $feeCost, 'currency' => $feeCurrency );
+            $fee = array( 'cost' => $this->parse_number($feeCost), 'currency' => $feeCurrency );
         }
         return array(
             'id' => $id,
@@ -3899,8 +3899,12 @@ class kucoin extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data');
-        $items = $this->safe_value($data, 'items', $data);
+        $dataList = $this->safe_list($response, 'data');
+        if ($dataList !== null) {
+            return $this->parse_ledger($dataList, $currency, $since, $limit);
+        }
+        $data = $this->safe_dict($response, 'data');
+        $items = $this->safe_list($data, 'items', array());
         return $this->parse_ledger($items, $currency, $since, $limit);
     }
 

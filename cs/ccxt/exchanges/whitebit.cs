@@ -150,6 +150,7 @@ public partial class whitebit : Exchange
                     { "account", "spot" },
                 } },
                 { "accountsByType", new Dictionary<string, object>() {
+                    { "funding", "main" },
                     { "main", "main" },
                     { "spot", "spot" },
                     { "margin", "collateral" },
@@ -1334,9 +1335,9 @@ public partial class whitebit : Exchange
         {
             object options = this.safeValue(this.options, "fetchBalance", new Dictionary<string, object>() {});
             object defaultAccount = this.safeString(options, "account");
-            object account = this.safeString(parameters, "account", defaultAccount);
-            parameters = this.omit(parameters, "account");
-            if (isTrue(isEqual(account, "main")))
+            object account = this.safeString2(parameters, "account", "type", defaultAccount);
+            parameters = this.omit(parameters, new List<object>() {"account", "type"});
+            if (isTrue(isTrue(isEqual(account, "main")) || isTrue(isEqual(account, "funding"))))
             {
                 response = await this.v4PrivatePostMainAccountBalance(parameters);
             } else

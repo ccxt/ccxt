@@ -98,6 +98,7 @@ interface Exchange {
     privateGetTradeEasyConvertHistory(params?: {}): Promise<implicitReturnType>;
     privateGetTradeOneClickRepayCurrencyList(params?: {}): Promise<implicitReturnType>;
     privateGetTradeOneClickRepayHistory(params?: {}): Promise<implicitReturnType>;
+    privateGetTradeAccountRateLimit(params?: {}): Promise<implicitReturnType>;
     privateGetAssetCurrencies(params?: {}): Promise<implicitReturnType>;
     privateGetAssetBalances(params?: {}): Promise<implicitReturnType>;
     privateGetAssetNonTradableAssets(params?: {}): Promise<implicitReturnType>;
@@ -244,6 +245,7 @@ interface Exchange {
     privatePostAccountQuickMarginBorrowRepay(params?: {}): Promise<implicitReturnType>;
     privatePostAccountBorrowRepay(params?: {}): Promise<implicitReturnType>;
     privatePostAccountSimulatedMargin(params?: {}): Promise<implicitReturnType>;
+    privatePostAccountPositionBuilder(params?: {}): Promise<implicitReturnType>;
     privatePostAccountSetRiskOffsetType(params?: {}): Promise<implicitReturnType>;
     privatePostAccountActivateOption(params?: {}): Promise<implicitReturnType>;
     privatePostAccountSetAutoLoan(params?: {}): Promise<implicitReturnType>;

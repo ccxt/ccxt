@@ -1971,7 +1971,7 @@ export default class kucoin extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async createMarketOrderWithCost (symbol: string, side: OrderSide, cost, params = {}) {
+    async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params = {}) {
         /**
          * @method
          * @name kucoin#createMarketOrderWithCost
@@ -1988,7 +1988,7 @@ export default class kucoin extends Exchange {
         return await this.createOrder (symbol, 'market', side, cost, undefined, params);
     }
 
-    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name kucoin#createMarketBuyOrderWithCost
@@ -2003,7 +2003,7 @@ export default class kucoin extends Exchange {
         return await this.createMarketOrderWithCost (symbol, 'buy', cost, params);
     }
 
-    async createMarketSellOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketSellOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name kucoin#createMarketSellOrderWithCost
@@ -2168,7 +2168,7 @@ export default class kucoin extends Exchange {
         return this.extend (request, params);
     }
 
-    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#editOrder
@@ -3598,7 +3598,7 @@ export default class kucoin extends Exchange {
         return returnType as Balances;
     }
 
-    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name kucoin#transfer
@@ -3859,11 +3859,11 @@ export default class kucoin extends Exchange {
             }
         }
         let fee = undefined;
-        const feeCost = this.safeNumber (item, 'fee');
+        const feeCost = this.safeString (item, 'fee');
         let feeCurrency = undefined;
-        if (feeCost !== 0) {
+        if (feeCost !== '0') {
             feeCurrency = code;
-            fee = { 'cost': feeCost, 'currency': feeCurrency };
+            fee = { 'cost': this.parseNumber (feeCost), 'currency': feeCurrency };
         }
         return {
             'id': id,
@@ -3976,8 +3976,12 @@ export default class kucoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data');
-        const items = this.safeValue (data, 'items', data);
+        const dataList = this.safeList (response, 'data');
+        if (dataList !== undefined) {
+            return this.parseLedger (dataList, currency, since, limit);
+        }
+        const data = this.safeDict (response, 'data');
+        const items = this.safeList (data, 'items', []);
         return this.parseLedger (items, currency, since, limit);
     }
 

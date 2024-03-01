@@ -1241,9 +1241,10 @@ class htx extends Exchange {
         return Async\async(function () use ($params) {
             Async\await($this->load_markets());
             $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', null, $params);
+            list($marketType, $params) = $this->handle_market_type_and_params('fetchStatus', null, $params);
+            $enabledForContracts = $this->handle_option('fetchStatus', 'enableForContracts', false); // temp fix for => https://status-linear-swap.huobigroup.com/api/v2/summary.json
             $response = null;
-            if ($marketType !== 'spot') {
+            if ($marketType !== 'spot' && $enabledForContracts) {
                 $subType = $this->safe_string($params, 'subType', $this->options['defaultSubType']);
                 if ($marketType === 'swap') {
                     if ($subType === 'linear') {
@@ -1260,7 +1261,7 @@ class htx extends Exchange {
                 } elseif ($marketType === 'contract') {
                     $response = Async\await($this->contractPublicGetHeartbeat ());
                 }
-            } else {
+            } elseif ($marketType === 'spot') {
                 $response = Async\await($this->statusPublicSpotGetApiV2SummaryJson ());
             }
             //
@@ -1429,7 +1430,11 @@ class htx extends Exchange {
             $url = null;
             if ($marketType === 'contract') {
                 $statusRaw = $this->safe_string($response, 'status');
-                $status = ($statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
+                if ($statusRaw === null) {
+                    $status = null;
+                } else {
+                    $status = ($statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
+                }
                 $updated = $this->safe_string($response, 'ts');
             } else {
                 $statusData = $this->safe_value($response, 'status', array());
@@ -5027,7 +5032,7 @@ class htx extends Exchange {
         ), $market);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a $market buy order by providing the $symbol and $cost
@@ -6450,7 +6455,7 @@ class htx extends Exchange {
         );
     }
 
-    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): PromiseInterface {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -6953,7 +6958,7 @@ class htx extends Exchange {
         $marginMode = ($marketId === null) ? 'cross' : 'isolated';
         $market = $this->safe_market($marketId);
         $symbol = $this->safe_string($market, 'symbol');
-        $timestamp = $this->safe_number($info, 'accrued-at');
+        $timestamp = $this->safe_integer($info, 'accrued-at');
         return array(
             'account' => ($marginMode === 'isolated') ? $symbol : 'cross',  // deprecated
             'symbol' => $symbol,
@@ -8960,7 +8965,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function set_position_mode($hedged, ?string $symbol = null, $params = array ()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($hedged, $symbol, $params) {
             /**
              * set $hedged to true or false

@@ -191,7 +191,7 @@ public partial class deribit : ccxt.deribit
         //         "params": {
         //             "channel": "ticker.BTC_USDC-PERPETUAL.raw",
         //             "data": {
-        //                 "timestamp": 1655393725041,
+        //                 "timestamp": 1655393725040,
         //                 "stats": [Object],
         //                 "state": "open",
         //                 "settlement_price": 21729.5891,
@@ -725,7 +725,7 @@ public partial class deribit : ccxt.deribit
         object marketId = this.safeString(parts, 2);
         object symbol = this.safeSymbol(marketId);
         object ohlcv = this.safeValue(parameters, "data", new Dictionary<string, object>() {});
-        object parsed = new List<object> {this.safeNumber(ohlcv, "tick"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")};
+        object parsed = new List<object> {this.safeInteger(ohlcv, "tick"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")};
         object stored = this.safeValue(this.ohlcvs, symbol);
         if (isTrue(isEqual(stored, null)))
         {

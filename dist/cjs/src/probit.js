@@ -1589,12 +1589,12 @@ class probit extends probit$1 {
         const currencyId = this.safeString(transaction, 'currency_id');
         const code = this.safeCurrencyCode(currencyId);
         const status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
-        const feeCost = this.safeNumber(transaction, 'fee');
+        const feeCostString = this.safeString(transaction, 'fee');
         let fee = undefined;
-        if (feeCost !== undefined && feeCost !== 0) {
+        if (feeCostString !== undefined && feeCostString !== '0') {
             fee = {
                 'currency': code,
-                'cost': feeCost,
+                'cost': this.parseNumber(feeCostString),
             };
         }
         return {

@@ -390,24 +390,25 @@
         "output": "{\"instId\":\"ADA-USDT-SWAP\",\"ordId\":\"641788883193122816\",\"newTpTriggerPx\":\"7\",\"newTpOrdPx\":4,\"newTpTriggerPxType\":\"last\",\"newSz\":\"50\",\"newPx\":\"0.2\",\"takeProfitPrice\":7}"
       },
       {
-        "description": "Swap edit an orders takeProfit",
+        "description": "Swap edit an orders take profit",
         "method": "editOrder",
         "url": "https://www.okx.com/api/v5/trade/amend-order",
         "input": [
-          "641788883193122816",
+          "682998640696188928",
           "ADA/USDT:USDT",
           "limit",
           "buy",
           50,
-          0.2,
+          0.5,
           {
+            "posSide": "long",
             "takeProfit": {
-              "triggerPrice": 7,
-              "price": 4
+              "triggerPrice": 1.6,
+              "price": 1.7
             }
           }
         ],
-        "output": "{\"instId\":\"ADA-USDT-SWAP\",\"ordId\":\"641788883193122816\",\"newTpTriggerPx\":\"7\",\"newTpOrdPx\":\"4\",\"newTpTriggerPxType\":\"last\",\"newSz\":\"50\",\"newPx\":\"0.2\",\"takeProfit\":{\"triggerPrice\":7,\"price\":4}}"
+        "output": "{\"instId\":\"ADA-USDT-SWAP\",\"ordId\":\"682998640696188928\",\"newTpOrdKind\":\"condition\",\"newTpTriggerPx\":\"1.6\",\"newTpOrdPx\":\"1.7\",\"newTpTriggerPxType\":\"last\",\"newSz\":\"50\",\"newPx\":\"0.5\",\"posSide\":\"long\",\"takeProfit\":{\"triggerPrice\":1.6,\"price\":1.7}}"
       },
       {
         "description": "Swap edit an orders stopLoss",
@@ -529,6 +530,19 @@
             "trailing": true
           }
         ]
+      },
+      {
+        "description": "fetch open trigger orders",
+        "method": "fetchOpenOrders",
+        "url": "https://www.okx.com/api/v5/trade/orders-algo-pending?ordType=trigger",
+        "input": [
+          null,
+          null,
+          null,
+          {
+            "trigger": true
+          }
+        ]
       }
     ],
     "fetchCanceledOrders": [
@@ -642,6 +656,19 @@
           null,
           {
             "trailing": true
+          }
+        ]
+      },
+      {
+        "description": "closed trigger orders",
+        "method": "fetchClosedOrders",
+        "url": "https://www.okx.com/api/v5/trade/orders-algo-history?instType=SPOT&state=effective&ordType=trigger",
+        "input": [
+          null,
+          null,
+          null,
+          {
+            "trigger": true
           }
         ]
       }

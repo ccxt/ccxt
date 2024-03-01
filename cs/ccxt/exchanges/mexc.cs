@@ -64,6 +64,8 @@ public partial class mexc : Exchange
                 { "fetchL2OrderBook", true },
                 { "fetchLedger", null },
                 { "fetchLedgerEntry", null },
+                { "fetchLeverage", true },
+                { "fetchLeverages", false },
                 { "fetchLeverageTiers", true },
                 { "fetchMarginMode", false },
                 { "fetchMarketLeverageTiers", null },
@@ -423,141 +425,235 @@ public partial class mexc : Exchange
                 { "defaultNetwork", "ETH" },
                 { "defaultNetworks", new Dictionary<string, object>() {
                     { "ETH", "ETH" },
-                    { "USDT", "TRC20" },
+                    { "USDT", "ERC20" },
+                    { "USDC", "ERC20" },
+                    { "BTC", "BTC" },
+                    { "LTC", "LTC" },
                 } },
                 { "networks", new Dictionary<string, object>() {
-                    { "BTC", "BTC" },
-                    { "BCH", "BCH" },
-                    { "TRC20", "Tron(TRC20)" },
-                    { "ERC20", "Ethereum(ERC20)" },
-                    { "BEP20", "BNB Smart Chain(BEP20)" },
-                    { "OPTIMISM", "Optimism(OP)" },
-                    { "SOL", "Solana(SOL)" },
-                    { "CRC20", "CRONOS" },
-                    { "ALGO", "Algorand(ALGO)" },
-                    { "XRP", "XRP" },
-                    { "MATIC", "Polygon(MATIC)" },
-                    { "AVAXX", "AVAX_XCHAIN" },
-                    { "AVAXC", "AvalancheCChain(AVAXCCHAIN)" },
-                    { "ARBONE", "ArbitrumOne(ARB)" },
-                    { "ARBNOVA", "ARBNOVA" },
-                    { "FTM", "FTM" },
-                    { "WAVES", "WAVES" },
-                    { "CHZ", "Chiliz Chain(CHZ)" },
-                    { "HRC20", "HECO" },
-                    { "TRC10", "TRC10" },
-                    { "DASH", "DASH" },
-                    { "LTC", "LTC" },
-                    { "XTZ", "XTZ" },
-                    { "OMNI", "OMNI" },
-                    { "APT", "APTOS" },
-                    { "ONT", "ONT" },
-                    { "BSV", "BSV" },
-                    { "OKC", "OKT" },
-                    { "CELO", "CELO" },
-                    { "KLAY", "KLAY" },
-                    { "BEP2", "BEP2" },
-                    { "EGLD", "EGLD" },
-                    { "EOS", "EOS" },
-                    { "ZIL", "ZIL" },
-                    { "ETHW", "ETHW" },
-                    { "IOTX", "IOTX" },
-                    { "IOTA", "IOTA" },
-                    { "SYS", "SYS" },
-                    { "XCH", "CHIA" },
-                    { "KMA", "KMA" },
-                    { "ONE", "ONE" },
-                    { "METIS", "METIS" },
-                    { "KAVA", "KAVA" },
-                    { "KDA", "KDA" },
-                    { "IOST", "IOST" },
-                    { "XEC", "XEC" },
-                    { "VET", "VET" },
-                    { "XLM", "XLM" },
-                    { "KSM", "KSM" },
-                    { "MOVR", "MOVR" },
-                    { "XMR", "XMR" },
-                    { "LAT", "LAT" },
-                    { "ETC", "ETC" },
-                    { "GLMR", "GLMR" },
-                    { "DOT", "DOT" },
-                    { "SC", "SC" },
-                    { "ICP", "ICP" },
-                    { "AOK", "AOK" },
-                    { "ZEC", "ZEC" },
+                    { "ABBC", "ABBC" },
                     { "ACA", "ACALA" },
+                    { "ADA", "Cardano(ADA)" },
+                    { "AE", "AE" },
+                    { "ALGO", "Algorand(ALGO)" },
+                    { "ALPH", "Alephium(ALPH)" },
+                    { "AME", "AME" },
+                    { "AOK", "AOK" },
+                    { "APT", "APTOS(APT)" },
+                    { "AR", "AR" },
+                    { "ARB", "Arbitrum One(ARB)" },
+                    { "ARBNOVA", "ARBNOVA" },
+                    { "ARBONE", "ArbitrumOne(ARB)" },
+                    { "ARK", "ARK" },
                     { "ASTR", "ASTAR" },
-                    { "FIL", "FIL" },
-                    { "NEAR", "NEAR" },
-                    { "OSMO", "OSMO" },
-                    { "SDN", "SDN" },
+                    { "ATOM", "Cosmos(ATOM)" },
+                    { "AVAXC", "Avalanche C Chain(AVAX CCHAIN)" },
+                    { "AVAXX", "Avalanche X Chain(AVAX XCHAIN)" },
+                    { "AZERO", "Aleph Zero(AZERO)" },
+                    { "BCH", "Bitcoin Cash(BCH)" },
+                    { "BDX", "BDX" },
+                    { "BEAM", "BEAM" },
+                    { "BEP2", "BNB Beacon Chain(BEP2)" },
+                    { "BEP20", "BNB Smart Chain(BEP20)" },
                     { "BITCI", "BITCI" },
-                    { "NEO", "NEO" },
-                    { "ADA", "ADA" },
-                    { "RVN", "RVN" },
                     { "BNC", "BNC" },
                     { "BNCDOT", "BNCPOLKA" },
-                    { "ETHF", "ETF" },
-                    { "STEEM", "STEEM" },
-                    { "OASYS", "OASYS" },
-                    { "BEAM", "BEAM" },
-                    { "VSYS", "VSYS" },
-                    { "OASIS", "ROSE" },
-                    { "AR", "AR" },
-                    { "AE", "AE" },
-                    { "QTUM", "QTUM" },
-                    { "ATOM", "ATOM" },
-                    { "HBAR", "HBAR" },
-                    { "CSPR", "CSPR" },
-                    { "WEMIX", "WEMIX" },
-                    { "SGB", "SGB" },
-                    { "XPR", "PROTON" },
-                    { "HYDRA", "HYDRA" },
-                    { "SCRT", "SCRT" },
-                    { "TOMO", "TOMO" },
-                    { "WAX", "WAX" },
-                    { "KAR", "KAR" },
-                    { "KILT", "KILT" },
-                    { "XDC", "XDC" },
-                    { "GRIN", "GRIN" },
-                    { "PLCU", "PLCU" },
-                    { "MINA", "MINA" },
-                    { "ABBC", "ABBC" },
-                    { "ZEN", "ZEN" },
-                    { "FLOW", "FLOW" },
-                    { "RSK", "RBTC" },
-                    { "DCR", "DCR" },
-                    { "HIVE", "HIVE" },
-                    { "XYM", "XYM" },
-                    { "CKB", "CKB" },
-                    { "XRD", "XRD" },
-                    { "XVG", "XVG" },
                     { "BOBA", "BOBA" },
-                    { "AZERO", "AZERO" },
-                    { "ARK", "ARK" },
-                    { "NULS", "NULS" },
-                    { "POKT", "POKT" },
-                    { "NEO3", "NEO3" },
-                    { "FIO", "FIO" },
-                    { "MASS", "MASS" },
-                    { "AME", "AME" },
-                    { "REI", "REI" },
-                    { "IRIS", "IRIS" },
-                    { "ZTG", "ZTG" },
+                    { "BSC", "BEP20(BSC)" },
+                    { "BSV", "Bitcoin SV(BSV)" },
+                    { "BTC", "Bitcoin(BTC)" },
+                    { "BTM", "BTM2" },
+                    { "CELO", "CELO" },
+                    { "CFX", "CFX" },
+                    { "CHZ", "Chiliz Legacy Chain(CHZ)" },
+                    { "CHZ2", "Chiliz Chain(CHZ2)" },
+                    { "CKB", "CKB" },
+                    { "CLORE", "Clore.ai(CLORE)" },
+                    { "CRC20", "CRONOS" },
+                    { "CSPR", "CSPR" },
+                    { "DASH", "DASH" },
+                    { "DC", "Dogechain(DC)" },
+                    { "DCR", "DCR" },
+                    { "DNX", "Dynex(DNX)" },
+                    { "DOGE", "Dogecoin(DOGE)" },
+                    { "DOT", "Polkadot(DOT)" },
+                    { "DYM", "Dymension(DYM)" },
                     { "EDG", "EDG" },
-                    { "FUSE", "FUSE" },
+                    { "EGLD", "EGLD" },
+                    { "EOS", "EOS" },
+                    { "ERC20", "Ethereum(ERC20)" },
+                    { "ETC", "Ethereum Classic(ETC)" },
+                    { "ETHF", "ETF" },
+                    { "ETHW", "ETHW" },
                     { "EVER", "EVER" },
                     { "FET", "FET" },
-                    { "CFX", "CFX" },
-                    { "NEBL", "NEBL" },
-                    { "STAR", "STAR" },
-                    { "NEM", "NEM" },
-                    { "BDX", "BDX" },
-                    { "TON", "TONCOIN" },
-                    { "NAS", "NAS" },
-                    { "QKC", "QKC" },
-                    { "BTM", "BTM2" },
+                    { "FIL", "FIL" },
+                    { "FIO", "FIO" },
+                    { "FLOW", "FLOW" },
                     { "FSN", "FSN" },
+                    { "FTM", "Fantom(FTM)" },
+                    { "FUSE", "FUSE" },
+                    { "GLMR", "GLMR" },
+                    { "GRIN", "GRIN" },
+                    { "HBAR", "Hedera(HBAR)" },
+                    { "HIVE", "HIVE" },
+                    { "HRC20", "HECO" },
+                    { "HYDRA", "HYDRA" },
+                    { "ICP", "Internet Computer(ICP)" },
+                    { "INDEX", "Index Chain" },
+                    { "IOST", "IOST" },
+                    { "IOTA", "IOTA" },
+                    { "IOTX", "IOTX" },
+                    { "IRIS", "IRIS" },
+                    { "KAR", "KAR" },
+                    { "KAS", "Kaspa(KAS)" },
+                    { "KAVA", "KAVA" },
+                    { "KDA", "KDA" },
+                    { "KILT", "KILT" },
+                    { "KLAY", "Klaytn(KLAY)" },
+                    { "KMA", "KMA" },
+                    { "KSM", "KSM" },
+                    { "LAT", "LAT" },
+                    { "LAVA", "Elysium(LAVA)" },
+                    { "LTC", "Litecoin(LTC)" },
+                    { "LUNA", "Terra(LUNA)" },
+                    { "MASS", "MASS" },
+                    { "MATIC", "Polygon(MATIC)" },
+                    { "MCOIN", "Mcoin Network" },
+                    { "METIS", "METIS" },
+                    { "MINA", "MINA" },
+                    { "MNT", "Mantle(MNT)" },
+                    { "MOVR", "MOVR" },
+                    { "MTRG", "Meter(MTRG)" },
+                    { "NAS", "NAS" },
+                    { "NEAR", "NEAR Protocol(NEAR)" },
+                    { "NEBL", "NEBL" },
+                    { "NEM", "NEM" },
+                    { "NEO", "NEO" },
+                    { "NEO3", "NEO3" },
+                    { "NEOXA", "Neoxa Network" },
+                    { "NULS", "NULS" },
+                    { "OASIS", "ROSE" },
+                    { "OASYS", "OASYS" },
+                    { "OKC", "OKT" },
+                    { "OMN", "Omega Network(OMN)" },
+                    { "OMNI", "OMNI" },
+                    { "ONE", "ONE" },
+                    { "ONT", "ONT" },
+                    { "OPTIMISM", "Optimism(OP)" },
+                    { "OSMO", "OSMO" },
+                    { "PLCU", "PLCU" },
+                    { "POKT", "POKT" },
+                    { "QKC", "QKC" },
+                    { "QTUM", "QTUM" },
+                    { "RAP20", "RAP20 (Rangers Mainnet)" },
+                    { "REI", "REI" },
+                    { "RSK", "RBTC" },
+                    { "RVN", "Ravencoin(RVN)" },
+                    { "SATOX", "Satoxcoin(SATOX)" },
+                    { "SC", "SC" },
+                    { "SCRT", "SCRT" },
+                    { "SDN", "SDN" },
+                    { "SGB", "SGB" },
+                    { "SOL", "Solana(SOL)" },
+                    { "STAR", "STAR" },
+                    { "STARK", "Starknet(STARK)" },
+                    { "STEEM", "STEEM" },
+                    { "SYS", "SYS" },
+                    { "TAO", "Bittensor(TAO)" },
+                    { "TIA", "Celestia(TIA)" },
+                    { "TOMO", "TOMO" },
+                    { "TON", "Toncoin(TON)" },
+                    { "TRC10", "TRC10" },
+                    { "TRC20", "Tron(TRC20)" },
+                    { "UGAS", "UGAS(Ultrain)" },
+                    { "VET", "VeChain(VET)" },
+                    { "VEX", "Vexanium(VEX)" },
+                    { "VSYS", "VSYS" },
+                    { "WAVES", "WAVES" },
+                    { "WAX", "WAX" },
+                    { "WEMIX", "WEMIX" },
+                    { "XCH", "Chia(XCH)" },
+                    { "XDC", "XDC" },
+                    { "XEC", "XEC" },
+                    { "XLM", "Stellar(XLM)" },
+                    { "XMR", "Monero(XMR)" },
+                    { "XNA", "Neurai(XNA)" },
+                    { "XPR", "XPR Network" },
+                    { "XRD", "XRD" },
+                    { "XRP", "Ripple(XRP)" },
+                    { "XTZ", "XTZ" },
+                    { "XVG", "XVG" },
+                    { "XYM", "XYM" },
+                    { "ZEC", "ZEC" },
+                    { "ZEN", "ZEN" },
+                    { "ZIL", "Zilliqa(ZIL)" },
+                    { "ZTG", "ZTG" },
+                } },
+                { "networksById", new Dictionary<string, object>() {
+                    { "Aleph Zero(AZERO)", "AZERO" },
+                    { "Alephium(ALPH)", "ALPH" },
+                    { "Algorand(ALGO)", "ALGO" },
+                    { "APTOS(APT)", "APT" },
+                    { "Arbitrum One(ARB)", "ARB" },
+                    { "Avalanche C Chain(AVAX CCHAIN)", "AVAXC" },
+                    { "Avalanche X Chain(AVAX XCHAIN)", "AVAXX" },
+                    { "BEP20(BSC)", "BSC" },
+                    { "Bitcoin Cash(BCH)", "BCH" },
+                    { "Bitcoin SV(BSV)", "BSV" },
+                    { "Bitcoin(BTC)", "BTC" },
+                    { "Bittensor(TAO)", "TAO" },
+                    { "BNB Beacon Chain(BEP2)", "BEP2" },
+                    { "BNB Smart Chain(BEP20-RACAV1)", "BSC" },
+                    { "BNB Smart Chain(BEP20-RACAV2)", "BSC" },
+                    { "BNB Smart Chain(BEP20)", "BSC" },
+                    { "Cardano(ADA)", "ADA" },
+                    { "Celestia(TIA)", "TIA" },
+                    { "Chia(XCH)", "XCH" },
+                    { "Chiliz Chain(CHZ2)", "CHZ2" },
+                    { "Chiliz Legacy Chain(CHZ)", "CHZ" },
+                    { "Clore.ai(CLORE)", "CLORE" },
+                    { "Cosmos(ATOM)", "ATOM" },
+                    { "Dogechain(DC)", "DC" },
+                    { "Dogecoin(DOGE)", "DOGE" },
+                    { "Dymension(DYM)", "DYM" },
+                    { "Dynex(DNX)", "DNX" },
+                    { "Elysium(LAVA)", "LAVA" },
+                    { "Ethereum Classic(ETC)", "ETC" },
+                    { "Ethereum(ERC20)", "ERC20" },
+                    { "Fantom(FTM)", "FTM" },
+                    { "Hedera(HBAR)", "HBAR" },
+                    { "Index Chain", "INDEX" },
+                    { "Internet Computer(ICP)", "ICP" },
+                    { "Kaspa(KAS)", "KAS" },
+                    { "Klaytn(KLAY)", "KLAY" },
+                    { "Litecoin(LTC)", "LTC" },
+                    { "Mantle(MNT)", "MNT" },
+                    { "Mcoin Network", "MCOIN" },
+                    { "Meter(MTRG)", "MTRG" },
+                    { "Monero(XMR)", "XMR" },
+                    { "NEAR Protocol(NEAR)", "NEAR" },
+                    { "Neoxa Network", "NEOXA" },
+                    { "Neurai(XNA)", "XNA" },
+                    { "Omega Network(OMN)", "OMN" },
+                    { "Optimism(OP)", "OPTIMISM" },
+                    { "Polkadot(DOT)", "DOT" },
+                    { "Polygon(MATIC)", "MATIC" },
+                    { "RAP20 (Rangers Mainnet)", "RAP20" },
+                    { "Ravencoin(RVN)", "RVN" },
+                    { "Ripple(XRP)", "XRP" },
+                    { "Satoxcoin(SATOX)", "SATOX" },
+                    { "Solana(SOL)", "SOL" },
+                    { "Starknet(STARK)", "STARK" },
+                    { "Stellar(XLM)", "XLM" },
+                    { "Terra(LUNA)", "LUNA" },
+                    { "Toncoin(TON)", "TON" },
+                    { "Tron(TRC20)", "TRC20" },
+                    { "UGAS(Ultrain)", "UGAS" },
+                    { "VeChain(VET)", "VET" },
+                    { "Vexanium(VEX)", "VEX" },
+                    { "XPR Network", "XPR" },
+                    { "Zilliqa(ZIL)", "ZIL" },
                 } },
                 { "recvWindow", multiply(5, 1000) },
                 { "maxTimeTillEnd", subtract(multiply(multiply(90, 86400), 1000), 1) },
@@ -665,6 +761,7 @@ public partial class mexc : Exchange
                     { "700006", typeof(BadRequest) },
                     { "700007", typeof(AuthenticationError) },
                     { "700008", typeof(BadRequest) },
+                    { "700013", typeof(AuthenticationError) },
                     { "730001", typeof(BadRequest) },
                     { "730002", typeof(BadRequest) },
                     { "730000", typeof(ExchangeError) },
@@ -706,7 +803,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchStatus
+        * @name mexc#fetchStatus
         * @description the latest known information on the availability of the exchange API
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
@@ -749,7 +846,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchTime
+        * @name mexc#fetchTime
         * @description fetches the current integer timestamp in milliseconds from the exchange server
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {int} the current integer timestamp in milliseconds from the exchange server
@@ -781,7 +878,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchCurrencies
+        * @name mexc#fetchCurrencies
         * @description fetches all available currencies on an exchange
         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -854,7 +951,7 @@ public partial class mexc : Exchange
             {
                 object chain = getValue(chains, j);
                 object networkId = this.safeString(chain, "network");
-                object network = this.safeNetwork(networkId);
+                object network = this.networkIdToCode(networkId);
                 object isDepositEnabled = this.safeBool(chain, "depositEnable", false);
                 object isWithdrawEnabled = this.safeBool(chain, "withdrawEnable", false);
                 object active = (isTrue(isDepositEnabled) && isTrue(isWithdrawEnabled));
@@ -934,35 +1031,12 @@ public partial class mexc : Exchange
         return result;
     }
 
-    public virtual object safeNetwork(object networkId)
-    {
-        if (isTrue(isGreaterThanOrEqual(getIndexOf(networkId, "BSC"), 0)))
-        {
-            return "BEP20";
-        }
-        object parts = ((string)networkId).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
-        networkId = String.Join("", ((IList<object>)parts).ToArray());
-        networkId = ((string)networkId).Replace((string)"-20", (string)"20");
-        object networksById = new Dictionary<string, object>() {
-            { "Ethereum(ERC20)", "ERC20" },
-            { "Algorand(ALGO)", "ALGO" },
-            { "ArbitrumOne(ARB)", "ARBONE" },
-            { "AvalancheCChain(AVAXCCHAIN)", "AVAXC" },
-            { "BNB Smart Chain(BEP20)", "BEP20" },
-            { "Polygon(MATIC)", "MATIC" },
-            { "Optimism(OP)", "OPTIMISM" },
-            { "Solana(SOL)", "SOL" },
-            { "Tron(TRC20)", "TRC20" },
-        };
-        return this.safeString(networksById, networkId, networkId);
-    }
-
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         /**
         * @method
-        * @name mexc3#fetchMarkets
-        * @description retrieves data on all markets for mexc3
+        * @name mexc#fetchMarkets
+        * @description retrieves data on all markets for mexc
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of objects representing market data
         */
@@ -1214,7 +1288,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchOrderBook
+        * @name mexc#fetchOrderBook
         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#order-book
         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-s-depth-information
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -1302,7 +1376,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchTrades
+        * @name mexc#fetchTrades
         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#recent-trades-list
         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#compressed-aggregate-trades-list
         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-transaction-data
@@ -1575,7 +1649,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchOHLCV
+        * @name mexc#fetchOHLCV
         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-candlestick-data
         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#k-line-data
         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -1707,7 +1781,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchTickers
+        * @name mexc#fetchTickers
         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1780,7 +1854,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchTicker
+        * @name mexc#fetchTicker
         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1959,7 +2033,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchBidsAsks
+        * @name mexc#fetchBidsAsks
         * @description fetches the bid and ask price and volume for multiple markets
         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2021,7 +2095,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#createOrder
+        * @name mexc#createOrder
         * @description create a trade order
         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
@@ -2331,7 +2405,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchOrder
+        * @name mexc#fetchOrder
         * @description fetches information on an order made by the user
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2419,7 +2493,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchOrders
+        * @name mexc#fetchOrders
         * @description fetches information on multiple orders made by the user
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
@@ -2676,7 +2750,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchOpenOrders
+        * @name mexc#fetchOpenOrders
         * @description fetch all unfilled currently open orders
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -2779,7 +2853,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchClosedOrders
+        * @name mexc#fetchClosedOrders
         * @description fetches information on multiple closed orders made by the user
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
@@ -2795,7 +2869,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchCanceledOrders
+        * @name mexc#fetchCanceledOrders
         * @description fetches information on multiple canceled orders made by the user
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
@@ -2833,7 +2907,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#cancelOrder
+        * @name mexc#cancelOrder
         * @description cancels an open order
         * @param {string} id order id
         * @param {string} symbol unified symbol of the market the order was made in
@@ -2931,7 +3005,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#cancelOrders
+        * @name mexc#cancelOrders
         * @description cancel multiple orders
         * @param {string[]} ids order ids
         * @param {string} symbol unified market symbol, default is undefined
@@ -2971,7 +3045,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#cancelAllOrders
+        * @name mexc#cancelAllOrders
         * @description cancel all open orders
         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3371,7 +3445,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchAccounts
+        * @name mexc#fetchAccounts
         * @description fetch all the accounts associated with a profile
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
@@ -3404,7 +3478,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchTradingFees
+        * @name mexc#fetchTradingFees
         * @description fetch the trading fees for multiple markets
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
@@ -3570,7 +3644,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchBalance
+        * @name mexc#fetchBalance
         * @description query for balance and get the amount of funds available for trading or funds locked in orders
         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
@@ -3712,7 +3786,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchMyTrades
+        * @name mexc#fetchMyTrades
         * @description fetch all trades made by the user
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch trades for
@@ -3793,7 +3867,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchOrderTrades
+        * @name mexc#fetchOrderTrades
         * @description fetch all the trades made from a single order
         * @param {string} id order id
         * @param {string} symbol unified market symbol
@@ -3878,11 +3952,11 @@ public partial class mexc : Exchange
         return response;
     }
 
-    public async virtual Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
-        * @name mexc3#reduceMargin
+        * @name mexc#reduceMargin
         * @description remove margin from a position
         * @param {string} symbol unified market symbol
         * @param {float} amount the amount of margin to remove
@@ -3893,11 +3967,11 @@ public partial class mexc : Exchange
         return await this.modifyMarginHelper(symbol, amount, "SUB", parameters);
     }
 
-    public async virtual Task<object> addMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
-        * @name mexc3#addMargin
+        * @name mexc#addMargin
         * @description add margin
         * @param {string} symbol unified market symbol
         * @param {float} amount amount of margin to add
@@ -3912,7 +3986,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#setLeverage
+        * @name mexc#setLeverage
         * @description set the level of leverage for a market
         * @param {float} leverage the rate of leverage
         * @param {string} symbol unified market symbol
@@ -3950,7 +4024,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchFundingHistory
+        * @name mexc#fetchFundingHistory
         * @description fetch the history of funding payments paid and received on this account
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch funding history for
@@ -4068,7 +4142,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchFundingRate
+        * @name mexc#fetchFundingRate
         * @description fetch the current funding rate
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4176,7 +4250,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchLeverageTiers
+        * @name mexc#fetchLeverageTiers
         * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4272,32 +4346,31 @@ public partial class mexc : Exchange
     public override object parseDepositAddress(object depositAddress, object currency = null)
     {
         //
-        //     {"chain":"ERC-20","address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6"},
-        //     {"chain":"MATIC","address":"0x05aa3236f1970eae0f8feb17ec19435b39574d74"},
-        //     {"chain":"TRC20","address":"TGaPfhW41EXD3sAfs1grLF6DKfugfqANNw"},
-        //     {"chain":"SOL","address":"5FSpUKuh2gjw4mF89T2e7sEjzUA1SkRKjBChFqP43KhV"},
-        //     {"chain":"ALGO","address":"B3XTZND2JJTSYR7R2TQVCUDT4QSSYVAIZYDPWVBX34DGAYATBU3AUV43VU"}
-        //
+        //    {
+        //        coin: "USDT",
+        //        network: "BNB Smart Chain(BEP20)",
+        //        address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
+        //        memo:  null
+        //    }
         //
         object address = this.safeString(depositAddress, "address");
-        object code = this.safeCurrencyCode(null, currency);
-        object networkId = this.safeString(depositAddress, "chain");
-        object network = this.safeNetwork(networkId);
+        object currencyId = this.safeString(depositAddress, "coin");
+        object networkId = this.safeString(depositAddress, "network");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
-            { "currency", code },
+            { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "address", address },
-            { "tag", null },
-            { "network", network },
+            { "tag", this.safeString(depositAddress, "memo") },
+            { "network", this.networkIdToCode(networkId) },
             { "info", depositAddress },
         };
     }
 
-    public async virtual Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
+    public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
     {
         /**
         * @method
-        * @name mexc3#fetchDepositAddressesByNetwork
+        * @name mexc#fetchDepositAddressesByNetwork
         * @description fetch a dictionary of addresses for a currency, indexed by network
         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
         * @param {string} code unified currency code of the currency for the deposit address
@@ -4311,38 +4384,37 @@ public partial class mexc : Exchange
             { "coin", getValue(currency, "id") },
         };
         object networkCode = this.safeString(parameters, "network");
-        object networkId = this.networkCodeToId(networkCode, code);
+        object networkId = null;
+        if (isTrue(!isEqual(networkCode, null)))
+        {
+            networkId = this.networkCodeToId(networkCode, code);
+        }
         if (isTrue(!isEqual(networkId, null)))
         {
             ((IDictionary<string,object>)request)["network"] = networkId;
         }
         parameters = this.omit(parameters, "network");
         object response = await this.spotPrivateGetCapitalDepositAddress(this.extend(request, parameters));
-        object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
-        {
-            object depositAddress = getValue(response, i);
-            object coin = this.safeString(depositAddress, "coin");
-            object currencyInner = this.currency(coin);
-            object networkIdInner = this.safeString(depositAddress, "network");
-            object network = this.safeNetwork(networkIdInner);
-            object address = this.safeString(depositAddress, "address", null);
-            object tag = this.safeString2(depositAddress, "tag", "memo", null);
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
-                { "currency", getValue(currencyInner, "id") },
-                { "network", network },
-                { "address", address },
-                { "tag", tag },
-            });
-        }
-        return result;
+        //
+        //    [
+        //        {
+        //            coin: "USDT",
+        //            network: "BNB Smart Chain(BEP20)",
+        //            address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
+        //            memo:  null
+        //        }
+        //        ...
+        //    ]
+        //
+        object addressStructures = this.parseDepositAddresses(response, null, false);
+        return this.indexBy(addressStructures, "network");
     }
 
     public async override Task<object> createDepositAddress(object code, object parameters = null)
     {
         /**
         * @method
-        * @name mexc3#createDepositAddress
+        * @name mexc#createDepositAddress
         * @description create a currency deposit address
         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
         * @param {string} code unified currency code of the currency for the deposit address
@@ -4374,46 +4446,46 @@ public partial class mexc : Exchange
         //        "address": "zzqqqqqqqqqq",
         //        "memo": "MX10068"
         //     }
-        return new Dictionary<string, object>() {
-            { "info", response },
-            { "currency", this.safeString(response, "coin") },
-            { "network", this.safeString(response, "network") },
-            { "address", this.safeString(response, "address") },
-            { "tag", this.safeString(response, "memo") },
-        };
+        return this.parseDepositAddress(response, currency);
     }
 
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
         /**
         * @method
-        * @name mexc3#fetchDepositAddress
+        * @name mexc#fetchDepositAddress
         * @description fetch the deposit address for a currency associated with this account
         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
         * @param {string} code unified currency code
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.network] the chain of currency, this only apply for multi-chain currency, and there is no need for single chain currency
         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        object rawNetwork = this.safeStringUpper(parameters, "network");
-        parameters = this.omit(parameters, "network");
-        object response = await this.fetchDepositAddressesByNetwork(code, parameters);
-        if (isTrue(!isEqual(rawNetwork, null)))
+        object network = this.safeString(parameters, "network");
+        parameters = this.omit(parameters, new List<object>() {"network"});
+        object addressStructures = await this.fetchDepositAddressesByNetwork(code, parameters);
+        object result = null;
+        if (isTrue(!isEqual(network, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+            result = this.safeDict(addressStructures, this.networkIdToCode(network, code));
+        } else
+        {
+            object options = this.safeDict(this.options, "defaultNetworks");
+            object defaultNetworkForCurrency = this.safeString(options, code);
+            if (isTrue(!isEqual(defaultNetworkForCurrency, null)))
             {
-                object depositAddress = getValue(response, i);
-                object network = this.safeStringUpper(depositAddress, "network");
-                if (isTrue(isEqual(rawNetwork, network)))
-                {
-                    return depositAddress;
-                }
+                result = this.safeDict(addressStructures, defaultNetworkForCurrency);
+            } else
+            {
+                object keys = new List<object>(((IDictionary<string,object>)addressStructures).Keys);
+                object key = this.safeString(keys, 0);
+                result = this.safeDict(addressStructures, key);
             }
         }
-        object result = this.safeValue(response, 0);
         if (isTrue(isEqual(result, null)))
         {
-            throw new InvalidAddress ((string)add(add(add(this.id, " fetchDepositAddress() cannot find a deposit address for "), code), ", consider creating one using the MEXC platform")) ;
+            throw new InvalidAddress ((string)add(add(add(add(add(this.id, " fetchDepositAddress() cannot find a deposit address for "), code), ", and network"), network), "consider creating one using the MEXC platform")) ;
         }
         return result;
     }
@@ -4422,7 +4494,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchDeposits
+        * @name mexc#fetchDeposits
         * @description fetch all deposits made to an account
         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-history-supporting-network
         * @param {string} code unified currency code
@@ -4484,7 +4556,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchWithdrawals
+        * @name mexc#fetchWithdrawals
         * @description fetch all withdrawals made from an account
         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-history-supporting-network
         * @param {string} code unified currency code
@@ -4592,7 +4664,7 @@ public partial class mexc : Exchange
         object rawNetwork = this.safeString(transaction, "network");
         if (isTrue(!isEqual(rawNetwork, null)))
         {
-            network = this.safeNetwork(rawNetwork);
+            network = this.networkIdToCode(rawNetwork);
         }
         object code = this.safeCurrencyCode(currencyId, currency);
         object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
@@ -4670,7 +4742,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchPosition
+        * @name mexc#fetchPosition
         * @description fetch data on a single open contract trade position
         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4690,7 +4762,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchPositions
+        * @name mexc#fetchPositions
         * @description fetch all open positions
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4770,7 +4842,7 @@ public partial class mexc : Exchange
         object marginType = ((bool) isTrue((isEqual(openType, "1")))) ? "isolated" : "cross";
         object leverage = this.safeNumber(position, "leverage");
         object liquidationPrice = this.safeNumber(position, "liquidatePrice");
-        object timestamp = this.safeNumber(position, "updateTime");
+        object timestamp = this.safeInteger(position, "updateTime");
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -4841,7 +4913,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchTransfers
+        * @name mexc#fetchTransfers
         * @description fetch a history of internal transfers made on an account
         * @param {string} code unified currency code of the currency transferred
         * @param {int} [since] the earliest time in ms to fetch transfers for
@@ -4915,7 +4987,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#transfer
+        * @name mexc#transfer
         * @description transfer currency internally between wallets on the same account
         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
         * @param {string} code unified currency code
@@ -5062,7 +5134,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#withdraw
+        * @name mexc#withdraw
         * @description make a withdrawal
         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw
         * @param {string} code unified currency code
@@ -5105,7 +5177,7 @@ public partial class mexc : Exchange
         return this.parseTransaction(response, currency);
     }
 
-    public async virtual Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
+    public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
@@ -5143,7 +5215,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchTransactionFees
+        * @name mexc#fetchTransactionFees
         * @description fetch deposit and withdrawal fees
         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
         * @param {string[]|undefined} codes returns fees for all currencies if undefined
@@ -5251,7 +5323,7 @@ public partial class mexc : Exchange
     {
         /**
         * @method
-        * @name mexc3#fetchDepositWithdrawFees
+        * @name mexc#fetchDepositWithdrawFees
         * @description fetch deposit and withdrawal fees
         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
         * @param {string[]|undefined} codes returns fees for all currencies if undefined
@@ -5342,6 +5414,84 @@ public partial class mexc : Exchange
         return this.assignDefaultDepositWithdrawFees(result);
     }
 
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name mexc#fetchLeverage
+        * @description fetch the set leverage for a market
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-leverage
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.contractPrivateGetPositionLeverage(this.extend(request, parameters));
+        //
+        //     {
+        //         "success": true,
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "level": 1,
+        //                 "maxVol": 463300,
+        //                 "mmr": 0.004,
+        //                 "imr": 0.005,
+        //                 "positionType": 1,
+        //                 "openType": 1,
+        //                 "leverage": 20,
+        //                 "limitBySys": false,
+        //                 "currentMmr": 0.004
+        //             },
+        //             {
+        //                 "level": 1,
+        //                 "maxVol": 463300,
+        //                 "mmr": 0.004,
+        //                 "imr": 0.005,
+        //                 "positionType": 2,
+        //                 "openType": 1,
+        //                 "leverage": 20,
+        //                 "limitBySys": false,
+        //                 "currentMmr": 0.004
+        //             }
+        //         ]
+        //     }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        object longLeverage = this.safeDict(data, 0);
+        return this.parseLeverage(longLeverage, market);
+    }
+
+    public virtual object parseLeverage(object leverage, object market = null)
+    {
+        //
+        //     {
+        //         "level": 1,
+        //         "maxVol": 463300,
+        //         "mmr": 0.004,
+        //         "imr": 0.005,
+        //         "positionType": 1,
+        //         "openType": 1,
+        //         "leverage": 20,
+        //         "limitBySys": false,
+        //         "currentMmr": 0.004
+        //     }
+        //
+        object marketId = this.safeString(leverage, "symbol");
+        market = this.safeMarket(marketId, market, null, "contract");
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", getValue(market, "symbol") },
+            { "leverage", this.safeInteger(leverage, "leverage") },
+            { "marginMode", null },
+        };
+    }
+
     public override object handleMarginModeAndParams(object methodName, object parameters = null, object defaultValue = null)
     {
         /**
@@ -5407,7 +5557,7 @@ public partial class mexc : Exchange
                     { "source", this.safeString(this.options, "broker", "CCXT") },
                 };
             }
-            if (isTrue(isEqual(method, "POST")))
+            if (isTrue(isTrue((isEqual(method, "POST"))) || isTrue((isEqual(method, "PUT")))))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }

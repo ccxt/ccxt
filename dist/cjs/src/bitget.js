@@ -2418,7 +2418,10 @@ class bitget extends bitget$1 {
         await this.loadMarkets();
         const networkCode = this.safeString2(params, 'chain', 'network');
         params = this.omit(params, 'network');
-        const networkId = this.networkCodeToId(networkCode, code);
+        let networkId = undefined;
+        if (networkCode !== undefined) {
+            networkId = this.networkCodeToId(networkCode, code);
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['code'],
@@ -2457,11 +2460,15 @@ class bitget extends bitget$1 {
         const currencyId = this.safeString(depositAddress, 'coin');
         const networkId = this.safeString(depositAddress, 'chain');
         const parsedCurrency = this.safeCurrencyCode(currencyId, currency);
+        let network = undefined;
+        if (networkId !== undefined) {
+            network = this.networkIdToCode(networkId, parsedCurrency);
+        }
         return {
             'currency': parsedCurrency,
             'address': this.safeString(depositAddress, 'address'),
             'tag': this.safeString(depositAddress, 'tag'),
-            'network': this.networkIdToCode(networkId, parsedCurrency),
+            'network': network,
             'info': depositAddress,
         };
     }
@@ -3585,6 +3592,7 @@ class bitget extends bitget$1 {
             'not_trigger': 'open',
             'partial_fill': 'open',
             'partially_fill': 'open',
+            'partially_filled': 'open',
             'triggered': 'closed',
             'full_fill': 'closed',
             'filled': 'closed',
@@ -3949,6 +3957,13 @@ class bitget extends bitget$1 {
             size = this.safeString(order, 'size');
             filled = this.safeString(order, 'baseVolume');
         }
+        let side = this.safeString(order, 'side');
+        const posMode = this.safeString(order, 'posMode');
+        if (posMode === 'hedge_mode' && reduceOnly) {
+            side = (side === 'buy') ? 'sell' : 'buy';
+            // on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
+            // so the side of the reduceOnly order is inversed
+        }
         return this.safeOrder({
             'info': order,
             'id': this.safeString2(order, 'orderId', 'data'),
@@ -3959,7 +3974,7 @@ class bitget extends bitget$1 {
             'lastUpdateTimestamp': updateTimestamp,
             'symbol': market['symbol'],
             'type': this.safeString(order, 'orderType'),
-            'side': this.safeString(order, 'side'),
+            'side': side,
             'price': price,
             'amount': size,
             'cost': this.safeString2(order, 'quoteVolume', 'quoteSize'),
@@ -4485,7 +4500,7 @@ class bitget extends bitget$1 {
         const takeProfit = this.safeValue(params, 'takeProfit');
         const isStopLoss = stopLoss !== undefined;
         const isTakeProfit = takeProfit !== undefined;
-        const trailingTriggerPrice = this.safeString(params, 'trailingTriggerPrice', price);
+        const trailingTriggerPrice = this.safeString(params, 'trailingTriggerPrice', this.numberToString(price));
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'newCallbackRatio');
         const isTrailingPercentOrder = trailingPercent !== undefined;
         if (this.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder, isTrailingPercentOrder) > 1) {
@@ -8286,7 +8301,11 @@ class bitget extends bitget$1 {
             }
             else {
                 if (Object.keys(params).length) {
-                    const queryInner = '?' + this.urlencode(this.keysort(params));
+                    let queryInner = '?' + this.urlencode(this.keysort(params));
+                    // check #21169 pr
+                    if (queryInner.indexOf('%24') > -1) {
+                        queryInner = queryInner.replace('%24', '$');
+                    }
                     url += queryInner;
                     auth += queryInner;
                 }

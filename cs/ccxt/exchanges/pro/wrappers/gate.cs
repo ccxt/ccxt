@@ -36,6 +36,7 @@ public partial class gate
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -55,6 +56,7 @@ public partial class gate
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -68,6 +70,27 @@ public partial class gate
     public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchTickers(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
+    /// watches best bid & ask for symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.gate.io/docs/developers/apiv4/ws/en/#best-bid-or-ask-price"/>  <br/>
+    /// See <see href="https://www.gate.io/docs/developers/apiv4/ws/en/#order-book-channel"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> WatchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchBidsAsks(symbols, parameters);
         return new Tickers(res);
     }
     /// <summary>

@@ -43,7 +43,7 @@ class gate extends Exchange {
                         'spot' => 'https://api.gateio.ws/api/v4',
                         'options' => 'https://api.gateio.ws/api/v4',
                         'subAccounts' => 'https://api.gateio.ws/api/v4',
-                        'portfolio' => 'https://api.gateio.ws/api/v4',
+                        'unified' => 'https://api.gateio.ws/api/v4',
                         'rebate' => 'https://api.gateio.ws/api/v4',
                         'earn' => 'https://api.gateio.ws/api/v4',
                         'account' => 'https://api.gateio.ws/api/v4',
@@ -266,11 +266,14 @@ class gate extends Exchange {
                             'saved_address' => 1,
                             'fee' => 1,
                             'total_balance' => 2.5,
+                            'small_balance' => 1,
+                            'small_balance_history' => 1,
                         ),
                         'post' => array(
                             'transfers' => 2.5, // 8r/s cost = 20 / 8 = 2.5
                             'sub_account_transfers' => 2.5,
                             'sub_account_to_sub_account' => 2.5,
+                            'small_balance' => 1,
                         ),
                     ),
                     'subAccounts' => array(
@@ -293,7 +296,7 @@ class gate extends Exchange {
                             'sub_accounts/{user_id}/keys/{key}' => 2.5,
                         ),
                     ),
-                    'portfolio' => array(
+                    'unified' => array(
                         'get' => array(
                             'accounts' => 20 / 15,
                             'account_mode' => 20 / 15,
@@ -302,6 +305,7 @@ class gate extends Exchange {
                             'loans' => 20 / 15,
                             'loan_records' => 20 / 15,
                             'interest_records' => 20 / 15,
+                            'estimate_rate' => 20 / 15,
                         ),
                         'post' => array(
                             'account_mode' => 20 / 15,
@@ -870,7 +874,7 @@ class gate extends Exchange {
         return $reconstructedDate;
     }
 
-    public function create_expired_option_market($symbol) {
+    public function create_expired_option_market(string $symbol) {
         // support expired option contracts
         $quote = 'USDT';
         $settle = $quote;
@@ -1582,7 +1586,10 @@ class gate extends Exchange {
             $currency = $parts[0];
             $code = $this->safe_currency_code($currency);
             $networkId = $this->safe_string($entry, 'chain');
-            $networkCode = $this->network_id_to_code($networkId, $code);
+            $networkCode = null;
+            if ($networkId !== null) {
+                $networkCode = $this->network_id_to_code($networkId, $code);
+            }
             $delisted = $this->safe_value($entry, 'delisted');
             $withdrawDisabled = $this->safe_bool($entry, 'withdraw_disabled', false);
             $depositDisabled = $this->safe_bool($entry, 'deposit_disabled', false);
@@ -2062,7 +2069,7 @@ class gate extends Exchange {
         );
     }
 
-    public function fetch_transaction_fees($codes = null, $params = array ()) {
+    public function fetch_transaction_fees(?array $codes = null, $params = array ()) {
         /**
          * @deprecated
          * please use fetchDepositWithdrawFees instead
@@ -4097,7 +4104,7 @@ class gate extends Exchange {
         return array_merge($request, $params);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * create a $market buy order by providing the $symbol and $cost
          * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-order
@@ -4115,7 +4122,7 @@ class gate extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * edit a trade order, gate currently only supports the modification of the $price or $amount fields
          * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
@@ -4974,7 +4981,7 @@ class gate extends Exchange {
         return $this->parse_orders($response, $market);
     }
 
-    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://www.gate.io/docs/developers/apiv4/en/#transfer-between-trading-accounts
@@ -6510,7 +6517,7 @@ class gate extends Exchange {
         return $this->safe_string($ledgerType, $type, $type);
     }
 
-    public function set_position_mode($hedged, $symbol = null, $params = array ()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
         /**
          * set dual/hedged mode to true or false for a swap $market, make sure all positions are closed and no orders are open before setting dual mode
          * @see https://www.gate.io/docs/developers/apiv4/en/#enable-or-disable-dual-mode

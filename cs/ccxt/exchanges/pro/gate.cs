@@ -299,6 +299,7 @@ public partial class gate : ccxt.gate
         /**
         * @method
         * @name gate#watchTicker
+        * @see https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -308,16 +309,9 @@ public partial class gate : ccxt.gate
         await this.loadMarkets();
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        object marketId = getValue(market, "id");
-        object url = this.getUrlByMarket(market);
-        object messageType = this.getTypeByMarket(market);
-        var topicqueryVariable = this.handleOptionAndParams(parameters, "watchTicker", "name", "tickers");
-        var topic = ((IList<object>) topicqueryVariable)[0];
-        var query = ((IList<object>) topicqueryVariable)[1];
-        object channel = add(add(messageType, "."), topic);
-        object messageHash = add("ticker:", symbol);
-        object payload = new List<object>() {marketId};
-        return await this.subscribePublic(url, messageHash, payload, channel, query);
+        ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchTicker";
+        object result = await this.watchTickers(new List<object>() {symbol}, parameters);
+        return this.safeValue(result, symbol);
     }
 
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
@@ -325,37 +319,16 @@ public partial class gate : ccxt.gate
         /**
         * @method
         * @name gate#watchTickers
+        * @see https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
-        if (isTrue(isEqual(symbols, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " watchTickers requires symbols")) ;
-        }
-        object market = this.market(getValue(symbols, 0));
-        object messageType = this.getTypeByMarket(market);
-        object marketIds = this.marketIds(symbols);
-        var topicqueryVariable = this.handleOptionAndParams(parameters, "watchTicker", "method", "tickers");
-        var topic = ((IList<object>) topicqueryVariable)[0];
-        var query = ((IList<object>) topicqueryVariable)[1];
-        object channel = add(add(messageType, "."), topic);
-        object messageHash = "tickers";
-        object url = this.getUrlByMarket(market);
-        object ticker = await this.subscribePublic(url, messageHash, marketIds, channel, query);
-        object result = new Dictionary<string, object>() {};
-        if (isTrue(this.newUpdates))
-        {
-            ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
-        } else
-        {
-            result = this.tickers;
-        }
-        return this.filterByArray(result, "symbol", symbols, true);
+        return await this.subscribeWatchTickersAndBidsAsks(symbols, "watchTickers", this.extend(new Dictionary<string, object>() {
+            { "method", "tickers" },
+        }, parameters));
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)
@@ -377,6 +350,31 @@ public partial class gate : ccxt.gate
         //          "low_24h": "42721.03"
         //        }
         //    }
+        //
+        this.handleTickerAndBidAsk("ticker", client, message);
+    }
+
+    public async virtual Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name gate#watchBidsAsks
+        * @see https://www.gate.io/docs/developers/apiv4/ws/en/#best-bid-or-ask-price
+        * @see https://www.gate.io/docs/developers/apiv4/ws/en/#order-book-channel
+        * @description watches best bid & ask for symbols
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.subscribeWatchTickersAndBidsAsks(symbols, "watchBidsAsks", this.extend(new Dictionary<string, object>() {
+            { "method", "book_ticker" },
+        }, parameters));
+    }
+
+    public virtual void handleBidAsk(WebSocketClient client, object message)
+    {
+        //
         //    {
         //        "time": 1671363004,
         //        "time_ms": 1671363004235,
@@ -393,26 +391,78 @@ public partial class gate : ccxt.gate
         //        }
         //    }
         //
+        this.handleTickerAndBidAsk("bidask", client, message);
+    }
+
+    public async virtual Task<object> subscribeWatchTickersAndBidsAsks(object symbols = null, object callerMethodName = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        var callerMethodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", callerMethodName);
+        callerMethodName = ((IList<object>)callerMethodNameparametersVariable)[0];
+        parameters = ((IList<object>)callerMethodNameparametersVariable)[1];
+        symbols = this.marketSymbols(symbols, null, false);
+        object market = this.market(getValue(symbols, 0));
+        object messageType = this.getTypeByMarket(market);
+        object marketIds = this.marketIds(symbols);
+        object channelName = null;
+        var channelNameparametersVariable = this.handleOptionAndParams(parameters, callerMethodName, "method");
+        channelName = ((IList<object>)channelNameparametersVariable)[0];
+        parameters = ((IList<object>)channelNameparametersVariable)[1];
+        object url = this.getUrlByMarket(market);
+        object channel = add(add(messageType, "."), channelName);
+        object isWatchTickers = isGreaterThanOrEqual(getIndexOf(callerMethodName, "watchTicker"), 0);
+        object prefix = ((bool) isTrue(isWatchTickers)) ? "ticker" : "bidask";
+        object messageHashes = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
+            ((IList<object>)messageHashes).Add(add(add(prefix, ":"), symbol));
+        }
+        object tickerOrBidAsk = await this.subscribePublicMultiple(url, messageHashes, marketIds, channel, parameters);
+        if (isTrue(this.newUpdates))
+        {
+            object items = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)items)[(string)getValue(tickerOrBidAsk, "symbol")] = tickerOrBidAsk;
+            return items;
+        }
+        object result = ((bool) isTrue(isWatchTickers)) ? this.tickers : this.bidsasks;
+        return this.filterByArray(result, "symbol", symbols, true);
+    }
+
+    public virtual void handleTickerAndBidAsk(object objectName, object client, object message)
+    {
         object channel = this.safeString(message, "channel");
         object parts = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object rawMarketType = this.safeString(parts, 0);
         object marketType = ((bool) isTrue((isEqual(rawMarketType, "futures")))) ? "contract" : "spot";
         object result = this.safeValue(message, "result");
-        if (!isTrue(((result is IList<object>) || (result.GetType().IsGenericType && result.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        object results = new List<object>() {};
+        if (isTrue(((result is IList<object>) || (result.GetType().IsGenericType && result.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            result = new List<object>() {result};
+            results = this.safeList(message, "result", new List<object>() {});
+        } else
+        {
+            object rawTicker = this.safeDict(message, "result", new Dictionary<string, object>() {});
+            results = new List<object>() {rawTicker};
         }
-        for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+        object isTicker = (isEqual(objectName, "ticker")); // whether ticker or bid-ask
+        for (object i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
         {
-            object ticker = getValue(result, i);
-            object marketId = this.safeString(ticker, "s");
+            object rawTicker = getValue(results, i);
+            object marketId = this.safeString(rawTicker, "s");
             object market = this.safeMarket(marketId, null, "_", marketType);
-            object parsed = this.parseTicker(ticker, market);
-            object symbol = getValue(parsed, "symbol");
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
-            object messageHash = add("ticker:", symbol);
-            callDynamically(client as WebSocketClient, "resolve", new object[] {parsed, messageHash});
-            callDynamically(client as WebSocketClient, "resolve", new object[] {parsed, "tickers"});
+            object parsedItem = this.parseTicker(rawTicker, market);
+            object symbol = getValue(parsedItem, "symbol");
+            if (isTrue(isTicker))
+            {
+                ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsedItem;
+            } else
+            {
+                ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedItem;
+            }
+            object messageHash = add(add(objectName, ":"), symbol);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {parsedItem, messageHash});
         }
     }
 
@@ -1325,7 +1375,7 @@ public partial class gate : ccxt.gate
             { "orders", this.handleOrder },
             { "positions", this.handlePositions },
             { "tickers", this.handleTicker },
-            { "book_ticker", this.handleTicker },
+            { "book_ticker", this.handleBidAsk },
             { "trades", this.handleTrades },
             { "order_book_update", this.handleOrderBook },
             { "balances", this.handleBalance },

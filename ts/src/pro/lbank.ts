@@ -260,7 +260,7 @@ export default class lbank extends lbankRest {
         return await this.watch (url, messageHash, request, requestId, request);
     }
 
-    async watchTicker (symbol, params = {}): Promise<Ticker> {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name lbank#watchTicker

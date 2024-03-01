@@ -1181,6 +1181,24 @@
               "BTC/USDT:USDT"
             ]
           }
+        ],
+        "fetchDepositAddress": [
+          {
+            "description": "fetch deposit address $AI",
+            "method": "fetchDepositAddress",
+            "url": "https://api.bitget.com/api/v2/spot/wallet/deposit-address?coin=$AI",
+            "input": [
+              "$AI"
+            ]
+          },
+          {
+            "description": "fetch USDT deposit address",
+            "method": "fetchDepositAddress",
+            "url": "https://api.bitget.com/api/v2/spot/wallet/deposit-address?coin=USDT",
+            "input": [
+              "USDT"
+            ]
+          }
         ]
     }
 }

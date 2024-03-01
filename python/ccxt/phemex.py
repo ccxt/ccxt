@@ -50,6 +50,7 @@ class phemex(Exchange, ImplicitAPI):
                 'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'closePosition': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
@@ -2589,7 +2590,7 @@ class phemex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    def edit_order(self, id: str, symbol, type=None, side=None, amount=None, price=None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType = None, side: OrderSide = None, amount: float = None, price: float = None, params={}):
         """
         edit a trade order
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#amend-order-by-orderid
@@ -3743,7 +3744,7 @@ class phemex(Exchange, ImplicitAPI):
             'previousFundingDatetime': None,
         }
 
-    def set_margin(self, symbol: str, amount, params={}):
+    def set_margin(self, symbol: str, amount: float, params={}):
         """
         Either adds or reduces margin in an isolated position in order to set the margin to a specific value
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#assign-position-balance-in-isolated-marign-mode
@@ -3797,7 +3798,7 @@ class phemex(Exchange, ImplicitAPI):
             'status': self.parse_margin_status(self.safe_string(data, 'code')),
         }
 
-    def set_margin_mode(self, marginMode, symbol: Str = None, params={}):
+    def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :param str marginMode: 'cross' or 'isolated'
@@ -3825,7 +3826,7 @@ class phemex(Exchange, ImplicitAPI):
         }
         return self.privatePutPositionsLeverage(self.extend(request, params))
 
-    def set_position_mode(self, hedged, symbol: Str = None, params={}):
+    def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         """
         set hedged to True or False for a market
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#switch-position-mode-synchronously
@@ -4054,7 +4055,7 @@ class phemex(Exchange, ImplicitAPI):
             response = self.privatePutPositionsLeverage(self.extend(request, params))
         return response
 
-    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -4329,7 +4330,9 @@ class phemex(Exchange, ImplicitAPI):
         currency = self.currency(code)
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
-        networkId = self.network_code_to_id(networkCode)
+        networkId = None
+        if networkCode is not None:
+            networkId = self.network_code_to_id(networkCode)
         stableCoins = self.safe_value(self.options, 'stableCoins')
         if networkId is None:
             if not (self.in_array(code, stableCoins)):

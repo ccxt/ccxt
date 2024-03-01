@@ -2777,28 +2777,20 @@ class bitrue extends bitrue$1 {
         this.checkAddress(address);
         await this.loadMarkets();
         const currency = this.currency(code);
-        let chainName = this.safeString2(params, 'network', 'chainName');
-        if (chainName === undefined) {
-            const networks = this.safeValue(currency, 'networks', {});
-            const optionsNetworks = this.safeValue(this.options, 'networks', {});
-            let network = this.safeStringUpper(params, 'network'); // this line allows the user to specify either ERC20 or ETH
-            network = this.safeString(optionsNetworks, network, network);
-            const networkEntry = this.safeValue(networks, network, {});
-            chainName = this.safeString(networkEntry, 'id'); // handle ERC20>ETH alias
-            if (chainName === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' withdraw() requires a network parameter or a chainName parameter');
-            }
-            params = this.omit(params, 'network');
-        }
         const request = {
-            'coin': currency['id'].toUpperCase(),
+            'coin': currency['id'],
             'amount': amount,
             'addressTo': address,
-            'chainName': chainName, // 'ERC20', 'TRC20', 'SOL'
+            // 'chainName': chainName, // 'ERC20', 'TRC20', 'SOL'
             // 'addressMark': '', // mark of address
             // 'addrType': '', // type of address
             // 'tag': tag,
         };
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        if (networkCode !== undefined) {
+            request['chainName'] = this.networkCodeToId(networkCode);
+        }
         if (tag !== undefined) {
             request['tag'] = tag;
         }

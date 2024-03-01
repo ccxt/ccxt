@@ -178,6 +178,7 @@ export default class coinspot extends Exchange {
          * @method
          * @name coinspot#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://www.coinspot.com.au/api#listmybalance
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -208,6 +209,7 @@ export default class coinspot extends Exchange {
          * @method
          * @name coinspot#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://www.coinspot.com.au/api#listopenorders
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -263,6 +265,7 @@ export default class coinspot extends Exchange {
          * @method
          * @name coinspot#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://www.coinspot.com.au/api#latestprices
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -338,6 +341,7 @@ export default class coinspot extends Exchange {
          * @method
          * @name coinspot#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://www.coinspot.com.au/api#orderhistory
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -367,6 +371,7 @@ export default class coinspot extends Exchange {
          * @method
          * @name coinspot#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://www.coinspot.com.au/api#rotransaction
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -524,6 +529,8 @@ export default class coinspot extends Exchange {
          * @method
          * @name coinspot#cancelOrder
          * @description cancels an open order
+         * @see https://www.coinspot.com.au/api#cancelbuyorder
+         * @see https://www.coinspot.com.au/api#cancelsellorder
          * @param {string} id order id
          * @param {string} symbol not used by coinspot cancelOrder ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint

@@ -248,7 +248,7 @@ class lbank(ccxt.async_support.lbank):
         requestId = self.request_id()
         return await self.watch(url, messageHash, request, requestId, request)
 
-    async def watch_ticker(self, symbol, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         :see: https://www.lbank.com/en-US/docs/index.html#market
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market

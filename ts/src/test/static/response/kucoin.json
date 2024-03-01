@@ -404,6 +404,66 @@
           ]
         ]
       }
+    ],
+    "fetchLedger": [
+      {
+        "description": "fetch usdt ledger",
+        "method": "fetchLedger",
+        "input": [],
+        "httpResponse": {
+          "code": "200000",
+          "data": {
+            "currentPage": 1,
+            "pageSize": 50,
+            "totalNum": 1,
+            "totalPage": 1,
+            "items": [
+              {
+                "id": "65ca404f77c7250007b8ddd7",
+                "currency": "USDT",
+                "amount": "5",
+                "fee": "0",
+                "balance": "0",
+                "accountType": "TRADE",
+                "bizType": "Transfer",
+                "direction": "out",
+                "createdAt": 1707753551875,
+                "context": ""
+              }
+            ]
+          }
+        },
+        "parsedResponse": [
+          {
+            "id": "65ca404f77c7250007b8ddd7",
+            "direction": "out",
+            "account": "TRADE",
+            "referenceId": null,
+            "referenceAccount": "TRADE",
+            "type": "transfer",
+            "currency": "USDT",
+            "amount": 5,
+            "timestamp": 1707753551875,
+            "datetime": "2024-02-12T15:59:11.875Z",
+            "before": null,
+            "after": null,
+            "status": null,
+            "fee": null,
+            "info": {
+              "id": "65ca404f77c7250007b8ddd7",
+              "currency": "USDT",
+              "amount": "5",
+              "fee": "0",
+              "balance": "0",
+              "accountType": "TRADE",
+              "bizType": "Transfer",
+              "direction": "out",
+              "createdAt": 1707753551875,
+              "context": ""
+            }
+          }
+        ]
+      }
     ]
   }
 }

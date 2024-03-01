@@ -136,7 +136,7 @@ class bybit extends \ccxt\async\bybit {
         return $requestId;
     }
 
-    public function get_url_by_market_type(?string $symbol = null, $isPrivate = false, $method = null, $params = array ()) {
+    public function get_url_by_market_type(?string $symbol = null, $isPrivate = false, ?string $method = null, $params = array ()) {
         $accessibility = $isPrivate ? 'private' : 'public';
         $isUsdcSettled = null;
         $isSpot = null;
@@ -191,7 +191,7 @@ class bybit extends \ccxt\async\bybit {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'ticker:' . $symbol;
-            $url = $this->get_url_by_market_type($symbol, false, $params);
+            $url = $this->get_url_by_market_type($symbol, false, 'watchTicker', $params);
             $params = $this->clean_params($params);
             $options = $this->safe_value($this->options, 'watchTicker', array());
             $topic = $this->safe_string($options, 'name', 'tickers');
@@ -217,7 +217,7 @@ class bybit extends \ccxt\async\bybit {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, false);
             $messageHashes = array();
-            $url = $this->get_url_by_market_type($symbols[0], false, $params);
+            $url = $this->get_url_by_market_type($symbols[0], false, 'watchTickers', $params);
             $params = $this->clean_params($params);
             $options = $this->safe_value($this->options, 'watchTickers', array());
             $topic = $this->safe_string($options, 'name', 'tickers');
@@ -338,15 +338,29 @@ class bybit extends \ccxt\async\bybit {
         //             "price24hPcnt" => "-0.0388"
         //         }
         //     }
+        // swap delta
+        //     {
+        //         "topic":"tickers.AAVEUSDT",
+        //         "type":"delta",
+        //         "data":array(
+        //            "symbol":"AAVEUSDT",
+        //            "bid1Price":"112.89",
+        //            "bid1Size":"2.12",
+        //            "ask1Price":"112.90",
+        //            "ask1Size":"5.02"
+        //         ),
+        //         "cs":78039939929,
+        //         "ts":1709210212704
+        //     }
         //
         $topic = $this->safe_string($message, 'topic', '');
         $updateType = $this->safe_string($message, 'type', '');
-        $data = $this->safe_value($message, 'data', array());
-        $isSpot = $this->safe_string($data, 'fundingRate') === null;
+        $data = $this->safe_dict($message, 'data', array());
+        $isSpot = $this->safe_string($data, 'usdIndexPrice') !== null;
         $type = $isSpot ? 'spot' : 'contract';
         $symbol = null;
         $parsed = null;
-        if (($updateType === 'snapshot') || $isSpot) {
+        if (($updateType === 'snapshot')) {
             $parsed = $this->parse_ticker($data);
             $symbol = $parsed['symbol'];
         } elseif ($updateType === 'delta') {
@@ -356,8 +370,8 @@ class bybit extends \ccxt\async\bybit {
             $market = $this->safe_market($marketId, null, null, $type);
             $symbol = $market['symbol'];
             // update the info in place
-            $ticker = $this->safe_value($this->tickers, $symbol, array());
-            $rawTicker = $this->safe_value($ticker, 'info', array());
+            $ticker = $this->safe_dict($this->tickers, $symbol, array());
+            $rawTicker = $this->safe_dict($ticker, 'info', array());
             $merged = array_merge($rawTicker, $data);
             $parsed = $this->parse_ticker($merged);
         }
@@ -385,7 +399,7 @@ class bybit extends \ccxt\async\bybit {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $url = $this->get_url_by_market_type($symbol, false, $params);
+            $url = $this->get_url_by_market_type($symbol, false, 'watchOHLCV', $params);
             $params = $this->clean_params($params);
             $ohlcv = null;
             $timeframeId = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -507,7 +521,7 @@ class bybit extends \ccxt\async\bybit {
                 throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
             }
             $symbols = $this->market_symbols($symbols);
-            $url = $this->get_url_by_market_type($symbols[0], false, $params);
+            $url = $this->get_url_by_market_type($symbols[0], false, 'watchOrderBook', $params);
             $params = $this->clean_params($params);
             $market = $this->market($symbols[0]);
             if ($limit === null) {
@@ -642,7 +656,7 @@ class bybit extends \ccxt\async\bybit {
                 throw new ArgumentsRequired($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
             }
             $params = $this->clean_params($params);
-            $url = $this->get_url_by_market_type($symbols[0], false, $params);
+            $url = $this->get_url_by_market_type($symbols[0], false, 'watchTrades', $params);
             $topics = array();
             $messageHashes = array();
             for ($i = 0; $i < count($symbols); $i++) {

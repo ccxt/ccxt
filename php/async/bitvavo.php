@@ -578,7 +578,7 @@ class bitvavo extends Exchange {
             //         "market":"ETH-BTC",
             //         "open":"0.022578",
             //         "high":"0.023019",
-            //         "low":"0.022573",
+            //         "low":"0.022572",
             //         "last":"0.023019",
             //         "volume":"25.16366324",
             //         "volumeQuote":"0.57333305",
@@ -1234,7 +1234,7 @@ class bitvavo extends Exchange {
         return $request;
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order

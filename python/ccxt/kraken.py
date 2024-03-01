@@ -1669,7 +1669,7 @@ class kraken(Exchange, ImplicitAPI):
         params = self.omit(params, ['timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset'])
         return [request, params]
 
-    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         """
         edit a trade order
         :see: https://docs.kraken.com/rest/#tag/Trading/operation/editOrder
@@ -2597,7 +2597,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         return self.transfer(code, amount, 'spot', 'swap', params)
 
-    def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         :see: https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
         transfers currencies between sub-accounts(only spot->swap direction is supported)

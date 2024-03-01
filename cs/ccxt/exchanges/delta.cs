@@ -245,7 +245,7 @@ public partial class delta : Exchange
 
     public override object safeMarket(object marketId, object market = null, object delimiter = null, object marketType = null)
     {
-        object isOption = isTrue((!isEqual(marketId, null))) && isTrue((isTrue(isTrue(isTrue((((string)marketId).EndsWith("-C"))) || isTrue((((string)marketId).EndsWith("-P")))) || isTrue((((string)marketId).StartsWith("C-")))) || isTrue((((string)marketId).StartsWith("P-")))));
+        object isOption = isTrue((!isEqual(marketId, null))) && isTrue((isTrue(isTrue(isTrue((((string)marketId).EndsWith(((string)"-C")))) || isTrue((((string)marketId).EndsWith(((string)"-P"))))) || isTrue((((string)marketId).StartsWith(((string)"C-"))))) || isTrue((((string)marketId).StartsWith(((string)"P-"))))));
         if (isTrue(isTrue(isOption) && !isTrue((inOp(this.markets_by_id, marketId)))))
         {
             // handle expired option contracts
@@ -2597,7 +2597,7 @@ public partial class delta : Exchange
         };
     }
 
-    public async virtual Task<object> addMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
@@ -2613,7 +2613,7 @@ public partial class delta : Exchange
         return await this.modifyMarginHelper(symbol, amount, "add", parameters);
     }
 
-    public async virtual Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
@@ -2849,7 +2849,7 @@ public partial class delta : Exchange
         }, market);
     }
 
-    public async virtual Task<object> fetchLeverage(object symbol, object parameters = null)
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
         /**
         * @method

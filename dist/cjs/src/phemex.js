@@ -33,6 +33,7 @@ class phemex extends phemex$1 {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closePosition': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -4662,7 +4663,10 @@ class phemex extends phemex$1 {
         const currency = this.currency(code);
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
-        let networkId = this.networkCodeToId(networkCode);
+        let networkId = undefined;
+        if (networkCode !== undefined) {
+            networkId = this.networkCodeToId(networkCode);
+        }
         const stableCoins = this.safeValue(this.options, 'stableCoins');
         if (networkId === undefined) {
             if (!(this.inArray(code, stableCoins))) {

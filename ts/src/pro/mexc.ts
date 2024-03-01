@@ -254,7 +254,7 @@ export default class mexc extends mexcRest {
         //        "d": {
         //            "e": "spot@public.kline.v3.api",
         //            "k": {
-        //                "t": 1678642260,
+        //                "t": 1678642261,
         //                "o": 20626.94,
         //                "c": 20599.69,
         //                "h": 20626.94,
@@ -464,26 +464,27 @@ export default class mexc extends mexcRest {
         const symbol = this.safeSymbol (marketId);
         const messageHash = 'orderbook:' + symbol;
         const subscription = this.safeValue (client.subscriptions, messageHash);
+        const limit = this.safeInteger (subscription, 'limit');
         if (subscription === true) {
             // we set client.subscriptions[messageHash] to 1
             // once we have received the first delta and initialized the orderbook
             client.subscriptions[messageHash] = 1;
             this.orderbooks[symbol] = this.countedOrderBook ({});
         }
-        const storedOrderBook = this.safeValue (this.orderbooks, symbol);
+        const storedOrderBook = this.orderbooks[symbol];
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
             const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 25);
             if (cacheLength === snapshotDelay) {
-                this.spawn (this.loadOrderBook, client, messageHash, symbol);
+                this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {});
             }
             storedOrderBook.cache.push (data);
             return;
         }
         try {
             this.handleDelta (storedOrderBook, data);
-            const timestamp = this.safeInteger (message, 't');
+            const timestamp = this.safeInteger2 (message, 't', 'ts');
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601 (timestamp);
         } catch (e) {

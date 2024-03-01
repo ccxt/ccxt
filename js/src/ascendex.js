@@ -277,11 +277,14 @@ export default class ascendex extends Exchange {
                     'fillResponseFromRequest': true,
                 },
                 'networks': {
-                    'BSC': 'BEP20 (BSC)',
+                    'BSC': 'BEP20 ' + '(BSC)',
                     'ARB': 'arbitrum',
                     'SOL': 'Solana',
                     'AVAX': 'avalanche C chain',
                     'OMNI': 'Omni',
+                    'TRC': 'TRC20',
+                    'TRX': 'TRC20',
+                    'ERC': 'ERC20',
                 },
                 'networksById': {
                     'BEP20 (BSC)': 'BSC',
@@ -289,6 +292,16 @@ export default class ascendex extends Exchange {
                     'Solana': 'SOL',
                     'avalanche C chain': 'AVAX',
                     'Omni': 'OMNI',
+                    'TRC20': 'TRC20',
+                    'ERC20': 'ERC20',
+                    'GO20': 'GO20',
+                    'BEP2': 'BEP2',
+                    'Bitcoin': 'BTC',
+                    'Bitcoin ABC': 'BCH',
+                    'Litecoin': 'LTC',
+                    'Matic Network': 'MATIC',
+                    'xDai': 'STAKE',
+                    'Akash': 'AKT',
                 },
             },
             'exceptions': {
@@ -2378,8 +2391,8 @@ export default class ascendex extends Exchange {
         const tag = this.safeString(depositAddress, tagId);
         this.checkAddress(address);
         const code = (currency === undefined) ? undefined : currency['code'];
-        const chainName = this.safeString(depositAddress, 'chainName');
-        const network = this.safeNetwork(chainName);
+        const chainName = this.safeString(depositAddress, 'blockchain');
+        const network = this.networkIdToCode(chainName, code);
         return {
             'currency': code,
             'address': address,
@@ -2389,20 +2402,7 @@ export default class ascendex extends Exchange {
         };
     }
     safeNetwork(networkId) {
-        const networksById = {
-            'TRC20': 'TRC20',
-            'ERC20': 'ERC20',
-            'GO20': 'GO20',
-            'BEP2': 'BEP2',
-            'BEP20 (BSC)': 'BEP20',
-            'Bitcoin': 'BTC',
-            'Bitcoin ABC': 'BCH',
-            'Litecoin': 'LTC',
-            'Matic Network': 'MATIC',
-            'Solana': 'SOL',
-            'xDai': 'STAKE',
-            'Akash': 'AKT',
-        };
+        const networksById = this.safeDict(this.options, 'networksById');
         return this.safeString(networksById, networkId, networkId);
     }
     async fetchDepositAddress(code, params = {}) {
@@ -2410,16 +2410,20 @@ export default class ascendex extends Exchange {
          * @method
          * @name ascendex#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://ascendex.github.io/ascendex-pro-api/#query-deposit-addresses
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.network] unified network code for deposit chain
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
-        const chainName = this.safeString(params, 'chainName');
-        params = this.omit(params, 'chainName');
+        const networkCode = this.safeString2(params, 'network', 'chainName');
+        const networkId = this.networkCodeToId(networkCode);
+        params = this.omit(params, ['chainName']);
         const request = {
             'asset': currency['id'],
+            'blockchain': networkId,
         };
         const response = await this.v1PrivateGetWalletDepositAddress(this.extend(request, params));
         //
@@ -2455,22 +2459,22 @@ export default class ascendex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        const addresses = this.safeValue(data, 'address', []);
+        const data = this.safeDict(response, 'data', {});
+        const addresses = this.safeList(data, 'address', []);
         const numAddresses = addresses.length;
         let address = undefined;
         if (numAddresses > 1) {
             const addressesByChainName = this.indexBy(addresses, 'chainName');
-            if (chainName === undefined) {
+            if (networkId === undefined) {
                 const chainNames = Object.keys(addressesByChainName);
                 const chains = chainNames.join(', ');
                 throw new ArgumentsRequired(this.id + ' fetchDepositAddress() returned more than one address, a chainName parameter is required, one of ' + chains);
             }
-            address = this.safeValue(addressesByChainName, chainName, {});
+            address = this.safeDict(addressesByChainName, networkId, {});
         }
         else {
             // first address
-            address = this.safeValue(addresses, 0, {});
+            address = this.safeDict(addresses, 0, {});
         }
         const result = this.parseDepositAddress(address, currency);
         return this.extend(result, {

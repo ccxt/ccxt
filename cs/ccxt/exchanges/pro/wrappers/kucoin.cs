@@ -121,6 +121,10 @@ public partial class kucoin
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -132,6 +136,12 @@ public partial class kucoin
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
     /// </description>
     /// </item>
     /// </list>
@@ -147,6 +157,10 @@ public partial class kucoin
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -158,6 +172,12 @@ public partial class kucoin
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
     /// </description>
     /// </item>
     /// </list>

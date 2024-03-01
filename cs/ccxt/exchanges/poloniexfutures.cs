@@ -1484,7 +1484,7 @@ public partial class poloniexfutures : Exchange
         return await this.fetchOrdersByStatus("closed", symbol, since, limit, parameters);
     }
 
-    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<object> fetchOrder(object id = null, object symbol = null, object parameters = null)
     {
         /**
         * @method
@@ -1814,14 +1814,14 @@ public partial class poloniexfutures : Exchange
         return this.parseTrades(trades, market, since, limit);
     }
 
-    public async virtual Task<object> setMarginMode(object marginMode, object symbol, object parameters = null)
+    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
     {
         /**
         * @method
         * @name poloniexfutures#setMarginMode
         * @description set margin mode to 'cross' or 'isolated'
         * @see https://futures-docs.poloniex.com/#change-margin-mode
-        * @param {int} marginMode 0 (isolated) or 1 (cross)
+        * @param {string} marginMode "0" (isolated) or "1" (cross)
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} response from the exchange
@@ -1831,15 +1831,23 @@ public partial class poloniexfutures : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a symbol argument")) ;
         }
-        if (isTrue(isTrue((!isEqual(marginMode, 0))) && isTrue((!isEqual(marginMode, 1)))))
+        if (isTrue(isTrue(isTrue(isTrue((!isEqual(marginMode, "0"))) && isTrue((!isEqual(marginMode, "1")))) && isTrue((!isEqual(marginMode, "isolated")))) && isTrue((!isEqual(marginMode, "cross")))))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() marginMode must be 0 (isolated) or 1 (cross)")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() marginMode must be 0/isolated or 1/cross")) ;
         }
         await this.loadMarkets();
+        if (isTrue(isEqual(marginMode, "isolated")))
+        {
+            marginMode = "0";
+        }
+        if (isTrue(isEqual(marginMode, "cross")))
+        {
+            marginMode = "1";
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "marginType", marginMode },
+            { "marginType", this.parseToInt(marginMode) },
         };
         return await this.privatePostMarginTypeChange(request);
     }

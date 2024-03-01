@@ -181,7 +181,7 @@ public partial class poloniex : ccxt.poloniex
         */
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
-        object messageHash = this.nonce();
+        object messageHash = ((object)this.nonce()).ToString();
         object subscribe = new Dictionary<string, object>() {
             { "id", messageHash },
             { "event", name },

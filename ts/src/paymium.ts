@@ -349,7 +349,7 @@ export default class paymium extends Exchange {
         return this.parseDepositAddress (response);
     }
 
-    async fetchDepositAddresses (codes = undefined, params = {}) {
+    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name paymium#fetchDepositAddresses
@@ -444,7 +444,7 @@ export default class paymium extends Exchange {
         return await this.privateDeleteUserOrdersUuidCancel (this.extend (request, params));
     }
 
-    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name paymium#transfer

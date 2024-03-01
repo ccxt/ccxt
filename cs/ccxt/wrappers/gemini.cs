@@ -29,6 +29,7 @@ public partial class gemini
     /// retrieves data on all markets for gemini
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.gemini.com/rest-api/#symbols"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -63,6 +64,7 @@ public partial class gemini
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.gemini.com/rest-api/#current-order-book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -104,6 +106,8 @@ public partial class gemini
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.gemini.com/rest-api/#ticker"/>  <br/>
+    /// See <see href="https://docs.gemini.com/rest-api/#ticker-v2"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -129,6 +133,7 @@ public partial class gemini
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.gemini.com/rest-api/#price-feed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -182,6 +187,7 @@ public partial class gemini
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.gemini.com/rest-api/#get-notional-volume"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -201,6 +207,7 @@ public partial class gemini
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.gemini.com/rest-api/#get-available-balances"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -220,6 +227,7 @@ public partial class gemini
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.gemini.com/rest-api/#order-status"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -239,6 +247,7 @@ public partial class gemini
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.gemini.com/rest-api/#get-active-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -299,6 +308,7 @@ public partial class gemini
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.gemini.com/rest-api/#cancel-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -318,6 +328,7 @@ public partial class gemini
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.gemini.com/rest-api/#get-past-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -351,6 +362,7 @@ public partial class gemini
     /// make a withdrawal
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.gemini.com/rest-api/#withdraw-crypto-funds"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -370,6 +382,7 @@ public partial class gemini
     /// fetch history of deposits and withdrawals
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.gemini.com/rest-api/#transfers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -461,6 +474,7 @@ public partial class gemini
     /// create a currency deposit address
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.gemini.com/rest-api/#new-deposit-address"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -480,6 +494,7 @@ public partial class gemini
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.gemini.com/rest-api/#candles"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

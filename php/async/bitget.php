@@ -2423,7 +2423,10 @@ class bitget extends Exchange {
             Async\await($this->load_markets());
             $networkCode = $this->safe_string_2($params, 'chain', 'network');
             $params = $this->omit($params, 'network');
-            $networkId = $this->network_code_to_id($networkCode, $code);
+            $networkId = null;
+            if ($networkCode !== null) {
+                $networkId = $this->network_code_to_id($networkCode, $code);
+            }
             $currency = $this->currency($code);
             $request = array(
                 'coin' => $currency['code'],
@@ -2464,11 +2467,15 @@ class bitget extends Exchange {
         $currencyId = $this->safe_string($depositAddress, 'coin');
         $networkId = $this->safe_string($depositAddress, 'chain');
         $parsedCurrency = $this->safe_currency_code($currencyId, $currency);
+        $network = null;
+        if ($networkId !== null) {
+            $network = $this->network_id_to_code($networkId, $parsedCurrency);
+        }
         return array(
             'currency' => $parsedCurrency,
             'address' => $this->safe_string($depositAddress, 'address'),
             'tag' => $this->safe_string($depositAddress, 'tag'),
-            'network' => $this->network_id_to_code($networkId, $parsedCurrency),
+            'network' => $network,
             'info' => $depositAddress,
         );
     }
@@ -3573,6 +3580,7 @@ class bitget extends Exchange {
             'not_trigger' => 'open',
             'partial_fill' => 'open',
             'partially_fill' => 'open',
+            'partially_filled' => 'open',
             'triggered' => 'closed',
             'full_fill' => 'closed',
             'filled' => 'closed',
@@ -3936,6 +3944,13 @@ class bitget extends Exchange {
             $size = $this->safe_string($order, 'size');
             $filled = $this->safe_string($order, 'baseVolume');
         }
+        $side = $this->safe_string($order, 'side');
+        $posMode = $this->safe_string($order, 'posMode');
+        if ($posMode === 'hedge_mode' && $reduceOnly) {
+            $side = ($side === 'buy') ? 'sell' : 'buy';
+            // on bitget hedge mode if the position is long the $side is always buy, and if the position is short the $side is always sell
+            // so the $side of the $reduceOnly $order is inversed
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string_2($order, 'orderId', 'data'),
@@ -3946,7 +3961,7 @@ class bitget extends Exchange {
             'lastUpdateTimestamp' => $updateTimestamp,
             'symbol' => $market['symbol'],
             'type' => $this->safe_string($order, 'orderType'),
-            'side' => $this->safe_string($order, 'side'),
+            'side' => $side,
             'price' => $price,
             'amount' => $size,
             'cost' => $this->safe_string_2($order, 'quoteVolume', 'quoteSize'),
@@ -3966,7 +3981,7 @@ class bitget extends Exchange {
         ), $market);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a $market buy order by providing the $symbol and $cost
@@ -4391,7 +4406,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -4445,7 +4460,7 @@ class bitget extends Exchange {
             $takeProfit = $this->safe_value($params, 'takeProfit');
             $isStopLoss = $stopLoss !== null;
             $isTakeProfit = $takeProfit !== null;
-            $trailingTriggerPrice = $this->safe_string($params, 'trailingTriggerPrice', $price);
+            $trailingTriggerPrice = $this->safe_string($params, 'trailingTriggerPrice', $this->number_to_string($price));
             $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'newCallbackRatio');
             $isTrailingPercentOrder = $trailingPercent !== null;
             if ($this->sum($isTriggerOrder, $isStopLossOrder, $isTakeProfitOrder, $isTrailingPercentOrder) > 1) {
@@ -6910,7 +6925,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
              * set margin mode to 'cross' or 'isolated'
@@ -6966,7 +6981,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function set_position_mode($hedged, ?string $symbol = null, $params = array ()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($hedged, $symbol, $params) {
             /**
              * set $hedged to true or false for a $market
@@ -7145,7 +7160,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): PromiseInterface {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -8221,6 +8236,10 @@ class bitget extends Exchange {
             } else {
                 if ($params) {
                     $queryInner = '?' . $this->urlencode($this->keysort($params));
+                    // check #21169 pr
+                    if (mb_strpos($queryInner, '%24') > -1) {
+                        $queryInner = str_replace('%24', '$', $queryInner);
+                    }
                     $url .= $queryInner;
                     $auth .= $queryInner;
                 }

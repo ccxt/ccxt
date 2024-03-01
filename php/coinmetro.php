@@ -1157,7 +1157,8 @@ class coinmetro extends Exchange {
         }
         $type = null;
         $referenceId = null;
-        if (strlen($descriptionArray) > 1) {
+        $length = count($descriptionArray);
+        if ($length > 1) {
             $type = $this->parse_ledger_entry_type($descriptionArray[0]);
             if ($descriptionArray[1] !== '-') {
                 $referenceId = $descriptionArray[1];

@@ -26,6 +26,7 @@ public partial class phemex : Exchange
                 { "addMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
+                { "closePosition", false },
                 { "createOrder", true },
                 { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", true },
@@ -4252,7 +4253,7 @@ public partial class phemex : Exchange
         };
     }
 
-    public async virtual Task<object> setMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> setMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
@@ -4315,7 +4316,7 @@ public partial class phemex : Exchange
         };
     }
 
-    public async virtual Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
     {
         /**
         * @method
@@ -4358,7 +4359,7 @@ public partial class phemex : Exchange
         return await this.privatePutPositionsLeverage(this.extend(request, parameters));
     }
 
-    public async virtual Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
+    public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
         /**
         * @method
@@ -4996,7 +4997,11 @@ public partial class phemex : Exchange
         var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
-        object networkId = this.networkCodeToId(networkCode);
+        object networkId = null;
+        if (isTrue(!isEqual(networkCode, null)))
+        {
+            networkId = this.networkCodeToId(networkCode);
+        }
         object stableCoins = this.safeValue(this.options, "stableCoins");
         if (isTrue(isEqual(networkId, null)))
         {

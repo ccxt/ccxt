@@ -171,7 +171,7 @@ class cex extends cex$1 {
             stored.append(parsed);
         }
         const messageHash = 'trades';
-        this.trades = stored;
+        this.trades = stored; // trades don't have symbol
         client.resolve(this.trades, messageHash);
     }
     parseWsOldTrade(trade, market = undefined) {
@@ -185,7 +185,7 @@ class cex extends cex$1 {
             trade = trade.split(':');
         }
         const side = this.safeString(trade, 0);
-        const timestamp = this.safeNumber(trade, 1);
+        const timestamp = this.safeInteger(trade, 1);
         const amount = this.safeString(trade, 2);
         const price = this.safeString(trade, 3);
         const id = this.safeString(trade, 4);
@@ -215,7 +215,7 @@ class cex extends cex$1 {
         //     }
         //
         const data = this.safeValue(message, 'data', []);
-        const stored = this.trades;
+        const stored = this.trades; // to do fix this, this.trades is not meant to be used like this
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
             const parsed = this.parseWsOldTrade(rawTrade);
@@ -1088,7 +1088,10 @@ class cex extends cex$1 {
         for (let i = 0; i < sorted.length; i++) {
             stored.append(this.parseOHLCV(sorted[i], market));
         }
-        this.ohlcvs[symbol] = stored;
+        if (!(symbol in this.ohlcvs)) {
+            this.ohlcvs[symbol] = {};
+        }
+        this.ohlcvs[symbol]['unknown'] = stored;
         client.resolve(stored, messageHash);
     }
     handleOHLCV24(client, message) {
@@ -1147,7 +1150,8 @@ class cex extends cex$1 {
         const pair = this.safeString(message, 'pair');
         const symbol = this.pairToSymbol(pair);
         const messageHash = 'ohlcv:' + symbol;
-        const stored = this.safeValue(this.ohlcvs, symbol);
+        // const stored = this.safeValue (this.ohlcvs, symbol);
+        const stored = this.ohlcvs[symbol]['unknown'];
         for (let i = 0; i < data.length; i++) {
             const ohlcv = [
                 this.safeTimestamp(data[i], 0),

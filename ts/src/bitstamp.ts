@@ -350,6 +350,14 @@ export default class bitstamp extends Exchange {
                         'eurcv_address/': 1,
                         'pyusd_withdrawal/': 1,
                         'pyusd_address/': 1,
+                        'lmwr_withdrawal/': 1,
+                        'lmwr_address/': 1,
+                        'pepe_withdrawal/': 1,
+                        'pepe_address/': 1,
+                        'blur_withdrawal/': 1,
+                        'blur_address/': 1,
+                        'vext_withdrawal/': 1,
+                        'vext_address/': 1,
                     },
                 },
             },
@@ -454,6 +462,7 @@ export default class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchMarkets
          * @description retrieves data on all markets for bitstamp
+         * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetTradingPairsInfo
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -600,6 +609,7 @@ export default class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetTradingPairsInfo
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -649,6 +659,7 @@ export default class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://www.bitstamp.net/api/#tag/Order-book/operation/GetOrderBook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -736,6 +747,7 @@ export default class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://www.bitstamp.net/api/#tag/Tickers/operation/GetMarketTicker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -769,7 +781,7 @@ export default class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://www.bitstamp.net/api/#all-tickers
+         * @see https://www.bitstamp.net/api/#tag/Tickers/operation/GetCurrencyPairTickers
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -825,7 +837,7 @@ export default class bitstamp extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             if (id.indexOf ('_') < 0) {
-                const value = this.safeNumber (transaction, id);
+                const value = this.safeInteger (transaction, id);
                 if ((value !== undefined) && (value !== 0)) {
                     return id;
                 }
@@ -998,6 +1010,7 @@ export default class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://www.bitstamp.net/api/#tag/Transactions-public/operation/GetTransactions
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -1134,6 +1147,7 @@ export default class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://www.bitstamp.net/api/#tag/Account-balances/operation/GetAccountBalances
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -1165,6 +1179,7 @@ export default class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchTradingFee
          * @description fetch the trading fees for a market
+         * @see https://www.bitstamp.net/api/#tag/Fees/operation/GetAllTradingFees
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -1208,6 +1223,7 @@ export default class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://www.bitstamp.net/api/#tag/Fees/operation/GetAllTradingFees
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
@@ -1216,7 +1232,7 @@ export default class bitstamp extends Exchange {
         return this.parseTradingFees (response);
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchTransactionFees
@@ -1286,7 +1302,7 @@ export default class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
-         * @see https://www.bitstamp.net/api/#balance
+         * @see https://www.bitstamp.net/api/#tag/Fees/operation/GetAllWithdrawalFees
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -1417,6 +1433,7 @@ export default class bitstamp extends Exchange {
          * @method
          * @name bitstamp#cancelOrder
          * @description cancels an open order
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrder
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1434,6 +1451,8 @@ export default class bitstamp extends Exchange {
          * @method
          * @name bitstamp#cancelAllOrders
          * @description cancel all open orders
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelAllOrders
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrdersForMarket
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1481,6 +1500,7 @@ export default class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/GetOrderStatus
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1525,6 +1545,8 @@ export default class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
+         * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactionsForMarket
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -1553,6 +1575,7 @@ export default class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchDepositsWithdrawals
          * @description fetch history of deposits and withdrawals
+         * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
          * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -1604,6 +1627,7 @@ export default class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://www.bitstamp.net/api/#tag/Withdrawals/operation/GetWithdrawalRequests
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -1971,6 +1995,7 @@ export default class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
@@ -1995,6 +2020,8 @@ export default class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/GetAllOpenOrders
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/GetOpenOrdersForMarket
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -2045,6 +2072,7 @@ export default class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://www.bitstamp.net/api/#tag/Deposits/operation/GetCryptoDepositAddress
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -2072,6 +2100,8 @@ export default class bitstamp extends Exchange {
          * @method
          * @name bitstamp#withdraw
          * @description make a withdrawal
+         * @see https://www.bitstamp.net/api/#tag/Withdrawals/operation/RequestFiatWithdrawal
+         * @see https://www.bitstamp.net/api/#tag/Withdrawals/operation/RequestCryptoWithdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to

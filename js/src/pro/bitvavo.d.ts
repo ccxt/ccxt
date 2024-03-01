@@ -23,7 +23,7 @@ export default class bitvavo extends bitvavoRest {
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
-    editOrderWs(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
+    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
     cancelOrderWs(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrdersWs(symbol?: string, params?: {}): Promise<any>;
     handleMultipleOrders(client: Client, message: any): void;

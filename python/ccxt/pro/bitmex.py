@@ -67,17 +67,9 @@ class bitmex(ccxt.async_support.bitmex):
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
-        market = self.market(symbol)
-        name = 'instrument'
-        messageHash = name + ':' + market['id']
-        url = self.urls['api']['ws']
-        request = {
-            'op': 'subscribe',
-            'args': [
-                messageHash,
-            ],
-        }
-        return await self.watch(url, messageHash, self.extend(request, params), messageHash)
+        symbol = self.symbol(symbol)
+        tickers = await self.watch_tickers([symbol], params)
+        return tickers[symbol]
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
@@ -91,22 +83,24 @@ class bitmex(ccxt.async_support.bitmex):
         name = 'instrument'
         url = self.urls['api']['ws']
         messageHashes = []
+        rawSubscriptions = []
         if symbols is not None:
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
                 market = self.market(symbol)
-                hash = name + ':' + market['id']
-                messageHashes.append(hash)
+                subscription = name + ':' + market['id']
+                rawSubscriptions.append(subscription)
+                messageHash = 'ticker:' + symbol
+                messageHashes.append(messageHash)
         else:
-            messageHashes.append(name)
+            rawSubscriptions.append(name)
+            messageHashes.append('alltickers')
         request = {
             'op': 'subscribe',
-            'args': messageHashes,
+            'args': rawSubscriptions,
         }
-        ticker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
+        ticker = await self.watch_multiple(url, messageHashes, self.extend(request, params), rawSubscriptions)
         if self.newUpdates:
-            if symbols is None:
-                return ticker
             result = {}
             result[ticker['symbol']] = ticker
             return result
@@ -339,22 +333,21 @@ class bitmex(ccxt.async_support.bitmex):
         #         ]
         #     }
         #
-        table = self.safe_string(message, 'table')
         data = self.safe_list(message, 'data', [])
         tickers = {}
         for i in range(0, len(data)):
             update = data[i]
             marketId = self.safe_string(update, 'symbol')
-            market = self.safe_market(marketId)
-            symbol = market['symbol']
-            messageHash = table + ':' + marketId
-            ticker = self.safe_dict(self.tickers, symbol, {})
-            info = self.safe_dict(ticker, 'info', {})
-            ticker = self.parse_ticker(self.extend(info, update), market)
-            tickers[symbol] = ticker
-            self.tickers[symbol] = ticker
-            client.resolve(ticker, messageHash)
-        client.resolve(tickers, 'instrument')
+            symbol = self.safe_symbol(marketId)
+            if not (symbol in self.tickers):
+                self.tickers[symbol] = self.parse_ticker({})
+            updatedTicker = self.parse_ticker(update)
+            fullParsedTicker = self.deep_extend(self.tickers[symbol], updatedTicker)
+            tickers[symbol] = fullParsedTicker
+            self.tickers[symbol] = fullParsedTicker
+            messageHash = 'ticker:' + symbol
+            client.resolve(fullParsedTicker, messageHash)
+            client.resolve(fullParsedTicker, 'alltickers')
         return message
 
     async def watch_balance(self, params={}) -> Balances:
@@ -1285,7 +1278,7 @@ class bitmex(ccxt.async_support.bitmex):
             messageHash = table + ':' + market['id']
             result = [
                 self.parse8601(self.safe_string(candle, 'timestamp')) - duration * 1000,
-                self.safe_float(candle, 'open'),
+                None,  # set open price to None, see: https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862
                 self.safe_float(candle, 'high'),
                 self.safe_float(candle, 'low'),
                 self.safe_float(candle, 'close'),

@@ -388,12 +388,15 @@ class coinex(ccxt.async_support.coinex):
         keys = list(self.ohlcvs.keys())
         keysLength = len(keys)
         if keysLength == 0:
+            self.ohlcvs['unknown'] = {}
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-            self.ohlcvs = ArrayCacheByTimestamp(limit)
+            stored = ArrayCacheByTimestamp(limit)
+            self.ohlcvs['unknown']['unknown'] = stored
+        ohlcv = self.ohlcvs['unknown']['unknown']
         for i in range(0, len(ohlcvs)):
             candle = ohlcvs[i]
-            self.ohlcvs.append(candle)
-        client.resolve(self.ohlcvs, messageHash)
+            ohlcv.append(candle)
+        client.resolve(ohlcv, messageHash)
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
@@ -554,7 +557,7 @@ class coinex(ccxt.async_support.coinex):
             limit = ohlcvs.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcvs, since, limit, 0)
 
-    async def fetch_ohlcv_ws(self, symbol, timeframe='1m', since=None, limit=None, params={}) -> List[list]:
+    async def fetch_ohlcv_ws(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket005_kline_query
         query historical candlestick data containing the open, high, low, and close price, and the volume of a market

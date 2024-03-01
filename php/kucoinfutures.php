@@ -1594,7 +1594,7 @@ class kucoinfutures extends kucoin {
         return $this->fetch_orders_by_status('done', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_order($id = null, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(?string $id = null, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @see https://docs.kucoin.com/futures/#get-details-of-a-single-order
@@ -1903,7 +1903,7 @@ class kucoinfutures extends kucoin {
         return $this->parse_balance($response);
     }
 
-    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code

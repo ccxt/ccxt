@@ -10,6 +10,16 @@
                 "url": "https://api.coinbase.com/v2/time",
                 "input": [
                 ]
+            },
+            {
+                "description": "fetch time - v3",
+                "method": "fetchTime",
+                "url": "https://api.coinbase.com/api/v3/brokerage/time",
+                "input": [
+                    {
+                        "method":"v3PublicGetBrokerageTime"
+                    }
+                ]
             }
         ],
         "createOrder": [
@@ -114,6 +124,22 @@
                   }
                 ],
                 "output": "{\"client_order_id\":\"c6449e15-78c0-4ff8-a603-2047c131faa3\",\"product_id\":\"BTC-USDC\",\"side\":\"BUY\",\"order_configuration\":{\"market_market_ioc\":{\"quote_size\":\"5\"}}}"
+            },
+            {
+                "description": "create preview/test order",
+                "method": "createOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders/preview",
+                "input": [
+                  "DOGE/USDT",
+                  "limit",
+                  "buy",
+                  10,
+                  0.05,
+                  {
+                    "preview": true
+                  }
+                ],
+                "output": "{\"product_id\":\"DOGE-USDT\",\"side\":\"BUY\",\"order_configuration\":{\"limit_limit_gtc\":{\"base_size\":\"10\",\"limit_price\":\"0.05\",\"post_only\":false}}}"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -132,7 +158,7 @@
             {
                 "description": "Fetch spot Balance",
                 "method": "fetchBalance",
-                "url": "https://api.coinbase.com/v2/accounts?limit=250&type=spot",
+                "url": "https://api.coinbase.com/v2/accounts?limit=100",
                 "input": [
                     {
                         "type": "spot"
@@ -152,7 +178,7 @@
             {
                 "description": "Fetch swap Balance",
                 "method": "fetchBalance",
-                "url": "https://api.coinbase.com/v2/accounts?limit=250&type=swap",
+                "url": "https://api.coinbase.com/v2/accounts?limit=100",
                 "input": [
                     {
                         "type": "swap"
@@ -179,8 +205,8 @@
                 "input": [
                     "9fd0cadc-2ccc-45e8-b254-ea511c34e5b2",
                     "DOGE-USDT",
-                    null,
-                    null,
+                    "",
+                    "",
                     20,
                     0.08
                 ],

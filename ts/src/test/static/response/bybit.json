@@ -61,6 +61,7 @@
     "fetchOrder": [
       {
         "description": "fetch spot buy closed order",
+        "disabled": true,
         "method": "fetchOrder",
         "input": [
           "1609602210852247040",
@@ -206,6 +207,7 @@
       {
         "description": "Spot sell closed order",
         "method": "fetchOrder",
+        "disabled": true,
         "input": [
           "1609604284784580096",
           "XRP/USDT"
@@ -342,6 +344,300 @@
           "fees": [
             {
               "cost": 0.0658173,
+              "currency": "USDT"
+            }
+          ]
+        }
+      }
+    ],
+    "fetchOpenOrder": [
+      {
+        "description": "spot open order",
+        "method": "fetchOpenOrder",
+        "input": [
+          "1620421817225451008",
+          "LTC/USDT"
+        ],
+        "httpResponse": {
+          "retCode": "0",
+          "retMsg": "OK",
+          "result": {
+            "nextPageCursor": "1620421817225451008%3A1707905333604%2C1620421817225451008%3A1707905333604",
+            "category": "spot",
+            "list": [
+              {
+                "symbol": "LTCUSDT",
+                "orderType": "Limit",
+                "orderLinkId": "1620421817225451009",
+                "slLimitPrice": "0",
+                "orderId": "1620421817225451008",
+                "cancelType": "UNKNOWN",
+                "avgPrice": "0.000",
+                "stopOrderType": "",
+                "lastPriceOnCreated": "",
+                "orderStatus": "New",
+                "takeProfit": "0",
+                "cumExecValue": "0.0000000",
+                "smpType": "None",
+                "triggerDirection": "0",
+                "blockTradeId": "",
+                "isLeverage": "0",
+                "rejectReason": "EC_NoError",
+                "price": "50.000",
+                "orderIv": "",
+                "createdTime": "1707905333604",
+                "tpTriggerBy": "",
+                "positionIdx": "0",
+                "timeInForce": "GTC",
+                "leavesValue": "15.0000000",
+                "updatedTime": "1707905333608",
+                "side": "Buy",
+                "smpGroup": "0",
+                "triggerPrice": "0.000",
+                "tpLimitPrice": "0",
+                "cumExecFee": "0",
+                "leavesQty": "0.30000",
+                "slTriggerBy": "",
+                "closeOnTrigger": false,
+                "placeType": "",
+                "cumExecQty": "0.00000",
+                "reduceOnly": false,
+                "qty": "0.30000",
+                "stopLoss": "0",
+                "marketUnit": "",
+                "smpOrderId": "",
+                "triggerBy": "",
+                "nextPageCursor": "1620421817225451008%3A1707905333604%2C1620421817225451008%3A1707905333604"
+              }
+            ]
+          },
+          "retExtInfo": {},
+          "time": "1707905721940"
+        },
+        "parsedResponse": {
+          "info": {
+            "symbol": "LTCUSDT",
+            "orderType": "Limit",
+            "orderLinkId": "1620421817225451009",
+            "slLimitPrice": "0",
+            "orderId": "1620421817225451008",
+            "cancelType": "UNKNOWN",
+            "avgPrice": "0.000",
+            "stopOrderType": "",
+            "lastPriceOnCreated": "",
+            "orderStatus": "New",
+            "takeProfit": "0",
+            "cumExecValue": "0.0000000",
+            "smpType": "None",
+            "triggerDirection": "0",
+            "blockTradeId": "",
+            "isLeverage": "0",
+            "rejectReason": "EC_NoError",
+            "price": "50.000",
+            "orderIv": "",
+            "createdTime": "1707905333604",
+            "tpTriggerBy": "",
+            "positionIdx": "0",
+            "timeInForce": "GTC",
+            "leavesValue": "15.0000000",
+            "updatedTime": "1707905333608",
+            "side": "Buy",
+            "smpGroup": "0",
+            "triggerPrice": "0.000",
+            "tpLimitPrice": "0",
+            "cumExecFee": "0",
+            "leavesQty": "0.30000",
+            "slTriggerBy": "",
+            "closeOnTrigger": false,
+            "placeType": "",
+            "cumExecQty": "0.00000",
+            "reduceOnly": false,
+            "qty": "0.30000",
+            "stopLoss": "0",
+            "marketUnit": "",
+            "smpOrderId": "",
+            "triggerBy": "",
+            "nextPageCursor": "1620421817225451008%3A1707905333604%2C1620421817225451008%3A1707905333604"
+          },
+          "id": "1620421817225451008",
+          "clientOrderId": "1620421817225451009",
+          "timestamp": 1707905333604,
+          "datetime": "2024-02-14T10:08:53.604Z",
+          "lastTradeTimestamp": 1707905333608,
+          "lastUpdateTimestamp": 1707905333608,
+          "symbol": "LTC/USDT",
+          "type": "limit",
+          "timeInForce": "GTC",
+          "postOnly": false,
+          "reduceOnly": false,
+          "side": "buy",
+          "price": 50,
+          "stopPrice": null,
+          "triggerPrice": null,
+          "takeProfitPrice": null,
+          "stopLossPrice": null,
+          "amount": 0.3,
+          "cost": 0,
+          "average": null,
+          "filled": 0,
+          "remaining": 0.3,
+          "status": "open",
+          "fee": {
+            "cost": "0",
+            "currency": "USDT"
+          },
+          "trades": [],
+          "fees": [
+            {
+              "cost": 0,
+              "currency": "USDT"
+            }
+          ]
+        }
+      }
+    ],
+    "fetchClosedOrder": [
+      {
+        "description": "swap closed order",
+        "method": "fetchClosedOrder",
+        "input": [
+          "01462c4c-5765-4b21-a137-316bb404401d",
+          "LTC/USDT:USDT"
+        ],
+        "httpResponse": {
+          "retCode": "0",
+          "retMsg": "OK",
+          "result": {
+            "nextPageCursor": "01462c4c-5765-4b21-a137-316bb404401d%3A1707905807328%2C01462c4c-5765-4b21-a137-316bb404401d%3A1707905807328",
+            "category": "linear",
+            "list": [
+              {
+                "symbol": "LTCUSDT",
+                "orderType": "Market",
+                "orderLinkId": "",
+                "slLimitPrice": "0",
+                "orderId": "01462c4c-5765-4b21-a137-316bb404401d",
+                "cancelType": "UNKNOWN",
+                "avgPrice": "70.17",
+                "stopOrderType": "",
+                "lastPriceOnCreated": "70.14",
+                "orderStatus": "Filled",
+                "createType": "CreateByUser",
+                "takeProfit": "",
+                "cumExecValue": "7.017",
+                "tpslMode": "",
+                "smpType": "None",
+                "triggerDirection": "0",
+                "blockTradeId": "",
+                "rejectReason": "EC_NoError",
+                "isLeverage": "",
+                "price": "73.64",
+                "orderIv": "",
+                "createdTime": "1707905807328",
+                "tpTriggerBy": "",
+                "positionIdx": "0",
+                "timeInForce": "IOC",
+                "leavesValue": "0",
+                "updatedTime": "1707905807330",
+                "side": "Buy",
+                "smpGroup": "0",
+                "triggerPrice": "",
+                "tpLimitPrice": "0",
+                "cumExecFee": "0.00385935",
+                "slTriggerBy": "",
+                "leavesQty": "0",
+                "closeOnTrigger": false,
+                "placeType": "",
+                "cumExecQty": "0.1",
+                "reduceOnly": false,
+                "qty": "0.1",
+                "stopLoss": "",
+                "smpOrderId": "",
+                "triggerBy": "",
+                "nextPageCursor": "01462c4c-5765-4b21-a137-316bb404401d%3A1707905807328%2C01462c4c-5765-4b21-a137-316bb404401d%3A1707905807328"
+              }
+            ]
+          },
+          "retExtInfo": {},
+          "time": "1707905849583"
+        },
+        "parsedResponse": {
+          "info": {
+            "symbol": "LTCUSDT",
+            "orderType": "Market",
+            "orderLinkId": "",
+            "slLimitPrice": "0",
+            "orderId": "01462c4c-5765-4b21-a137-316bb404401d",
+            "cancelType": "UNKNOWN",
+            "avgPrice": "70.17",
+            "stopOrderType": "",
+            "lastPriceOnCreated": "70.14",
+            "orderStatus": "Filled",
+            "createType": "CreateByUser",
+            "takeProfit": "",
+            "cumExecValue": "7.017",
+            "tpslMode": "",
+            "smpType": "None",
+            "triggerDirection": "0",
+            "blockTradeId": "",
+            "rejectReason": "EC_NoError",
+            "isLeverage": "",
+            "price": "73.64",
+            "orderIv": "",
+            "createdTime": "1707905807328",
+            "tpTriggerBy": "",
+            "positionIdx": "0",
+            "timeInForce": "IOC",
+            "leavesValue": "0",
+            "updatedTime": "1707905807330",
+            "side": "Buy",
+            "smpGroup": "0",
+            "triggerPrice": "",
+            "tpLimitPrice": "0",
+            "cumExecFee": "0.00385935",
+            "slTriggerBy": "",
+            "leavesQty": "0",
+            "closeOnTrigger": false,
+            "placeType": "",
+            "cumExecQty": "0.1",
+            "reduceOnly": false,
+            "qty": "0.1",
+            "stopLoss": "",
+            "smpOrderId": "",
+            "triggerBy": "",
+            "nextPageCursor": "01462c4c-5765-4b21-a137-316bb404401d%3A1707905807328%2C01462c4c-5765-4b21-a137-316bb404401d%3A1707905807328"
+          },
+          "id": "01462c4c-5765-4b21-a137-316bb404401d",
+          "clientOrderId": null,
+          "timestamp": 1707905807328,
+          "datetime": "2024-02-14T10:16:47.328Z",
+          "lastTradeTimestamp": 1707905807330,
+          "lastUpdateTimestamp": 1707905807330,
+          "symbol": "LTC/USDT:USDT",
+          "type": "market",
+          "timeInForce": "IOC",
+          "postOnly": false,
+          "reduceOnly": false,
+          "side": "buy",
+          "price": 73.64,
+          "stopPrice": null,
+          "triggerPrice": null,
+          "takeProfitPrice": null,
+          "stopLossPrice": null,
+          "amount": 0.1,
+          "cost": 7.017,
+          "average": 70.17,
+          "filled": 0.1,
+          "remaining": 0,
+          "status": "closed",
+          "fee": {
+            "cost": "0.00385935",
+            "currency": "USDT"
+          },
+          "trades": [],
+          "fees": [
+            {
+              "cost": 0.00385935,
               "currency": "USDT"
             }
           ]
@@ -1209,6 +1505,242 @@
           "datetime": "2024-02-01T16:13:09.954Z",
           "nonce": null
         }
+      }
+    ],
+    "fetchTrades": [
+      {
+        "description": "swap public trade",
+        "method": "fetchTrades",
+        "input": [
+          "BTC/USDT:USDT",
+          null,
+          1
+        ],
+        "httpResponse": {
+          "retCode": "0",
+          "retMsg": "OK",
+          "result": {
+            "category": "linear",
+            "list": [
+              {
+                "execId": "9afd1288-b444-53f8-8e40-c2f99368ad22",
+                "symbol": "BTCUSDT",
+                "price": "51444.40",
+                "size": "0.972",
+                "side": "Buy",
+                "time": "1707905515968",
+                "isBlockTrade": false
+              }
+            ]
+          },
+          "retExtInfo": {},
+          "time": "1707905516443"
+        },
+        "parsedResponse": [
+          {
+            "id": "9afd1288-b444-53f8-8e40-c2f99368ad22",
+            "info": {
+              "execId": "9afd1288-b444-53f8-8e40-c2f99368ad22",
+              "symbol": "BTCUSDT",
+              "price": "51444.40",
+              "size": "0.972",
+              "side": "Buy",
+              "time": "1707905515968",
+              "isBlockTrade": false
+            },
+            "timestamp": 1707905515968,
+            "datetime": "2024-02-14T10:11:55.968Z",
+            "symbol": "BTC/USDT:USDT",
+            "order": null,
+            "type": null,
+            "side": "buy",
+            "takerOrMaker": null,
+            "price": 51444.4,
+            "amount": 0.972,
+            "cost": 50003.9568,
+            "fee": null,
+            "fees": []
+          }
+        ]
+      }
+    ],
+    "fetchTicker": [
+      {
+        "description": "swap ticker",
+        "method": "fetchTicker",
+        "input": [
+          "BTC/USDT:USDT"
+        ],
+        "httpResponse": {
+          "retCode": "0",
+          "retMsg": "OK",
+          "result": {
+            "category": "linear",
+            "list": [
+              {
+                "symbol": "BTCUSDT",
+                "lastPrice": "51444.40",
+                "indexPrice": "51469.95",
+                "markPrice": "51444.40",
+                "prevPrice24h": "50147.50",
+                "price24hPcnt": "0.025861",
+                "highPrice24h": "51444.40",
+                "lowPrice24h": "48381.60",
+                "prevPrice1h": "50999.90",
+                "openInterest": "225766.793",
+                "openInterestValue": "11614437205.81",
+                "turnover24h": "2352063794.0035",
+                "volume24h": "47293.8870",
+                "fundingRate": "-0.00046295",
+                "nextFundingTime": "1707926400000",
+                "predictedDeliveryPrice": "",
+                "basisRate": "",
+                "deliveryFeeRate": "",
+                "deliveryTime": "0",
+                "ask1Size": "491.691",
+                "bid1Price": "51444.30",
+                "ask1Price": "51444.40",
+                "bid1Size": "55.841",
+                "basis": ""
+              }
+            ]
+          },
+          "retExtInfo": {},
+          "time": "1707905549267"
+        },
+        "parsedResponse": {
+          "symbol": "BTC/USDT:USDT",
+          "timestamp": null,
+          "datetime": null,
+          "high": 51444.4,
+          "low": 48381.6,
+          "bid": 51444.3,
+          "bidVolume": 55.841,
+          "ask": 51444.4,
+          "askVolume": 491.691,
+          "vwap": 49732.93470260755,
+          "open": 50147.5,
+          "close": 51444.4,
+          "last": 51444.4,
+          "previousClose": null,
+          "change": 1296.9,
+          "percentage": 2.5861,
+          "average": 50795.95,
+          "baseVolume": 47293.887,
+          "quoteVolume": 2352063794.0035,
+          "info": {
+            "symbol": "BTCUSDT",
+            "lastPrice": "51444.40",
+            "indexPrice": "51469.95",
+            "markPrice": "51444.40",
+            "prevPrice24h": "50147.50",
+            "price24hPcnt": "0.025861",
+            "highPrice24h": "51444.40",
+            "lowPrice24h": "48381.60",
+            "prevPrice1h": "50999.90",
+            "openInterest": "225766.793",
+            "openInterestValue": "11614437205.81",
+            "turnover24h": "2352063794.0035",
+            "volume24h": "47293.8870",
+            "fundingRate": "-0.00046295",
+            "nextFundingTime": "1707926400000",
+            "predictedDeliveryPrice": "",
+            "basisRate": "",
+            "deliveryFeeRate": "",
+            "deliveryTime": "0",
+            "ask1Size": "491.691",
+            "bid1Price": "51444.30",
+            "ask1Price": "51444.40",
+            "bid1Size": "55.841",
+            "basis": ""
+          }
+        }
+      }
+    ],
+    "fetchLedger": [
+      {
+        "description": "fetch ledger",
+        "method": "fetchLedger",
+        "input": [
+          "USDT",
+          null,
+          1
+        ],
+        "httpResponse": {
+          "retCode": "0",
+          "retMsg": "OK",
+          "result": {
+            "nextPageCursor": "5579768%3A0%2C5579768%3A0",
+            "list": [
+              {
+                "symbol": "LTCUSDT",
+                "side": "Buy",
+                "funding": "-0.0006935",
+                "orderLinkId": "",
+                "orderId": "4211a103-d410-4168-b788-0a09bbb1edcc",
+                "fee": "0",
+                "change": "-0.0006935",
+                "cashFlow": "0",
+                "transactionTime": "1707897600000",
+                "type": "SETTLEMENT",
+                "feeRate": "0.0001",
+                "bonusChange": "0",
+                "size": "0.1",
+                "qty": "0.1",
+                "cashBalance": "94.05070437",
+                "currency": "USDT",
+                "id": "452265_LTCUSDT_157751525050",
+                "category": "linear",
+                "tradePrice": "69.35",
+                "tradeId": "25cf3f0b-230e-4c30-82f1-24d060592d89",
+                "nextPageCursor": "5579768%3A0%2C5579768%3A0"
+              }
+            ]
+          },
+          "retExtInfo": {},
+          "time": "1707905594088"
+        },
+        "parsedResponse": [
+          {
+            "id": "452265_LTCUSDT_157751525050",
+            "currency": "USDT",
+            "account": null,
+            "referenceAccount": null,
+            "referenceId": null,
+            "status": null,
+            "amount": 0.0006935,
+            "before": 94.05001087,
+            "after": 94.05070437,
+            "fee": 0,
+            "direction": "out",
+            "timestamp": 1707897600000,
+            "datetime": "2024-02-14T08:00:00.000Z",
+            "type": "trade",
+            "info": {
+              "symbol": "LTCUSDT",
+              "side": "Buy",
+              "funding": "-0.0006935",
+              "orderLinkId": "",
+              "orderId": "4211a103-d410-4168-b788-0a09bbb1edcc",
+              "fee": "0",
+              "change": "-0.0006935",
+              "cashFlow": "0",
+              "transactionTime": "1707897600000",
+              "type": "SETTLEMENT",
+              "feeRate": "0.0001",
+              "bonusChange": "0",
+              "size": "0.1",
+              "qty": "0.1",
+              "cashBalance": "94.05070437",
+              "currency": "USDT",
+              "id": "452265_LTCUSDT_157751525050",
+              "category": "linear",
+              "tradePrice": "69.35",
+              "tradeId": "25cf3f0b-230e-4c30-82f1-24d060592d89",
+              "nextPageCursor": "5579768%3A0%2C5579768%3A0"
+            }
+          }
+        ]
       }
     ]
   }

@@ -718,7 +718,11 @@ public partial class poloniex : Exchange
             object code = this.safeCurrencyCode(id);
             object name = this.safeString(currency, "name");
             object networkId = this.safeString(currency, "blockchain");
-            object networkCode = this.networkIdToCode(networkId, code);
+            object networkCode = null;
+            if (isTrue(!isEqual(networkId, null)))
+            {
+                networkCode = this.networkIdToCode(networkId, code);
+            }
             object delisted = this.safeValue(currency, "delisted");
             object walletEnabled = isEqual(this.safeString(currency, "walletState"), "ENABLED");
             object depositEnabled = isEqual(this.safeString(currency, "walletDepositState"), "ENABLED");

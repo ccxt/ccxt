@@ -16,6 +16,11 @@ public partial class coinbase : Exchange
         return await this.callAsync ("v2PublicGetCurrencies",parameters);
     }
 
+    public async Task<object> v2PublicGetCurrenciesCrypto (object parameters = null)
+    {
+        return await this.callAsync ("v2PublicGetCurrenciesCrypto",parameters);
+    }
+
     public async Task<object> v2PublicGetTime (object parameters = null)
     {
         return await this.callAsync ("v2PublicGetTime",parameters);
@@ -231,6 +236,11 @@ public partial class coinbase : Exchange
         return await this.callAsync ("v2PrivateDeleteAccountsAccountIdTransactionsTransactionId",parameters);
     }
 
+    public async Task<object> v3PublicGetBrokerageTime (object parameters = null)
+    {
+        return await this.callAsync ("v3PublicGetBrokerageTime",parameters);
+    }
+
     public async Task<object> v3PrivateGetBrokerageAccounts (object parameters = null)
     {
         return await this.callAsync ("v3PrivateGetBrokerageAccounts",parameters);
@@ -306,11 +316,6 @@ public partial class coinbase : Exchange
         return await this.callAsync ("v3PrivateGetBrokerageConvertTradeTradeId",parameters);
     }
 
-    public async Task<object> v3PrivateGetBrokerageTime (object parameters = null)
-    {
-        return await this.callAsync ("v3PrivateGetBrokerageTime",parameters);
-    }
-
     public async Task<object> v3PrivateGetBrokerageCfmBalanceSummary (object parameters = null)
     {
         return await this.callAsync ("v3PrivateGetBrokerageCfmBalanceSummary",parameters);
@@ -364,6 +369,11 @@ public partial class coinbase : Exchange
     public async Task<object> v3PrivatePostBrokerageOrdersEditPreview (object parameters = null)
     {
         return await this.callAsync ("v3PrivatePostBrokerageOrdersEditPreview",parameters);
+    }
+
+    public async Task<object> v3PrivatePostBrokerageOrdersPreview (object parameters = null)
+    {
+        return await this.callAsync ("v3PrivatePostBrokerageOrdersPreview",parameters);
     }
 
     public async Task<object> v3PrivatePostBrokeragePortfolios (object parameters = null)

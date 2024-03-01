@@ -264,7 +264,7 @@ class mexc extends \ccxt\async\mexc {
         //        "d" => {
         //            "e" => "spot@public.kline.v3.api",
         //            "k" => array(
-        //                "t" => 1678642260,
+        //                "t" => 1678642261,
         //                "o" => 20626.94,
         //                "c" => 20599.69,
         //                "h" => 20626.94,
@@ -474,26 +474,27 @@ class mexc extends \ccxt\async\mexc {
         $symbol = $this->safe_symbol($marketId);
         $messageHash = 'orderbook:' . $symbol;
         $subscription = $this->safe_value($client->subscriptions, $messageHash);
+        $limit = $this->safe_integer($subscription, 'limit');
         if ($subscription === true) {
             // we set $client->subscriptions[$messageHash] to 1
             // once we have received the first delta and initialized the orderbook
             $client->subscriptions[$messageHash] = 1;
             $this->orderbooks[$symbol] = $this->counted_order_book(array());
         }
-        $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
+        $storedOrderBook = $this->orderbooks[$symbol];
         $nonce = $this->safe_integer($storedOrderBook, 'nonce');
         if ($nonce === null) {
             $cacheLength = count($storedOrderBook->cache);
             $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 25);
             if ($cacheLength === $snapshotDelay) {
-                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol);
+                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit, array());
             }
             $storedOrderBook->cache[] = $data;
             return;
         }
         try {
             $this->handle_delta($storedOrderBook, $data);
-            $timestamp = $this->safe_integer($message, 't');
+            $timestamp = $this->safe_integer_2($message, 't', 'ts');
             $storedOrderBook['timestamp'] = $timestamp;
             $storedOrderBook['datetime'] = $this->iso8601($timestamp);
         } catch (Exception $e) {

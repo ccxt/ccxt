@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.36'
+__version__ = '4.2.57'
 
 # -----------------------------------------------------------------------------
 
@@ -604,8 +604,15 @@ class Exchange(BaseExchange):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
 
-    async def fetch_margin_mode(self, symbol: str = None, params={}):
-        raise NotSupported(self.id + ' fetchMarginMode() is not supported yet')
+    async def fetch_margin_mode(self, symbol: str, params={}):
+        if self.has['fetchMarginModes']:
+            marginModes = await self.fetchMarginModes([symbol], params)
+            return self.safe_dict(marginModes, symbol)
+        else:
+            raise NotSupported(self.id + ' fetchMarginMode() is not supported yet')
+
+    async def fetch_margin_modes(self, symbols: List[str] = None, params={}):
+        raise NotSupported(self.id + ' fetchMarginModes() is not supported yet')
 
     async def fetch_rest_order_book_safe(self, symbol, limit=None, params={}):
         fetchSnapshotMaxRetries = self.handleOption('watchOrderBook', 'maxRetries', 3)
@@ -650,6 +657,30 @@ class Exchange(BaseExchange):
 
     async def set_leverage(self, leverage: Int, symbol: str = None, params={}):
         raise NotSupported(self.id + ' setLeverage() is not supported yet')
+
+    async def fetch_leverage(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' fetchLeverage() is not supported yet')
+
+    async def fetch_leverages(self, symbols: List[str] = None, params={}):
+        raise NotSupported(self.id + ' fetchLeverages() is not supported yet')
+
+    async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
+        raise NotSupported(self.id + ' setPositionMode() is not supported yet')
+
+    async def add_margin(self, symbol: str, amount: float, params={}):
+        raise NotSupported(self.id + ' addMargin() is not supported yet')
+
+    async def reduce_margin(self, symbol: str, amount: float, params={}):
+        raise NotSupported(self.id + ' reduceMargin() is not supported yet')
+
+    async def set_margin(self, symbol: str, amount: float, params={}):
+        raise NotSupported(self.id + ' setMargin() is not supported yet')
+
+    async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
+        raise NotSupported(self.id + ' setMarginMode() is not supported yet')
+
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}):
+        raise NotSupported(self.id + ' fetchDepositAddressesByNetwork() is not supported yet')
 
     async def fetch_open_interest_history(self, symbol: str, timeframe='1h', since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOpenInterestHistory() is not supported yet')
@@ -782,13 +813,13 @@ class Exchange(BaseExchange):
         self.accountsById = self.index_by(self.accounts, 'id')
         return self.accounts
 
-    async def edit_limit_buy_order(self, id, symbol, amount: float, price: float = None, params={}):
+    async def edit_limit_buy_order(self, id: str, symbol: str, amount: float, price: float = None, params={}):
         return await self.edit_limit_order(id, symbol, 'buy', amount, price, params)
 
-    async def edit_limit_sell_order(self, id, symbol, amount: float, price: float = None, params={}):
+    async def edit_limit_sell_order(self, id: str, symbol: str, amount: float, price: float = None, params={}):
         return await self.edit_limit_order(id, symbol, 'sell', amount, price, params)
 
-    async def edit_limit_order(self, id, symbol, side, amount: float, price: float = None, params={}):
+    async def edit_limit_order(self, id: str, symbol: str, side: OrderSide, amount: float, price: float = None, params={}):
         return await self.edit_order(id, symbol, 'limit', side, amount, price, params)
 
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
@@ -867,13 +898,13 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' fetchStatus() is not supported yet')
 
     async def fetch_funding_fee(self, code: str, params={}):
-        warnOnFetchFundingFee = self.safe_value(self.options, 'warnOnFetchFundingFee', True)
+        warnOnFetchFundingFee = self.safe_bool(self.options, 'warnOnFetchFundingFee', True)
         if warnOnFetchFundingFee:
             raise NotSupported(self.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = False to suppress self warning')
         return await self.fetch_transaction_fee(code, params)
 
     async def fetch_funding_fees(self, codes: List[str] = None, params={}):
-        warnOnFetchFundingFees = self.safe_value(self.options, 'warnOnFetchFundingFees', True)
+        warnOnFetchFundingFees = self.safe_bool(self.options, 'warnOnFetchFundingFees', True)
         if warnOnFetchFundingFees:
             raise NotSupported(self.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = False to suppress self warning')
         return await self.fetch_transaction_fees(codes, params)
@@ -910,7 +941,7 @@ class Exchange(BaseExchange):
         if not self.has['fetchBorrowRates']:
             raise NotSupported(self.id + ' fetchIsolatedBorrowRate() is not supported yet')
         borrowRates = await self.fetchIsolatedBorrowRates(params)
-        rate = self.safe_value(borrowRates, symbol)
+        rate = self.safe_dict(borrowRates, symbol)
         if rate is None:
             raise ExchangeError(self.id + ' fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ' + symbol)
         return rate
@@ -921,7 +952,7 @@ class Exchange(BaseExchange):
             market = self.market(symbol)
             symbol = market['symbol']
             tickers = await self.fetch_tickers([symbol], params)
-            ticker = self.safe_value(tickers, symbol)
+            ticker = self.safe_dict(tickers, symbol)
             if ticker is None:
                 raise NullResponse(self.id + ' fetchTickers() could not find a ticker for ' + symbol)
             else:
@@ -954,7 +985,7 @@ class Exchange(BaseExchange):
         return order['status']
 
     async def fetch_unified_order(self, order, params={}):
-        return await self.fetch_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
+        return await self.fetch_order(self.safe_string(order, 'id'), self.safe_string(order, 'symbol'), params)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
@@ -1179,7 +1210,7 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' cancelAllOrdersWs() is not supported yet')
 
     async def cancel_unified_order(self, order, params={}):
-        return self.cancelOrder(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
+        return self.cancelOrder(self.safe_string(order, 'id'), self.safe_string(order, 'symbol'), params)
 
     async def fetch_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         if self.has['fetchOpenOrders'] and self.has['fetchClosedOrders']:
@@ -1286,6 +1317,16 @@ class Exchange(BaseExchange):
                 raise InvalidAddress(self.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website')
             else:
                 return depositAddress
+        elif self.has['fetchDepositAddressesByNetwork']:
+            network = self.safe_string(params, 'network')
+            params = self.omit(params, 'network')
+            addressStructures = await self.fetchDepositAddressesByNetwork(code, params)
+            if network is not None:
+                return self.safe_dict(addressStructures, network)
+            else:
+                keys = list(addressStructures.keys())
+                key = self.safe_string(keys, 0)
+                return self.safe_dict(addressStructures, key)
         else:
             raise NotSupported(self.id + ' fetchDepositAddress() is not supported yet')
 

@@ -6,7 +6,7 @@ namespace ccxt.pro;
 public class  Coinbase: coinbase { public Coinbase(object args = null) : base(args) { } }
 public partial class coinbase
 {
-    public async Task<Ticker> WatchTicker(object symbol, Dictionary<string, object> parameters = null)
+    public async Task<Ticker> WatchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchTicker(symbol, parameters);
         return new Ticker(res);
@@ -23,8 +23,10 @@ public partial class coinbase
         var res = await this.watchTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
-    public async Task<List<Order>> WatchOrders(object symbol = null, object since = null, object limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }

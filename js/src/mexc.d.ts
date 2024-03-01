@@ -15,7 +15,6 @@ export default class mexc extends Exchange {
     }>;
     fetchTime(params?: {}): Promise<number>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    safeNetwork(networkId: any): string;
     fetchMarkets(params?: {}): Promise<any>;
     fetchSpotMarkets(params?: {}): Promise<any[]>;
     fetchSwapMarkets(params?: {}): Promise<any[]>;
@@ -30,7 +29,7 @@ export default class mexc extends Exchange {
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchBidsAsks(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
-    createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
+    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     createSpotOrderRequest(market: any, type: any, side: any, amount: any, price?: any, marginMode?: any, params?: {}): any;
     createSpotOrder(market: any, type: any, side: any, amount: any, price?: any, marginMode?: any, params?: {}): Promise<Order>;
@@ -108,17 +107,17 @@ export default class mexc extends Exchange {
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         currency: string;
         address: string;
-        tag: any;
+        tag: string;
         network: string;
         info: any;
     };
-    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<any[]>;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
     createDepositAddress(code: string, params?: {}): Promise<{
-        info: any;
         currency: string;
-        network: string;
         address: string;
         tag: string;
+        network: string;
+        info: any;
     }>;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
@@ -140,7 +139,7 @@ export default class mexc extends Exchange {
         status: string;
     }>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    transfer(code: string, amount: number, fromAccount: any, toAccount: any, params?: {}): Promise<TransferEntry>;
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: any, currency?: Currency): {
         info: any;
         id: string;
@@ -155,12 +154,12 @@ export default class mexc extends Exchange {
     parseAccountId(status: any): string;
     parseTransferStatus(status: any): string;
     withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
-    setPositionMode(hedged: any, symbol?: Str, params?: {}): Promise<any>;
+    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
     fetchPositionMode(symbol?: Str, params?: {}): Promise<{
         info: any;
         hedged: boolean;
     }>;
-    fetchTransactionFees(codes?: any, params?: {}): Promise<{
+    fetchTransactionFees(codes?: string[], params?: {}): Promise<{
         withdraw: {};
         deposit: {};
         info: any;
@@ -173,6 +172,18 @@ export default class mexc extends Exchange {
     parseTransactionFee(transaction: any, currency?: Currency): {};
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
+    fetchLeverage(symbol: string, params?: {}): Promise<{
+        info: any;
+        symbol: string;
+        leverage: number;
+        marginMode: any;
+    }>;
+    parseLeverage(leverage: any, market?: Market): {
+        info: any;
+        symbol: string;
+        leverage: number;
+        marginMode: any;
+    };
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;

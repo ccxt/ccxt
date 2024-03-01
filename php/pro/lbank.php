@@ -264,7 +264,7 @@ class lbank extends \ccxt\async\lbank {
         }) ();
     }
 
-    public function watch_ticker($symbol, $params = array ()): PromiseInterface {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://www.lbank.com/en-US/docs/index.html#$market

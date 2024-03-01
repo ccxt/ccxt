@@ -1237,7 +1237,8 @@ public partial class coinmetro : Exchange
         }
         object type = null;
         object referenceId = null;
-        if (isTrue(isGreaterThan(getArrayLength(descriptionArray), 1)))
+        object length = getArrayLength(descriptionArray);
+        if (isTrue(isGreaterThan(length, 1)))
         {
             type = this.parseLedgerEntryType(getValue(descriptionArray, 0));
             if (isTrue(!isEqual(getValue(descriptionArray, 1), "-")))
@@ -2021,7 +2022,7 @@ public partial class coinmetro : Exchange
             } else
             {
                 ((IDictionary<string,object>)headers)["Authorization"] = add("Bearer ", this.token);
-                if (!isTrue(((string)url).StartsWith("https://api.coinmetro.com/open")))
+                if (!isTrue(((string)url).StartsWith(((string)"https://api.coinmetro.com/open"))))
                 {
                     this.checkRequiredCredentials();
                     ((IDictionary<string,object>)headers)["X-Device-Id"] = this.uid;
@@ -2036,7 +2037,7 @@ public partial class coinmetro : Exchange
         {
             url = add(url, add("?", query));
         }
-        while (((string)url).EndsWith("/"))
+        while (((string)url).EndsWith(((string)"/")))
         {
             url = slice(url, 0, subtract(((string)url).Length, 1));
         }

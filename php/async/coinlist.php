@@ -1050,13 +1050,15 @@ class coinlist extends Exchange {
             }
             $takerFees = $this->sort_by($takerFees, 1, true);
             $makerFees = $this->sort_by($makerFees, 1, true);
-            $firstTier = $this->safe_value($takerFees, 0, array());
-            $exchangeFees = $this->safe_value($this, 'fees', array());
-            $exchangeFeesTrading = $this->safe_value($exchangeFees, 'trading', array());
-            $exchangeFeesTradingTiers = $this->safe_value($exchangeFeesTrading, 'tiers', array());
-            $exchangeFeesTradingTiersTaker = $this->safe_value($exchangeFeesTradingTiers, 'taker', array());
-            $exchangeFeesTradingTiersMaker = $this->safe_value($exchangeFeesTradingTiers, 'maker', array());
-            if (($keysLength === strlen($exchangeFeesTradingTiersTaker)) && (strlen($firstTier) > 0)) {
+            $firstTier = $this->safe_dict($takerFees, 0, array());
+            $exchangeFees = $this->safe_dict($this, 'fees', array());
+            $exchangeFeesTrading = $this->safe_dict($exchangeFees, 'trading', array());
+            $exchangeFeesTradingTiers = $this->safe_dict($exchangeFeesTrading, 'tiers', array());
+            $exchangeFeesTradingTiersTaker = $this->safe_list($exchangeFeesTradingTiers, 'taker', array());
+            $exchangeFeesTradingTiersMaker = $this->safe_list($exchangeFeesTradingTiers, 'maker', array());
+            $exchangeFeesTradingTiersTakerLength = count($exchangeFeesTradingTiersTaker);
+            $firstTierLength = count($firstTier);
+            if (($keysLength === $exchangeFeesTradingTiersTakerLength) && ($firstTierLength > 0)) {
                 for ($i = 0; $i < $keysLength; $i++) {
                     $takerFees[$i][0] = $exchangeFeesTradingTiersTaker[$i][0];
                     $makerFees[$i][0] = $exchangeFeesTradingTiersMaker[$i][0];
@@ -1557,7 +1559,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1739,7 +1741,7 @@ class coinlist extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): PromiseInterface {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * $transfer $currency internally between wallets on the same account

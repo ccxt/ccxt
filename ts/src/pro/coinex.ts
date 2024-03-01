@@ -399,14 +399,17 @@ export default class coinex extends coinexRest {
         const keys = Object.keys (this.ohlcvs);
         const keysLength = keys.length;
         if (keysLength === 0) {
+            this.ohlcvs['unknown'] = {};
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs = new ArrayCacheByTimestamp (limit);
+            const stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs['unknown']['unknown'] = stored;
         }
+        const ohlcv = this.ohlcvs['unknown']['unknown'];
         for (let i = 0; i < ohlcvs.length; i++) {
             const candle = ohlcvs[i];
-            this.ohlcvs.append (candle);
+            ohlcv.append (candle);
         }
-        client.resolve (this.ohlcvs, messageHash);
+        client.resolve (ohlcv, messageHash);
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -591,7 +594,7 @@ export default class coinex extends coinexRest {
         return this.filterBySinceLimit (ohlcvs, since, limit, 0);
     }
 
-    async fetchOHLCVWs (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCVWs (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name coinex#fetchOHLCV

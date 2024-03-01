@@ -20,7 +20,7 @@ class cryptocom extends \ccxt\async\cryptocom {
                 'ws' => true,
                 'watchBalance' => true,
                 'watchTicker' => true,
-                'watchTickers' => false, // for now
+                'watchTickers' => false,
                 'watchMyTrades' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,

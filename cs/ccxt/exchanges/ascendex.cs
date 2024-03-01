@@ -262,11 +262,14 @@ public partial class ascendex : Exchange
                     { "fillResponseFromRequest", true },
                 } },
                 { "networks", new Dictionary<string, object>() {
-                    { "BSC", "BEP20 (BSC)" },
+                    { "BSC", add("BEP20 ", "(BSC)") },
                     { "ARB", "arbitrum" },
                     { "SOL", "Solana" },
                     { "AVAX", "avalanche C chain" },
                     { "OMNI", "Omni" },
+                    { "TRC", "TRC20" },
+                    { "TRX", "TRC20" },
+                    { "ERC", "ERC20" },
                 } },
                 { "networksById", new Dictionary<string, object>() {
                     { "BEP20 (BSC)", "BSC" },
@@ -274,6 +277,16 @@ public partial class ascendex : Exchange
                     { "Solana", "SOL" },
                     { "avalanche C chain", "AVAX" },
                     { "Omni", "OMNI" },
+                    { "TRC20", "TRC20" },
+                    { "ERC20", "ERC20" },
+                    { "GO20", "GO20" },
+                    { "BEP2", "BEP2" },
+                    { "Bitcoin", "BTC" },
+                    { "Bitcoin ABC", "BCH" },
+                    { "Litecoin", "LTC" },
+                    { "Matic Network", "MATIC" },
+                    { "xDai", "STAKE" },
+                    { "Akash", "AKT" },
                 } },
             } },
             { "exceptions", new Dictionary<string, object>() {
@@ -2504,8 +2517,8 @@ public partial class ascendex : Exchange
         object tag = this.safeString(depositAddress, tagId);
         this.checkAddress(address);
         object code = ((bool) isTrue((isEqual(currency, null)))) ? null : getValue(currency, "code");
-        object chainName = this.safeString(depositAddress, "chainName");
-        object network = this.safeNetwork(chainName);
+        object chainName = this.safeString(depositAddress, "blockchain");
+        object network = this.networkIdToCode(chainName, code);
         return new Dictionary<string, object>() {
             { "currency", code },
             { "address", address },
@@ -2517,20 +2530,7 @@ public partial class ascendex : Exchange
 
     public virtual object safeNetwork(object networkId)
     {
-        object networksById = new Dictionary<string, object>() {
-            { "TRC20", "TRC20" },
-            { "ERC20", "ERC20" },
-            { "GO20", "GO20" },
-            { "BEP2", "BEP2" },
-            { "BEP20 (BSC)", "BEP20" },
-            { "Bitcoin", "BTC" },
-            { "Bitcoin ABC", "BCH" },
-            { "Litecoin", "LTC" },
-            { "Matic Network", "MATIC" },
-            { "Solana", "SOL" },
-            { "xDai", "STAKE" },
-            { "Akash", "AKT" },
-        };
+        object networksById = this.safeDict(this.options, "networksById");
         return this.safeString(networksById, networkId, networkId);
     }
 
@@ -2540,17 +2540,21 @@ public partial class ascendex : Exchange
         * @method
         * @name ascendex#fetchDepositAddress
         * @description fetch the deposit address for a currency associated with this account
+        * @see https://ascendex.github.io/ascendex-pro-api/#query-deposit-addresses
         * @param {string} code unified currency code
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.network] unified network code for deposit chain
         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
-        object chainName = this.safeString(parameters, "chainName");
-        parameters = this.omit(parameters, "chainName");
+        object networkCode = this.safeString2(parameters, "network", "chainName");
+        object networkId = this.networkCodeToId(networkCode);
+        parameters = this.omit(parameters, new List<object>() {"chainName"});
         object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
+            { "blockchain", networkId },
         };
         object response = await this.v1PrivateGetWalletDepositAddress(this.extend(request, parameters));
         //
@@ -2586,24 +2590,24 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object addresses = this.safeValue(data, "address", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object addresses = this.safeList(data, "address", new List<object>() {});
         object numAddresses = getArrayLength(addresses);
         object address = null;
         if (isTrue(isGreaterThan(numAddresses, 1)))
         {
             object addressesByChainName = this.indexBy(addresses, "chainName");
-            if (isTrue(isEqual(chainName, null)))
+            if (isTrue(isEqual(networkId, null)))
             {
                 object chainNames = new List<object>(((IDictionary<string,object>)addressesByChainName).Keys);
                 object chains = String.Join(", ", ((IList<object>)chainNames).ToArray());
                 throw new ArgumentsRequired ((string)add(add(this.id, " fetchDepositAddress() returned more than one address, a chainName parameter is required, one of "), chains)) ;
             }
-            address = this.safeValue(addressesByChainName, chainName, new Dictionary<string, object>() {});
+            address = this.safeDict(addressesByChainName, networkId, new Dictionary<string, object>() {});
         } else
         {
             // first address
-            address = this.safeValue(addresses, 0, new Dictionary<string, object>() {});
+            address = this.safeDict(addresses, 0, new Dictionary<string, object>() {});
         }
         object result = this.parseDepositAddress(address, currency);
         return this.extend(result, new Dictionary<string, object>() {
@@ -3043,7 +3047,7 @@ public partial class ascendex : Exchange
         };
     }
 
-    public async virtual Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
@@ -3058,7 +3062,7 @@ public partial class ascendex : Exchange
         return await this.modifyMarginHelper(symbol, prefixUnaryNeg(ref amount), "reduce", parameters);
     }
 
-    public async virtual Task<object> addMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
@@ -3111,7 +3115,7 @@ public partial class ascendex : Exchange
         return await this.v2PrivateAccountGroupPostFuturesLeverage(this.extend(request, parameters));
     }
 
-    public async virtual Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
     {
         /**
         * @method

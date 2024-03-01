@@ -113,7 +113,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         //                 "volume" => "3587.05020246",
         //                 "volumeQuote" => "708030.17",
         //                 "bid" => "199.56",
-        //                 "bidSize" => "4.14730803",
+        //                 "bidSize" => "4.14730802",
         //                 "ask" => "199.57",
         //                 "askSize" => "6.13642074",
         //                 "timestamp" => 1590770885217
@@ -588,7 +588,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }) ();
     }
 
-    public function edit_order_ws(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()): PromiseInterface {
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order

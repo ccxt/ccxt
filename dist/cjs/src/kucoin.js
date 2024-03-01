@@ -3857,11 +3857,11 @@ class kucoin extends kucoin$1 {
             }
         }
         let fee = undefined;
-        const feeCost = this.safeNumber(item, 'fee');
+        const feeCost = this.safeString(item, 'fee');
         let feeCurrency = undefined;
-        if (feeCost !== 0) {
+        if (feeCost !== '0') {
             feeCurrency = code;
-            fee = { 'cost': feeCost, 'currency': feeCurrency };
+            fee = { 'cost': this.parseNumber(feeCost), 'currency': feeCurrency };
         }
         return {
             'id': id,
@@ -3975,8 +3975,12 @@ class kucoin extends kucoin$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data');
-        const items = this.safeValue(data, 'items', data);
+        const dataList = this.safeList(response, 'data');
+        if (dataList !== undefined) {
+            return this.parseLedger(dataList, currency, since, limit);
+        }
+        const data = this.safeDict(response, 'data');
+        const items = this.safeList(data, 'items', []);
         return this.parseLedger(items, currency, since, limit);
     }
     calculateRateLimiterCost(api, method, path, params, config = {}) {

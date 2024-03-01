@@ -43,6 +43,7 @@ public partial class bitso
     /// retrieves data on all markets for bitso
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitso.com/bitso-api/docs/list-available-books"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -62,6 +63,7 @@ public partial class bitso
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitso.com/bitso-api/docs/get-account-balance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -81,6 +83,7 @@ public partial class bitso
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitso.com/bitso-api/docs/list-order-book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -107,6 +110,7 @@ public partial class bitso
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitso.com/bitso-api/docs/ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -159,6 +163,7 @@ public partial class bitso
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitso.com/bitso-api/docs/list-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -192,6 +197,7 @@ public partial class bitso
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitso.com/bitso-api/docs/list-fees"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -211,6 +217,7 @@ public partial class bitso
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitso.com/bitso-api/docs/user-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -243,6 +250,7 @@ public partial class bitso
     /// create a trade order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitso.com/bitso-api/docs/place-an-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -269,6 +277,7 @@ public partial class bitso
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitso.com/bitso-api/docs/cancel-an-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -288,6 +297,7 @@ public partial class bitso
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitso.com/bitso-api/docs/cancel-an-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -307,6 +317,7 @@ public partial class bitso
     /// cancel all open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitso.com/bitso-api/docs/cancel-an-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -326,6 +337,7 @@ public partial class bitso
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitso.com/bitso-api/docs/list-open-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -358,6 +370,7 @@ public partial class bitso
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitso.com/bitso-api/docs/look-up-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -377,6 +390,7 @@ public partial class bitso
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitso.com/bitso-api/docs/list-user-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -410,6 +424,7 @@ public partial class bitso
     /// fetch information on a deposit
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitso.com/bitso-payouts-funding/docs/fundings"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -429,6 +444,7 @@ public partial class bitso
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitso.com/bitso-payouts-funding/docs/fundings"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -481,7 +497,7 @@ public partial class bitso
     /// please use fetchDepositWithdrawFees instead
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bitso.com/api_info#fees"/>  <br/>
+    /// See <see href="https://docs.bitso.com/bitso-api/docs/list-fees"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -492,7 +508,7 @@ public partial class bitso
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTransactionFees(object codes = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> FetchTransactionFees(List<string> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTransactionFees(codes, parameters);
         return ((Dictionary<string, object>)res);
@@ -501,7 +517,7 @@ public partial class bitso
     /// fetch deposit and withdraw fees
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bitso.com/api_info#fees"/>  <br/>
+    /// See <see href="https://docs.bitso.com/bitso-api/docs/list-fees"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

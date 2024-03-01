@@ -298,6 +298,9 @@ abstract class okx extends \ccxt\async\Exchange {
     public function private_get_trade_one_click_repay_history($params = array()) {
         return $this->request('trade/one-click-repay-history', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
+    public function private_get_trade_account_rate_limit($params = array()) {
+        return $this->request('trade/account-rate-limit', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_asset_currencies($params = array()) {
         return $this->request('asset/currencies', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
@@ -735,6 +738,9 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function private_post_account_simulated_margin($params = array()) {
         return $this->request('account/simulated_margin', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function private_post_account_position_builder($params = array()) {
+        return $this->request('account/position-builder', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
     public function private_post_account_set_riskoffset_type($params = array()) {
         return $this->request('account/set-riskOffset-type', 'private', 'POST', $params, null, null, array("cost" => 2));
@@ -1210,6 +1216,9 @@ abstract class okx extends \ccxt\async\Exchange {
     public function privateGetTradeOneClickRepayHistory($params = array()) {
         return $this->request('trade/one-click-repay-history', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
+    public function privateGetTradeAccountRateLimit($params = array()) {
+        return $this->request('trade/account-rate-limit', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateGetAssetCurrencies($params = array()) {
         return $this->request('asset/currencies', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
@@ -1647,6 +1656,9 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function privatePostAccountSimulatedMargin($params = array()) {
         return $this->request('account/simulated_margin', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function privatePostAccountPositionBuilder($params = array()) {
+        return $this->request('account/position-builder', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
     public function privatePostAccountSetRiskOffsetType($params = array()) {
         return $this->request('account/set-riskOffset-type', 'private', 'POST', $params, null, null, array("cost" => 2));

@@ -748,8 +748,10 @@ public partial class hitbtc
         var res = await this.cancelOrder(id, symbol, parameters);
         return new Order(res);
     }
-    public async Task<Order> EditOrder(string id, object symbol, object type, object side, object amount = null, object price = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var price = price2 == 0 ? null : (object)price2;
         var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
@@ -817,26 +819,10 @@ public partial class hitbtc
         var res = this.createOrderRequest(market, marketType, type, side, amount, price, marginMode, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
-    /// <summary>
-    /// fetches margin mode of the user
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api.hitbtc.com/#get-margin-position-parameters"/>  <br/>
-    /// See <see href="https://api.hitbtc.com/#get-futures-position-parameters"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> Struct of MarginMode.</returns>
-    public async Task<MarginMode> FetchMarginMode(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<MarginModes> FetchMarginModes(List<string> symbols = null, Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchMarginMode(symbol, parameters);
-        return new MarginMode(res);
+        var res = await this.fetchMarginModes(symbols, parameters);
+        return new MarginModes(res);
     }
     /// <summary>
     /// transfer currency internally between wallets on the same account
@@ -853,7 +839,7 @@ public partial class hitbtc
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
-    public async Task<TransferEntry> Transfer(string code, double amount, object fromAccount, object toAccount, Dictionary<string, object> parameters = null)
+    public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
     {
         var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
         return new TransferEntry(res);

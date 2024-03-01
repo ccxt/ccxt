@@ -17,6 +17,7 @@ public partial class btcmarkets
     /// fetch history of deposits and withdrawals
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/~1v3~1transfers/get"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -56,6 +57,7 @@ public partial class btcmarkets
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/~1v3~1deposits/get"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -89,6 +91,7 @@ public partial class btcmarkets
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/~1v3~1withdrawals/get"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -122,6 +125,7 @@ public partial class btcmarkets
     /// retrieves data on all markets for btcmarkets
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets/get"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -141,6 +145,7 @@ public partial class btcmarkets
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcmarkets.net/v3/#tag/Misc-APIs/paths/~1v3~1time/get"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -160,6 +165,7 @@ public partial class btcmarkets
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcmarkets.net/v3/#tag/Account-APIs/paths/~1v3~1accounts~1me~1balances/get"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -179,6 +185,7 @@ public partial class btcmarkets
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets~1{marketId}~1candles/get"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -212,6 +219,7 @@ public partial class btcmarkets
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets~1{marketId}~1orderbook/get"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -238,6 +246,7 @@ public partial class btcmarkets
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets~1{marketId}~1ticker/get"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -262,6 +271,7 @@ public partial class btcmarkets
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets~1{marketId}~1trades/get"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -295,6 +305,7 @@ public partial class btcmarkets
     /// create a trade order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcmarkets.net/v3/#tag/Order-Placement-APIs/paths/~1v3~1orders/post"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -321,6 +332,7 @@ public partial class btcmarkets
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcmarkets.net/v3/#tag/Batch-Order-APIs/paths/~1v3~1batchorders~1{ids}/delete"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -340,6 +352,7 @@ public partial class btcmarkets
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcmarkets.net/v3/#operation/cancelOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -359,6 +372,7 @@ public partial class btcmarkets
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcmarkets.net/v3/#operation/getOrderById"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -378,6 +392,7 @@ public partial class btcmarkets
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcmarkets.net/v3/#operation/listOrders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -411,6 +426,7 @@ public partial class btcmarkets
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcmarkets.net/v3/#operation/listOrders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -444,6 +460,7 @@ public partial class btcmarkets
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcmarkets.net/v3/#operation/listOrders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -477,6 +494,7 @@ public partial class btcmarkets
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcmarkets.net/v3/#operation/getTrades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -510,6 +528,7 @@ public partial class btcmarkets
     /// make a withdrawal
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/~1v3~1withdrawals/post"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

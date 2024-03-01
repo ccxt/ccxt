@@ -119,14 +119,17 @@ class whitebit(ccxt.async_support.whitebit):
             symbol = market['symbol']
             messageHash = 'candles' + ':' + symbol
             parsed = self.parse_ohlcv(data, market)
-            self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol)
-            stored = self.ohlcvs[symbol]
-            if stored is None:
+            # self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol)
+            if not (symbol in self.ohlcvs):
+                self.ohlcvs[symbol] = {}
+            # stored = self.ohlcvs[symbol]['unknown']  # we don't know the timeframe but we need to respect the type
+            if not ('unknown' in self.ohlcvs[symbol]):
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)
-                self.ohlcvs[symbol] = stored
-            stored.append(parsed)
-            client.resolve(stored, messageHash)
+                self.ohlcvs[symbol]['unknown'] = stored
+            ohlcv = self.ohlcvs[symbol]['unknown']
+            ohlcv.append(parsed)
+            client.resolve(ohlcv, messageHash)
         return message
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -163,6 +166,7 @@ class whitebit(ccxt.async_support.whitebit):
         #     "params":[
         #        True,
         #        {
+        #           "timestamp": 1708679568.940867,
         #           "asks":[
         #              ["21252.45","0.01957"],
         #              ["21252.55","0.126205"],
@@ -199,12 +203,13 @@ class whitebit(ccxt.async_support.whitebit):
         market = self.safe_market(marketId)
         symbol = market['symbol']
         data = self.safe_value(params, 1)
-        orderbook = None
-        if symbol in self.orderbooks:
-            orderbook = self.orderbooks[symbol]
-        else:
-            orderbook = self.order_book()
-            self.orderbooks[symbol] = orderbook
+        timestamp = self.safe_timestamp(data, 'timestamp')
+        if not (symbol in self.orderbooks):
+            ob = self.order_book()
+            self.orderbooks[symbol] = ob
+        orderbook = self.orderbooks[symbol]
+        orderbook['timestamp'] = timestamp
+        orderbook['datetime'] = self.iso8601(timestamp)
         if isSnapshot:
             snapshot = self.parse_order_book(data, symbol)
             orderbook.reset(snapshot)

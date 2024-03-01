@@ -136,7 +136,7 @@ class bybit(ccxt.async_support.bybit):
         self.options['requestId'] = requestId
         return requestId
 
-    def get_url_by_market_type(self, symbol: Str = None, isPrivate=False, method=None, params={}):
+    def get_url_by_market_type(self, symbol: Str = None, isPrivate=False, method: str = None, params={}):
         accessibility = 'private' if isPrivate else 'public'
         isUsdcSettled = None
         isSpot = None
@@ -185,7 +185,7 @@ class bybit(ccxt.async_support.bybit):
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'ticker:' + symbol
-        url = self.get_url_by_market_type(symbol, False, params)
+        url = self.get_url_by_market_type(symbol, False, 'watchTicker', params)
         params = self.clean_params(params)
         options = self.safe_value(self.options, 'watchTicker', {})
         topic = self.safe_string(options, 'name', 'tickers')
@@ -207,7 +207,7 @@ class bybit(ccxt.async_support.bybit):
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         messageHashes = []
-        url = self.get_url_by_market_type(symbols[0], False, params)
+        url = self.get_url_by_market_type(symbols[0], False, 'watchTickers', params)
         params = self.clean_params(params)
         options = self.safe_value(self.options, 'watchTickers', {})
         topic = self.safe_string(options, 'name', 'tickers')
@@ -324,15 +324,29 @@ class bybit(ccxt.async_support.bybit):
         #             "price24hPcnt": "-0.0388"
         #         }
         #     }
+        # swap delta
+        #     {
+        #         "topic":"tickers.AAVEUSDT",
+        #         "type":"delta",
+        #         "data":{
+        #            "symbol":"AAVEUSDT",
+        #            "bid1Price":"112.89",
+        #            "bid1Size":"2.12",
+        #            "ask1Price":"112.90",
+        #            "ask1Size":"5.02"
+        #         },
+        #         "cs":78039939929,
+        #         "ts":1709210212704
+        #     }
         #
         topic = self.safe_string(message, 'topic', '')
         updateType = self.safe_string(message, 'type', '')
-        data = self.safe_value(message, 'data', {})
-        isSpot = self.safe_string(data, 'fundingRate') is None
+        data = self.safe_dict(message, 'data', {})
+        isSpot = self.safe_string(data, 'usdIndexPrice') is not None
         type = 'spot' if isSpot else 'contract'
         symbol = None
         parsed = None
-        if (updateType == 'snapshot') or isSpot:
+        if (updateType == 'snapshot'):
             parsed = self.parse_ticker(data)
             symbol = parsed['symbol']
         elif updateType == 'delta':
@@ -342,8 +356,8 @@ class bybit(ccxt.async_support.bybit):
             market = self.safe_market(marketId, None, None, type)
             symbol = market['symbol']
             # update the info in place
-            ticker = self.safe_value(self.tickers, symbol, {})
-            rawTicker = self.safe_value(ticker, 'info', {})
+            ticker = self.safe_dict(self.tickers, symbol, {})
+            rawTicker = self.safe_dict(ticker, 'info', {})
             merged = self.extend(rawTicker, data)
             parsed = self.parse_ticker(merged)
         timestamp = self.safe_integer(message, 'ts')
@@ -368,7 +382,7 @@ class bybit(ccxt.async_support.bybit):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        url = self.get_url_by_market_type(symbol, False, params)
+        url = self.get_url_by_market_type(symbol, False, 'watchOHLCV', params)
         params = self.clean_params(params)
         ohlcv = None
         timeframeId = self.safe_string(self.timeframes, timeframe, timeframe)
@@ -477,7 +491,7 @@ class bybit(ccxt.async_support.bybit):
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols')
         symbols = self.market_symbols(symbols)
-        url = self.get_url_by_market_type(symbols[0], False, params)
+        url = self.get_url_by_market_type(symbols[0], False, 'watchOrderBook', params)
         params = self.clean_params(params)
         market = self.market(symbols[0])
         if limit is None:
@@ -595,7 +609,7 @@ class bybit(ccxt.async_support.bybit):
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' watchTradesForSymbols() requires a non-empty array of symbols')
         params = self.clean_params(params)
-        url = self.get_url_by_market_type(symbols[0], False, params)
+        url = self.get_url_by_market_type(symbols[0], False, 'watchTrades', params)
         topics = []
         messageHashes = []
         for i in range(0, len(symbols)):

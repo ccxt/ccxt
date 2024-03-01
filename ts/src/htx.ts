@@ -1234,9 +1234,10 @@ export default class htx extends Exchange {
     async fetchStatus (params = {}) {
         await this.loadMarkets ();
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', undefined, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
+        const enabledForContracts = this.handleOption ('fetchStatus', 'enableForContracts', false); // temp fix for: https://status-linear-swap.huobigroup.com/api/v2/summary.json
         let response = undefined;
-        if (marketType !== 'spot') {
+        if (marketType !== 'spot' && enabledForContracts) {
             const subType = this.safeString (params, 'subType', this.options['defaultSubType']);
             if (marketType === 'swap') {
                 if (subType === 'linear') {
@@ -1253,7 +1254,7 @@ export default class htx extends Exchange {
             } else if (marketType === 'contract') {
                 response = await this.contractPublicGetHeartbeat ();
             }
-        } else {
+        } else if (marketType === 'spot') {
             response = await this.statusPublicSpotGetApiV2SummaryJson ();
         }
         //
@@ -1422,7 +1423,11 @@ export default class htx extends Exchange {
         let url = undefined;
         if (marketType === 'contract') {
             const statusRaw = this.safeString (response, 'status');
-            status = (statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
+            if (statusRaw === undefined) {
+                status = undefined;
+            } else {
+                status = (statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
+            }
             updated = this.safeString (response, 'ts');
         } else {
             const statusData = this.safeValue (response, 'status', {});
@@ -4999,7 +5004,7 @@ export default class htx extends Exchange {
         }, market);
     }
 
-    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name htx#createMarketBuyOrderWithCost
@@ -6422,7 +6427,7 @@ export default class htx extends Exchange {
         };
     }
 
-    async transfer (code: string, amount: number, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name huobi#transfer
@@ -6925,7 +6930,7 @@ export default class htx extends Exchange {
         const marginMode = (marketId === undefined) ? 'cross' : 'isolated';
         market = this.safeMarket (marketId);
         const symbol = this.safeString (market, 'symbol');
-        const timestamp = this.safeNumber (info, 'accrued-at');
+        const timestamp = this.safeInteger (info, 'accrued-at');
         return {
             'account': (marginMode === 'isolated') ? symbol : 'cross',  // deprecated
             'symbol': symbol,
@@ -8932,7 +8937,7 @@ export default class htx extends Exchange {
         });
     }
 
-    async setPositionMode (hedged, symbol: Str = undefined, params = {}) {
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name htx#setPositionMode

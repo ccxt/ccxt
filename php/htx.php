@@ -1229,9 +1229,10 @@ class htx extends Exchange {
     public function fetch_status($params = array ()) {
         $this->load_markets();
         $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', null, $params);
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchStatus', null, $params);
+        $enabledForContracts = $this->handle_option('fetchStatus', 'enableForContracts', false); // temp fix for => https://status-linear-swap.huobigroup.com/api/v2/summary.json
         $response = null;
-        if ($marketType !== 'spot') {
+        if ($marketType !== 'spot' && $enabledForContracts) {
             $subType = $this->safe_string($params, 'subType', $this->options['defaultSubType']);
             if ($marketType === 'swap') {
                 if ($subType === 'linear') {
@@ -1248,7 +1249,7 @@ class htx extends Exchange {
             } elseif ($marketType === 'contract') {
                 $response = $this->contractPublicGetHeartbeat ();
             }
-        } else {
+        } elseif ($marketType === 'spot') {
             $response = $this->statusPublicSpotGetApiV2SummaryJson ();
         }
         //
@@ -1417,7 +1418,11 @@ class htx extends Exchange {
         $url = null;
         if ($marketType === 'contract') {
             $statusRaw = $this->safe_string($response, 'status');
-            $status = ($statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
+            if ($statusRaw === null) {
+                $status = null;
+            } else {
+                $status = ($statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
+            }
             $updated = $this->safe_string($response, 'ts');
         } else {
             $statusData = $this->safe_value($response, 'status', array());
@@ -4958,7 +4963,7 @@ class htx extends Exchange {
         ), $market);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * create a $market buy order by providing the $symbol and $cost
          * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4ee16-7773-11ed-9966-0242ac110003
@@ -6353,7 +6358,7 @@ class htx extends Exchange {
         );
     }
 
-    public function transfer(string $code, float $amount, $fromAccount, $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
@@ -6844,7 +6849,7 @@ class htx extends Exchange {
         $marginMode = ($marketId === null) ? 'cross' : 'isolated';
         $market = $this->safe_market($marketId);
         $symbol = $this->safe_string($market, 'symbol');
-        $timestamp = $this->safe_number($info, 'accrued-at');
+        $timestamp = $this->safe_integer($info, 'accrued-at');
         return array(
             'account' => ($marginMode === 'isolated') ? $symbol : 'cross',  // deprecated
             'symbol' => $symbol,
@@ -8819,7 +8824,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function set_position_mode($hedged, ?string $symbol = null, $params = array ()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
         /**
          * set $hedged to true or false
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-position-mode

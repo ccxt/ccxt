@@ -39,7 +39,7 @@ public partial class gate : Exchange
                         { "spot", "https://api.gateio.ws/api/v4" },
                         { "options", "https://api.gateio.ws/api/v4" },
                         { "subAccounts", "https://api.gateio.ws/api/v4" },
-                        { "portfolio", "https://api.gateio.ws/api/v4" },
+                        { "unified", "https://api.gateio.ws/api/v4" },
                         { "rebate", "https://api.gateio.ws/api/v4" },
                         { "earn", "https://api.gateio.ws/api/v4" },
                         { "account", "https://api.gateio.ws/api/v4" },
@@ -260,11 +260,14 @@ public partial class gate : Exchange
                             { "saved_address", 1 },
                             { "fee", 1 },
                             { "total_balance", 2.5 },
+                            { "small_balance", 1 },
+                            { "small_balance_history", 1 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "transfers", 2.5 },
                             { "sub_account_transfers", 2.5 },
                             { "sub_account_to_sub_account", 2.5 },
+                            { "small_balance", 1 },
                         } },
                     } },
                     { "subAccounts", new Dictionary<string, object>() {
@@ -287,7 +290,7 @@ public partial class gate : Exchange
                             { "sub_accounts/{user_id}/keys/{key}", 2.5 },
                         } },
                     } },
-                    { "portfolio", new Dictionary<string, object>() {
+                    { "unified", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "accounts", divide(20, 15) },
                             { "account_mode", divide(20, 15) },
@@ -296,6 +299,7 @@ public partial class gate : Exchange
                             { "loans", divide(20, 15) },
                             { "loan_records", divide(20, 15) },
                             { "interest_records", divide(20, 15) },
+                            { "estimate_rate", divide(20, 15) },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "account_mode", divide(20, 15) },
@@ -1574,7 +1578,11 @@ public partial class gate : Exchange
             object currency = getValue(parts, 0);
             object code = this.safeCurrencyCode(currency);
             object networkId = this.safeString(entry, "chain");
-            object networkCode = this.networkIdToCode(networkId, code);
+            object networkCode = null;
+            if (isTrue(!isEqual(networkId, null)))
+            {
+                networkCode = this.networkIdToCode(networkId, code);
+            }
             object delisted = this.safeValue(entry, "delisted");
             object withdrawDisabled = this.safeBool(entry, "withdraw_disabled", false);
             object depositDisabled = this.safeBool(entry, "deposit_disabled", false);
@@ -6552,7 +6560,7 @@ public partial class gate : Exchange
         };
     }
 
-    public async virtual Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
@@ -6569,7 +6577,7 @@ public partial class gate : Exchange
         return await this.modifyMarginHelper(symbol, prefixUnaryNeg(ref amount), parameters);
     }
 
-    public async virtual Task<object> addMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
@@ -7155,7 +7163,7 @@ public partial class gate : Exchange
         return this.safeString(ledgerType, type, type);
     }
 
-    public async virtual Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
+    public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
         /**
         * @method

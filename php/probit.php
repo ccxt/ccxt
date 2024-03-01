@@ -1364,7 +1364,7 @@ class probit extends Exchange {
         return $this->parse_deposit_address($firstAddress, $currency);
     }
 
-    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         /**
          * @see https://docs-en.probit.com/reference/deposit_address
          * fetch deposit addresses for multiple currencies and chain types
@@ -1563,12 +1563,12 @@ class probit extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency_id');
         $code = $this->safe_currency_code($currencyId);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $feeCost = $this->safe_number($transaction, 'fee');
+        $feeCostString = $this->safe_string($transaction, 'fee');
         $fee = null;
-        if ($feeCost !== null && $feeCost !== 0) {
+        if ($feeCostString !== null && $feeCostString !== '0') {
             $fee = array(
                 'currency' => $code,
-                'cost' => $feeCost,
+                'cost' => $this->parse_number($feeCostString),
             );
         }
         return array(

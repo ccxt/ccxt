@@ -184,7 +184,7 @@ class cex extends \ccxt\async\cex {
             $stored->append ($parsed);
         }
         $messageHash = 'trades';
-        $this->trades = $stored;
+        $this->trades = $stored; // trades don't have symbol
         $client->resolve ($this->trades, $messageHash);
     }
 
@@ -199,7 +199,7 @@ class cex extends \ccxt\async\cex {
             $trade = explode(':', $trade);
         }
         $side = $this->safe_string($trade, 0);
-        $timestamp = $this->safe_number($trade, 1);
+        $timestamp = $this->safe_integer($trade, 1);
         $amount = $this->safe_string($trade, 2);
         $price = $this->safe_string($trade, 3);
         $id = $this->safe_string($trade, 4);
@@ -230,7 +230,7 @@ class cex extends \ccxt\async\cex {
         //     }
         //
         $data = $this->safe_value($message, 'data', array());
-        $stored = $this->trades;
+        $stored = $this->trades; // to do fix this, $this->trades is not meant to be used like this
         for ($i = 0; $i < count($data); $i++) {
             $rawTrade = $data[$i];
             $parsed = $this->parse_ws_old_trade($rawTrade);
@@ -1126,7 +1126,10 @@ class cex extends \ccxt\async\cex {
         for ($i = 0; $i < count($sorted); $i++) {
             $stored->append ($this->parse_ohlcv($sorted[$i], $market));
         }
-        $this->ohlcvs[$symbol] = $stored;
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+            $this->ohlcvs[$symbol] = array();
+        }
+        $this->ohlcvs[$symbol]['unknown'] = $stored;
         $client->resolve ($stored, $messageHash);
     }
 
@@ -1188,7 +1191,8 @@ class cex extends \ccxt\async\cex {
         $pair = $this->safe_string($message, 'pair');
         $symbol = $this->pair_to_symbol($pair);
         $messageHash = 'ohlcv:' . $symbol;
-        $stored = $this->safe_value($this->ohlcvs, $symbol);
+        // $stored = $this->safe_value($this->ohlcvs, $symbol);
+        $stored = $this->ohlcvs[$symbol]['unknown'];
         for ($i = 0; $i < count($data); $i++) {
             $ohlcv = [
                 $this->safe_timestamp($data[$i], 0),
@@ -1306,7 +1310,7 @@ class cex extends \ccxt\async\cex {
         }) ();
     }
 
-    public function edit_order_ws(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()): PromiseInterface {
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -1379,7 +1383,7 @@ class cex extends \ccxt\async\cex {
         }) ();
     }
 
-    public function cancel_orders_ws($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders

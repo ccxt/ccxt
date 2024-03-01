@@ -108,7 +108,7 @@ export default class bitvavo extends bitvavoRest {
         //                 "volume": "3587.05020246",
         //                 "volumeQuote": "708030.17",
         //                 "bid": "199.56",
-        //                 "bidSize": "4.14730803",
+        //                 "bidSize": "4.14730802",
         //                 "ask": "199.57",
         //                 "askSize": "6.13642074",
         //                 "timestamp": 1590770885217
@@ -581,7 +581,7 @@ export default class bitvavo extends bitvavoRest {
         return await this.watchRequest ('privateCreateOrder', request);
     }
 
-    async editOrderWs (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}): Promise<Order> {
+    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name bitvavo#editOrderWs

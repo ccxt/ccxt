@@ -2826,27 +2826,19 @@ public partial class bitrue : Exchange
         this.checkAddress(address);
         await this.loadMarkets();
         object currency = this.currency(code);
-        object chainName = this.safeString2(parameters, "network", "chainName");
-        if (isTrue(isEqual(chainName, null)))
-        {
-            object networks = this.safeValue(currency, "networks", new Dictionary<string, object>() {});
-            object optionsNetworks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
-            object network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
-            network = this.safeString(optionsNetworks, network, network);
-            object networkEntry = this.safeValue(networks, network, new Dictionary<string, object>() {});
-            chainName = this.safeString(networkEntry, "id"); // handle ERC20>ETH alias
-            if (isTrue(isEqual(chainName, null)))
-            {
-                throw new ArgumentsRequired ((string)add(this.id, " withdraw() requires a network parameter or a chainName parameter")) ;
-            }
-            parameters = this.omit(parameters, "network");
-        }
         object request = new Dictionary<string, object>() {
-            { "coin", ((string)getValue(currency, "id")).ToUpper() },
+            { "coin", getValue(currency, "id") },
             { "amount", amount },
             { "addressTo", address },
-            { "chainName", chainName },
         };
+        object networkCode = null;
+        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        parameters = ((IList<object>)networkCodeparametersVariable)[1];
+        if (isTrue(!isEqual(networkCode, null)))
+        {
+            ((IDictionary<string,object>)request)["chainName"] = this.networkCodeToId(networkCode);
+        }
         if (isTrue(!isEqual(tag, null)))
         {
             ((IDictionary<string,object>)request)["tag"] = tag;
@@ -3138,7 +3130,7 @@ public partial class bitrue : Exchange
         };
     }
 
-    public async virtual Task<object> setMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> setMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method

@@ -120,7 +120,7 @@ If you're not going to develop CCXT and contribute code to the CCXT library, the
   composer install ccxt
   ```
 
-- [C# / Nugget](https://github.com/ccxt/ccxt/wiki/Install#php)
+- [C# / Nugget](https://github.com/ccxt/ccxt/wiki/Install#netc)
 
   ```shell
   # C# / Nugget
@@ -160,7 +160,8 @@ This way you can keep the build tools and processes isolated, not having to work
   - iconv
   - mbstring
   - PCRE
-  - bcmath (php<7.1)
+  - bcmath (php<7.1) or gmp (this is a built-in extension as of PHP 7.2+)
+- [C#](https://dotnet.microsoft.com/en-us/download) 7.0
 
 #### Build Steps
 

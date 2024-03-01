@@ -157,8 +157,9 @@ def json_stringify(elem):
     return json.dumps(elem)
 
 
-def convert_to_snake_case(conent):
-    return re.sub(r'(?<!^)(?=[A-Z])', '_', conent).lower()
+def convert_to_snake_case(content):
+    res = re.sub(r'(?<!^)(?=[A-Z])', '_', content).lower()
+    return res.replace('o_h_l_c_v', 'ohlcv')
 
 
 def get_test_name(methodName):
@@ -184,8 +185,7 @@ def io_dir_read(path):
 
 
 def call_method(test_files, methodName, exchange, skippedProperties, args):
-    methodNameToCall = convert_to_snake_case(methodName)
-    methodNameToCall = 'test_' + methodNameToCall.replace('o_h_l_c_v', 'ohlcv')
+    methodNameToCall = 'test_' + convert_to_snake_case(methodName)
     return getattr(test_files[methodName], methodNameToCall)(exchange, skippedProperties, *args)
 
 
@@ -372,7 +372,8 @@ class testMainClass(baseMainTestClass):
                         final_value = exchange_settings[key]
                     set_exchange_prop(exchange, key, final_value)
         # credentials
-        self.load_credentials_from_env(exchange)
+        if self.load_keys:
+            self.load_credentials_from_env(exchange)
         # skipped tests
         skipped_file = self.root_dir_for_skips + 'skip-tests.json'
         skipped_settings = io_file_read(skipped_file)
@@ -581,7 +582,7 @@ class testMainClass(baseMainTestClass):
         result = self.test_safe('loadMarkets', exchange, [], True)
         if not result:
             return False
-        symbols = ['BTC/CNY', 'BTC/USD', 'BTC/USDT', 'BTC/EUR', 'BTC/ETH', 'ETH/BTC', 'BTC/JPY', 'ETH/EUR', 'ETH/JPY', 'ETH/CNY', 'ETH/USD', 'LTC/CNY', 'DASH/BTC', 'DOGE/BTC', 'BTC/AUD', 'BTC/PLN', 'USD/SLL', 'BTC/RUB', 'BTC/UAH', 'LTC/BTC', 'EUR/USD']
+        symbols = ['BTC/USDT', 'BTC/USDC', 'BTC/CNY', 'BTC/USD', 'BTC/EUR', 'BTC/ETH', 'ETH/BTC', 'BTC/JPY', 'ETH/EUR', 'ETH/JPY', 'ETH/CNY', 'ETH/USD', 'LTC/CNY', 'DASH/BTC', 'DOGE/BTC', 'BTC/AUD', 'BTC/PLN', 'USD/SLL', 'BTC/RUB', 'BTC/UAH', 'LTC/BTC', 'EUR/USD']
         result_symbols = []
         exchange_specific_symbols = exchange.symbols
         for i in range(0, len(exchange_specific_symbols)):
@@ -636,8 +637,8 @@ class testMainClass(baseMainTestClass):
     def get_valid_symbol(self, exchange, spot=True):
         current_type_markets = self.get_markets_from_exchange(exchange, spot)
         codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT', 'ATOM', 'BAT', 'BTG', 'DASH', 'DOGE', 'ETC', 'IOTA', 'LSK', 'MKR', 'NEO', 'PAX', 'QTUM', 'TRX', 'TUSD', 'USD', 'USDC', 'WAVES', 'XEM', 'XMR', 'ZEC', 'ZRX']
-        spot_symbols = ['BTC/USD', 'BTC/USDT', 'BTC/CNY', 'BTC/EUR', 'BTC/ETH', 'ETH/BTC', 'ETH/USD', 'ETH/USDT', 'BTC/JPY', 'LTC/BTC', 'ZRX/WETH', 'EUR/USD']
-        swap_symbols = ['BTC/USDT:USDT', 'BTC/USD:USD', 'ETH/USDT:USDT', 'ETH/USD:USD', 'LTC/USDT:USDT', 'DOGE/USDT:USDT', 'ADA/USDT:USDT', 'BTC/USD:BTC', 'ETH/USD:ETH']
+        spot_symbols = ['BTC/USDT', 'BTC/USDC', 'BTC/USD', 'BTC/CNY', 'BTC/EUR', 'BTC/ETH', 'ETH/BTC', 'ETH/USD', 'ETH/USDT', 'BTC/JPY', 'LTC/BTC', 'ZRX/WETH', 'EUR/USD']
+        swap_symbols = ['BTC/USDT:USDT', 'BTC/USDC:USDC', 'BTC/USD:USD', 'ETH/USDT:USDT', 'ETH/USD:USD', 'LTC/USDT:USDT', 'DOGE/USDT:USDT', 'ADA/USDT:USDT', 'BTC/USD:BTC', 'ETH/USD:ETH']
         target_symbols = spot_symbols if spot else swap_symbols
         symbol = self.get_test_symbol(exchange, spot, target_symbols)
         # if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
@@ -686,16 +687,16 @@ class testMainClass(baseMainTestClass):
         if swap_symbol is not None:
             dump('[INFO:MAIN] Selected SWAP SYMBOL:', swap_symbol)
         if not self.private_test_only:
-            # note, spot & swap tests should run sequentially, because of conflicting `exchange.options['type']` setting
+            # note, spot & swap tests should run sequentially, because of conflicting `exchange.options['defaultType']` setting
             if exchange.has['spot'] and spot_symbol is not None:
                 if self.info:
                     dump('[INFO] ### SPOT TESTS ###')
-                exchange.options['type'] = 'spot'
+                exchange.options['defaultType'] = 'spot'
                 self.run_public_tests(exchange, spot_symbol)
             if exchange.has['swap'] and swap_symbol is not None:
                 if self.info:
                     dump('[INFO] ### SWAP TESTS ###')
-                exchange.options['type'] = 'swap'
+                exchange.options['defaultType'] = 'swap'
                 self.run_public_tests(exchange, swap_symbol)
         if self.private_test or self.private_test_only:
             if exchange.has['spot'] and spot_symbol is not None:
@@ -735,6 +736,7 @@ class testMainClass(baseMainTestClass):
             'fetchBorrowInterest': [code, symbol],
             'cancelAllOrders': [symbol],
             'fetchCanceledOrders': [symbol],
+            'fetchMarginModes': [symbol],
             'fetchPosition': [symbol],
             'fetchDeposit': [code],
             'createDepositAddress': [code],
@@ -1052,6 +1054,7 @@ class testMainClass(baseMainTestClass):
         currencies = self.load_currencies_from_file(exchange_name)
         exchange = init_exchange(exchange_name, {
             'markets': markets,
+            'currencies': currencies,
             'enableRateLimit': False,
             'rateLimit': 1,
             'httpProxy': 'http://fake:8080',
@@ -1195,7 +1198,7 @@ class testMainClass(baseMainTestClass):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1438,6 +1441,18 @@ class testMainClass(baseMainTestClass):
             request = json_parse(exchange.last_request_body)
         client_order_id = request['clOrdID']
         assert client_order_id.startswith(str(id)), 'clOrdID does not start with id'
+        close(exchange)
+
+    def test_blofin(self):
+        exchange = self.init_offline_exchange('blofin')
+        id = 'ec6dd3a7dd982d0b'
+        request = None
+        try:
+            exchange.create_order('LTC/USDT:USDT', 'market', 'buy', 1)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        broker_id = request['brokerId']
+        assert broker_id.startswith(str(id)), 'brokerId does not start with id'
         close(exchange)
 
 # ***** AUTO-TRANSPILER-END *****

@@ -24,6 +24,7 @@ public partial class Exchange
         {
             this.setMarkets(this.markets);
         }
+        this.afterConstruct();
     }
 
     private void initHttpClient()
@@ -737,15 +738,64 @@ public partial class Exchange
         return modified;
     }
 
+    /// <summary>
+    /// Returns the market object for a given market symbol.
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>market</term>
+    /// <description>
+    /// string : the market symbol, example: BTC/USD
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Market</term>Market structure </returns>
     public Market Market(string market)
     {
         var genericMarket = this.market(market);
         return new Market(genericMarket);
     }
 
-    public async Task LoadMarkets()
+    /// <summary>
+    /// Returns the Currency object for a given market symbol.
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>market</term>
+    /// <description>
+    /// string : the currency code, example: BTC
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Currency</term>Market structure </returns>
+
+    public Currency Currency(string currency)
     {
-        await this.loadMarkets();
+        var genericCurrency = this.currency(currency);
+        return new Currency(genericCurrency);
+    }
+
+    /// <summary>
+    /// Returns a dictionary of market objects for all markets.
+    /// </summary>
+    /// <remarks>
+    /// </remarks>
+    /// <returns> <term>Dictionary</term>string, MarketInterface</returns>
+    public async Task<Dictionary<string, MarketInterface>> LoadMarkets()
+    {
+        var res = await this.loadMarkets();
+        var dictRest = res as Dictionary<string, object>;
+        var returnRest = new Dictionary<string, MarketInterface>();
+        foreach (var item in dictRest)
+        {
+            returnRest.Add(item.Key, new MarketInterface(item.Value));
+        }
+        return returnRest;
+        // return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
 
     public class DynamicInvoker

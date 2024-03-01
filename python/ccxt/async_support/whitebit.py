@@ -240,6 +240,7 @@ class whitebit(Exchange, ImplicitAPI):
                     'account': 'spot',
                 },
                 'accountsByType': {
+                    'funding': 'main',
                     'main': 'main',
                     'spot': 'spot',
                     'margin': 'collateral',
@@ -456,7 +457,7 @@ class whitebit(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_transaction_fees(self, codes=None, params={}):
+    async def fetch_transaction_fees(self, codes: List[str] = None, params={}):
         """
          * @deprecated
         please use fetchDepositWithdrawFees instead
@@ -1257,9 +1258,9 @@ class whitebit(Exchange, ImplicitAPI):
         else:
             options = self.safe_value(self.options, 'fetchBalance', {})
             defaultAccount = self.safe_string(options, 'account')
-            account = self.safe_string(params, 'account', defaultAccount)
-            params = self.omit(params, 'account')
-            if account == 'main':
+            account = self.safe_string_2(params, 'account', 'type', defaultAccount)
+            params = self.omit(params, ['account', 'type'])
+            if account == 'main' or account == 'funding':
                 response = await self.v4PrivatePostMainAccountBalance(params)
             else:
                 response = await self.v4PrivatePostTradeAccountBalance(params)
@@ -1616,7 +1617,7 @@ class whitebit(Exchange, ImplicitAPI):
         #         "leverage": 5
         #     }
 
-    async def transfer(self, code: str, amount: float, fromAccount, toAccount, params={}) -> TransferEntry:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://docs.whitebit.com/private/http-main-v4/#transfer-between-main-and-trade-balances

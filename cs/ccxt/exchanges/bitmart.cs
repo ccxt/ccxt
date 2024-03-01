@@ -1064,7 +1064,7 @@ public partial class bitmart : Exchange
     public override object parseTicker(object ticker, object market = null)
     {
         //
-        // spot
+        // spot (REST)
         //
         //      {
         //          "symbol": "SOLAR_USDT",
@@ -1084,6 +1084,17 @@ public partial class bitmart : Exchange
         //          "timestamp": 1667403439367
         //      }
         //
+        // spot (WS)
+        //      {
+        //          "symbol":"BTC_USDT",
+        //          "last_price":"146.24",
+        //          "open_24h":"147.17",
+        //          "high_24h":"147.48",
+        //          "low_24h":"143.88",
+        //          "base_volume_24h":"117387.58", // NOT base, but quote currency!!!
+        //          "s_t": 1610936002
+        //      }
+        //
         // swap
         //
         //      {
@@ -1100,6 +1111,11 @@ public partial class bitmart : Exchange
         //      }
         //
         object timestamp = this.safeInteger(ticker, "timestamp");
+        if (isTrue(isEqual(timestamp, null)))
+        {
+            // ticker from WS has a different field (in seconds)
+            timestamp = this.safeIntegerProduct(ticker, "s_t", 1000);
+        }
         object marketId = this.safeString2(ticker, "symbol", "contract_symbol");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
@@ -1119,7 +1135,20 @@ public partial class bitmart : Exchange
         }
         object baseVolume = this.safeString(ticker, "base_volume_24h");
         object quoteVolume = this.safeString(ticker, "quote_volume_24h");
-        quoteVolume = this.safeString(ticker, "volume_24h", quoteVolume);
+        if (isTrue(isEqual(quoteVolume, null)))
+        {
+            if (isTrue(isEqual(baseVolume, null)))
+            {
+                // this is swap
+                quoteVolume = this.safeString(ticker, "volume_24h", quoteVolume);
+            } else
+            {
+                // this is a ticker from websockets
+                // contrary to name and documentation, base_volume_24h is actually the quote volume
+                quoteVolume = baseVolume;
+                baseVolume = null;
+            }
+        }
         object average = this.safeString2(ticker, "avg_price", "index_price");
         object high = this.safeString2(ticker, "high_24h", "high_price");
         object low = this.safeString2(ticker, "low_24h", "low_price");
