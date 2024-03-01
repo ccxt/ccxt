@@ -321,13 +321,12 @@ export default class deribit extends deribitRest {
         const interval = this.safeString (parts, 2);
         const symbol = this.safeSymbol (marketId);
         const market = this.safeMarket (marketId);
-        const trades = this.safeValue (params, 'data', []);
-        let stored = this.safeValue (this.trades, symbol);
-        if (stored === undefined) {
+        const trades = this.safeList (params, 'data', []);
+        if (this.safeValue (this.trades, symbol) === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = new ArrayCache (limit);
-            this.trades[symbol] = stored;
+            this.trades[symbol] = new ArrayCache (limit);
         }
+        const stored = this.trades[symbol];
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
             const parsed = this.parseTrade (trade, market);
