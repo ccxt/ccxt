@@ -782,7 +782,7 @@ export default class coinbaseinternational extends Exchange {
             'datetime': datetime,
             'symbol': this.safeSymbol (marketId, market),
             'type': undefined,
-            'side': this.safeString (trade, 'side').toLowerCase (),
+            'side': this.safeStringLower (trade, 'side'),
             'takerOrMaker': undefined,
             'price': this.safeNumber (trade, 'fill_price'),
             'amount': this.safeNumber (trade, 'fill_qty'),
@@ -1486,6 +1486,7 @@ export default class coinbaseinternational extends Exchange {
          * @method
          * @name coinbaseinternational#editOrder
          * @description edit a trade order
+         * @see https://docs.cloud.coinbase.com/intx/reference/modifyorder
          * @param {string} id cancel order id
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
