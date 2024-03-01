@@ -716,6 +716,7 @@ public partial class testMainClass : BaseTest
             { "fetchBorrowInterest", new List<object>() {code, symbol} },
             { "cancelAllOrders", new List<object>() {symbol} },
             { "fetchCanceledOrders", new List<object>() {symbol} },
+            { "fetchMarginModes", new List<object>() {symbol} },
             { "fetchPosition", new List<object>() {symbol} },
             { "fetchDeposit", new List<object>() {code} },
             { "createDepositAddress", new List<object>() {code} },

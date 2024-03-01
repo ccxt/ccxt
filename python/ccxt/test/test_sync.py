@@ -736,6 +736,7 @@ class testMainClass(baseMainTestClass):
             'fetchBorrowInterest': [code, symbol],
             'cancelAllOrders': [symbol],
             'fetchCanceledOrders': [symbol],
+            'fetchMarginModes': [symbol],
             'fetchPosition': [symbol],
             'fetchDeposit': [code],
             'createDepositAddress': [code],

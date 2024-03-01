@@ -180,7 +180,7 @@ class deribit(ccxt.async_support.deribit):
         #         "params": {
         #             "channel": "ticker.BTC_USDC-PERPETUAL.raw",
         #             "data": {
-        #                 "timestamp": 1655393725041,
+        #                 "timestamp": 1655393725040,
         #                 "stats": [Object],
         #                 "state": "open",
         #                 "settlement_price": 21729.5891,
@@ -631,7 +631,7 @@ class deribit(ccxt.async_support.deribit):
         symbol = self.safe_symbol(marketId)
         ohlcv = self.safe_value(params, 'data', {})
         parsed = [
-            self.safe_number(ohlcv, 'tick'),
+            self.safe_integer(ohlcv, 'tick'),
             self.safe_number(ohlcv, 'open'),
             self.safe_number(ohlcv, 'high'),
             self.safe_number(ohlcv, 'low'),

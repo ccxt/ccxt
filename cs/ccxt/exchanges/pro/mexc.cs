@@ -272,7 +272,7 @@ public partial class mexc : ccxt.mexc
         //        "d": {
         //            "e": "spot@public.kline.v3.api",
         //            "k": {
-        //                "t": 1678642260,
+        //                "t": 1678642261,
         //                "o": 20626.94,
         //                "c": 20599.69,
         //                "h": 20626.94,
@@ -495,7 +495,7 @@ public partial class mexc : ccxt.mexc
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = 1;
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.countedOrderBook(new Dictionary<string, object>() {});
         }
-        object storedOrderBook = this.safeValue(this.orderbooks, symbol);
+        object storedOrderBook = getValue(this.orderbooks, symbol);
         object nonce = this.safeInteger(storedOrderBook, "nonce");
         if (isTrue(isEqual(nonce, null)))
         {

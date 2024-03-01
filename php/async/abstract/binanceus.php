@@ -217,12 +217,6 @@ abstract class binanceus extends \ccxt\async\binance {
     public function sapi_get_loan_flexible_ltv_adjustment_history($params = array()) {
         return $this->request('loan/flexible/ltv/adjustment/history', 'sapi', 'GET', $params, null, null, array("cost" => 40));
     }
-    public function sapi_get_loan_flexible_loanable_data($params = array()) {
-        return $this->request('loan/flexible/loanable/data', 'sapi', 'GET', $params, null, null, array("cost" => 40));
-    }
-    public function sapi_get_loan_flexible_collateral_data($params = array()) {
-        return $this->request('loan/flexible/collateral/data', 'sapi', 'GET', $params, null, null, array("cost" => 40));
-    }
     public function sapi_get_loan_vip_ongoing_orders($params = array()) {
         return $this->request('loan/vip/ongoing/orders', 'sapi', 'GET', $params, null, null, array("cost" => 40));
     }
@@ -1105,9 +1099,6 @@ abstract class binanceus extends \ccxt\async\binance {
     public function sapi_post_loan_customize_margin_call($params = array()) {
         return $this->request('loan/customize/margin_call', 'sapi', 'POST', $params, null, null, array("cost" => 40.002));
     }
-    public function sapi_post_loan_flexible_borrow($params = array()) {
-        return $this->request('loan/flexible/borrow', 'sapi', 'POST', $params, null, null, array("cost" => 40.002));
-    }
     public function sapi_post_loan_flexible_repay($params = array()) {
         return $this->request('loan/flexible/repay', 'sapi', 'POST', $params, null, null, array("cost" => 40.002));
     }
@@ -1276,6 +1267,24 @@ abstract class binanceus extends \ccxt\async\binance {
     public function sapiv2_get_sub_account_futures_positionrisk($params = array()) {
         return $this->request('sub-account/futures/positionRisk', 'sapiV2', 'GET', $params, null, null, array("cost" => 0.1));
     }
+    public function sapiv2_get_loan_flexible_ongoing_orders($params = array()) {
+        return $this->request('loan/flexible/ongoing/orders', 'sapiV2', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function sapiv2_get_loan_flexible_borrow_history($params = array()) {
+        return $this->request('loan/flexible/borrow/history', 'sapiV2', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapiv2_get_loan_flexible_repay_history($params = array()) {
+        return $this->request('loan/flexible/repay/history', 'sapiV2', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapiv2_get_loan_flexible_ltv_adjustment_history($params = array()) {
+        return $this->request('loan/flexible/ltv/adjustment/history', 'sapiV2', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapiv2_get_loan_flexible_loanable_data($params = array()) {
+        return $this->request('loan/flexible/loanable/data', 'sapiV2', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapiv2_get_loan_flexible_collateral_data($params = array()) {
+        return $this->request('loan/flexible/collateral/data', 'sapiV2', 'GET', $params, null, null, array("cost" => 40));
+    }
     public function sapiv2_get_cl_account($params = array()) {
         return $this->request('cl/account', 'sapiV2', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -1287,6 +1296,15 @@ abstract class binanceus extends \ccxt\async\binance {
     }
     public function sapiv2_post_sub_account_subaccountapi_iprestriction($params = array()) {
         return $this->request('sub-account/subAccountApi/ipRestriction', 'sapiV2', 'POST', $params, null, null, array("cost" => 20.001));
+    }
+    public function sapiv2_post_loan_flexible_borrow($params = array()) {
+        return $this->request('loan/flexible/borrow', 'sapiV2', 'POST', $params, null, null, array("cost" => 40.002));
+    }
+    public function sapiv2_post_loan_flexible_repay($params = array()) {
+        return $this->request('loan/flexible/repay', 'sapiV2', 'POST', $params, null, null, array("cost" => 40.002));
+    }
+    public function sapiv2_post_loan_flexible_adjust_ltv($params = array()) {
+        return $this->request('loan/flexible/adjust/ltv', 'sapiV2', 'POST', $params, null, null, array("cost" => 40.002));
     }
     public function sapiv3_get_sub_account_assets($params = array()) {
         return $this->request('sub-account/assets', 'sapiV3', 'GET', $params, null, null, array("cost" => 0.40002));
@@ -2446,12 +2464,6 @@ abstract class binanceus extends \ccxt\async\binance {
     public function sapiGetLoanFlexibleLtvAdjustmentHistory($params = array()) {
         return $this->request('loan/flexible/ltv/adjustment/history', 'sapi', 'GET', $params, null, null, array("cost" => 40));
     }
-    public function sapiGetLoanFlexibleLoanableData($params = array()) {
-        return $this->request('loan/flexible/loanable/data', 'sapi', 'GET', $params, null, null, array("cost" => 40));
-    }
-    public function sapiGetLoanFlexibleCollateralData($params = array()) {
-        return $this->request('loan/flexible/collateral/data', 'sapi', 'GET', $params, null, null, array("cost" => 40));
-    }
     public function sapiGetLoanVipOngoingOrders($params = array()) {
         return $this->request('loan/vip/ongoing/orders', 'sapi', 'GET', $params, null, null, array("cost" => 40));
     }
@@ -3334,9 +3346,6 @@ abstract class binanceus extends \ccxt\async\binance {
     public function sapiPostLoanCustomizeMarginCall($params = array()) {
         return $this->request('loan/customize/margin_call', 'sapi', 'POST', $params, null, null, array("cost" => 40.002));
     }
-    public function sapiPostLoanFlexibleBorrow($params = array()) {
-        return $this->request('loan/flexible/borrow', 'sapi', 'POST', $params, null, null, array("cost" => 40.002));
-    }
     public function sapiPostLoanFlexibleRepay($params = array()) {
         return $this->request('loan/flexible/repay', 'sapi', 'POST', $params, null, null, array("cost" => 40.002));
     }
@@ -3505,6 +3514,24 @@ abstract class binanceus extends \ccxt\async\binance {
     public function sapiV2GetSubAccountFuturesPositionRisk($params = array()) {
         return $this->request('sub-account/futures/positionRisk', 'sapiV2', 'GET', $params, null, null, array("cost" => 0.1));
     }
+    public function sapiV2GetLoanFlexibleOngoingOrders($params = array()) {
+        return $this->request('loan/flexible/ongoing/orders', 'sapiV2', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function sapiV2GetLoanFlexibleBorrowHistory($params = array()) {
+        return $this->request('loan/flexible/borrow/history', 'sapiV2', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapiV2GetLoanFlexibleRepayHistory($params = array()) {
+        return $this->request('loan/flexible/repay/history', 'sapiV2', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapiV2GetLoanFlexibleLtvAdjustmentHistory($params = array()) {
+        return $this->request('loan/flexible/ltv/adjustment/history', 'sapiV2', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapiV2GetLoanFlexibleLoanableData($params = array()) {
+        return $this->request('loan/flexible/loanable/data', 'sapiV2', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapiV2GetLoanFlexibleCollateralData($params = array()) {
+        return $this->request('loan/flexible/collateral/data', 'sapiV2', 'GET', $params, null, null, array("cost" => 40));
+    }
     public function sapiV2GetClAccount($params = array()) {
         return $this->request('cl/account', 'sapiV2', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -3516,6 +3543,15 @@ abstract class binanceus extends \ccxt\async\binance {
     }
     public function sapiV2PostSubAccountSubAccountApiIpRestriction($params = array()) {
         return $this->request('sub-account/subAccountApi/ipRestriction', 'sapiV2', 'POST', $params, null, null, array("cost" => 20.001));
+    }
+    public function sapiV2PostLoanFlexibleBorrow($params = array()) {
+        return $this->request('loan/flexible/borrow', 'sapiV2', 'POST', $params, null, null, array("cost" => 40.002));
+    }
+    public function sapiV2PostLoanFlexibleRepay($params = array()) {
+        return $this->request('loan/flexible/repay', 'sapiV2', 'POST', $params, null, null, array("cost" => 40.002));
+    }
+    public function sapiV2PostLoanFlexibleAdjustLtv($params = array()) {
+        return $this->request('loan/flexible/adjust/ltv', 'sapiV2', 'POST', $params, null, null, array("cost" => 40.002));
     }
     public function sapiV3GetSubAccountAssets($params = array()) {
         return $this->request('sub-account/assets', 'sapiV3', 'GET', $params, null, null, array("cost" => 0.40002));

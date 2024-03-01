@@ -71,7 +71,8 @@ class bitmex(Exchange, ImplicitAPI):
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
                 'fetchLedger': True,
-                'fetchLeverage': False,
+                'fetchLeverage': True,
+                'fetchLeverages': True,
                 'fetchLeverageTiers': False,
                 'fetchLiquidations': True,
                 'fetchMarketLeverageTiers': False,
@@ -1976,6 +1977,41 @@ class bitmex(Exchange, ImplicitAPI):
         #     ]
         #
         return self.parse_orders(response, market)
+
+    def fetch_leverages(self, symbols: List[str] = None, params={}):
+        """
+        fetch the set leverage for all contract markets
+        :see: https://www.bitmex.com/api/explorer/#not /Position/Position_get
+        :param str[] [symbols]: a list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `leverage structures <https://docs.ccxt.com/#/?id=leverage-structure>`
+        """
+        self.load_markets()
+        positions = self.fetch_positions(symbols, params)
+        result = []
+        for i in range(0, len(positions)):
+            entry = positions[i]
+            marketId = self.safe_string(entry, 'symbol')
+            market = self.safe_market(marketId, None, None, 'contract')
+            result.append({
+                'info': entry,
+                'symbol': market['symbol'],
+                'leverage': self.safe_integer(entry, 'leverage'),
+                'marginMode': self.safe_string(entry, 'marginMode'),
+            })
+        return result
+
+    def fetch_leverage(self, symbol: str, params={}):
+        """
+        fetch the set leverage for a market
+        :see: https://www.bitmex.com/api/explorer/#not /Position/Position_get
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
+        """
+        self.load_markets()
+        leverage = self.fetch_leverages([symbol], params)
+        return leverage
 
     def fetch_positions(self, symbols: Strings = None, params={}):
         """

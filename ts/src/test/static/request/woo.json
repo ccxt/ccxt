@@ -354,6 +354,26 @@
                   200
                 ]
               }
+        ],
+        "setPositionMode": [
+            {
+                "description": "set position mode to hedge mode",
+                "method": "setPositionMode",
+                "url": "https://api.woo.org/v1/client/position_mode",
+                "input": [
+                  true
+                ],
+                "output": "position_mode=HEDGE_MODE"
+            },
+            {
+                "description": "set position mode to one way mode",
+                "method": "setPositionMode",
+                "url": "https://api.woo.org/v1/client/position_mode",
+                "input": [
+                  false
+                ],
+                "output": "position_mode=ONE_WAY"
+            }
         ]
     }
 }

@@ -77,6 +77,8 @@ class mexc extends Exchange {
                 'fetchL2OrderBook' => true,
                 'fetchLedger' => null,
                 'fetchLedgerEntry' => null,
+                'fetchLeverage' => true,
+                'fetchLeverages' => false,
                 'fetchLeverageTiers' => true,
                 'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => null,
@@ -5415,6 +5417,81 @@ class mexc extends Exchange {
             );
         }
         return $this->assign_default_deposit_withdraw_fees($result);
+    }
+
+    public function fetch_leverage(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the set leverage for a $market
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-leverage
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->contractPrivateGetPositionLeverage (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "code" => 0,
+            //         "data" => array(
+            //             array(
+            //                 "level" => 1,
+            //                 "maxVol" => 463300,
+            //                 "mmr" => 0.004,
+            //                 "imr" => 0.005,
+            //                 "positionType" => 1,
+            //                 "openType" => 1,
+            //                 "leverage" => 20,
+            //                 "limitBySys" => false,
+            //                 "currentMmr" => 0.004
+            //             ),
+            //             {
+            //                 "level" => 1,
+            //                 "maxVol" => 463300,
+            //                 "mmr" => 0.004,
+            //                 "imr" => 0.005,
+            //                 "positionType" => 2,
+            //                 "openType" => 1,
+            //                 "leverage" => 20,
+            //                 "limitBySys" => false,
+            //                 "currentMmr" => 0.004
+            //             }
+            //         )
+            //     }
+            //
+            $data = $this->safe_list($response, 'data', array());
+            $longLeverage = $this->safe_dict($data, 0);
+            return $this->parse_leverage($longLeverage, $market);
+        }) ();
+    }
+
+    public function parse_leverage($leverage, ?array $market = null) {
+        //
+        //     {
+        //         "level" => 1,
+        //         "maxVol" => 463300,
+        //         "mmr" => 0.004,
+        //         "imr" => 0.005,
+        //         "positionType" => 1,
+        //         "openType" => 1,
+        //         "leverage" => 20,
+        //         "limitBySys" => false,
+        //         "currentMmr" => 0.004
+        //     }
+        //
+        $marketId = $this->safe_string($leverage, 'symbol');
+        $market = $this->safe_market($marketId, $market, null, 'contract');
+        return array(
+            'info' => $leverage,
+            'symbol' => $market['symbol'],
+            'leverage' => $this->safe_integer($leverage, 'leverage'),
+            'marginMode' => null,
+        );
     }
 
     public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {

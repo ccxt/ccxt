@@ -97,6 +97,7 @@ class woo extends woo$1 {
                 'reduceMargin': false,
                 'setLeverage': true,
                 'setMargin': false,
+                'setPositionMode': true,
                 'transfer': true,
                 'withdraw': true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
             },
@@ -171,10 +172,16 @@ class woo extends woo$1 {
                             'client/trade/{tid}': 1,
                             'order/{oid}/trades': 1,
                             'client/trades': 1,
+                            'client/hist_trades': 1,
+                            'staking/yield_history': 1,
+                            'client/holding': 1,
                             'asset/deposit': 10,
                             'asset/history': 60,
                             'sub_account/all': 60,
                             'sub_account/assets': 60,
+                            'sub_account/asset_detail': 60,
+                            'sub_account/ip_restriction': 10,
+                            'asset/main_sub_transfer_history': 30,
                             'token_interest': 60,
                             'token_interest/{token}': 60,
                             'interest/history': 60,
@@ -187,9 +194,12 @@ class woo extends woo$1 {
                         'post': {
                             'order': 5,
                             'asset/main_sub_transfer': 30,
+                            'asset/ltv': 30,
                             'asset/withdraw': 30,
+                            'asset/internal_withdraw': 30,
                             'interest/repay': 60,
                             'client/account_mode': 120,
+                            'client/position_mode': 5,
                             'client/leverage': 120,
                         },
                         'delete': {
@@ -295,7 +305,6 @@ class woo extends woo$1 {
                     '-1007': errors.BadRequest,
                     '-1008': errors.InvalidOrder,
                     '-1009': errors.BadRequest,
-                    '-1011': errors.ExchangeError,
                     '-1012': errors.BadRequest,
                     '-1101': errors.InvalidOrder,
                     '-1102': errors.InvalidOrder,
@@ -304,6 +313,8 @@ class woo extends woo$1 {
                     '-1105': errors.InvalidOrder, // { "code": -1105,  "message": "Price is X% too high or X% too low from the mid price." }
                 },
                 'broad': {
+                    'Can not place': errors.ExchangeError,
+                    'maintenance': errors.OnMaintenance,
                     'symbol must not be blank': errors.BadRequest,
                     'The token is not supported': errors.BadRequest,
                     'Your order and symbol are not valid or already canceled': errors.BadRequest,
@@ -2380,6 +2391,7 @@ class woo extends woo$1 {
         }
         //
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
+        //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
         const success = this.safeValue(response, 'success');
         const errorCode = this.safeString(response, 'code');
@@ -2608,6 +2620,37 @@ class woo extends woo$1 {
         }
         const sorted = this.sortBy(rates, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+    }
+    async setPositionMode(hedged, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#setPositionMode
+         * @description set hedged to true or false for a market
+         * @see https://docs.woo.org/#update-position-mode
+         * @param {bool} hedged set to true to use HEDGE_MODE, false for ONE_WAY
+         * @param {string} symbol not used by woo setPositionMode
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} response from the exchange
+         */
+        let hedgeMode = undefined;
+        if (hedged) {
+            hedgeMode = 'HEDGE_MODE';
+        }
+        else {
+            hedgeMode = 'ONE_WAY';
+        }
+        const request = {
+            'position_mode': hedgeMode,
+        };
+        const response = await this.v1PrivatePostClientPositionMode(this.extend(request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {},
+        //         "timestamp": "1709195608551"
+        //     }
+        //
+        return response;
     }
     async fetchLeverage(symbol, params = {}) {
         await this.loadMarkets();

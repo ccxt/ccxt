@@ -62,6 +62,8 @@ export default class bitmex extends Exchange {
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<Order[]>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
+    fetchLeverages(symbols?: string[], params?: {}): Promise<any[]>;
+    fetchLeverage(symbol: string, params?: {}): Promise<any[]>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: Market): import("./base/types.js").Position;
     withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
