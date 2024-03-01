@@ -560,6 +560,19 @@
                   "trailing": true
                 }
               ]
+            },
+            {
+              "description": "fetch open tp/sl orders",
+              "method": "fetchOpenOrders",
+              "url": "https://api.bitget.com/api/v2/mix/order/orders-plan-pending?planType=profit_loss&productType=USDT-FUTURES&symbol=ADAUSDT",
+              "input": [
+                "ADA/USDT:USDT",
+                null,
+                null,
+                {
+                  "planType": "profit_loss"
+                }
+              ]
             }
         ],
         "fetchClosedOrders": [
