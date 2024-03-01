@@ -283,7 +283,7 @@ export default class deribit extends deribitRest {
             const market = this.market (symbols[i]);
             const message = channelName + '.' + market['id'] + '.' + channelDescriptor;
             rawSubscriptions.push (message);
-            messageHashes.push (channelName + ':' + market['symbol'] + ':' + channelDescriptor);
+            messageHashes.push (channelName + '|' + market['symbol'] + '|' + channelDescriptor);
         }
         const request = {
             'jsonrpc': '2.0',
@@ -337,7 +337,7 @@ export default class deribit extends deribitRest {
             stored.append (parsed);
         }
         this.trades[symbol] = stored;
-        const messageHash = 'trades' + ':' + symbol + ':' + interval;
+        const messageHash = 'trades|' + symbol + '|' + interval;
         client.resolve (this.trades[symbol], messageHash);
     }
 
@@ -554,7 +554,7 @@ export default class deribit extends deribitRest {
         storedOrderBook['datetime'] = this.iso8601 (timestamp);
         storedOrderBook['symbol'] = symbol;
         this.orderbooks[symbol] = storedOrderBook;
-        const messageHash = 'book' + ':' + symbol + ':' + descriptor;
+        const messageHash = 'book|' + symbol + '|' + descriptor;
         client.resolve (storedOrderBook, messageHash);
     }
 
