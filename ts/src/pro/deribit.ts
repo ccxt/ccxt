@@ -726,14 +726,45 @@ export default class deribit extends deribitRest {
         //         }
         //     }
         //
-        const params = this.safeValue (message, 'params', {});
+        const params = this.safeDict (message, 'params', {});
         const channel = this.safeString (params, 'channel', '');
         const parts = channel.split ('.');
         const marketId = this.safeString (parts, 2);
-        const timeframe = this.safeString (parts, 3);
-        const symbol = this.safeSymbol (marketId);
-        const ohlcv = this.safeValue (params, 'data', {});
-        const parsed = [
+        const rawTimeframe = this.safeString (parts, 3);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const wsOptions = this.safeDict (this.options, 'ws', {});
+        const timeframes = this.safeValue (wsOptions, 'timeframes', {});
+        const unifiedTimeframe = this.findTimeframe (rawTimeframe, timeframes);
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
+        if (this.safeValue (this.ohlcvs[symbol], unifiedTimeframe) === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            this.ohlcvs[symbol][unifiedTimeframe] = new ArrayCacheByTimestamp (limit);
+        }
+        const stored = this.ohlcvs[symbol][unifiedTimeframe];
+        const ohlcv = this.safeDict (params, 'data', {});
+        // data contains a single OHLCV candle
+        const parsed = this.parseWsOHLCV (ohlcv, market);
+        stored.append (parsed);
+        this.ohlcvs[symbol][unifiedTimeframe] = stored;
+        const resolveData = [ symbol, unifiedTimeframe, stored ];
+        const messageHash = 'chart.trades|' + symbol + '|' + rawTimeframe;
+        client.resolve (resolveData, messageHash);
+    }
+
+    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
+        //
+        //    {
+        //        "c": "28909.0",
+        //        "o": "28915.4",
+        //        "h": "28915.4",
+        //        "l": "28896.1",
+        //        "v": "27.6919",
+        //        "T": 1696687499999,
+        //        "t": 1696687440000
+        //    }
+        //
+        return [
             this.safeInteger (ohlcv, 'tick'),
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
@@ -741,15 +772,6 @@ export default class deribit extends deribitRest {
             this.safeNumber (ohlcv, 'close'),
             this.safeNumber (ohlcv, 'volume'),
         ];
-        let stored = this.safeValue (this.ohlcvs, symbol);
-        if (stored === undefined) {
-            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
-        }
-        stored.append (parsed);
-        this.ohlcvs[symbol] = stored;
-        const messageHash = 'chart.trades|' + symbol + '|' + timeframe;
-        client.resolve (stored, messageHash);
     }
 
     async watchMultipleWrapper (channelName: string, channelDescriptor: string, symbolsArray: any[] = undefined, params = {}) {
@@ -765,9 +787,9 @@ export default class deribit extends deribitRest {
             let market = undefined;
             if (isOHLCV) {
                 market = this.market (current[0]);
-                const tf = current[1];
-                const interval = this.safeString (this.timeframes, tf, tf);
-                channelDescriptor = interval;
+                const unifiedTf = current[1];
+                const rawTf = this.safeString (this.timeframes, unifiedTf, unifiedTf);
+                channelDescriptor = rawTf;
             } else {
                 market = this.market (current);
             }
