@@ -461,15 +461,16 @@ export default class deribit extends deribitRest {
         }
         let descriptor = '';
         let useDepthEndpoint = undefined; // for more info, see comment in .options
-        [ useDepthEndpoint, params ] = this.handleOptionAndParams (params, 'useDepthEndpoint', 'depth', '20');
+        [ useDepthEndpoint, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
         if (useDepthEndpoint) {
             let depth = undefined;
             [ depth, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'depth', '20');
             let group = undefined;
             [ group, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'group', 'none');
-            descriptor = 'group.' + group + '.depth.' + depth;
+            descriptor = group + '.' + depth + '.' + interval;
+        } else {
+            descriptor = interval;
         }
-        descriptor += '.' + interval;
         const orderbook = await this.subscribeMultiple ('books', descriptor, symbols, params);
         return orderbook.limit ();
     }
@@ -523,6 +524,7 @@ export default class deribit extends deribitRest {
         const params = this.safeValue (message, 'params', {});
         const data = this.safeValue (params, 'data', {});
         const channel = this.safeString (params, 'channel');
+        const parts = channel.split ('.');
         const marketId = this.safeString (data, 'instrument_name');
         const symbol = this.safeSymbol (marketId);
         const timestamp = this.safeInteger (data, 'timestamp');
@@ -539,7 +541,7 @@ export default class deribit extends deribitRest {
         storedOrderBook['datetime'] = this.iso8601 (timestamp);
         storedOrderBook['symbol'] = symbol;
         this.orderbooks[symbol] = storedOrderBook;
-        client.resolve (storedOrderBook, channel);
+        client.resolve (storedOrderBook, 'books');
     }
 
     cleanOrderBook (data) {
