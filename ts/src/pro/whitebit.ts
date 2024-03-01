@@ -120,11 +120,11 @@ export default class whitebit extends whitebitRest {
             const messageHash = 'candles' + ':' + symbol;
             const parsed = this.parseOHLCV (data, market);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
-            let stored = this.ohlcvs[symbol];
+            let stored = this.ohlcvs[symbol]['unknown']; // we don't know the timeframe but we need to respect the type
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol] = stored;
+                this.ohlcvs[symbol]['unknown'] = stored;
             }
             stored.append (parsed);
             client.resolve (stored, messageHash);
