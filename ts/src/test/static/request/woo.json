@@ -3,6 +3,24 @@
     "skipKeys": [],
     "outputType": "urlencoded",
     "methods": {
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://api.woo.org/v1/public/system_info",
+                "input": [
+                ]
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetchStatus",
+                "method": "fetchStatus",
+                "url": "https://api.woo.org/v1/public/system_info",
+                "input": [
+                ]
+            }
+        ],
         "createOrder": [
             {
                 "description": "spot limit buy",

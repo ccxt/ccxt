@@ -2454,7 +2454,9 @@ export default class woo extends Exchange {
                 if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
                     body = auth;
                 } else {
-                    url += '?' + auth;
+                    if (Object.keys (params).length) {
+                        url += '?' + auth;
+                    }
                 }
                 auth += '|' + ts;
                 headers['content-type'] = 'application/x-www-form-urlencoded';
