@@ -555,6 +555,7 @@ export default class Exchange {
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': undefined,
+                'fetchLeverages': undefined,
                 'fetchLeverageTiers': undefined,
                 'fetchLiquidations': undefined,
                 'fetchMarginMode': undefined,
@@ -2326,6 +2327,10 @@ export default class Exchange {
 
     async fetchLeverage (symbol: string, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchLeverage() is not supported yet');
+    }
+
+    async fetchLeverages (symbols: string[] = undefined, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' fetchLeverages() is not supported yet');
     }
 
     async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}): Promise<{}> {
