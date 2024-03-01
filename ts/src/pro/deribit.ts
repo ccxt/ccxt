@@ -266,7 +266,7 @@ export default class deribit extends deribitRest {
         if (interval === 'raw') {
             await this.authenticate ();
         }
-        const trades = await this.subscribeMultiple ('trades', interval, symbols, params);
+        const trades = await this.watchMultipleWrapper ('trades', interval, symbols, params);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -451,7 +451,7 @@ export default class deribit extends deribitRest {
         } else {
             descriptor = interval;
         }
-        const orderbook = await this.subscribeMultiple ('book', descriptor, symbols, params);
+        const orderbook = await this.watchMultipleWrapper ('book', descriptor, symbols, params);
         return orderbook.limit ();
     }
 
@@ -699,7 +699,7 @@ export default class deribit extends deribitRest {
         if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
             throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
         }
-        const [ symbol, timeframe, candles ] = await this.subscribeMultiple ('chart.trades', messageHashes, request, messageHashes);
+        const [ symbol, timeframe, candles ] = await this.watchMultipleWrapper ('chart.trades', undefined, symbolsAndTimeframes, params);
         if (this.newUpdates) {
             limit = candles.getLimit (symbol, limit);
         }
@@ -750,15 +750,27 @@ export default class deribit extends deribitRest {
         client.resolve (stored, channel);
     }
 
-    async subscribeMultiple (channelName: string, channelDescriptor: string, symbols: string[], params = {}) {
+    async watchMultipleWrapper (channelName: string, channelDescriptor: string, symbolsArray: any[] = undefined, params = {}) {
         await this.loadMarkets ();
         const url = this.urls['api']['ws'];
         const rawSubscriptions = [];
         const messageHashes = [];
-        symbols = this.marketSymbols (symbols, undefined, false);
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market (symbols[i]);
-            const message = channelName + '.' + market['id'] + '.' + channelDescriptor;
+        const isOHLCV = (channelName === 'chart.trades');
+        const symbols = isOHLCV ? this.getListFromObjectValues (symbolsArray, 0) : symbolsArray;
+        this.marketSymbols (symbols, undefined, false);
+        for (let i = 0; i < symbolsArray.length; i++) {
+            const current = symbolsArray[i];
+            let market = undefined;
+            let channelDescriptorExtended = channelDescriptor;
+            if (isOHLCV) {
+                market = this.market (current[0]);
+                const tf = current[1];
+                const interval = this.safeString (this.timeframes, tf, tf);
+                channelDescriptorExtended += interval;
+            } else {
+                market = this.market (current);
+            }
+            const message = channelName + '.' + market['id'] + '.' + channelDescriptorExtended;
             rawSubscriptions.push (message);
             messageHashes.push (channelName + '|' + market['symbol'] + '|' + channelDescriptor);
         }
