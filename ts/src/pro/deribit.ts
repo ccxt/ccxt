@@ -37,16 +37,16 @@ export default class deribit extends deribitRest {
             'options': {
                 'ws': {
                     'timeframes': {
-                        '1m': 1,
-                        '3m': 3,
-                        '5m': 5,
-                        '15m': 15,
-                        '30m': 30,
-                        '1h': 60,
-                        '2h': 120,
-                        '4h': 180,
-                        '6h': 360,
-                        '12h': 720,
+                        '1m': '1',
+                        '3m': '3',
+                        '5m': '5',
+                        '15m': '15',
+                        '30m': '30',
+                        '1h': '60',
+                        '2h': '120',
+                        '4h': '180',
+                        '6h': '360',
+                        '12h': '720',
                         '1d': '1D',
                     },
                     'watchTradesForSymbols': { // watchTrades replacement
@@ -734,7 +734,7 @@ export default class deribit extends deribitRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const wsOptions = this.safeDict (this.options, 'ws', {});
-        const timeframes = this.safeValue (wsOptions, 'timeframes', {});
+        const timeframes = this.safeDict (wsOptions, 'timeframes', {});
         const unifiedTimeframe = this.findTimeframe (rawTimeframe, timeframes);
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         if (this.safeValue (this.ohlcvs[symbol], unifiedTimeframe) === undefined) {
