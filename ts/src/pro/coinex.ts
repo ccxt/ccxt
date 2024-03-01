@@ -404,11 +404,12 @@ export default class coinex extends coinexRest {
             const stored = new ArrayCacheByTimestamp (limit);
             this.ohlcvs['unknown']['unknown'] = stored;
         }
+        const ohlcv = this.ohlcvs['unknown']['unknown'];
         for (let i = 0; i < ohlcvs.length; i++) {
             const candle = ohlcvs[i];
-            this.ohlcvs['unknown']['unknown'].append (candle);
+            ohlcv.append (candle);
         }
-        client.resolve (this.ohlcvs, messageHash);
+        client.resolve (ohlcv, messageHash);
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
