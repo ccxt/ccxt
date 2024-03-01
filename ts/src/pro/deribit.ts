@@ -24,6 +24,7 @@ export default class deribit extends deribitRest {
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
+                'watchOHLCVForSymbols': true,
             },
             'urls': {
                 'test': {
@@ -677,29 +678,9 @@ export default class deribit extends deribitRest {
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const url = this.urls['api']['ws'];
-        const wsOptions = this.safeDict (this.options, 'ws', {});
-        const timeframes = this.safeDict (wsOptions, 'timeframes', {});
-        const interval = this.safeString (timeframes, timeframe);
-        if (interval === undefined) {
-            throw new NotSupported (this.id + ' this interval is not supported, please provide one of the supported timeframes');
-        }
-        const channel = 'chart.trades.' + market['id'] + '.' + interval;
-        const message = {
-            'jsonrpc': '2.0',
-            'method': 'public/subscribe',
-            'params': {
-                'channels': [ channel ],
-            },
-            'id': this.requestId (),
-        };
-        const request = this.deepExtend (message, params);
-        const ohlcv = await this.watch (url, channel, request, channel, request);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (market['symbol'], limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        symbol = this.symbol (symbol);
+        const ohlcvs = await this.watchOHLCVForSymbols ([ symbol, timeframe ], since, limit, params);
+        return ohlcvs[symbol][timeframe];
     }
 
     handleOHLCV (client: Client, message) {
