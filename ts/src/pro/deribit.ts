@@ -337,7 +337,8 @@ export default class deribit extends deribitRest {
             stored.append (parsed);
         }
         this.trades[symbol] = stored;
-        client.resolve (this.trades[symbol], 'trades:' + symbol + ':' + interval);
+        const messageHash = 'trades' + ':' + symbol + ':' + interval;
+        client.resolve (this.trades[symbol], messageHash);
     }
 
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
