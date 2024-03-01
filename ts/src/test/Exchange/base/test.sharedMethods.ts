@@ -59,7 +59,8 @@ function assertStructure (exchange, skippedProperties, method, entry, format, em
             }
             assert (value !== undefined, i.toString () + ' index is expected to have a value' + logText);
             // because of other langs, this is needed for arrays
-            assert (assertType (exchange, skippedProperties, entry, i, format), i.toString () + ' index does not have an expected type ' + logText);
+            const typeAssertion = assertType (exchange, skippedProperties, entry, i, format);
+            assert (typeAssertion, i.toString () + ' index does not have an expected type ' + logText);
         }
     } else {
         assert (typeof entry === 'object', 'entry is not an object' + logText);
@@ -82,7 +83,8 @@ function assertStructure (exchange, skippedProperties, method, entry, format, em
             assert (value !== undefined, '"' + stringValue (key) + '" key is expected to have a value' + logText);
             // add exclusion for info key, as it can be any type
             if (key !== 'info') {
-                assert (assertType (exchange, skippedProperties, entry, key, format), '"' + stringValue (key) + '" key is neither undefined, neither of expected type' + logText);
+                const typeAssertion = assertType (exchange, skippedProperties, entry, key, format);
+                assert (typeAssertion, '"' + stringValue (key) + '" key is neither undefined, neither of expected type' + logText);
             }
         }
     }
