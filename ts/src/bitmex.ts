@@ -61,7 +61,7 @@ export default class bitmex extends Exchange {
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
-                'fetchLeverage': false,
+                'fetchLeverage': true,
                 'fetchLeverages': true,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': true,
@@ -2156,6 +2156,21 @@ export default class bitmex extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchLeverage (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets ();
+        const leverage = await this.fetchLeverages ([ symbol ], params);
+        return leverage;
     }
 
     async fetchPositions (symbols: Strings = undefined, params = {}) {
