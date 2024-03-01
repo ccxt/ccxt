@@ -48,11 +48,14 @@ export default class deribit extends deribitRest {
                         '12h': 720,
                         '1d': '1D',
                     },
-                    'watchTrades': {
+                    'watchTradesForSymbols': { // watchTrades replacement
                         'interval': '100ms', // 100ms, agg2, raw
                     },
-                    'watchTradesForSymbols': {
+                    'watchOrderBookForSymbols': { // watchOrderBook replacement
                         'interval': '100ms', // 100ms, agg2, raw
+                        'useDepthEndpoint': false, // if true, it will use the {books.group.depth.interval} endpoint instead of the {books.interval} endpoint
+                        'depth': '1', // 1, 10, 20
+                        'group': 'none', // none, 1, 2, 5, 10, 25, 100, 250
                     },
                 },
                 'currencies': [ 'BTC', 'ETH', 'SOL', 'USDC' ],
@@ -436,6 +439,7 @@ export default class deribit extends deribitRest {
          * @param {string} [params.interval] Frequency of notifications. Events will be aggregated over this interval. Possible values: 100ms, raw
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
+        params['callerMethodName'] = 'watchOrderBook';
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
@@ -450,35 +454,24 @@ export default class deribit extends deribitRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        let channel = 'books';
-        let incrementalFeed = true;
-        if ((limit === 1) || (limit === 5) || (limit === 15)) {
-            channel += limit.toString ();
-            incrementalFeed = false;
+        let interval = undefined;
+        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'interval', '100ms');
+        if (interval === 'raw') {
+            await this.authenticate ();
         }
-        const topics = [];
-        const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            const market = this.market (symbol);
-            let instType = undefined;
-            [ instType, params ] = this.getInstType (market, params);
-            const args = {
-                'instType': instType,
-                'channel': channel,
-                'instId': market['id'],
-            };
-            topics.push (args);
-            messageHashes.push ('orderbook:' + symbol);
+        let descriptor = '';
+        let useDepthEndpoint = undefined; // for more info, see comment in .options
+        [ useDepthEndpoint, params ] = this.handleOptionAndParams (params, 'useDepthEndpoint', 'depth', '20');
+        if (useDepthEndpoint) {
+            let depth = undefined;
+            [ depth, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'depth', '20');
+            let group = undefined;
+            [ group, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'group', 'none');
+            descriptor = 'group.' + group + '.depth.' + depth;
         }
-        const orderbook = await this.watchPublicMultiple (messageHashes, topics, params);
-        if (incrementalFeed) {
-            return orderbook.limit ();
-        } else {
-            return orderbook;
-        }
+        descriptor += '.' + interval;
+        const orderbook = await this.subscribeMultiple ('books', descriptor, symbols, params);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client: Client, message) {
