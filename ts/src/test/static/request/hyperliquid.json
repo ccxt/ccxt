@@ -141,6 +141,36 @@
                 "output": "{\"type\":\"orderStatus\",\"oid\":3998833804,\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\"}"
             }
         ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "ETH/USDC:USDC",
+                    null,
+                    null,
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": "{\"type\":\"userFills\",\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\"}"
+            },
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "ETH/USDC:USDC",
+                    null,
+                    null,
+                    {
+                        "address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": "{\"type\":\"userFills\",\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\"}"
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "fetchMyTrades",
