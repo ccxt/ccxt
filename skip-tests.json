@@ -1190,7 +1190,6 @@
         }
     },
     "mexc": {
-        "skipWs": "temp",
         "skipMethods": {
             "loadMarkets":{
                 "currencyIdAndCode": "messed"
