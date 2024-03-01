@@ -73,6 +73,8 @@ export default class mexc extends Exchange {
                 'fetchL2OrderBook': true,
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
+                'fetchLeverage': true,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': true,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': undefined,
@@ -5389,6 +5391,81 @@ export default class mexc extends Exchange {
             };
         }
         return this.assignDefaultDepositWithdrawFees (result);
+    }
+
+    async fetchLeverage (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.contractPrivateGetPositionLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "level": 1,
+        //                 "maxVol": 463300,
+        //                 "mmr": 0.004,
+        //                 "imr": 0.005,
+        //                 "positionType": 1,
+        //                 "openType": 1,
+        //                 "leverage": 20,
+        //                 "limitBySys": false,
+        //                 "currentMmr": 0.004
+        //             },
+        //             {
+        //                 "level": 1,
+        //                 "maxVol": 463300,
+        //                 "mmr": 0.004,
+        //                 "imr": 0.005,
+        //                 "positionType": 2,
+        //                 "openType": 1,
+        //                 "leverage": 20,
+        //                 "limitBySys": false,
+        //                 "currentMmr": 0.004
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const longLeverage = this.safeDict (data, 0);
+        return this.parseLeverage (longLeverage, market);
+    }
+
+    parseLeverage (leverage, market: Market = undefined) {
+        //
+        //     {
+        //         "level": 1,
+        //         "maxVol": 463300,
+        //         "mmr": 0.004,
+        //         "imr": 0.005,
+        //         "positionType": 1,
+        //         "openType": 1,
+        //         "leverage": 20,
+        //         "limitBySys": false,
+        //         "currentMmr": 0.004
+        //     }
+        //
+        const marketId = this.safeString (leverage, 'symbol');
+        market = this.safeMarket (marketId, market, undefined, 'contract');
+        return {
+            'info': leverage,
+            'symbol': market['symbol'],
+            'leverage': this.safeInteger (leverage, 'leverage'),
+            'marginMode': undefined,
+        };
     }
 
     handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {

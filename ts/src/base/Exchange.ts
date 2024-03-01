@@ -58,8 +58,10 @@ import type {
     LeverageTier,
     Liquidation,
     MarginMode,
+    MarginModes,
     Market,
-    MarketInterface,
+      rketInterface,
+    MarketType,
     MinMax,
     Num,
     OHLCV,
@@ -628,9 +630,11 @@ export default class Exchange {
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': undefined,
+                'fetchLeverages': undefined,
                 'fetchLeverageTiers': undefined,
                 'fetchLiquidations': undefined,
                 'fetchMarginMode': undefined,
+                'fetchMarginModes': undefined,
                 'fetchMarketLeverageTiers': undefined,
                 'fetchMarkets': true,
                 'fetchMarketsWs': undefined,
@@ -2176,7 +2180,7 @@ export default class Exchange {
         return this.filterByLimit (result, limit, key, sinceIsDefined);
     }
 
-    setSandboxMode (enabled) {
+    setSandboxMode (enabled: boolean) {
         if (enabled) {
             if ('test' in this.urls) {
                 if (typeof this.urls['api'] === 'string') {
@@ -2248,8 +2252,17 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOrderBook() is not supported yet');
     }
 
-    async fetchMarginMode (symbol: string = undefined, params = {}): Promise<MarginMode> {
-        throw new NotSupported (this.id + ' fetchMarginMode() is not supported yet');
+    async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
+        if (this.has['fetchMarginModes']) {
+            const marginModes = await this.fetchMarginModes ([ symbol ], params);
+            return this.safeDict (marginModes, symbol) as MarginMode;
+        } else {
+            throw new NotSupported (this.id + ' fetchMarginMode() is not supported yet');
+        }
+    }
+
+    async fetchMarginModes (symbols: string[] = undefined, params = {}): Promise<MarginModes> {
+        throw new NotSupported (this.id + ' fetchMarginModes () is not supported yet');
     }
 
     async fetchRestOrderBookSafe (symbol, limit = undefined, params = {}) {
@@ -2389,6 +2402,10 @@ export default class Exchange {
 
     async fetchLeverage (symbol: string, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchLeverage() is not supported yet');
+    }
+
+    async fetchLeverages (symbols: string[] = undefined, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' fetchLeverages() is not supported yet');
     }
 
     async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}): Promise<{}> {
@@ -6158,6 +6175,23 @@ export default class Exchange {
 
     parseGreeks (greeks, market: Market = undefined): Greeks {
         throw new NotSupported (this.id + ' parseGreeks () is not supported yet');
+    }
+
+    parseMarginModes (response: object[], symbols: string[] = undefined, symbolKey: string = undefined, marketType: MarketType = undefined): MarginModes {
+        const marginModeStructures = {};
+        for (let i = 0; i < response.length; i++) {
+            const info = response[i];
+            const marketId = this.safeString (info, symbolKey);
+            const market = this.safeMarket (marketId, undefined, undefined, marketType);
+            if ((symbols === undefined) || this.inArray (market['symbol'], symbols)) {
+                marginModeStructures[market['symbol']] = this.parseMarginMode (info, market);
+            }
+        }
+        return marginModeStructures;
+    }
+
+    parseMarginMode (marginMode, market: Market = undefined): MarginMode {
+        throw new NotSupported (this.id + ' parseMarginMode () is not supported yet');
     }
 }
 
