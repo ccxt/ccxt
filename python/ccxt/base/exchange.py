@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.55'
+__version__ = '4.2.56'
 
 # -----------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import Account, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, Str, Num
+from ccxt.base.types import Account, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num
 
 # -----------------------------------------------------------------------------
 
@@ -2032,7 +2032,7 @@ class Exchange(object):
             return self.arraySlice(result, -limit)
         return self.filter_by_limit(result, limit, key, sinceIsDefined)
 
-    def set_sandbox_mode(self, enabled):
+    def set_sandbox_mode(self, enabled: bool):
         if enabled:
             if 'test' in self.urls:
                 if isinstance(self.urls['api'], str):

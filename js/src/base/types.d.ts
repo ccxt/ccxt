@@ -11,8 +11,8 @@ export declare type SubType = 'linear' | 'inverse' | undefined;
 export interface Dictionary<T> {
     [key: string]: T;
 }
-export declare type Dict = Dictionary<any>;
-export declare type List = Array<any>;
+export declare type Dict = Dictionary<any> | undefined;
+export declare type List = Array<any> | undefined;
 /** Request parameters */
 export interface MinMax {
     min: Num;

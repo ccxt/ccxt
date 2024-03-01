@@ -157,6 +157,7 @@ class Order(TypedDict):
     trades: List[Trade]
     fee: Fee
 
+
 class Liquidation(TypedDict):
     info: Dict[str, Any]
     symbol: Str
@@ -165,6 +166,7 @@ class Liquidation(TypedDict):
     price: Num
     baseValue: Num
     quoteValue: Num
+
 
 class FundingHistory(TypedDict):
     info: Dict[str, Any]
@@ -211,6 +213,7 @@ class Transaction(TypedDict):
     comment: Str
     internal: Bool
 
+
 class TransferEntry(TypedDict):
     info: Dict[str, any]
     id: Str
@@ -221,6 +224,7 @@ class TransferEntry(TypedDict):
     fromAccount: Str
     toAccount: Str
     status: Str
+
 
 class Ticker(TypedDict):
     info: Dict[str, Any]
@@ -252,6 +256,9 @@ class MarginMode(TypedDict):
     info: Dict[str, Any]
     symbol: Str
     marginMode: Str
+
+
+MarginModes = Dict[str, MarginMode]
 
 
 class Greeks(TypedDict):

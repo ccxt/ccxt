@@ -60,7 +60,7 @@ public partial class Exchange
         object tries = 0;
         try
         {
-            var stored = getValue(this.orderbooks, symbol) as ccxt.pro.OrderBook;
+            var stored = getValue(this.orderbooks, symbol) as ccxt.pro.IOrderBook;
             while (isLessThan(tries, maxRetries))
             {
                 var cache = stored.cache;

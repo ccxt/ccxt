@@ -157,6 +157,7 @@ export default class woo extends Exchange {
     }>;
     fetchFundingRates(symbols?: Strings, params?: {}): Promise<any>;
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
+    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
     fetchLeverage(symbol: string, params?: {}): Promise<{
         info: any;
         leverage: number;
