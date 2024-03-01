@@ -18,6 +18,7 @@ export default class deribit extends deribitRest {
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
                 'watchMyTrades': true,
                 'watchOrders': true,
                 'watchOrderBook': true,
@@ -45,6 +46,12 @@ export default class deribit extends deribitRest {
                         '6h': 360,
                         '12h': 720,
                         '1d': '1D',
+                    },
+                    'watchTrades': {
+                        'interval': '100ms', // 100ms, agg2, raw
+                    },
+                    'watchTradesForSymbols': {
+                        'interval': '100ms', // 100ms, agg2, raw
                     },
                 },
                 'currencies': [ 'BTC', 'ETH', 'SOL', 'USDC' ],
@@ -233,29 +240,8 @@ export default class deribit extends deribitRest {
          * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const url = this.urls['api']['ws'];
-        const interval = this.safeString (params, 'interval', '100ms');
-        params = this.omit (params, 'interval');
-        const channel = 'trades.' + market['id'] + '.' + interval;
-        if (interval === 'raw') {
-            await this.authenticate ();
-        }
-        const message = {
-            'jsonrpc': '2.0',
-            'method': 'public/subscribe',
-            'params': {
-                'channels': [ channel ],
-            },
-            'id': this.requestId (),
-        };
-        const request = this.deepExtend (message, params);
-        const trades = await this.watch (url, channel, request, channel, request);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        params['callerMethodName'] = 'watchTrades';
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     handleTrades (client: Client, message) {
