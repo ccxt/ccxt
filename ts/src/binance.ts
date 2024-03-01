@@ -26,6 +26,7 @@ export default class binance extends Exchange {
             'rateLimit': 50,
             'certified': true,
             'pro': true,
+            'hostname': 'api.binance.com',
             // new metainfo2 interface
             'has': {
                 'CORS': undefined,
