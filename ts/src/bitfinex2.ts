@@ -2640,10 +2640,11 @@ export default class bitfinex2 extends Exchange {
         }
         const wallet = this.safeString (params, 'wallet', 'exchange');  // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         params = this.omit (params, 'network', 'wallet');
+        const precisionAmount = this.currencyToPrecision (code, amount, network);
         const request = {
             'method': networkId,
             'wallet': wallet,
-            'amount': this.numberToString (amount),
+            'amount': this.numberToString (precisionAmount),
             'address': address,
         };
         if (tag !== undefined) {

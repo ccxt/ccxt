@@ -2117,8 +2117,10 @@ export default class bitstamp extends Exchange {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         this.checkAddress (address);
+        const network = this.safeString (params, 'network');
+        const precisionAmount = this.currencyToPrecision (code, amount, network);
         const request = {
-            'amount': amount,
+            'amount': precisionAmount,
         };
         let currency = undefined;
         let method = undefined;

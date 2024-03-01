@@ -3294,11 +3294,13 @@ export default class coinbase extends Exchange {
                 throw new ExchangeError (this.id + ' withdraw() could not find account id for ' + code);
             }
         }
+        const network = this.safeString (params, 'network');
+        const precisionAmount = this.currencyToPrecision (code, amount, network);
         const request = {
             'account_id': accountId,
             'type': 'send',
             'to': address,
-            'amount': amount,
+            'amount': precisionAmount,
             'currency': currency['id'],
         };
         if (tag !== undefined) {

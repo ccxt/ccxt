@@ -8085,7 +8085,6 @@ export default class binance extends Exchange {
             'forceProxy': true,
             'coin': currency['id'],
             'address': address,
-            'amount': amount,
             // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
             // issue sapiGetCapitalConfigGetall () to get networks for withdrawing USDT ERC20 vs USDT Omni
             // 'network': 'ETH', // 'BTC', 'TRX', etc, optional
@@ -8100,6 +8099,8 @@ export default class binance extends Exchange {
             request['network'] = network;
             params = this.omit (params, 'network');
         }
+        const precisionAmount = this.currencyToPrecision (code, amount, network);
+        request['amount'] = precisionAmount;
         const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, params));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
         return this.parseTransaction (response, currency);
@@ -8396,9 +8397,10 @@ export default class binance extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
+        const precisionAmount = this.currencyToPrecision (code, amount);
         const request = {
             'asset': currency['id'],
-            'amount': amount,
+            'amount': precisionAmount,
             'type': type,
         };
         const response = await this.sapiPostFuturesTransfer (this.extend (request, params));
