@@ -274,28 +274,6 @@ export default class deribit extends deribitRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async subscribeMultiple (channelName: string, channelDescriptor: string, symbols: string[], params = {}) {
-        await this.loadMarkets ();
-        const url = this.urls['api']['ws'];
-        const rawSubscriptions = [];
-        const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market (symbols[i]);
-            const message = channelName + '.' + market['id'] + '.' + channelDescriptor;
-            rawSubscriptions.push (message);
-            messageHashes.push (channelName + '|' + market['symbol'] + '|' + channelDescriptor);
-        }
-        const request = {
-            'jsonrpc': '2.0',
-            'method': 'public/subscribe',
-            'params': {
-                'channels': rawSubscriptions,
-            },
-            'id': this.requestId (),
-        };
-        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), rawSubscriptions);
-    }
-
     handleTrades (client: Client, message) {
         //
         //     {
@@ -765,6 +743,35 @@ export default class deribit extends deribitRest {
         stored.append (parsed);
         this.ohlcvs[symbol] = stored;
         client.resolve (stored, channel);
+    }
+
+    async subscribeMultiple (channelName: string, channelDescriptor: string, symbols: string[], params = {}) {
+        await this.loadMarkets ();
+        const url = this.urls['api']['ws'];
+        const rawSubscriptions = [];
+        const messageHashes = [];
+        symbols = this.marketSymbols (symbols, undefined, false);
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            const message = channelName + '.' + market['id'] + '.' + channelDescriptor;
+            rawSubscriptions.push (message);
+            messageHashes.push (channelName + '|' + market['symbol'] + '|' + channelDescriptor);
+        }
+        const request = {
+            'jsonrpc': '2.0',
+            'method': 'public/subscribe',
+            'params': {
+                'channels': rawSubscriptions,
+            },
+            'id': this.requestId (),
+        };
+        const extendedRequest = this.deepExtend (request, params);
+        const maxMessageByteLimit = 32768 - 1; // 'Message Too Big: limit 32768B'
+        const jsonedText = this.json (extendedRequest);
+        if (jsonedText.length >= maxMessageByteLimit) {
+            throw new ExchangeError (this.id + ' requested subscription length over limit, try to reduce symbols amount');
+        }
+        return await this.watchMultiple (url, messageHashes, extendedRequest, rawSubscriptions);
     }
 
     handleMessage (client: Client, message) {
