@@ -85,7 +85,12 @@ public partial class bitget : ccxt.bitget
     {
         parameters ??= new Dictionary<string, object>();
         object instType = null;
-        if (isTrue(isTrue((getValue(market, "swap"))) || isTrue((getValue(market, "future")))))
+        if (isTrue(isEqual(market, null)))
+        {
+            var instTypeparametersVariable = this.handleProductTypeAndParams(null, parameters);
+            instType = ((IList<object>)instTypeparametersVariable)[0];
+            parameters = ((IList<object>)instTypeparametersVariable)[1];
+        } else if (isTrue(isTrue((getValue(market, "swap"))) || isTrue((getValue(market, "future")))))
         {
             var instTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
             instType = ((IList<object>)instTypeparametersVariable)[0];
@@ -728,10 +733,13 @@ public partial class bitget : ccxt.bitget
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        object data = this.safeValue(message, "data", new List<object>() {});
-        for (object j = 0; isLessThan(j, getArrayLength(data)); postFixIncrement(ref j))
+        object data = this.safeList(message, "data", new List<object>() {});
+        object length = getArrayLength(data);
+        object maxLength = mathMax(subtract(length, 1), 0);
+        // fix chronological order by reversing
+        for (object i = maxLength; isGreaterThanOrEqual(i, 0); postFixDecrement(ref i))
         {
-            object rawTrade = getValue(data, j);
+            object rawTrade = getValue(data, i);
             object parsed = this.parseWsTrade(rawTrade, market);
             callDynamically(stored, "append", new object[] {parsed});
         }
@@ -750,22 +758,73 @@ public partial class bitget : ccxt.bitget
         //         "tradeId": "1116461060594286593"
         //     }
         //
-        market = this.safeMarket(null, market);
-        object timestamp = this.safeInteger(trade, "ts");
+        // order with trade in it
+        //     {
+        //         accBaseVolume: '0.1',
+        //         baseVolume: '0.1',
+        //         cTime: '1709221342922',
+        //         clientOid: '1147122943507734528',
+        //         enterPointSource: 'API',
+        //         feeDetail: [Array],
+        //         fillFee: '-0.0049578',
+        //         fillFeeCoin: 'USDT',
+        //         fillNotionalUsd: '8.263',
+        //         fillPrice: '82.63',
+        //         fillTime: '1709221342986',
+        //         force: 'gtc',
+        //         instId: 'LTCUSDT',
+        //         leverage: '10',
+        //         marginCoin: 'USDT',
+        //         marginMode: 'crossed',
+        //         notionalUsd: '8.268',
+        //         orderId: '1147122943499345921',
+        //         orderType: 'market',
+        //         pnl: '0',
+        //         posMode: 'hedge_mode',
+        //         posSide: 'short',
+        //         price: '0',
+        //         priceAvg: '82.63',
+        //         reduceOnly: 'no',
+        //         side: 'sell',
+        //         size: '0.1',
+        //         status: 'filled',
+        //         tradeId: '1147122943772479563',
+        //         tradeScope: 'T',
+        //         tradeSide: 'open',
+        //         uTime: '1709221342986'
+        //     }
+        //
+        object instId = this.safeString(trade, "instId");
+        if (isTrue(isEqual(market, null)))
+        {
+            market = this.safeMarket(instId, null, null, "contract");
+        }
+        object timestamp = this.safeIntegerN(trade, new List<object>() {"uTime", "cTime", "ts"});
+        object feeCost = this.safeString(trade, "fillFee");
+        object fee = null;
+        if (isTrue(!isEqual(feeCost, null)))
+        {
+            object feeCurrencyId = this.safeString(trade, "fillFeeCoin");
+            object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            fee = new Dictionary<string, object>() {
+                { "cost", Precise.stringAbs(feeCost) },
+                { "currency", feeCurrencyCode },
+            };
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString(trade, "tradeId") },
-            { "order", null },
+            { "order", this.safeString(trade, "orderId") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "symbol", getValue(market, "symbol") },
             { "type", null },
             { "side", this.safeString(trade, "side") },
             { "takerOrMaker", null },
-            { "price", this.safeString(trade, "price") },
+            { "price", this.safeString2(trade, "priceAvg", "price") },
             { "amount", this.safeString(trade, "size") },
-            { "cost", null },
-            { "fee", null },
+            { "cost", this.safeString(trade, "fillNotionalUsd") },
+            { "fee", fee },
         }, market);
     }
 
@@ -1210,6 +1269,10 @@ public partial class bitget : ccxt.bitget
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object order = getValue(data, i);
+            if (isTrue(inOp(order, "tradeId")))
+            {
+                this.handleMyTrades(client as WebSocketClient, order);
+            }
             object marketId = this.safeString(order, "instId");
             object market = this.safeMarket(marketId, null, null, marketType);
             object parsed = this.parseWsOrder(order, market);
@@ -1498,78 +1561,13 @@ public partial class bitget : ccxt.bitget
             this.myTrades = new ArrayCache(limit);
         }
         object stored = this.myTrades;
-        object parsed = this.parseWsMyTrade(message);
+        object parsed = this.parseWsTrade(message);
         callDynamically(stored, "append", new object[] {parsed});
         object symbol = getValue(parsed, "symbol");
         object messageHash = "myTrades";
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
         object symbolSpecificMessageHash = add("myTrades:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, symbolSpecificMessageHash});
-    }
-
-    public virtual object parseWsMyTrade(object trade, object market = null)
-    {
-        //
-        // order and trade mixin (contract)
-        //
-        //     {
-        //         "accBaseVolume": "0",
-        //         "cTime": "1701920553759",
-        //         "clientOid": "1116501214318198793",
-        //         "enterPointSource": "WEB",
-        //         "feeDetail": [{
-        //             "feeCoin": "USDT",
-        //             "fee": "-0.162003"
-        //         }],
-        //         "force": "gtc",
-        //         "instId": "BTCUSDT",
-        //         "leverage": "20",
-        //         "marginCoin": "USDT",
-        //         "marginMode": "isolated",
-        //         "notionalUsd": "105",
-        //         "orderId": "1116501214293032964",
-        //         "orderType": "limit",
-        //         "posMode": "hedge_mode",
-        //         "posSide": "long",
-        //         "price": "35000",
-        //         "reduceOnly": "no",
-        //         "side": "buy",
-        //         "size": "0.003",
-        //         "status": "canceled",
-        //         "tradeSide": "open",
-        //         "uTime": "1701920595866"
-        //     }
-        //
-        object marketId = this.safeString(trade, "instId");
-        market = this.safeMarket(marketId, market, null, "contract");
-        object timestamp = this.safeInteger2(trade, "uTime", "cTime");
-        object orderFee = this.safeValue(trade, "feeDetail", new List<object>() {});
-        object fee = this.safeValue(orderFee, 0);
-        object feeAmount = this.safeString(fee, "fee");
-        object feeObject = null;
-        if (isTrue(!isEqual(feeAmount, null)))
-        {
-            object feeCurrency = this.safeString(fee, "feeCoin");
-            feeObject = new Dictionary<string, object>() {
-                { "cost", Precise.stringAbs(feeAmount) },
-                { "currency", this.safeCurrencyCode(feeCurrency) },
-            };
-        }
-        return this.safeTrade(new Dictionary<string, object>() {
-            { "info", trade },
-            { "id", null },
-            { "order", this.safeString(trade, "orderId") },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
-            { "symbol", getValue(market, "symbol") },
-            { "type", this.safeString(trade, "orderType") },
-            { "side", this.safeString(trade, "side") },
-            { "takerOrMaker", null },
-            { "price", this.safeString(trade, "price") },
-            { "amount", this.safeString(trade, "size") },
-            { "cost", this.safeString(trade, "notionalUsd") },
-            { "fee", feeObject },
-        }, market);
     }
 
     public async override Task<object> watchBalance(object parameters = null)

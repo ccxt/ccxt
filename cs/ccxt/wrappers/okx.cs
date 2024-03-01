@@ -455,6 +455,12 @@ public partial class okx
     /// string : the percent to trail away from the current market price
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.tpOrdKind</term>
+    /// <description>
+    /// string : 'condition' or 'limit', the default is 'condition'
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -554,6 +560,12 @@ public partial class okx
     /// <term>params.takeProfit</term>
     /// <description>
     /// object : *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.newTpOrdKind</term>
+    /// <description>
+    /// string : 'condition' or 'limit', the default is 'condition'
     /// </description>
     /// </item>
     /// </list>

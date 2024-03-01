@@ -907,7 +907,6 @@ public class  Bitcoincom: bitcoincom { public Bitcoincom(object args = null) : b
 public class  Bitfinex: bitfinex { public Bitfinex(object args = null) : base(args) { } }
 public class  Bitfinex2: bitfinex2 { public Bitfinex2(object args = null) : base(args) { } }
 public class  Bitflyer: bitflyer { public Bitflyer(object args = null) : base(args) { } }
-public class  Bitforex: bitforex { public Bitforex(object args = null) : base(args) { } }
 public class  Bitget: bitget { public Bitget(object args = null) : base(args) { } }
 public class  Bithumb: bithumb { public Bithumb(object args = null) : base(args) { } }
 public class  Bitmart: bitmart { public Bitmart(object args = null) : base(args) { } }

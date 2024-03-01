@@ -41,9 +41,11 @@ export default class binance extends binanceRest {
                 'fetchDepositsWs': false,
                 'fetchMarketsWs': false,
                 'fetchMyTradesWs': true,
+                'fetchOHLCVWs': true,
                 'fetchOpenOrdersWs': true,
                 'fetchOrderWs': true,
                 'fetchOrdersWs': true,
+                'fetchTradesWs': true,
                 'fetchTradingFeesWs': false,
                 'fetchWithdrawalsWs': false,
             },
@@ -64,6 +66,7 @@ export default class binance extends binanceRest {
                         'future': 'wss://fstream.binance.com/ws',
                         'delivery': 'wss://dstream.binance.com/ws',
                         'ws': 'wss://ws-api.binance.com:443/ws-api/v3',
+                        'papi': 'wss://fstream.binance.com/pm/ws',
                     },
                 },
             },
@@ -850,6 +853,96 @@ export default class binance extends binanceRest {
         client.resolve (stored, messageHash);
     }
 
+    async fetchOHLCVWs (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name binance#fetchOHLCVWs
+         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#klines
+         * @description query historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to query OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} since timestamp in ms of the earliest candle to fetch
+         * @param {int} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the exchange API endpoint
+         * @param {int} params.until timestamp in ms of the earliest candle to fetch
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} params.timeZone default=0 (UTC)
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        this.checkIsSpot ('fetchOHLCVWs', symbol, params);
+        const url = this.urls['api']['ws']['ws'];
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
+        let returnRateLimits = false;
+        [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchOHLCVWs', 'returnRateLimits', false);
+        const payload = {
+            'symbol': this.marketId (symbol),
+            'returnRateLimits': returnRateLimits,
+            'interval': this.timeframes[timeframe],
+        };
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        if (since !== undefined) {
+            payload['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            payload['limit'] = limit;
+        }
+        if (until !== undefined) {
+            payload['endTime'] = until;
+        }
+        const message = {
+            'id': messageHash,
+            'method': 'klines',
+            'params': this.extend (payload, params),
+        };
+        const subscription = {
+            'method': this.handleFetchOHLCV,
+        };
+        return await this.watch (url, messageHash, message, messageHash, subscription);
+    }
+
+    handleFetchOHLCV (client: Client, message) {
+        //
+        //    {
+        //        "id": "1dbbeb56-8eea-466a-8f6e-86bdcfa2fc0b",
+        //        "status": 200,
+        //        "result": [
+        //            [
+        //                1655971200000,      // Kline open time
+        //                "0.01086000",       // Open price
+        //                "0.01086600",       // High price
+        //                "0.01083600",       // Low price
+        //                "0.01083800",       // Close price
+        //                "2290.53800000",    // Volume
+        //                1655974799999,      // Kline close time
+        //                "24.85074442",      // Quote asset volume
+        //                2283,               // Number of trades
+        //                "1171.64000000",    // Taker buy base asset volume
+        //                "12.71225884",      // Taker buy quote asset volume
+        //                "0"                 // Unused field, ignore
+        //            ]
+        //        ],
+        //        "rateLimits": [
+        //            {
+        //                "rateLimitType": "REQUEST_WEIGHT",
+        //                "interval": "MINUTE",
+        //                "intervalNum": 1,
+        //                "limit": 6000,
+        //                "count": 2
+        //            }
+        //        ]
+        //    }
+        //
+        const result = this.safeList (message, 'result');
+        const parsed = this.parseOHLCVs (result);
+        // use a reverse lookup in a static map instead
+        const messageHash = this.safeString (message, 'id');
+        client.resolve (parsed, messageHash);
+    }
+
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
@@ -1160,43 +1253,46 @@ export default class binance extends binanceRest {
 
     async authenticate (params = {}) {
         const time = this.milliseconds ();
-        let query = undefined;
         let type = undefined;
-        [ type, query ] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
         let subType = undefined;
-        [ subType, query ] = this.handleSubTypeAndParams ('authenticate', undefined, query);
+        [ subType, params ] = this.handleSubTypeAndParams ('authenticate', undefined, params);
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'authenticate', 'papi', 'portfolioMargin', false);
         if (this.isLinear (type, subType)) {
             type = 'future';
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
         let marginMode = undefined;
-        [ marginMode, query ] = this.handleMarginModeAndParams ('authenticate', query);
+        [ marginMode, params ] = this.handleMarginModeAndParams ('authenticate', params);
         const isIsolatedMargin = (marginMode === 'isolated');
         const isCrossMargin = (marginMode === 'cross') || (marginMode === undefined);
-        const symbol = this.safeString (query, 'symbol');
-        query = this.omit (query, 'symbol');
+        const symbol = this.safeString (params, 'symbol');
+        params = this.omit (params, 'symbol');
         const options = this.safeValue (this.options, type, {});
         const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
         const delay = this.sum (listenKeyRefreshRate, 10000);
         if (time - lastAuthenticatedTime > delay) {
             let response = undefined;
-            if (type === 'future') {
-                response = await this.fapiPrivatePostListenKey (query);
+            if (isPortfolioMargin) {
+                response = await this.papiPostListenKey (params);
+            } else if (type === 'future') {
+                response = await this.fapiPrivatePostListenKey (params);
             } else if (type === 'delivery') {
-                response = await this.dapiPrivatePostListenKey (query);
+                response = await this.dapiPrivatePostListenKey (params);
             } else if (type === 'margin' && isCrossMargin) {
-                response = await this.sapiPostUserDataStream (query);
+                response = await this.sapiPostUserDataStream (params);
             } else if (isIsolatedMargin) {
                 if (symbol === undefined) {
                     throw new ArgumentsRequired (this.id + ' authenticate() requires a symbol argument for isolated margin mode');
                 }
                 const marketId = this.marketId (symbol);
-                query = this.extend (query, { 'symbol': marketId });
-                response = await this.sapiPostUserDataStreamIsolated (query);
+                params = this.extend (params, { 'symbol': marketId });
+                response = await this.sapiPostUserDataStreamIsolated (params);
             } else {
-                response = await this.publicPostUserDataStream (query);
+                response = await this.publicPostUserDataStream (params);
             }
             this.options[type] = this.extend (options, {
                 'listenKey': this.safeString (response, 'listenKey'),
@@ -1210,6 +1306,8 @@ export default class binance extends binanceRest {
         // https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
         let type = this.safeString2 (this.options, 'defaultType', 'authenticate', 'spot');
         type = this.safeString (params, 'type', type);
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'keepAliveListenKey', 'papi', 'portfolioMargin', false);
         const subTypeInfo = this.handleSubTypeAndParams ('keepAliveListenKey', undefined, params);
         const subType = subTypeInfo[0];
         if (this.isLinear (type, subType)) {
@@ -1225,24 +1323,30 @@ export default class binance extends binanceRest {
         }
         const request = {};
         const symbol = this.safeString (params, 'symbol');
-        const sendParams = this.omit (params, [ 'type', 'symbol' ]);
+        params = this.omit (params, [ 'type', 'symbol' ]);
         const time = this.milliseconds ();
         try {
-            if (type === 'future') {
-                await this.fapiPrivatePutListenKey (this.extend (request, sendParams));
+            if (isPortfolioMargin) {
+                await this.papiPutListenKey (this.extend (request, params));
+            } else if (type === 'future') {
+                await this.fapiPrivatePutListenKey (this.extend (request, params));
             } else if (type === 'delivery') {
-                await this.dapiPrivatePutListenKey (this.extend (request, sendParams));
+                await this.dapiPrivatePutListenKey (this.extend (request, params));
             } else {
                 request['listenKey'] = listenKey;
                 if (type === 'margin') {
                     request['symbol'] = symbol;
-                    await this.sapiPutUserDataStream (this.extend (request, sendParams));
+                    await this.sapiPutUserDataStream (this.extend (request, params));
                 } else {
-                    await this.publicPutUserDataStream (this.extend (request, sendParams));
+                    await this.publicPutUserDataStream (this.extend (request, params));
                 }
             }
         } catch (error) {
-            const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
+            let urlType = type;
+            if (isPortfolioMargin) {
+                urlType = 'papi';
+            }
+            const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
             const client = this.client (url);
             const messageHashes = Object.keys (client.futures);
             for (let i = 0; i < messageHashes.length; i++) {
@@ -1275,7 +1379,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    setBalanceCache (client: Client, type) {
+    setBalanceCache (client: Client, type, isPortfolioMargin = false) {
         if (type in client.subscriptions) {
             return;
         }
@@ -1285,15 +1389,21 @@ export default class binance extends binanceRest {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
-                this.spawn (this.loadBalanceSnapshot, client, messageHash, type);
+                this.spawn (this.loadBalanceSnapshot, client, messageHash, type, isPortfolioMargin);
             }
         } else {
             this.balance[type] = {};
         }
     }
 
-    async loadBalanceSnapshot (client, messageHash, type) {
-        const response = await this.fetchBalance ({ 'type': type });
+    async loadBalanceSnapshot (client, messageHash, type, isPortfolioMargin) {
+        const params = {
+            'type': type,
+        };
+        if (isPortfolioMargin) {
+            params['portfolioMargin'] = true;
+        }
+        const response = await this.fetchBalance (params);
         this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
         // don't remove the future from the .futures cache
         const future = client.futures[messageHash];
@@ -1390,6 +1500,7 @@ export default class binance extends binanceRest {
          * @name binance#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to watch the balance of a portfolio margin account
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
@@ -1398,15 +1509,21 @@ export default class binance extends binanceRest {
         let type = this.safeString (params, 'type', defaultType);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('watchBalance', undefined, params);
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchBalance', 'papi', 'portfolioMargin', false);
+        let urlType = type;
+        if (isPortfolioMargin) {
+            urlType = 'papi';
+        }
         if (this.isLinear (type, subType)) {
             type = 'future';
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
-        const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
+        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
-        this.setBalanceCache (client, type);
-        this.setPositionsCache (client, type);
+        this.setBalanceCache (client, type, isPortfolioMargin);
+        this.setPositionsCache (client, type, undefined, isPortfolioMargin);
         const options = this.safeValue (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
         const awaitBalanceSnapshot = this.safeBool (options, 'awaitBalanceSnapshot', true);
@@ -2022,11 +2139,14 @@ export default class binance extends binanceRest {
          * @name binance#watchOrders
          * @description watches information on multiple orders made by the user
          * @see https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
+         * @see https://binance-docs.github.io/apidocs/pm/en/#event-futures-order-update
+         * @see https://binance-docs.github.io/apidocs/pm/en/#event-margin-order-update
          * @param {string} symbol unified market symbol of the market the orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for spot margin
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to watch portfolio margin account orders
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2054,10 +2174,15 @@ export default class binance extends binanceRest {
         if ((type === 'margin') || ((type === 'spot') && (marginMode !== undefined))) {
             urlType = 'spot'; // spot-margin shares the same stream as regular spot
         }
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchOrders', 'papi', 'portfolioMargin', false);
+        if (isPortfolioMargin) {
+            urlType = 'papi';
+        }
         const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
-        this.setBalanceCache (client, type);
-        this.setPositionsCache (client, type);
+        this.setBalanceCache (client, type, isPortfolioMargin);
+        this.setPositionsCache (client, type, undefined, isPortfolioMargin);
         const message = undefined;
         const orders = await this.watch (url, messageHash, message, type);
         if (this.newUpdates) {
@@ -2314,6 +2439,7 @@ export default class binance extends binanceRest {
          * @description watch all open positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to watch positions in a portfolio margin account
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
@@ -2343,10 +2469,16 @@ export default class binance extends binanceRest {
             type = 'delivery';
         }
         messageHash = type + ':positions' + messageHash;
-        const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchPositions', 'papi', 'portfolioMargin', false);
+        let urlType = type;
+        if (isPortfolioMargin) {
+            urlType = 'papi';
+        }
+        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
-        this.setBalanceCache (client, type);
-        this.setPositionsCache (client, type, symbols);
+        this.setBalanceCache (client, type, isPortfolioMargin);
+        this.setPositionsCache (client, type, symbols, isPortfolioMargin);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.safeValue ('watchPositions', 'awaitPositionsSnapshot', true);
         const cache = this.safeValue (this.positions, type);
@@ -2361,7 +2493,7 @@ export default class binance extends binanceRest {
         return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type, symbols: Strings = undefined) {
+    setPositionsCache (client: Client, type, symbols: Strings = undefined, isPortfolioMargin = false) {
         if (type === 'spot') {
             return;
         }
@@ -2376,15 +2508,21 @@ export default class binance extends binanceRest {
             const messageHash = type + ':fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
-                this.spawn (this.loadPositionsSnapshot, client, messageHash, type);
+                this.spawn (this.loadPositionsSnapshot, client, messageHash, type, isPortfolioMargin);
             }
         } else {
             this.positions[type] = new ArrayCacheBySymbolBySide ();
         }
     }
 
-    async loadPositionsSnapshot (client, messageHash, type) {
-        const positions = await this.fetchPositions (undefined, { 'type': type });
+    async loadPositionsSnapshot (client, messageHash, type, isPortfolioMargin) {
+        const params = {
+            'type': type,
+        };
+        if (isPortfolioMargin) {
+            params['portfolioMargin'] = true;
+        }
+        const positions = await this.fetchPositions (undefined, params);
         this.positions[type] = new ArrayCacheBySymbolBySide ();
         const cache = this.positions[type];
         for (let i = 0; i < positions.length; i++) {
@@ -2558,12 +2696,59 @@ export default class binance extends binanceRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
     }
 
+    async fetchTradesWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name binance#fetchTradesWs
+         * @see https://binance-docs.github.io/apidocs/websocket_api/en/#recent-trades
+         * @description fetch all trades made by the user
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve, default=500, max=1000
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.fromId] trade ID to begin at
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new BadRequest (this.id + ' fetchTradesWs () requires a symbol argument');
+        }
+        this.checkIsSpot ('fetchTradesWs', symbol, params);
+        const url = this.urls['api']['ws']['ws'];
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
+        let returnRateLimits = false;
+        [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchTradesWs', 'returnRateLimits', false);
+        const payload = {
+            'symbol': this.marketId (symbol),
+            'returnRateLimits': returnRateLimits,
+        };
+        if (limit !== undefined) {
+            payload['limit'] = limit;
+        }
+        const message = {
+            'id': messageHash,
+            'method': 'trades.historical',
+            'params': this.extend (payload, params),
+        };
+        const subscription = {
+            'method': this.handleTradesWs,
+        };
+        const trades = await this.watch (url, messageHash, message, messageHash, subscription);
+        return this.filterBySinceLimit (trades, since, limit);
+    }
+
     handleTradesWs (client: Client, message) {
+        //
+        // fetchMyTradesWs
         //
         //    {
         //        "id": "f4ce6a53-a29d-4f70-823b-4ab59391d6e8",
         //        "status": 200,
-        //        "result": [{
+        //        "result": [
+        //            {
         //                "symbol": "BTCUSDT",
         //                "id": 1650422481,
         //                "orderId": 12569099453,
@@ -2578,6 +2763,25 @@ export default class binance extends binanceRest {
         //                "isMaker": true,
         //                "isBestMatch": true
         //            },
+        //            ...
+        //        ],
+        //    }
+        //
+        // fetchTradesWs
+        //
+        //    {
+        //        "id": "f4ce6a53-a29d-4f70-823b-4ab59391d6e8",
+        //        "status": 200,
+        //        "result": [
+        //            {
+        //                "id": 0,
+        //                "price": "0.00005000",
+        //                "qty": "40.00000000",
+        //                "quoteQty": "0.00200000",
+        //                "time": 1500004800376,
+        //                "isBuyerMaker": true,
+        //                "isBestMatch": true
+        //            }
         //            ...
         //        ],
         //    }
@@ -2597,6 +2801,7 @@ export default class binance extends binanceRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to watch trades in a portfolio margin account
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets ();
@@ -2625,10 +2830,15 @@ export default class binance extends binanceRest {
         if (type === 'margin') {
             urlType = 'spot'; // spot-margin shares the same stream as regular spot
         }
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchMyTrades', 'papi', 'portfolioMargin', false);
+        if (isPortfolioMargin) {
+            urlType = 'papi';
+        }
         const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
-        this.setBalanceCache (client, type);
-        this.setPositionsCache (client, type);
+        this.setBalanceCache (client, type, isPortfolioMargin);
+        this.setPositionsCache (client, type, undefined, isPortfolioMargin);
         const message = undefined;
         const trades = await this.watch (url, messageHash, message, type);
         if (this.newUpdates) {

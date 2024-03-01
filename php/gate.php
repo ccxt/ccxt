@@ -43,7 +43,7 @@ class gate extends Exchange {
                         'spot' => 'https://api.gateio.ws/api/v4',
                         'options' => 'https://api.gateio.ws/api/v4',
                         'subAccounts' => 'https://api.gateio.ws/api/v4',
-                        'portfolio' => 'https://api.gateio.ws/api/v4',
+                        'unified' => 'https://api.gateio.ws/api/v4',
                         'rebate' => 'https://api.gateio.ws/api/v4',
                         'earn' => 'https://api.gateio.ws/api/v4',
                         'account' => 'https://api.gateio.ws/api/v4',
@@ -266,11 +266,14 @@ class gate extends Exchange {
                             'saved_address' => 1,
                             'fee' => 1,
                             'total_balance' => 2.5,
+                            'small_balance' => 1,
+                            'small_balance_history' => 1,
                         ),
                         'post' => array(
                             'transfers' => 2.5, // 8r/s cost = 20 / 8 = 2.5
                             'sub_account_transfers' => 2.5,
                             'sub_account_to_sub_account' => 2.5,
+                            'small_balance' => 1,
                         ),
                     ),
                     'subAccounts' => array(
@@ -293,7 +296,7 @@ class gate extends Exchange {
                             'sub_accounts/{user_id}/keys/{key}' => 2.5,
                         ),
                     ),
-                    'portfolio' => array(
+                    'unified' => array(
                         'get' => array(
                             'accounts' => 20 / 15,
                             'account_mode' => 20 / 15,
@@ -302,6 +305,7 @@ class gate extends Exchange {
                             'loans' => 20 / 15,
                             'loan_records' => 20 / 15,
                             'interest_records' => 20 / 15,
+                            'estimate_rate' => 20 / 15,
                         ),
                         'post' => array(
                             'account_mode' => 20 / 15,

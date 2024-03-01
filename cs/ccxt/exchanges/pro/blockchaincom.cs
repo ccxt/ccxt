@@ -35,7 +35,6 @@ public partial class blockchaincom : ccxt.blockchaincom
                     } },
                     { "noOriginHeader", false },
                 } },
-                { "sequenceNumbers", new Dictionary<string, object>() {} },
             } },
             { "streaming", new Dictionary<string, object>() {} },
             { "exceptions", new Dictionary<string, object>() {} },
@@ -736,22 +735,22 @@ public partial class blockchaincom : ccxt.blockchaincom
         //     }
         //
         object eventVar = this.safeString(message, "event");
+        if (isTrue(isEqual(eventVar, "subscribed")))
+        {
+            return;
+        }
         object type = this.safeString(message, "channel");
         object marketId = this.safeString(message, "symbol");
         object symbol = this.safeSymbol(marketId);
         object messageHash = add(add(add("orderbook:", symbol), ":"), type);
         object datetime = this.safeString(message, "timestamp");
         object timestamp = this.parse8601(datetime);
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        if (isTrue(isEqual(this.safeValue(this.orderbooks, symbol), null)))
         {
-            orderbook = this.countedOrderBook(new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.countedOrderBook();
         }
-        if (isTrue(isEqual(eventVar, "subscribed")))
-        {
-            return;
-        } else if (isTrue(isEqual(eventVar, "snapshot")))
+        object orderbook = getValue(this.orderbooks, symbol);
+        if (isTrue(isEqual(eventVar, "snapshot")))
         {
             object snapshot = this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "px", "qty", "num");
             (orderbook as IOrderBook).reset(snapshot);
@@ -784,28 +783,8 @@ public partial class blockchaincom : ccxt.blockchaincom
         }
     }
 
-    public virtual void checkSequenceNumber(WebSocketClient client, object message)
-    {
-        object seqnum = this.safeInteger(message, "seqnum", 0);
-        object channel = this.safeString(message, "channel", "");
-        object sequenceNumbersByChannel = this.safeValue(this.options, "sequenceNumbers", new Dictionary<string, object>() {});
-        object lastSeqnum = this.safeInteger(sequenceNumbersByChannel, channel);
-        if (isTrue(isEqual(lastSeqnum, null)))
-        {
-            ((IDictionary<string,object>)getValue(this.options, "sequenceNumbers"))[(string)channel] = seqnum;
-        } else
-        {
-            if (isTrue(!isEqual(seqnum, add(lastSeqnum, 1))))
-            {
-                throw new ExchangeError ((string)add(add(add(add(add(add(this.id, " "), channel), " seqnum "), seqnum), " is not the expected "), (add(lastSeqnum, 1)))) ;
-            }
-            ((IDictionary<string,object>)getValue(this.options, "sequenceNumbers"))[(string)channel] = seqnum;
-        }
-    }
-
     public override void handleMessage(WebSocketClient client, object message)
     {
-        this.checkSequenceNumber(client as WebSocketClient, message);
         object channel = this.safeString(message, "channel");
         object handlers = new Dictionary<string, object>() {
             { "ticker", this.handleTicker },

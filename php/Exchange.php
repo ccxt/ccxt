@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.2.51';
+$version = '4.2.56';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.51';
+    const VERSION = '4.2.56';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -389,7 +389,6 @@ class Exchange {
         'bitfinex',
         'bitfinex2',
         'bitflyer',
-        'bitforex',
         'bitget',
         'bithumb',
         'bitmart',
@@ -2534,7 +2533,7 @@ class Exchange {
         return $this->filter_by_limit($result, $limit, $key, $sinceIsDefined);
     }
 
-    public function set_sandbox_mode($enabled) {
+    public function set_sandbox_mode(bool $enabled) {
         if ($enabled) {
             if (is_array($this->urls) && array_key_exists('test', $this->urls)) {
                 if (gettype($this->urls['api']) === 'string') {
