@@ -96,7 +96,7 @@ export default class hyperliquid extends Exchange {
                 'fetchTicker': false,
                 'fetchTickers': false,
                 'fetchTime': false,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransfer': false,
@@ -571,6 +571,67 @@ export default class hyperliquid extends Exchange {
             this.safeNumber (ohlcv, 'c'),
             this.safeNumber (ohlcv, 'v'),
         ];
+    }
+
+    async fetchTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest trade
+         * @param {string} [params.address] wallet address that made trades
+         * @param {string} [params.user] wallet address that made trades
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
+        const user = this.safeString2 (params, 'user', 'address');
+        if (user === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTrades() require user or address parameter.');
+        }
+        params = this.omit (params, [ 'user', 'address' ]);
+        await this.loadMarkets ();
+        const market = this.safeMarket (symbol);
+        const request = {
+            'user': user,
+        };
+        if (since !== undefined) {
+            request['type'] = 'userFillsByTime';
+            request['startTime'] = since;
+        } else {
+            request['type'] = 'userFills';
+        }
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "closedPnl": "0.19343",
+        //             "coin": "ETH",
+        //             "crossed": true,
+        //             "dir": "Close Long",
+        //             "fee": "0.050062",
+        //             "hash": "0x09d77c96791e98b5775a04092584ab010d009445119c71e4005c0d634ea322bc",
+        //             "liquidationMarkPx": null,
+        //             "oid": 3929354691,
+        //             "px": "2381.1",
+        //             "side": "A",
+        //             "startPosition": "0.0841",
+        //             "sz": "0.0841",
+        //             "tid": 128423918764978,
+        //             "time": 1704262888911
+        //         }
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
     }
 
     amountToPrecision (symbol, amount) {
