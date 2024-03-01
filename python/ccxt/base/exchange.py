@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.56'
+__version__ = '4.2.57'
 
 # -----------------------------------------------------------------------------
 
@@ -2087,8 +2087,15 @@ class Exchange(object):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
 
-    def fetch_margin_mode(self, symbol: str = None, params={}):
-        raise NotSupported(self.id + ' fetchMarginMode() is not supported yet')
+    def fetch_margin_mode(self, symbol: str, params={}):
+        if self.has['fetchMarginModes']:
+            marginModes = self.fetchMarginModes([symbol], params)
+            return self.safe_dict(marginModes, symbol)
+        else:
+            raise NotSupported(self.id + ' fetchMarginMode() is not supported yet')
+
+    def fetch_margin_modes(self, symbols: List[str] = None, params={}):
+        raise NotSupported(self.id + ' fetchMarginModes() is not supported yet')
 
     def fetch_rest_order_book_safe(self, symbol, limit=None, params={}):
         fetchSnapshotMaxRetries = self.handleOption('watchOrderBook', 'maxRetries', 3)
@@ -2193,6 +2200,9 @@ class Exchange(object):
 
     def fetch_leverage(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchLeverage() is not supported yet')
+
+    def fetch_leverages(self, symbols: List[str] = None, params={}):
+        raise NotSupported(self.id + ' fetchLeverages() is not supported yet')
 
     def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' setPositionMode() is not supported yet')
@@ -5237,3 +5247,16 @@ class Exchange(object):
 
     def parse_greeks(self, greeks, market: Market = None):
         raise NotSupported(self.id + ' parseGreeks() is not supported yet')
+
+    def parse_margin_modes(self, response: List[object], symbols: List[str] = None, symbolKey: str = None, marketType: MarketType = None):
+        marginModeStructures = {}
+        for i in range(0, len(response)):
+            info = response[i]
+            marketId = self.safe_string(info, symbolKey)
+            market = self.safe_market(marketId, None, None, marketType)
+            if (symbols is None) or self.in_array(market['symbol'], symbols):
+                marginModeStructures[market['symbol']] = self.parse_margin_mode(info, market)
+        return marginModeStructures
+
+    def parse_margin_mode(self, marginMode, market: Market = None):
+        raise NotSupported(self.id + ' parseMarginMode() is not supported yet')

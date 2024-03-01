@@ -122,15 +122,19 @@ class whitebit extends \ccxt\async\whitebit {
             $symbol = $market['symbol'];
             $messageHash = 'candles' . ':' . $symbol;
             $parsed = $this->parse_ohlcv($data, $market);
-            $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol);
-            $stored = $this->ohlcvs[$symbol];
-            if ($stored === null) {
+            // $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol);
+            if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+                $this->ohlcvs[$symbol] = array();
+            }
+            // $stored = $this->ohlcvs[$symbol]['unknown']; // we don't know the timeframe but we need to respect the type
+            if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists('unknown', $this->ohlcvs[$symbol]))) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp ($limit);
-                $this->ohlcvs[$symbol] = $stored;
+                $this->ohlcvs[$symbol]['unknown'] = $stored;
             }
-            $stored->append ($parsed);
-            $client->resolve ($stored, $messageHash);
+            $ohlcv = $this->ohlcvs[$symbol]['unknown'];
+            $ohlcv->append ($parsed);
+            $client->resolve ($ohlcv, $messageHash);
         }
         return $message;
     }

@@ -241,7 +241,7 @@ class mexc(ccxt.async_support.mexc):
         #        "d": {
         #            "e": "spot@public.kline.v3.api",
         #            "k": {
-        #                "t": 1678642260,
+        #                "t": 1678642261,
         #                "o": 20626.94,
         #                "c": 20599.69,
         #                "h": 20626.94,
@@ -445,7 +445,7 @@ class mexc(ccxt.async_support.mexc):
             # once we have received the first delta and initialized the orderbook
             client.subscriptions[messageHash] = 1
             self.orderbooks[symbol] = self.counted_order_book({})
-        storedOrderBook = self.safe_value(self.orderbooks, symbol)
+        storedOrderBook = self.orderbooks[symbol]
         nonce = self.safe_integer(storedOrderBook, 'nonce')
         if nonce is None:
             cacheLength = len(storedOrderBook.cache)

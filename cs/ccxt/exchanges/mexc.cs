@@ -64,6 +64,8 @@ public partial class mexc : Exchange
                 { "fetchL2OrderBook", true },
                 { "fetchLedger", null },
                 { "fetchLedgerEntry", null },
+                { "fetchLeverage", true },
+                { "fetchLeverages", false },
                 { "fetchLeverageTiers", true },
                 { "fetchMarginMode", false },
                 { "fetchMarketLeverageTiers", null },
@@ -5410,6 +5412,84 @@ public partial class mexc : Exchange
             };
         }
         return this.assignDefaultDepositWithdrawFees(result);
+    }
+
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name mexc#fetchLeverage
+        * @description fetch the set leverage for a market
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-leverage
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.contractPrivateGetPositionLeverage(this.extend(request, parameters));
+        //
+        //     {
+        //         "success": true,
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "level": 1,
+        //                 "maxVol": 463300,
+        //                 "mmr": 0.004,
+        //                 "imr": 0.005,
+        //                 "positionType": 1,
+        //                 "openType": 1,
+        //                 "leverage": 20,
+        //                 "limitBySys": false,
+        //                 "currentMmr": 0.004
+        //             },
+        //             {
+        //                 "level": 1,
+        //                 "maxVol": 463300,
+        //                 "mmr": 0.004,
+        //                 "imr": 0.005,
+        //                 "positionType": 2,
+        //                 "openType": 1,
+        //                 "leverage": 20,
+        //                 "limitBySys": false,
+        //                 "currentMmr": 0.004
+        //             }
+        //         ]
+        //     }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        object longLeverage = this.safeDict(data, 0);
+        return this.parseLeverage(longLeverage, market);
+    }
+
+    public virtual object parseLeverage(object leverage, object market = null)
+    {
+        //
+        //     {
+        //         "level": 1,
+        //         "maxVol": 463300,
+        //         "mmr": 0.004,
+        //         "imr": 0.005,
+        //         "positionType": 1,
+        //         "openType": 1,
+        //         "leverage": 20,
+        //         "limitBySys": false,
+        //         "currentMmr": 0.004
+        //     }
+        //
+        object marketId = this.safeString(leverage, "symbol");
+        market = this.safeMarket(marketId, market, null, "contract");
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", getValue(market, "symbol") },
+            { "leverage", this.safeInteger(leverage, "leverage") },
+            { "marginMode", null },
+        };
     }
 
     public override object handleMarginModeAndParams(object methodName, object parameters = null, object defaultValue = null)

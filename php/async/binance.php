@@ -104,6 +104,8 @@ class binance extends Exchange {
                 'fetchLeverage' => true,
                 'fetchLeverageTiers' => true,
                 'fetchLiquidations' => false,
+                'fetchMarginMode' => 'emulated',
+                'fetchMarginModes' => true,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
@@ -12000,5 +12002,158 @@ class binance extends Exchange {
                 'hedged' => $dualSidePosition,
             );
         }) ();
+    }
+
+    public function fetch_margin_modes(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches margin modes ("isolated" or "cross") that the $market for the symbol in in, with symbol=null all markets for a $subType (linear/inverse) are returned
+             * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+             * @param {string} symbol unified symbol of the $market the order was made in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} struct of marginMode
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbols !== null) {
+                $symbols = $this->market_symbols($symbols);
+                $market = $this->market($symbols[0]);
+            }
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchMarginMode', $market, $params);
+            $response = null;
+            if ($subType === 'linear') {
+                $response = Async\await($this->fapiPrivateV2GetAccount ($params));
+                //
+                //    {
+                //        feeTier => '0',
+                //        canTrade => true,
+                //        canDeposit => true,
+                //        canWithdraw => true,
+                //        tradeGroupId => '-1',
+                //        updateTime => '0',
+                //        multiAssetsMargin => true,
+                //        totalInitialMargin => '438.31134352',
+                //        totalMaintMargin => '5.90847101',
+                //        totalWalletBalance => '4345.15626338',
+                //        totalUnrealizedProfit => '376.45220224',
+                //        totalMarginBalance => '4721.60846562',
+                //        totalPositionInitialMargin => '425.45252687',
+                //        totalOpenOrderInitialMargin => '12.85881664',
+                //        totalCrossWalletBalance => '4345.15626338',
+                //        totalCrossUnPnl => '376.45220224',
+                //        availableBalance => '4281.84764041',
+                //        maxWithdrawAmount => '4281.84764041',
+                //        $assets => array(
+                //            array(
+                //                asset => 'ETH',
+                //                walletBalance => '0.00000000',
+                //                unrealizedProfit => '0.00000000',
+                //                marginBalance => '0.00000000',
+                //                maintMargin => '0.00000000',
+                //                initialMargin => '0.00000000',
+                //                positionInitialMargin => '0.00000000',
+                //                openOrderInitialMargin => '0.00000000',
+                //                maxWithdrawAmount => '0.00000000',
+                //                crossWalletBalance => '0.00000000',
+                //                crossUnPnl => '0.00000000',
+                //                availableBalance => '1.26075574',
+                //                marginAvailable => true,
+                //                updateTime => '0'
+                //            ),
+                //        ...
+                //        ),
+                //        positions => array(
+                //            array(
+                //              symbol => 'SNTUSDT',
+                //              initialMargin => '0',
+                //              maintMargin => '0',
+                //              unrealizedProfit => '0.00000000',
+                //              positionInitialMargin => '0',
+                //              openOrderInitialMargin => '0',
+                //              leverage => '20',
+                //              isolated => false,
+                //              entryPrice => '0.0',
+                //              breakEvenPrice => '0.0',
+                //              maxNotional => '25000',
+                //              positionSide => 'BOTH',
+                //              positionAmt => '0',
+                //              notional => '0',
+                //              isolatedWallet => '0',
+                //              updateTime => '0',
+                //              bidNotional => '0',
+                //              askNotional => '0'
+                //            ),
+                //            ...
+                //        )
+                //    }
+                //
+            } elseif ($subType === 'inverse') {
+                $response = Async\await($this->dapiPrivateGetAccount ($params));
+                //
+                //    {
+                //        feeTier => '0',
+                //        canTrade => true,
+                //        canDeposit => true,
+                //        canWithdraw => true,
+                //        updateTime => '0',
+                //        $assets => array(
+                //            array(
+                //                asset => 'APT',
+                //                walletBalance => '0.00000000',
+                //                unrealizedProfit => '0.00000000',
+                //                marginBalance => '0.00000000',
+                //                maintMargin => '0.00000000',
+                //                initialMargin => '0.00000000',
+                //                positionInitialMargin => '0.00000000',
+                //                openOrderInitialMargin => '0.00000000',
+                //                maxWithdrawAmount => '0.00000000',
+                //                crossWalletBalance => '0.00000000',
+                //                crossUnPnl => '0.00000000',
+                //                availableBalance => '0.00000000',
+                //                updateTime => '0'
+                //            ),
+                //            ...
+                //        ),
+                //        positions => array(
+                //            array(
+                //                symbol => 'BCHUSD_240329',
+                //                initialMargin => '0',
+                //                maintMargin => '0',
+                //                unrealizedProfit => '0.00000000',
+                //                positionInitialMargin => '0',
+                //                openOrderInitialMargin => '0',
+                //                leverage => '20',
+                //                isolated => false,
+                //                positionSide => 'BOTH',
+                //                entryPrice => '0.00000000',
+                //                maxQty => '1000',
+                //                notionalValue => '0',
+                //                isolatedWallet => '0',
+                //                updateTime => '0',
+                //                positionAmt => '0',
+                //                breakEvenPrice => '0.00000000'
+                //            ),
+                //            ...
+                //        )
+                //    }
+                //
+            } else {
+                throw new BadRequest($this->id . ' fetchMarginModes () supports linear and inverse subTypes only');
+            }
+            $assets = $this->safe_value($response, 'positions', array());
+            return $this->parse_margin_modes($assets, $symbols, 'symbol', 'swap');
+        }) ();
+    }
+
+    public function parse_margin_mode($marginMode, $market = null): MarginMode {
+        $marketId = $this->safe_string($marginMode, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $isIsolated = $this->safe_bool($marginMode, 'isolated');
+        return array(
+            'info' => $marginMode,
+            'symbol' => $market['symbol'],
+            'marginMode' => $isIsolated ? 'isolated' : 'cross',
+        );
     }
 }

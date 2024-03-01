@@ -119,14 +119,17 @@ class whitebit(ccxt.async_support.whitebit):
             symbol = market['symbol']
             messageHash = 'candles' + ':' + symbol
             parsed = self.parse_ohlcv(data, market)
-            self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol)
-            stored = self.ohlcvs[symbol]
-            if stored is None:
+            # self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol)
+            if not (symbol in self.ohlcvs):
+                self.ohlcvs[symbol] = {}
+            # stored = self.ohlcvs[symbol]['unknown']  # we don't know the timeframe but we need to respect the type
+            if not ('unknown' in self.ohlcvs[symbol]):
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)
-                self.ohlcvs[symbol] = stored
-            stored.append(parsed)
-            client.resolve(stored, messageHash)
+                self.ohlcvs[symbol]['unknown'] = stored
+            ohlcv = self.ohlcvs[symbol]['unknown']
+            ohlcv.append(parsed)
+            client.resolve(ohlcv, messageHash)
         return message
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:

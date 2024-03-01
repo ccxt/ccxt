@@ -92,10 +92,15 @@ public partial class Exchange
         var res = await this.fetchOrderBook(symbol, limit, parameters);
         return new OrderBook(res);
     }
-    public async Task<MarginMode> FetchMarginMode(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<MarginMode> FetchMarginMode(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarginMode(symbol, parameters);
         return new MarginMode(res);
+    }
+    public async Task<MarginModes> FetchMarginModes(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarginModes(symbols, parameters);
+        return new MarginModes(res);
     }
     public async Task<OrderBook> FetchRestOrderBookSafe(object symbol, object limit = null, Dictionary<string, object> parameters = null)
     {
@@ -162,6 +167,11 @@ public partial class Exchange
     {
         var res = await this.fetchLeverage(symbol, parameters);
         return (Int64)res;
+    }
+    public async Task<Dictionary<string, object>> FetchLeverages(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLeverages(symbols, parameters);
+        return ((Dictionary<string, object>)res);
     }
     public async Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, Dictionary<string, object> parameters = null)
     {

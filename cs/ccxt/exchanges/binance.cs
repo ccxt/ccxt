@@ -86,6 +86,8 @@ public partial class binance : Exchange
                 { "fetchLeverage", true },
                 { "fetchLeverageTiers", true },
                 { "fetchLiquidations", false },
+                { "fetchMarginMode", "emulated" },
+                { "fetchMarginModes", true },
                 { "fetchMarketLeverageTiers", "emulated" },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
@@ -13061,6 +13063,56 @@ public partial class binance : Exchange
         return new Dictionary<string, object>() {
             { "info", response },
             { "hedged", dualSidePosition },
+        };
+    }
+
+    public async override Task<object> fetchMarginModes(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#fetchMarginMode
+        * @description fetches margin modes ("isolated" or "cross") that the market for the symbol in in, with symbol=undefined all markets for a subType (linear/inverse) are returned
+        * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+        * @param {string} symbol unified symbol of the market the order was made in
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} struct of marginMode
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            symbols = this.marketSymbols(symbols);
+            market = this.market(getValue(symbols, 0));
+        }
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchMarginMode", market, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(subType, "linear")))
+        {
+            response = await this.fapiPrivateV2GetAccount(parameters);
+        } else if (isTrue(isEqual(subType, "inverse")))
+        {
+            response = await this.dapiPrivateGetAccount(parameters);
+        } else
+        {
+            throw new BadRequest ((string)add(this.id, " fetchMarginModes () supports linear and inverse subTypes only")) ;
+        }
+        object assets = this.safeValue(response, "positions", new List<object>() {});
+        return this.parseMarginModes(assets, symbols, "symbol", "swap");
+    }
+
+    public override object parseMarginMode(object marginMode, object market = null)
+    {
+        object marketId = this.safeString(marginMode, "symbol");
+        market = this.safeMarket(marketId, market);
+        object isIsolated = this.safeBool(marginMode, "isolated");
+        return new Dictionary<string, object>() {
+            { "info", marginMode },
+            { "symbol", getValue(market, "symbol") },
+            { "marginMode", ((bool) isTrue(isIsolated)) ? "isolated" : "cross" },
         };
     }
 }

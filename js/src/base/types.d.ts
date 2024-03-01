@@ -365,7 +365,7 @@ export interface FundingHistory {
     amount: number;
 }
 export interface MarginMode {
-    infp: any;
+    info: any;
     symbol: string;
     marginMode: 'isolated' | 'cross' | string;
 }
@@ -389,6 +389,8 @@ export interface Greeks {
     lastPrice: number;
     underlyingPrice: number;
     info: any;
+}
+export interface MarginModes extends Dictionary<MarginMode> {
 }
 /** [ timestamp, open, high, low, close, volume ] */
 export declare type OHLCV = [Num, Num, Num, Num, Num, Num];

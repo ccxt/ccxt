@@ -56,7 +56,8 @@ class bitmex extends Exchange {
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
-                'fetchLeverage' => false,
+                'fetchLeverage' => true,
+                'fetchLeverages' => true,
                 'fetchLeverageTiers' => false,
                 'fetchLiquidations' => true,
                 'fetchMarketLeverageTiers' => false,
@@ -2084,6 +2085,44 @@ class bitmex extends Exchange {
         //     )
         //
         return $this->parse_orders($response, $market);
+    }
+
+    public function fetch_leverages(?array $symbols = null, $params = array ()) {
+        /**
+         * fetch the set leverage for all contract markets
+         * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
+         * @param {string[]} [$symbols] a list of unified $market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structures~
+         */
+        $this->load_markets();
+        $positions = $this->fetch_positions($symbols, $params);
+        $result = array();
+        for ($i = 0; $i < count($positions); $i++) {
+            $entry = $positions[$i];
+            $marketId = $this->safe_string($entry, 'symbol');
+            $market = $this->safe_market($marketId, null, null, 'contract');
+            $result[] = array(
+                'info' => $entry,
+                'symbol' => $market['symbol'],
+                'leverage' => $this->safe_integer($entry, 'leverage'),
+                'marginMode' => $this->safe_string($entry, 'marginMode'),
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_leverage(string $symbol, $params = array ()) {
+        /**
+         * fetch the set $leverage for a market
+         * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
+         * @param {string} $symbol unified market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$leverage-structure $leverage structure~
+         */
+        $this->load_markets();
+        $leverage = $this->fetch_leverages(array( $symbol ), $params);
+        return $leverage;
     }
 
     public function fetch_positions(?array $symbols = null, $params = array ()) {

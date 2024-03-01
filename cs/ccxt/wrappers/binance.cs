@@ -2464,4 +2464,9 @@ public partial class binance
         var res = await this.fetchPositionMode(symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
+    public async Task<MarginModes> FetchMarginModes(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarginModes(symbols, parameters);
+        return new MarginModes(res);
+    }
 }
