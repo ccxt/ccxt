@@ -244,6 +244,33 @@ export default class deribit extends deribitRest {
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name deribit#watchTradesForSymbols
+         * @description get the list of most recent trades for a list of symbols
+         * @see https://docs.deribit.com/#trades-instrument_name-interval
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        let interval = undefined;
+        [ interval, params ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'interval', '100ms');
+        if (interval === 'raw') {
+            await this.authenticate ();
+        }
+        const trades = await this.subscribeMultiple ('trades.', '.' + interval, symbols, params);
+        if (this.newUpdates) {
+            const first = this.safeDict (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+
     handleTrades (client: Client, message) {
         //
         //     {
