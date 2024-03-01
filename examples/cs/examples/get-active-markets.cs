@@ -5,7 +5,6 @@ namespace examples;
 
 partial class Examples
 {
-    // AUTO-TRANSPILE //    
     async static public Task getActiveMarkets()
     {
         var exchange = new ccxt.bitget(new Dictionary<string, object>()
