@@ -471,7 +471,7 @@ export default class deribit extends deribitRest {
         } else {
             descriptor = interval;
         }
-        const orderbook = await this.subscribeMultiple ('books', descriptor, symbols, params);
+        const orderbook = await this.subscribeMultiple ('book', descriptor, symbols, params);
         return orderbook.limit ();
     }
 
@@ -525,6 +525,18 @@ export default class deribit extends deribitRest {
         const data = this.safeValue (params, 'data', {});
         const channel = this.safeString (params, 'channel');
         const parts = channel.split ('.');
+        let descriptor = '';
+        const partsLength = parts.length;
+        const isDetailed = partsLength === 5;
+        if (isDetailed) {
+            const group = this.safeString (parts, 2);
+            const depth = this.safeString (parts, 3);
+            const interval = this.safeString (parts, 4);
+            descriptor = group + '.' + depth + '.' + interval;
+        } else {
+            const interval = this.safeString (parts, 2);
+            descriptor = interval;
+        }
         const marketId = this.safeString (data, 'instrument_name');
         const symbol = this.safeSymbol (marketId);
         const timestamp = this.safeInteger (data, 'timestamp');
@@ -541,7 +553,8 @@ export default class deribit extends deribitRest {
         storedOrderBook['datetime'] = this.iso8601 (timestamp);
         storedOrderBook['symbol'] = symbol;
         this.orderbooks[symbol] = storedOrderBook;
-        client.resolve (storedOrderBook, 'books');
+        const messageHash = 'book' + ':' + symbol + ':' + descriptor;
+        client.resolve (storedOrderBook, messageHash);
     }
 
     cleanOrderBook (data) {
