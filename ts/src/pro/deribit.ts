@@ -730,6 +730,7 @@ export default class deribit extends deribitRest {
         const channel = this.safeString (params, 'channel', '');
         const parts = channel.split ('.');
         const marketId = this.safeString (parts, 2);
+        const timeframe = this.safeString (parts, 3);
         const symbol = this.safeSymbol (marketId);
         const ohlcv = this.safeValue (params, 'data', {});
         const parsed = [
@@ -747,7 +748,8 @@ export default class deribit extends deribitRest {
         }
         stored.append (parsed);
         this.ohlcvs[symbol] = stored;
-        client.resolve (stored, channel);
+        const messageHash = 'chart.trades|' + symbol + '|' + timeframe;
+        client.resolve (stored, messageHash);
     }
 
     async watchMultipleWrapper (channelName: string, channelDescriptor: string, symbolsArray: any[] = undefined, params = {}) {
@@ -761,16 +763,15 @@ export default class deribit extends deribitRest {
         for (let i = 0; i < symbolsArray.length; i++) {
             const current = symbolsArray[i];
             let market = undefined;
-            let channelDescriptorExtended = channelDescriptor;
             if (isOHLCV) {
                 market = this.market (current[0]);
                 const tf = current[1];
                 const interval = this.safeString (this.timeframes, tf, tf);
-                channelDescriptorExtended += interval;
+                channelDescriptor = interval;
             } else {
                 market = this.market (current);
             }
-            const message = channelName + '.' + market['id'] + '.' + channelDescriptorExtended;
+            const message = channelName + '.' + market['id'] + '.' + channelDescriptor;
             rawSubscriptions.push (message);
             messageHashes.push (channelName + '|' + market['symbol'] + '|' + channelDescriptor);
         }
