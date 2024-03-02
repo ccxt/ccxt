@@ -37,6 +37,13 @@ export default class phemex extends phemexRest {
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
+                'ws': {
+                    'watchOrderBookForSymbols': {
+                        // 'full' : full orderbook changes every 100 MS
+                        // 'top30' : top-30 depth orderbook changes every 20 MS
+                        'orderBookType': 'full',
+                    },
+                },
             },
             'streaming': {
                 'keepAlive': 10000,
@@ -577,9 +584,10 @@ export default class phemex extends phemexRest {
         /**
          * @method
          * @name phemex#watchOrderBook
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-orderbook
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-orderbook-for-new-model
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-30-levels-orderbook
-         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-orderbook
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-full-orderbook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -593,31 +601,19 @@ export default class phemex extends phemexRest {
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
-         * @name deribit#watchOrderBookForSymbols
+         * @name phemex#watchOrderBookForSymbols
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.deribit.com/#book-instrument_name-group-depth-interval
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-orderbook
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-orderbook-for-new-model
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-30-levels-orderbook
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-full-orderbook
          * @param {string[]} symbols unified array of symbols
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        let interval = undefined;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'interval', '100ms');
-        if (interval === 'raw') {
-            await this.authenticate ();
-        }
-        let descriptor = '';
-        let useDepthEndpoint = undefined; // for more info, see comment in .options
-        [ useDepthEndpoint, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
-        if (useDepthEndpoint) {
-            let depth = undefined;
-            [ depth, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'depth', '20');
-            let group = undefined;
-            [ group, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'group', 'none');
-            descriptor = group + '.' + depth + '.' + interval;
-        } else {
-            descriptor = interval;
-        }
+        let descriptor = undefined; // for more info, see comment in .options
+        [ descriptor, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'orderBookType', 'full');
         const orderbook = await this.watchMultipleWrapper ('orderbook', descriptor, symbols, params);
         return orderbook.limit ();
     }
@@ -627,9 +623,10 @@ export default class phemex extends phemexRest {
         const url = this.urls['api']['ws'];
         const rawSubscriptions = [];
         const messageHashes = [];
-        const isOHLCV = (channelName === 'chart.trades');
+        const isOHLCV = (channelName === 'XXXXXXXXXXX');
         const symbols = isOHLCV ? this.getListFromObjectValues (symbolsArray, 0) : symbolsArray;
         this.marketSymbols (symbols, undefined, false);
+        this.throwForMixedUsdtSettleSymbols (symbols);
         for (let i = 0; i < symbolsArray.length; i++) {
             const current = symbolsArray[i];
             let market = undefined;
@@ -638,11 +635,16 @@ export default class phemex extends phemexRest {
                 // const unifiedTf = current[1];
                 // const rawTf = this.safeString (this.timeframes, unifiedTf, unifiedTf);
                 // channelDescriptor = rawTf;
+            } else if (channelName === 'orderbook') {
+                market = this.market (current);
+                const settleIsUSDT = market['settle'] === 'USDT';
+                channelName = (market['swap'] && settleIsUSDT) ? 'orderbook_p' : 'orderbook';
+                if (channelDescriptor === 'full') {
+                    channelDescriptor = 'full.' + market['id'];
+                }
             } else {
                 market = this.market (current);
             }
-            // const settleIsUSDT = market['settle'] === 'USDT';
-            // const name = (market['swap'] && settleIsUSDT) ? 'orderbook_p' : 'orderbook';
             rawSubscriptions.push (market['id']);
             messageHashes.push (channelName + '|' + market['symbol']);
         }
