@@ -312,7 +312,7 @@ class NewTranspiler {
             return `Task<ccxt.pro.IOrderBook>`;
         }
 
-        if (name === 'fetchTime' || name === 'fetchLeverage'){
+        if (name === 'fetchTime'){
             return `Task<Int64>`; // custom handling for now
         }
 
