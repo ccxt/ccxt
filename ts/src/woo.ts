@@ -494,7 +494,7 @@ export default class woo extends Exchange {
         //      ]
         // }
         //
-        const resultResponse = this.safeValue (response, 'rows', {});
+        const resultResponse = this.safeList (response, 'rows', []);
         return this.parseTrades (resultResponse, market, since, limit);
     }
 
