@@ -942,6 +942,27 @@ public struct MarginMode
     }
 }
 
+public struct Leverage
+{
+    public Dictionary<string, object>? info;
+    public string? symbol;
+    public string? marginMode;
+
+    public Int64? leverage;
+    public Int64? longLeverage;
+    public Int64? shortLeverage;
+
+    public Leverage(object levObj)
+    {
+        info = Exchange.SafeValue(levObj, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(levObj, "info") : null;
+        symbol = Exchange.SafeString(levObj, "symbol");
+        marginMode = Exchange.SafeString(levObj, "marginMode");
+        leverage = Exchange.SafeInteger(levObj, "leverage");
+        longLeverage = Exchange.SafeInteger(levObj, "longLeverage");
+        shortLeverage = Exchange.SafeInteger(levObj, "shortLeverage");
+    }
+}
+
 
 public struct Greeks
 {
@@ -1163,6 +1184,45 @@ public struct MarginModes
         set
         {
             marginModes[key] = value;
+        }
+    }
+}
+
+public struct Leverages
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, Leverage> leverages;
+
+    public Leverages(object leverage2)
+    {
+        var leverages = (Dictionary<string, object>)leverage2;
+
+        info = leverages.ContainsKey("info") ? (Dictionary<string, object>)leverages["info"] : null;
+        this.leverages = new Dictionary<string, Leverage>();
+        foreach (var leverage in leverages)
+        {
+            if (leverage.Key != "info")
+                this.leverages.Add(leverage.Key, new Leverage(leverage.Value));
+        }
+    }
+
+    // Indexer
+    public Leverage this[string key]
+    {
+        get
+        {
+            if (leverages.ContainsKey(key))
+            {
+                return leverages[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the leverages.");
+            }
+        }
+        set
+        {
+            leverages[key] = value;
         }
     }
 }

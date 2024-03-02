@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, Argum
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -6813,7 +6813,7 @@ export default class bitget extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
-    async fetchLeverage (symbol: string, params = {}) {
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         /**
          * @method
          * @name bitget#fetchLeverage
@@ -6844,28 +6844,42 @@ export default class bitget extends Exchange {
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1700625127294,
-        //         "data": [
-        //             {
-        //                 "marginCoin": "USDT",
-        //                 "locked": "0",
-        //                 "available": "0",
-        //                 "crossedMaxAvailable": "0",
-        //                 "isolatedMaxAvailable": "0",
-        //                 "maxTransferOut": "0",
-        //                 "accountEquity": "0",
-        //                 "usdtEquity": "0.000000005166",
-        //                 "btcEquity": "0",
-        //                 "crossedRiskRate": "0",
-        //                 "unrealizedPL": "0",
-        //                 "coupon": "0",
-        //                 "crossedUnrealizedPL": null,
-        //                 "isolatedUnrealizedPL": null
-        //             }
-        //         ]
+        //         "requestTime": 1709366911964,
+        //         "data": {
+        //             "marginCoin": "USDT",
+        //             "locked": "0",
+        //             "available": "0",
+        //             "crossedMaxAvailable": "0",
+        //             "isolatedMaxAvailable": "0",
+        //             "maxTransferOut": "0",
+        //             "accountEquity": "0",
+        //             "usdtEquity": "0.000000009166",
+        //             "btcEquity": "0",
+        //             "crossedRiskRate": "0",
+        //             "crossedMarginLeverage": 20,
+        //             "isolatedLongLever": 20,
+        //             "isolatedShortLever": 20,
+        //             "marginMode": "crossed",
+        //             "posMode": "hedge_mode",
+        //             "unrealizedPL": "0",
+        //             "coupon": "0",
+        //             "crossedUnrealizedPL": "0",
+        //             "isolatedUnrealizedPL": ""
+        //         }
         //     }
         //
-        return response;
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
+    }
+
+    parseLeverage (leverage, market = undefined): Leverage {
+        return {
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': 'isolated',
+            'longLeverage': this.safeInteger (leverage, 'isolatedLongLever'),
+            'shortLeverage': this.safeInteger (leverage, 'isolatedShortLever'),
+        } as Leverage;
     }
 
     async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
