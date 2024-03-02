@@ -111,10 +111,11 @@ export default class bitmart extends bitmartRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    async subscribeMultiple (channel: string, type: string, symbols: string[], params = {}) {
-        const url = this.implodeHostname (this.urls['api']['ws'][type]['public']);
-        const channelType = (type === 'spot') ? 'spot' : 'futures';
-        const actionType = (type === 'spot') ? 'op' : 'action';
+    async subscribeMultiple (channel: string, marketType: string, symbols: string[], params = {}) {
+        const isSpot = (marketType === 'spot');
+        const url = this.implodeHostname (this.urls['api']['ws'][marketType]['public']);
+        const channelType = isSpot ? 'spot' : 'futures';
+        const actionType = isSpot ? 'op' : 'action';
         const rawSubscriptions = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -308,14 +309,22 @@ export default class bitmart extends bitmartRest {
     }
 
     getParamsForMultipleSub (methodName: string, symbols: string[], limit: Int = undefined, params = {}) {
-        symbols = this.marketSymbols (symbols, undefined, false, true);
-        const length = symbols.length;
-        if (length > 20) {
-            throw new NotSupported (this.id + ' ' + methodName + '() accepts a maximum of 20 symbols in one request');
+        symbols = this.marketSymbols (symbols, undefined, true, true); // allow empty at this stage, and below throw exception if still empty
+        let market = undefined;
+        if (symbols !== undefined) {
+            market = this.market (symbols[0]);
         }
-        const market = this.market (symbols[0]);
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params);
+        // for contract's watchTickers we can default to all-symbols
+        if (methodName === 'watchTickers' && this.inArray (marketType, [ 'swap', 'future' ]) && symbols === undefined) {
+            const filteredMarkets = this.filterByArray (this.markets, 'type', [ 'swap', 'future' ]);
+            symbols = this.getArrayOfObjectsKey (filteredMarkets, 'symbol');
+        } else if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a list of symbols for ' + marketType + ' markets');
+        } else if (symbols.length > 20) {
+            throw new NotSupported (this.id + ' ' + methodName + '() accepts a maximum of 20 symbols in one request');
+        }
         return [ symbols, marketType, params ];
     }
 
@@ -324,26 +333,24 @@ export default class bitmart extends bitmartRest {
          * @method
          * @name bitmart#watchTicker
          * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+         * @see https://developer-pro.bitmart.com/en/futures/#overview
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        await this.loadMarkets ();
-        symbol = this.symbol (symbol);
-        const market = this.market (symbol);
-        let type = 'spot';
-        [ type, params ] = this.handleMarketTypeAndParams ('watchTicker', market, params);
-        if (type === 'swap') {
-            throw new NotSupported (this.id + ' watchTicker() does not support ' + type + ' markets. Use watchTickers() instead');
-        }
-        return await this.subscribe ('ticker', symbol, type, params);
+        const request = {
+            'methodName': 'watchTicker',
+        };
+        const tickers = await this.watchTickers ([ symbol ], this.extend (request, params));
+        return tickers[symbol];
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name bitmart#watchTickers
+         * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
          * @see https://developer-pro.bitmart.com/en/futures/#overview
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
@@ -351,40 +358,14 @@ export default class bitmart extends bitmartRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const market = this.getMarketFromSymbols (symbols);
-        let type = 'spot';
-        [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
-        const url = this.implodeHostname (this.urls['api']['ws'][type]['public']);
-        symbols = this.marketSymbols (symbols);
-        let messageHash = 'tickers::' + type;
-        if (symbols !== undefined) {
-            messageHash += '::' + symbols.join (',');
-        }
-        let request = undefined;
-        let tickers = undefined;
-        const isSpot = (type === 'spot');
-        if (isSpot) {
-            if (symbols === undefined) {
-                throw new ArgumentsRequired (this.id + ' watchTickers() for ' + type + ' market type requires symbols argument to be provided');
-            }
-            const marketIds = this.marketIds (symbols);
-            const finalArray = [];
-            for (let i = 0; i < marketIds.length; i++) {
-                finalArray.push ('spot/ticker:' + marketIds[i]);
-            }
-            request = {
-                'op': 'subscribe',
-                'args': finalArray,
-            };
-            tickers = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
-        } else {
-            request = {
-                'action': 'subscribe',
-                'args': [ 'futures/ticker' ],
-            };
-            tickers = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
-        }
+        const methodName = this.safeString (params, 'methodName', 'watchTickers');
+        let marketType = undefined;
+        [ symbols, marketType, params ] = this.getParamsForMultipleSub (methodName, symbols, undefined, params);
+        const channelName = 'ticker';
+        const ticker = await this.subscribeMultiple (channelName, marketType, symbols, params);
         if (this.newUpdates) {
+            const tickers = {};
+            tickers[ticker['symbol']] = ticker;
             return tickers;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
@@ -966,23 +947,15 @@ export default class bitmart extends bitmartRest {
         if (data === undefined) {
             return;
         }
-        if (isSpot) {
-            for (let i = 0; i < data.length; i++) {
-                const ticker = this.parseTicker (data[i]);
-                const symbol = ticker['symbol'];
-                const marketId = this.safeString (ticker['info'], 'symbol');
-                const messageHash = table + ':' + marketId;
-                this.tickers[symbol] = ticker;
-                client.resolve (ticker, messageHash);
-                this.resolveMessageHashesForSymbol (client, symbol, ticker, 'tickers::');
-            }
-        } else {
-            // on each update for contract markets, single ticker is provided
-            const ticker = this.parseWsSwapTicker (data);
-            const symbol = this.safeString (ticker, 'symbol');
+        const channel = 'ticker';
+        const rawTickers = (isSpot) ? data : [ data ]; // for contract markets only single ticker object is provided
+        for (let i = 0; i < rawTickers.length; i++) {
+            const rawTicker = rawTickers[i];
+            const ticker = isSpot ? this.parseTicker (rawTicker) : this.parseWsSwapTicker (rawTicker);
+            const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
-            client.resolve (ticker, 'tickers::swap');
-            this.resolveMessageHashesForSymbol (client, symbol, ticker, 'tickers::');
+            const messageHash = channel + ':' + symbol;
+            client.resolve (ticker, messageHash);
         }
     }
 
