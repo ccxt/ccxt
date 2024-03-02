@@ -776,7 +776,7 @@ export default class deribit extends deribitRest {
         ];
     }
 
-    async watchMultipleWrapper (channelName: string, channelDescriptor: string, symbolsArray: any[] = undefined, params = {}) {
+    async watchMultipleWrapper (channelName: string, channelDescriptor: string, symbolsArray = undefined, params = {}) {
         await this.loadMarkets ();
         const url = this.urls['api']['ws'];
         const rawSubscriptions = [];
