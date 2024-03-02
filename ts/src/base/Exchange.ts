@@ -2427,7 +2427,6 @@ export default class Exchange {
 
     getDefaultOptions () {
         return {
-            'customWsMessageHandlers': {},
             'defaultNetworkCodeReplacements': {
                 'ETH': { 'ERC20': 'ETH' },
                 'TRX': { 'TRC20': 'TRX' },
