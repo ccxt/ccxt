@@ -1655,7 +1655,7 @@ export default class okx extends okxRest {
                 'orders': this.handleOrders,
                 'orders-algo': this.handleOrders,
             };
-            const method = this.selectWsMethodHandler (methods, channel);
+            const method = this.safeValue (methods, channel);
             if (method === undefined) {
                 if (channel.indexOf ('candle') === 0) {
                     this.handleOHLCV (client, message);
