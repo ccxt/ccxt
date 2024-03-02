@@ -503,7 +503,7 @@ class NewTranspiler {
         }
 
         // custom handling for now
-        if (methodName === 'fetchTime' || methodName === 'fetchLeverage'){
+        if (methodName === 'fetchTime'){
             return `return (Int64)res;`;
         }
 
