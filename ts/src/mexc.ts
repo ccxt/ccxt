@@ -6,7 +6,7 @@ import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, Exch
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -5393,7 +5393,7 @@ export default class mexc extends Exchange {
         return this.assignDefaultDepositWithdrawFees (result);
     }
 
-    async fetchLeverage (symbol: string, params = {}) {
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         /**
          * @method
          * @name mexc#fetchLeverage
@@ -5440,32 +5440,31 @@ export default class mexc extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const longLeverage = this.safeDict (data, 0);
-        return this.parseLeverage (longLeverage, market);
+        return this.parseLeverage (data, market);
     }
 
-    parseLeverage (leverage, market: Market = undefined) {
-        //
-        //     {
-        //         "level": 1,
-        //         "maxVol": 463300,
-        //         "mmr": 0.004,
-        //         "imr": 0.005,
-        //         "positionType": 1,
-        //         "openType": 1,
-        //         "leverage": 20,
-        //         "limitBySys": false,
-        //         "currentMmr": 0.004
-        //     }
-        //
-        const marketId = this.safeString (leverage, 'symbol');
-        market = this.safeMarket (marketId, market, undefined, 'contract');
+    parseLeverage (leverage, market = undefined): Leverage {
+        let marginMode = undefined;
+        let longLeverage = undefined;
+        let shortLeverage = undefined;
+        for (let i = 0; i < leverage.length; i++) {
+            const entry = leverage[i];
+            const openType = this.safeInteger (entry, 'openType');
+            const positionType = this.safeInteger (entry, 'positionType');
+            if (positionType === 1) {
+                longLeverage = this.safeInteger (entry, 'leverage');
+            } else if (positionType === 2) {
+                shortLeverage = this.safeInteger (entry, 'leverage');
+            }
+            marginMode = (openType === 1) ? 'isolated' : 'cross';
+        }
         return {
             'info': leverage,
             'symbol': market['symbol'],
-            'leverage': this.safeInteger (leverage, 'leverage'),
-            'marginMode': undefined,
-        };
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        } as Leverage;
     }
 
     handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {
