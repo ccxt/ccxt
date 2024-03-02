@@ -374,6 +374,16 @@
                 ],
                 "output": "position_mode=ONE_WAY"
             }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch Trades",
+                "method": "fetchTrades",
+                "url": "https://api.woo.org/v1/public/market_trades?symbol=SPOT_BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
         ]
     }
 }
