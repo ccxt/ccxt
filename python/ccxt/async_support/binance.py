@@ -8,7 +8,7 @@ from ccxt.abstract.binance import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Greeks, Int, MarginMode, MarginModes, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -117,7 +117,8 @@ class binance(Exchange, ImplicitAPI):
                 'fetchLastPrices': True,
                 'fetchLedger': True,
                 'fetchLedgerEntry': True,
-                'fetchLeverage': True,
+                'fetchLeverage': 'emulated',
+                'fetchLeverages': True,
                 'fetchLeverageTiers': True,
                 'fetchLiquidations': False,
                 'fetchMarginMode': 'emulated',
@@ -9602,28 +9603,25 @@ class binance(Exchange, ImplicitAPI):
         #
         return response
 
-    async def fetch_leverage(self, symbol: str, params={}):
+    async def fetch_leverages(self, symbols: List[str] = None, params={}) -> Leverages:
         """
-        fetch the set leverage for a market
+        fetch the set leverage for all markets
         :see: https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
         :see: https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
         :see: https://binance-docs.github.io/apidocs/pm/en/#get-um-account-detail-user_data
         :see: https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data
-        :param str symbol: unified market symbol
+        :param str[] [symbols]: a list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
+        :returns dict: a list of `leverage structures <https://docs.ccxt.com/#/?id=leverage-structure>`
         """
         await self.load_markets()
         await self.load_leverage_brackets(False, params)
-        market = self.market(symbol)
-        if not market['contract']:
-            raise NotSupported(self.id + ' fetchLeverage() supports linear and inverse contracts only')
         type = None
-        type, params = self.handle_market_type_and_params('fetchLeverage', market, params)
+        type, params = self.handle_market_type_and_params('fetchLeverages', None, params)
         subType = None
-        subType, params = self.handle_sub_type_and_params('fetchLeverage', market, params, 'linear')
+        subType, params = self.handle_sub_type_and_params('fetchLeverages', None, params, 'linear')
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchLeverage', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchLeverages', 'papi', 'portfolioMargin', False)
         response = None
         if self.is_linear(type, subType):
             if isPortfolioMargin:
@@ -9636,20 +9634,34 @@ class binance(Exchange, ImplicitAPI):
             else:
                 response = await self.dapiPrivateGetAccount(params)
         else:
-            raise NotSupported(self.id + ' fetchPositions() supports linear and inverse contracts only')
-        positions = self.safe_list(response, 'positions', [])
-        for i in range(0, len(positions)):
-            position = positions[i]
-            innerSymbol = self.safe_string(position, 'symbol')
-            if innerSymbol == market['id']:
-                isolated = self.safe_bool(position, 'isolated')
-                marginMode = 'isolated' if isolated else 'cross'
-                return {
-                    'info': position,
-                    'marginMode': marginMode,
-                    'leverage': self.safe_integer(position, 'leverage'),
-                }
-        return response
+            raise NotSupported(self.id + ' fetchLeverages() supports linear and inverse contracts only')
+        leverages = self.safe_list(response, 'positions', [])
+        return self.parse_leverages(leverages, symbols, 'symbol')
+
+    def parse_leverage(self, leverage, market=None) -> Leverage:
+        marketId = self.safe_string(leverage, 'symbol')
+        marginModeRaw = self.safe_bool(leverage, 'isolated')
+        marginMode = None
+        if marginModeRaw is not None:
+            marginMode = 'isolated' if marginModeRaw else 'cross'
+        side = self.safe_string_lower(leverage, 'positionSide')
+        longLeverage = None
+        shortLeverage = None
+        leverageValue = self.safe_integer(leverage, 'leverage')
+        if side == 'both':
+            longLeverage = leverageValue
+            shortLeverage = leverageValue
+        elif side == 'long':
+            longLeverage = leverageValue
+        elif side == 'short':
+            shortLeverage = leverageValue
+        return {
+            'info': leverage,
+            'symbol': self.safe_symbol(marketId, market),
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        }
 
     async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """

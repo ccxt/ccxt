@@ -5419,7 +5419,7 @@ class mexc extends Exchange {
         return $this->assign_default_deposit_withdraw_fees($result);
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the set leverage for a $market
@@ -5465,32 +5465,31 @@ class mexc extends Exchange {
             //     }
             //
             $data = $this->safe_list($response, 'data', array());
-            $longLeverage = $this->safe_dict($data, 0);
-            return $this->parse_leverage($longLeverage, $market);
+            return $this->parse_leverage($data, $market);
         }) ();
     }
 
-    public function parse_leverage($leverage, ?array $market = null) {
-        //
-        //     {
-        //         "level" => 1,
-        //         "maxVol" => 463300,
-        //         "mmr" => 0.004,
-        //         "imr" => 0.005,
-        //         "positionType" => 1,
-        //         "openType" => 1,
-        //         "leverage" => 20,
-        //         "limitBySys" => false,
-        //         "currentMmr" => 0.004
-        //     }
-        //
-        $marketId = $this->safe_string($leverage, 'symbol');
-        $market = $this->safe_market($marketId, $market, null, 'contract');
+    public function parse_leverage($leverage, $market = null): Leverage {
+        $marginMode = null;
+        $longLeverage = null;
+        $shortLeverage = null;
+        for ($i = 0; $i < count($leverage); $i++) {
+            $entry = $leverage[$i];
+            $openType = $this->safe_integer($entry, 'openType');
+            $positionType = $this->safe_integer($entry, 'positionType');
+            if ($positionType === 1) {
+                $longLeverage = $this->safe_integer($entry, 'leverage');
+            } elseif ($positionType === 2) {
+                $shortLeverage = $this->safe_integer($entry, 'leverage');
+            }
+            $marginMode = ($openType === 1) ? 'isolated' : 'cross';
+        }
         return array(
             'info' => $leverage,
             'symbol' => $market['symbol'],
-            'leverage' => $this->safe_integer($leverage, 'leverage'),
-            'marginMode' => null,
+            'marginMode' => $marginMode,
+            'longLeverage' => $longLeverage,
+            'shortLeverage' => $shortLeverage,
         );
     }
 

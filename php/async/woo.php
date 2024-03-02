@@ -2686,9 +2686,17 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the set leverage for a $market
+             * @see https://docs.woo.org/#get-account-information-new
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+             */
             Async\await($this->load_markets());
+            $market = $this->market($symbol);
             $response = Async\await($this->v3PrivateGetAccountinfo ($params));
             //
             //     {
@@ -2718,13 +2726,20 @@ class woo extends Exchange {
             //         "timestamp" => 1673323685109
             //     }
             //
-            $result = $this->safe_value($response, 'data');
-            $leverage = $this->safe_number($result, 'leverage');
-            return array(
-                'info' => $response,
-                'leverage' => $leverage,
-            );
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_leverage($data, $market);
         }) ();
+    }
+
+    public function parse_leverage($leverage, $market = null): Leverage {
+        $leverageValue = $this->safe_integer($leverage, 'leverage');
+        return array(
+            'info' => $leverage,
+            'symbol' => $market['symbol'],
+            'marginMode' => null,
+            'longLeverage' => $leverageValue,
+            'shortLeverage' => $leverageValue,
+        );
     }
 
     public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {

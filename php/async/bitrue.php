@@ -2587,20 +2587,29 @@ class bitrue extends Exchange {
             }
             $response = Async\await($this->spotV1PrivateGetWithdrawHistory (array_merge($request, $params)));
             //
-            //     {
-            //         "code" => 200,
-            //         "msg" => "succ",
-            //         "data" => {
-            //             "msg" => null,
-            //             "amount" => 1000,
-            //             "fee" => 1,
-            //             "ctime" => null,
-            //             "coin" => "usdt_erc20",
-            //             "addressTo" => "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
-            //         }
-            //     }
+            //    {
+            //        "code" => 200,
+            //        "msg" => "succ",
+            //        "data" => array(
+            //            {
+            //                "id" => 183745,
+            //                "symbol" => "usdt_erc20",
+            //                "amount" => "8.4000000000000000",
+            //                "fee" => "1.6000000000000000",
+            //                "payAmount" => "0.0000000000000000",
+            //                "createdAt" => 1595336441000,
+            //                "updatedAt" => 1595336576000,
+            //                "addressFrom" => "",
+            //                "addressTo" => "0x2edfae3878d7b6db70ce4abed177ab2636f60c83",
+            //                "txid" => "",
+            //                "confirmations" => 0,
+            //                "status" => 6,
+            //                "tagType" => null
+            //            }
+            //        )
+            //    }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_transactions($data, $currency);
         }) ();
     }
@@ -2950,7 +2959,7 @@ class bitrue extends Exchange {
             //         )]
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_transfers($data, $currency, $since, $limit);
         }) ();
     }

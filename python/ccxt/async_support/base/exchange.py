@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.57'
+__version__ = '4.2.58'
 
 # -----------------------------------------------------------------------------
 
@@ -659,7 +659,11 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' setLeverage() is not supported yet')
 
     async def fetch_leverage(self, symbol: str, params={}):
-        raise NotSupported(self.id + ' fetchLeverage() is not supported yet')
+        if self.has['fetchLeverages']:
+            leverages = await self.fetchLeverages([symbol], params)
+            return self.safe_dict(leverages, symbol)
+        else:
+            raise NotSupported(self.id + ' fetchLeverage() is not supported yet')
 
     async def fetch_leverages(self, symbols: List[str] = None, params={}):
         raise NotSupported(self.id + ' fetchLeverages() is not supported yet')

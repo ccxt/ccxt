@@ -3,8 +3,8 @@ import { // eslint-disable-line object-curly-newline
 ExchangeError, AuthenticationError, DDoSProtection, RequestTimeout, ExchangeNotAvailable, RateLimitExceeded } from "./errors.js";
 import WsClient from './ws/WsClient.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account, MarginModes, MarketType } from './types.js';
-export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory, Greeks } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account, MarginModes, MarketType, Leverage, Leverages } from './types.js';
+export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory, Greeks, Leverage, Leverages } from './types.js';
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 import { OrderBook as Ob } from './ws/OrderBook.js';
 /**
@@ -683,8 +683,8 @@ export default class Exchange {
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     createDepositAddress(code: string, params?: {}): Promise<DepositAddressResponse>;
     setLeverage(leverage: Int, symbol?: string, params?: {}): Promise<{}>;
-    fetchLeverage(symbol: string, params?: {}): Promise<{}>;
-    fetchLeverages(symbols?: string[], params?: {}): Promise<{}>;
+    fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
+    fetchLeverages(symbols?: string[], params?: {}): Promise<Leverages>;
     setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<{}>;
     addMargin(symbol: string, amount: number, params?: {}): Promise<{}>;
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<{}>;
@@ -994,5 +994,7 @@ export default class Exchange {
     parseGreeks(greeks: any, market?: Market): Greeks;
     parseMarginModes(response: object[], symbols?: string[], symbolKey?: string, marketType?: MarketType): MarginModes;
     parseMarginMode(marginMode: any, market?: Market): MarginMode;
+    parseLeverages(response: object[], symbols?: string[], symbolKey?: string, marketType?: MarketType): Leverages;
+    parseLeverage(leverage: any, market?: Market): Leverage;
 }
 export { Exchange, };

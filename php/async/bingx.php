@@ -3491,7 +3491,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the set leverage for a $market
@@ -3516,8 +3516,20 @@ class bingx extends Exchange {
             //        }
             //    }
             //
-            return $response;
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_leverage($data, $market);
         }) ();
+    }
+
+    public function parse_leverage($leverage, $market = null): Leverage {
+        $marketId = $this->safe_string($leverage, 'symbol');
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => null,
+            'longLeverage' => $this->safe_integer($leverage, 'longLeverage'),
+            'shortLeverage' => $this->safe_integer($leverage, 'shortLeverage'),
+        );
     }
 
     public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.57'
+__version__ = '4.2.58'
 
 # -----------------------------------------------------------------------------
 
@@ -2199,7 +2199,11 @@ class Exchange(object):
         raise NotSupported(self.id + ' setLeverage() is not supported yet')
 
     def fetch_leverage(self, symbol: str, params={}):
-        raise NotSupported(self.id + ' fetchLeverage() is not supported yet')
+        if self.has['fetchLeverages']:
+            leverages = self.fetchLeverages([symbol], params)
+            return self.safe_dict(leverages, symbol)
+        else:
+            raise NotSupported(self.id + ' fetchLeverage() is not supported yet')
 
     def fetch_leverages(self, symbols: List[str] = None, params={}):
         raise NotSupported(self.id + ' fetchLeverages() is not supported yet')
@@ -5260,3 +5264,16 @@ class Exchange(object):
 
     def parse_margin_mode(self, marginMode, market: Market = None):
         raise NotSupported(self.id + ' parseMarginMode() is not supported yet')
+
+    def parse_leverages(self, response: List[object], symbols: List[str] = None, symbolKey: str = None, marketType: MarketType = None):
+        leverageStructures = {}
+        for i in range(0, len(response)):
+            info = response[i]
+            marketId = self.safe_string(info, symbolKey)
+            market = self.safe_market(marketId, None, None, marketType)
+            if (symbols is None) or self.in_array(market['symbol'], symbols):
+                leverageStructures[market['symbol']] = self.parse_leverage(info, market)
+        return leverageStructures
+
+    def parse_leverage(self, leverage, market: Market = None):
+        raise NotSupported(self.id + ' parseLeverage() is not supported yet')

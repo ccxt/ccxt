@@ -1,5 +1,5 @@
 import Exchange from './abstract/mexc.js';
-import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage } from './base/types.js';
 /**
  * @class mexc
  * @augments Exchange
@@ -172,18 +172,8 @@ export default class mexc extends Exchange {
     parseTransactionFee(transaction: any, currency?: Currency): {};
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
-    fetchLeverage(symbol: string, params?: {}): Promise<{
-        info: any;
-        symbol: string;
-        leverage: number;
-        marginMode: any;
-    }>;
-    parseLeverage(leverage: any, market?: Market): {
-        info: any;
-        symbol: string;
-        leverage: number;
-        marginMode: any;
-    };
+    fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
+    parseLeverage(leverage: any, market?: any): Leverage;
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;

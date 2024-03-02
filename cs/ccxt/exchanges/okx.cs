@@ -5406,7 +5406,41 @@ public partial class okx : Exchange
         //        "msg": ""
         //     }
         //
-        return response;
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseLeverage(data, market);
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object marketId = null;
+        object marginMode = null;
+        object longLeverage = null;
+        object shortLeverage = null;
+        for (object i = 0; isLessThan(i, getArrayLength(leverage)); postFixIncrement(ref i))
+        {
+            object entry = getValue(leverage, i);
+            marginMode = this.safeStringLower(entry, "mgnMode");
+            marketId = this.safeString(entry, "instId");
+            object positionSide = this.safeStringLower(entry, "posSide");
+            if (isTrue(isEqual(positionSide, "long")))
+            {
+                longLeverage = this.safeInteger(entry, "lever");
+            } else if (isTrue(isEqual(positionSide, "short")))
+            {
+                shortLeverage = this.safeInteger(entry, "lever");
+            } else
+            {
+                longLeverage = this.safeInteger(entry, "lever");
+                shortLeverage = this.safeInteger(entry, "lever");
+            }
+        }
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "marginMode", marginMode },
+            { "longLeverage", longLeverage },
+            { "shortLeverage", shortLeverage },
+        };
     }
 
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
