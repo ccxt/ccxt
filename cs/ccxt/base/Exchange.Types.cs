@@ -942,6 +942,27 @@ public struct MarginMode
     }
 }
 
+public struct Leverage
+{
+    public Dictionary<string, object>? info;
+    public string? symbol;
+    public string? marginMode;
+
+    public Int64? leverage;
+    public Int64? longLeverage;
+    public Int64? shortLeverage;
+
+    public Leverage(object levObj)
+    {
+        info = Exchange.SafeValue(levObj, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(levObj, "info") : null;
+        symbol = Exchange.SafeString(levObj, "symbol");
+        marginMode = Exchange.SafeString(levObj, "marginMode");
+        leverage = Exchange.SafeInteger(levObj, "leverage");
+        longLeverage = Exchange.SafeInteger(levObj, "longLeverage");
+        shortLeverage = Exchange.SafeInteger(levObj, "shortLeverage");
+    }
+}
+
 
 public struct Greeks
 {
