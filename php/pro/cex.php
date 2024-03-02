@@ -1126,7 +1126,10 @@ class cex extends \ccxt\async\cex {
         for ($i = 0; $i < count($sorted); $i++) {
             $stored->append ($this->parse_ohlcv($sorted[$i], $market));
         }
-        $this->ohlcvs[$symbol] = $stored;
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+            $this->ohlcvs[$symbol] = array();
+        }
+        $this->ohlcvs[$symbol]['unknown'] = $stored;
         $client->resolve ($stored, $messageHash);
     }
 
@@ -1188,7 +1191,8 @@ class cex extends \ccxt\async\cex {
         $pair = $this->safe_string($message, 'pair');
         $symbol = $this->pair_to_symbol($pair);
         $messageHash = 'ohlcv:' . $symbol;
-        $stored = $this->safe_value($this->ohlcvs, $symbol);
+        // $stored = $this->safe_value($this->ohlcvs, $symbol);
+        $stored = $this->ohlcvs[$symbol]['unknown'];
         for ($i = 0; $i < count($data); $i++) {
             $ohlcv = [
                 $this->safe_timestamp($data[$i], 0),

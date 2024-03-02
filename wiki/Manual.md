@@ -5924,6 +5924,8 @@ Returns
 
 ## Leverage
 
+*margin and contract only*
+
 The `fetchLeverage()` method can be used to obtain the set leverage for a market. The `fetchLeverages()` method can be used to obtain the set leverage for multiple markets at once.
 
 You can access the set leverage by using:
@@ -5964,8 +5966,9 @@ Returns
 {
     "info": { ... }             // response from the exchange
     "symbol": "BTC/USDT:USDT",  // unified market symbol
-    "leverage": 100,            // the set leverage for the market
     "marginMode": "cross",      // the margin mode either cross or isolated
+    "longLeverage": 100,        // the set leverage for a long position
+    "shortLeverage": 75,        // the set leverage for a short position
 }
 ```
 

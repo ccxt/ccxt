@@ -2603,7 +2603,7 @@ public partial class krakenfutures : Exchange
         return await this.privatePutLeveragepreferences(this.extend(request, parameters));
     }
 
-    public async override Task<object> fetchLeverage(object symbol = null, object parameters = null)
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
         /**
         * @method
@@ -2620,17 +2620,34 @@ public partial class krakenfutures : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " fetchLeverage() requires a symbol argument")) ;
         }
         await this.loadMarkets();
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", ((string)this.marketId(symbol)).ToUpper() },
         };
+        object response = await this.privateGetLeveragepreferences(this.extend(request, parameters));
         //
-        //   {
-        //       "result": "success",
-        //       "serverTime": "2023-08-01T09:54:08.900Z",
-        //       "leveragePreferences": [ { symbol: "PF_LTCUSD", maxLeverage: "5.00" } ]
-        //   }
+        //     {
+        //         "result": "success",
+        //         "serverTime": "2023-08-01T09:54:08.900Z",
+        //         "leveragePreferences": [ { symbol: "PF_LTCUSD", maxLeverage: "5.00" } ]
+        //     }
         //
-        return await this.privateGetLeveragepreferences(this.extend(request, parameters));
+        object leveragePreferences = this.safeList(response, "leveragePreferences", new List<object>() {});
+        object data = this.safeDict(leveragePreferences, 0, new Dictionary<string, object>() {});
+        return this.parseLeverage(data, market);
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object marketId = this.safeString(leverage, "symbol");
+        object leverageValue = this.safeInteger(leverage, "maxLeverage");
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "marginMode", null },
+            { "longLeverage", leverageValue },
+            { "shortLeverage", leverageValue },
+        };
     }
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

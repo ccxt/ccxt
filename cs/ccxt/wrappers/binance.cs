@@ -2022,7 +2022,7 @@ public partial class binance
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// fetch the set leverage for a market
+    /// fetch the set leverage for all markets
     /// </summary>
     /// <remarks>
     /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data"/>  <br/>
@@ -2038,11 +2038,11 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
-    public async Task<Int64> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
+    public async Task<Leverages> FetchLeverages(List<string> symbols = null, Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchLeverage(symbol, parameters);
-        return (Int64)res;
+        var res = await this.fetchLeverages(symbols, parameters);
+        return new Leverages(res);
     }
     /// <summary>
     /// fetches historical settlement records
@@ -2463,5 +2463,10 @@ public partial class binance
     {
         var res = await this.fetchPositionMode(symbol, parameters);
         return ((Dictionary<string, object>)res);
+    }
+    public async Task<MarginModes> FetchMarginModes(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarginModes(symbols, parameters);
+        return new MarginModes(res);
     }
 }

@@ -2854,8 +2854,18 @@ public partial class woo : Exchange
 
     public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
+        /**
+        * @method
+        * @name woo#fetchLeverage
+        * @description fetch the set leverage for a market
+        * @see https://docs.woo.org/#get-account-information-new
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object market = this.market(symbol);
         object response = await this.v3PrivateGetAccountinfo(parameters);
         //
         //     {
@@ -2885,11 +2895,19 @@ public partial class woo : Exchange
         //         "timestamp": 1673323685109
         //     }
         //
-        object result = this.safeValue(response, "data");
-        object leverage = this.safeNumber(result, "leverage");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseLeverage(data, market);
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object leverageValue = this.safeInteger(leverage, "leverage");
         return new Dictionary<string, object>() {
-            { "info", response },
-            { "leverage", leverage },
+            { "info", leverage },
+            { "symbol", getValue(market, "symbol") },
+            { "marginMode", null },
+            { "longLeverage", leverageValue },
+            { "shortLeverage", leverageValue },
         };
     }
 

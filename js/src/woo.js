@@ -2656,7 +2656,17 @@ export default class woo extends Exchange {
         return response;
     }
     async fetchLeverage(symbol, params = {}) {
+        /**
+         * @method
+         * @name woo#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://docs.woo.org/#get-account-information-new
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
         await this.loadMarkets();
+        const market = this.market(symbol);
         const response = await this.v3PrivateGetAccountinfo(params);
         //
         //     {
@@ -2686,11 +2696,17 @@ export default class woo extends Exchange {
         //         "timestamp": 1673323685109
         //     }
         //
-        const result = this.safeValue(response, 'data');
-        const leverage = this.safeNumber(result, 'leverage');
+        const data = this.safeDict(response, 'data', {});
+        return this.parseLeverage(data, market);
+    }
+    parseLeverage(leverage, market = undefined) {
+        const leverageValue = this.safeInteger(leverage, 'leverage');
         return {
-            'info': response,
-            'leverage': leverage,
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': undefined,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
         };
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {

@@ -55,6 +55,8 @@ import type {
     IndexType,
     Int,
     LedgerEntry,
+    Leverage,
+    Leverages,
     LeverageTier,
     Liquidation,
     MarginMode,
@@ -208,6 +210,8 @@ export type {
     Greeks,
     IndexType,
     Int,
+    Leverage,
+    Leverages,
     Liquidation,
     Market,
     MinMax,
@@ -309,7 +313,7 @@ export default class Exchange {
     balance = {};
     bidsasks: Dictionary<Ticker> = {};
     myTrades: ArrayCache;
-    ohlcvs: any;
+    ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
     orderbooks: Dictionary<Ob> = {};
     orders: ArrayCache = undefined;
     positions: any;
@@ -2400,11 +2404,16 @@ export default class Exchange {
         throw new NotSupported (this.id + ' setLeverage() is not supported yet');
     }
 
-    async fetchLeverage (symbol: string, params = {}): Promise<{}> {
-        throw new NotSupported (this.id + ' fetchLeverage() is not supported yet');
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        if (this.has['fetchLeverages']) {
+            const leverages = await this.fetchLeverages ([ symbol ], params);
+            return this.safeDict (leverages, symbol) as Leverage;
+        } else {
+            throw new NotSupported (this.id + ' fetchLeverage() is not supported yet');
+        }
     }
 
-    async fetchLeverages (symbols: string[] = undefined, params = {}): Promise<{}> {
+    async fetchLeverages (symbols: string[] = undefined, params = {}): Promise<Leverages> {
         throw new NotSupported (this.id + ' fetchLeverages() is not supported yet');
     }
 
@@ -6192,6 +6201,23 @@ export default class Exchange {
 
     parseMarginMode (marginMode, market: Market = undefined): MarginMode {
         throw new NotSupported (this.id + ' parseMarginMode () is not supported yet');
+    }
+
+    parseLeverages (response: object[], symbols: string[] = undefined, symbolKey: string = undefined, marketType: MarketType = undefined): Leverages {
+        const leverageStructures = {};
+        for (let i = 0; i < response.length; i++) {
+            const info = response[i];
+            const marketId = this.safeString (info, symbolKey);
+            const market = this.safeMarket (marketId, undefined, undefined, marketType);
+            if ((symbols === undefined) || this.inArray (market['symbol'], symbols)) {
+                leverageStructures[market['symbol']] = this.parseLeverage (info, market);
+            }
+        }
+        return leverageStructures;
+    }
+
+    parseLeverage (leverage, market: Market = undefined): Leverage {
+        throw new NotSupported (this.id + ' parseLeverage() is not supported yet');
     }
 }
 
