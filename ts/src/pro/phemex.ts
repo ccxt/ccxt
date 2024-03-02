@@ -22,6 +22,7 @@ export default class phemex extends phemexRest {
                 'watchMyTrades': true,
                 'watchOrders': true,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
                 'watchPositions': undefined, // TODO
             },
@@ -585,26 +586,78 @@ export default class phemex extends phemexRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        const url = this.urls['api']['ws'];
-        const requestId = this.requestId ();
-        const isSwap = market['swap'];
-        const settleIsUSDT = market['settle'] === 'USDT';
-        const name = (isSwap && settleIsUSDT) ? 'orderbook_p' : 'orderbook';
-        const messageHash = 'orderbook:' + symbol;
-        const method = name + '.subscribe';
-        const subscribe = {
-            'method': method,
-            'id': requestId,
-            'params': [
-                market['id'],
-            ],
-        };
-        const request = this.deepExtend (subscribe, params);
-        const orderbook = await this.watch (url, messageHash, request, messageHash);
+        params['callerMethodName'] = 'watchOrderBook';
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    }
+
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name deribit#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.deribit.com/#book-instrument_name-group-depth-interval
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        let interval = undefined;
+        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'interval', '100ms');
+        if (interval === 'raw') {
+            await this.authenticate ();
+        }
+        let descriptor = '';
+        let useDepthEndpoint = undefined; // for more info, see comment in .options
+        [ useDepthEndpoint, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
+        if (useDepthEndpoint) {
+            let depth = undefined;
+            [ depth, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'depth', '20');
+            let group = undefined;
+            [ group, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'group', 'none');
+            descriptor = group + '.' + depth + '.' + interval;
+        } else {
+            descriptor = interval;
+        }
+        const orderbook = await this.watchMultipleWrapper ('book', descriptor, symbols, params);
         return orderbook.limit ();
+    }
+
+    async watchMultipleWrapper (channelName: string, channelDescriptor: string, symbolsArray: any[] = undefined, params = {}) {
+        await this.loadMarkets ();
+        const url = this.urls['api']['ws'];
+        const rawSubscriptions = [];
+        const messageHashes = [];
+        const isOHLCV = (channelName === 'chart.trades');
+        const symbols = isOHLCV ? this.getListFromObjectValues (symbolsArray, 0) : symbolsArray;
+        this.marketSymbols (symbols, undefined, false);
+        for (let i = 0; i < symbolsArray.length; i++) {
+            const current = symbolsArray[i];
+            let market = undefined;
+            if (isOHLCV) {
+                // market = this.market (current[0]);
+                // const unifiedTf = current[1];
+                // const rawTf = this.safeString (this.timeframes, unifiedTf, unifiedTf);
+                // channelDescriptor = rawTf;
+            } else {
+                market = this.market (current);
+            }
+            // const settleIsUSDT = market['settle'] === 'USDT';
+            // const name = (market['swap'] && settleIsUSDT) ? 'orderbook_p' : 'orderbook';
+            rawSubscriptions.push (market['id']);
+            messageHashes.push (channelName + '|' + market['symbol']);
+        }
+        const request = {
+            'method': channelName + '.subscribe',
+            'id': this.requestId (),
+            'params': rawSubscriptions,
+        };
+        const extendedRequest = this.deepExtend (request, params);
+        const maxMessageByteLimit = 32768 - 1; // 'Message Too Big: limit 32768B'
+        const jsonedText = this.json (extendedRequest);
+        if (jsonedText.length >= maxMessageByteLimit) {
+            throw new ArgumentsRequired (this.id + ' requested subscription length over limit, try to reduce symbols amount');
+        }
+        return await this.watchMultiple (url, messageHashes, extendedRequest, rawSubscriptions);
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -1324,46 +1377,6 @@ export default class phemex extends phemexRest {
             'fee': undefined,
             'trades': undefined,
         }, market);
-    }
-
-    async watchMultipleWrapper (channelName: string, channelDescriptor: string, symbolsArray: any[] = undefined, params = {}) {
-        await this.loadMarkets ();
-        const url = this.urls['api']['ws'];
-        const rawSubscriptions = [];
-        const messageHashes = [];
-        const isOHLCV = (channelName === 'chart.trades');
-        const symbols = isOHLCV ? this.getListFromObjectValues (symbolsArray, 0) : symbolsArray;
-        this.marketSymbols (symbols, undefined, false);
-        for (let i = 0; i < symbolsArray.length; i++) {
-            const current = symbolsArray[i];
-            let market = undefined;
-            if (isOHLCV) {
-                market = this.market (current[0]);
-                const unifiedTf = current[1];
-                const rawTf = this.safeString (this.timeframes, unifiedTf, unifiedTf);
-                channelDescriptor = rawTf;
-            } else {
-                market = this.market (current);
-            }
-            const message = channelName + '.' + market['id'] + '.' + channelDescriptor;
-            rawSubscriptions.push (message);
-            messageHashes.push (channelName + '|' + market['symbol'] + '|' + channelDescriptor);
-        }
-        const request = {
-            'jsonrpc': '2.0',
-            'method': 'public/subscribe',
-            'params': {
-                'channels': rawSubscriptions,
-            },
-            'id': this.requestId (),
-        };
-        const extendedRequest = this.deepExtend (request, params);
-        const maxMessageByteLimit = 32768 - 1; // 'Message Too Big: limit 32768B'
-        const jsonedText = this.json (extendedRequest);
-        if (jsonedText.length >= maxMessageByteLimit) {
-            throw new ArgumentsRequired (this.id + ' requested subscription length over limit, try to reduce symbols amount');
-        }
-        return await this.watchMultiple (url, messageHashes, extendedRequest, rawSubscriptions);
     }
 
     handleMessage (client: Client, message) {
