@@ -145,10 +145,10 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 import { axolotl } from './functions/crypto.js';
 // import types
-import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, BorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks,  Str, Num, MarketInterface, CurrencyInterface, Account, MarginModes, MarketType} from './types.js';
+import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, BorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks,  Str, Num, MarketInterface, CurrencyInterface, Account, MarginModes, MarketType, Leverage, Leverages } from './types.js';
 // export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
 // import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
-export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory, Greeks } from './types.js'
+export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory, Greeks, Leverage, Leverages } from './types.js'
 
 // ----------------------------------------------------------------------------
 // move this elsewhere
@@ -2335,11 +2335,16 @@ export default class Exchange {
         throw new NotSupported (this.id + ' setLeverage() is not supported yet');
     }
 
-    async fetchLeverage (symbol: string, params = {}): Promise<{}> {
-        throw new NotSupported (this.id + ' fetchLeverage() is not supported yet');
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        if (this.has['fetchLeverages']) {
+            const leverages = await this.fetchLeverages ([ symbol ], params);
+            return this.safeDict (leverages, symbol) as Leverage;
+        } else {
+            throw new NotSupported (this.id + ' fetchLeverage() is not supported yet');
+        }
     }
 
-    async fetchLeverages (symbols: string[] = undefined, params = {}): Promise<{}> {
+    async fetchLeverages (symbols: string[] = undefined, params = {}): Promise<Leverages> {
         throw new NotSupported (this.id + ' fetchLeverages() is not supported yet');
     }
 
@@ -6127,6 +6132,23 @@ export default class Exchange {
 
     parseMarginMode (marginMode, market: Market = undefined): MarginMode {
         throw new NotSupported (this.id + ' parseMarginMode () is not supported yet');
+    }
+
+    parseLeverages (response: object[], symbols: string[] = undefined, symbolKey: string = undefined, marketType: MarketType = undefined): Leverages {
+        const leverageStructures = {};
+        for (let i = 0; i < response.length; i++) {
+            const info = response[i];
+            const marketId = this.safeString (info, symbolKey);
+            const market = this.safeMarket (marketId, undefined, undefined, marketType);
+            if ((symbols === undefined) || this.inArray (market['symbol'], symbols)) {
+                leverageStructures[market['symbol']] = this.parseLeverage (info, market);
+            }
+        }
+        return leverageStructures;
+    }
+
+    parseLeverage (leverage, market: Market = undefined): Leverage {
+        throw new NotSupported (this.id + ' parseLeverage() is not supported yet');
     }
 }
 

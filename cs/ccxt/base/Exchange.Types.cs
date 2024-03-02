@@ -1166,3 +1166,42 @@ public struct MarginModes
         }
     }
 }
+
+public struct Leverages
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, Leverage> leverages;
+
+    public Leverages(object leverage2)
+    {
+        var leverages = (Dictionary<string, object>)leverage2;
+
+        info = leverages.ContainsKey("info") ? (Dictionary<string, object>)leverages["info"] : null;
+        this.leverages = new Dictionary<string, Leverage>();
+        foreach (var leverage in leverages)
+        {
+            if (leverage.Key != "info")
+                this.leverages.Add(leverage.Key, new Leverage(leverage.Value));
+        }
+    }
+
+    // Indexer
+    public Leverage this[string key]
+    {
+        get
+        {
+            if (leverages.ContainsKey(key))
+            {
+                return leverages[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the leverages.");
+            }
+        }
+        set
+        {
+            leverages[key] = value;
+        }
+    }
+}

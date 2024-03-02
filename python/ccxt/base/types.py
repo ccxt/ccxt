@@ -261,6 +261,17 @@ class MarginMode(TypedDict):
 MarginModes = Dict[str, MarginMode]
 
 
+class Leverage(TypedDict):
+    info: Dict[str, Any]
+    symbol: Str
+    marginMode: Str
+    longLeverage: Num
+    shortLeverage: Num
+
+
+Leverages = Dict[str, Leverage]
+
+
 class Greeks(TypedDict):
     symbol: Str
     timestamp: Int
