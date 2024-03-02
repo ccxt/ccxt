@@ -454,7 +454,23 @@ public struct Balances
                 this.balances.Add(balance.Key, new Balance(balance.Value));
             }
         }
-        info = (Dictionary<string, object>)balances["info"];
+        // info = (Dictionary<string, object>)balances["info"];
+        var balancesInfo = balances["info"];
+        if (balancesInfo is IDictionary<string, object>)
+        {
+            info = (Dictionary<string, object>)balancesInfo;
+        }
+        else if (balancesInfo is IList<object>)
+        {
+            info = new Dictionary<string, object> {
+                {"response", balancesInfo}
+            };
+        }
+        else
+        {
+            info = null;
+        }
+
     }
 
     public Balance this[string key]
