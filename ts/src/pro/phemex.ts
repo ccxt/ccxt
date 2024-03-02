@@ -6,7 +6,7 @@ import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
-import { AuthenticationError } from '../base/errors.js';
+import { AuthenticationError, ArgumentsRequired } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -1324,6 +1324,46 @@ export default class phemex extends phemexRest {
             'fee': undefined,
             'trades': undefined,
         }, market);
+    }
+
+    async watchMultipleWrapper (channelName: string, channelDescriptor: string, symbolsArray: any[] = undefined, params = {}) {
+        await this.loadMarkets ();
+        const url = this.urls['api']['ws'];
+        const rawSubscriptions = [];
+        const messageHashes = [];
+        const isOHLCV = (channelName === 'chart.trades');
+        const symbols = isOHLCV ? this.getListFromObjectValues (symbolsArray, 0) : symbolsArray;
+        this.marketSymbols (symbols, undefined, false);
+        for (let i = 0; i < symbolsArray.length; i++) {
+            const current = symbolsArray[i];
+            let market = undefined;
+            if (isOHLCV) {
+                market = this.market (current[0]);
+                const unifiedTf = current[1];
+                const rawTf = this.safeString (this.timeframes, unifiedTf, unifiedTf);
+                channelDescriptor = rawTf;
+            } else {
+                market = this.market (current);
+            }
+            const message = channelName + '.' + market['id'] + '.' + channelDescriptor;
+            rawSubscriptions.push (message);
+            messageHashes.push (channelName + '|' + market['symbol'] + '|' + channelDescriptor);
+        }
+        const request = {
+            'jsonrpc': '2.0',
+            'method': 'public/subscribe',
+            'params': {
+                'channels': rawSubscriptions,
+            },
+            'id': this.requestId (),
+        };
+        const extendedRequest = this.deepExtend (request, params);
+        const maxMessageByteLimit = 32768 - 1; // 'Message Too Big: limit 32768B'
+        const jsonedText = this.json (extendedRequest);
+        if (jsonedText.length >= maxMessageByteLimit) {
+            throw new ArgumentsRequired (this.id + ' requested subscription length over limit, try to reduce symbols amount');
+        }
+        return await this.watchMultiple (url, messageHashes, extendedRequest, rawSubscriptions);
     }
 
     handleMessage (client: Client, message) {
