@@ -122,16 +122,21 @@ public partial class whitebit : ccxt.whitebit
             object symbol = getValue(market, "symbol");
             object messageHash = add(add("candles", ":"), symbol);
             object parsed = this.parseOHLCV(data, market);
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol);
-            object stored = getValue(this.ohlcvs, symbol);
-            if (isTrue(isEqual(stored, null)))
+            // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
+            if (!isTrue((inOp(this.ohlcvs, symbol))))
+            {
+                ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
+            }
+            // let stored = this.ohlcvs[symbol]['unknown']; // we don't know the timeframe but we need to respect the type
+            if (!isTrue((inOp(getValue(this.ohlcvs, symbol), "unknown"))))
             {
                 object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-                stored = new ArrayCacheByTimestamp(limit);
-                ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = stored;
+                var stored = new ArrayCacheByTimestamp(limit);
+                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))["unknown"] = stored;
             }
-            callDynamically(stored, "append", new object[] {parsed});
-            callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
+            object ohlcv = getValue(getValue(this.ohlcvs, symbol), "unknown");
+            callDynamically(ohlcv, "append", new object[] {parsed});
+            callDynamically(client as WebSocketClient, "resolve", new object[] {ohlcv, messageHash});
         }
         return message;
     }

@@ -180,7 +180,7 @@ export default class deribit extends deribitRest {
         //         "params": {
         //             "channel": "ticker.BTC_USDC-PERPETUAL.raw",
         //             "data": {
-        //                 "timestamp": 1655393725041,
+        //                 "timestamp": 1655393725040,
         //                 "stats": [Object],
         //                 "state": "open",
         //                 "settlement_price": 21729.5891,
@@ -663,7 +663,7 @@ export default class deribit extends deribitRest {
         const symbol = this.safeSymbol(marketId);
         const ohlcv = this.safeValue(params, 'data', {});
         const parsed = [
-            this.safeNumber(ohlcv, 'tick'),
+            this.safeInteger(ohlcv, 'tick'),
             this.safeNumber(ohlcv, 'open'),
             this.safeNumber(ohlcv, 'high'),
             this.safeNumber(ohlcv, 'low'),

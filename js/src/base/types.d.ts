@@ -11,8 +11,8 @@ export declare type SubType = 'linear' | 'inverse' | undefined;
 export interface Dictionary<T> {
     [key: string]: T;
 }
-export declare type Dict = Dictionary<any>;
-export declare type List = Array<any>;
+export declare type Dict = Dictionary<any> | undefined;
+export declare type List = Array<any> | undefined;
 /** Request parameters */
 export interface MinMax {
     min: Num;
@@ -365,7 +365,7 @@ export interface FundingHistory {
     amount: number;
 }
 export interface MarginMode {
-    infp: any;
+    info: any;
     symbol: string;
     marginMode: 'isolated' | 'cross' | string;
 }
@@ -389,6 +389,8 @@ export interface Greeks {
     lastPrice: number;
     underlyingPrice: number;
     info: any;
+}
+export interface MarginModes extends Dictionary<MarginMode> {
 }
 /** [ timestamp, open, high, low, close, volume ] */
 export declare type OHLCV = [Num, Num, Num, Num, Num, Num];

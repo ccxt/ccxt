@@ -189,7 +189,7 @@ class deribit extends \ccxt\async\deribit {
         //         "params" => {
         //             "channel" => "ticker.BTC_USDC-PERPETUAL.raw",
         //             "data" => {
-        //                 "timestamp" => 1655393725041,
+        //                 "timestamp" => 1655393725040,
         //                 "stats" => [Object],
         //                 "state" => "open",
         //                 "settlement_price" => 21729.5891,
@@ -683,7 +683,7 @@ class deribit extends \ccxt\async\deribit {
         $symbol = $this->safe_symbol($marketId);
         $ohlcv = $this->safe_value($params, 'data', array());
         $parsed = array(
-            $this->safe_number($ohlcv, 'tick'),
+            $this->safe_integer($ohlcv, 'tick'),
             $this->safe_number($ohlcv, 'open'),
             $this->safe_number($ohlcv, 'high'),
             $this->safe_number($ohlcv, 'low'),

@@ -59,7 +59,8 @@ class bitmex extends bitmex$1 {
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
-                'fetchLeverage': false,
+                'fetchLeverage': true,
+                'fetchLeverages': true,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': true,
                 'fetchMarketLeverageTiers': false,
@@ -2113,6 +2114,46 @@ class bitmex extends bitmex$1 {
         //     ]
         //
         return this.parseOrders(response, market);
+    }
+    async fetchLeverages(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchLeverages
+         * @description fetch the set leverage for all contract markets
+         * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
+         * @param {string[]} [symbols] a list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets();
+        const positions = await this.fetchPositions(symbols, params);
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            const entry = positions[i];
+            const marketId = this.safeString(entry, 'symbol');
+            const market = this.safeMarket(marketId, undefined, undefined, 'contract');
+            result.push({
+                'info': entry,
+                'symbol': market['symbol'],
+                'leverage': this.safeInteger(entry, 'leverage'),
+                'marginMode': this.safeString(entry, 'marginMode'),
+            });
+        }
+        return result;
+    }
+    async fetchLeverage(symbol, params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets();
+        const leverage = await this.fetchLeverages([symbol], params);
+        return leverage;
     }
     async fetchPositions(symbols = undefined, params = {}) {
         /**

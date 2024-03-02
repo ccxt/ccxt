@@ -1429,7 +1429,7 @@ export default class bitget extends Exchange {
         let defaultProductType = undefined;
         if ((subType !== undefined) && (market === undefined)) {
             // set default only if subType is defined and market is not defined, since there is also USDC productTypes which are also linear
-            const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+            const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
             if (sandboxMode) {
                 defaultProductType = (subType === 'linear') ? 'SUSDT-FUTURES' : 'SCOIN-FUTURES';
             } else {
@@ -1494,7 +1494,7 @@ export default class bitget extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let types = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'swap' ]);
         if (sandboxMode) {
             types = [ 'swap' ];
@@ -1945,7 +1945,7 @@ export default class bitget extends Exchange {
          * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
          */
         await this.loadMarkets ();
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox (symbol);
@@ -2486,7 +2486,7 @@ export default class bitget extends Exchange {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox (symbol);
@@ -2648,7 +2648,7 @@ export default class bitget extends Exchange {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox (symbol);
@@ -2751,7 +2751,7 @@ export default class bitget extends Exchange {
         let market = undefined;
         if (symbols !== undefined) {
             const symbol = this.safeValue (symbols, 0);
-            const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+            const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
             if (sandboxMode) {
                 const sandboxSymbol = this.convertSymbolForSandbox (symbol);
                 market = this.market (sandboxSymbol);
@@ -2969,7 +2969,7 @@ export default class bitget extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, params, 'idLessThan', 'idLessThan') as Trade[];
         }
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox (symbol);
@@ -3283,7 +3283,7 @@ export default class bitget extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000) as OHLCV[];
         }
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox (symbol);
@@ -3575,6 +3575,7 @@ export default class bitget extends Exchange {
             'not_trigger': 'open',
             'partial_fill': 'open',
             'partially_fill': 'open',
+            'partially_filled': 'open',
             'triggered': 'closed',
             'full_fill': 'closed',
             'filled': 'closed',
@@ -4087,7 +4088,7 @@ export default class bitget extends Exchange {
     }
 
     createOrderRequest (symbol, type, side, amount: number, price: number = undefined, params = {}) {
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox (symbol);
@@ -4339,7 +4340,7 @@ export default class bitget extends Exchange {
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox (symbol);
@@ -4433,7 +4434,7 @@ export default class bitget extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox (symbol);
@@ -4592,7 +4593,7 @@ export default class bitget extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox (symbol);
@@ -4724,7 +4725,7 @@ export default class bitget extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox (symbol);
@@ -4813,7 +4814,7 @@ export default class bitget extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox (symbol);
@@ -4913,7 +4914,7 @@ export default class bitget extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox (symbol);
@@ -5035,7 +5036,7 @@ export default class bitget extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         let type = undefined;
         let request = {};
@@ -5383,7 +5384,7 @@ export default class bitget extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
             if (symbol !== undefined) {
@@ -5693,7 +5694,7 @@ export default class bitget extends Exchange {
         params = this.omit (params, 'symbol');
         let market = undefined;
         if (symbol !== undefined) {
-            const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+            const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
             if (sandboxMode) {
                 const sandboxSymbol = this.convertSymbolForSandbox (symbol);
                 market = this.market (sandboxSymbol);
@@ -5914,7 +5915,7 @@ export default class bitget extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox (symbol);
@@ -6088,7 +6089,7 @@ export default class bitget extends Exchange {
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox (symbol);
@@ -6164,7 +6165,7 @@ export default class bitget extends Exchange {
         let market = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
-            const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+            const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
             if (sandboxMode) {
                 const sandboxSymbol = this.convertSymbolForSandbox (first);
                 market = this.market (sandboxSymbol);
@@ -6475,7 +6476,7 @@ export default class bitget extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params, 'pageNo', 100) as FundingRateHistory[];
         }
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox (symbol);
@@ -6539,7 +6540,7 @@ export default class bitget extends Exchange {
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets ();
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox (symbol);
@@ -6627,7 +6628,7 @@ export default class bitget extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, params, 'endId', 'idLessThan') as FundingHistory[];
         }
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox (symbol);
@@ -6725,7 +6726,7 @@ export default class bitget extends Exchange {
     async modifyMarginHelper (symbol: string, amount, type, params = {}) {
         await this.loadMarkets ();
         const holdSide = this.safeString (params, 'holdSide');
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox (symbol);
@@ -6821,7 +6822,7 @@ export default class bitget extends Exchange {
          * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
          */
         await this.loadMarkets ();
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox (symbol);
@@ -6881,7 +6882,7 @@ export default class bitget extends Exchange {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox (symbol);
@@ -6939,7 +6940,7 @@ export default class bitget extends Exchange {
             throw new ArgumentsRequired (this.id + ' setMarginMode() marginMode must be either isolated or crossed (cross)');
         }
         await this.loadMarkets ();
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox (symbol);
@@ -6989,7 +6990,7 @@ export default class bitget extends Exchange {
         const posMode = hedged ? 'hedge_mode' : 'one_way_mode';
         let market = undefined;
         if (symbol !== undefined) {
-            const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+            const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
             if (sandboxMode) {
                 const sandboxSymbol = this.convertSymbolForSandbox (symbol);
                 market = this.market (sandboxSymbol);
@@ -7028,7 +7029,7 @@ export default class bitget extends Exchange {
          * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
          */
         await this.loadMarkets ();
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox (symbol);
@@ -8078,7 +8079,7 @@ export default class bitget extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
             const sandboxSymbol = this.convertSymbolForSandbox (symbol);

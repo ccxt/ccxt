@@ -48,7 +48,8 @@ public partial class bitmex : Exchange
                 { "fetchFundingRates", true },
                 { "fetchIndexOHLCV", false },
                 { "fetchLedger", true },
-                { "fetchLeverage", false },
+                { "fetchLeverage", true },
+                { "fetchLeverages", true },
                 { "fetchLeverageTiers", false },
                 { "fetchLiquidations", true },
                 { "fetchMarketLeverageTiers", false },
@@ -2274,6 +2275,53 @@ public partial class bitmex : Exchange
         //     ]
         //
         return this.parseOrders(response, market);
+    }
+
+    public async override Task<object> fetchLeverages(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitmex#fetchLeverages
+        * @description fetch the set leverage for all contract markets
+        * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
+        * @param {string[]} [symbols] a list of unified market symbols
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object positions = await this.fetchPositions(symbols, parameters);
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        {
+            object entry = getValue(positions, i);
+            object marketId = this.safeString(entry, "symbol");
+            object market = this.safeMarket(marketId, null, null, "contract");
+            ((IList<object>)result).Add(new Dictionary<string, object>() {
+                { "info", entry },
+                { "symbol", getValue(market, "symbol") },
+                { "leverage", this.safeInteger(entry, "leverage") },
+                { "marginMode", this.safeString(entry, "marginMode") },
+            });
+        }
+        return result;
+    }
+
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitmex#fetchLeverage
+        * @description fetch the set leverage for a market
+        * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object leverage = await this.fetchLeverages(new List<object>() {symbol}, parameters);
+        return leverage;
     }
 
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)

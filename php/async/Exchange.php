@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.2.52';
+$version = '4.2.57';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.2.52';
+    const VERSION = '4.2.57';
 
     public $browser;
     public $marketsLoading = null;
@@ -698,7 +698,7 @@ class Exchange extends \ccxt\Exchange {
         return $this->filter_by_limit($result, $limit, $key, $sinceIsDefined);
     }
 
-    public function set_sandbox_mode($enabled) {
+    public function set_sandbox_mode(bool $enabled) {
         if ($enabled) {
             if (is_array($this->urls) && array_key_exists('test', $this->urls)) {
                 if (gettype($this->urls['api']) === 'string') {
@@ -770,8 +770,19 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchOrderBook() is not supported yet');
     }
 
-    public function fetch_margin_mode(?string $symbol = null, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchMarginMode() is not supported yet');
+    public function fetch_margin_mode(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            if ($this->has['fetchMarginModes']) {
+                $marginModes = Async\await($this->fetchMarginModes (array( $symbol ), $params));
+                return $this->safe_dict($marginModes, $symbol);
+            } else {
+                throw new NotSupported($this->id . ' fetchMarginMode() is not supported yet');
+            }
+        }) ();
+    }
+
+    public function fetch_margin_modes(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchMarginModes () is not supported yet');
     }
 
     public function fetch_rest_order_book_safe($symbol, $limit = null, $params = array ()) {
@@ -913,6 +924,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_leverage(string $symbol, $params = array ()) {
         throw new NotSupported($this->id . ' fetchLeverage() is not supported yet');
+    }
+
+    public function fetch_leverages(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchLeverages() is not supported yet');
     }
 
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
@@ -4760,5 +4775,22 @@ class Exchange extends \ccxt\Exchange {
 
     public function parse_greeks($greeks, ?array $market = null) {
         throw new NotSupported($this->id . ' parseGreeks () is not supported yet');
+    }
+
+    public function parse_margin_modes(mixed $response, ?array $symbols = null, ?string $symbolKey = null, ?string $marketType = null) {
+        $marginModeStructures = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $info = $response[$i];
+            $marketId = $this->safe_string($info, $symbolKey);
+            $market = $this->safe_market($marketId, null, null, $marketType);
+            if (($symbols === null) || $this->in_array($market['symbol'], $symbols)) {
+                $marginModeStructures[$market['symbol']] = $this->parse_margin_mode($info, $market);
+            }
+        }
+        return $marginModeStructures;
+    }
+
+    public function parse_margin_mode($marginMode, ?array $market = null) {
+        throw new NotSupported($this->id . ' parseMarginMode () is not supported yet');
     }
 }

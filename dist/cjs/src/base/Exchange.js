@@ -436,9 +436,11 @@ class Exchange {
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': undefined,
+                'fetchLeverages': undefined,
                 'fetchLeverageTiers': undefined,
                 'fetchLiquidations': undefined,
                 'fetchMarginMode': undefined,
+                'fetchMarginModes': undefined,
                 'fetchMarketLeverageTiers': undefined,
                 'fetchMarkets': true,
                 'fetchMarketsWs': undefined,
@@ -1867,8 +1869,17 @@ class Exchange {
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOrderBook() is not supported yet');
     }
-    async fetchMarginMode(symbol = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchMarginMode() is not supported yet');
+    async fetchMarginMode(symbol, params = {}) {
+        if (this.has['fetchMarginModes']) {
+            const marginModes = await this.fetchMarginModes([symbol], params);
+            return this.safeDict(marginModes, symbol);
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchMarginMode() is not supported yet');
+        }
+    }
+    async fetchMarginModes(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchMarginModes () is not supported yet');
     }
     async fetchRestOrderBookSafe(symbol, limit = undefined, params = {}) {
         const fetchSnapshotMaxRetries = this.handleOption('watchOrderBook', 'maxRetries', 3);
@@ -1978,6 +1989,9 @@ class Exchange {
     }
     async fetchLeverage(symbol, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchLeverage() is not supported yet');
+    }
+    async fetchLeverages(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchLeverages() is not supported yet');
     }
     async setPositionMode(hedged, symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' setPositionMode() is not supported yet');
@@ -5557,6 +5571,21 @@ class Exchange {
     }
     parseGreeks(greeks, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseGreeks () is not supported yet');
+    }
+    parseMarginModes(response, symbols = undefined, symbolKey = undefined, marketType = undefined) {
+        const marginModeStructures = {};
+        for (let i = 0; i < response.length; i++) {
+            const info = response[i];
+            const marketId = this.safeString(info, symbolKey);
+            const market = this.safeMarket(marketId, undefined, undefined, marketType);
+            if ((symbols === undefined) || this.inArray(market['symbol'], symbols)) {
+                marginModeStructures[market['symbol']] = this.parseMarginMode(info, market);
+            }
+        }
+        return marginModeStructures;
+    }
+    parseMarginMode(marginMode, market = undefined) {
+        throw new errors.NotSupported(this.id + ' parseMarginMode () is not supported yet');
     }
 }
 

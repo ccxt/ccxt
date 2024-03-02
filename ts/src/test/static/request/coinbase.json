@@ -10,6 +10,16 @@
                 "url": "https://api.coinbase.com/v2/time",
                 "input": [
                 ]
+            },
+            {
+                "description": "fetch time - v3",
+                "method": "fetchTime",
+                "url": "https://api.coinbase.com/api/v3/brokerage/time",
+                "input": [
+                    {
+                        "method":"v3PublicGetBrokerageTime"
+                    }
+                ]
             }
         ],
         "createOrder": [
@@ -148,7 +158,7 @@
             {
                 "description": "Fetch spot Balance",
                 "method": "fetchBalance",
-                "url": "https://api.coinbase.com/v2/accounts",
+                "url": "https://api.coinbase.com/v2/accounts?limit=100",
                 "input": [
                     {
                         "type": "spot"
@@ -168,7 +178,7 @@
             {
                 "description": "Fetch swap Balance",
                 "method": "fetchBalance",
-                "url": "https://api.coinbase.com/v2/accounts",
+                "url": "https://api.coinbase.com/v2/accounts?limit=100",
                 "input": [
                     {
                         "type": "swap"

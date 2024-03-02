@@ -41,7 +41,6 @@ class blockchaincom extends \ccxt\async\blockchaincom {
                     ),
                     'noOriginHeader' => false,
                 ),
-                'sequenceNumbers' => array(),
             ),
             'streaming' => array(
             ),
@@ -696,20 +695,20 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         //     }
         //
         $event = $this->safe_string($message, 'event');
+        if ($event === 'subscribed') {
+            return;
+        }
         $type = $this->safe_string($message, 'channel');
         $marketId = $this->safe_string($message, 'symbol');
         $symbol = $this->safe_symbol($marketId);
         $messageHash = 'orderbook:' . $symbol . ':' . $type;
         $datetime = $this->safe_string($message, 'timestamp');
         $timestamp = $this->parse8601($datetime);
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->counted_order_book(array());
-            $this->orderbooks[$symbol] = $orderbook;
+        if ($this->safe_value($this->orderbooks, $symbol) === null) {
+            $this->orderbooks[$symbol] = $this->counted_order_book();
         }
-        if ($event === 'subscribed') {
-            return;
-        } elseif ($event === 'snapshot') {
+        $orderbook = $this->orderbooks[$symbol];
+        if ($event === 'snapshot') {
             $snapshot = $this->parse_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'px', 'qty', 'num');
             $orderbook->reset ($snapshot);
         } elseif ($event === 'updated') {
@@ -736,23 +735,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         }
     }
 
-    public function check_sequence_number(Client $client, $message) {
-        $seqnum = $this->safe_integer($message, 'seqnum', 0);
-        $channel = $this->safe_string($message, 'channel', '');
-        $sequenceNumbersByChannel = $this->safe_value($this->options, 'sequenceNumbers', array());
-        $lastSeqnum = $this->safe_integer($sequenceNumbersByChannel, $channel);
-        if ($lastSeqnum === null) {
-            $this->options['sequenceNumbers'][$channel] = $seqnum;
-        } else {
-            if ($seqnum !== $lastSeqnum + 1) {
-                throw new ExchangeError($this->id . ' ' . $channel . ' $seqnum ' . $seqnum . ' is not the expected ' . ($lastSeqnum + 1));
-            }
-            $this->options['sequenceNumbers'][$channel] = $seqnum;
-        }
-    }
-
     public function handle_message(Client $client, $message) {
-        $this->check_sequence_number($client, $message);
         $channel = $this->safe_string($message, 'channel');
         $handlers = array(
             'ticker' => array($this, 'handle_ticker'),

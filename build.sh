@@ -77,7 +77,7 @@ build_and_test_all () {
       #   if ! tox run-parallel; then
       #     exit 1
       #   fi
-      #   cd ..
+      #   cd  ..
       # fi
     fi
     npm run test-base

@@ -85,6 +85,8 @@ class mexc(Exchange, ImplicitAPI):
                 'fetchL2OrderBook': True,
                 'fetchLedger': None,
                 'fetchLedgerEntry': None,
+                'fetchLeverage': True,
+                'fetchLeverages': False,
                 'fetchLeverageTiers': True,
                 'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': None,
@@ -5036,6 +5038,77 @@ class mexc(Exchange, ImplicitAPI):
                 },
             }
         return self.assign_default_deposit_withdraw_fees(result)
+
+    async def fetch_leverage(self, symbol: str, params={}):
+        """
+        fetch the set leverage for a market
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-leverage
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.contractPrivateGetPositionLeverage(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "level": 1,
+        #                 "maxVol": 463300,
+        #                 "mmr": 0.004,
+        #                 "imr": 0.005,
+        #                 "positionType": 1,
+        #                 "openType": 1,
+        #                 "leverage": 20,
+        #                 "limitBySys": False,
+        #                 "currentMmr": 0.004
+        #             },
+        #             {
+        #                 "level": 1,
+        #                 "maxVol": 463300,
+        #                 "mmr": 0.004,
+        #                 "imr": 0.005,
+        #                 "positionType": 2,
+        #                 "openType": 1,
+        #                 "leverage": 20,
+        #                 "limitBySys": False,
+        #                 "currentMmr": 0.004
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        longLeverage = self.safe_dict(data, 0)
+        return self.parse_leverage(longLeverage, market)
+
+    def parse_leverage(self, leverage, market: Market = None):
+        #
+        #     {
+        #         "level": 1,
+        #         "maxVol": 463300,
+        #         "mmr": 0.004,
+        #         "imr": 0.005,
+        #         "positionType": 1,
+        #         "openType": 1,
+        #         "leverage": 20,
+        #         "limitBySys": False,
+        #         "currentMmr": 0.004
+        #     }
+        #
+        marketId = self.safe_string(leverage, 'symbol')
+        market = self.safe_market(marketId, market, None, 'contract')
+        return {
+            'info': leverage,
+            'symbol': market['symbol'],
+            'leverage': self.safe_integer(leverage, 'leverage'),
+            'marginMode': None,
+        }
 
     def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
         """

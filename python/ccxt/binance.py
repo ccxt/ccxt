@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.binance import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Greeks, Int, MarginMode, MarginModes, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -89,6 +89,7 @@ class binance(Exchange, ImplicitAPI):
                 'fetchBorrowInterest': True,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': True,
+                'fetchCanceledAndClosedOrders': 'emulated',
                 'fetchCanceledOrders': 'emulated',
                 'fetchClosedOrder': False,
                 'fetchClosedOrders': 'emulated',
@@ -114,9 +115,12 @@ class binance(Exchange, ImplicitAPI):
                 'fetchL3OrderBook': False,
                 'fetchLastPrices': True,
                 'fetchLedger': True,
-                'fetchLeverage': False,
+                'fetchLedgerEntry': True,
+                'fetchLeverage': True,
                 'fetchLeverageTiers': True,
                 'fetchLiquidations': False,
+                'fetchMarginMode': 'emulated',
+                'fetchMarginModes': True,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -146,7 +150,7 @@ class binance(Exchange, ImplicitAPI):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
-                'fetchTradingLimits': None,
+                'fetchTradingLimits': 'emulated',
                 'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': True,
                 'fetchTransactions': False,
@@ -310,12 +314,10 @@ class binance(Exchange, ImplicitAPI):
                         'loan/loanable/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/collateral/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/repay/collateral/rate': 600,  # Weight(IP): 6000 => cost = 0.1 * 6000 = 600
-                        'loan/flexible/ongoing/orders': 30,  # Weight(IP): 300 => cost = 0.1 * 300 = 30
-                        'loan/flexible/borrow/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/flexible/repay/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/flexible/ltv/adjustment/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/flexible/loanable/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/flexible/collateral/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/ongoing/orders': 30,  # TODO: Deprecating at 2024-04-24 03:00(UTC)
+                        'loan/flexible/borrow/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40, check flexible rate loans order history before 2024-02-27 08:00(UTC)
+                        'loan/flexible/repay/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40, check flexible rate loans order history before 2024-02-27 08:00(UTC)
+                        'loan/flexible/ltv/adjustment/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40, check flexible rate loans order history before 2024-02-27 08:00(UTC)
                         'loan/vip/ongoing/orders': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/vip/repay/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/vip/collateral/account': 600,  # Weight(IP): 6000 => cost = 0.1 * 6000 = 600
@@ -607,9 +609,8 @@ class binance(Exchange, ImplicitAPI):
                         'loan/repay': 40.002,
                         'loan/adjust/ltv': 40.002,
                         'loan/customize/margin_call': 40.002,
-                        'loan/flexible/borrow': 40.002,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
-                        'loan/flexible/repay': 40.002,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
-                        'loan/flexible/adjust/ltv': 40.002,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
+                        'loan/flexible/repay': 40.002,  # TODO: Deprecating at 2024-04-24 03:00(UTC)
+                        'loan/flexible/adjust/ltv': 40.002,  # TODO: Deprecating at 2024-04-24 03:00(UTC)
                         'loan/vip/repay': 40.002,
                         'convert/getQuote': 1.3334,  # Weight(UID): 200 => cost = 0.006667 * 200 = 1.3334
                         'convert/acceptQuote': 3.3335,  # Weight(UID): 500 => cost = 0.006667 * 500 = 3.3335
@@ -662,10 +663,19 @@ class binance(Exchange, ImplicitAPI):
                         'sub-account/futures/account': 0.1,
                         'sub-account/futures/accountSummary': 1,
                         'sub-account/futures/positionRisk': 0.1,
+                        'loan/flexible/ongoing/orders': 30,  # Weight(IP): 300 => cost = 0.1 * 300 = 30
+                        'loan/flexible/borrow/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/repay/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/ltv/adjustment/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/loanable/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/collateral/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                     },
                     'post': {
                         'eth-staking/eth/stake': 15,  # Weight(IP): 150 => cost = 0.1 * 150 = 15
                         'sub-account/subAccountApi/ipRestriction': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'loan/flexible/borrow': 40.002,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
+                        'loan/flexible/repay': 40.002,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
+                        'loan/flexible/adjust/ltv': 40.002,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
                     },
                 },
                 'sapiV3': {
@@ -6413,6 +6423,35 @@ class binance(Exchange, ImplicitAPI):
         filteredOrders = self.filter_by(orders, 'status', 'canceled')
         return self.filter_by_since_limit(filteredOrders, since, limit)
 
+    def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetches information on multiple canceled orders made by the user
+        :see: https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-all-um-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-orders-user_data
+        :param str symbol: unified market symbol of the market the orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.portfolioMargin]: set to True if you would like to fetch orders in a portfolio margin account
+        :param boolean [params.stop]: set to True if you would like to fetch portfolio margin account stop or conditional orders
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchCanceledAndClosedOrders() requires a symbol argument')
+        orders = self.fetch_orders(symbol, since, None, params)
+        canceledOrders = self.filter_by(orders, 'status', 'canceled')
+        closedOrders = self.filter_by(orders, 'status', 'closed')
+        filteredOrders = self.array_concat(canceledOrders, closedOrders)
+        sortedOrders = self.sort_by(filteredOrders, 'timestamp')
+        return self.filter_by_since_limit(sortedOrders, since, limit)
+
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
@@ -9562,6 +9601,55 @@ class binance(Exchange, ImplicitAPI):
         #
         return response
 
+    def fetch_leverage(self, symbol: str, params={}):
+        """
+        fetch the set leverage for a market
+        :see: https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#get-um-account-detail-user_data
+        :see: https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
+        """
+        self.load_markets()
+        self.load_leverage_brackets(False, params)
+        market = self.market(symbol)
+        if not market['contract']:
+            raise NotSupported(self.id + ' fetchLeverage() supports linear and inverse contracts only')
+        type = None
+        type, params = self.handle_market_type_and_params('fetchLeverage', market, params)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchLeverage', market, params, 'linear')
+        isPortfolioMargin = None
+        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchLeverage', 'papi', 'portfolioMargin', False)
+        response = None
+        if self.is_linear(type, subType):
+            if isPortfolioMargin:
+                response = self.papiGetUmAccount(params)
+            else:
+                response = self.fapiPrivateV2GetAccount(params)
+        elif self.is_inverse(type, subType):
+            if isPortfolioMargin:
+                response = self.papiGetCmAccount(params)
+            else:
+                response = self.dapiPrivateGetAccount(params)
+        else:
+            raise NotSupported(self.id + ' fetchPositions() supports linear and inverse contracts only')
+        positions = self.safe_list(response, 'positions', [])
+        for i in range(0, len(positions)):
+            position = positions[i]
+            innerSymbol = self.safe_string(position, 'symbol')
+            if innerSymbol == market['id']:
+                isolated = self.safe_bool(position, 'isolated')
+                marginMode = 'isolated' if isolated else 'cross'
+                return {
+                    'info': position,
+                    'marginMode': marginMode,
+                    'leverage': self.safe_integer(position, 'leverage'),
+                }
+        return response
+
     def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical settlement records
@@ -9730,6 +9818,18 @@ class binance(Exchange, ImplicitAPI):
         for i in range(0, len(settlements)):
             result.append(self.parse_settlement(settlements[i], market))
         return result
+
+    def fetch_ledger_entry(self, id: str, code: Str = None, params={}):
+        self.load_markets()
+        type = None
+        type, params = self.handle_market_type_and_params('fetchLedgerEntry', None, params)
+        query = {
+            'recordId': id,
+            'type': type,
+        }
+        if type != 'option':
+            raise BadRequest(self.id + ' fetchLedgerEntry() can only be used for type option')
+        return self.fetch_ledger(code, None, None, self.extend(query, params))
 
     def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -11030,6 +11130,17 @@ class binance(Exchange, ImplicitAPI):
             'info': greeks,
         }
 
+    def fetch_trading_limits(self, symbols: Strings = None, params={}):
+        # self method should not be called directly, use loadTradingLimits() instead
+        markets = self.fetch_markets()
+        tradingLimits = {}
+        for i in range(0, len(markets)):
+            market = markets[i]
+            symbol = market['symbol']
+            if (symbols is None) or (self.in_array(symbol, symbols)):
+                tradingLimits[symbol] = market['limits']['amount']
+        return tradingLimits
+
     def fetch_position_mode(self, symbol: Str = None, params={}):
         """
         fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
@@ -11059,4 +11170,151 @@ class binance(Exchange, ImplicitAPI):
         return {
             'info': response,
             'hedged': dualSidePosition,
+        }
+
+    def fetch_margin_modes(self, symbols: List[str] = None, params={}) -> MarginModes:
+        """
+        fetches margin modes("isolated" or "cross") that the market for the symbol in in, with symbol=None all markets for a subType(linear/inverse) are returned
+        :see: https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: struct of marginMode
+        """
+        self.load_markets()
+        market = None
+        if symbols is not None:
+            symbols = self.market_symbols(symbols)
+            market = self.market(symbols[0])
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchMarginMode', market, params)
+        response = None
+        if subType == 'linear':
+            response = self.fapiPrivateV2GetAccount(params)
+            #
+            #    {
+            #        feeTier: '0',
+            #        canTrade: True,
+            #        canDeposit: True,
+            #        canWithdraw: True,
+            #        tradeGroupId: '-1',
+            #        updateTime: '0',
+            #        multiAssetsMargin: True,
+            #        totalInitialMargin: '438.31134352',
+            #        totalMaintMargin: '5.90847101',
+            #        totalWalletBalance: '4345.15626338',
+            #        totalUnrealizedProfit: '376.45220224',
+            #        totalMarginBalance: '4721.60846562',
+            #        totalPositionInitialMargin: '425.45252687',
+            #        totalOpenOrderInitialMargin: '12.85881664',
+            #        totalCrossWalletBalance: '4345.15626338',
+            #        totalCrossUnPnl: '376.45220224',
+            #        availableBalance: '4281.84764041',
+            #        maxWithdrawAmount: '4281.84764041',
+            #        assets: [
+            #            {
+            #                asset: 'ETH',
+            #                walletBalance: '0.00000000',
+            #                unrealizedProfit: '0.00000000',
+            #                marginBalance: '0.00000000',
+            #                maintMargin: '0.00000000',
+            #                initialMargin: '0.00000000',
+            #                positionInitialMargin: '0.00000000',
+            #                openOrderInitialMargin: '0.00000000',
+            #                maxWithdrawAmount: '0.00000000',
+            #                crossWalletBalance: '0.00000000',
+            #                crossUnPnl: '0.00000000',
+            #                availableBalance: '1.26075574',
+            #                marginAvailable: True,
+            #                updateTime: '0'
+            #            },
+            #        ...
+            #        ],
+            #        positions: [
+            #            {
+            #              symbol: 'SNTUSDT',
+            #              initialMargin: '0',
+            #              maintMargin: '0',
+            #              unrealizedProfit: '0.00000000',
+            #              positionInitialMargin: '0',
+            #              openOrderInitialMargin: '0',
+            #              leverage: '20',
+            #              isolated: False,
+            #              entryPrice: '0.0',
+            #              breakEvenPrice: '0.0',
+            #              maxNotional: '25000',
+            #              positionSide: 'BOTH',
+            #              positionAmt: '0',
+            #              notional: '0',
+            #              isolatedWallet: '0',
+            #              updateTime: '0',
+            #              bidNotional: '0',
+            #              askNotional: '0'
+            #            },
+            #            ...
+            #        ]
+            #    }
+            #
+        elif subType == 'inverse':
+            response = self.dapiPrivateGetAccount(params)
+            #
+            #    {
+            #        feeTier: '0',
+            #        canTrade: True,
+            #        canDeposit: True,
+            #        canWithdraw: True,
+            #        updateTime: '0',
+            #        assets: [
+            #            {
+            #                asset: 'APT',
+            #                walletBalance: '0.00000000',
+            #                unrealizedProfit: '0.00000000',
+            #                marginBalance: '0.00000000',
+            #                maintMargin: '0.00000000',
+            #                initialMargin: '0.00000000',
+            #                positionInitialMargin: '0.00000000',
+            #                openOrderInitialMargin: '0.00000000',
+            #                maxWithdrawAmount: '0.00000000',
+            #                crossWalletBalance: '0.00000000',
+            #                crossUnPnl: '0.00000000',
+            #                availableBalance: '0.00000000',
+            #                updateTime: '0'
+            #            },
+            #            ...
+            #        ],
+            #        positions: [
+            #            {
+            #                symbol: 'BCHUSD_240329',
+            #                initialMargin: '0',
+            #                maintMargin: '0',
+            #                unrealizedProfit: '0.00000000',
+            #                positionInitialMargin: '0',
+            #                openOrderInitialMargin: '0',
+            #                leverage: '20',
+            #                isolated: False,
+            #                positionSide: 'BOTH',
+            #                entryPrice: '0.00000000',
+            #                maxQty: '1000',
+            #                notionalValue: '0',
+            #                isolatedWallet: '0',
+            #                updateTime: '0',
+            #                positionAmt: '0',
+            #                breakEvenPrice: '0.00000000'
+            #            },
+            #            ...
+            #        ]
+            #    }
+            #
+        else:
+            raise BadRequest(self.id + ' fetchMarginModes() supports linear and inverse subTypes only')
+        assets = self.safe_value(response, 'positions', [])
+        return self.parse_margin_modes(assets, symbols, 'symbol', 'swap')
+
+    def parse_margin_mode(self, marginMode, market=None) -> MarginMode:
+        marketId = self.safe_string(marginMode, 'symbol')
+        market = self.safe_market(marketId, market)
+        isIsolated = self.safe_bool(marginMode, 'isolated')
+        return {
+            'info': marginMode,
+            'symbol': market['symbol'],
+            'marginMode': 'isolated' if isIsolated else 'cross',
         }

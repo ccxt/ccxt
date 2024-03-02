@@ -264,7 +264,7 @@ class mexc extends \ccxt\async\mexc {
         //        "d" => {
         //            "e" => "spot@public.kline.v3.api",
         //            "k" => array(
-        //                "t" => 1678642260,
+        //                "t" => 1678642261,
         //                "o" => 20626.94,
         //                "c" => 20599.69,
         //                "h" => 20626.94,
@@ -481,7 +481,7 @@ class mexc extends \ccxt\async\mexc {
             $client->subscriptions[$messageHash] = 1;
             $this->orderbooks[$symbol] = $this->counted_order_book(array());
         }
-        $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
+        $storedOrderBook = $this->orderbooks[$symbol];
         $nonce = $this->safe_integer($storedOrderBook, 'nonce');
         if ($nonce === null) {
             $cacheLength = count($storedOrderBook->cache);
