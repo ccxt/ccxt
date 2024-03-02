@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1;netstandard2.0</TargetFrameworks>
+    <LangVersion>10.0</LangVersion>
+    <OutputType>Library</OutputType>
+    <RootNamespace>ccxt</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PackageId>ccxt</PackageId>
+    <Authors>Carlos, Kroitor, Carlo</Authors>
+    <PackageVersion>4.2.57</PackageVersion>
+    <AssemblyVersion>4.2.57</AssemblyVersion>
+    <FileVersion>4.2.57</FileVersion>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Description>Cryptocurrency trading API with support for more than 100 bitcoin/altcoin exchanges</Description>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageTags>Binance Bybit Kucoin OKX Bitget C# .Net CryptoCurrency Exchange API wrapper Rest API trading bot arbitrage bitcoin eth ltc altcoin</PackageTags>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/ccxt/ccxt</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/ccxt/ccxt</PackageProjectUrl>
+    <PackageIcon>ccxt4.png</PackageIcon>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <NeutralLanguage>en</NeutralLanguage>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageReleaseNotes />
+    <NoWarn>CS1998,CS0168, CS0108, CS8604, CS8600, CS8601, CS8602, CS8603, CS8625, CS8618, CS8981, CA2200, CS8974, CS043, CS0436, CA2200, CS8619</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="*" />
+          </ItemGroup>
+  <ItemGroup>
+    <None Include="img/ccxt4.png" Pack="true" PackagePath="" />
+    <None Include="../../README.md" Pack="true" PackagePath="" />
+</ItemGroup>
+
+</Project>

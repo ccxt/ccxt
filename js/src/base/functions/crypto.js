@@ -7,6 +7,7 @@
 /*  ------------------------------------------------------------------------ */
 import { hmac as _hmac } from '../../static_dependencies/noble-hashes/hmac.js';
 import { base16, base64, base58 } from '../../static_dependencies/scure-base/index.js';
+import { Base64 } from '../../static_dependencies/jsencrypt/lib/asn1js/base64.js';
 /*  ------------------------------------------------------------------------ */
 const encoders = {
     binary: x => x,
@@ -35,10 +36,17 @@ function ecdsa(request, secret, curve, prehash = null) {
         'v': signature.recovery,
     };
 }
-function eddsa(request, secret, curve) {
+function axolotl(request, secret, curve) {
     // used for waves.exchange (that's why the output is base58)
-    const signature = curve.sign(request, secret);
+    const signature = curve.signModified(request, secret);
     return base58.encode(signature);
+}
+function eddsa(request, secret, curve) {
+    // secret is the base64 pem encoded key
+    // we get the last 32 bytes
+    const privateKey = new Uint8Array(Base64.unarmor(secret).slice(16));
+    const signature = curve.sign(request, privateKey);
+    return base64.encode(signature);
 }
 /*  ------------------------------------------------------------------------ */
 // source: https://stackoverflow.com/a/18639975/1067003
@@ -62,5 +70,5 @@ function crc32(str, signed = false) {
     }
 }
 /*  ------------------------------------------------------------------------ */
-export { hash, hmac, crc32, ecdsa, eddsa, };
+export { hash, hmac, crc32, ecdsa, eddsa, axolotl, };
 /*  ------------------------------------------------------------------------ */

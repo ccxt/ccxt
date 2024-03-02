@@ -4,9 +4,12 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
+// eslint-disable-next-line no-shadow
+import WebSocket from 'ws';
 import Client from './Client.js';
 import { sleep, isNode, milliseconds, } from '../../base/functions.js';
-import WebSocket from 'ws';
+import { Future } from './Future.js';
+// eslint-disable-next-line no-restricted-globals
 const WebSocketPlatform = isNode ? WebSocket : self.WebSocket;
 export default class WsClient extends Client {
     createConnection() {
@@ -52,8 +55,11 @@ export default class WsClient extends Client {
     }
     close() {
         if (this.connection instanceof WebSocketPlatform) {
-            return this.connection.close();
+            if (this.disconnected === undefined) {
+                this.disconnected = Future();
+            }
+            this.connection.close();
         }
+        return this.disconnected;
     }
 }
-;

@@ -1,8 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
-use React\Async;
-use React\Promise;
 
 // ----------------------------------------------------------------------------
 
@@ -10,7 +7,9 @@ use React\Promise;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once __DIR__ . '/../base/test_trading_fee.php';
+use React\Async;
+use React\Promise;
+include_once PATH_TO_CCXT . '/test/base/test_trading_fee.php';
 
 function test_fetch_trading_fees($exchange, $skipped_properties) {
     return Async\async(function () use ($exchange, $skipped_properties) {

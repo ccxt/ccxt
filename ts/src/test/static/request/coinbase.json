@@ -1,0 +1,323 @@
+{
+    "exchange": "coinbase",
+    "skipKeys": ["client_order_id"],
+    "outputType": "json",
+    "methods": {
+        "fetchTime": [
+            {
+                "description": "fetch time",
+                "method": "fetchTime",
+                "url": "https://api.coinbase.com/v2/time",
+                "input": [
+                ]
+            },
+            {
+                "description": "fetch time - v3",
+                "method": "fetchTime",
+                "url": "https://api.coinbase.com/api/v3/brokerage/time",
+                "input": [
+                    {
+                        "method":"v3PublicGetBrokerageTime"
+                    }
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "spot limit buy",
+                "method": "createOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders",
+                "input": [
+                  "ADA/USDT",
+                  "limit",
+                  "buy",
+                  4,
+                  0.2
+                ],
+                "output": "{\"client_order_id\":\"26b6d2f3-1cb1-4d4a-8b58-c33e087e0d28\",\"product_id\":\"ADA-USDT\",\"side\":\"BUY\",\"order_configuration\":{\"limit_limit_gtc\":{\"base_size\":\"4\",\"limit_price\":\"0.2\",\"post_only\":false}}}"
+            },
+            {
+                "description": "Spot market buy",
+                "method": "createOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders",
+                "input": [
+                  "ADA/USDT",
+                  "market",
+                  "buy",
+                  "1",
+                  "5"
+                ],
+                "output": "{\"client_order_id\":\"54b00006-02ea-4fec-950b-b947d5ca15c1\",\"product_id\":\"ADA-USDT\",\"side\":\"BUY\",\"order_configuration\":{\"market_market_ioc\":{\"quote_size\":\"5\"}}}"
+            },
+            {
+                "description": "Spot market sell",
+                "method": "createOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders",
+                "input": [
+                  "ADA/USDT",
+                  "market",
+                  "sell",
+                  "10"
+                ],
+                "output": "{\"client_order_id\":\"a0f970a2-05fa-4e1f-9517-f6702c33cfd1\",\"product_id\":\"ADA-USDT\",\"side\":\"SELL\",\"order_configuration\":{\"market_market_ioc\":{\"base_size\":\"10\"}}}"
+            },
+            {
+                "description": "Spot limit buy with triggerPrice",
+                "method": "createOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders",
+                "input": [
+                  "ADA/USDT",
+                  "limit",
+                  "buy",
+                  "10",
+                  0.25,
+                  {
+                    "triggerPrice": 0.2
+                  }
+                ],
+                "output": "{\"client_order_id\":\"ad491a37-4f95-4a5d-b7e8-6e1567d96983\",\"product_id\":\"ADA-USDT\",\"side\":\"BUY\",\"order_configuration\":{\"stop_limit_stop_limit_gtc\":{\"base_size\":\"10\",\"limit_price\":\"0.25\",\"stop_price\":\"0.2\",\"stop_direction\":\"STOP_DIRECTION_STOP_DOWN\"}}}"
+            },
+            {
+                "description": "Spot limit buy with postOnly",
+                "method": "createOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders",
+                "input": [
+                  "ADA/USDT",
+                  "limit",
+                  "buy",
+                  "10",
+                  0.25,
+                  {
+                    "postOnly": true
+                  }
+                ],
+                "output": "{\"client_order_id\":\"e5297ce3-a3da-4360-80aa-563602fe2bf1\",\"product_id\":\"ADA-USDT\",\"side\":\"BUY\",\"order_configuration\":{\"limit_limit_gtc\":{\"base_size\":\"10\",\"limit_price\":\"0.25\",\"post_only\":true}}}"
+            },
+            {
+                "description": "Spot market buy with createMarketBuyOrderRequiresPrice set to false",
+                "method": "createOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders",
+                "input": [
+                  "BTC/USDC",
+                  "market",
+                  "buy",
+                  5,
+                  null,
+                  {
+                    "createMarketBuyOrderRequiresPrice": false
+                  }
+                ],
+                "output": "{\"client_order_id\":\"523b539c-f99a-477e-ae29-c63570221d9a\",\"product_id\":\"BTC-USDC\",\"side\":\"BUY\",\"order_configuration\":{\"market_market_ioc\":{\"quote_size\":\"5\"}}}"
+            },
+            {
+                "description": "Spot market buy using the cost param",
+                "method": "createOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders",
+                "input": [
+                  "BTC/USDC",
+                  "market",
+                  "buy",
+                  0,
+                  null,
+                  {
+                    "cost": 5
+                  }
+                ],
+                "output": "{\"client_order_id\":\"c6449e15-78c0-4ff8-a603-2047c131faa3\",\"product_id\":\"BTC-USDC\",\"side\":\"BUY\",\"order_configuration\":{\"market_market_ioc\":{\"quote_size\":\"5\"}}}"
+            },
+            {
+                "description": "create preview/test order",
+                "method": "createOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders/preview",
+                "input": [
+                  "DOGE/USDT",
+                  "limit",
+                  "buy",
+                  10,
+                  0.05,
+                  {
+                    "preview": true
+                  }
+                ],
+                "output": "{\"product_id\":\"DOGE-USDT\",\"side\":\"BUY\",\"order_configuration\":{\"limit_limit_gtc\":{\"base_size\":\"10\",\"limit_price\":\"0.05\",\"post_only\":false}}}"
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "Spot market buy order with cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders",
+                "input": [
+                  "BTC/USDC",
+                  5
+                ],
+                "output": "{\"client_order_id\":\"e5e5b341-360a-48d3-9a2a-dc8a9f529237\",\"product_id\":\"BTC-USDC\",\"side\":\"BUY\",\"order_configuration\":{\"market_market_ioc\":{\"quote_size\":\"5\"}}}"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch spot Balance",
+                "method": "fetchBalance",
+                "url": "https://api.coinbase.com/v2/accounts?limit=100",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "fetch spot balance v3",
+                "method": "fetchBalance",
+                "url": "https://api.coinbase.com/api/v3/brokerage/accounts?limit=250",
+                "input": [
+                  {
+                    "v3": true
+                  }
+                ]
+            },
+            {
+                "description": "Fetch swap Balance",
+                "method": "fetchBalance",
+                "url": "https://api.coinbase.com/v2/accounts?limit=100",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch order",
+                "method": "fetchOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders/historical/9fd0cadc-2ccc-45e8-b254-ea511c34e5b2",
+                "input": [
+                    "9fd0cadc-2ccc-45e8-b254-ea511c34e5b2",
+                    "DOGE-USDT"
+                ]
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "edit order",
+                "method": "editOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders/edit",
+                "input": [
+                    "9fd0cadc-2ccc-45e8-b254-ea511c34e5b2",
+                    "DOGE-USDT",
+                    "",
+                    "",
+                    20,
+                    0.08
+                ],
+                "output": "{\"order_id\":\"9fd0cadc-2ccc-45e8-b254-ea511c34e5b2\",\"size\":\"20\",\"price\":\"0.08\"}"
+            },
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "editOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders/edit_preview",
+                "input": [
+                  "269df5b9-c9d8-43e7-8908-a51fa050101e",
+                  "ADA/USDT",
+                  "limit",
+                  "buy",
+                  4,
+                  0.21,
+                  {
+                    "preview": true
+                  }
+                ],
+                "output": "{\"order_id\":\"269df5b9-c9d8-43e7-8908-a51fa050101e\",\"size\":\"4\",\"price\":\"0.21\"}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel order",
+                "method": "cancelOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders/batch_cancel",
+                "input": [
+                    "9fd0cadc-2ccc-45e8-b254-ea511c34e5b2",
+                    "DOGE-USDT"
+                ],
+                "output": "{\"order_ids\":[\"9fd0cadc-2ccc-45e8-b254-ea511c34e5b2\"]}"
+            },
+            {
+                "description": "cancel stop order",
+                "method": "cancelOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders/batch_cancel",
+                "input": [
+                  "d4f841a7-2de6-4190-a581-9ae23a5ff3de",
+                  "ADA/USDT"
+                ],
+                "output": "{\"order_ids\":[\"d4f841a7-2de6-4190-a581-9ae23a5ff3de\"]}"
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancel orders",
+                "method": "cancelOrders",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders/batch_cancel",
+                "input": [
+                    ["9fd0cadc-2ccc-45e8-b254-ea511c34e5b2"],
+                    "DOGE-USDT"
+                ],
+                "output": "{\"order_ids\":[\"9fd0cadc-2ccc-45e8-b254-ea511c34e5b2\"]}"
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders/historical/batch?order_status=OPEN&limit=100",
+                "input": []
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "Fetch closedOrders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders/historical/batch?order_status=FILLED&limit=100",
+                "input": []
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw USDC to another blockchain address",
+                "method": "withdraw",
+                "url": "https://api.coinbase.com/v2/accounts/myAccount/transactions",
+                "input": [
+                  "USDC",
+                  10,
+                  "0x93536de4c50a8a90874162504f26978fa946c23a"
+                ],
+                "output": "{\"type\":\"send\",\"to\":\"0x93536de4c50a8a90874162504f26978fa946c23a\",\"amount\":10,\"currency\":\"USDC\"}"
+            }
+        ],
+        "fetchBidsAsks": [
+            {
+                "description": "fetchBidsAsks with symbols",
+                "method": "fetchBidsAsks",
+                "url": "https://api.coinbase.com/api/v3/brokerage/best_bid_ask?product_ids=BTC-USDT&product_ids=ETH-USDT",
+                "input": [
+                  [
+                    "BTC/USDT",
+                    "ETH/USDT"
+                  ]
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.coinbase.com/api/v3/brokerage/products?product_ids=BTC-USDT&product_ids=ETH-USDT",
+                "input": [
+                  [
+                    "BTC/USDT",
+                    "ETH/USDT"
+                  ]
+                ]
+            }
+        ]
+    }
+}

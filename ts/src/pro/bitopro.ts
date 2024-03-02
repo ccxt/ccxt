@@ -3,9 +3,9 @@
 
 import bitoproRest from '../bitopro.js';
 import { ExchangeError } from '../base/errors.js';
-import { ArrayCache } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
-import { Int } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, Balances, Market, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -16,7 +16,7 @@ export default class bitopro extends bitoproRest {
             'has': {
                 'ws': true,
                 'watchBalance': true,
-                'watchMyTrades': false,
+                'watchMyTrades': true,
                 'watchOHLCV': false,
                 'watchOrderBook': true,
                 'watchOrders': false,
@@ -26,8 +26,8 @@ export default class bitopro extends bitoproRest {
             },
             'urls': {
                 'ws': {
-                    'public': 'wss://stream.bitopro.com:9443/ws/v1/pub',
-                    'private': 'wss://stream.bitopro.com:9443/ws/v1/pub/auth',
+                    'public': 'wss://stream.bitopro.com:443/ws/v1/pub',
+                    'private': 'wss://stream.bitopro.com:443/ws/v1/pub/auth',
                 },
             },
             'requiredCredentials': {
@@ -53,14 +53,15 @@ export default class bitopro extends bitoproRest {
         return await this.watch (url, messageHash, undefined, messageHash);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bitopro#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/order_book_stream.md
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the bitopro api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         if (limit !== undefined) {
@@ -85,21 +86,21 @@ export default class bitopro extends bitoproRest {
     handleOrderBook (client: Client, message) {
         //
         //     {
-        //         event: 'ORDER_BOOK',
-        //         timestamp: 1650121915308,
-        //         datetime: '2022-04-16T15:11:55.308Z',
-        //         pair: 'BTC_TWD',
-        //         limit: 5,
-        //         scale: 0,
-        //         bids: [
-        //             { price: '1188178', amount: '0.0425', count: 1, total: '0.0425' },
+        //         "event": "ORDER_BOOK",
+        //         "timestamp": 1650121915308,
+        //         "datetime": "2022-04-16T15:11:55.308Z",
+        //         "pair": "BTC_TWD",
+        //         "limit": 5,
+        //         "scale": 0,
+        //         "bids": [
+        //             { price: "1188178", amount: '0.0425', count: 1, total: "0.0425" },
         //         ],
-        //         asks: [
+        //         "asks": [
         //             {
-        //                 price: '1190740',
-        //                 amount: '0.40943964',
-        //                 count: 1,
-        //                 total: '0.40943964'
+        //                 "price": "1190740",
+        //                 "amount": "0.40943964",
+        //                 "count": 1,
+        //                 "total": "0.40943964"
         //             },
         //         ]
         //     }
@@ -119,16 +120,17 @@ export default class bitopro extends bitoproRest {
         client.resolve (orderbook, messageHash);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitopro#watchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/trade_stream.md
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the bitopro api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -144,19 +146,19 @@ export default class bitopro extends bitoproRest {
     handleTrade (client: Client, message) {
         //
         //     {
-        //         event: 'TRADE',
-        //         timestamp: 1650116346665,
-        //         datetime: '2022-04-16T13:39:06.665Z',
-        //         pair: 'BTC_TWD',
-        //         data: [
+        //         "event": "TRADE",
+        //         "timestamp": 1650116346665,
+        //         "datetime": "2022-04-16T13:39:06.665Z",
+        //         "pair": "BTC_TWD",
+        //         "data": [
         //             {
-        //                 event: '',
-        //                 datetime: '',
-        //                 pair: '',
-        //                 timestamp: 1650116227,
-        //                 price: '1189429',
-        //                 amount: '0.0153127',
-        //                 isBuyer: true
+        //                 "event": '',
+        //                 "datetime": '',
+        //                 "pair": '',
+        //                 "timestamp": 1650116227,
+        //                 "price": "1189429",
+        //                 "amount": "0.0153127",
+        //                 "isBuyer": true
         //             },
         //         ]
         //     }
@@ -180,13 +182,159 @@ export default class bitopro extends bitoproRest {
         client.resolve (tradesCache, messageHash);
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name bitopro#watchMyTrades
+         * @description watches information on multiple trades made by the user
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/private/matches_stream.md
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         */
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        let messageHash = 'USER_TRADE';
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            messageHash = messageHash + ':' + market['symbol'];
+        }
+        const url = this.urls['ws']['private'] + '/' + 'user-trades';
+        this.authenticate (url);
+        const trades = await this.watch (url, messageHash, undefined, messageHash);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleMyTrade (client: Client, message) {
+        //
+        //     {
+        //         "event": "USER_TRADE",
+        //         "timestamp": 1694667358782,
+        //         "datetime": "2023-09-14T12:55:58.782Z",
+        //         "data": {
+        //             "base": "usdt",
+        //             "quote": "twd",
+        //             "side": "ask",
+        //             "price": "32.039",
+        //             "volume": "1",
+        //             "fee": "6407800",
+        //             "feeCurrency": "twd",
+        //             "transactionTimestamp": 1694667358,
+        //             "eventTimestamp": 1694667358,
+        //             "orderID": 390733918,
+        //             "orderType": "LIMIT",
+        //             "matchID": "bd07673a-94b1-419e-b5ee-d7b723261a5d",
+        //             "isMarket": false,
+        //             "isMaker": false
+        //         }
+        //     }
+        //
+        const data = this.safeValue (message, 'data', {});
+        const baseId = this.safeString (data, 'base');
+        const quoteId = this.safeString (data, 'quote');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const symbol = this.symbol (base + '/' + quote);
+        const messageHash = this.safeString (message, 'event');
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const trades = this.myTrades;
+        const parsed = this.parseWsTrade (data);
+        trades.append (parsed);
+        client.resolve (trades, messageHash);
+        client.resolve (trades, messageHash + ':' + symbol);
+    }
+
+    parseWsTrade (trade, market: Market = undefined): Trade {
+        //
+        //     {
+        //         "base": "usdt",
+        //         "quote": "twd",
+        //         "side": "ask",
+        //         "price": "32.039",
+        //         "volume": "1",
+        //         "fee": "6407800",
+        //         "feeCurrency": "twd",
+        //         "transactionTimestamp": 1694667358,
+        //         "eventTimestamp": 1694667358,
+        //         "orderID": 390733918,
+        //         "orderType": "LIMIT",
+        //         "matchID": "bd07673a-94b1-419e-b5ee-d7b723261a5d",
+        //         "isMarket": false,
+        //         "isMaker": false
+        //     }
+        //
+        const id = this.safeString (trade, 'matchID');
+        const orderId = this.safeString (trade, 'orderID');
+        const timestamp = this.safeTimestamp (trade, 'transactionTimestamp');
+        const baseId = this.safeString (trade, 'base');
+        const quoteId = this.safeString (trade, 'quote');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const symbol = this.symbol (base + '/' + quote);
+        market = this.safeMarket (symbol, market);
+        const price = this.safeString (trade, 'price');
+        const type = this.safeStringLower (trade, 'orderType');
+        let side = this.safeString (trade, 'side');
+        if (side !== undefined) {
+            if (side === 'ask') {
+                side = 'sell';
+            } else if (side === 'bid') {
+                side = 'buy';
+            }
+        }
+        const amount = this.safeString (trade, 'volume');
+        let fee = undefined;
+        const feeAmount = this.safeString (trade, 'fee');
+        const feeSymbol = this.safeCurrencyCode (this.safeString (trade, 'feeCurrency'));
+        if (feeAmount !== undefined) {
+            fee = {
+                'cost': feeAmount,
+                'currency': feeSymbol,
+                'rate': undefined,
+            };
+        }
+        const isMaker = this.safeValue (trade, 'isMaker');
+        let takerOrMaker = undefined;
+        if (isMaker !== undefined) {
+            if (isMaker) {
+                takerOrMaker = 'maker';
+            } else {
+                takerOrMaker = 'taker';
+            }
+        }
+        return this.safeTrade ({
+            'id': id,
+            'info': trade,
+            'order': orderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'takerOrMaker': takerOrMaker,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'fee': fee,
+        }, market);
+    }
+
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name bitopro#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/ticker_stream.md
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the bitopro api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
@@ -199,20 +347,20 @@ export default class bitopro extends bitoproRest {
     handleTicker (client: Client, message) {
         //
         //     {
-        //         event: 'TICKER',
-        //         timestamp: 1650119165710,
-        //         datetime: '2022-04-16T14:26:05.710Z',
-        //         pair: 'BTC_TWD',
-        //         lastPrice: '1189110',
-        //         lastPriceUSD: '40919.1328',
-        //         lastPriceTWD: '1189110',
-        //         isBuyer: true,
-        //         priceChange24hr: '1.23',
-        //         volume24hr: '7.2090',
-        //         volume24hrUSD: '294985.5375',
-        //         volume24hrTWD: '8572279',
-        //         high24hr: '1193656',
-        //         low24hr: '1179321'
+        //         "event": "TICKER",
+        //         "timestamp": 1650119165710,
+        //         "datetime": "2022-04-16T14:26:05.710Z",
+        //         "pair": "BTC_TWD",
+        //         "lastPrice": "1189110",
+        //         "lastPriceUSD": "40919.1328",
+        //         "lastPriceTWD": "1189110",
+        //         "isBuyer": true,
+        //         "priceChange24hr": "1.23",
+        //         "volume24hr": "7.2090",
+        //         "volume24hrUSD": "294985.5375",
+        //         "volume24hrTWD": "8572279",
+        //         "high24hr": "1193656",
+        //         "low24hr": "1179321"
         //     }
         //
         const marketId = this.safeString (message, 'pair');
@@ -240,7 +388,7 @@ export default class bitopro extends bitoproRest {
             'identity': this.login,
         });
         const payload = this.stringToBase64 (rawData);
-        const signature = this.hmac (payload, this.encode (this.secret), sha384);
+        const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha384);
         const defaultOptions = {
             'ws': {
                 'options': {
@@ -262,13 +410,14 @@ export default class bitopro extends bitoproRest {
         this.options['ws']['options']['headers'] = originalHeaders;
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bitopro#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the bitopro api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/private/user_balance_stream.md
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
@@ -281,16 +430,16 @@ export default class bitopro extends bitoproRest {
     handleBalance (client: Client, message) {
         //
         //     {
-        //         event: 'ACCOUNT_BALANCE',
-        //         timestamp: 1650450505715,
-        //         datetime: '2022-04-20T10:28:25.715Z',
-        //         data: {
-        //           ADA: {
-        //             currency: 'ADA',
-        //             amount: '0',
-        //             available: '0',
-        //             stake: '0',
-        //             tradable: true
+        //         "event": "ACCOUNT_BALANCE",
+        //         "timestamp": 1650450505715,
+        //         "datetime": "2022-04-20T10:28:25.715Z",
+        //         "data": {
+        //           "ADA": {
+        //             "currency": "ADA",
+        //             "amount": "0",
+        //             "available": "0",
+        //             "stake": "0",
+        //             "tradable": true
         //           },
         //         }
         //     }
@@ -325,13 +474,12 @@ export default class bitopro extends bitoproRest {
             'TICKER': this.handleTicker,
             'ORDER_BOOK': this.handleOrderBook,
             'ACCOUNT_BALANCE': this.handleBalance,
+            'USER_TRADE': this.handleMyTrade,
         };
         const event = this.safeString (message, 'event');
         const method = this.safeValue (methods, event);
-        if (method === undefined) {
-            return message;
-        } else {
-            return method.call (this, client, message);
+        if (method !== undefined) {
+            method.call (this, client, message);
         }
     }
 }

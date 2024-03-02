@@ -7,5 +7,5 @@ export default class WsClient extends Client {
     createConnection(): void;
     connect(backoffDelay?: number): Promise<any>;
     isOpen(): boolean;
-    close(): any;
+    close(): import("./Future.js").FutureInterface;
 }

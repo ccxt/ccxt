@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.props))\dir.props" />
+    <PropertyGroup>
+        <Description>Nethereum signer library to sign and encode messages according to EIP-712</Description>
+        <AssemblyTitle>Nethereum.Signer.EIP712</AssemblyTitle>
+        <VersionPrefix>$(NethereumVersion)</VersionPrefix>
+        <TargetFrameworks>$(DefaultFrameworks)</TargetFrameworks>
+        <AssemblyName>Nethereum.Signer.EIP712</AssemblyName>
+        <PackageId>Nethereum.Signer.EIP712</PackageId>
+        <PackageTags>Netherum;Ethereum;Blockchain;EIP-712;Signer</PackageTags>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Nethereum.ABI\Nethereum.ABI.csproj" />
+      <ProjectReference Include="..\Nethereum.Hex\Nethereum.Hex.csproj" />
+      <ProjectReference Include="..\Nethereum.Signer\Nethereum.Signer.csproj" />
+      <ProjectReference Include="..\Nethereum.Util\Nethereum.Util.csproj" />
+    </ItemGroup>
+
+    <PropertyGroup Condition=" '$(TargetFramework)' != 'net35' And '$(TargetUnityNet461AOT)' != 'true'">
+        <SignAssembly>true</SignAssembly>
+        <AssemblyOriginatorKeyFile>..\..\NethereumKey.snk</AssemblyOriginatorKeyFile>
+    </PropertyGroup>
+    <ItemGroup Condition=" '$(TargetFramework)' != 'net35' And '$(TargetUnityNet461AOT)' != 'true'">
+        <None Include="..\..\NethereumKey.snk" />
+    </ItemGroup>
+
+</Project>

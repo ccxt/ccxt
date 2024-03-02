@@ -1,8 +1,9 @@
+import { Str, Int } from './types';
 declare class Precise {
-    decimals: any;
-    integer: any;
+    decimals: number;
+    integer: bigint;
     base: any;
-    constructor(number: any, decimals?: any);
+    constructor(number: any, decimals?: Int);
     mul(other: any): Precise;
     div(other: any, precision?: number): Precise;
     add(other: any): Precise;
@@ -19,21 +20,21 @@ declare class Precise {
     reduce(): this;
     equals(other: any): boolean;
     toString(): string;
-    static stringMul(string1: string, string2: string): string;
+    static stringMul(string1: Str, string2: Str): string;
     static stringDiv(string1: any, string2: any, precision?: number): string;
-    static stringAdd(string1: string, string2: string): string;
-    static stringSub(string1: string, string2: string): string;
+    static stringAdd(string1: Str, string2: Str): string;
+    static stringSub(string1: Str, string2: Str): string;
     static stringAbs(string: any): string;
     static stringNeg(string: any): string;
-    static stringMod(string1: string, string2: string): string;
-    static stringEquals(string1: string, string2: string): boolean;
-    static stringEq(string1: string, string2: string): boolean;
-    static stringMin(string1: string, string2: string): any;
-    static stringMax(string1: string, string2: string): any;
-    static stringGt(string1: string, string2: string): boolean;
-    static stringGe(string1: string, string2: string): boolean;
-    static stringLt(string1: string, string2: string): any;
-    static stringLe(string1: string, string2: string): any;
+    static stringMod(string1: Str, string2: Str): string;
+    static stringEquals(string1: Str, string2: Str): boolean;
+    static stringEq(string1: Str, string2: Str): boolean;
+    static stringMin(string1: Str, string2: Str): any;
+    static stringMax(string1: Str, string2: Str): any;
+    static stringGt(string1: Str, string2: Str): boolean;
+    static stringGe(string1: Str, string2: Str): boolean;
+    static stringLt(string1: Str, string2: Str): any;
+    static stringLe(string1: Str, string2: Str): any;
 }
 export default Precise;
 export { Precise };

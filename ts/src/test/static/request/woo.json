@@ -1,0 +1,379 @@
+{
+    "exchange": "woo",
+    "skipKeys": [],
+    "outputType": "urlencoded",
+    "methods": {
+        "createOrder": [
+            {
+                "description": "spot limit buy",
+                "method": "createOrder",
+                "url": "https://api.woo.org/v1/order",
+                "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50
+                ],
+                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_price=50&order_quantity=0.1&order_type=LIMIT&side=BUY&symbol=SPOT_LTC_USDT"
+            },
+            {
+                "description": "spot market buy",
+                "method": "createOrder",
+                "url": "https://api.woo.org/v1/order",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "buy",
+                  10,
+                  1
+                ],
+                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_amount=10&order_price=1&order_type=MARKET&side=BUY&symbol=SPOT_LTC_USDT"
+            },
+            {
+                "description": "spot market sell",
+                "method": "createOrder",
+                "url": "https://api.woo.org/v1/order",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "sell",
+                  0.1
+                ],
+                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_quantity=0.1&order_type=MARKET&side=SELL&symbol=SPOT_LTC_USDT"
+            },
+            {
+                "description": "swap market buy",
+                "method": "createOrder",
+                "url": "https://api.woo.org/v1/order",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.1
+                ],
+                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_quantity=0.1&order_type=MARKET&side=BUY&symbol=PERP_LTC_USDT"
+            },
+            {
+                "description": "Swap market sell with reduceOnly",
+                "method": "createOrder",
+                "url": "https://api.woo.org/v1/order",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.1,
+                  null,
+                  {
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_quantity=0.1&order_type=MARKET&reduce_only=true&side=SELL&symbol=PERP_LTC_USDT"
+            },
+            {
+                "description": "Swap trailingAmount reduceOnly order",
+                "method": "createOrder",
+                "url": "https://api.staging.woo.org/v3/algo/order",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.0001,
+                  null,
+                  {
+                    "trailingAmount": "1000",
+                    "trailingTriggerPrice": "50000",
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"activatedPrice\":\"50000\",\"algoType\":\"TRAILING_STOP\",\"callbackValue\":\"1000\",\"quantity\":\"0.0001\",\"reduceOnly\":true,\"side\":\"SELL\",\"symbol\":\"PERP_BTC_USDT\",\"type\":\"MARKET\"}"
+            },
+            {
+                "description": "Swap trailingPercent reduceOnly order",
+                "method": "createOrder",
+                "url": "https://api.staging.woo.org/v3/algo/order",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.0001,
+                  null,
+                  {
+                    "trailingPercent": "5",
+                    "trailingTriggerPrice": "50000",
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"activatedPrice\":\"50000\",\"algoType\":\"TRAILING_STOP\",\"callbackRate\":\"0.05\",\"quantity\":\"0.0001\",\"reduceOnly\":true,\"side\":\"SELL\",\"symbol\":\"PERP_BTC_USDT\",\"type\":\"MARKET\"}"
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "spot market buy with cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api.woo.org/v1/order",
+                "input": [
+                  "LTC/USDT",
+                  5
+                ],
+                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_amount=5&order_type=MARKET&side=BUY&symbol=SPOT_LTC_USDT"
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "Spot orders",
+                "method": "fetchOrders",
+                "url": "https://api.woo.org/v1/orders?symbol=SPOT_LTC_USDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap orders",
+                "method": "fetchOrders",
+                "url": "https://api.woo.org/v1/orders?symbol=PERP_LTC_USDT",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Swap trailing orders",
+                "method": "fetchOrders",
+                "url": "https://api.staging.woo.org/v3/algo/orders?algoType=TRAILING_STOP&symbol=PERP_BTC_USDT",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  null,
+                  {
+                    "trailing": true
+                  }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Spot private trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.woo.org/v1/client/trades?start_t=1699457638000&symbol=SPOT_LTC_USDT",
+                "input": [
+                    "LTC/USDT",
+                    1699457638000,
+                    5
+                ]
+            },
+            {
+                "description": "Swap private trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.woo.org/v1/client/trades?start_t=1699457638000&symbol=PERP_LTC_USDT",
+                "input": [
+                    "LTC/USDT:USDT",
+                    1699457638000,
+                    5
+                ]
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "Cancel swap orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.woo.org/v1/orders",
+                "input": [
+                    "LTC/USDT:USDT"
+                ],
+                "output": "symbol=PERP_LTC_USDT"
+            },
+            {
+                "description": "Cancel spot orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.woo.org/v1/orders",
+                "input": [
+                    "LTC/USDT"
+                ],
+                "output": "symbol=SPOT_LTC_USDT"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch spot Balance",
+                "method": "fetchBalance",
+                "url": "https://api.woo.org/v3/balances?type=spot",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch swap Balance",
+                "method": "fetchBalance",
+                "url": "https://api.woo.org/v3/balances?type=swap",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ]
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "Fetch linear position",
+                "method": "fetchPositions",
+                "url": "https://api.woo.org/v3/positions",
+                "input": [
+                    [
+                        "LTC/USDT:USDT"
+                    ]
+                ]
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "Set linear leverage",
+                "method": "setLeverage",
+                "url": "https://api.woo.org/v1/client/leverage",
+                "input": [
+                    5,
+                    "LTC/USDT:USDT"
+                ],
+                "output": "leverage=5"
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.woo.org/v1/asset/history?token_side=DEPOSIT&type=BALANCE",
+                "input": []
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.woo.org/v1/asset/history?token_side=WITHDRAW&type=BALANCE",
+                "input": []
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetch USDT transfers",
+                "method": "fetchTransfers",
+                "url": "https://api.woo.org/v1/asset/history?balance_token=USDT&type=COLLATERAL",
+                "input": [
+                    "USDT"
+                ]
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetch USDT ledger",
+                "method": "fetchLedger",
+                "url": "https://api.woo.org/v1/asset/history?balance_token=USDT",
+                "input": [
+                    "USDT"
+                ]
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "Swap edit trailingPercent order",
+                "method": "editOrder",
+                "url": "https://api.staging.woo.org/v3/algo/order/1111779",
+                "input": [
+                  "1111779",
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.0001,
+                  null,
+                  {
+                    "trailingPercent": "4"
+                  }
+                ],
+                "output": "{\"callbackRate\":\"0.04\",\"quantity\":\"0.0001\"}"
+            },
+            {
+                "description": "Swap edit trailingAmount order",
+                "method": "editOrder",
+                "url": "https://api.staging.woo.org/v3/algo/order/1111778",
+                "input": [
+                  "1111778",
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.0001,
+                  null,
+                  {
+                    "trailingAmount": "1000",
+                    "trailingTriggerPrice": "51000"
+                  }
+                ],
+                "output": "{\"activatedPrice\":\"51000\",\"callbackValue\":\"1000\",\"quantity\":\"0.0001\"}"
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch usdt address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.woo.org/v1/asset/deposit?token=ETH_USDT",
+                "input": [
+                  "USDT"
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV with since and limit",
+                "method": "fetchOHLCV",
+                "url": "https://api-pub.woo.org/v1/hist/kline?start_time=1704067200000&symbol=SPOT_BTC_USDT&type=1m",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1704067200000,
+                  200
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit",
+                "method": "fetchOHLCV",
+                "url": "https://api-pub.woo.org/v1/hist/kline?start_time=1704067200000&symbol=SPOT_BTC_USDT&type=1m",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1704067200000
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit and without since",
+                "method": "fetchOHLCV",
+                "url": "https://api.woo.org/v1/public/kline?limit=200&symbol=SPOT_BTC_USDT&type=1m",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  null,
+                  200
+                ]
+              }
+        ],
+        "setPositionMode": [
+            {
+                "description": "set position mode to hedge mode",
+                "method": "setPositionMode",
+                "url": "https://api.woo.org/v1/client/position_mode",
+                "input": [
+                  true
+                ],
+                "output": "position_mode=HEDGE_MODE"
+            },
+            {
+                "description": "set position mode to one way mode",
+                "method": "setPositionMode",
+                "url": "https://api.woo.org/v1/client/position_mode",
+                "input": [
+                  false
+                ],
+                "output": "position_mode=ONE_WAY"
+            }
+        ]
+    }
+}

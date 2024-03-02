@@ -5,8 +5,9 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.base.types import Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 
@@ -52,11 +53,11 @@ class alpaca(ccxt.async_support.alpaca):
             },
         })
 
-    async def watch_ticker(self, symbol: str, params={}):
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the alpaca api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         url = self.urls['api']['ws']['crypto']
@@ -73,13 +74,13 @@ class alpaca(ccxt.async_support.alpaca):
     def handle_ticker(self, client: Client, message):
         #
         #    {
-        #         T: 'q',
-        #         S: 'BTC/USDT',
-        #         bp: 17394.44,
-        #         bs: 0.021981,
-        #         ap: 17397.99,
-        #         as: 0.02,
-        #         t: '2022-12-16T06:07:56.611063286Z'
+        #         "T": "q",
+        #         "S": "BTC/USDT",
+        #         "bp": 17394.44,
+        #         "bs": 0.021981,
+        #         "ap": 17397.99,
+        #         "as": 0.02,
+        #         "t": "2022-12-16T06:07:56.611063286Z"
         #    ]
         #
         ticker = self.parse_ticker(message)
@@ -88,16 +89,16 @@ class alpaca(ccxt.async_support.alpaca):
         self.tickers[symbol] = ticker
         client.resolve(self.tickers[symbol], messageHash)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #    {
-        #         T: 'q',
-        #         S: 'BTC/USDT',
-        #         bp: 17394.44,
-        #         bs: 0.021981,
-        #         ap: 17397.99,
-        #         as: 0.02,
-        #         t: '2022-12-16T06:07:56.611063286Z'
+        #         "T": "q",
+        #         "S": "BTC/USDT",
+        #         "bp": 17394.44,
+        #         "bs": 0.021981,
+        #         "ap": 17397.99,
+        #         "as": 0.02,
+        #         "t": "2022-12-16T06:07:56.611063286Z"
         #    }
         #
         marketId = self.safe_string(ticker, 'S')
@@ -125,14 +126,14 @@ class alpaca(ccxt.async_support.alpaca):
             'info': ticker,
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the alpaca api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         url = self.urls['api']['ws']['crypto']
@@ -153,16 +154,16 @@ class alpaca(ccxt.async_support.alpaca):
     def handle_ohlcv(self, client: Client, message):
         #
         #    {
-        #        T: 'b',
-        #        S: 'BTC/USDT',
-        #        o: 17416.39,
-        #        h: 17424.82,
-        #        l: 17416.39,
-        #        c: 17424.82,
-        #        v: 1.341054,
-        #        t: '2022-12-16T06:53:00Z',
-        #        n: 21,
-        #        vw: 17421.9529234915
+        #        "T": "b",
+        #        "S": "BTC/USDT",
+        #        "o": 17416.39,
+        #        "h": 17424.82,
+        #        "l": 17416.39,
+        #        "c": 17424.82,
+        #        "v": 1.341054,
+        #        "t": "2022-12-16T06:53:00Z",
+        #        "n": 21,
+        #        "vw": 17421.9529234915
         #    }
         #
         marketId = self.safe_string(message, 'S')
@@ -177,12 +178,12 @@ class alpaca(ccxt.async_support.alpaca):
         messageHash = 'ohlcv:' + symbol
         client.resolve(stored, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
-        :param dict [params]: extra parameters specific to the alpaca api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         url = self.urls['api']['ws']['crypto']
@@ -202,29 +203,29 @@ class alpaca(ccxt.async_support.alpaca):
         #
         # snapshot
         #    {
-        #        T: "o",
-        #        S: "BTC/USDT",
-        #        t: "2022-12-16T06:35:31.585113205Z",
-        #        b: [{
-        #                p: 17394.37,
-        #                s: 0.015499,
+        #        "T": "o",
+        #        "S": "BTC/USDT",
+        #        "t": "2022-12-16T06:35:31.585113205Z",
+        #        "b": [{
+        #                "p": 17394.37,
+        #                "s": 0.015499,
         #            },
         #            ...
         #        ],
-        #        a: [{
-        #                p: 17398.8,
-        #                s: 0.042919,
+        #        "a": [{
+        #                "p": 17398.8,
+        #                "s": 0.042919,
         #            },
         #            ...
         #        ],
-        #        r: True,
+        #        "r": True,
         #    }
         #
         marketId = self.safe_string(message, 'S')
         symbol = self.safe_symbol(marketId)
         datetime = self.safe_string(message, 't')
         timestamp = self.parse8601(datetime)
-        isSnapshot = self.safe_value(message, 'r', False)
+        isSnapshot = self.safe_bool(message, 'r', False)
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
             orderbook = self.order_book()
@@ -250,14 +251,14 @@ class alpaca(ccxt.async_support.alpaca):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made in a market
-        :param str symbol: unified market symbol of the market orders were made in
+        :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the alpaca api endpoint
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :param int [limit]: the maximum number of trade structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         """
         url = self.urls['api']['ws']['crypto']
         await self.authenticate(url)
@@ -277,13 +278,13 @@ class alpaca(ccxt.async_support.alpaca):
     def handle_trades(self, client: Client, message):
         #
         #     {
-        #         T: 't',
-        #         S: 'BTC/USDT',
-        #         p: 17408.8,
-        #         s: 0.042919,
-        #         t: '2022-12-16T06:43:18.327Z',
-        #         i: 16585162,
-        #         tks: 'B'
+        #         "T": "t",
+        #         "S": "BTC/USDT",
+        #         "p": 17408.8,
+        #         "s": 0.042919,
+        #         "t": "2022-12-16T06:43:18.327Z",
+        #         "i": 16585162,
+        #         "tks": "B"
         #     ]
         #
         marketId = self.safe_string(message, 'S')
@@ -298,15 +299,15 @@ class alpaca(ccxt.async_support.alpaca):
         messageHash = 'trade' + ':' + symbol
         client.resolve(stored, messageHash)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made by the user
-        :param str symbol: unified market symbol of the market orders were made in
-        :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the alpaca api endpoint
+        :param str symbol: unified market symbol of the market trades were made in
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trade structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.unifiedMargin]: use unified margin account
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         """
         url = self.urls['api']['ws']['trading']
         await self.authenticate(url)
@@ -326,13 +327,13 @@ class alpaca(ccxt.async_support.alpaca):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the alpaca api endpoint
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         url = self.urls['api']['ws']['trading']
@@ -361,46 +362,46 @@ class alpaca(ccxt.async_support.alpaca):
     def handle_order(self, client: Client, message):
         #
         #    {
-        #        stream: 'trade_updates',
-        #        data: {
-        #          event: 'new',
-        #          timestamp: '2022-12-16T07:28:51.67621869Z',
-        #          order: {
-        #            id: 'c2470331-8993-4051-bf5d-428d5bdc9a48',
-        #            client_order_id: '0f1f3764-107a-4d09-8b9a-d75a11738f5c',
-        #            created_at: '2022-12-16T02:28:51.673531798-05:00',
-        #            updated_at: '2022-12-16T02:28:51.678736847-05:00',
-        #            submitted_at: '2022-12-16T02:28:51.673015558-05:00',
-        #            filled_at: null,
-        #            expired_at: null,
-        #            cancel_requested_at: null,
-        #            canceled_at: null,
-        #            failed_at: null,
-        #            replaced_at: null,
-        #            replaced_by: null,
-        #            replaces: null,
-        #            asset_id: '276e2673-764b-4ab6-a611-caf665ca6340',
-        #            symbol: 'BTC/USD',
-        #            asset_class: 'crypto',
-        #            notional: null,
-        #            qty: '0.01',
-        #            filled_qty: '0',
-        #            filled_avg_price: null,
-        #            order_class: '',
-        #            order_type: 'market',
-        #            type: 'market',
-        #            side: 'buy',
-        #            time_in_force: 'gtc',
-        #            limit_price: null,
-        #            stop_price: null,
-        #            status: 'new',
-        #            extended_hours: False,
-        #            legs: null,
-        #            trail_percent: null,
-        #            trail_price: null,
-        #            hwm: null
+        #        "stream": "trade_updates",
+        #        "data": {
+        #          "event": "new",
+        #          "timestamp": "2022-12-16T07:28:51.67621869Z",
+        #          "order": {
+        #            "id": "c2470331-8993-4051-bf5d-428d5bdc9a48",
+        #            "client_order_id": "0f1f3764-107a-4d09-8b9a-d75a11738f5c",
+        #            "created_at": "2022-12-16T02:28:51.673531798-05:00",
+        #            "updated_at": "2022-12-16T02:28:51.678736847-05:00",
+        #            "submitted_at": "2022-12-16T02:28:51.673015558-05:00",
+        #            "filled_at": null,
+        #            "expired_at": null,
+        #            "cancel_requested_at": null,
+        #            "canceled_at": null,
+        #            "failed_at": null,
+        #            "replaced_at": null,
+        #            "replaced_by": null,
+        #            "replaces": null,
+        #            "asset_id": "276e2673-764b-4ab6-a611-caf665ca6340",
+        #            "symbol": "BTC/USD",
+        #            "asset_class": "crypto",
+        #            "notional": null,
+        #            "qty": "0.01",
+        #            "filled_qty": "0",
+        #            "filled_avg_price": null,
+        #            "order_class": '',
+        #            "order_type": "market",
+        #            "type": "market",
+        #            "side": "buy",
+        #            "time_in_force": "gtc",
+        #            "limit_price": null,
+        #            "stop_price": null,
+        #            "status": "new",
+        #            "extended_hours": False,
+        #            "legs": null,
+        #            "trail_percent": null,
+        #            "trail_price": null,
+        #            "hwm": null
         #          },
-        #          execution_id: '5f781a30-b9a3-4c86-b466-2175850cf340'
+        #          "execution_id": "5f781a30-b9a3-4c86-b466-2175850cf340"
         #        }
         #      }
         #
@@ -420,46 +421,46 @@ class alpaca(ccxt.async_support.alpaca):
     def handle_my_trade(self, client: Client, message):
         #
         #    {
-        #        stream: 'trade_updates',
-        #        data: {
-        #          event: 'new',
-        #          timestamp: '2022-12-16T07:28:51.67621869Z',
-        #          order: {
-        #            id: 'c2470331-8993-4051-bf5d-428d5bdc9a48',
-        #            client_order_id: '0f1f3764-107a-4d09-8b9a-d75a11738f5c',
-        #            created_at: '2022-12-16T02:28:51.673531798-05:00',
-        #            updated_at: '2022-12-16T02:28:51.678736847-05:00',
-        #            submitted_at: '2022-12-16T02:28:51.673015558-05:00',
-        #            filled_at: null,
-        #            expired_at: null,
-        #            cancel_requested_at: null,
-        #            canceled_at: null,
-        #            failed_at: null,
-        #            replaced_at: null,
-        #            replaced_by: null,
-        #            replaces: null,
-        #            asset_id: '276e2673-764b-4ab6-a611-caf665ca6340',
-        #            symbol: 'BTC/USD',
-        #            asset_class: 'crypto',
-        #            notional: null,
-        #            qty: '0.01',
-        #            filled_qty: '0',
-        #            filled_avg_price: null,
-        #            order_class: '',
-        #            order_type: 'market',
-        #            type: 'market',
-        #            side: 'buy',
-        #            time_in_force: 'gtc',
-        #            limit_price: null,
-        #            stop_price: null,
-        #            status: 'new',
-        #            extended_hours: False,
-        #            legs: null,
-        #            trail_percent: null,
-        #            trail_price: null,
-        #            hwm: null
+        #        "stream": "trade_updates",
+        #        "data": {
+        #          "event": "new",
+        #          "timestamp": "2022-12-16T07:28:51.67621869Z",
+        #          "order": {
+        #            "id": "c2470331-8993-4051-bf5d-428d5bdc9a48",
+        #            "client_order_id": "0f1f3764-107a-4d09-8b9a-d75a11738f5c",
+        #            "created_at": "2022-12-16T02:28:51.673531798-05:00",
+        #            "updated_at": "2022-12-16T02:28:51.678736847-05:00",
+        #            "submitted_at": "2022-12-16T02:28:51.673015558-05:00",
+        #            "filled_at": null,
+        #            "expired_at": null,
+        #            "cancel_requested_at": null,
+        #            "canceled_at": null,
+        #            "failed_at": null,
+        #            "replaced_at": null,
+        #            "replaced_by": null,
+        #            "replaces": null,
+        #            "asset_id": "276e2673-764b-4ab6-a611-caf665ca6340",
+        #            "symbol": "BTC/USD",
+        #            "asset_class": "crypto",
+        #            "notional": null,
+        #            "qty": "0.01",
+        #            "filled_qty": "0",
+        #            "filled_avg_price": null,
+        #            "order_class": '',
+        #            "order_type": "market",
+        #            "type": "market",
+        #            "side": "buy",
+        #            "time_in_force": "gtc",
+        #            "limit_price": null,
+        #            "stop_price": null,
+        #            "status": "new",
+        #            "extended_hours": False,
+        #            "legs": null,
+        #            "trail_percent": null,
+        #            "trail_price": null,
+        #            "hwm": null
         #          },
-        #          execution_id: '5f781a30-b9a3-4c86-b466-2175850cf340'
+        #          "execution_id": "5f781a30-b9a3-4c86-b466-2175850cf340"
         #        }
         #      }
         #
@@ -482,39 +483,39 @@ class alpaca(ccxt.async_support.alpaca):
     def parse_my_trade(self, trade, market=None):
         #
         #    {
-        #        id: 'c2470331-8993-4051-bf5d-428d5bdc9a48',
-        #        client_order_id: '0f1f3764-107a-4d09-8b9a-d75a11738f5c',
-        #        created_at: '2022-12-16T02:28:51.673531798-05:00',
-        #        updated_at: '2022-12-16T02:28:51.678736847-05:00',
-        #        submitted_at: '2022-12-16T02:28:51.673015558-05:00',
-        #        filled_at: null,
-        #        expired_at: null,
-        #        cancel_requested_at: null,
-        #        canceled_at: null,
-        #        failed_at: null,
-        #        replaced_at: null,
-        #        replaced_by: null,
-        #        replaces: null,
-        #        asset_id: '276e2673-764b-4ab6-a611-caf665ca6340',
-        #        symbol: 'BTC/USD',
-        #        asset_class: 'crypto',
-        #        notional: null,
-        #        qty: '0.01',
-        #        filled_qty: '0',
-        #        filled_avg_price: null,
-        #        order_class: '',
-        #        order_type: 'market',
-        #        type: 'market',
-        #        side: 'buy',
-        #        time_in_force: 'gtc',
-        #        limit_price: null,
-        #        stop_price: null,
-        #        status: 'new',
-        #        extended_hours: False,
-        #        legs: null,
-        #        trail_percent: null,
-        #        trail_price: null,
-        #        hwm: null
+        #        "id": "c2470331-8993-4051-bf5d-428d5bdc9a48",
+        #        "client_order_id": "0f1f3764-107a-4d09-8b9a-d75a11738f5c",
+        #        "created_at": "2022-12-16T02:28:51.673531798-05:00",
+        #        "updated_at": "2022-12-16T02:28:51.678736847-05:00",
+        #        "submitted_at": "2022-12-16T02:28:51.673015558-05:00",
+        #        "filled_at": null,
+        #        "expired_at": null,
+        #        "cancel_requested_at": null,
+        #        "canceled_at": null,
+        #        "failed_at": null,
+        #        "replaced_at": null,
+        #        "replaced_by": null,
+        #        "replaces": null,
+        #        "asset_id": "276e2673-764b-4ab6-a611-caf665ca6340",
+        #        "symbol": "BTC/USD",
+        #        "asset_class": "crypto",
+        #        "notional": null,
+        #        "qty": "0.01",
+        #        "filled_qty": "0",
+        #        "filled_avg_price": null,
+        #        "order_class": '',
+        #        "order_type": "market",
+        #        "type": "market",
+        #        "side": "buy",
+        #        "time_in_force": "gtc",
+        #        "limit_price": null,
+        #        "stop_price": null,
+        #        "status": "new",
+        #        "extended_hours": False,
+        #        "legs": null,
+        #        "trail_percent": null,
+        #        "trail_price": null,
+        #        "hwm": null
         #    }
         #
         marketId = self.safe_string(trade, 'symbol')
@@ -543,9 +544,9 @@ class alpaca(ccxt.async_support.alpaca):
         self.check_required_credentials()
         messageHash = 'authenticated'
         client = self.client(url)
-        future = self.safe_value(client.subscriptions, messageHash)
-        if future is None:
-            future = client.future('authenticated')
+        future = client.future(messageHash)
+        authenticated = self.safe_value(client.subscriptions, messageHash)
+        if authenticated is None:
             request = {
                 'action': 'auth',
                 'key': self.apiKey,
@@ -560,15 +561,15 @@ class alpaca(ccxt.async_support.alpaca):
                         'secret_key': self.secret,
                     },
                 }
-            self.spawn(self.watch, url, messageHash, request, messageHash, future)
-        return await future
+            self.watch(url, messageHash, request, messageHash, future)
+        return future
 
     def handle_error_message(self, client: Client, message):
         #
         #    {
-        #        T: 'error',
-        #        code: 400,
-        #        msg: 'invalid syntax'
+        #        "T": "error",
+        #        "code": 400,
+        #        "msg": "invalid syntax"
         #    }
         #
         code = self.safe_string(message, 'code')
@@ -578,8 +579,8 @@ class alpaca(ccxt.async_support.alpaca):
     def handle_connected(self, client: Client, message):
         #
         #    {
-        #        T: 'success',
-        #        msg: 'connected'
+        #        "T": "success",
+        #        "msg": "connected"
         #    }
         #
         return message
@@ -590,11 +591,14 @@ class alpaca(ccxt.async_support.alpaca):
             T = self.safe_string(data, 'T')
             msg = self.safe_value(data, 'msg', {})
             if T == 'subscription':
-                return self.handle_subscription(client, data)
+                self.handle_subscription(client, data)
+                return
             if T == 'success' and msg == 'connected':
-                return self.handle_connected(client, data)
+                self.handle_connected(client, data)
+                return
             if T == 'success' and msg == 'authenticated':
-                return self.handle_authenticate(client, data)
+                self.handle_authenticate(client, data)
+                return
             methods = {
                 'error': self.handle_error_message,
                 'b': self.handle_ohlcv,
@@ -619,15 +623,16 @@ class alpaca(ccxt.async_support.alpaca):
 
     def handle_message(self, client: Client, message):
         if isinstance(message, list):
-            return self.handle_crypto_message(client, message)
+            self.handle_crypto_message(client, message)
+            return
         self.handle_trading_message(client, message)
 
     def handle_authenticate(self, client: Client, message):
         #
         # crypto
         #    {
-        #        T: 'success',
-        #        msg: 'connected'
+        #        "T": "success",
+        #        "msg": "connected"
         #    ]
         #
         # trading
@@ -640,11 +645,11 @@ class alpaca(ccxt.async_support.alpaca):
         #    }
         # error
         #    {
-        #        stream: 'authorization',
-        #        data: {
-        #            action: 'authenticate',
-        #            message: 'access key verification failed',
-        #            status: 'unauthorized'
+        #        "stream": "authorization",
+        #        "data": {
+        #            "action": "authenticate",
+        #            "message": "access key verification failed",
+        #            "status": "unauthorized"
         #        }
         #    }
         #
@@ -652,7 +657,8 @@ class alpaca(ccxt.async_support.alpaca):
         data = self.safe_value(message, 'data', {})
         status = self.safe_string(data, 'status')
         if T == 'success' or status == 'authorized':
-            client.resolve(message, 'authenticated')
+            promise = client.futures['authenticated']
+            promise.resolve(message)
             return
         raise AuthenticationError(self.id + ' failed to authenticate.')
 
@@ -660,19 +666,19 @@ class alpaca(ccxt.async_support.alpaca):
         #
         # crypto
         #    {
-        #          T: 'subscription',
-        #          trades: [],
-        #          quotes: ['BTC/USDT'],
-        #          orderbooks: [],
-        #          bars: [],
-        #          updatedBars: [],
-        #          dailyBars: []
+        #          "T": "subscription",
+        #          "trades": [],
+        #          "quotes": ["BTC/USDT"],
+        #          "orderbooks": [],
+        #          "bars": [],
+        #          "updatedBars": [],
+        #          "dailyBars": []
         #    }
         # trading
         #    {
-        #        stream: 'listening',
-        #        data: {
-        #            streams: ['trade_updates']
+        #        "stream": "listening",
+        #        "data": {
+        #            "streams": ["trade_updates"]
         #        }
         #    }
         #

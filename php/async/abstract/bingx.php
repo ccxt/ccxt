@@ -16,6 +16,12 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function spot_v1_public_get_market_depth($params = array()) {
         return $this->request('market/depth', array('spot', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 3));
     }
+    public function spot_v1_public_get_market_kline($params = array()) {
+        return $this->request('market/kline', array('spot', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function spot_v1_public_get_ticker_24hr($params = array()) {
+        return $this->request('ticker/24hr', array('spot', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function spot_v1_private_get_trade_query($params = array()) {
         return $this->request('trade/query', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -25,6 +31,12 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function spot_v1_private_get_trade_historyorders($params = array()) {
         return $this->request('trade/historyOrders', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
+    public function spot_v1_private_get_trade_mytrades($params = array()) {
+        return $this->request('trade/myTrades', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function spot_v1_private_get_user_commissionrate($params = array()) {
+        return $this->request('user/commissionRate', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
+    }
     public function spot_v1_private_get_account_balance($params = array()) {
         return $this->request('account/balance', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -33,6 +45,18 @@ abstract class bingx extends \ccxt\async\Exchange {
     }
     public function spot_v1_private_post_trade_cancel($params = array()) {
         return $this->request('trade/cancel', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function spot_v1_private_post_trade_batchorders($params = array()) {
+        return $this->request('trade/batchOrders', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function spot_v1_private_post_trade_order_cancelreplace($params = array()) {
+        return $this->request('trade/order/cancelReplace', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function spot_v1_private_post_trade_cancelorders($params = array()) {
+        return $this->request('trade/cancelOrders', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function spot_v1_private_post_trade_cancelopenorders($params = array()) {
+        return $this->request('trade/cancelOpenOrders', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
     public function spot_v3_private_get_get_asset_transfer($params = array()) {
         return $this->request('get/asset/transfer', array('spot', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 3));
@@ -45,6 +69,27 @@ abstract class bingx extends \ccxt\async\Exchange {
     }
     public function spot_v3_private_get_capital_withdraw_history($params = array()) {
         return $this->request('capital/withdraw/history', array('spot', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function spot_v3_private_post_post_asset_transfer($params = array()) {
+        return $this->request('post/asset/transfer', array('spot', 'v3', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function swap_v1_public_get_ticker_price($params = array()) {
+        return $this->request('ticker/price', array('swap', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function swap_v1_private_get_positionside_dual($params = array()) {
+        return $this->request('positionSide/dual', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function swap_v1_private_get_market_markpriceklines($params = array()) {
+        return $this->request('market/markPriceKlines', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function swap_v1_private_get_trade_batchcancelreplace($params = array()) {
+        return $this->request('trade/batchCancelReplace', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function swap_v1_private_post_trade_cancelreplace($params = array()) {
+        return $this->request('trade/cancelReplace', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function swap_v1_private_post_positionside_dual($params = array()) {
+        return $this->request('positionSide/dual', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function swap_v2_public_get_server_time($params = array()) {
         return $this->request('server/time', array('swap', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 3));
@@ -76,6 +121,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function swap_v2_public_get_quote_ticker($params = array()) {
         return $this->request('quote/ticker', array('swap', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function swap_v2_public_get_quote_bookticker($params = array()) {
+        return $this->request('quote/bookTicker', array('swap', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function swap_v2_private_get_user_balance($params = array()) {
         return $this->request('user/balance', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -87,6 +135,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     }
     public function swap_v2_private_get_trade_openorders($params = array()) {
         return $this->request('trade/openOrders', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function swap_v2_private_get_trade_openorder($params = array()) {
+        return $this->request('trade/openOrder', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
     public function swap_v2_private_get_trade_order($params = array()) {
         return $this->request('trade/order', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 3));
@@ -145,6 +196,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function swap_v2_private_delete_trade_allopenorders($params = array()) {
         return $this->request('trade/allOpenOrders', array('swap', 'v2', 'private'), 'DELETE', $params, null, null, array("cost" => 3));
     }
+    public function swap_v3_public_get_quote_klines($params = array()) {
+        return $this->request('quote/klines', array('swap', 'v3', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function contract_v1_private_get_allposition($params = array()) {
         return $this->request('allPosition', array('contract', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -157,8 +211,89 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function wallets_v1_private_get_capital_config_getall($params = array()) {
         return $this->request('capital/config/getall', array('wallets', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
+    public function wallets_v1_private_get_capital_deposit_address($params = array()) {
+        return $this->request('capital/deposit/address', array('wallets', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function wallets_v1_private_get_capital_innertransfer_records($params = array()) {
+        return $this->request('capital/innerTransfer/records', array('wallets', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function wallets_v1_private_get_capital_subaccount_deposit_address($params = array()) {
+        return $this->request('capital/subAccount/deposit/address', array('wallets', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function wallets_v1_private_get_capital_deposit_subhisrec($params = array()) {
+        return $this->request('capital/deposit/subHisrec', array('wallets', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function wallets_v1_private_get_capital_subaccount_innertransfer_records($params = array()) {
+        return $this->request('capital/subAccount/innerTransfer/records', array('wallets', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function wallets_v1_private_post_capital_withdraw_apply($params = array()) {
         return $this->request('capital/withdraw/apply', array('wallets', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function wallets_v1_private_post_capital_innertransfer_apply($params = array()) {
+        return $this->request('capital/innerTransfer/apply', array('wallets', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function wallets_v1_private_post_capital_subaccountinnertransfer_apply($params = array()) {
+        return $this->request('capital/subAccountInnerTransfer/apply', array('wallets', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function wallets_v1_private_post_capital_deposit_createsubaddress($params = array()) {
+        return $this->request('capital/deposit/createSubAddress', array('wallets', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function subaccount_v1_private_get_list($params = array()) {
+        return $this->request('list', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function subaccount_v1_private_get_assets($params = array()) {
+        return $this->request('assets', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function subaccount_v1_private_get_apikey_query($params = array()) {
+        return $this->request('apiKey/query', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function subaccount_v1_private_post_create($params = array()) {
+        return $this->request('create', array('subAccount', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function subaccount_v1_private_post_apikey_create($params = array()) {
+        return $this->request('apiKey/create', array('subAccount', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function subaccount_v1_private_post_apikey_edit($params = array()) {
+        return $this->request('apiKey/edit', array('subAccount', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function subaccount_v1_private_post_apikey_del($params = array()) {
+        return $this->request('apiKey/del', array('subAccount', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function subaccount_v1_private_post_updatestatus($params = array()) {
+        return $this->request('updateStatus', array('subAccount', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function account_v1_private_get_uid($params = array()) {
+        return $this->request('uid', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function account_v1_private_post_innertransfer_authorizesubaccount($params = array()) {
+        return $this->request('innerTransfer/authorizeSubAccount', array('account', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function user_auth_private_post_userdatastream($params = array()) {
+        return $this->request('userDataStream', array('user', 'auth', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function user_auth_private_put_userdatastream($params = array()) {
+        return $this->request('userDataStream', array('user', 'auth', 'private'), 'PUT', $params, null, null, array("cost" => 1));
+    }
+    public function copytrading_v1_private_get_swap_trace_currenttrack($params = array()) {
+        return $this->request('swap/trace/currentTrack', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function copytrading_v1_private_post_swap_trace_closetrackorder($params = array()) {
+        return $this->request('swap/trace/closeTrackOrder', array('copyTrading', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function copytrading_v1_private_post_swap_trace_settpsl($params = array()) {
+        return $this->request('swap/trace/setTPSL', array('copyTrading', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function api_v3_private_get_asset_transfer($params = array()) {
+        return $this->request('asset/transfer', array('api', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function api_v3_private_get_capital_deposit_hisrec($params = array()) {
+        return $this->request('capital/deposit/hisrec', array('api', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function api_v3_private_get_capital_withdraw_history($params = array()) {
+        return $this->request('capital/withdraw/history', array('api', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function api_v3_private_post_post_asset_transfer($params = array()) {
+        return $this->request('post/asset/transfer', array('api', 'v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function spotV1PublicGetCommonSymbols($params = array()) {
         return $this->request('common/symbols', array('spot', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 3));
@@ -169,6 +304,12 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function spotV1PublicGetMarketDepth($params = array()) {
         return $this->request('market/depth', array('spot', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 3));
     }
+    public function spotV1PublicGetMarketKline($params = array()) {
+        return $this->request('market/kline', array('spot', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function spotV1PublicGetTicker24hr($params = array()) {
+        return $this->request('ticker/24hr', array('spot', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function spotV1PrivateGetTradeQuery($params = array()) {
         return $this->request('trade/query', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -178,6 +319,12 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function spotV1PrivateGetTradeHistoryOrders($params = array()) {
         return $this->request('trade/historyOrders', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
+    public function spotV1PrivateGetTradeMyTrades($params = array()) {
+        return $this->request('trade/myTrades', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function spotV1PrivateGetUserCommissionRate($params = array()) {
+        return $this->request('user/commissionRate', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
+    }
     public function spotV1PrivateGetAccountBalance($params = array()) {
         return $this->request('account/balance', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -186,6 +333,18 @@ abstract class bingx extends \ccxt\async\Exchange {
     }
     public function spotV1PrivatePostTradeCancel($params = array()) {
         return $this->request('trade/cancel', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function spotV1PrivatePostTradeBatchOrders($params = array()) {
+        return $this->request('trade/batchOrders', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function spotV1PrivatePostTradeOrderCancelReplace($params = array()) {
+        return $this->request('trade/order/cancelReplace', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function spotV1PrivatePostTradeCancelOrders($params = array()) {
+        return $this->request('trade/cancelOrders', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function spotV1PrivatePostTradeCancelOpenOrders($params = array()) {
+        return $this->request('trade/cancelOpenOrders', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
     public function spotV3PrivateGetGetAssetTransfer($params = array()) {
         return $this->request('get/asset/transfer', array('spot', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 3));
@@ -198,6 +357,27 @@ abstract class bingx extends \ccxt\async\Exchange {
     }
     public function spotV3PrivateGetCapitalWithdrawHistory($params = array()) {
         return $this->request('capital/withdraw/history', array('spot', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function spotV3PrivatePostPostAssetTransfer($params = array()) {
+        return $this->request('post/asset/transfer', array('spot', 'v3', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function swapV1PublicGetTickerPrice($params = array()) {
+        return $this->request('ticker/price', array('swap', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function swapV1PrivateGetPositionSideDual($params = array()) {
+        return $this->request('positionSide/dual', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function swapV1PrivateGetMarketMarkPriceKlines($params = array()) {
+        return $this->request('market/markPriceKlines', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function swapV1PrivateGetTradeBatchCancelReplace($params = array()) {
+        return $this->request('trade/batchCancelReplace', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function swapV1PrivatePostTradeCancelReplace($params = array()) {
+        return $this->request('trade/cancelReplace', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function swapV1PrivatePostPositionSideDual($params = array()) {
+        return $this->request('positionSide/dual', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function swapV2PublicGetServerTime($params = array()) {
         return $this->request('server/time', array('swap', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 3));
@@ -229,6 +409,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function swapV2PublicGetQuoteTicker($params = array()) {
         return $this->request('quote/ticker', array('swap', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function swapV2PublicGetQuoteBookTicker($params = array()) {
+        return $this->request('quote/bookTicker', array('swap', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function swapV2PrivateGetUserBalance($params = array()) {
         return $this->request('user/balance', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -240,6 +423,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     }
     public function swapV2PrivateGetTradeOpenOrders($params = array()) {
         return $this->request('trade/openOrders', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function swapV2PrivateGetTradeOpenOrder($params = array()) {
+        return $this->request('trade/openOrder', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
     public function swapV2PrivateGetTradeOrder($params = array()) {
         return $this->request('trade/order', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 3));
@@ -298,6 +484,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function swapV2PrivateDeleteTradeAllOpenOrders($params = array()) {
         return $this->request('trade/allOpenOrders', array('swap', 'v2', 'private'), 'DELETE', $params, null, null, array("cost" => 3));
     }
+    public function swapV3PublicGetQuoteKlines($params = array()) {
+        return $this->request('quote/klines', array('swap', 'v3', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function contractV1PrivateGetAllPosition($params = array()) {
         return $this->request('allPosition', array('contract', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -310,7 +499,88 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function walletsV1PrivateGetCapitalConfigGetall($params = array()) {
         return $this->request('capital/config/getall', array('wallets', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
+    public function walletsV1PrivateGetCapitalDepositAddress($params = array()) {
+        return $this->request('capital/deposit/address', array('wallets', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function walletsV1PrivateGetCapitalInnerTransferRecords($params = array()) {
+        return $this->request('capital/innerTransfer/records', array('wallets', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function walletsV1PrivateGetCapitalSubAccountDepositAddress($params = array()) {
+        return $this->request('capital/subAccount/deposit/address', array('wallets', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function walletsV1PrivateGetCapitalDepositSubHisrec($params = array()) {
+        return $this->request('capital/deposit/subHisrec', array('wallets', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function walletsV1PrivateGetCapitalSubAccountInnerTransferRecords($params = array()) {
+        return $this->request('capital/subAccount/innerTransfer/records', array('wallets', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function walletsV1PrivatePostCapitalWithdrawApply($params = array()) {
         return $this->request('capital/withdraw/apply', array('wallets', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function walletsV1PrivatePostCapitalInnerTransferApply($params = array()) {
+        return $this->request('capital/innerTransfer/apply', array('wallets', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function walletsV1PrivatePostCapitalSubAccountInnerTransferApply($params = array()) {
+        return $this->request('capital/subAccountInnerTransfer/apply', array('wallets', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function walletsV1PrivatePostCapitalDepositCreateSubAddress($params = array()) {
+        return $this->request('capital/deposit/createSubAddress', array('wallets', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function subAccountV1PrivateGetList($params = array()) {
+        return $this->request('list', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function subAccountV1PrivateGetAssets($params = array()) {
+        return $this->request('assets', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function subAccountV1PrivateGetApiKeyQuery($params = array()) {
+        return $this->request('apiKey/query', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function subAccountV1PrivatePostCreate($params = array()) {
+        return $this->request('create', array('subAccount', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function subAccountV1PrivatePostApiKeyCreate($params = array()) {
+        return $this->request('apiKey/create', array('subAccount', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function subAccountV1PrivatePostApiKeyEdit($params = array()) {
+        return $this->request('apiKey/edit', array('subAccount', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function subAccountV1PrivatePostApiKeyDel($params = array()) {
+        return $this->request('apiKey/del', array('subAccount', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function subAccountV1PrivatePostUpdateStatus($params = array()) {
+        return $this->request('updateStatus', array('subAccount', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function accountV1PrivateGetUid($params = array()) {
+        return $this->request('uid', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function accountV1PrivatePostInnerTransferAuthorizeSubAccount($params = array()) {
+        return $this->request('innerTransfer/authorizeSubAccount', array('account', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function userAuthPrivatePostUserDataStream($params = array()) {
+        return $this->request('userDataStream', array('user', 'auth', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function userAuthPrivatePutUserDataStream($params = array()) {
+        return $this->request('userDataStream', array('user', 'auth', 'private'), 'PUT', $params, null, null, array("cost" => 1));
+    }
+    public function copyTradingV1PrivateGetSwapTraceCurrentTrack($params = array()) {
+        return $this->request('swap/trace/currentTrack', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function copyTradingV1PrivatePostSwapTraceCloseTrackOrder($params = array()) {
+        return $this->request('swap/trace/closeTrackOrder', array('copyTrading', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function copyTradingV1PrivatePostSwapTraceSetTPSL($params = array()) {
+        return $this->request('swap/trace/setTPSL', array('copyTrading', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function apiV3PrivateGetAssetTransfer($params = array()) {
+        return $this->request('asset/transfer', array('api', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function apiV3PrivateGetCapitalDepositHisrec($params = array()) {
+        return $this->request('capital/deposit/hisrec', array('api', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function apiV3PrivateGetCapitalWithdrawHistory($params = array()) {
+        return $this->request('capital/withdraw/history', array('api', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function apiV3PrivatePostPostAssetTransfer($params = array()) {
+        return $this->request('post/asset/transfer', array('api', 'v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
 }

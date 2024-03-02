@@ -1,0 +1,450 @@
+{
+    "BTC/USDT": {
+        "id": "btc_usdt",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "price": 0.01,
+            "amount": 1e-8
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0001,
+                "max": 100000000
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "pair": "btc_usdt",
+            "base": "btc",
+            "quote": "usdt",
+            "basePrecision": "8",
+            "quotePrecision": "2",
+            "minLimitBaseAmount": "0.0001",
+            "maxLimitBaseAmount": "100000000",
+            "minMarketBuyQuoteAmount": "7",
+            "orderOpenLimit": "200",
+            "maintain": false,
+            "orderBookQuotePrecision": "2",
+            "orderBookQuoteScaleLevel": "5",
+            "amountPrecision": "4"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.001,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    3000000,
+                    0.00194
+                ],
+                [
+                    5000000,
+                    0.0015
+                ],
+                [
+                    30000000,
+                    0.0014
+                ],
+                [
+                    300000000,
+                    0.0013
+                ],
+                [
+                    550000000,
+                    0.0012
+                ],
+                [
+                    1300000000,
+                    0.0011
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    3000000,
+                    0.00097
+                ],
+                [
+                    5000000,
+                    0.0007
+                ],
+                [
+                    30000000,
+                    0.0006
+                ],
+                [
+                    300000000,
+                    0.0005
+                ],
+                [
+                    550000000,
+                    0.0004
+                ],
+                [
+                    1300000000,
+                    0.0003
+                ]
+            ]
+        },
+        "uppercaseId": "BTC_USDT",
+        "derivative": false
+    },
+    "LTC/USDT": {
+        "id": "ltc_usdt",
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "price": 0.01,
+            "amount": 1e-8
+        },
+        "limits": {
+            "amount": {
+                "min": 0.001,
+                "max": 100000000
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "pair": "ltc_usdt",
+            "base": "ltc",
+            "quote": "usdt",
+            "basePrecision": "8",
+            "quotePrecision": "2",
+            "minLimitBaseAmount": "0.001",
+            "maxLimitBaseAmount": "100000000",
+            "minMarketBuyQuoteAmount": "0.2",
+            "orderOpenLimit": "200",
+            "maintain": false,
+            "orderBookQuotePrecision": "2",
+            "orderBookQuoteScaleLevel": "5",
+            "amountPrecision": "4"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.001,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    3000000,
+                    0.00194
+                ],
+                [
+                    5000000,
+                    0.0015
+                ],
+                [
+                    30000000,
+                    0.0014
+                ],
+                [
+                    300000000,
+                    0.0013
+                ],
+                [
+                    550000000,
+                    0.0012
+                ],
+                [
+                    1300000000,
+                    0.0011
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    3000000,
+                    0.00097
+                ],
+                [
+                    5000000,
+                    0.0007
+                ],
+                [
+                    30000000,
+                    0.0006
+                ],
+                [
+                    300000000,
+                    0.0005
+                ],
+                [
+                    550000000,
+                    0.0004
+                ],
+                [
+                    1300000000,
+                    0.0003
+                ]
+            ]
+        },
+        "uppercaseId": "LTC_USDT",
+        "derivative": false
+    },
+    "ADA/USDT": {
+        "id": "ada_usdt",
+        "symbol": "ADA/USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "price": 0.0001,
+            "amount": 1e-8
+        },
+        "limits": {
+            "amount": {
+                "min": 0.01,
+                "max": 100000000
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "pair": "ada_usdt",
+            "base": "ada",
+            "quote": "usdt",
+            "basePrecision": "8",
+            "quotePrecision": "4",
+            "minLimitBaseAmount": "0.01",
+            "maxLimitBaseAmount": "100000000",
+            "minMarketBuyQuoteAmount": "0.2",
+            "orderOpenLimit": "200",
+            "maintain": false,
+            "orderBookQuotePrecision": "4",
+            "orderBookQuoteScaleLevel": "4",
+            "amountPrecision": "4"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.001,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    3000000,
+                    0.00194
+                ],
+                [
+                    5000000,
+                    0.0015
+                ],
+                [
+                    30000000,
+                    0.0014
+                ],
+                [
+                    300000000,
+                    0.0013
+                ],
+                [
+                    550000000,
+                    0.0012
+                ],
+                [
+                    1300000000,
+                    0.0011
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    3000000,
+                    0.00097
+                ],
+                [
+                    5000000,
+                    0.0007
+                ],
+                [
+                    30000000,
+                    0.0006
+                ],
+                [
+                    300000000,
+                    0.0005
+                ],
+                [
+                    550000000,
+                    0.0004
+                ],
+                [
+                    1300000000,
+                    0.0003
+                ]
+            ]
+        },
+        "uppercaseId": "ADA_USDT",
+        "derivative": false
+    },
+    "SOL/USDT": {
+        "id": "sol_usdt",
+        "symbol": "SOL/USDT",
+        "base": "SOL",
+        "quote": "USDT",
+        "baseId": "SOL",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "price": 0.01,
+            "amount": 1e-8
+        },
+        "limits": {
+            "amount": {
+                "min": 0.01,
+                "max": 100000000
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "pair": "sol_usdt",
+            "base": "sol",
+            "quote": "usdt",
+            "basePrecision": "8",
+            "quotePrecision": "2",
+            "minLimitBaseAmount": "0.01",
+            "maxLimitBaseAmount": "100000000",
+            "minMarketBuyQuoteAmount": "1",
+            "orderOpenLimit": "200",
+            "maintain": false,
+            "orderBookQuotePrecision": "2",
+            "orderBookQuoteScaleLevel": "4",
+            "amountPrecision": "4"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.001,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    3000000,
+                    0.00194
+                ],
+                [
+                    5000000,
+                    0.0015
+                ],
+                [
+                    30000000,
+                    0.0014
+                ],
+                [
+                    300000000,
+                    0.0013
+                ],
+                [
+                    550000000,
+                    0.0012
+                ],
+                [
+                    1300000000,
+                    0.0011
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    3000000,
+                    0.00097
+                ],
+                [
+                    5000000,
+                    0.0007
+                ],
+                [
+                    30000000,
+                    0.0006
+                ],
+                [
+                    300000000,
+                    0.0005
+                ],
+                [
+                    550000000,
+                    0.0004
+                ],
+                [
+                    1300000000,
+                    0.0003
+                ]
+            ]
+        },
+        "uppercaseId": "SOL_USDT",
+        "derivative": false
+    }
+}
