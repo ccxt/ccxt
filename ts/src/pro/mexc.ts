@@ -516,6 +516,7 @@ export default class mexc extends mexcRest {
     handleDelta (orderbook, delta) {
         const existingNonce = this.safeInteger (orderbook, 'nonce');
         const deltaNonce = this.safeInteger2 (delta, 'r', 'version');
+        // even when doing <= comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234718#L1857
         if (deltaNonce < existingNonce) {
             throw new ExchangeError (this.id + ' handleOrderBook received an out-of-order nonce');
         }
