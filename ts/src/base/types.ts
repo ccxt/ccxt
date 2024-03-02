@@ -2,13 +2,13 @@ export type Bool = boolean | undefined;
 // must be an integer in other langs
 export type IndexType = number | string;
 export type Int = number | undefined;
-export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option';
+export type MarketType = 'future' | 'margin' | 'option' | 'spot' | 'swap';
 export type Num = number | undefined;
 export type OrderSide = 'buy' | 'sell' | string;
 export type OrderType = 'limit' | 'market' | string;
 export type Str = string | undefined;
 export type Strings = string[] | undefined;
-export type SubType = 'linear' | 'inverse' | undefined;
+export type SubType = 'inverse' | 'linear' | undefined;
 
 export interface Dictionary<T> {
     [key: string]: T;
@@ -27,8 +27,8 @@ export interface MinMax {
 }
 
 export interface FeeInterface {
-    currency: Str;
     cost: Num;
+    currency: Str;
     rate?: Num;
 }
 
@@ -64,8 +64,8 @@ export interface MarketInterface {
     percentage?: boolean | undefined;
     precision: {
         amount: Num
-        price: Num
         cost?: Num
+        price: Num
     };
     quanto?: boolean;
     quote?: string;
@@ -130,8 +130,8 @@ export interface OrderBook {
     asks: [Num, Num][];
     bids: [Num, Num][];
     datetime: Str;
-    timestamp: Int;
     nonce: Int;
+    timestamp: Int;
 }
 
 export interface Ticker {
@@ -233,23 +233,23 @@ export interface DepositAddressResponse {
 }
 
 export interface FundingRate {
-    symbol: string;
-    info: any;
-    timestamp?: number;
-    fundingRate?: number;
     datetime?: string;
-    markPrice?: number;
-    indexPrice?: number;
-    interestRate?: number;
     estimatedSettlePrice?: number;
-    fundingTimestamp?: number;
     fundingDatetime?: string;
-    nextFundingTimestamp?: number;
+    fundingRate?: number;
+    fundingTimestamp?: number;
+    indexPrice?: number;
+    info: any;
+    interestRate?: number;
+    markPrice?: number;
     nextFundingDatetime?: string;
     nextFundingRate?: number;
-    previousFundingTimestamp?: number;
+    nextFundingTimestamp?: number;
     previousFundingDatetime?: string;
     previousFundingRate?: number;
+    previousFundingTimestamp?: number;
+    symbol: string;
+    timestamp?: number;
 }
 
 export interface Position {
@@ -286,42 +286,42 @@ export interface Position {
 
 export interface BorrowInterest {
     account?: string;
-    currency?: string;
-    interest?: number;
-    interestRate?: number;
     amountBorrowed?: number;
-    marginMode?: string;
-    timestamp?: number;
+    currency?: string;
     datetime?: string;
     info: any;
+    interest?: number;
+    interestRate?: number;
+    marginMode?: string;
+    timestamp?: number;
 }
 
 export interface LeverageTier {
-    tier?: number;
     currency?: string;
-    minNotional?: number;
-    maxNotional?: number;
+    info: any;
     maintenanceMarginRate?: number;
     maxLeverage?: number;
-    info: any;
+    maxNotional?: number;
+    minNotional?: number;
+    tier?: number;
 }
 
 export interface LedgerEntry {
-    id?: string;
-    info: any;
-    timestamp?: number;
-    datetime?: string;
-    direction?: string;
     account?: string;
-    referenceId?: string;
-    referenceAccount?: string;
-    type?: string;
-    currency?: string;
+    after?: number;
     amount?: number;
     before?: number;
-    after?: number;
-    status?: string;
+    currency?: string;
+    datetime?: string;
+    direction?: string;
     fee?: Fee;
+    id?: string;
+    info: any;
+    referenceAccount?: string;
+    referenceId?: string;
+    status?: string;
+    timestamp?: number;
+    type?: string;
 }
 
 export interface DepositWithdrawFeeNetwork {
@@ -330,31 +330,31 @@ export interface DepositWithdrawFeeNetwork {
 }
 
 export interface DepositWithdrawFee {
-    info: any;
-    withdraw?: DepositWithdrawFeeNetwork,
     deposit?: DepositWithdrawFeeNetwork,
+    info: any;
     networks?: Dictionary<DepositWithdrawFeeNetwork>;
+    withdraw?: DepositWithdrawFeeNetwork,
 }
 
 export interface TransferEntry {
-    info?: any;
-    id?: string;
-    timestamp?: number;
-    datetime?: string;
-    currency?: string;
     amount?: number;
+    currency?: string;
+    datetime?: string;
     fromAccount?: string;
-    toAccount?: string;
+    id?: string;
+    info?: any;
     status?: string;
+    timestamp?: number;
+    toAccount?: string;
 }
 
 export interface BorrowRate {
     currency?: string;
-    rate?: number;
-    period?: number;
-    timestamp?: number;
     datetime?: string;
     info: any;
+    period?: number;
+    rate?: number;
+    timestamp?: number;
 }
 
 export interface FundingRateHistory {
@@ -435,10 +435,10 @@ export interface Greeks {
 
 export interface Leverage {
     info: any;
-    symbol: string;
-    marginMode: 'isolated' | 'cross' | string;
     longLeverage: number;
+    marginMode: 'isolated' | 'cross' | string;
     shortLeverage: number;
+    symbol: string;
 }
 
 export interface Leverages extends Dictionary<Leverage> {
