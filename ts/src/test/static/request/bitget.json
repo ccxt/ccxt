@@ -1199,6 +1199,16 @@
               "USDT"
             ]
           }
+        ],
+        "fetchLeverage": [
+          {
+            "description": "Swap fetch set leverage",
+            "method": "fetchLeverage",
+            "url": "https://api.bitget.com/api/v2/mix/account/account?marginCoin=USDT&productType=USDT-FUTURES&symbol=BTCUSDT",
+            "input": [
+              "BTC/USDT:USDT"
+            ]
+          }
         ]
     }
 }
