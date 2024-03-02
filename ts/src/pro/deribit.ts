@@ -49,10 +49,12 @@ export default class deribit extends deribitRest {
                         '12h': '720',
                         '1d': '1D',
                     },
-                    'watchTradesForSymbols': { // watchTrades replacement
+                    // watchTrades replacement
+                    'watchTradesForSymbols': {
                         'interval': '100ms', // 100ms, agg2, raw
                     },
-                    'watchOrderBookForSymbols': { // watchOrderBook replacement
+                    // watchOrderBook replacement
+                    'watchOrderBookForSymbols': {
                         'interval': '100ms', // 100ms, agg2, raw
                         'useDepthEndpoint': false, // if true, it will use the {books.group.depth.interval} endpoint instead of the {books.interval} endpoint
                         'depth': '20', // 1, 10, 20
