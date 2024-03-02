@@ -514,9 +514,9 @@ export default class mexc extends mexcRest {
     }
 
     handleDelta (orderbook, delta) {
-        const nonce = this.safeInteger (orderbook, 'nonce');
+        const existingNonce = this.safeInteger (orderbook, 'nonce');
         const deltaNonce = this.safeInteger2 (delta, 'r', 'version');
-        if (deltaNonce !== nonce && deltaNonce !== nonce + 1) {
+        if (deltaNonce <= existingNonce) {
             throw new ExchangeError (this.id + ' handleOrderBook received an out-of-order nonce');
         }
         orderbook['nonce'] = deltaNonce;
