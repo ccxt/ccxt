@@ -1308,7 +1308,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             'amountAsset': amountAsset,
             'priceAsset': priceAsset,
         }
-        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+        sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         chainId = 84 if (sandboxMode) else 87
         body = {
             'senderPublicKey': self.apiKey,

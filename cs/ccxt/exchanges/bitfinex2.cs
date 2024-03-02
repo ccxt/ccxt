@@ -351,6 +351,7 @@ public partial class bitfinex2 : Exchange
                 { "EDO", "PNT" },
                 { "EUS", "EURS" },
                 { "EUT", "EURT" },
+                { "HTX", "HT" },
                 { "IDX", "ID" },
                 { "IOT", "IOTA" },
                 { "IQX", "IQ" },

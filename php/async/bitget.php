@@ -1434,7 +1434,7 @@ class bitget extends Exchange {
         $defaultProductType = null;
         if (($subType !== null) && ($market === null)) {
             // set default only if $subType is defined and $market is not defined, since there is also USDC productTypes which are also linear
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             if ($sandboxMode) {
                 $defaultProductType = ($subType === 'linear') ? 'SUSDT-FUTURES' : 'SCOIN-FUTURES';
             } else {
@@ -1498,7 +1498,7 @@ class bitget extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $types = $this->safe_value($this->options, 'fetchMarkets', array( 'spot', 'swap' ));
             if ($sandboxMode) {
                 $types = array( 'swap' );
@@ -1951,7 +1951,7 @@ class bitget extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structure~
              */
             Async\await($this->load_markets());
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $market = null;
             if ($sandboxMode) {
                 $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
@@ -2492,7 +2492,7 @@ class bitget extends Exchange {
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $market = null;
             if ($sandboxMode) {
                 $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
@@ -2652,7 +2652,7 @@ class bitget extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $market = null;
             if ($sandboxMode) {
                 $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
@@ -2755,7 +2755,7 @@ class bitget extends Exchange {
             $market = null;
             if ($symbols !== null) {
                 $symbol = $this->safe_value($symbols, 0);
-                $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+                $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
                 if ($sandboxMode) {
                     $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
                     $market = $this->market($sandboxSymbol);
@@ -2973,7 +2973,7 @@ class bitget extends Exchange {
             if ($paginate) {
                 return Async\await($this->fetch_paginated_call_cursor('fetchTrades', $symbol, $since, $limit, $params, 'idLessThan', 'idLessThan'));
             }
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $market = null;
             if ($sandboxMode) {
                 $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
@@ -3287,7 +3287,7 @@ class bitget extends Exchange {
             if ($paginate) {
                 return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 1000));
             }
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $market = null;
             if ($sandboxMode) {
                 $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
@@ -3580,6 +3580,7 @@ class bitget extends Exchange {
             'not_trigger' => 'open',
             'partial_fill' => 'open',
             'partially_fill' => 'open',
+            'partially_filled' => 'open',
             'triggered' => 'closed',
             'full_fill' => 'closed',
             'filled' => 'closed',
@@ -4092,7 +4093,7 @@ class bitget extends Exchange {
     }
 
     public function create_order_request($symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
-        $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $market = null;
         if ($sandboxMode) {
             $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
@@ -4343,7 +4344,7 @@ class bitget extends Exchange {
                 $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
                 $ordersRequests[] = $orderRequest;
             }
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $market = null;
             if ($sandboxMode) {
                 $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
@@ -4437,7 +4438,7 @@ class bitget extends Exchange {
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $market = null;
             if ($sandboxMode) {
                 $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
@@ -4596,7 +4597,7 @@ class bitget extends Exchange {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
             }
             Async\await($this->load_markets());
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $market = null;
             if ($sandboxMode) {
                 $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
@@ -4728,7 +4729,7 @@ class bitget extends Exchange {
                 throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
             }
             Async\await($this->load_markets());
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $market = null;
             if ($sandboxMode) {
                 $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
@@ -4817,7 +4818,7 @@ class bitget extends Exchange {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
             }
             Async\await($this->load_markets());
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $market = null;
             if ($sandboxMode) {
                 $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
@@ -4917,7 +4918,7 @@ class bitget extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
             }
             Async\await($this->load_markets());
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $market = null;
             if ($sandboxMode) {
                 $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
@@ -5031,7 +5032,7 @@ class bitget extends Exchange {
              * @param {int} [$limit] the maximum number of open order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch orders for
-             * @param {string} [$params->planType] *contract $stop only* 'normal_plan' => average trigger order, 'track_plan' => $trailing $stop order, default is 'normal_plan'
+             * @param {string} [$params->planType] *contract $stop only* 'normal_plan' => average trigger order, 'profit_loss' => opened tp/sl orders, 'track_plan' => $trailing $stop order, default is 'normal_plan'
              * @param {boolean} [$params->stop] set to true for fetching trigger orders
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {string} [$params->isPlan] *swap only* 'plan' for $stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
@@ -5039,7 +5040,7 @@ class bitget extends Exchange {
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $market = null;
             $type = null;
             $request = array();
@@ -5074,8 +5075,10 @@ class bitget extends Exchange {
                 return Async\await($this->fetch_paginated_call_cursor('fetchOpenOrders', $symbol, $since, $limit, $params, $cursorReceived, 'idLessThan'));
             }
             $response = null;
-            $trailing = $this->safe_value($params, 'trailing');
-            $stop = $this->safe_value_2($params, 'stop', 'trigger');
+            $trailing = $this->safe_bool($params, 'trailing');
+            $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+            $planTypeDefined = $this->safe_string($params, 'planType') !== null;
+            $isStop = ($stop || $planTypeDefined);
             $params = $this->omit($params, array( 'stop', 'trigger', 'trailing' ));
             list($request, $params) = $this->handle_until_option('endTime', $request, $params);
             if ($since !== null) {
@@ -5119,7 +5122,7 @@ class bitget extends Exchange {
                     $planType = $this->safe_string($params, 'planType', 'track_plan');
                     $request['planType'] = $planType;
                     $response = Async\await($this->privateMixGetV2MixOrderOrdersPlanPending (array_merge($request, $query)));
-                } elseif ($stop) {
+                } elseif ($isStop) {
                     $planType = $this->safe_string($query, 'planType', 'normal_plan');
                     $request['planType'] = $planType;
                     $response = Async\await($this->privateMixGetV2MixOrderOrdersPlanPending (array_merge($request, $query)));
@@ -5387,7 +5390,7 @@ class bitget extends Exchange {
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $market = null;
             if ($sandboxMode) {
                 if ($symbol !== null) {
@@ -5419,7 +5422,7 @@ class bitget extends Exchange {
             }
             $response = null;
             $trailing = $this->safe_value($params, 'trailing');
-            $stop = $this->safe_value_2($params, 'stop', 'trigger');
+            $stop = $this->safe_bool_2($params, 'stop', 'trigger');
             $params = $this->omit($params, array( 'stop', 'trigger', 'trailing' ));
             list($request, $params) = $this->handle_until_option('endTime', $request, $params);
             if ($since !== null) {
@@ -5697,7 +5700,7 @@ class bitget extends Exchange {
             $params = $this->omit($params, 'symbol');
             $market = null;
             if ($symbol !== null) {
-                $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+                $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
                 if ($sandboxMode) {
                     $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
                     $market = $this->market($sandboxSymbol);
@@ -5918,7 +5921,7 @@ class bitget extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
             }
             Async\await($this->load_markets());
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $market = null;
             if ($sandboxMode) {
                 $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
@@ -6092,7 +6095,7 @@ class bitget extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $market = null;
             if ($sandboxMode) {
                 $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
@@ -6168,7 +6171,7 @@ class bitget extends Exchange {
             $market = null;
             if ($symbols !== null) {
                 $first = $this->safe_string($symbols, 0);
-                $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+                $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
                 if ($sandboxMode) {
                     $sandboxSymbol = $this->convert_symbol_for_sandbox($first);
                     $market = $this->market($sandboxSymbol);
@@ -6479,7 +6482,7 @@ class bitget extends Exchange {
             if ($paginate) {
                 return Async\await($this->fetch_paginated_call_incremental('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'pageNo', 100));
             }
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $market = null;
             if ($sandboxMode) {
                 $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
@@ -6543,7 +6546,7 @@ class bitget extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
              */
             Async\await($this->load_markets());
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $market = null;
             if ($sandboxMode) {
                 $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
@@ -6631,7 +6634,7 @@ class bitget extends Exchange {
             if ($paginate) {
                 return Async\await($this->fetch_paginated_call_cursor('fetchFundingHistory', $symbol, $since, $limit, $params, 'endId', 'idLessThan'));
             }
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $market = null;
             if ($sandboxMode) {
                 $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
@@ -6731,7 +6734,7 @@ class bitget extends Exchange {
         return Async\async(function () use ($symbol, $amount, $type, $params) {
             Async\await($this->load_markets());
             $holdSide = $this->safe_string($params, 'holdSide');
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $market = null;
             if ($sandboxMode) {
                 $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
@@ -6817,7 +6820,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the set leverage for a $market
@@ -6827,7 +6830,7 @@ class bitget extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
              */
             Async\await($this->load_markets());
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $market = null;
             if ($sandboxMode) {
                 $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
@@ -6847,29 +6850,43 @@ class bitget extends Exchange {
             //     {
             //         "code" => "00000",
             //         "msg" => "success",
-            //         "requestTime" => 1700625127294,
-            //         "data" => array(
-            //             {
-            //                 "marginCoin" => "USDT",
-            //                 "locked" => "0",
-            //                 "available" => "0",
-            //                 "crossedMaxAvailable" => "0",
-            //                 "isolatedMaxAvailable" => "0",
-            //                 "maxTransferOut" => "0",
-            //                 "accountEquity" => "0",
-            //                 "usdtEquity" => "0.000000005166",
-            //                 "btcEquity" => "0",
-            //                 "crossedRiskRate" => "0",
-            //                 "unrealizedPL" => "0",
-            //                 "coupon" => "0",
-            //                 "crossedUnrealizedPL" => null,
-            //                 "isolatedUnrealizedPL" => null
-            //             }
-            //         )
+            //         "requestTime" => 1709366911964,
+            //         "data" => {
+            //             "marginCoin" => "USDT",
+            //             "locked" => "0",
+            //             "available" => "0",
+            //             "crossedMaxAvailable" => "0",
+            //             "isolatedMaxAvailable" => "0",
+            //             "maxTransferOut" => "0",
+            //             "accountEquity" => "0",
+            //             "usdtEquity" => "0.000000009166",
+            //             "btcEquity" => "0",
+            //             "crossedRiskRate" => "0",
+            //             "crossedMarginLeverage" => 20,
+            //             "isolatedLongLever" => 20,
+            //             "isolatedShortLever" => 20,
+            //             "marginMode" => "crossed",
+            //             "posMode" => "hedge_mode",
+            //             "unrealizedPL" => "0",
+            //             "coupon" => "0",
+            //             "crossedUnrealizedPL" => "0",
+            //             "isolatedUnrealizedPL" => ""
+            //         }
             //     }
             //
-            return $response;
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_leverage($data, $market);
         }) ();
+    }
+
+    public function parse_leverage($leverage, $market = null): Leverage {
+        return array(
+            'info' => $leverage,
+            'symbol' => $market['symbol'],
+            'marginMode' => 'isolated',
+            'longLeverage' => $this->safe_integer($leverage, 'isolatedLongLever'),
+            'shortLeverage' => $this->safe_integer($leverage, 'isolatedShortLever'),
+        );
     }
 
     public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
@@ -6887,7 +6904,7 @@ class bitget extends Exchange {
                 throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
             }
             Async\await($this->load_markets());
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $market = null;
             if ($sandboxMode) {
                 $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
@@ -6945,7 +6962,7 @@ class bitget extends Exchange {
                 throw new ArgumentsRequired($this->id . ' setMarginMode() $marginMode must be either isolated or crossed (cross)');
             }
             Async\await($this->load_markets());
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $market = null;
             if ($sandboxMode) {
                 $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
@@ -6995,7 +7012,7 @@ class bitget extends Exchange {
             $posMode = $hedged ? 'hedge_mode' : 'one_way_mode';
             $market = null;
             if ($symbol !== null) {
-                $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+                $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
                 if ($sandboxMode) {
                     $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
                     $market = $this->market($sandboxSymbol);
@@ -7034,7 +7051,7 @@ class bitget extends Exchange {
              * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=open-interest-structure)
              */
             Async\await($this->load_markets());
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $market = null;
             if ($sandboxMode) {
                 $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
@@ -8084,7 +8101,7 @@ class bitget extends Exchange {
              * @return {array} An ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $market = null;
             if ($sandboxMode) {
                 $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);

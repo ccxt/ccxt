@@ -21,6 +21,16 @@ public partial class coinmate : Exchange
         return await this.callAsync ("publicGetTicker",parameters);
     }
 
+    public async Task<object> publicGetTickerAll (object parameters = null)
+    {
+        return await this.callAsync ("publicGetTickerAll",parameters);
+    }
+
+    public async Task<object> publicGetProducts (object parameters = null)
+    {
+        return await this.callAsync ("publicGetProducts",parameters);
+    }
+
     public async Task<object> publicGetTransactions (object parameters = null)
     {
         return await this.callAsync ("publicGetTransactions",parameters);
@@ -239,6 +249,56 @@ public partial class coinmate : Exchange
     public async Task<object> privatePostUnconfirmedRippleDeposits (object parameters = null)
     {
         return await this.callAsync ("privatePostUnconfirmedRippleDeposits",parameters);
+    }
+
+    public async Task<object> privatePostCancelAllOpenOrders (object parameters = null)
+    {
+        return await this.callAsync ("privatePostCancelAllOpenOrders",parameters);
+    }
+
+    public async Task<object> privatePostWithdrawVirtualCurrency (object parameters = null)
+    {
+        return await this.callAsync ("privatePostWithdrawVirtualCurrency",parameters);
+    }
+
+    public async Task<object> privatePostVirtualCurrencyDepositAddresses (object parameters = null)
+    {
+        return await this.callAsync ("privatePostVirtualCurrencyDepositAddresses",parameters);
+    }
+
+    public async Task<object> privatePostUnconfirmedVirtualCurrencyDeposits (object parameters = null)
+    {
+        return await this.callAsync ("privatePostUnconfirmedVirtualCurrencyDeposits",parameters);
+    }
+
+    public async Task<object> privatePostAdaWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAdaWithdrawal",parameters);
+    }
+
+    public async Task<object> privatePostAdaDepositAddresses (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAdaDepositAddresses",parameters);
+    }
+
+    public async Task<object> privatePostUnconfirmedAdaDeposits (object parameters = null)
+    {
+        return await this.callAsync ("privatePostUnconfirmedAdaDeposits",parameters);
+    }
+
+    public async Task<object> privatePostSolWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("privatePostSolWithdrawal",parameters);
+    }
+
+    public async Task<object> privatePostSolDepositAddresses (object parameters = null)
+    {
+        return await this.callAsync ("privatePostSolDepositAddresses",parameters);
+    }
+
+    public async Task<object> privatePostUnconfirmedSolDeposits (object parameters = null)
+    {
+        return await this.callAsync ("privatePostUnconfirmedSolDeposits",parameters);
     }
 
 }

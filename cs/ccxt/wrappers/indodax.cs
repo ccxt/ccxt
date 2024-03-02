@@ -10,6 +10,7 @@ public partial class indodax
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
+    /// See <see href="https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#server-time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -29,6 +30,7 @@ public partial class indodax
     /// retrieves data on all markets for indodax
     /// </summary>
     /// <remarks>
+    /// See <see href="https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#pairs"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -48,6 +50,7 @@ public partial class indodax
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#get-info-endpoint"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -67,6 +70,7 @@ public partial class indodax
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#depth"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -93,6 +97,7 @@ public partial class indodax
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -132,6 +137,7 @@ public partial class indodax
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -162,9 +168,49 @@ public partial class indodax
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
     /// <summary>
+    /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest candle to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of candles to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest candle to fetch
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
+    public async Task<List<OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchOHLCV(symbol, timeframe, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+    }
+    /// <summary>
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#get-order-endpoints"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -184,6 +230,7 @@ public partial class indodax
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#open-orders-endpoints"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -217,6 +264,7 @@ public partial class indodax
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#order-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -250,6 +298,7 @@ public partial class indodax
     /// create a trade order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#trade-endpoints"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -276,6 +325,7 @@ public partial class indodax
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#cancel-order-endpoints"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -295,6 +345,7 @@ public partial class indodax
     /// fetch the fee for a transaction
     /// </summary>
     /// <remarks>
+    /// See <see href="https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -314,6 +365,7 @@ public partial class indodax
     /// fetch history of deposits and withdrawals
     /// </summary>
     /// <remarks>
+    /// See <see href="https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#transaction-history-endpoints"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -353,6 +405,7 @@ public partial class indodax
     /// make a withdrawal
     /// </summary>
     /// <remarks>
+    /// See <see href="https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-coin-endpoints"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -367,5 +420,25 @@ public partial class indodax
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
+    }
+    /// <summary>
+    /// fetch deposit addresses for multiple currencies and chain types
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#general-information-on-endpoints"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
+    public async Task<Dictionary<string, object>> FetchDepositAddresses(List<string> codes = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositAddresses(codes, parameters);
+        return ((Dictionary<string, object>)res);
     }
 }

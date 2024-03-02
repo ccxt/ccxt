@@ -338,15 +338,29 @@ class bybit extends \ccxt\async\bybit {
         //             "price24hPcnt" => "-0.0388"
         //         }
         //     }
+        // swap delta
+        //     {
+        //         "topic":"tickers.AAVEUSDT",
+        //         "type":"delta",
+        //         "data":array(
+        //            "symbol":"AAVEUSDT",
+        //            "bid1Price":"112.89",
+        //            "bid1Size":"2.12",
+        //            "ask1Price":"112.90",
+        //            "ask1Size":"5.02"
+        //         ),
+        //         "cs":78039939929,
+        //         "ts":1709210212704
+        //     }
         //
         $topic = $this->safe_string($message, 'topic', '');
         $updateType = $this->safe_string($message, 'type', '');
-        $data = $this->safe_value($message, 'data', array());
-        $isSpot = $this->safe_string($data, 'fundingRate') === null;
+        $data = $this->safe_dict($message, 'data', array());
+        $isSpot = $this->safe_string($data, 'usdIndexPrice') !== null;
         $type = $isSpot ? 'spot' : 'contract';
         $symbol = null;
         $parsed = null;
-        if (($updateType === 'snapshot') || $isSpot) {
+        if (($updateType === 'snapshot')) {
             $parsed = $this->parse_ticker($data);
             $symbol = $parsed['symbol'];
         } elseif ($updateType === 'delta') {
@@ -356,8 +370,8 @@ class bybit extends \ccxt\async\bybit {
             $market = $this->safe_market($marketId, null, null, $type);
             $symbol = $market['symbol'];
             // update the info in place
-            $ticker = $this->safe_value($this->tickers, $symbol, array());
-            $rawTicker = $this->safe_value($ticker, 'info', array());
+            $ticker = $this->safe_dict($this->tickers, $symbol, array());
+            $rawTicker = $this->safe_dict($ticker, 'info', array());
             $merged = array_merge($rawTicker, $data);
             $parsed = $this->parse_ticker($merged);
         }

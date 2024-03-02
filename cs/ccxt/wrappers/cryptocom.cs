@@ -645,7 +645,7 @@ public partial class cryptocom
     /// fetch deposit and withdraw fees
     /// </summary>
     /// <remarks>
-    /// See <see href="https://exchange-docs.crypto.com/spot/index.html#private-get-currency-networks"/>  <br/>
+    /// See <see href="https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

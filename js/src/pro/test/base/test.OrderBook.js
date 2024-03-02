@@ -11,6 +11,9 @@ function equals(a, b) {
         return false;
     }
     for (const prop in a) {
+        if (prop === 'cache') {
+            continue;
+        }
         if (Array.isArray(a[prop])) {
             if (!equals(a[prop], b[prop])) {
                 return false;

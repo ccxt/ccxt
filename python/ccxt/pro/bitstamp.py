@@ -111,7 +111,7 @@ class bitstamp(ccxt.async_support.bitstamp):
             # usually it takes at least 4-5 deltas to resolve
             snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 6)
             if cacheLength == snapshotDelay:
-                self.spawn(self.load_order_book, client, messageHash, symbol)
+                self.spawn(self.load_order_book, client, messageHash, symbol, None, {})
             storedOrderBook.cache.append(delta)
             return
         elif nonce >= deltaNonce:

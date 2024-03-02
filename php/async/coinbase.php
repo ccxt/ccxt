@@ -57,6 +57,7 @@ class coinbase extends Exchange {
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => true,
+                'deposit' => true,
                 'editOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
@@ -68,6 +69,9 @@ class coinbase extends Exchange {
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
+                'fetchDeposit' => true,
+                'fetchDepositAddress' => 'emulated',
+                'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
@@ -194,6 +198,11 @@ class coinbase extends Exchange {
                     ),
                 ),
                 'v3' => array(
+                    'public' => array(
+                        'get' => array(
+                            'brokerage/time',
+                        ),
+                    ),
                     'private' => array(
                         'get' => array(
                             'brokerage/accounts',
@@ -211,7 +220,6 @@ class coinbase extends Exchange {
                             'brokerage/product_book',
                             'brokerage/best_bid_ask',
                             'brokerage/convert/trade/{trade_id}',
-                            'brokerage/time',
                             'brokerage/cfm/balance_summary',
                             'brokerage/cfm/positions',
                             'brokerage/cfm/positions/{product_id}',
@@ -342,6 +350,7 @@ class coinbase extends Exchange {
                 'fetchTickers' => 'fetchTickersV3', // 'fetchTickersV3' or 'fetchTickersV2'
                 'fetchAccounts' => 'fetchAccountsV3', // 'fetchAccountsV3' or 'fetchAccountsV2'
                 'fetchBalance' => 'v2PrivateGetAccounts', // 'v2PrivateGetAccounts' or 'v3PrivateGetBrokerageAccounts'
+                'fetchTime' => 'v2PublicGetTime', // 'v2PublicGetTime' or 'v3PublicGetBrokerageTime'
                 'user_native_currency' => 'USD', // needed to get fees for v3
             ),
         ));
@@ -353,19 +362,35 @@ class coinbase extends Exchange {
              * fetches the current integer timestamp in milliseconds from the exchange server
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-time#http-request
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->method] 'v2PublicGetTime' or 'v3PublicGetBrokerageTime' default is 'v2PublicGetTime'
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->v2PublicGetTime ($params));
-            //
-            //     {
-            //         "data" => {
-            //             "epoch" => 1589295679,
-            //             "iso" => "2020-05-12T15:01:19Z"
-            //         }
-            //     }
-            //
-            $data = $this->safe_value($response, 'data', array());
-            return $this->safe_timestamp($data, 'epoch');
+            $defaultMethod = $this->safe_string($this->options, 'fetchTime', 'v2PublicGetTime');
+            $method = $this->safe_string($params, 'method', $defaultMethod);
+            $params = $this->omit($params, 'method');
+            $response = null;
+            if ($method === 'v2PublicGetTime') {
+                $response = Async\await($this->v2PublicGetTime ($params));
+                //
+                //     {
+                //         "data" => {
+                //             "epoch" => 1589295679,
+                //             "iso" => "2020-05-12T15:01:19Z"
+                //         }
+                //     }
+                //
+                $response = $this->safe_value($response, 'data', array());
+            } else {
+                $response = Async\await($this->v3PublicGetBrokerageTime ($params));
+                //
+                //     {
+                //         "iso" => "2024-02-27T03:37:14Z",
+                //         "epochSeconds" => "1709005034",
+                //         "epochMillis" => "1709005034333"
+                //     }
+                //
+            }
+            return $this->safe_timestamp_2($response, 'epoch', 'epochSeconds');
         }) ();
     }
 
@@ -1786,19 +1811,21 @@ class coinbase extends Exchange {
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->v3] default false, set true to use v3 api endpoint
+             * @param {array} [$params->type] "spot" (default) or "swap"
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $request = array(
-                'limit' => 250,
-            );
+            $request = array();
             $response = null;
             $isV3 = $this->safe_bool($params, 'v3', false);
-            $params = $this->omit($params, 'v3');
+            $type = $this->safe_string($params, 'type');
+            $params = $this->omit($params, array( 'v3', 'type' ));
             $method = $this->safe_string($this->options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts');
             if (($isV3) || ($method === 'v3PrivateGetBrokerageAccounts')) {
+                $request['limit'] = 250;
                 $response = Async\await($this->v3PrivateGetBrokerageAccounts (array_merge($request, $params)));
             } else {
+                $request['limit'] = 100;
                 $response = Async\await($this->v2PrivateGetAccounts (array_merge($request, $params)));
             }
             //
@@ -1872,6 +1899,7 @@ class coinbase extends Exchange {
             //         "size" => 9
             //     }
             //
+            $params['type'] = $type;
             return $this->parse_custom_balance($response, $params);
         }) ();
     }
@@ -3600,6 +3628,147 @@ class coinbase extends Exchange {
         );
     }
 
+    public function deposit(string $code, float $amount, string $id, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $id, $params) {
+            /**
+             * make a deposit
+             * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#deposit-funds
+             * @param {string} $code unified currency $code
+             * @param {float} $amount the $amount to deposit
+             * @param {string} $id the payment method $id to be used for the deposit, can be retrieved from v2PrivateGetPaymentMethods
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->accountId] the $id of the account to deposit into
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
+             */
+            Async\await($this->load_markets());
+            $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
+            $params = $this->omit($params, array( 'account_id', 'accountId' ));
+            if ($accountId === null) {
+                if ($code === null) {
+                    throw new ArgumentsRequired($this->id . ' deposit() requires an account_id (or $accountId) parameter OR a currency $code argument');
+                }
+                $accountId = Async\await($this->find_account_id($code));
+                if ($accountId === null) {
+                    throw new ExchangeError($this->id . ' deposit() could not find account $id for ' . $code);
+                }
+            }
+            $request = array(
+                'account_id' => $accountId,
+                'amount' => $this->number_to_string($amount),
+                'currency' => strtoupper($code), // need to use $code in case depositing USD etc.
+                'payment_method' => $id,
+            );
+            $response = Async\await($this->v2PrivatePostAccountsAccountIdDeposits (array_merge($request, $params)));
+            //
+            //     {
+            //         "data" => {
+            //             "id" => "67e0eaec-07d7-54c4-a72c-2e92826897df",
+            //             "status" => "created",
+            //             "payment_method" => array(
+            //                 "id" => "83562370-3e5c-51db-87da-752af5ab9559",
+            //                 "resource" => "payment_method",
+            //                 "resource_path" => "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
+            //             ),
+            //             "transaction" => array(
+            //                 "id" => "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
+            //                 "resource" => "transaction",
+            //                 "resource_path" => "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
+            //             ),
+            //             "amount" => array(
+            //                 "amount" => "10.00",
+            //                 "currency" => "USD"
+            //             ),
+            //             "subtotal" => array(
+            //                 "amount" => "10.00",
+            //                 "currency" => "USD"
+            //             ),
+            //             "created_at" => "2015-01-31T20:49:02Z",
+            //             "updated_at" => "2015-02-11T16:54:02-08:00",
+            //             "resource" => "deposit",
+            //             "resource_path" => "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/deposits/67e0eaec-07d7-54c4-a72c-2e92826897df",
+            //             "committed" => true,
+            //             "fee" => array(
+            //                 "amount" => "0.00",
+            //                 "currency" => "USD"
+            //             ),
+            //             "payout_at" => "2015-02-18T16:54:00-08:00"
+            //         }
+            //     }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_transaction($data);
+        }) ();
+    }
+
+    public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
+        return Async\async(function () use ($id, $code, $params) {
+            /**
+             * fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
+             * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#show-deposit
+             * @param {string} $id deposit $id
+             * @param {string} [$code] unified currency $code
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->accountId] the $id of the account that the funds were deposited into
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
+             */
+            Async\await($this->load_markets());
+            $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
+            $params = $this->omit($params, array( 'account_id', 'accountId' ));
+            if ($accountId === null) {
+                if ($code === null) {
+                    throw new ArgumentsRequired($this->id . ' fetchDeposit() requires an account_id (or $accountId) parameter OR a currency $code argument');
+                }
+                $accountId = Async\await($this->find_account_id($code));
+                if ($accountId === null) {
+                    throw new ExchangeError($this->id . ' fetchDeposit() could not find account $id for ' . $code);
+                }
+            }
+            $request = array(
+                'account_id' => $accountId,
+                'deposit_id' => $id,
+            );
+            $response = Async\await($this->v2PrivateGetAccountsAccountIdDepositsDepositId (array_merge($request, $params)));
+            //
+            //     {
+            //         "data" => {
+            //             "id" => "67e0eaec-07d7-54c4-a72c-2e92826897df",
+            //             "status" => "completed",
+            //             "payment_method" => array(
+            //                 "id" => "83562370-3e5c-51db-87da-752af5ab9559",
+            //                 "resource" => "payment_method",
+            //                 "resource_path" => "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
+            //             ),
+            //             "transaction" => array(
+            //                 "id" => "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
+            //                 "resource" => "transaction",
+            //                 "resource_path" => "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
+            //             ),
+            //             "amount" => array(
+            //                 "amount" => "10.00",
+            //                 "currency" => "USD"
+            //             ),
+            //             "subtotal" => array(
+            //                 "amount" => "10.00",
+            //                 "currency" => "USD"
+            //             ),
+            //             "created_at" => "2015-01-31T20:49:02Z",
+            //             "updated_at" => "2015-02-11T16:54:02-08:00",
+            //             "resource" => "deposit",
+            //             "resource_path" => "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/deposits/67e0eaec-07d7-54c4-a72c-2e92826897df",
+            //             "committed" => true,
+            //             "fee" => array(
+            //                 "amount" => "0.00",
+            //                 "currency" => "USD"
+            //             ),
+            //             "payout_at" => "2015-02-18T16:54:00-08:00"
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_transaction($data);
+        }) ();
+    }
+
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
         $version = $api[0];
         $signed = $api[1] === 'private';
@@ -3620,6 +3789,11 @@ class coinbase extends Exchange {
                     'Authorization' => $authorization,
                     'Content-Type' => 'application/json',
                 );
+                if ($method !== 'GET') {
+                    if ($query) {
+                        $body = $this->json($query);
+                    }
+                }
             } elseif ($this->token && !$this->check_required_credentials(false)) {
                 $headers = array(
                     'Authorization' => 'Bearer ' . $this->token,
@@ -3638,6 +3812,10 @@ class coinbase extends Exchange {
                     if ($query) {
                         $body = $this->json($query);
                         $payload = $body;
+                    }
+                } else {
+                    if ($query) {
+                        $payload .= '?' . $this->urlencode($query);
                     }
                 }
                 $auth = $nonce . $method . $savedPath . $payload;

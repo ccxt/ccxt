@@ -1350,13 +1350,13 @@ class bitmart extends \ccxt\async\bitmart {
                 $update = $datas[$i];
                 $marketId = $this->safe_string($update, 'symbol');
                 $symbol = $this->safe_symbol($marketId);
-                $orderbook = $this->safe_dict($this->orderbooks, $symbol);
-                if ($orderbook === null) {
-                    $orderbook = $this->order_book(array(), $limit);
-                    $orderbook['symbol'] = $symbol;
-                    $this->orderbooks[$symbol] = $orderbook;
+                if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+                    $ob = $this->order_book(array(), $limit);
+                    $ob['symbol'] = $symbol;
+                    $this->orderbooks[$symbol] = $ob;
                 }
-                $type = $this->safe_value($update, 'type');
+                $orderbook = $this->orderbooks[$symbol];
+                $type = $this->safe_string($update, 'type');
                 if (($type === 'snapshot') || (!(mb_strpos($channelName, 'increase') !== false))) {
                     $orderbook->reset (array());
                 }
@@ -1379,12 +1379,12 @@ class bitmart extends \ccxt\async\bitmart {
             $depths = $data['depths'];
             $marketId = $this->safe_string($data, 'symbol');
             $symbol = $this->safe_symbol($marketId);
-            $orderbook = $this->safe_dict($this->orderbooks, $symbol);
-            if ($orderbook === null) {
-                $orderbook = $this->order_book(array(), $limit);
-                $orderbook['symbol'] = $symbol;
-                $this->orderbooks[$symbol] = $orderbook;
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+                $ob = $this->order_book(array(), $limit);
+                $ob['symbol'] = $symbol;
+                $this->orderbooks[$symbol] = $ob;
             }
+            $orderbook = $this->orderbooks[$symbol];
             $way = $this->safe_number($data, 'way');
             $side = ($way === 1) ? 'bids' : 'asks';
             if ($way === 1) {

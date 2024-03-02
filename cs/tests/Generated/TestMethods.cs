@@ -474,7 +474,7 @@ public partial class testMainClass : BaseTest
         {
             return false;
         }
-        object symbols = new List<object>() {"BTC/CNY", "BTC/USD", "BTC/USDT", "BTC/EUR", "BTC/ETH", "ETH/BTC", "BTC/JPY", "ETH/EUR", "ETH/JPY", "ETH/CNY", "ETH/USD", "LTC/CNY", "DASH/BTC", "DOGE/BTC", "BTC/AUD", "BTC/PLN", "USD/SLL", "BTC/RUB", "BTC/UAH", "LTC/BTC", "EUR/USD"};
+        object symbols = new List<object>() {"BTC/USDT", "BTC/USDC", "BTC/CNY", "BTC/USD", "BTC/EUR", "BTC/ETH", "ETH/BTC", "BTC/JPY", "ETH/EUR", "ETH/JPY", "ETH/CNY", "ETH/USD", "LTC/CNY", "DASH/BTC", "DOGE/BTC", "BTC/AUD", "BTC/PLN", "USD/SLL", "BTC/RUB", "BTC/UAH", "LTC/BTC", "EUR/USD"};
         object resultSymbols = new List<object>() {};
         object exchangeSpecificSymbols = exchange.symbols;
         for (object i = 0; isLessThan(i, getArrayLength(exchangeSpecificSymbols)); postFixIncrement(ref i))
@@ -565,8 +565,8 @@ public partial class testMainClass : BaseTest
         spot ??= true;
         object currentTypeMarkets = this.getMarketsFromExchange(exchange, spot);
         object codes = new List<object>() {"BTC", "ETH", "XRP", "LTC", "BCH", "EOS", "BNB", "BSV", "USDT", "ATOM", "BAT", "BTG", "DASH", "DOGE", "ETC", "IOTA", "LSK", "MKR", "NEO", "PAX", "QTUM", "TRX", "TUSD", "USD", "USDC", "WAVES", "XEM", "XMR", "ZEC", "ZRX"};
-        object spotSymbols = new List<object>() {"BTC/USD", "BTC/USDT", "BTC/CNY", "BTC/EUR", "BTC/ETH", "ETH/BTC", "ETH/USD", "ETH/USDT", "BTC/JPY", "LTC/BTC", "ZRX/WETH", "EUR/USD"};
-        object swapSymbols = new List<object>() {"BTC/USDT:USDT", "BTC/USD:USD", "ETH/USDT:USDT", "ETH/USD:USD", "LTC/USDT:USDT", "DOGE/USDT:USDT", "ADA/USDT:USDT", "BTC/USD:BTC", "ETH/USD:ETH"};
+        object spotSymbols = new List<object>() {"BTC/USDT", "BTC/USDC", "BTC/USD", "BTC/CNY", "BTC/EUR", "BTC/ETH", "ETH/BTC", "ETH/USD", "ETH/USDT", "BTC/JPY", "LTC/BTC", "ZRX/WETH", "EUR/USD"};
+        object swapSymbols = new List<object>() {"BTC/USDT:USDT", "BTC/USDC:USDC", "BTC/USD:USD", "ETH/USDT:USDT", "ETH/USD:USD", "LTC/USDT:USDT", "DOGE/USDT:USDT", "ADA/USDT:USDT", "BTC/USD:BTC", "ETH/USD:ETH"};
         object targetSymbols = ((bool) isTrue(spot)) ? spotSymbols : swapSymbols;
         object symbol = this.getTestSymbol(exchange, spot, targetSymbols);
         // if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
@@ -648,14 +648,14 @@ public partial class testMainClass : BaseTest
         }
         if (!isTrue(this.privateTestOnly))
         {
-            // note, spot & swap tests should run sequentially, because of conflicting `exchange.options['type']` setting
+            // note, spot & swap tests should run sequentially, because of conflicting `exchange.options['defaultType']` setting
             if (isTrue(isTrue(getValue(exchange.has, "spot")) && isTrue(!isEqual(spotSymbol, null))))
             {
                 if (isTrue(this.info))
                 {
                     dump("[INFO] ### SPOT TESTS ###");
                 }
-                ((IDictionary<string,object>)exchange.options)["type"] = "spot";
+                ((IDictionary<string,object>)exchange.options)["defaultType"] = "spot";
                 await this.runPublicTests(exchange, spotSymbol);
             }
             if (isTrue(isTrue(getValue(exchange.has, "swap")) && isTrue(!isEqual(swapSymbol, null))))
@@ -664,7 +664,7 @@ public partial class testMainClass : BaseTest
                 {
                     dump("[INFO] ### SWAP TESTS ###");
                 }
-                ((IDictionary<string,object>)exchange.options)["type"] = "swap";
+                ((IDictionary<string,object>)exchange.options)["defaultType"] = "swap";
                 await this.runPublicTests(exchange, swapSymbol);
             }
         }
@@ -716,6 +716,7 @@ public partial class testMainClass : BaseTest
             { "fetchBorrowInterest", new List<object>() {code, symbol} },
             { "cancelAllOrders", new List<object>() {symbol} },
             { "fetchCanceledOrders", new List<object>() {symbol} },
+            { "fetchMarginModes", new List<object>() {symbol} },
             { "fetchPosition", new List<object>() {symbol} },
             { "fetchDeposit", new List<object>() {code} },
             { "createDepositAddress", new List<object>() {code} },

@@ -1320,13 +1320,13 @@ export default class bitmart extends bitmartRest {
                 const update = datas[i];
                 const marketId = this.safeString(update, 'symbol');
                 const symbol = this.safeSymbol(marketId);
-                let orderbook = this.safeDict(this.orderbooks, symbol);
-                if (orderbook === undefined) {
-                    orderbook = this.orderBook({}, limit);
-                    orderbook['symbol'] = symbol;
-                    this.orderbooks[symbol] = orderbook;
+                if (!(symbol in this.orderbooks)) {
+                    const ob = this.orderBook({}, limit);
+                    ob['symbol'] = symbol;
+                    this.orderbooks[symbol] = ob;
                 }
-                const type = this.safeValue(update, 'type');
+                const orderbook = this.orderbooks[symbol];
+                const type = this.safeString(update, 'type');
                 if ((type === 'snapshot') || (!(channelName.indexOf('increase') >= 0))) {
                     orderbook.reset({});
                 }
@@ -1350,12 +1350,12 @@ export default class bitmart extends bitmartRest {
             const depths = data['depths'];
             const marketId = this.safeString(data, 'symbol');
             const symbol = this.safeSymbol(marketId);
-            let orderbook = this.safeDict(this.orderbooks, symbol);
-            if (orderbook === undefined) {
-                orderbook = this.orderBook({}, limit);
-                orderbook['symbol'] = symbol;
-                this.orderbooks[symbol] = orderbook;
+            if (!(symbol in this.orderbooks)) {
+                const ob = this.orderBook({}, limit);
+                ob['symbol'] = symbol;
+                this.orderbooks[symbol] = ob;
             }
+            const orderbook = this.orderbooks[symbol];
             const way = this.safeNumber(data, 'way');
             const side = (way === 1) ? 'bids' : 'asks';
             if (way === 1) {
