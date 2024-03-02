@@ -618,7 +618,7 @@ export default class phemex extends phemexRest {
         } else {
             descriptor = interval;
         }
-        const orderbook = await this.watchMultipleWrapper ('book', descriptor, symbols, params);
+        const orderbook = await this.watchMultipleWrapper ('orderbook', descriptor, symbols, params);
         return orderbook.limit ();
     }
 
@@ -658,6 +658,22 @@ export default class phemex extends phemexRest {
             throw new ArgumentsRequired (this.id + ' requested subscription length over limit, try to reduce symbols amount');
         }
         return await this.watchMultiple (url, messageHashes, extendedRequest, rawSubscriptions);
+    }
+
+    throwForMixedUsdtSettleSymbols (symbols) {
+        // this method is used to check symbols arguments in 'ForSymbols' methods, because
+        // they should be all either usdt-settle or none-usdt-settle, to match endpoints
+        const allSymbolsLength = symbols.length;
+        let usdtSymbolsLength = 0;
+        for (let i = 0; i < allSymbolsLength; i++) {
+            const market = this.market (symbols[i]);
+            if (market['settle'] !== 'USDT') {
+                usdtSymbolsLength = usdtSymbolsLength + 1;
+            }
+        }
+        if (usdtSymbolsLength > 0 && usdtSymbolsLength < allSymbolsLength) {
+            throw new ArgumentsRequired (this.id + ' - do not mix USDT-settle and non-USDT-settle symbols in same request');
+        }
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
