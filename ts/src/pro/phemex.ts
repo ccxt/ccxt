@@ -640,7 +640,7 @@ export default class phemex extends phemexRest {
                 const settleIsUSDT = market['settle'] === 'USDT';
                 channelName = (market['swap'] && settleIsUSDT) ? 'orderbook_p' : 'orderbook';
                 if (channelDescriptor === 'full') {
-                    channelDescriptor = 'full.' + market['id'];
+                    // rawSubscriptions.push (true);
                 }
             } else {
                 market = this.market (current);
