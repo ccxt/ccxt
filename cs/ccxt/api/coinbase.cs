@@ -236,6 +236,11 @@ public partial class coinbase : Exchange
         return await this.callAsync ("v2PrivateDeleteAccountsAccountIdTransactionsTransactionId",parameters);
     }
 
+    public async Task<object> v3PublicGetBrokerageTime (object parameters = null)
+    {
+        return await this.callAsync ("v3PublicGetBrokerageTime",parameters);
+    }
+
     public async Task<object> v3PrivateGetBrokerageAccounts (object parameters = null)
     {
         return await this.callAsync ("v3PrivateGetBrokerageAccounts",parameters);
@@ -309,11 +314,6 @@ public partial class coinbase : Exchange
     public async Task<object> v3PrivateGetBrokerageConvertTradeTradeId (object parameters = null)
     {
         return await this.callAsync ("v3PrivateGetBrokerageConvertTradeTradeId",parameters);
-    }
-
-    public async Task<object> v3PrivateGetBrokerageTime (object parameters = null)
-    {
-        return await this.callAsync ("v3PrivateGetBrokerageTime",parameters);
     }
 
     public async Task<object> v3PrivateGetBrokerageCfmBalanceSummary (object parameters = null)

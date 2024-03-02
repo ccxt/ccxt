@@ -354,15 +354,29 @@ public partial class bybit : ccxt.bybit
         //             "price24hPcnt": "-0.0388"
         //         }
         //     }
+        // swap delta
+        //     {
+        //         "topic":"tickers.AAVEUSDT",
+        //         "type":"delta",
+        //         "data":{
+        //            "symbol":"AAVEUSDT",
+        //            "bid1Price":"112.89",
+        //            "bid1Size":"2.12",
+        //            "ask1Price":"112.90",
+        //            "ask1Size":"5.02"
+        //         },
+        //         "cs":78039939929,
+        //         "ts":1709210212704
+        //     }
         //
         object topic = this.safeString(message, "topic", "");
         object updateType = this.safeString(message, "type", "");
-        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
-        object isSpot = isEqual(this.safeString(data, "fundingRate"), null);
+        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        object isSpot = !isEqual(this.safeString(data, "usdIndexPrice"), null);
         object type = ((bool) isTrue(isSpot)) ? "spot" : "contract";
         object symbol = null;
         object parsed = null;
-        if (isTrue(isTrue((isEqual(updateType, "snapshot"))) || isTrue(isSpot)))
+        if (isTrue((isEqual(updateType, "snapshot"))))
         {
             parsed = this.parseTicker(data);
             symbol = getValue(parsed, "symbol");
@@ -374,8 +388,8 @@ public partial class bybit : ccxt.bybit
             object market = this.safeMarket(marketId, null, null, type);
             symbol = getValue(market, "symbol");
             // update the info in place
-            object ticker = this.safeValue(this.tickers, symbol, new Dictionary<string, object>() {});
-            object rawTicker = this.safeValue(ticker, "info", new Dictionary<string, object>() {});
+            object ticker = this.safeDict(this.tickers, symbol, new Dictionary<string, object>() {});
+            object rawTicker = this.safeDict(ticker, "info", new Dictionary<string, object>() {});
             object merged = this.extend(rawTicker, data);
             parsed = this.parseTicker(merged);
         }

@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -575,6 +575,7 @@ export default class okx extends Exchange {
                     '50027': PermissionDenied, // The account is restricted from trading
                     '50028': ExchangeError, // Unable to take the order, please reach out to support center for details
                     '50044': BadRequest, // Must select one broker type
+                    '50062': ExchangeError, // This feature is currently unavailable.
                     // API Class
                     '50100': ExchangeError, // API frozen, please contact customer service
                     '50101': AuthenticationError, // Broker id of APIKey does not match current environment
@@ -629,6 +630,15 @@ export default class okx extends Exchange {
                     '51072': InvalidOrder, // As a spot lead trader, you need to set tdMode to 'spot_isolated' when configured buying lead trade pairs
                     '51073': InvalidOrder, // As a spot lead trader, you need to use '/copytrading/close-subposition' for selling assets through lead trades
                     '51074': InvalidOrder, // Only the tdMode for lead trade pairs configured by spot lead traders can be set to 'spot_isolated'
+                    '51090': InvalidOrder, // You can't modify the amount of an SL order placed with a TP limit order.
+                    '51091': InvalidOrder, // All TP orders in one order must be of the same type.
+                    '51092': InvalidOrder, // TP order prices (tpOrdPx) in one order must be different.
+                    '51093': InvalidOrder, // TP limit order prices (tpOrdPx) in one order can't be –1 (market price).
+                    '51094': InvalidOrder, // You can't place TP limit orders in spot, margin, or options trading.
+                    '51095': InvalidOrder, // To place TP limit orders at this endpoint, you must place an SL order at the same time.
+                    '51096': InvalidOrder, // cxlOnClosePos needs to be true to place a TP limit order
+                    '51098': InvalidOrder, // You can't add a new TP order to an SL order placed with a TP limit order.
+                    '51099': InvalidOrder, // You can't place TP limit orders as a lead trader.
                     '51100': InvalidOrder, // Trading amount does not meet the min tradable amount
                     '51101': InvalidOrder, // Entered amount exceeds the max pending order amount (Cont) per transaction
                     '51102': InvalidOrder, // Entered amount exceeds the max pending count
@@ -2754,7 +2764,7 @@ export default class okx extends Exchange {
                 }
                 request['tpTriggerPx'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
                 const takeProfitLimitPrice = this.safeValueN (takeProfit, [ 'price', 'takeProfitPrice', 'tpOrdPx' ]);
-                const takeProfitOrderType = this.safeString (takeProfit, 'type');
+                const takeProfitOrderType = this.safeString2 (takeProfit, 'type', 'tpOrdKind');
                 if (takeProfitOrderType !== undefined) {
                     const takeProfitLimitOrderType = (takeProfitOrderType === 'limit');
                     const takeProfitMarketOrderType = (takeProfitOrderType === 'market');
@@ -2764,12 +2774,14 @@ export default class okx extends Exchange {
                         if (takeProfitLimitPrice === undefined) {
                             throw new InvalidOrder (this.id + ' createOrder() requires a limit price in params["takeProfit"]["price"] or params["takeProfit"]["tpOrdPx"] for a take profit limit order');
                         } else {
+                            request['tpOrdKind'] = takeProfitOrderType;
                             request['tpOrdPx'] = this.priceToPrecision (symbol, takeProfitLimitPrice);
                         }
                     } else if (takeProfitOrderType === 'market') {
                         request['tpOrdPx'] = '-1';
                     }
                 } else if (takeProfitLimitPrice !== undefined) {
+                    request['tpOrdKind'] = 'limit';
                     request['tpOrdPx'] = this.priceToPrecision (symbol, takeProfitLimitPrice); // limit tp order
                 } else {
                     request['tpOrdPx'] = '-1'; // market tp order
@@ -2791,6 +2803,7 @@ export default class okx extends Exchange {
             const twoWayCondition = ((takeProfitPrice !== undefined) && (stopLossPrice !== undefined));
             // if TP and SL are sent together
             // as ordType 'conditional' only stop-loss order will be applied
+            // tpOrdKind is 'condition' which is the default
             if (twoWayCondition) {
                 request['ordType'] = 'oco';
             }
@@ -2844,6 +2857,7 @@ export default class okx extends Exchange {
          * @param {string} [params.stopLoss.type] 'market' or 'limit' used to specify the stop loss price type
          * @param {string} [params.positionSide] if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
          * @param {string} [params.trailingPercent] the percent to trail away from the current market price
+         * @param {string} [params.tpOrdKind] 'condition' or 'limit', the default is 'condition'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -3005,6 +3019,7 @@ export default class okx extends Exchange {
                 takeProfitTriggerPrice = this.safeValue (takeProfit, 'triggerPrice');
                 takeProfitPrice = this.safeValue (takeProfit, 'price');
                 const takeProfitType = this.safeString (takeProfit, 'type');
+                request['newTpOrdKind'] = (takeProfitType === 'limit') ? takeProfitType : 'condition';
                 request['newTpTriggerPx'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
                 request['newTpOrdPx'] = (takeProfitType === 'market') ? '-1' : this.priceToPrecision (symbol, takeProfitPrice);
                 request['newTpTriggerPxType'] = takeProfitTriggerPriceType;
@@ -3051,6 +3066,7 @@ export default class okx extends Exchange {
          * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
          * @param {float} [params.takeProfit.price] used for take profit limit orders, not used for take profit market price orders
          * @param {string} [params.takeProfit.type] 'market' or 'limit' used to specify the take profit price type
+         * @param {string} [params.newTpOrdKind] 'condition' or 'limit', the default is 'condition'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -5092,7 +5108,7 @@ export default class okx extends Exchange {
         };
     }
 
-    async fetchLeverage (symbol: string, params = {}) {
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         /**
          * @method
          * @name okx#fetchLeverage
@@ -5132,7 +5148,36 @@ export default class okx extends Exchange {
         //        "msg": ""
         //     }
         //
-        return response;
+        const data = this.safeList (response, 'data', []);
+        return this.parseLeverage (data, market);
+    }
+
+    parseLeverage (leverage, market = undefined): Leverage {
+        let marketId = undefined;
+        let marginMode = undefined;
+        let longLeverage = undefined;
+        let shortLeverage = undefined;
+        for (let i = 0; i < leverage.length; i++) {
+            const entry = leverage[i];
+            marginMode = this.safeStringLower (entry, 'mgnMode');
+            marketId = this.safeString (entry, 'instId');
+            const positionSide = this.safeStringLower (entry, 'posSide');
+            if (positionSide === 'long') {
+                longLeverage = this.safeInteger (entry, 'lever');
+            } else if (positionSide === 'short') {
+                shortLeverage = this.safeInteger (entry, 'lever');
+            } else {
+                longLeverage = this.safeInteger (entry, 'lever');
+                shortLeverage = this.safeInteger (entry, 'lever');
+            }
+        }
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        } as Leverage;
     }
 
     async fetchPosition (symbol: string, params = {}) {
@@ -5453,7 +5498,7 @@ export default class okx extends Exchange {
         const liquidationPrice = this.safeNumber (position, 'liqPx');
         const percentageString = this.safeString (position, 'uplRatio');
         const percentage = this.parseNumber (Precise.stringMul (percentageString, '100'));
-        const timestamp = this.safeInteger (position, 'uTime');
+        const timestamp = this.safeInteger (position, 'cTime');
         const marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateralString, 4));
         return this.safePosition ({
             'info': position,

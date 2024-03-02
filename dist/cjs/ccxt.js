@@ -30,7 +30,6 @@ var bitcoincom = require('./src/bitcoincom.js');
 var bitfinex = require('./src/bitfinex.js');
 var bitfinex2 = require('./src/bitfinex2.js');
 var bitflyer = require('./src/bitflyer.js');
-var bitforex = require('./src/bitforex.js');
 var bitget = require('./src/bitget.js');
 var bithumb = require('./src/bithumb.js');
 var bitmart = require('./src/bitmart.js');
@@ -177,7 +176,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.2.49';
+const version = '4.2.58';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -198,7 +197,6 @@ const exchanges = {
     'bitfinex': bitfinex,
     'bitfinex2': bitfinex2,
     'bitflyer': bitflyer,
-    'bitforex': bitforex,
     'bitget': bitget,
     'bithumb': bithumb,
     'bitmart': bitmart,
@@ -404,7 +402,6 @@ exports.bitcoincom = bitcoincom;
 exports.bitfinex = bitfinex;
 exports.bitfinex2 = bitfinex2;
 exports.bitflyer = bitflyer;
-exports.bitforex = bitforex;
 exports.bitget = bitget;
 exports.bithumb = bithumb;
 exports.bitmart = bitmart;

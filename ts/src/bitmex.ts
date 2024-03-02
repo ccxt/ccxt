@@ -6,7 +6,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency, MarketType } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency, MarketType, Leverage, Leverages } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -61,7 +61,8 @@ export default class bitmex extends Exchange {
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
-                'fetchLeverage': false,
+                'fetchLeverage': 'emulated',
+                'fetchLeverages': true,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': true,
                 'fetchMarketLeverageTiers': false,
@@ -2128,6 +2129,32 @@ export default class bitmex extends Exchange {
         //     ]
         //
         return this.parseOrders (response, market);
+    }
+
+    async fetchLeverages (symbols: string[] = undefined, params = {}): Promise<Leverages> {
+        /**
+         * @method
+         * @name bitmex#fetchLeverages
+         * @description fetch the set leverage for all contract markets
+         * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
+         * @param {string[]} [symbols] a list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets ();
+        const leverages = await this.fetchPositions (symbols, params);
+        return this.parseLeverages (leverages, symbols, 'symbol');
+    }
+
+    parseLeverage (leverage, market = undefined): Leverage {
+        const marketId = this.safeString (leverage, 'symbol');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': this.safeStringLower (leverage, 'marginMode'),
+            'longLeverage': this.safeInteger (leverage, 'leverage'),
+            'shortLeverage': this.safeInteger (leverage, 'leverage'),
+        } as Leverage;
     }
 
     async fetchPositions (symbols: Strings = undefined, params = {}) {

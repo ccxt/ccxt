@@ -6,7 +6,7 @@ import { BadRequest, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, OHLCV, Str, OrderBook, Order, Trade, Balances, Ticker } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import Precise from '../base/Precise.js';
+import { Precise } from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 

@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -596,6 +596,7 @@ class okx(Exchange, ImplicitAPI):
                     '50027': PermissionDenied,  # The account is restricted from trading
                     '50028': ExchangeError,  # Unable to take the order, please reach out to support center for details
                     '50044': BadRequest,  # Must select one broker type
+                    '50062': ExchangeError,  # This feature is currently unavailable.
                     # API Class
                     '50100': ExchangeError,  # API frozen, please contact customer service
                     '50101': AuthenticationError,  # Broker id of APIKey does not match current environment
@@ -650,6 +651,15 @@ class okx(Exchange, ImplicitAPI):
                     '51072': InvalidOrder,  # As a spot lead trader, you need to set tdMode to 'spot_isolated' when configured buying lead trade pairs
                     '51073': InvalidOrder,  # As a spot lead trader, you need to use '/copytrading/close-subposition' for selling assets through lead trades
                     '51074': InvalidOrder,  # Only the tdMode for lead trade pairs configured by spot lead traders can be set to 'spot_isolated'
+                    '51090': InvalidOrder,  # You can't modify the amount of an SL order placed with a TP limit order.
+                    '51091': InvalidOrder,  # All TP orders in one order must be of the same type.
+                    '51092': InvalidOrder,  # TP order prices(tpOrdPx) in one order must be different.
+                    '51093': InvalidOrder,  # TP limit order prices(tpOrdPx) in one order can't be –1(market price).
+                    '51094': InvalidOrder,  # You can't place TP limit orders in spot, margin, or options trading.
+                    '51095': InvalidOrder,  # To place TP limit orders at self endpoint, you must place an SL order at the same time.
+                    '51096': InvalidOrder,  # cxlOnClosePos needs to be True to place a TP limit order
+                    '51098': InvalidOrder,  # You can't add a new TP order to an SL order placed with a TP limit order.
+                    '51099': InvalidOrder,  # You can't place TP limit orders lead trader.
                     '51100': InvalidOrder,  # Trading amount does not meet the min tradable amount
                     '51101': InvalidOrder,  # Entered amount exceeds the max pending order amount(Cont) per transaction
                     '51102': InvalidOrder,  # Entered amount exceeds the max pending count
@@ -2635,7 +2645,7 @@ class okx(Exchange, ImplicitAPI):
                     raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"], or params["takeProfit"]["tpTriggerPx"] for a take profit order')
                 request['tpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
                 takeProfitLimitPrice = self.safe_value_n(takeProfit, ['price', 'takeProfitPrice', 'tpOrdPx'])
-                takeProfitOrderType = self.safe_string(takeProfit, 'type')
+                takeProfitOrderType = self.safe_string_2(takeProfit, 'type', 'tpOrdKind')
                 if takeProfitOrderType is not None:
                     takeProfitLimitOrderType = (takeProfitOrderType == 'limit')
                     takeProfitMarketOrderType = (takeProfitOrderType == 'market')
@@ -2645,10 +2655,12 @@ class okx(Exchange, ImplicitAPI):
                         if takeProfitLimitPrice is None:
                             raise InvalidOrder(self.id + ' createOrder() requires a limit price in params["takeProfit"]["price"] or params["takeProfit"]["tpOrdPx"] for a take profit limit order')
                         else:
+                            request['tpOrdKind'] = takeProfitOrderType
                             request['tpOrdPx'] = self.price_to_precision(symbol, takeProfitLimitPrice)
                     elif takeProfitOrderType == 'market':
                         request['tpOrdPx'] = '-1'
                 elif takeProfitLimitPrice is not None:
+                    request['tpOrdKind'] = 'limit'
                     request['tpOrdPx'] = self.price_to_precision(symbol, takeProfitLimitPrice)  # limit tp order
                 else:
                     request['tpOrdPx'] = '-1'  # market tp order
@@ -2666,6 +2678,7 @@ class okx(Exchange, ImplicitAPI):
             twoWayCondition = ((takeProfitPrice is not None) and (stopLossPrice is not None))
             # if TP and SL are sent together
             # 'conditional' only stop-loss order will be applied
+            # tpOrdKind is 'condition' which is the default
             if twoWayCondition:
                 request['ordType'] = 'oco'
             if takeProfitPrice is not None:
@@ -2710,6 +2723,7 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.stopLoss.type]: 'market' or 'limit' used to specify the stop loss price type
         :param str [params.positionSide]: if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
         :param str [params.trailingPercent]: the percent to trail away from the current market price
+        :param str [params.tpOrdKind]: 'condition' or 'limit', the default is 'condition'
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -2850,6 +2864,7 @@ class okx(Exchange, ImplicitAPI):
                 takeProfitTriggerPrice = self.safe_value(takeProfit, 'triggerPrice')
                 takeProfitPrice = self.safe_value(takeProfit, 'price')
                 takeProfitType = self.safe_string(takeProfit, 'type')
+                request['newTpOrdKind'] = takeProfitType if (takeProfitType == 'limit') else 'condition'
                 request['newTpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
                 request['newTpOrdPx'] = '-1' if (takeProfitType == 'market') else self.price_to_precision(symbol, takeProfitPrice)
                 request['newTpTriggerPxType'] = takeProfitTriggerPriceType
@@ -2888,6 +2903,7 @@ class okx(Exchange, ImplicitAPI):
         :param float [params.takeProfit.triggerPrice]: take profit trigger price
         :param float [params.takeProfit.price]: used for take profit limit orders, not used for take profit market price orders
         :param str [params.takeProfit.type]: 'market' or 'limit' used to specify the take profit price type
+        :param str [params.newTpOrdKind]: 'condition' or 'limit', the default is 'condition'
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -4780,7 +4796,7 @@ class okx(Exchange, ImplicitAPI):
             },
         }
 
-    async def fetch_leverage(self, symbol: str, params={}):
+    async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
         fetch the set leverage for a market
         :see: https://www.okx.com/docs-v5/en/#rest-api-account-get-leverage
@@ -4816,7 +4832,33 @@ class okx(Exchange, ImplicitAPI):
         #        "msg": ""
         #     }
         #
-        return response
+        data = self.safe_list(response, 'data', [])
+        return self.parse_leverage(data, market)
+
+    def parse_leverage(self, leverage, market=None) -> Leverage:
+        marketId = None
+        marginMode = None
+        longLeverage = None
+        shortLeverage = None
+        for i in range(0, len(leverage)):
+            entry = leverage[i]
+            marginMode = self.safe_string_lower(entry, 'mgnMode')
+            marketId = self.safe_string(entry, 'instId')
+            positionSide = self.safe_string_lower(entry, 'posSide')
+            if positionSide == 'long':
+                longLeverage = self.safe_integer(entry, 'lever')
+            elif positionSide == 'short':
+                shortLeverage = self.safe_integer(entry, 'lever')
+            else:
+                longLeverage = self.safe_integer(entry, 'lever')
+                shortLeverage = self.safe_integer(entry, 'lever')
+        return {
+            'info': leverage,
+            'symbol': self.safe_symbol(marketId, market),
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        }
 
     async def fetch_position(self, symbol: str, params={}):
         """
@@ -5110,7 +5152,7 @@ class okx(Exchange, ImplicitAPI):
         liquidationPrice = self.safe_number(position, 'liqPx')
         percentageString = self.safe_string(position, 'uplRatio')
         percentage = self.parse_number(Precise.string_mul(percentageString, '100'))
-        timestamp = self.safe_integer(position, 'uTime')
+        timestamp = self.safe_integer(position, 'cTime')
         marginRatio = self.parse_number(Precise.string_div(maintenanceMarginString, collateralString, 4))
         return self.safe_position({
             'info': position,

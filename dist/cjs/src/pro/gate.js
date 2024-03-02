@@ -383,8 +383,9 @@ class gate extends gate$1 {
         const parts = channel.split('.');
         const rawMarketType = this.safeString(parts, 0);
         const marketType = (rawMarketType === 'futures') ? 'contract' : 'spot';
+        const result = this.safeValue(message, 'result');
         let results = [];
-        if (marketType === 'contract') {
+        if (Array.isArray(result)) {
             results = this.safeList(message, 'result', []);
         }
         else {

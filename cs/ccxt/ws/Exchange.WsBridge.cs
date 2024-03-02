@@ -60,7 +60,7 @@ public partial class Exchange
         object tries = 0;
         try
         {
-            var stored = getValue(this.orderbooks, symbol) as ccxt.pro.OrderBook;
+            var stored = getValue(this.orderbooks, symbol) as ccxt.pro.IOrderBook;
             while (isLessThan(tries, maxRetries))
             {
                 var cache = stored.cache;
@@ -130,6 +130,17 @@ public partial class Exchange
         if (!this.clients.ContainsKey(url))
         {
             this.clients[url] = new WebSocketClient(url, proxy, handleMessage, ping, onClose, onError, this.verbose);
+            object ws = this.safeValue(this.options, "ws", new Dictionary<string, object>() {});
+            object wsOptions = this.safeValue(ws, "options", new Dictionary<string, object>() {});
+            var wsHeaders = this.safeValue(wsOptions, "headers", new Dictionary<string, object>() {});
+            // iterate through headers
+            if (wsHeaders != null) {
+                var headers = wsHeaders as Dictionary<string, object>;
+                foreach (var key in headers.Keys)
+                {
+                    this.clients[url].webSocket.Options.SetRequestHeader(key, headers[key].ToString());
+                }
+            }
         }
         return this.clients[url];
     }

@@ -294,7 +294,7 @@ class NewTranspiler {
     }
 
     isNumberType(type: string) {
-        return (type === 'number') || (type === 'NumericLiteral') || (type === 'NumericLiteralType')
+        return (type === 'Num') || (type === 'number') || (type === 'NumericLiteral') || (type === 'NumericLiteralType')
     }
 
     isIntegerType(type: string) {
@@ -312,7 +312,7 @@ class NewTranspiler {
             return `Task<ccxt.pro.IOrderBook>`;
         }
 
-        if (name === 'fetchTime' || name === 'fetchLeverage'){
+        if (name === 'fetchTime'){
             return `Task<Int64>`; // custom handling for now
         }
 
@@ -503,7 +503,7 @@ class NewTranspiler {
         }
 
         // custom handling for now
-        if (methodName === 'fetchTime' || methodName === 'fetchLeverage'){
+        if (methodName === 'fetchTime'){
             return `return (Int64)res;`;
         }
 
@@ -717,7 +717,7 @@ class NewTranspiler {
         // WS fixes
         baseClass = baseClass.replace(/\(object client,/gm, '(WebSocketClient client,');
         baseClass = baseClass.replace(/Dictionary<string,object>\)client\.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures');
-
+        baseClass = baseClass.replaceAll (/(\b\w*)RestInstance.describe/g, "(\(Exchange\)$1RestInstance).describe");
 
         const jsDelimiter = '// ' + delimiter
         const parts = baseClass.split (jsDelimiter)
@@ -942,6 +942,7 @@ class NewTranspiler {
         if (ws) {
             const wsRegexes = this.getWsRegexes();
             content = this.regexAll (content, wsRegexes);
+            content = this.replaceImportedRestClasses (content, csharpVersion.imports);
             const classNameRegex = /public\spartial\sclass\s(\w+)\s:\s(\w+)/gm;
             const classNameExec = classNameRegex.exec(content);
             const className = classNameExec ? classNameExec[1] : '';
@@ -950,6 +951,18 @@ class NewTranspiler {
         }
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;
+    }
+
+    replaceImportedRestClasses (content, imports) {
+        for (const imp of imports) {
+            // { name: "hitbtc", path: "./hitbtc.js", isDefault: true, }
+            // { name: "bequantRest", path: "../bequant.js", isDefault: true, }
+            const name = imp.name;
+            if (name.endsWith('Rest')) {
+                content = content.replaceAll(name, 'ccxt.' + name.replace('Rest', ''));
+            }
+        }
+        return content;
     }
 
     transpileDerivedExchangeFile (tsFolder, filename, options, csharpResult, force = false, ws = false) {

@@ -39,7 +39,7 @@ public partial class gate : Exchange
                         { "spot", "https://api.gateio.ws/api/v4" },
                         { "options", "https://api.gateio.ws/api/v4" },
                         { "subAccounts", "https://api.gateio.ws/api/v4" },
-                        { "portfolio", "https://api.gateio.ws/api/v4" },
+                        { "unified", "https://api.gateio.ws/api/v4" },
                         { "rebate", "https://api.gateio.ws/api/v4" },
                         { "earn", "https://api.gateio.ws/api/v4" },
                         { "account", "https://api.gateio.ws/api/v4" },
@@ -260,11 +260,14 @@ public partial class gate : Exchange
                             { "saved_address", 1 },
                             { "fee", 1 },
                             { "total_balance", 2.5 },
+                            { "small_balance", 1 },
+                            { "small_balance_history", 1 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "transfers", 2.5 },
                             { "sub_account_transfers", 2.5 },
                             { "sub_account_to_sub_account", 2.5 },
+                            { "small_balance", 1 },
                         } },
                     } },
                     { "subAccounts", new Dictionary<string, object>() {
@@ -287,7 +290,7 @@ public partial class gate : Exchange
                             { "sub_accounts/{user_id}/keys/{key}", 2.5 },
                         } },
                     } },
-                    { "portfolio", new Dictionary<string, object>() {
+                    { "unified", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "accounts", divide(20, 15) },
                             { "account_mode", divide(20, 15) },
@@ -296,6 +299,7 @@ public partial class gate : Exchange
                             { "loans", divide(20, 15) },
                             { "loan_records", divide(20, 15) },
                             { "interest_records", divide(20, 15) },
+                            { "estimate_rate", divide(20, 15) },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "account_mode", divide(20, 15) },
@@ -884,7 +888,7 @@ public partial class gate : Exchange
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
-        object sandboxMode = this.safeValue(this.options, "sandboxMode", false);
+        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object rawPromises = new List<object> {this.fetchContractMarkets(parameters), this.fetchOptionMarkets(parameters)};
         if (!isTrue(sandboxMode))
         {

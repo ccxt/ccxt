@@ -70,6 +70,7 @@ export default class bingx extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -80,6 +81,7 @@ export default class bingx extends Exchange {
                 'setLeverage': true,
                 'setMargin': true,
                 'setMarginMode': true,
+                'setPositionMode': true,
                 'transfer': true,
             },
             'hostname': 'bingx.com',
@@ -1400,7 +1402,9 @@ export default class bingx extends Exchange {
         if (symbols !== undefined) {
             symbols = this.marketSymbols(symbols);
             const firstSymbol = this.safeString(symbols, 0);
-            market = this.market(firstSymbol);
+            if (firstSymbol !== undefined) {
+                market = this.market(firstSymbol);
+            }
         }
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
@@ -3495,7 +3499,18 @@ export default class bingx extends Exchange {
         //        }
         //    }
         //
-        return response;
+        const data = this.safeDict(response, 'data', {});
+        return this.parseLeverage(data, market);
+    }
+    parseLeverage(leverage, market = undefined) {
+        const marketId = this.safeString(leverage, 'symbol');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol(marketId, market),
+            'marginMode': undefined,
+            'longLeverage': this.safeInteger(leverage, 'longLeverage'),
+            'shortLeverage': this.safeInteger(leverage, 'shortLeverage'),
+        };
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {
         /**
@@ -3506,13 +3521,14 @@ export default class bingx extends Exchange {
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.side] hedged: ['long' or 'short']. one way: ['both']
          * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
         }
         const side = this.safeStringUpper(params, 'side');
-        this.checkRequiredArgument('setLeverage', side, 'side', ['LONG', 'SHORT']);
+        this.checkRequiredArgument('setLeverage', side, 'side', ['LONG', 'SHORT', 'BOTH']);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -3955,6 +3971,34 @@ export default class bingx extends Exchange {
             positions.push(position);
         }
         return positions;
+    }
+    async fetchPositionMode(symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bingx#fetchPositionMode
+         * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Get%20Position%20Mode
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an object detailing whether the market is in hedged or one-way mode
+         */
+        const response = await this.swapV1PrivateGetPositionSideDual(params);
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "timeStamp": "1709002057516",
+        //         "data": {
+        //             "dualSidePosition": "false"
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const dualSidePosition = this.safeString(data, 'dualSidePosition');
+        return {
+            'info': response,
+            'hedged': (dualSidePosition === 'true'),
+        };
     }
     async setPositionMode(hedged, symbol = undefined, params = {}) {
         /**
