@@ -571,6 +571,7 @@ export default class bitget extends bitgetRest {
                 if (calculatedChecksum !== responseChecksum) {
                     const error = new InvalidNonce (this.id + ' invalid checksum');
                     client.reject (error, messageHash);
+                    return;
                 }
             }
         } else {
