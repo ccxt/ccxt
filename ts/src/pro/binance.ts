@@ -2998,7 +2998,7 @@ export default class binance extends binanceRest {
             }
         }
         if (!rejected) {
-            client.reject (message, id);
+            client.reject (message, id); // todo: needs revision, first arg might need to be an exception
         }
         // reset connection if 5xx error
         if (this.safeString (code, 0) === '5') {
