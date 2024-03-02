@@ -2,8 +2,13 @@
 
 import cexRest from '../cex.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+<<<<<<< HEAD
 import type { Int, OrderSide, OrderType, Strings, Str, OrderBook, Trade, Ticker, Tickers, OHLCV, Order, Balances, Num } from '../base/types.js';
 import { ArgumentsRequired, ExchangeError, BadRequest } from '../base/errors.js';
+=======
+import type { Int, OrderSide, OrderType, Strings, Str, OrderBook, Trade, Ticker, Tickers, OHLCV, Order, Balances } from '../base/types.js';
+import { ArgumentsRequired, ExchangeError, BadRequest, OperationFailed } from '../base/errors.js';
+>>>>>>> d9f7a9bc85 (cex fix error)
 import { Precise } from '../base/Precise.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
@@ -1032,7 +1037,9 @@ export default class cex extends cexRest {
         const messageHash = 'orderbook:' + symbol;
         if (incrementalId !== storedOrderBook['nonce'] + 1) {
             delete client.subscriptions[messageHash];
-            client.reject (this.id + ' watchOrderBook() skipped a message', messageHash);
+            const error = new OperationFailed (this.id + ' watchOrderBook() skipped a message');
+            client.reject (error, messageHash);
+            return;
         }
         const timestamp = this.safeInteger (data, 'time');
         const asks = this.safeValue (data, 'asks', []);
