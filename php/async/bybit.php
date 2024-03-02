@@ -6350,23 +6350,32 @@ class bybit extends Exchange {
         ));
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
-             * fetch the set leverage for a market
+             * fetch the set leverage for a $market
              * @see https://bybit-exchange.github.io/docs/v5/position
-             * @param {string} $symbol unified market $symbol
+             * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
              */
             Async\await($this->load_markets());
+            $market = $this->market($symbol);
             $position = Async\await($this->fetch_position($symbol, $params));
-            return array(
-                'info' => $position,
-                'leverage' => $this->safe_integer($position, 'leverage'),
-                'marginMode' => $this->safe_number($position, 'marginMode'),
-            );
+            return $this->parse_leverage($position, $market);
         }) ();
+    }
+
+    public function parse_leverage($leverage, $market = null): Leverage {
+        $marketId = $this->safe_string($leverage, 'symbol');
+        $leverageValue = $this->safe_integer($leverage, 'leverage');
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $this->safe_string_lower($leverage, 'marginMode'),
+            'longLeverage' => $leverageValue,
+            'shortLeverage' => $leverageValue,
+        );
     }
 
     public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {

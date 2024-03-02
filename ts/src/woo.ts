@@ -6,7 +6,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Bool, Currency, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction } from './base/types.js';
+import type { TransferEntry, Balances, Bool, Currency, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -2677,8 +2677,18 @@ export default class woo extends Exchange {
         return response;
     }
 
-    async fetchLeverage (symbol: string, params = {}) {
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        /**
+         * @method
+         * @name woo#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://docs.woo.org/#get-account-information-new
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const response = await this.v3PrivateGetAccountinfo (params);
         //
         //     {
@@ -2708,12 +2718,19 @@ export default class woo extends Exchange {
         //         "timestamp": 1673323685109
         //     }
         //
-        const result = this.safeValue (response, 'data');
-        const leverage = this.safeNumber (result, 'leverage');
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
+    }
+
+    parseLeverage (leverage, market = undefined): Leverage {
+        const leverageValue = this.safeInteger (leverage, 'leverage');
         return {
-            'info': response,
-            'leverage': leverage,
-        };
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': undefined,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        } as Leverage;
     }
 
     async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {

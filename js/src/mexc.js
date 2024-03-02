@@ -5426,30 +5426,30 @@ export default class mexc extends Exchange {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        const longLeverage = this.safeDict(data, 0);
-        return this.parseLeverage(longLeverage, market);
+        return this.parseLeverage(data, market);
     }
     parseLeverage(leverage, market = undefined) {
-        //
-        //     {
-        //         "level": 1,
-        //         "maxVol": 463300,
-        //         "mmr": 0.004,
-        //         "imr": 0.005,
-        //         "positionType": 1,
-        //         "openType": 1,
-        //         "leverage": 20,
-        //         "limitBySys": false,
-        //         "currentMmr": 0.004
-        //     }
-        //
-        const marketId = this.safeString(leverage, 'symbol');
-        market = this.safeMarket(marketId, market, undefined, 'contract');
+        let marginMode = undefined;
+        let longLeverage = undefined;
+        let shortLeverage = undefined;
+        for (let i = 0; i < leverage.length; i++) {
+            const entry = leverage[i];
+            const openType = this.safeInteger(entry, 'openType');
+            const positionType = this.safeInteger(entry, 'positionType');
+            if (positionType === 1) {
+                longLeverage = this.safeInteger(entry, 'leverage');
+            }
+            else if (positionType === 2) {
+                shortLeverage = this.safeInteger(entry, 'leverage');
+            }
+            marginMode = (openType === 1) ? 'isolated' : 'cross';
+        }
         return {
             'info': leverage,
             'symbol': market['symbol'],
-            'leverage': this.safeInteger(leverage, 'leverage'),
-            'marginMode': undefined,
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
         };
     }
     handleMarginModeAndParams(methodName, params = {}, defaultValue = undefined) {

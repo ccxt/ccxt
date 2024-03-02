@@ -1988,7 +1988,13 @@ class Exchange {
         throw new errors.NotSupported(this.id + ' setLeverage() is not supported yet');
     }
     async fetchLeverage(symbol, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchLeverage() is not supported yet');
+        if (this.has['fetchLeverages']) {
+            const leverages = await this.fetchLeverages([symbol], params);
+            return this.safeDict(leverages, symbol);
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchLeverage() is not supported yet');
+        }
     }
     async fetchLeverages(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchLeverages() is not supported yet');
@@ -5586,6 +5592,21 @@ class Exchange {
     }
     parseMarginMode(marginMode, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseMarginMode () is not supported yet');
+    }
+    parseLeverages(response, symbols = undefined, symbolKey = undefined, marketType = undefined) {
+        const leverageStructures = {};
+        for (let i = 0; i < response.length; i++) {
+            const info = response[i];
+            const marketId = this.safeString(info, symbolKey);
+            const market = this.safeMarket(marketId, undefined, undefined, marketType);
+            if ((symbols === undefined) || this.inArray(market['symbol'], symbols)) {
+                leverageStructures[market['symbol']] = this.parseLeverage(info, market);
+            }
+        }
+        return leverageStructures;
+    }
+    parseLeverage(leverage, market = undefined) {
+        throw new errors.NotSupported(this.id + ' parseLeverage() is not supported yet');
     }
 }
 

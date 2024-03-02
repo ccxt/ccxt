@@ -770,7 +770,14 @@ public partial class Exchange
     public async virtual Task<object> fetchLeverage(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " fetchLeverage() is not supported yet")) ;
+        if (isTrue(getValue(this.has, "fetchLeverages")))
+        {
+            object leverages = await this.fetchLeverages(new List<object>() {symbol}, parameters);
+            return this.safeDict(leverages, symbol);
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " fetchLeverage() is not supported yet")) ;
+        }
     }
 
     public async virtual Task<object> fetchLeverages(object symbols = null, object parameters = null)
@@ -5555,6 +5562,27 @@ public partial class Exchange
     public virtual object parseMarginMode(object marginMode, object market = null)
     {
         throw new NotSupported ((string)add(this.id, " parseMarginMode () is not supported yet")) ;
+    }
+
+    public virtual object parseLeverages(object response, object symbols = null, object symbolKey = null, object marketType = null)
+    {
+        object leverageStructures = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object info = getValue(response, i);
+            object marketId = this.safeString(info, symbolKey);
+            object market = this.safeMarket(marketId, null, null, marketType);
+            if (isTrue(isTrue((isEqual(symbols, null))) || isTrue(this.inArray(getValue(market, "symbol"), symbols))))
+            {
+                ((IDictionary<string,object>)leverageStructures)[(string)getValue(market, "symbol")] = this.parseLeverage(info, market);
+            }
+        }
+        return leverageStructures;
+    }
+
+    public virtual object parseLeverage(object leverage, object market = null)
+    {
+        throw new NotSupported ((string)add(this.id, " parseLeverage() is not supported yet")) ;
     }
 }
 

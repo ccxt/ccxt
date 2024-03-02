@@ -813,11 +813,10 @@ class whitebit(ccxt.async_support.whitebit):
         #
         if not self.handle_error_message(client, message):
             return
-        result = self.safe_value(message, 'result', {})
-        if result is not None:
-            if result == 'pong':
-                self.handle_pong(client, message)
-                return
+        result = self.safe_string(message, 'result')
+        if result == 'pong':
+            self.handle_pong(client, message)
+            return
         id = self.safe_integer(message, 'id')
         if id is not None:
             self.handle_subscription_status(client, message, id)

@@ -5463,32 +5463,34 @@ public partial class mexc : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        object longLeverage = this.safeDict(data, 0);
-        return this.parseLeverage(longLeverage, market);
+        return this.parseLeverage(data, market);
     }
 
-    public virtual object parseLeverage(object leverage, object market = null)
+    public override object parseLeverage(object leverage, object market = null)
     {
-        //
-        //     {
-        //         "level": 1,
-        //         "maxVol": 463300,
-        //         "mmr": 0.004,
-        //         "imr": 0.005,
-        //         "positionType": 1,
-        //         "openType": 1,
-        //         "leverage": 20,
-        //         "limitBySys": false,
-        //         "currentMmr": 0.004
-        //     }
-        //
-        object marketId = this.safeString(leverage, "symbol");
-        market = this.safeMarket(marketId, market, null, "contract");
+        object marginMode = null;
+        object longLeverage = null;
+        object shortLeverage = null;
+        for (object i = 0; isLessThan(i, getArrayLength(leverage)); postFixIncrement(ref i))
+        {
+            object entry = getValue(leverage, i);
+            object openType = this.safeInteger(entry, "openType");
+            object positionType = this.safeInteger(entry, "positionType");
+            if (isTrue(isEqual(positionType, 1)))
+            {
+                longLeverage = this.safeInteger(entry, "leverage");
+            } else if (isTrue(isEqual(positionType, 2)))
+            {
+                shortLeverage = this.safeInteger(entry, "leverage");
+            }
+            marginMode = ((bool) isTrue((isEqual(openType, 1)))) ? "isolated" : "cross";
+        }
         return new Dictionary<string, object>() {
             { "info", leverage },
             { "symbol", getValue(market, "symbol") },
-            { "leverage", this.safeInteger(leverage, "leverage") },
-            { "marginMode", null },
+            { "marginMode", marginMode },
+            { "longLeverage", longLeverage },
+            { "shortLeverage", shortLeverage },
         };
     }
 

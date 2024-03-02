@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitmex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, MarketType, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, MarketType, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -71,7 +71,7 @@ class bitmex(Exchange, ImplicitAPI):
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
                 'fetchLedger': True,
-                'fetchLeverage': True,
+                'fetchLeverage': 'emulated',
                 'fetchLeverages': True,
                 'fetchLeverageTiers': False,
                 'fetchLiquidations': True,
@@ -1978,7 +1978,7 @@ class bitmex(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market)
 
-    async def fetch_leverages(self, symbols: List[str] = None, params={}):
+    async def fetch_leverages(self, symbols: List[str] = None, params={}) -> Leverages:
         """
         fetch the set leverage for all contract markets
         :see: https://www.bitmex.com/api/explorer/#not /Position/Position_get
@@ -1987,31 +1987,18 @@ class bitmex(Exchange, ImplicitAPI):
         :returns dict: a list of `leverage structures <https://docs.ccxt.com/#/?id=leverage-structure>`
         """
         await self.load_markets()
-        positions = await self.fetch_positions(symbols, params)
-        result = []
-        for i in range(0, len(positions)):
-            entry = positions[i]
-            marketId = self.safe_string(entry, 'symbol')
-            market = self.safe_market(marketId, None, None, 'contract')
-            result.append({
-                'info': entry,
-                'symbol': market['symbol'],
-                'leverage': self.safe_integer(entry, 'leverage'),
-                'marginMode': self.safe_string(entry, 'marginMode'),
-            })
-        return result
+        leverages = await self.fetch_positions(symbols, params)
+        return self.parse_leverages(leverages, symbols, 'symbol')
 
-    async def fetch_leverage(self, symbol: str, params={}):
-        """
-        fetch the set leverage for a market
-        :see: https://www.bitmex.com/api/explorer/#not /Position/Position_get
-        :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
-        """
-        await self.load_markets()
-        leverage = await self.fetch_leverages([symbol], params)
-        return leverage
+    def parse_leverage(self, leverage, market=None) -> Leverage:
+        marketId = self.safe_string(leverage, 'symbol')
+        return {
+            'info': leverage,
+            'symbol': self.safe_symbol(marketId, market),
+            'marginMode': self.safe_string_lower(leverage, 'marginMode'),
+            'longLeverage': self.safe_integer(leverage, 'leverage'),
+            'shortLeverage': self.safe_integer(leverage, 'leverage'),
+        }
 
     async def fetch_positions(self, symbols: Strings = None, params={}):
         """

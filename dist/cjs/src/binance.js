@@ -94,7 +94,8 @@ class binance extends binance$1 {
                 'fetchLastPrices': true,
                 'fetchLedger': true,
                 'fetchLedgerEntry': true,
-                'fetchLeverage': true,
+                'fetchLeverage': 'emulated',
+                'fetchLeverages': true,
                 'fetchLeverageTiers': true,
                 'fetchLiquidations': false,
                 'fetchMarginMode': 'emulated',
@@ -10388,31 +10389,27 @@ class binance extends binance$1 {
         //
         return response;
     }
-    async fetchLeverage(symbol, params = {}) {
+    async fetchLeverages(symbols = undefined, params = {}) {
         /**
          * @method
-         * @name binance#fetchLeverage
-         * @description fetch the set leverage for a market
+         * @name binance#fetchLeverages
+         * @description fetch the set leverage for all markets
          * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
          * @see https://binance-docs.github.io/apidocs/pm/en/#get-um-account-detail-user_data
          * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data
-         * @param {string} symbol unified market symbol
+         * @param {string[]} [symbols] a list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
          */
         await this.loadMarkets();
         await this.loadLeverageBrackets(false, params);
-        const market = this.market(symbol);
-        if (!market['contract']) {
-            throw new errors.NotSupported(this.id + ' fetchLeverage() supports linear and inverse contracts only');
-        }
         let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('fetchLeverage', market, params);
+        [type, params] = this.handleMarketTypeAndParams('fetchLeverages', undefined, params);
         let subType = undefined;
-        [subType, params] = this.handleSubTypeAndParams('fetchLeverage', market, params, 'linear');
+        [subType, params] = this.handleSubTypeAndParams('fetchLeverages', undefined, params, 'linear');
         let isPortfolioMargin = undefined;
-        [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'fetchLeverage', 'papi', 'portfolioMargin', false);
+        [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'fetchLeverages', 'papi', 'portfolioMargin', false);
         let response = undefined;
         if (this.isLinear(type, subType)) {
             if (isPortfolioMargin) {
@@ -10431,23 +10428,39 @@ class binance extends binance$1 {
             }
         }
         else {
-            throw new errors.NotSupported(this.id + ' fetchPositions() supports linear and inverse contracts only');
+            throw new errors.NotSupported(this.id + ' fetchLeverages() supports linear and inverse contracts only');
         }
-        const positions = this.safeList(response, 'positions', []);
-        for (let i = 0; i < positions.length; i++) {
-            const position = positions[i];
-            const innerSymbol = this.safeString(position, 'symbol');
-            if (innerSymbol === market['id']) {
-                const isolated = this.safeBool(position, 'isolated');
-                const marginMode = isolated ? 'isolated' : 'cross';
-                return {
-                    'info': position,
-                    'marginMode': marginMode,
-                    'leverage': this.safeInteger(position, 'leverage'),
-                };
-            }
+        const leverages = this.safeList(response, 'positions', []);
+        return this.parseLeverages(leverages, symbols, 'symbol');
+    }
+    parseLeverage(leverage, market = undefined) {
+        const marketId = this.safeString(leverage, 'symbol');
+        const marginModeRaw = this.safeBool(leverage, 'isolated');
+        let marginMode = undefined;
+        if (marginModeRaw !== undefined) {
+            marginMode = marginModeRaw ? 'isolated' : 'cross';
         }
-        return response;
+        const side = this.safeStringLower(leverage, 'positionSide');
+        let longLeverage = undefined;
+        let shortLeverage = undefined;
+        const leverageValue = this.safeInteger(leverage, 'leverage');
+        if (side === 'both') {
+            longLeverage = leverageValue;
+            shortLeverage = leverageValue;
+        }
+        else if (side === 'long') {
+            longLeverage = leverageValue;
+        }
+        else if (side === 'short') {
+            shortLeverage = leverageValue;
+        }
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol(marketId, market),
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        };
     }
     async fetchSettlementHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

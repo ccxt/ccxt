@@ -1575,7 +1575,12 @@
         }
     },
     "wazirx": {
-        "skipWs": "timeouts"
+        "skipWs": "timeouts",
+        "skipMethods": {
+            "fetchTickers": {
+                "ask": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269200021#L4048"
+            }
+        }
     },
     "coinlist": {
         "skipMethods": {
