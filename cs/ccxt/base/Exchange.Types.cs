@@ -441,6 +441,10 @@ public struct Balance
 public struct Balances
 {
     public Dictionary<string, Balance> balances;
+
+    public Dictionary<string, double> free;
+    public Dictionary<string, double> used;
+    public Dictionary<string, double> total;
     public Dictionary<string, object> info;
 
     public Balances(object balances2)
@@ -454,7 +458,44 @@ public struct Balances
                 this.balances.Add(balance.Key, new Balance(balance.Value));
             }
         }
-        info = (Dictionary<string, object>)balances["info"];
+        // handle free balance
+        free = new Dictionary<string, double>();
+        var balanceFree = (Dictionary<string, object>)balances["free"];
+        foreach (var balance in balanceFree)
+        {
+            free.Add(balance.Key, Convert.ToDouble(balance.Value));
+        }
+        // handle used balance
+        used = new Dictionary<string, double>();
+        var balanceUsed = (Dictionary<string, object>)balances["used"];
+        foreach (var balance in balanceUsed)
+        {
+            used.Add(balance.Key, Convert.ToDouble(balance.Value));
+        }
+        // handle total balance
+        total = new Dictionary<string, double>();
+        var balanceTotal = (Dictionary<string, object>)balances["total"];
+        foreach (var balance in balanceTotal)
+        {
+            total.Add(balance.Key, Convert.ToDouble(balance.Value));
+        }
+        // info = (Dictionary<string, object>)balances["info"];
+        var balancesInfo = balances["info"];
+        if (balancesInfo is IDictionary<string, object>)
+        {
+            info = (Dictionary<string, object>)balancesInfo;
+        }
+        else if (balancesInfo is IList<object>)
+        {
+            info = new Dictionary<string, object> {
+                {"response", balancesInfo}
+            };
+        }
+        else
+        {
+            info = null;
+        }
+
     }
 
     public Balance this[string key]
