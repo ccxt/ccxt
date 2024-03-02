@@ -6,7 +6,7 @@ import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
-import { AuthenticationError, ArgumentsRequired } from '../base/errors.js';
+import { AuthenticationError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -22,9 +22,12 @@ export default class phemex extends phemexRest {
                 'watchMyTrades': true,
                 'watchOrders': true,
                 'watchOrderBook': true,
-                'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
                 'watchPositions': undefined, // TODO
+                // mutli-endpoints are not supported:
+                'watchOrderBookForSymbols': false,
+                'watchTradesForSymbols': false,
+                'watchOHLCVForSymbols': false,
             },
             'urls': {
                 'test': {
@@ -37,13 +40,6 @@ export default class phemex extends phemexRest {
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
-                'ws': {
-                    'watchOrderBookForSymbols': {
-                        // 'full' : full orderbook changes every 100 MS
-                        // 'top30' : top-30 depth orderbook changes every 20 MS
-                        'orderBookType': 'full',
-                    },
-                },
             },
             'streaming': {
                 'keepAlive': 10000,
@@ -594,88 +590,26 @@ export default class phemex extends phemexRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        params['callerMethodName'] = 'watchOrderBook';
-        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
-    }
-
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name phemex#watchOrderBookForSymbols
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-orderbook
-         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-orderbook-for-new-model
-         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-30-levels-orderbook
-         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-full-orderbook
-         * @param {string[]} symbols unified array of symbols
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
-        let descriptor = undefined; // for more info, see comment in .options
-        [ descriptor, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'orderBookType', 'full');
-        const orderbook = await this.watchMultipleWrapper ('orderbook', descriptor, symbols, params);
-        return orderbook.limit ();
-    }
-
-    async watchMultipleWrapper (channelName: string, channelDescriptor: string, symbolsArray: any[] = undefined, params = {}) {
         await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
         const url = this.urls['api']['ws'];
-        const rawSubscriptions = [];
-        const messageHashes = [];
-        const isOHLCV = (channelName === 'XXXXXXXXXXX');
-        const symbols = isOHLCV ? this.getListFromObjectValues (symbolsArray, 0) : symbolsArray;
-        this.marketSymbols (symbols, undefined, false);
-        this.throwForMixedUsdtSettleSymbols (symbols);
-        for (let i = 0; i < symbolsArray.length; i++) {
-            const current = symbolsArray[i];
-            let market = undefined;
-            if (isOHLCV) {
-                // market = this.market (current[0]);
-                // const unifiedTf = current[1];
-                // const rawTf = this.safeString (this.timeframes, unifiedTf, unifiedTf);
-                // channelDescriptor = rawTf;
-            } else if (channelName === 'orderbook') {
-                market = this.market (current);
-                const settleIsUSDT = market['settle'] === 'USDT';
-                channelName = (market['swap'] && settleIsUSDT) ? 'orderbook_p' : 'orderbook';
-                if (channelDescriptor === 'full') {
-                    // rawSubscriptions.push (true);
-                }
-            } else {
-                market = this.market (current);
-            }
-            rawSubscriptions.push (market['id']);
-            messageHashes.push (channelName + '|' + market['symbol']);
-        }
-        const request = {
-            'method': channelName + '.subscribe',
-            'id': this.requestId (),
-            'params': rawSubscriptions,
+        const requestId = this.requestId ();
+        const isSwap = market['swap'];
+        const settleIsUSDT = market['settle'] === 'USDT';
+        const name = (isSwap && settleIsUSDT) ? 'orderbook_p' : 'orderbook';
+        const messageHash = 'orderbook:' + symbol;
+        const method = name + '.subscribe';
+        const subscribe = {
+            'method': method,
+            'id': requestId,
+            'params': [
+                market['id'],
+            ],
         };
-        const extendedRequest = this.deepExtend (request, params);
-        const maxMessageByteLimit = 32768 - 1; // 'Message Too Big: limit 32768B'
-        const jsonedText = this.json (extendedRequest);
-        if (jsonedText.length >= maxMessageByteLimit) {
-            throw new ArgumentsRequired (this.id + ' requested subscription length over limit, try to reduce symbols amount');
-        }
-        return await this.watchMultiple (url, messageHashes, extendedRequest, rawSubscriptions);
-    }
-
-    throwForMixedUsdtSettleSymbols (symbols) {
-        // this method is used to check symbols arguments in 'ForSymbols' methods, because
-        // they should be all either usdt-settle or none-usdt-settle, to match endpoints
-        const allSymbolsLength = symbols.length;
-        let usdtSymbolsLength = 0;
-        for (let i = 0; i < allSymbolsLength; i++) {
-            const market = this.market (symbols[i]);
-            if (market['settle'] !== 'USDT') {
-                usdtSymbolsLength = usdtSymbolsLength + 1;
-            }
-        }
-        if (usdtSymbolsLength > 0 && usdtSymbolsLength < allSymbolsLength) {
-            throw new ArgumentsRequired (this.id + ' - do not mix USDT-settle and non-USDT-settle symbols in same request');
-        }
+        const request = this.deepExtend (subscribe, params);
+        const orderbook = await this.watch (url, messageHash, request, messageHash);
+        return orderbook.limit ();
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
