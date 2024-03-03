@@ -9,6 +9,10 @@ export class Stream implements BaseStream {
     private consumers: Map<Topic, Consumer[]>;
 
     constructor (maxMessagesPerTopic = undefined) {
+        this.init (maxMessagesPerTopic);
+    }
+
+    init (maxMessagesPerTopic = undefined) {
         this.maxMessagesPerTopic = maxMessagesPerTopic;
         this.topics = new Map ();
         this.consumers = new Map ();
@@ -44,7 +48,8 @@ export class Stream implements BaseStream {
         }
 
         this.topics.get (topic).push (message);
-        this.runConsumers (topic);
+        const consumers = this.consumers.get (topic) || [];
+        this.sendToConsumers (consumers, message);
     }
 
     /**
@@ -62,8 +67,6 @@ export class Stream implements BaseStream {
         }
 
         this.consumers.get (topic).push (consumer);
-
-        consumer.run (this, topic);
     }
 
     /**
@@ -87,6 +90,11 @@ export class Stream implements BaseStream {
         return this.topics.get (topic) || [];
     }
 
+    /**
+     * Returns the last index of the given topic.
+     * @param topic - The topic to get the last index for.
+     * @returns The last index of the topic.
+     */
     getLastIndex (topic: Topic): Int {
         let lastIndex = -1
         const messages = this.topics.get (topic)
@@ -96,13 +104,10 @@ export class Stream implements BaseStream {
         return lastIndex;
     }
 
-    private runConsumers (topic: Topic): void {
-        const topicConsumers = this.consumers.get (topic);
-        if (topicConsumers) {
-            for (let i = 0; i < topicConsumers.length; i++) {
-                const consumer = topicConsumers[i];
-                consumer.run (this, topic);
-            }
+    private sendToConsumers (consumers: Consumer[], message: Message): void {
+        for (let i = 0; i < consumers.length; i++) {
+            const consumer = consumers[i];
+            consumer.publish (message);
         }
     }
 
@@ -111,7 +116,7 @@ export class Stream implements BaseStream {
      * Note: this won't cancel any ongoing consumers
      */
     close (): void {
-        this.consumers = new Map ();
+        this.init (this.maxMessagesPerTopic);
     }
 }
 

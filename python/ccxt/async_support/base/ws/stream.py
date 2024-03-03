@@ -1,31 +1,15 @@
 from typing import Any, Callable, Dict, List
-from asyncio import Future, iscoroutinefunction
-import asyncio
+from asyncio import Future
+from ....base.types import Topic, Message
+from .consumer import Consumer
 
 # Define type aliases for clarity
-Topic = str
 MessagePayload = Any
 ConsumerFunction = Callable[['Message'], Future[None] | None]
 
-class Metadata:
-    def __init__(self, topic: Topic, index: int):
-        self.topic = topic
-        self.index = index
-
-
-class Message:
-    def __init__(self, payload: Any, error: Any, topic: Topic, index: int):
-        self.payload = payload
-        self.error = error
-        self.metadata = Metadata (topic, index)
-class Consumer:
-    def __init__(self, fn: ConsumerFunction, synchronous: bool, current_index: int):
-        self.fn = fn
-        self.synchronous = synchronous
-        self.current_index = current_index
 
 class Stream:
-    def __init__(self, max_messages_per_topic = None):
+    def __init__(self, max_messages_per_topic: int = None):
         """
         Initializes a new Stream object.
         :param int max_messages_per_topic: Maximum number of messages per topic. Defaults to None.
@@ -33,7 +17,6 @@ class Stream:
         self.topics: Dict[Topic, List[Message]] = {}
         self.consumers: Dict[Topic, List[Consumer]] = {}
         self.max_messages_per_topic = max_messages_per_topic
-        self.tasks = []
 
     def produce(self, topic: Topic, payload: Any, error: Any = None) -> None:
         """
@@ -48,13 +31,14 @@ class Stream:
         messages = self.topics[topic]
         index = self.get_last_index (topic) + 1
 
-        message = Message(payload, error, topic, index)
+        message = Message(payload, error, self, topic, index)
 
         if self.max_messages_per_topic and len(messages) >= self.max_messages_per_topic:
             messages.pop(0)
 
         self.topics[topic].append(message)
-        asyncio.ensure_future(self.notify_consumers(topic))
+        consumers = self.consumers.get(topic, [])
+        self.send_to_consumers(consumers, message)
 
     def subscribe(self, topic: Topic, consumer_fn: ConsumerFunction, synchronous: bool = True) -> None:
         """
@@ -84,7 +68,8 @@ class Stream:
         :returns List[Message]: The message history for the topic.
         """
         return self.topics.get(topic, [])
-    
+
+
     def get_last_index (self, topic: Topic) -> int:
         """
         Gets the last index for a topic. Returns -1 if the topic has no messages.
@@ -97,40 +82,16 @@ class Stream:
             last_index = messages[-1].metadata.index
         return last_index
 
-    
-    async def handle_consumer(self, consumer, topic):
-        messages = self.get_message_history(topic)
-        for message in messages:
-            if message.metadata['index'] < consumer.current_index:
-                continue
-            try:
-                consumer.current_index = message.metadata['index']
-                if consumer.synchronous and iscoroutinefunction(consumer.fn):
-                    await consumer.fn(message)
-                else:
-                    consumer.fn(message)
-            except Exception as e:
-                self.produce('errors', None, e)
+    def send_to_consumers(self, consumers, message):
+        for consumer in consumers:
+            consumer.publish(message)
 
-    async def notify_consumers(self, topic: Topic) -> None:
-        topic_consumers = self.consumers.get(topic, [])
-        if topic_consumers:
-            for consumer in topic_consumers:
-                task = asyncio.create_task(self.handle_consumer(consumer, topic))
-                task.add_done_callback(self.task_done_callback)
-                self.tasks.append(task)
-            await asyncio.gather(*self.tasks, return_exceptions=True)
-
-    def task_done_callback(self, task: asyncio.Task) -> None:
-        self.tasks.remove(task)
 
     async def close(self) -> None:
         """
         Closes the stream. This cancels all pending tasks.
         """
-        # Cancel all pending tasks
-        for task in self.tasks:
-            task.cancel()
-        # Wait for all tasks to be cancelled
-        await asyncio.gather(*self.tasks, return_exceptions=True)
-        self.stream = Stream ()
+        for consumers in self.consumers.values():
+            for consumer in consumers:
+                await consumer.close()
+        self.stream = Stream()

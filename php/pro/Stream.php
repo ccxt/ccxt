@@ -2,15 +2,19 @@
 
 namespace ccxt\pro;
 
-use React\Async;
+use ccxt\pro\Consumer;
 
 class Metadata {
+    public $stream;
     public $topic;
     public $index;
+    public $history;
 
-    public function __construct($topic, $index) {
+    public function __construct($stream, $topic, $index) {
+        $this->stream = $stream;
         $this->topic = $topic;
         $this->index = $index;
+        $this->history = $this->stream->get_message_history($topic);
     }
 }
 
@@ -19,29 +23,17 @@ class Message {
     public $error;
     public $metadata;
 
-    public function __construct($payload, $error, $topic, $index) {
+    public function __construct($payload, $error, $stream, $topic, $index) {
         $this->payload = $payload;
         $this->error = $error;
-        $this->metadata = new Metadata($topic, $index);
-    }
-}
-
-class Consumer {
-    public $fn;
-    public $synchronous;
-    public $current_index;
-
-    public function __construct(callable $fn, $synchronous, $current_index) {
-        $this->fn = $fn;
-        $this->synchronous = $synchronous;
-        $this->current_index = $current_index;
+        $this->metadata = new Metadata($stream, $topic, $index);
     }
 }
 
 class Stream {
     public $max_messages_per_topic;
-    public $topics = [];
-    private $consumers = [];
+    public $topics = array();
+    private $consumers = array();
 
     public function __construct($max_messages_per_topic = null) {
         $this->max_messages_per_topic = $max_messages_per_topic;
@@ -52,20 +44,21 @@ class Stream {
             $this->topics[$topic] = [];
         }
 
-        $messages = &$this->topics[$topic];
-        $index = count($messages) > 0 ? end($messages)->metadata->index + 1 : 0;
-        $message = new Message($payload, $error, $topic, $index);
+        $messages = $this->topics[$topic];
+        $index = $this->get_last_index($topic) + 1;
+        $message = new Message($payload, $error, $this, $topic, $index);
 
         if ($this->max_messages_per_topic !== null && count($messages) >= $this->max_messages_per_topic) {
             array_shift($messages);
         }
 
-        $messages[] = $message;
-        $this->notify_consumers($topic);
+        array_push($this->topics[$topic], $message);
+        $consumers = $this->consumers[$topic] ?? [];
+        $this->send_to_consumers($consumers, $message);
     }
 
     public function subscribe($topic, callable $consumerFn, $synchronous = true) {
-        $consumer = new Consumer($consumerFn, $synchronous, $this->get_last_index($topic) + 1);
+        $consumer = new Consumer($consumerFn, $synchronous, $this->get_last_index($topic));
         if (!isset($this->consumers[$topic])) {
             $this->consumers[$topic] = [];
         }
@@ -94,33 +87,9 @@ class Stream {
         return $last_index;
     }
 
-    public function handle_consumer(Consumer $consumer, $topic)
-    {
-        $messages = $this->get_message_history($topic);
-
-        foreach ($messages as $message) {
-            if ($message->metadata->index < $consumer->current_index) {
-                continue;
-            }
-            $consumer->current_index = $message->metadata->index;
-            try {
-                // Check if consumer function is asynchronous
-                $result = call_user_func($consumer->fn, $message);
-                if ($result instanceof \React\Promise\PromiseInterface && $consumer->synchronous) {
-                    // Convert to promise and handle asynchronously
-                    Async\await ($result);
-                }
-            } catch (Exception $e) {
-                $this->produce('errors', null, $e);
-            }
-        }
-    }
-
-    private function notify_consumers($topic) {
-        if (isset($this->consumers[$topic])) {
-            foreach ($this->consumers[$topic] as $consumer) {
-                $this->handle_consumer($consumer, $topic);
-            }
+    private function send_to_consumers($consumers, $message) {
+        foreach ($consumers as $consumer) {
+            $consumer->publish($message);
         }
     }
     

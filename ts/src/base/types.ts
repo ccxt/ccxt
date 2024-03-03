@@ -56,8 +56,7 @@ export interface Consumer {
     synchronous: boolean;
     currentIndex: number;
     running: boolean;
-    handleMessage: (message: Message) => Promise<void>;
-    run: (stream: Stream, topic: Topic) => Promise<void>;
+    publish: (message: Message) => void;
 }
 
 //
@@ -223,7 +222,6 @@ export interface Transaction {
 
 export interface Tickers extends Dictionary<Ticker> {
 }
-
 
 export interface CurrencyInterface {
     id: string;

@@ -1,5 +1,4 @@
 import { Int, ConsumerFunction, Message, Topic } from "../types";
-import { Stream } from "./Stream.js";
 
 export default class Consumer {
 
@@ -11,14 +10,34 @@ export default class Consumer {
 
     public running: boolean;
 
+    public backlog: Message[];
+
     constructor (fn: ConsumerFunction, synchronous: boolean, currentIndex: Int) {
         this.fn = fn;
         this.synchronous = synchronous;
         this.currentIndex = currentIndex;
         this.running = false;
+        this.backlog = [];
     }
 
-    async handleMessage (message: Message) {
+    publish (message: Message) {
+        this.backlog.push (message);
+        this._run ();
+    }
+
+    async _run () {
+        if (this.running) {
+            return;
+        }
+        this.running = true;
+        while (this.backlog.length > 0) {
+            const message = this.backlog.shift ();
+            await this._handleMessage (message);
+        }
+        this.running = false;
+    }
+
+    async _handleMessage (message: Message) {
         if (message.metadata.index <= this.currentIndex) {
             return;
         }
@@ -31,18 +50,6 @@ export default class Consumer {
         }
     }
 
-    async run (stream: Stream, topic: Topic) {
-        if (this.running) {
-            return;
-        }
-        this.running = true;
-        const messages = stream.getMessageHistory (topic);
-        for (let i = 0; i < messages.length; i++) {
-            const message = messages[i];
-            await this.handleMessage (message);
-        }
-        this.running = false;
-    }
 }
 
 export {

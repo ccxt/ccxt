@@ -152,7 +152,7 @@ export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balan
 
 // ----------------------------------------------------------------------------
 // move this elsewhere
-import { ArrayCache } from './ws/Cache.js'
+import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js'
 import {OrderBook as Ob} from './ws/OrderBook.js';
 
 import totp from './functions/totp.js';
@@ -846,7 +846,7 @@ export default class Exchange {
             this.setMarkets (this.markets)
         }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
-
+        this.stream = new Stream ();
         this.afterConstruct ();
     }
 
@@ -1600,12 +1600,14 @@ export default class Exchange {
     }
 
     onError (client, error) {
+        this.stream.produce ('errors', 'onError', error);
         if ((client.url in this.clients) && (this.clients[client.url].error)) {
             delete this.clients[client.url];
         }
     }
 
     onClose (client, error) {
+        this.stream.produce ('errors', 'onClose', error);
         if (client.error) {
             // connection closed due to an error, do nothing
         } else {
@@ -1759,14 +1761,15 @@ export default class Exchange {
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     setupStream () {
-        this.stream = new Stream ();
         const stream = this.stream;
-        stream.subscribe ('tickers', this.streamToSymbol ('tickers'), true);
-        stream.subscribe ('orderbooks', this.streamToSymbol ('orderbooks'), true);
-        stream.subscribe ('orders', this.streamToSymbol ('orders'), true);
-        stream.subscribe ('positions', this.streamToSymbol ('positions'), true);
-        stream.subscribe ('trades', this.streamToSymbol ('trades'), true);
-        stream.subscribe ('myTrades', this.streamToSymbol ('myTrades'), true);
+        if (this.stream !== undefined) {
+            stream.subscribe ('tickers', this.streamToSymbol ('tickers'), true);
+            stream.subscribe ('orderbooks', this.streamToSymbol ('orderbooks'), true);
+            stream.subscribe ('orders', this.streamToSymbol ('orders'), true);
+            stream.subscribe ('positions', this.streamToSymbol ('positions'), true);
+            stream.subscribe ('trades', this.streamToSymbol ('trades'), true);
+            stream.subscribe ('myTrades', this.streamToSymbol ('myTrades'), true);
+        }
     }
 
     streamProduce (topic: Topic, payload: any = undefined, error: any = undefined) {
@@ -2189,7 +2192,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchTrades() is not supported yet');
     }
 
-    async subscribeTrades (symbol: string, callback: ConsumerFunction, synchronous = true, params = {}): Promise<void> {
+    async subscribeTrades (symbol: string, callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
         /**
          * @method
          * @name subscribeTrades
@@ -2200,7 +2203,10 @@ export default class Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          */
         await this.loadMarkets ();
-        this.stream.subscribe ('trades::' + symbol, callback, synchronous);
+        if (callback !== undefined) {
+            const stream = this.stream;
+            stream.subscribe ('trades::' + symbol, callback, synchronous);
+        }
         await this.watchTrades (symbol, undefined, undefined, params);
     }
 
@@ -2208,7 +2214,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchTradesForSymbols() is not supported yet');
     }
 
-    async subscribeTradesForSymbols (symbols: string[], callback: ConsumerFunction, synchronous = true, params = {}): Promise<void> {
+    async subscribeTradesForSymbols (symbols: string[], callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
         /**
          * @method
          * @name subscribeTradesForSymbols
@@ -2220,11 +2226,14 @@ export default class Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true);
-        for (let i = 0; i < symbols.length; i++) {
-            this.stream.subscribe ('trades::' + symbols[i], callback, synchronous);
-        }
-        if (this.isEmpty (symbols)) {
-            this.stream.subscribe ('trades', callback);
+        if (callback !== undefined) {
+            const stream = this.stream;
+            for (let i = 0; i < symbols.length; i++) {
+                stream.subscribe ('trades::' + symbols[i], callback, synchronous);
+            }
+            if (this.isEmpty (symbols)) {
+                stream.subscribe ('trades', callback, synchronous);
+            }
         }
         await this.watchTradesForSymbols (symbols, undefined, undefined, params);
     }
@@ -2233,7 +2242,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchMyTradesForSymbols() is not supported yet');
     }
 
-    async subscribeMyTradesForSymbols (symbols: string[], callback: ConsumerFunction, synchronous = true, params = {}): Promise<void> {
+    async subscribeMyTradesForSymbols (symbols: string[], callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
         /**
          * @method
          * @name subscribeMyTradesForSymbols
@@ -2245,11 +2254,14 @@ export default class Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true);
-        if (this.isEmpty (symbols)) {
-            this.stream.subscribe ('myTrades', callback, synchronous, synchronous);
-        } else {
-            for (let i = 0; i < symbols.length; i++) {
-                this.stream.subscribe ('myTrades::' + symbols[i], callback, synchronous, synchronous);
+        if (callback !== undefined) {
+            const stream = this.stream;
+            if (this.isEmpty (symbols)) {
+                stream.subscribe ('myTrades', callback, synchronous);
+            } else {
+                for (let i = 0; i < symbols.length; i++) {
+                    stream.subscribe ('myTrades::' + symbols[i], callback, synchronous);
+                }
             }
         }
         await this.watchMyTradesForSymbols (symbols, undefined, undefined, params);
@@ -2259,7 +2271,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchOrdersForSymbols() is not supported yet');
     }
 
-    async subscribeOrdersForSymbols (symbols: string[], callback: ConsumerFunction, synchronous = true, params = {}): Promise<void> {
+    async subscribeOrdersForSymbols (symbols: string[], callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
         /**
          * @method
          * @name subscribeOrdersForSymbols
@@ -2271,11 +2283,14 @@ export default class Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true);
-        for (let i = 0; i < symbols.length; i++) {
-            this.stream.subscribe ('orders::' + symbols[i], callback, synchronous);
-        }
-        if (this.isEmpty (symbols)) {
-            this.stream.subscribe ('orders', callback, synchronous);
+        if (callback !== undefined) {
+            const stream = this.stream;
+            for (let i = 0; i < symbols.length; i++) {
+                stream.subscribe ('orders::' + symbols[i], callback, synchronous);
+            }
+            if (this.isEmpty (symbols)) {
+                stream.subscribe ('orders', callback, synchronous);
+            }
         }
         await this.watchOrdersForSymbols (symbols, undefined, undefined, params);
     }
@@ -2313,15 +2328,27 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchOrderBookForSymbols() is not supported yet');
     }
 
-    async subscribeOrderBookForSymbols (symbols: string[], callback: ConsumerFunction, synchronous = true, params = {}): Promise<void> {
+    async subscribeOrderBookForSymbols (symbols: string[], callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
+        /**
+         * @method
+         * @name subscribeOrderBookForSymbols
+         * @description subscribes to information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string[]} symbols unified array of symbols
+         * @param {Function} callback function to call when receiving an update
+         * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const stream = this.stream;
         symbols = this.marketSymbols (symbols, undefined, true);
-        for (let i = 0; i < symbols.length; i++) {
-            stream.subscribe ('orderbooks::' + symbols[i], callback, synchronous);
-        }
-        if (this.isEmpty (symbols)) {
-            stream.subscribe ('orderbooks', callback, synchronous);
+        if (callback !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                stream.subscribe ('orderbooks::' + symbols[i], callback, synchronous);
+            }
+            if (this.isEmpty (symbols)) {
+                stream.subscribe ('orderbooks', callback, synchronous);
+            }
         }
         await this.watchOrderBookForSymbols (symbols, undefined, params);
     }
@@ -2366,7 +2393,16 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchOrderBook() is not supported yet');
     }
 
-    async subscribeOrderBook (symbol: string, callback: ConsumerFunction, synchronous = true, params = {}): Promise<void> {
+    async subscribeOrderBook (symbol: string, callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
+        /**
+         * @method
+         * @name subscribeOrderBook
+         * @description subscribe to information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {Function} callback Consumer function to be called with each update
+         * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
         await this.subscribeOrderBookForSymbols ([ symbol ], callback, synchronous, params);
     }
 
@@ -3518,6 +3554,17 @@ export default class Exchange {
     }
 
     async subscribeOHLCV (symbol: string, timeframe = '1m', callback: ConsumerFunction = undefined, synchronous = true, params = {}) {
+        /**
+         * @method
+         * @name subscribeOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {Function} callback Consumer function to be called with each update
+         * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         if (callback !== undefined) {
@@ -4223,11 +4270,13 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchPosition() is not supported yet');
     }
 
-    async subscribePosition (symbol: string, callback: ConsumerFunction, synchronous = true, params = {}): Promise<void> {
+    async subscribePosition (symbol: string, callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         const stream = this.stream;
-        stream.subscribe ('positions::' + symbol, callback, synchronous);
+        if (callback !== undefined) {
+            stream.subscribe ('positions::' + symbol, callback, synchronous);
+        }
         await this.watchPosition (symbol, params);
     }
 
@@ -4410,9 +4459,11 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchBalance() is not supported yet');
     }
 
-    async subscribeBalance (callback: ConsumerFunction, synchronous = true, params = {}): Promise<void> {
+    async subscribeBalance (callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
         const stream = this.stream;
-        stream.subscribe ('balances', callback, synchronous);
+        if (callback !== undefined) {
+            stream.subscribe ('balances', callback, synchronous);
+        }
         await this.watchBalance (params);
     }
 
@@ -4678,19 +4729,22 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchTicker() is not supported yet');
     }
 
-    async subscribeTicker (symbol: string, callback: ConsumerFunction, synchronous = true, params = {}): Promise<void> {
+    async subscribeTicker (symbol: string, callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
         /**
          * @method
          * @name subscribeTicker
          * @description subscribe to watchTicker
          * @param {string} symbol unified symbol of the market to watch ticker
          * @param {Function} callback function to call when receiving an update
+         * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         const stream = this.stream;
-        stream.subscribe ('tickers::' + symbol, callback, synchronous);
+        if (callback !== undefined) {
+            stream.subscribe ('tickers::' + symbol, callback, synchronous);
+        }
         await this.watchTicker (symbol, params);
     }
 
@@ -4713,6 +4767,7 @@ export default class Exchange {
          * @description subscribe to watchTickers
          * @param {string[]} symbols unified symbols of the market to watch tickers
          * @param {Function} callback function to call when receiving an update
+         * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          */
         await this.loadMarkets ();
@@ -5056,7 +5111,42 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchOrders() is not supported yet');
     }
 
+    subscribeRaw (callback: ConsumerFunction, synchronous = true): void {
+        /**
+         * @method
+         * @name subscribeRaw
+         * @description subscribe to all raw messages received from websocket
+         * @param {string[]} symbols unified symbols of the market to watch tickers
+         * @param {Function} callback function to call when receiving an update
+         * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
+         */
+        const stream = this.stream;
+        stream.subscribe ('raw', callback, synchronous);
+    }
+
+    subscribeErrors (callback: ConsumerFunction, synchronous = true): void {
+        /**
+         * @method
+         * @name subscribeErrors
+         * @description subscribe to all errors thrown by stream
+         * @param {string[]} symbols unified symbols of the market to watch tickers
+         * @param {Function} callback function to call when receiving an update
+         * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
+         */
+        const stream = this.stream;
+        stream.subscribe ('errors', callback, synchronous);
+    }
+
     async subscribeOrders (symbol: string = undefined, callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
+        /**
+         * @method
+         * @name subscribeOrders
+         * @description subscribes information on multiple orders made by the user
+         * @param {string} symbol unified market symbol of the market the orders were made in
+         * @param {Function} callback function to call when receiving an update
+         * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         if (callback !== undefined) {
@@ -5127,10 +5217,20 @@ export default class Exchange {
     }
 
     async subscribeMyTrades (symbol: string = undefined, callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
+        /**
+         * @method
+         * @name subscribeMyTrades
+         * @description watches information on multiple trades made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {Function} callback function to call when receiving an update
+         * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         if (callback !== undefined) {
-            this.stream.subscribe ('myTrades::' + symbol, callback, synchronous);
+            const stream = this.stream;
+            stream.subscribe ('myTrades::' + symbol, callback, synchronous);
         }
         await this.watchMyTrades (symbol, undefined, undefined, params);
     }

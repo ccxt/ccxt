@@ -105,6 +105,10 @@ class NewTranspiler {
             [/\(client,/g, '(client as WebSocketClient,'],
             [/\(object client,/gm, '(WebSocketClient client,'],
             [/\(object client\)/gm, '(WebSocketClient client)'],
+            [/(stream)(\.close.+)/gm, '((stream)$1)$2'],
+            [/\(stream,/g, '(stream as Stream,'],
+            [/\(object stream,/gm, '(Stream stream,'],
+            [/\(object stream\)/gm, '(Stream stream)'],
             [/object client =/gm, 'var client ='],
             [/object future =/gm, 'var future ='],
         ]

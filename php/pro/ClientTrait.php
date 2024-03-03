@@ -20,6 +20,7 @@ trait ClientTrait {
         'heartbeat' => true,
         'ping' => null,
         'maxPingPongMisses' => 2.0,
+        'maxMessagesPerTopic' => 10000,
     );
 
     public $newUpdates = true;
@@ -209,12 +210,14 @@ trait ClientTrait {
     }
 
     public function on_error(Client $client, $error) {
+        $this->stream->produce('errors', 'on_error', $error);
         if (array_key_exists($client->url, $this->clients) && $this->clients[$client->url]->error) {
             unset($this->clients[$client->url]);
         }
     }
 
     public function on_close(Client $client, $message) {
+        $this->stream->produce('errors', 'on_close', $message);
         if ($client->error) {
             // connection closed by the user or due to an error, do nothing
         } else {

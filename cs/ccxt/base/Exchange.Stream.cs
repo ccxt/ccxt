@@ -1,6 +1,7 @@
 using Newtonsoft.Json;
 
 using System.Text.RegularExpressions;
+using ccxt.pro;
 
 namespace ccxt;
 
@@ -9,7 +10,7 @@ using dict = Dictionary<string, object>;
 public partial class Exchange
 {
 
-    public Stream stream;
+    public ccxt.pro.Stream stream;
 
     public Action<Message> StreamToSymbol(string topic)
     {
@@ -21,7 +22,7 @@ public partial class Exchange
                 var symbol = symbolObj as string;
                 if (!string.IsNullOrEmpty(symbol))
                 {
-                    var newTopic = $"{topic}.{symbol}";
+                    var newTopic = $"{topic}::{symbol}";
                     this.streamProduce(newTopic, payload);
                 }
             }

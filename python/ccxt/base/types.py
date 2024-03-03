@@ -1,6 +1,7 @@
+from asyncio import Future
 import sys
 import types
-from typing import Union, List, Optional, Any as PythonAny
+from typing import Callable, Union, List, Optional, Any as PythonAny
 from decimal import Decimal
 
 
@@ -338,3 +339,21 @@ class CurrencyInterface(TypedDict):
 
 Market = Optional[MarketInterface]
 Currency = Optional[CurrencyInterface]
+
+Topic = str
+MessagePayload = Any
+ConsumerFunction = Callable[['Message'], Future[None] | None]
+
+class Metadata:
+    def __init__(self, stream, topic: Topic, index: int):
+        self.stream = stream
+        self.topic = topic
+        self.index = index
+        self.history = stream.get_message_history(topic)[:]
+
+
+class Message:
+    def __init__(self, payload: Any, error: Any, stream, topic: Topic, index: int):
+        self.payload = payload
+        self.error = error
+        self.metadata = Metadata(stream, topic, index)
