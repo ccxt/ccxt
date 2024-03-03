@@ -1,7 +1,6 @@
 import { Int, Message, Topic, ConsumerFunction, BaseStream } from "../types";
 import { Consumer } from "./Consumer.js";
 
-
 export class Stream implements BaseStream {
     public maxMessagesPerTopic: Int;
 

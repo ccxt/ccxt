@@ -2159,7 +2159,7 @@ export default class Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          */
         await this.loadMarkets ();
-        this.stream.subscribe ('trades::' + symbol, callback);
+        this.stream.subscribe ('trades::' + symbol, callback, synchronous);
         await this.watchTrades (symbol, undefined, undefined, params);
     }
 
@@ -2180,7 +2180,7 @@ export default class Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true);
         for (let i = 0; i < symbols.length; i++) {
-            this.stream.subscribe ('trades::' + symbols[i], callback);
+            this.stream.subscribe ('trades::' + symbols[i], callback, synchronous);
         }
         if (this.isEmpty (symbols)) {
             this.stream.subscribe ('trades', callback);
@@ -2205,10 +2205,10 @@ export default class Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true);
         if (this.isEmpty (symbols)) {
-            this.stream.subscribe ('myTrades', callback);
+            this.stream.subscribe ('myTrades', callback, synchronous, synchronous);
         } else {
             for (let i = 0; i < symbols.length; i++) {
-                this.stream.subscribe ('myTrades::' + symbols[i], callback);
+                this.stream.subscribe ('myTrades::' + symbols[i], callback, synchronous, synchronous);
             }
         }
         await this.watchMyTradesForSymbols (symbols, undefined, undefined, params);
@@ -2231,10 +2231,10 @@ export default class Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true);
         for (let i = 0; i < symbols.length; i++) {
-            this.stream.subscribe ('orders::' + symbols[i], callback);
+            this.stream.subscribe ('orders::' + symbols[i], callback, synchronous);
         }
         if (this.isEmpty (symbols)) {
-            this.stream.subscribe ('orders', callback);
+            this.stream.subscribe ('orders', callback, synchronous);
         }
         await this.watchOrdersForSymbols (symbols, undefined, undefined, params);
     }
@@ -5065,7 +5065,7 @@ export default class Exchange {
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         if (callback !== undefined) {
-            this.stream.subscribe ('myTrades::' + symbol, callback);
+            this.stream.subscribe ('myTrades::' + symbol, callback, synchronous);
         }
         await this.watchMyTrades (symbol, undefined, undefined, params);
     }
