@@ -64,6 +64,7 @@ class bingx extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchPositionMode' => true,
                 'fetchPositions' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -74,6 +75,7 @@ class bingx extends Exchange {
                 'setLeverage' => true,
                 'setMargin' => true,
                 'setMarginMode' => true,
+                'setPositionMode' => true,
                 'transfer' => true,
             ),
             'hostname' => 'bingx.com',
@@ -1384,7 +1386,9 @@ class bingx extends Exchange {
         if ($symbols !== null) {
             $symbols = $this->market_symbols($symbols);
             $firstSymbol = $this->safe_string($symbols, 0);
-            $market = $this->market($firstSymbol);
+            if ($firstSymbol !== null) {
+                $market = $this->market($firstSymbol);
+            }
         }
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
@@ -1398,7 +1402,7 @@ class bingx extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // spot
         //    {
@@ -3322,7 +3326,7 @@ class bingx extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(string $status) {
         $statuses = array(
             '0' => 'pending',
             '1' => 'ok',
@@ -3408,7 +3412,7 @@ class bingx extends Exchange {
         return $response;
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()): Leverage {
         /**
          * fetch the set leverage for a $market
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Leverage
@@ -3432,7 +3436,19 @@ class bingx extends Exchange {
         //        }
         //    }
         //
-        return $response;
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_leverage($data, $market);
+    }
+
+    public function parse_leverage($leverage, $market = null): Leverage {
+        $marketId = $this->safe_string($leverage, 'symbol');
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => null,
+            'longLeverage' => $this->safe_integer($leverage, 'longLeverage'),
+            'shortLeverage' => $this->safe_integer($leverage, 'shortLeverage'),
+        );
     }
 
     public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
@@ -3442,13 +3458,14 @@ class bingx extends Exchange {
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->side] hedged => ['long' or 'short']. one way => ['both']
          * @return {array} response from the exchange
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
         $side = $this->safe_string_upper($params, 'side');
-        $this->check_required_argument('setLeverage', $side, 'side', array( 'LONG', 'SHORT' ));
+        $this->check_required_argument('setLeverage', $side, 'side', array( 'LONG', 'SHORT', 'BOTH' ));
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -3887,6 +3904,33 @@ class bingx extends Exchange {
         return $positions;
     }
 
+    public function fetch_position_mode(?string $symbol = null, $params = array ()) {
+        /**
+         * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Get%20Position%20Mode
+         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an object detailing whether the market is in hedged or one-way mode
+         */
+        $response = $this->swapV1PrivateGetPositionSideDual ($params);
+        //
+        //     {
+        //         "code" => "0",
+        //         "msg" => "",
+        //         "timeStamp" => "1709002057516",
+        //         "data" => {
+        //             "dualSidePosition" => "false"
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $dualSidePosition = $this->safe_string($data, 'dualSidePosition');
+        return array(
+            'info' => $response,
+            'hedged' => ($dualSidePosition === 'true'),
+        );
+    }
+
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
         /**
          * set $hedged to true or false for a market
@@ -4101,7 +4145,7 @@ class bingx extends Exchange {
         return $this->milliseconds();
     }
 
-    public function set_sandbox_mode($enable) {
+    public function set_sandbox_mode(bool $enable) {
         parent::set_sandbox_mode($enable);
         $this->options['sandboxMode'] = $enable;
     }

@@ -1,5 +1,5 @@
 import Exchange from './abstract/currencycom.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Leverage } from './base/types.js';
 /**
  * @class currencycom
  * @augments Exchange
@@ -59,7 +59,8 @@ export default class currencycom extends Exchange {
     };
     parseLedgerEntryStatus(status: any): string;
     parseLedgerEntryType(type: any): string;
-    fetchLeverage(symbol: string, params?: {}): Promise<number>;
+    fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
+    parseLeverage(leverage: any, market?: any): Leverage;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;

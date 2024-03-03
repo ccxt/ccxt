@@ -15,9 +15,9 @@ export interface Dictionary<T> {
     [key: string]: T;
 }
 
-export type Dict = Dictionary<any>;
+export type Dict = Dictionary<any> | undefined;
 
-export type List = Array<any>;
+export type List = Array<any> | undefined;
 
 /** Request parameters */
 // type Params = Dictionary<string | number | boolean | string[]>;
@@ -223,6 +223,7 @@ export interface Transaction {
 
 export interface Tickers extends Dictionary<Ticker> {
 }
+
 
 export interface CurrencyInterface {
     id: string;
@@ -445,7 +446,7 @@ export interface FundingHistory {
 }
 
 export interface MarginMode {
-    infp: any;
+    info: any;
     symbol: string;
     marginMode: 'isolated' | 'cross' | string;
 }
@@ -470,6 +471,20 @@ export interface Greeks {
     lastPrice: number;
     underlyingPrice: number;
     info: any;
+}
+
+export interface Leverage {
+    info: any;
+    symbol: string;
+    marginMode: 'isolated' | 'cross' | string;
+    longLeverage: number;
+    shortLeverage: number;
+}
+
+export interface Leverages extends Dictionary<Leverage> {
+}
+
+export interface MarginModes extends Dictionary<MarginMode> {
 }
 
 /** [ timestamp, open, high, low, close, volume ] */

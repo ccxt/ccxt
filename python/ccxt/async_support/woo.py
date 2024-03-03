@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, MarketType, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Num, Str, Bool, Strings, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Leverage, MarketType, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Num, Str, Bool, Strings, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -14,6 +14,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -105,6 +106,7 @@ class woo(Exchange, ImplicitAPI):
                 'reduceMargin': False,
                 'setLeverage': True,
                 'setMargin': False,
+                'setPositionMode': True,
                 'transfer': True,
                 'withdraw': True,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
             },
@@ -179,10 +181,16 @@ class woo(Exchange, ImplicitAPI):
                             'client/trade/{tid}': 1,
                             'order/{oid}/trades': 1,
                             'client/trades': 1,
+                            'client/hist_trades': 1,
+                            'staking/yield_history': 1,
+                            'client/holding': 1,
                             'asset/deposit': 10,
                             'asset/history': 60,
                             'sub_account/all': 60,
                             'sub_account/assets': 60,
+                            'sub_account/asset_detail': 60,
+                            'sub_account/ip_restriction': 10,
+                            'asset/main_sub_transfer_history': 30,
                             'token_interest': 60,
                             'token_interest/{token}': 60,
                             'interest/history': 60,
@@ -195,9 +203,12 @@ class woo(Exchange, ImplicitAPI):
                         'post': {
                             'order': 5,  # 2 requests per 1 second per symbol
                             'asset/main_sub_transfer': 30,  # 20 requests per 60 seconds
+                            'asset/ltv': 30,
                             'asset/withdraw': 30,  # implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'asset/internal_withdraw': 30,
                             'interest/repay': 60,
                             'client/account_mode': 120,
+                            'client/position_mode': 5,
                             'client/leverage': 120,
                         },
                         'delete': {
@@ -303,7 +314,6 @@ class woo(Exchange, ImplicitAPI):
                     '-1007': BadRequest,  # {"code": -1007,  "message": "The data is already exists or your request is duplicated."}
                     '-1008': InvalidOrder,  # {"code": -1008,  "message": "The quantity of settlement is too high than you can request."}
                     '-1009': BadRequest,  # {"code": -1009,  "message": "Can not request withdrawal settlement, you need to deposit other arrears first."}
-                    '-1011': ExchangeError,  # {"code": -1011,  "message": "Can not place/cancel orders, it may because internal network error. Please try again in a few seconds."}
                     '-1012': BadRequest,  # {"code": -1012,  "message": "Amount is required for buy market orders when margin disabled."}  The place/cancel order request is rejected by internal module, it may because the account is in liquidation or other internal errors. Please try again in a few seconds."}
                     '-1101': InvalidOrder,  # {"code": -1101,  "message": "The risk exposure for client is too high, it may cause by sending too big order or the leverage is too low. please refer to client info to check the current exposure."}
                     '-1102': InvalidOrder,  # {"code": -1102,  "message": "The order value(price * size) is too small."}
@@ -312,6 +322,8 @@ class woo(Exchange, ImplicitAPI):
                     '-1105': InvalidOrder,  # {"code": -1105,  "message": "Price is X% too high or X% too low from the mid price."}
                 },
                 'broad': {
+                    'Can not place': ExchangeError,  # {"code": -1011,  "message": "Can not place/cancel orders, it may because internal network error. Please try again in a few seconds."}
+                    'maintenance': OnMaintenance,  # {"code":"-1011","message":"The system is under maintenance.","success":false}
                     'symbol must not be blank': BadRequest,  # when sending 'cancelOrder' without symbol [-1005]
                     'The token is not supported': BadRequest,  # when getting incorrect token's deposit address [-1005]
                     'Your order and symbol are not valid or already canceled': BadRequest,  # actual response whensending 'cancelOrder' for already canceled id [-1006]
@@ -2211,6 +2223,7 @@ class woo(Exchange, ImplicitAPI):
             return None  # fallback to default error handler
         #
         #     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
+        #                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         #
         success = self.safe_value(response, 'success')
         errorCode = self.safe_string(response, 'code')
@@ -2431,8 +2444,43 @@ class woo(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    async def fetch_leverage(self, symbol: str, params={}):
+    async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
+        """
+        set hedged to True or False for a market
+        :see: https://docs.woo.org/#update-position-mode
+        :param bool hedged: set to True to use HEDGE_MODE, False for ONE_WAY
+        :param str symbol: not used by woo setPositionMode
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: response from the exchange
+        """
+        hedgeMode = None
+        if hedged:
+            hedgeMode = 'HEDGE_MODE'
+        else:
+            hedgeMode = 'ONE_WAY'
+        request = {
+            'position_mode': hedgeMode,
+        }
+        response = await self.v1PrivatePostClientPositionMode(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "data": {},
+        #         "timestamp": "1709195608551"
+        #     }
+        #
+        return response
+
+    async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
+        """
+        fetch the set leverage for a market
+        :see: https://docs.woo.org/#get-account-information-new
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
+        """
         await self.load_markets()
+        market = self.market(symbol)
         response = await self.v3PrivateGetAccountinfo(params)
         #
         #     {
@@ -2462,11 +2510,17 @@ class woo(Exchange, ImplicitAPI):
         #         "timestamp": 1673323685109
         #     }
         #
-        result = self.safe_value(response, 'data')
-        leverage = self.safe_number(result, 'leverage')
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_leverage(data, market)
+
+    def parse_leverage(self, leverage, market=None) -> Leverage:
+        leverageValue = self.safe_integer(leverage, 'leverage')
         return {
-            'info': response,
-            'leverage': leverage,
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': None,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
         }
 
     async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):

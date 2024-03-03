@@ -309,7 +309,9 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         messageLength = len(message)
         if messageLength == 2:
             # initial snapshot
-            trades = self.safe_value(message, 1, [])
+            trades = self.safe_list(message, 1, [])
+            # needs to be reversed to make chronological order
+            trades = trades.reverse()
             for i in range(0, len(trades)):
                 parsed = self.parse_ws_trade(trades[i], market)
                 stored.append(parsed)

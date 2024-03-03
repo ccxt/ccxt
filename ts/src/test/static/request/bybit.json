@@ -784,6 +784,44 @@
                   "LTC/USDT"
                 ]
             }
+        ],
+        "fetchMyLiquidations": [
+            {
+                "description": "Linear fetch my liquidations",
+                "method": "fetchMyLiquidations",
+                "url": "https://api-testnet.bybit.com/v5/execution/list?execType=BustTrade&category=linear",
+                "input": [
+                  null,
+                  null,
+                  null,
+                  {
+                    "category": "linear"
+                  }
+                ]
+            },
+            {
+                "description": "Inverse fetch my liquidations",
+                "method": "fetchMyLiquidations",
+                "url": "https://api-testnet.bybit.com/v5/execution/list?execType=BustTrade&category=inverse",
+                "input": [
+                  null,
+                  null,
+                  null,
+                  {
+                    "category": "inverse"
+                  }
+                ]
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "fetch leverage",
+                "method": "fetchLeverage",
+                "url": "https://api-testnet.bybit.com/v5/position/list?symbol=LTCUSDT&category=linear",
+                "input": [
+                  "LTC/USDT:USDT"
+                ]
+            }
         ]
     },
     "disabled": []

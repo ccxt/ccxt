@@ -821,6 +821,16 @@
                 "LTC/USDT"
               ]
             }
-          ]
+        ],
+        "fetchPositionMode": [
+            {
+                "description": "fetch position mode",
+                "method": "fetchPositionMode",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/positionSide/dual?timestamp=1709028142925&signature=209d60d4da49e3e26e8e5b5181b0141a0e44d047e342957565cd78ee44e878d2",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ]
     }
 }

@@ -241,7 +241,7 @@ class mexc(ccxt.async_support.mexc):
         #        "d": {
         #            "e": "spot@public.kline.v3.api",
         #            "k": {
-        #                "t": 1678642260,
+        #                "t": 1678642261,
         #                "o": 20626.94,
         #                "c": 20599.69,
         #                "h": 20626.94,
@@ -439,18 +439,19 @@ class mexc(ccxt.async_support.mexc):
         symbol = self.safe_symbol(marketId)
         messageHash = 'orderbook:' + symbol
         subscription = self.safe_value(client.subscriptions, messageHash)
+        limit = self.safe_integer(subscription, 'limit')
         if subscription is True:
             # we set client.subscriptions[messageHash] to 1
             # once we have received the first delta and initialized the orderbook
             client.subscriptions[messageHash] = 1
             self.orderbooks[symbol] = self.counted_order_book({})
-        storedOrderBook = self.safe_value(self.orderbooks, symbol)
+        storedOrderBook = self.orderbooks[symbol]
         nonce = self.safe_integer(storedOrderBook, 'nonce')
         if nonce is None:
             cacheLength = len(storedOrderBook.cache)
             snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 25)
             if cacheLength == snapshotDelay:
-                self.spawn(self.load_order_book, client, messageHash, symbol)
+                self.spawn(self.load_order_book, client, messageHash, symbol, limit, {})
             storedOrderBook.cache.append(data)
             return
         try:
