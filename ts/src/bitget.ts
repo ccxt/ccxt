@@ -3306,11 +3306,12 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000); // max 1000
         }
+        const defaultLimitValue = (limit !== undefined) ? limit : 100; // exchange default 100
+        const duration = this.parseTimeframe (timeframe) * 1000;
         if (since !== undefined) {
             request['startTime'] = since;
             if (until === undefined) {
-                limit = (limit !== undefined) ? limit : 100; // exchange default 100
-                const duration = this.parseTimeframe (timeframe) * 1000;
+                limit = defaultLimitValue;
                 request['endTime'] = this.sum (since, duration * (limit + 1)) - 1;  // limit + 1)) - 1 is needed for when since is not the exact timestamp of a candle
             }
         }
@@ -3337,9 +3338,9 @@ export default class bitget extends Exchange {
                 '1w': 1000,
                 '1M': 1000,
             };
-            const maxRetrievable = day * this.safeInteger (retrievableDaysMap, timeframe, 30);
-            const endpointTsBoundary = now - maxRetrievable;
-            const needsHistoryEndpoint = ((since !== undefined) && (since < endpointTsBoundary)) || ((until !== undefined) && (until < endpointTsBoundary));
+            const maxRetrievablePeriodInMs = day * this.safeInteger (retrievableDaysMap, timeframe, 30);
+            const endpointTsBoundary = now - maxRetrievablePeriodInMs;
+            const needsHistoryEndpoint = (since !== undefined && since < endpointTsBoundary) || (until !== undefined && until - defaultLimitValue * duration < endpointTsBoundary);
             if (needsHistoryEndpoint) {
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles (this.extend (request, params));
             } else {
