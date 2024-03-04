@@ -858,7 +858,6 @@ export default class hyperliquid extends Exchange {
             const stopLossPrice = this.safeValue (orderParams, 'stopLossPrice', triggerPrice);
             const takeProfitPrice = this.safeValue (orderParams, 'takeProfitPrice');
             const isTrigger = (stopLossPrice || takeProfitPrice);
-            // TODO: round px to 5 significant figures and 6 decimals
             let px = undefined;
             if (isMarket) {
                 if (price === undefined) {
@@ -1077,7 +1076,6 @@ export default class hyperliquid extends Exchange {
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const isTrigger = (stopLossPrice || takeProfitPrice);
         params = this.omit (params, [ 'slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id' ]);
-        // TODO: round px to 5 significant figures and 6 decimals
         let px = price.toString ();
         if (isMarket) {
             px = (isBuy) ? Precise.stringMul (price.toString (), Precise.stringAdd ('1', slippage)) : Precise.stringMul (price.toString (), Precise.stringSub ('1', slippage));
