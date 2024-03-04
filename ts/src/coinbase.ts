@@ -3188,7 +3188,7 @@ export default class coinbase extends Exchange {
             request['limit'] = Math.min (limit, 1000);
         }
         let until = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'until', 'till');
+        [ until, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'until');
         if (until !== undefined) {
             request['end'] = this.numberToString (this.parseToInt (until / 1000));
         }
