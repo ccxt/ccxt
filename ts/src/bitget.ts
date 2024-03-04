@@ -3317,30 +3317,31 @@ export default class bitget extends Exchange {
         }
         let response = undefined;
         const now = this.milliseconds ();
-        const thirtyOneDaysAgo = this.milliseconds () - 2678400000;
+        const msInDay = 1000 * 60 * 60 * 24;
+        // retrievable periods listed here:
+        // spot: https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
+        // contract: https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
+        const retrievableDaysMapForSpot = {
+            '1m': 30,
+            '3m': 30,
+            '5m': 30,
+            '10m': 52,
+            '15m': 52,
+            '30m': 52,
+            '1h': 83,
+            '2h': 120,
+            '4h': 240,
+            '6h': 360,
+            '12h': 360,
+            '1d': 360,
+            '3d': 1000,
+            '1w': 1000,
+            '1M': 1000,
+        };
+        const maxRetrievableDays = this.safeInteger (retrievableDaysMapForSpot, timeframe, 30); // let's safe default to minimum
+        const endpointTsBoundary = now - maxRetrievableDays * msInDay;
+        const needsHistoryEndpoint = (since !== undefined && since < endpointTsBoundary) || (until !== undefined && until - defaultLimitValue * duration < endpointTsBoundary);
         if (market['spot']) {
-            const day = 1000 * 60 * 60 * 24;
-            // retrievable periods listed here: https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
-            const retrievableDaysMap = {
-                '1m': 30,
-                '3m': 30,
-                '5m': 30,
-                '10m': 52,
-                '15m': 52,
-                '30m': 52,
-                '1h': 83,
-                '2h': 120,
-                '4h': 240,
-                '6h': 360,
-                '12h': 360,
-                '1d': 360,
-                '3d': 1000,
-                '1w': 1000,
-                '1M': 1000,
-            };
-            const maxRetrievablePeriodInMs = day * this.safeInteger (retrievableDaysMap, timeframe, 30);
-            const endpointTsBoundary = now - maxRetrievablePeriodInMs;
-            const needsHistoryEndpoint = (since !== undefined && since < endpointTsBoundary) || (until !== undefined && until - defaultLimitValue * duration < endpointTsBoundary);
             if (needsHistoryEndpoint) {
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles (this.extend (request, params));
             } else {
@@ -3352,14 +3353,18 @@ export default class bitget extends Exchange {
             let productType = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
+            const extended = this.extend (request, params);
+            // todo: mark & index also have their "recent" endpoints, but not priority now.
             if (priceType === 'mark') {
-                response = await this.publicMixGetV2MixMarketHistoryMarkCandles (this.extend (request, params));
+                response = await this.publicMixGetV2MixMarketHistoryMarkCandles (extended);
             } else if (priceType === 'index') {
-                response = await this.publicMixGetV2MixMarketHistoryIndexCandles (this.extend (request, params));
-            } else if ((since !== undefined) && (since < thirtyOneDaysAgo)) {
-                response = await this.publicMixGetV2MixMarketHistoryCandles (this.extend (request, params));
+                response = await this.publicMixGetV2MixMarketHistoryIndexCandles (extended);
             } else {
-                response = await this.publicMixGetV2MixMarketCandles (this.extend (request, params));
+                if (needsHistoryEndpoint) {
+                    response = await this.publicMixGetV2MixMarketHistoryCandles (extended);
+                } else {
+                    response = await this.publicMixGetV2MixMarketCandles (extended);
+                }
             }
         }
         if (response === '') {
