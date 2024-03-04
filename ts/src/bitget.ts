@@ -3315,9 +3315,27 @@ export default class bitget extends Exchange {
             }
         }
         let response = undefined;
+        const now = this.milliseconds ();
         const thirtyOneDaysAgo = this.milliseconds () - 2678400000;
         if (market['spot']) {
-            if ((since !== undefined) && (since < thirtyOneDaysAgo)) {
+            // retrievable periods listed here: https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
+            let maxRetrievable = 0;
+            const day = 1000 * 60 * 60 * 24;
+            if (this.inArray (timeframe, [ '1m', '3m', '5m' ])) {
+                maxRetrievable = day * 30; // 1 month in MS
+            } else if (this.inArray (timeframe, [ '10m', '15m', '30m'])) {
+                maxRetrievable = day * 52;
+            } else if (this.inArray (timeframe, [ '1h' ])) {
+                maxRetrievable = day * 83;
+            } else if (this.inArray (timeframe, [ '2h' ])) {
+                maxRetrievable = day * 120;
+            } else if (this.inArray (timeframe, [ '4h' ])) {
+                maxRetrievable = day * 240;
+            } else if (this.inArray (timeframe, [ '6h', '12h' ])) {
+                maxRetrievable = day * 360;
+            }
+            const endpointTsBOundary = now - maxRetrievable;
+            if (((since !== undefined) && (since < endpointTsBOundary)) || ((until !== undefined) && (until < endpointTsBOundary))) {
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles (this.extend (request, params));
             } else {
                 response = await this.publicSpotGetV2SpotMarketCandles (this.extend (request, params));
