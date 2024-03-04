@@ -3182,17 +3182,15 @@ export default class coinbase extends Exchange {
             'product_id': market['id'],
         };
         if (since !== undefined) {
-            request['start'] = since;
+            request['start'] = this.numberToString (this.parseToInt (since / 1000));
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
-        } else {
-            request['limit'] = 100;
+            request['limit'] = Math.min (limit, 1000);
         }
         let until = undefined;
         [ until, params ] = this.handleOptionAndParams (params, 'until', 'till');
         if (until !== undefined) {
-            request['end'] = until;
+            request['end'] = this.numberToString (this.parseToInt (until / 1000));
         }
         const response = await this.v3PrivateGetBrokerageProductsProductIdTicker (this.extend (request, params));
         //
@@ -3795,6 +3793,7 @@ export default class coinbase extends Exchange {
                     }
                 }
                 // 'GET' doesn't need payload in the signature. inside url is enough
+                // https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-request
                 const auth = timestampString + method + savedPath + payload;
                 const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
                 headers = {
