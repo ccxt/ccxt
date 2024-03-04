@@ -3094,10 +3094,12 @@ export default class coinbase extends Exchange {
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
+        const maxLimit = 300;
+        limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 299) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit - 1) as OHLCV[];
         }
         const market = this.market (symbol);
         const request = {
@@ -3107,7 +3109,6 @@ export default class coinbase extends Exchange {
         const until = this.safeValueN (params, [ 'until', 'till', 'end' ]);
         params = this.omit (params, [ 'until', 'till' ]);
         const duration = this.parseTimeframe (timeframe);
-        limit = (limit === undefined) ? 300 : Math.min (limit, 300);
         const requestedDuration = limit * duration;
         let sinceString = undefined;
         if (since !== undefined) {
