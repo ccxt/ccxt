@@ -127,7 +127,7 @@ export default class coinbaseinternational extends Exchange {
             },
             'requiredCredentials': {
                 'apiKey': true,
-                'secret': false,
+                'secret': true,
                 'password': true,
             },
             'api': {
