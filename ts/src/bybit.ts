@@ -5598,7 +5598,7 @@ export default class bybit extends Exchange {
         }
         const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
         const networkId = this.networkCodeToId (networkCode);
-        const precisionAmount = this.currencyToPrecision (code, amount, networkId);
+        const precisionAmount = this.currencyToPrecision (code, amount, networkCode);
         request['amount'] = this.numberToString (precisionAmount);
         if (networkId !== undefined) {
             request['chain'] = networkId.toUpperCase ();

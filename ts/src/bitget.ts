@@ -2210,7 +2210,7 @@ export default class bitget extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const networkId = this.networkCodeToId (chain, code);
-        const precisionAmount = this.currencyToPrecision (code, amount, networkId);
+        const precisionAmount = this.currencyToPrecision (code, amount, chain);
         const request = {
             'coin': currency['code'],
             'address': address,
