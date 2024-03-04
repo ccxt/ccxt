@@ -1916,12 +1916,24 @@ public partial class currencycom : Exchange
         };
         object response = await this.privateGetV2LeverageSettings(this.extend(request, parameters));
         //
-        // {
-        //     "values": [ 1, 2, 5, 10, ],
-        //     "value": "10",
-        // }
+        //     {
+        //         "values": [ 1, 2, 5, 10, ],
+        //         "value": "10",
+        //     }
         //
-        return this.safeNumber(response, "value");
+        return this.parseLeverage(response, market);
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object leverageValue = this.safeInteger(leverage, "value");
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", getValue(market, "symbol") },
+            { "marginMode", null },
+            { "longLeverage", leverageValue },
+            { "shortLeverage", leverageValue },
+        };
     }
 
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)

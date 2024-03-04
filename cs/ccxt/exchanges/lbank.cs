@@ -2862,7 +2862,7 @@ public partial class lbank : Exchange
             object sign = null;
             if (isTrue(isEqual(signatureMethod, "RSA")))
             {
-                object cacheSecretAsPem = this.safeValue(this.options, "cacheSecretAsPem", true);
+                object cacheSecretAsPem = this.safeBool(this.options, "cacheSecretAsPem", true);
                 object pem = null;
                 if (isTrue(cacheSecretAsPem))
                 {

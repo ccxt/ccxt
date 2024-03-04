@@ -5,17 +5,17 @@
 
 from ccxt.pro.hitbtc import hitbtc
 
-import ccxt.async_support.bequant as bequantRest
+import ccxt.async_support.hitbtc as hitbtcRest
+
+import ccxt.async_support.bitcoincom as bitcoincomRest
 
 
 class bitcoincom(hitbtc):
 
     def describe(self):
         # eslint-disable-next-line new-cap
-        restInstance = bequantRest()
-        restDescribe = restInstance.describe()
-        extended = self.deep_extend(super(bitcoincom, self).describe(), restDescribe)
-        return self.deep_extend(extended, {
+        describeExtended = self.get_describe_for_extended_ws_exchange(bitcoincomRest(), hitbtcRest(), super(bitcoincom, self).describe())
+        return self.deep_extend(describeExtended, {
             'id': 'bitcoincom',
             'name': 'bitcoin.com',
             'countries': ['KN'],

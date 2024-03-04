@@ -399,8 +399,9 @@ class gate extends \ccxt\async\gate {
         $parts = explode('.', $channel);
         $rawMarketType = $this->safe_string($parts, 0);
         $marketType = ($rawMarketType === 'futures') ? 'contract' : 'spot';
+        $result = $this->safe_value($message, 'result');
         $results = array();
-        if ($marketType === 'contract') {
+        if (gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result))) {
             $results = $this->safe_list($message, 'result', array());
         } else {
             $rawTicker = $this->safe_dict($message, 'result', array());
@@ -844,7 +845,7 @@ class gate extends \ccxt\async\gate {
             $client = $this->client($url);
             $this->set_positions_cache($client, $type, $symbols);
             $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
-            $awaitPositionsSnapshot = $this->safe_value('watchPositions', 'awaitPositionsSnapshot', true);
+            $awaitPositionsSnapshot = $this->safe_bool('watchPositions', 'awaitPositionsSnapshot', true);
             $cache = $this->safe_value($this->positions, $type);
             if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $cache === null) {
                 return Async\await($client->future ($type . ':fetchPositionsSnapshot'));

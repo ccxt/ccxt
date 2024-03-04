@@ -107,17 +107,22 @@ class bitmart extends bitmart$1 {
         }
         return await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
     }
-    async subscribeMultiple(channel, type, symbols, params = {}) {
+    async subscribeMultiple(channel, type, symbols = undefined, params = {}) {
+        symbols = this.marketSymbols(symbols, type, false, true);
         const url = this.implodeHostname(this.urls['api']['ws'][type]['public']);
         const channelType = (type === 'spot') ? 'spot' : 'futures';
         const actionType = (type === 'spot') ? 'op' : 'action';
-        const rawSubscriptions = [];
+        let rawSubscriptions = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market(symbols[i]);
             const message = channelType + '/' + channel + ':' + market['id'];
             rawSubscriptions.push(message);
             messageHashes.push(channel + ':' + market['symbol']);
+        }
+        // as an exclusion, futures "tickers" need one generic request for all symbols
+        if ((type !== 'spot') && (channel === 'ticker')) {
+            rawSubscriptions = [channelType + '/' + channel];
         }
         const request = {
             'args': rawSubscriptions,
@@ -321,13 +326,8 @@ class bitmart extends bitmart$1 {
          */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
-        const market = this.market(symbol);
-        let type = 'spot';
-        [type, params] = this.handleMarketTypeAndParams('watchTicker', market, params);
-        if (type === 'swap') {
-            throw new errors.NotSupported(this.id + ' watchTicker() does not support ' + type + ' markets. Use watchTickers() instead');
-        }
-        return await this.subscribe('ticker', symbol, type, params);
+        const tickers = await this.watchTickers([symbol], params);
+        return tickers[symbol];
     }
     async watchTickers(symbols = undefined, params = {}) {
         /**
@@ -341,40 +341,12 @@ class bitmart extends bitmart$1 {
          */
         await this.loadMarkets();
         const market = this.getMarketFromSymbols(symbols);
-        let type = 'spot';
-        [type, params] = this.handleMarketTypeAndParams('watchTickers', market, params);
-        const url = this.implodeHostname(this.urls['api']['ws'][type]['public']);
-        symbols = this.marketSymbols(symbols);
-        let messageHash = 'tickers::' + type;
-        if (symbols !== undefined) {
-            messageHash += '::' + symbols.join(',');
-        }
-        let request = undefined;
-        let tickers = undefined;
-        const isSpot = (type === 'spot');
-        if (isSpot) {
-            if (symbols === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' watchTickers() for ' + type + ' market type requires symbols argument to be provided');
-            }
-            const marketIds = this.marketIds(symbols);
-            const finalArray = [];
-            for (let i = 0; i < marketIds.length; i++) {
-                finalArray.push('spot/ticker:' + marketIds[i]);
-            }
-            request = {
-                'op': 'subscribe',
-                'args': finalArray,
-            };
-            tickers = await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
-        }
-        else {
-            request = {
-                'action': 'subscribe',
-                'args': ['futures/ticker'],
-            };
-            tickers = await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
-        }
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('watchTickers', market, params);
+        const ticker = await this.subscribeMultiple('ticker', marketType, symbols, params);
         if (this.newUpdates) {
+            const tickers = {};
+            tickers[ticker['symbol']] = ticker;
             return tickers;
         }
         return this.filterByArray(this.tickers, 'symbol', symbols);
@@ -850,21 +822,34 @@ class bitmart extends bitmart$1 {
         if (data === undefined) {
             return;
         }
-        let stored = undefined;
         let symbol = undefined;
-        for (let i = 0; i < data.length; i++) {
-            const trade = this.parseWsTrade(data[i]);
-            symbol = trade['symbol'];
-            const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
-            stored = this.safeValue(this.trades, symbol);
-            if (stored === undefined) {
-                stored = new Cache.ArrayCache(tradesLimit);
-                this.trades[symbol] = stored;
+        const length = data.length;
+        const isSwap = ('group' in message);
+        if (isSwap) {
+            // in swap, chronologically decreasing: 1709536849322, 1709536848954,
+            const maxLen = Math.max(length - 1, 0);
+            for (let i = maxLen; i >= 0; i--) {
+                symbol = this.handleTradeLoop(data[i]);
             }
-            stored.append(trade);
         }
-        const messageHash = 'trade:' + symbol;
-        client.resolve(stored, messageHash);
+        else {
+            // in spot, chronologically increasing: 1709536771200, 1709536771226,
+            for (let i = 0; i < length; i++) {
+                symbol = this.handleTradeLoop(data[i]);
+            }
+        }
+        client.resolve(this.trades[symbol], 'trade:' + symbol);
+    }
+    handleTradeLoop(entry) {
+        const trade = this.parseWsTrade(entry);
+        const symbol = trade['symbol'];
+        const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
+        if (this.safeValue(this.trades, symbol) === undefined) {
+            this.trades[symbol] = new Cache.ArrayCache(tradesLimit);
+        }
+        const stored = this.trades[symbol];
+        stored.append(trade);
+        return symbol;
     }
     parseWsTrade(trade, market = undefined) {
         // spot
@@ -943,45 +928,22 @@ class bitmart extends bitmart$1 {
         //
         const table = this.safeString(message, 'table');
         const isSpot = (table !== undefined);
-        const data = this.safeValue(message, 'data');
-        if (data === undefined) {
-            return;
-        }
+        let rawTickers = [];
         if (isSpot) {
-            for (let i = 0; i < data.length; i++) {
-                const ticker = this.parseTicker(data[i]);
-                const symbol = ticker['symbol'];
-                const marketId = this.safeString(ticker['info'], 'symbol');
-                const messageHash = table + ':' + marketId;
-                this.tickers[symbol] = ticker;
-                client.resolve(ticker, messageHash);
-                this.resolveMessageHashesForSymbol(client, symbol, ticker, 'tickers::');
-            }
+            rawTickers = this.safeList(message, 'data', []);
         }
         else {
-            // on each update for contract markets, single ticker is provided
-            const ticker = this.parseWsSwapTicker(data);
-            const symbol = this.safeString(ticker, 'symbol');
-            this.tickers[symbol] = ticker;
-            client.resolve(ticker, 'tickers::swap');
-            this.resolveMessageHashesForSymbol(client, symbol, ticker, 'tickers::');
+            rawTickers = [this.safeValue(message, 'data', {})];
         }
-    }
-    resolveMessageHashesForSymbol(client, symbol, result, prexif) {
-        const prefixSeparator = '::';
-        const symbolsSeparator = ',';
-        const messageHashes = this.findMessageHashes(client, prexif);
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const parts = messageHash.split(prefixSeparator);
-            const length = parts.length;
-            const symbolsString = parts[length - 1];
-            const symbols = symbolsString.split(symbolsSeparator);
-            if (this.inArray(symbol, symbols)) {
-                const response = {};
-                response[symbol] = result;
-                client.resolve(response, messageHash);
-            }
+        if (!rawTickers.length) {
+            return;
+        }
+        for (let i = 0; i < rawTickers.length; i++) {
+            const ticker = isSpot ? this.parseTicker(rawTickers[i]) : this.parseWsSwapTicker(rawTickers[i]);
+            const symbol = ticker['symbol'];
+            this.tickers[symbol] = ticker;
+            const messageHash = 'ticker:' + symbol;
+            client.resolve(ticker, messageHash);
         }
     }
     parseWsSwapTicker(ticker, market = undefined) {

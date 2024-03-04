@@ -18,6 +18,12 @@ public partial class coinbase
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : 'v2PublicGetTime' or 'v3PublicGetBrokerageTime' default is 'v2PublicGetTime'
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>int</term> the current integer timestamp in milliseconds from the exchange server.</returns>
@@ -976,5 +982,37 @@ public partial class coinbase
     {
         var res = await this.fetchDepositAddressesByNetwork(code, parameters);
         return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#show-deposit"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountId</term>
+    /// <description>
+    /// string : the id of the account that the funds were deposited into
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    public async Task<Transaction> FetchDeposit(string id, string code = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDeposit(id, code, parameters);
+        return new Transaction(res);
     }
 }

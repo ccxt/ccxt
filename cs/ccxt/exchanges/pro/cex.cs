@@ -1186,7 +1186,11 @@ public partial class cex : ccxt.cex
         {
             callDynamically(stored, "append", new object[] {this.parseOHLCV(getValue(sorted, i), market)});
         }
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = stored;
+        if (!isTrue((inOp(this.ohlcvs, symbol))))
+        {
+            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
+        }
+        ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))["unknown"] = stored;
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
     }
 
@@ -1244,7 +1248,8 @@ public partial class cex : ccxt.cex
         object pair = this.safeString(message, "pair");
         object symbol = this.pairToSymbol(pair);
         object messageHash = add("ohlcv:", symbol);
-        object stored = this.safeValue(this.ohlcvs, symbol);
+        // const stored = this.safeValue (this.ohlcvs, symbol);
+        object stored = getValue(getValue(this.ohlcvs, symbol), "unknown");
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object ohlcv = new List<object> {this.safeTimestamp(getValue(data, i), 0), this.safeNumber(getValue(data, i), 1), this.safeNumber(getValue(data, i), 2), this.safeNumber(getValue(data, i), 3), this.safeNumber(getValue(data, i), 4), this.safeNumber(getValue(data, i), 5)};

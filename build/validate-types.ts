@@ -54,8 +54,7 @@ const exchanges = allExchanges.ids;
 const wsExchanges = allExchanges.ws;
 
 // Function to extract method names and return types from a .d.ts file
-function extractMethodsInfo(filePath: string): Record<string, string> {
-  const program = ts.createProgram([filePath], {});
+function extractMethodsInfo(filePath: string, program: ts.Program): Record<string, string> {
   const checker = program.getTypeChecker();
   const sourceFile = program.getSourceFile(filePath);
 
@@ -132,23 +131,35 @@ function main() {
         exchangesToCheck = exchanges;
     }
 
-    const sourceOfTruth = extractMethodsInfo(basePath + 'base/Exchange.d.ts');
+    let restPaths = new Array<string>();
+    let wsPaths = new Array<string>();
+    for (const exchange of exchangesToCheck) {
+        restPaths.push(basePath + exchange + '.d.ts')
+        if (wsExchanges.includes(exchange)) { 
+            wsPaths.push(basePath + 'pro/' + exchange + '.d.ts')
+        }
+    }
+    const program = ts.createProgram([...restPaths, ...wsPaths,basePath + 'base/Exchange.d.ts'], {});
+    
+    const sourceOfTruth = extractMethodsInfo(basePath + 'base/Exchange.d.ts', program);
     let foundIssues = false;
     let foundParametersIssues = false;
     let paramsDifferences = 0;
     let differences = 0;
     let methodsWithDifferences = new Set<string>();
     let methodsWithParamsDifferences = new Set<string>();
+
     for (const exchange of exchangesToCheck) {
+
         if (skipExchanges.includes(exchange)) {
             continue;
         }
         const restPath = basePath + exchange + '.d.ts';
         const wsPath = basePath + 'pro/' + exchange + '.d.ts';
-        const restMethodsInfo = extractMethodsInfo(restPath); // rest API
+        const restMethodsInfo = extractMethodsInfo(restPath, program); // rest API
         let wsMethodsInfo: any = {};
         if (wsExchanges.includes(exchange)) {
-            wsMethodsInfo = extractMethodsInfo(wsPath); // ws API
+            wsMethodsInfo = extractMethodsInfo(wsPath, program); // ws API
         }
         const methodsInfo = {...restMethodsInfo, ...wsMethodsInfo};
         for (const method in methodsInfo) {
