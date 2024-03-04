@@ -566,10 +566,23 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchOrderBook() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchMarginMode(object symbol = null, object parameters = null)
+    public async virtual Task<object> fetchMarginMode(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " fetchMarginMode() is not supported yet")) ;
+        if (isTrue(getValue(this.has, "fetchMarginModes")))
+        {
+            object marginModes = await this.fetchMarginModes(new List<object>() {symbol}, parameters);
+            return this.safeDict(marginModes, symbol);
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " fetchMarginMode() is not supported yet")) ;
+        }
+    }
+
+    public async virtual Task<object> fetchMarginModes(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchMarginModes () is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchRestOrderBookSafe(object symbol, object limit = null, object parameters = null)
@@ -757,7 +770,20 @@ public partial class Exchange
     public async virtual Task<object> fetchLeverage(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " fetchLeverage() is not supported yet")) ;
+        if (isTrue(getValue(this.has, "fetchLeverages")))
+        {
+            object leverages = await this.fetchLeverages(new List<object>() {symbol}, parameters);
+            return this.safeDict(leverages, symbol);
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " fetchLeverage() is not supported yet")) ;
+        }
+    }
+
+    public async virtual Task<object> fetchLeverages(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchLeverages() is not supported yet")) ;
     }
 
     public async virtual Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
@@ -1163,6 +1189,13 @@ public partial class Exchange
         object currenciesSortedByCode = this.keysort(this.currencies);
         this.codes = new List<object>(((IDictionary<string,object>)currenciesSortedByCode).Keys);
         return this.markets;
+    }
+
+    public virtual object getDescribeForExtendedWsExchange(object currentRestInstance, object parentRestInstance, object wsBaseDescribe)
+    {
+        object extendedRestDescribe = this.deepExtend(((Exchange)parentRestInstance).describe(), ((Exchange)currentRestInstance).describe());
+        object superWithRestDescribe = this.deepExtend(extendedRestDescribe, wsBaseDescribe);
+        return superWithRestDescribe;
     }
 
     public virtual object safeBalance(object balance)
@@ -3217,6 +3250,10 @@ public partial class Exchange
             parameters = this.omit(parameters, new List<object>() {optionName, defaultOptionName});
         } else
         {
+            // handle routed methods like "watchTrades > watchTradesForSymbols" (or "watchTicker > watchTickers")
+            var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", methodName);
+            methodName = ((IList<object>)methodNameparametersVariable)[0];
+            parameters = ((IList<object>)methodNameparametersVariable)[1];
             // check if exchange has properties for this method
             object exchangeWideMethodOptions = this.safeValue(this.options, methodName);
             if (isTrue(!isEqual(exchangeWideMethodOptions, null)))
@@ -5508,6 +5545,48 @@ public partial class Exchange
     public virtual object parseGreeks(object greeks, object market = null)
     {
         throw new NotSupported ((string)add(this.id, " parseGreeks () is not supported yet")) ;
+    }
+
+    public virtual object parseMarginModes(object response, object symbols = null, object symbolKey = null, object marketType = null)
+    {
+        object marginModeStructures = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object info = getValue(response, i);
+            object marketId = this.safeString(info, symbolKey);
+            object market = this.safeMarket(marketId, null, null, marketType);
+            if (isTrue(isTrue((isEqual(symbols, null))) || isTrue(this.inArray(getValue(market, "symbol"), symbols))))
+            {
+                ((IDictionary<string,object>)marginModeStructures)[(string)getValue(market, "symbol")] = this.parseMarginMode(info, market);
+            }
+        }
+        return marginModeStructures;
+    }
+
+    public virtual object parseMarginMode(object marginMode, object market = null)
+    {
+        throw new NotSupported ((string)add(this.id, " parseMarginMode () is not supported yet")) ;
+    }
+
+    public virtual object parseLeverages(object response, object symbols = null, object symbolKey = null, object marketType = null)
+    {
+        object leverageStructures = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object info = getValue(response, i);
+            object marketId = this.safeString(info, symbolKey);
+            object market = this.safeMarket(marketId, null, null, marketType);
+            if (isTrue(isTrue((isEqual(symbols, null))) || isTrue(this.inArray(getValue(market, "symbol"), symbols))))
+            {
+                ((IDictionary<string,object>)leverageStructures)[(string)getValue(market, "symbol")] = this.parseLeverage(info, market);
+            }
+        }
+        return leverageStructures;
+    }
+
+    public virtual object parseLeverage(object leverage, object market = null)
+    {
+        throw new NotSupported ((string)add(this.id, " parseLeverage() is not supported yet")) ;
     }
 }
 

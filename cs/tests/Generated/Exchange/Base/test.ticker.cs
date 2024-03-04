@@ -81,7 +81,7 @@ public partial class testMainClass : BaseTest
                 assert(!isEqual(baseVolume, null), add("quoteVolume & vwap is defined, but baseVolume is not", logText));
             }
         }
-        if (isTrue(!isTrue((inOp(skippedProperties, "ask"))) && !isTrue((inOp(skippedProperties, "bid")))))
+        if (isTrue(isTrue(!isTrue((inOp(skippedProperties, "spread"))) && !isTrue((inOp(skippedProperties, "ask")))) && !isTrue((inOp(skippedProperties, "bid")))))
         {
             object askString = exchange.safeString(entry, "ask");
             object bidString = exchange.safeString(entry, "bid");

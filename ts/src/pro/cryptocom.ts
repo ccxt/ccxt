@@ -17,7 +17,7 @@ export default class cryptocom extends cryptocomRest {
                 'ws': true,
                 'watchBalance': true,
                 'watchTicker': true,
-                'watchTickers': false, // for now
+                'watchTickers': false,
                 'watchMyTrades': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
@@ -572,7 +572,7 @@ export default class cryptocom extends cryptocomRest {
         const client = this.client (url);
         this.setPositionsCache (client, symbols);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.safeValue ('watchPositions', 'awaitPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.safeBool ('watchPositions', 'awaitPositionsSnapshot', true);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);

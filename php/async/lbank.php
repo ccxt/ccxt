@@ -2732,7 +2732,7 @@ class lbank extends Exchange {
             $uppercaseHash = strtoupper($hash);
             $sign = null;
             if ($signatureMethod === 'RSA') {
-                $cacheSecretAsPem = $this->safe_value($this->options, 'cacheSecretAsPem', true);
+                $cacheSecretAsPem = $this->safe_bool($this->options, 'cacheSecretAsPem', true);
                 $pem = null;
                 if ($cacheSecretAsPem) {
                     $pem = $this->safe_value($this->options, 'pem');

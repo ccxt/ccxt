@@ -1122,7 +1122,10 @@ export default class cex extends cexRest {
         for (let i = 0; i < sorted.length; i++) {
             stored.append (this.parseOHLCV (sorted[i], market));
         }
-        this.ohlcvs[symbol] = stored;
+        if (!(symbol in this.ohlcvs)) {
+            this.ohlcvs[symbol] = {};
+        }
+        this.ohlcvs[symbol]['unknown'] = stored;
         client.resolve (stored, messageHash);
     }
 
@@ -1184,7 +1187,8 @@ export default class cex extends cexRest {
         const pair = this.safeString (message, 'pair');
         const symbol = this.pairToSymbol (pair);
         const messageHash = 'ohlcv:' + symbol;
-        const stored = this.safeValue (this.ohlcvs, symbol);
+        // const stored = this.safeValue (this.ohlcvs, symbol);
+        const stored = this.ohlcvs[symbol]['unknown'];
         for (let i = 0; i < data.length; i++) {
             const ohlcv = [
                 this.safeTimestamp (data[i], 0),

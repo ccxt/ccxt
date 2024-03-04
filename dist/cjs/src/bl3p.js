@@ -32,6 +32,7 @@ class bl3p extends bl3p$1 {
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
+                'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -42,6 +43,9 @@ class bl3p extends bl3p$1 {
                 'fetchBorrowRateHistory': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchDepositAddress': false,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -422,6 +426,49 @@ class bl3p extends bl3p$1 {
             'order_id': id,
         };
         return await this.privatePostMarketMoneyOrderCancel(this.extend(request, params));
+    }
+    async createDepositAddress(code, params = {}) {
+        /**
+         * @method
+         * @name bl3p#createDepositAddress
+         * @description create a currency deposit address
+         * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#32---create-a-new-deposit-address
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privatePostGENMKTMoneyNewDepositAddress(this.extend(request, params));
+        //
+        //    {
+        //        "result": "success",
+        //        "data": {
+        //            "address": "36Udu9zi1uYicpXcJpoKfv3bewZeok5tpk"
+        //        }
+        //    }
+        //
+        const data = this.safeDict(response, 'data');
+        return this.parseDepositAddress(data, currency);
+    }
+    parseDepositAddress(depositAddress, currency = undefined) {
+        //
+        //    {
+        //        "address": "36Udu9zi1uYicpXcJpoKfv3bewZeok5tpk"
+        //    }
+        //
+        const address = this.safeString(depositAddress, 'address');
+        this.checkAddress(address);
+        return {
+            'info': depositAddress,
+            'currency': this.safeString(currency, 'code'),
+            'address': address,
+            'tag': undefined,
+            'network': undefined,
+        };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = this.implodeParams(path, params);

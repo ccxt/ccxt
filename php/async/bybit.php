@@ -84,9 +84,11 @@ class bybit extends Exchange {
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
                 'fetchLedger' => true,
+                'fetchLeverage' => true,
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
+                'fetchMyLiquidations' => true,
                 'fetchMySettlementHistory' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -4561,7 +4563,7 @@ class bybit extends Exchange {
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
             if ($paginate) {
-                return Async\await($this->fetch_paginated_call_cursor('fetchOrders', $symbol, $since, $limit, $params, 'nextPageCursor', 'nextPageCursor', null, 50));
+                return Async\await($this->fetch_paginated_call_cursor('fetchOrders', $symbol, $since, $limit, $params, 'nextPageCursor', 'cursor', null, 50));
             }
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
             $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
@@ -4742,7 +4744,7 @@ class bybit extends Exchange {
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchCanceledAndClosedOrders', 'paginate');
             if ($paginate) {
-                return Async\await($this->fetch_paginated_call_cursor('fetchCanceledAndClosedOrders', $symbol, $since, $limit, $params, 'nextPageCursor', 'nextPageCursor', null, 50));
+                return Async\await($this->fetch_paginated_call_cursor('fetchCanceledAndClosedOrders', $symbol, $since, $limit, $params, 'nextPageCursor', 'cursor', null, 50));
             }
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
             $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
@@ -5123,7 +5125,7 @@ class bybit extends Exchange {
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
             if ($paginate) {
-                return Async\await($this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $params, 'nextPageCursor', 'nextPageCursor', null, 100));
+                return Async\await($this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $params, 'nextPageCursor', 'cursor', null, 100));
             }
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
             $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
@@ -5329,7 +5331,7 @@ class bybit extends Exchange {
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
             if ($paginate) {
-                return Async\await($this->fetch_paginated_call_cursor('fetchDeposits', $code, $since, $limit, $params, 'nextPageCursor', 'nextPageCursor', null, 50));
+                return Async\await($this->fetch_paginated_call_cursor('fetchDeposits', $code, $since, $limit, $params, 'nextPageCursor', 'cursor', null, 50));
             }
             $request = array(
                 // 'coin' => $currency['id'],
@@ -5398,7 +5400,7 @@ class bybit extends Exchange {
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');
             if ($paginate) {
-                return Async\await($this->fetch_paginated_call_cursor('fetchWithdrawals', $code, $since, $limit, $params, 'nextPageCursor', 'nextPageCursor', null, 50));
+                return Async\await($this->fetch_paginated_call_cursor('fetchWithdrawals', $code, $since, $limit, $params, 'nextPageCursor', 'cursor', null, 50));
             }
             $request = array(
                 // 'coin' => $currency['id'],
@@ -6348,6 +6350,34 @@ class bybit extends Exchange {
         ));
     }
 
+    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the set leverage for a $market
+             * @see https://bybit-exchange.github.io/docs/v5/position
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $position = Async\await($this->fetch_position($symbol, $params));
+            return $this->parse_leverage($position, $market);
+        }) ();
+    }
+
+    public function parse_leverage($leverage, $market = null): Leverage {
+        $marketId = $this->safe_string($leverage, 'symbol');
+        $leverageValue = $this->safe_integer($leverage, 'leverage');
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $this->safe_string_lower($leverage, 'marginMode'),
+            'longLeverage' => $leverageValue,
+            'shortLeverage' => $leverageValue,
+        );
+    }
+
     public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
@@ -6918,7 +6948,7 @@ class bybit extends Exchange {
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate');
             if ($paginate) {
-                return Async\await($this->fetch_paginated_call_cursor('fetchTransfers', $code, $since, $limit, $params, 'nextPageCursor', 'nextPageCursor', null, 50));
+                return Async\await($this->fetch_paginated_call_cursor('fetchTransfers', $code, $since, $limit, $params, 'nextPageCursor', 'cursor', null, 50));
             }
             $currency = null;
             $request = array();
@@ -7775,6 +7805,139 @@ class bybit extends Exchange {
             'underlyingPrice' => $this->safe_number($greeks, 'underlyingPrice'),
             'info' => $greeks,
         );
+    }
+
+    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * retrieves the users liquidated positions
+             * @see https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+             * @param {string} [$symbol] unified CCXT $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch $liquidations for
+             * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+             * @param {array} [$params] exchange specific parameters for the exchange API endpoint
+             * @param {string} [$params->type] $market $type, ['swap', 'option', 'spot']
+             * @param {string} [$params->subType] $market subType, ['linear', 'inverse']
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=liquidation-structure liquidation structures~
+             */
+            Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyLiquidations', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_cursor('fetchMyLiquidations', $symbol, $since, $limit, $params, 'nextPageCursor', 'cursor', null, 100));
+            }
+            $request = array(
+                'execType' => 'BustTrade',
+            );
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
+            $type = null;
+            list($type, $params) = $this->get_bybit_type('fetchMyLiquidations', $market, $params);
+            $request['category'] = $type;
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
+            list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+            $response = Async\await($this->privateGetV5ExecutionList (array_merge($request, $params)));
+            //
+            //     {
+            //         "retCode" => 0,
+            //         "retMsg" => "OK",
+            //         "result" => {
+            //             "nextPageCursor" => "132766%3A2%2C132766%3A2",
+            //             "category" => "linear",
+            //             "list" => array(
+            //                 array(
+            //                     "symbol" => "ETHPERP",
+            //                     "orderType" => "Market",
+            //                     "underlyingPrice" => "",
+            //                     "orderLinkId" => "",
+            //                     "side" => "Buy",
+            //                     "indexPrice" => "",
+            //                     "orderId" => "8c065341-7b52-4ca9-ac2c-37e31ac55c94",
+            //                     "stopOrderType" => "UNKNOWN",
+            //                     "leavesQty" => "0",
+            //                     "execTime" => "1672282722429",
+            //                     "isMaker" => false,
+            //                     "execFee" => "0.071409",
+            //                     "feeRate" => "0.0006",
+            //                     "execId" => "e0cbe81d-0f18-5866-9415-cf319b5dab3b",
+            //                     "tradeIv" => "",
+            //                     "blockTradeId" => "",
+            //                     "markPrice" => "1183.54",
+            //                     "execPrice" => "1190.15",
+            //                     "markIv" => "",
+            //                     "orderQty" => "0.1",
+            //                     "orderPrice" => "1236.9",
+            //                     "execValue" => "119.015",
+            //                     "execType" => "Trade",
+            //                     "execQty" => "0.1"
+            //                 }
+            //             )
+            //         ),
+            //         "retExtInfo" => array(),
+            //         "time" => 1672283754510
+            //     }
+            //
+            $liquidations = $this->add_pagination_cursor_to_result($response);
+            return $this->parse_liquidations($liquidations, $market, $since, $limit);
+        }) ();
+    }
+
+    public function parse_liquidation($liquidation, ?array $market = null) {
+        //
+        //     {
+        //         "symbol" => "ETHPERP",
+        //         "orderType" => "Market",
+        //         "underlyingPrice" => "",
+        //         "orderLinkId" => "",
+        //         "side" => "Buy",
+        //         "indexPrice" => "",
+        //         "orderId" => "8c065341-7b52-4ca9-ac2c-37e31ac55c94",
+        //         "stopOrderType" => "UNKNOWN",
+        //         "leavesQty" => "0",
+        //         "execTime" => "1672282722429",
+        //         "isMaker" => false,
+        //         "execFee" => "0.071409",
+        //         "feeRate" => "0.0006",
+        //         "execId" => "e0cbe81d-0f18-5866-9415-cf319b5dab3b",
+        //         "tradeIv" => "",
+        //         "blockTradeId" => "",
+        //         "markPrice" => "1183.54",
+        //         "execPrice" => "1190.15",
+        //         "markIv" => "",
+        //         "orderQty" => "0.1",
+        //         "orderPrice" => "1236.9",
+        //         "execValue" => "119.015",
+        //         "execType" => "Trade",
+        //         "execQty" => "0.1"
+        //     }
+        //
+        $marketId = $this->safe_string($liquidation, 'symbol');
+        $timestamp = $this->safe_integer($liquidation, 'execTime');
+        $contractsString = $this->safe_string($liquidation, 'execQty');
+        $contractSizeString = $this->safe_string($market, 'contractSize');
+        $priceString = $this->safe_string($liquidation, 'execPrice');
+        $baseValueString = Precise::string_mul($contractsString, $contractSizeString);
+        $quoteValueString = Precise::string_mul($baseValueString, $priceString);
+        return $this->safe_liquidation(array(
+            'info' => $liquidation,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'contracts' => $this->parse_number($contractsString),
+            'contractSize' => $this->parse_number($contractSizeString),
+            'price' => $this->parse_number($priceString),
+            'baseValue' => $this->parse_number($baseValueString),
+            'quoteValue' => $this->parse_number($quoteValueString),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        ));
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

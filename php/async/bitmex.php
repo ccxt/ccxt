@@ -66,7 +66,8 @@ class bitmex extends Exchange {
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
-                'fetchLeverage' => false,
+                'fetchLeverage' => 'emulated',
+                'fetchLeverages' => true,
                 'fetchLeverageTiers' => false,
                 'fetchLiquidations' => true,
                 'fetchMarketLeverageTiers' => false,
@@ -1529,7 +1530,7 @@ class bitmex extends Exchange {
                 $request['endTime'] = $this->iso8601($until);
             }
             $duration = $this->parse_timeframe($timeframe) * 1000;
-            $fetchOHLCVOpenTimestamp = $this->safe_value($this->options, 'fetchOHLCVOpenTimestamp', true);
+            $fetchOHLCVOpenTimestamp = $this->safe_bool($this->options, 'fetchOHLCVOpenTimestamp', true);
             // if $since is not set, they will return candles starting from 2017-01-01
             if ($since !== null) {
                 $timestamp = $since;
@@ -2134,6 +2135,32 @@ class bitmex extends Exchange {
             //
             return $this->parse_orders($response, $market);
         }) ();
+    }
+
+    public function fetch_leverages(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetch the set leverage for all contract markets
+             * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
+             * @param {string[]} [$symbols] a list of unified market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structures~
+             */
+            Async\await($this->load_markets());
+            $leverages = Async\await($this->fetch_positions($symbols, $params));
+            return $this->parse_leverages($leverages, $symbols, 'symbol');
+        }) ();
+    }
+
+    public function parse_leverage($leverage, $market = null): Leverage {
+        $marketId = $this->safe_string($leverage, 'symbol');
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $this->safe_string_lower($leverage, 'marginMode'),
+            'longLeverage' => $this->safe_integer($leverage, 'leverage'),
+            'shortLeverage' => $this->safe_integer($leverage, 'leverage'),
+        );
     }
 
     public function fetch_positions(?array $symbols = null, $params = array ()) {

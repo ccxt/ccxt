@@ -589,9 +589,10 @@ export default class testMainClass extends baseMainTestClass {
             return false;
         }
         const symbols = [
+            'BTC/USDT',
+            'BTC/USDC',
             'BTC/CNY',
             'BTC/USD',
-            'BTC/USDT',
             'BTC/EUR',
             'BTC/ETH',
             'ETH/BTC',
@@ -713,8 +714,9 @@ export default class testMainClass extends baseMainTestClass {
             'ZRX',
         ];
         const spotSymbols = [
-            'BTC/USD',
             'BTC/USDT',
+            'BTC/USDC',
+            'BTC/USD',
             'BTC/CNY',
             'BTC/EUR',
             'BTC/ETH',
@@ -728,6 +730,7 @@ export default class testMainClass extends baseMainTestClass {
         ];
         const swapSymbols = [
             'BTC/USDT:USDT',
+            'BTC/USDC:USDC',
             'BTC/USD:USD',
             'ETH/USDT:USDT',
             'ETH/USD:USD',
@@ -866,6 +869,7 @@ export default class testMainClass extends baseMainTestClass {
             // 'cancelOrder': [ ],
             // 'cancelOrders': [ ],
             'fetchCanceledOrders': [ symbol ],
+            'fetchMarginModes': [ symbol ],
             // 'fetchClosedOrder': [ ],
             // 'fetchOpenOrder': [ ],
             // 'fetchOrder': [ ],
@@ -1287,7 +1291,7 @@ export default class testMainClass extends baseMainTestClass {
                 if ((testName !== undefined) && (testName !== description)) {
                     continue;
                 }
-                const isDisabled = exchange.safeValue (result, 'disabled', false);
+                const isDisabled = exchange.safeBool (result, 'disabled', false);
                 if (isDisabled) {
                     continue;
                 }
@@ -1317,15 +1321,15 @@ export default class testMainClass extends baseMainTestClass {
                 const oldExchangeOptions = exchange.options; // snapshot options;
                 const testExchangeOptions = exchange.safeValue (result, 'options', {});
                 exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
-                const isDisabled = exchange.safeValue (result, 'disabled', false);
+                const isDisabled = exchange.safeBool (result, 'disabled', false);
                 if (isDisabled) {
                     continue;
                 }
-                const isDisabledCSharp = exchange.safeValue (result, 'disabledCS', false);
+                const isDisabledCSharp = exchange.safeBool (result, 'disabledCS', false);
                 if (isDisabledCSharp && (this.lang === 'C#')) {
                     continue;
                 }
-                const isDisabledPHP = exchange.safeValue (result, 'disabledPHP', false);
+                const isDisabledPHP = exchange.safeBool (result, 'disabledPHP', false);
                 if (isDisabledPHP && (this.lang === 'PHP')) {
                     continue;
                 }

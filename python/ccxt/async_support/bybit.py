@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -93,9 +93,11 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
                 'fetchLedger': True,
+                'fetchLeverage': True,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
+                'fetchMyLiquidations': True,
                 'fetchMySettlementHistory': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -4263,7 +4265,7 @@ class bybit(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, params, 'nextPageCursor', 'nextPageCursor', None, 50)
+            return await self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, params, 'nextPageCursor', 'cursor', None, 50)
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
         request = {}
@@ -4423,7 +4425,7 @@ class bybit(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchCanceledAndClosedOrders', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_cursor('fetchCanceledAndClosedOrders', symbol, since, limit, params, 'nextPageCursor', 'nextPageCursor', None, 50)
+            return await self.fetch_paginated_call_cursor('fetchCanceledAndClosedOrders', symbol, since, limit, params, 'nextPageCursor', 'cursor', None, 50)
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
         request = {}
@@ -4767,7 +4769,7 @@ class bybit(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, params, 'nextPageCursor', 'nextPageCursor', None, 100)
+            return await self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, params, 'nextPageCursor', 'cursor', None, 100)
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
         request = {}
@@ -4957,7 +4959,7 @@ class bybit(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_cursor('fetchDeposits', code, since, limit, params, 'nextPageCursor', 'nextPageCursor', None, 50)
+            return await self.fetch_paginated_call_cursor('fetchDeposits', code, since, limit, params, 'nextPageCursor', 'cursor', None, 50)
         request = {
             # 'coin': currency['id'],
             # 'limit': 20,  # max 50
@@ -5019,7 +5021,7 @@ class bybit(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_cursor('fetchWithdrawals', code, since, limit, params, 'nextPageCursor', 'nextPageCursor', None, 50)
+            return await self.fetch_paginated_call_cursor('fetchWithdrawals', code, since, limit, params, 'nextPageCursor', 'cursor', None, 50)
         request = {
             # 'coin': currency['id'],
             # 'limit': 20,  # max 50
@@ -5908,6 +5910,30 @@ class bybit(Exchange, ImplicitAPI):
             'takeProfitPrice': self.safe_number_2(position, 'take_profit', 'takeProfit'),
         })
 
+    async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
+        """
+        fetch the set leverage for a market
+        :see: https://bybit-exchange.github.io/docs/v5/position
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        position = await self.fetch_position(symbol, params)
+        return self.parse_leverage(position, market)
+
+    def parse_leverage(self, leverage, market=None) -> Leverage:
+        marketId = self.safe_string(leverage, 'symbol')
+        leverageValue = self.safe_integer(leverage, 'leverage')
+        return {
+            'info': leverage,
+            'symbol': self.safe_symbol(marketId, market),
+            'marginMode': self.safe_string_lower(leverage, 'marginMode'),
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        }
+
     async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode(account) or trade mode(symbol)
@@ -6420,7 +6446,7 @@ class bybit(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_cursor('fetchTransfers', code, since, limit, params, 'nextPageCursor', 'nextPageCursor', None, 50)
+            return await self.fetch_paginated_call_cursor('fetchTransfers', code, since, limit, params, 'nextPageCursor', 'cursor', None, 50)
         currency = None
         request = {}
         if code is not None:
@@ -7212,6 +7238,131 @@ class bybit(Exchange, ImplicitAPI):
             'underlyingPrice': self.safe_number(greeks, 'underlyingPrice'),
             'info': greeks,
         }
+
+    async def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        retrieves the users liquidated positions
+        :see: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+        :param str [symbol]: unified CCXT market symbol
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: exchange specific parameters for the exchange API endpoint
+        :param str [params.type]: market type, ['swap', 'option', 'spot']
+        :param str [params.subType]: market subType, ['linear', 'inverse']
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns dict: an array of `liquidation structures <https://docs.ccxt.com/#/?id=liquidation-structure>`
+        """
+        await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchMyLiquidations', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_cursor('fetchMyLiquidations', symbol, since, limit, params, 'nextPageCursor', 'cursor', None, 100)
+        request = {
+            'execType': 'BustTrade',
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        type = None
+        type, params = self.get_bybit_type('fetchMyLiquidations', market, params)
+        request['category'] = type
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None:
+            request['startTime'] = since
+        request, params = self.handle_until_option('endTime', request, params)
+        response = await self.privateGetV5ExecutionList(self.extend(request, params))
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "OK",
+        #         "result": {
+        #             "nextPageCursor": "132766%3A2%2C132766%3A2",
+        #             "category": "linear",
+        #             "list": [
+        #                 {
+        #                     "symbol": "ETHPERP",
+        #                     "orderType": "Market",
+        #                     "underlyingPrice": "",
+        #                     "orderLinkId": "",
+        #                     "side": "Buy",
+        #                     "indexPrice": "",
+        #                     "orderId": "8c065341-7b52-4ca9-ac2c-37e31ac55c94",
+        #                     "stopOrderType": "UNKNOWN",
+        #                     "leavesQty": "0",
+        #                     "execTime": "1672282722429",
+        #                     "isMaker": False,
+        #                     "execFee": "0.071409",
+        #                     "feeRate": "0.0006",
+        #                     "execId": "e0cbe81d-0f18-5866-9415-cf319b5dab3b",
+        #                     "tradeIv": "",
+        #                     "blockTradeId": "",
+        #                     "markPrice": "1183.54",
+        #                     "execPrice": "1190.15",
+        #                     "markIv": "",
+        #                     "orderQty": "0.1",
+        #                     "orderPrice": "1236.9",
+        #                     "execValue": "119.015",
+        #                     "execType": "Trade",
+        #                     "execQty": "0.1"
+        #                 }
+        #             ]
+        #         },
+        #         "retExtInfo": {},
+        #         "time": 1672283754510
+        #     }
+        #
+        liquidations = self.add_pagination_cursor_to_result(response)
+        return self.parse_liquidations(liquidations, market, since, limit)
+
+    def parse_liquidation(self, liquidation, market: Market = None):
+        #
+        #     {
+        #         "symbol": "ETHPERP",
+        #         "orderType": "Market",
+        #         "underlyingPrice": "",
+        #         "orderLinkId": "",
+        #         "side": "Buy",
+        #         "indexPrice": "",
+        #         "orderId": "8c065341-7b52-4ca9-ac2c-37e31ac55c94",
+        #         "stopOrderType": "UNKNOWN",
+        #         "leavesQty": "0",
+        #         "execTime": "1672282722429",
+        #         "isMaker": False,
+        #         "execFee": "0.071409",
+        #         "feeRate": "0.0006",
+        #         "execId": "e0cbe81d-0f18-5866-9415-cf319b5dab3b",
+        #         "tradeIv": "",
+        #         "blockTradeId": "",
+        #         "markPrice": "1183.54",
+        #         "execPrice": "1190.15",
+        #         "markIv": "",
+        #         "orderQty": "0.1",
+        #         "orderPrice": "1236.9",
+        #         "execValue": "119.015",
+        #         "execType": "Trade",
+        #         "execQty": "0.1"
+        #     }
+        #
+        marketId = self.safe_string(liquidation, 'symbol')
+        timestamp = self.safe_integer(liquidation, 'execTime')
+        contractsString = self.safe_string(liquidation, 'execQty')
+        contractSizeString = self.safe_string(market, 'contractSize')
+        priceString = self.safe_string(liquidation, 'execPrice')
+        baseValueString = Precise.string_mul(contractsString, contractSizeString)
+        quoteValueString = Precise.string_mul(baseValueString, priceString)
+        return self.safe_liquidation({
+            'info': liquidation,
+            'symbol': self.safe_symbol(marketId, market),
+            'contracts': self.parse_number(contractsString),
+            'contractSize': self.parse_number(contractSizeString),
+            'price': self.parse_number(priceString),
+            'baseValue': self.parse_number(baseValueString),
+            'quoteValue': self.parse_number(quoteValueString),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        })
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.implode_hostname(self.urls['api'][api]) + '/' + path

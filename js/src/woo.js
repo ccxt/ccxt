@@ -6,7 +6,7 @@
 
 // ---------------------------------------------------------------------------
 import Exchange from './abstract/woo.js';
-import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder, ArgumentsRequired, NotSupported } from './base/errors.js';
+import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder, ArgumentsRequired, NotSupported, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -100,6 +100,7 @@ export default class woo extends Exchange {
                 'reduceMargin': false,
                 'setLeverage': true,
                 'setMargin': false,
+                'setPositionMode': true,
                 'transfer': true,
                 'withdraw': true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
             },
@@ -174,10 +175,16 @@ export default class woo extends Exchange {
                             'client/trade/{tid}': 1,
                             'order/{oid}/trades': 1,
                             'client/trades': 1,
+                            'client/hist_trades': 1,
+                            'staking/yield_history': 1,
+                            'client/holding': 1,
                             'asset/deposit': 10,
                             'asset/history': 60,
                             'sub_account/all': 60,
                             'sub_account/assets': 60,
+                            'sub_account/asset_detail': 60,
+                            'sub_account/ip_restriction': 10,
+                            'asset/main_sub_transfer_history': 30,
                             'token_interest': 60,
                             'token_interest/{token}': 60,
                             'interest/history': 60,
@@ -190,9 +197,12 @@ export default class woo extends Exchange {
                         'post': {
                             'order': 5,
                             'asset/main_sub_transfer': 30,
+                            'asset/ltv': 30,
                             'asset/withdraw': 30,
+                            'asset/internal_withdraw': 30,
                             'interest/repay': 60,
                             'client/account_mode': 120,
+                            'client/position_mode': 5,
                             'client/leverage': 120,
                         },
                         'delete': {
@@ -298,7 +308,6 @@ export default class woo extends Exchange {
                     '-1007': BadRequest,
                     '-1008': InvalidOrder,
                     '-1009': BadRequest,
-                    '-1011': ExchangeError,
                     '-1012': BadRequest,
                     '-1101': InvalidOrder,
                     '-1102': InvalidOrder,
@@ -307,6 +316,8 @@ export default class woo extends Exchange {
                     '-1105': InvalidOrder, // { "code": -1105,  "message": "Price is X% too high or X% too low from the mid price." }
                 },
                 'broad': {
+                    'Can not place': ExchangeError,
+                    'maintenance': OnMaintenance,
                     'symbol must not be blank': BadRequest,
                     'The token is not supported': BadRequest,
                     'Your order and symbol are not valid or already canceled': BadRequest,
@@ -482,7 +493,7 @@ export default class woo extends Exchange {
         //      ]
         // }
         //
-        const resultResponse = this.safeValue(response, 'rows', {});
+        const resultResponse = this.safeList(response, 'rows', []);
         return this.parseTrades(resultResponse, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -2326,7 +2337,7 @@ export default class woo extends Exchange {
         else {
             this.checkRequiredCredentials();
             if (method === 'POST' && (path === 'algo/order' || path === 'order')) {
-                const isSandboxMode = this.safeValue(this.options, 'sandboxMode', false);
+                const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
                 if (!isSandboxMode) {
                     const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
                     const brokerId = this.safeString(this.options, 'brokerId', applicationId);
@@ -2383,6 +2394,7 @@ export default class woo extends Exchange {
         }
         //
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
+        //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
         const success = this.safeValue(response, 'success');
         const errorCode = this.safeString(response, 'code');
@@ -2612,8 +2624,49 @@ export default class woo extends Exchange {
         const sorted = this.sortBy(rates, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
+    async setPositionMode(hedged, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#setPositionMode
+         * @description set hedged to true or false for a market
+         * @see https://docs.woo.org/#update-position-mode
+         * @param {bool} hedged set to true to use HEDGE_MODE, false for ONE_WAY
+         * @param {string} symbol not used by woo setPositionMode
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} response from the exchange
+         */
+        let hedgeMode = undefined;
+        if (hedged) {
+            hedgeMode = 'HEDGE_MODE';
+        }
+        else {
+            hedgeMode = 'ONE_WAY';
+        }
+        const request = {
+            'position_mode': hedgeMode,
+        };
+        const response = await this.v1PrivatePostClientPositionMode(this.extend(request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {},
+        //         "timestamp": "1709195608551"
+        //     }
+        //
+        return response;
+    }
     async fetchLeverage(symbol, params = {}) {
+        /**
+         * @method
+         * @name woo#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://docs.woo.org/#get-account-information-new
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
         await this.loadMarkets();
+        const market = this.market(symbol);
         const response = await this.v3PrivateGetAccountinfo(params);
         //
         //     {
@@ -2643,11 +2696,17 @@ export default class woo extends Exchange {
         //         "timestamp": 1673323685109
         //     }
         //
-        const result = this.safeValue(response, 'data');
-        const leverage = this.safeNumber(result, 'leverage');
+        const data = this.safeDict(response, 'data', {});
+        return this.parseLeverage(data, market);
+    }
+    parseLeverage(leverage, market = undefined) {
+        const leverageValue = this.safeInteger(leverage, 'leverage');
         return {
-            'info': response,
-            'leverage': leverage,
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': undefined,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
         };
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {

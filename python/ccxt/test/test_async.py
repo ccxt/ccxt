@@ -583,7 +583,7 @@ class testMainClass(baseMainTestClass):
         result = await self.test_safe('loadMarkets', exchange, [], True)
         if not result:
             return False
-        symbols = ['BTC/CNY', 'BTC/USD', 'BTC/USDT', 'BTC/EUR', 'BTC/ETH', 'ETH/BTC', 'BTC/JPY', 'ETH/EUR', 'ETH/JPY', 'ETH/CNY', 'ETH/USD', 'LTC/CNY', 'DASH/BTC', 'DOGE/BTC', 'BTC/AUD', 'BTC/PLN', 'USD/SLL', 'BTC/RUB', 'BTC/UAH', 'LTC/BTC', 'EUR/USD']
+        symbols = ['BTC/USDT', 'BTC/USDC', 'BTC/CNY', 'BTC/USD', 'BTC/EUR', 'BTC/ETH', 'ETH/BTC', 'BTC/JPY', 'ETH/EUR', 'ETH/JPY', 'ETH/CNY', 'ETH/USD', 'LTC/CNY', 'DASH/BTC', 'DOGE/BTC', 'BTC/AUD', 'BTC/PLN', 'USD/SLL', 'BTC/RUB', 'BTC/UAH', 'LTC/BTC', 'EUR/USD']
         result_symbols = []
         exchange_specific_symbols = exchange.symbols
         for i in range(0, len(exchange_specific_symbols)):
@@ -638,8 +638,8 @@ class testMainClass(baseMainTestClass):
     def get_valid_symbol(self, exchange, spot=True):
         current_type_markets = self.get_markets_from_exchange(exchange, spot)
         codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT', 'ATOM', 'BAT', 'BTG', 'DASH', 'DOGE', 'ETC', 'IOTA', 'LSK', 'MKR', 'NEO', 'PAX', 'QTUM', 'TRX', 'TUSD', 'USD', 'USDC', 'WAVES', 'XEM', 'XMR', 'ZEC', 'ZRX']
-        spot_symbols = ['BTC/USD', 'BTC/USDT', 'BTC/CNY', 'BTC/EUR', 'BTC/ETH', 'ETH/BTC', 'ETH/USD', 'ETH/USDT', 'BTC/JPY', 'LTC/BTC', 'ZRX/WETH', 'EUR/USD']
-        swap_symbols = ['BTC/USDT:USDT', 'BTC/USD:USD', 'ETH/USDT:USDT', 'ETH/USD:USD', 'LTC/USDT:USDT', 'DOGE/USDT:USDT', 'ADA/USDT:USDT', 'BTC/USD:BTC', 'ETH/USD:ETH']
+        spot_symbols = ['BTC/USDT', 'BTC/USDC', 'BTC/USD', 'BTC/CNY', 'BTC/EUR', 'BTC/ETH', 'ETH/BTC', 'ETH/USD', 'ETH/USDT', 'BTC/JPY', 'LTC/BTC', 'ZRX/WETH', 'EUR/USD']
+        swap_symbols = ['BTC/USDT:USDT', 'BTC/USDC:USDC', 'BTC/USD:USD', 'ETH/USDT:USDT', 'ETH/USD:USD', 'LTC/USDT:USDT', 'DOGE/USDT:USDT', 'ADA/USDT:USDT', 'BTC/USD:BTC', 'ETH/USD:ETH']
         target_symbols = spot_symbols if spot else swap_symbols
         symbol = self.get_test_symbol(exchange, spot, target_symbols)
         # if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
@@ -688,16 +688,16 @@ class testMainClass(baseMainTestClass):
         if swap_symbol is not None:
             dump('[INFO:MAIN] Selected SWAP SYMBOL:', swap_symbol)
         if not self.private_test_only:
-            # note, spot & swap tests should run sequentially, because of conflicting `exchange.options['type']` setting
+            # note, spot & swap tests should run sequentially, because of conflicting `exchange.options['defaultType']` setting
             if exchange.has['spot'] and spot_symbol is not None:
                 if self.info:
                     dump('[INFO] ### SPOT TESTS ###')
-                exchange.options['type'] = 'spot'
+                exchange.options['defaultType'] = 'spot'
                 await self.run_public_tests(exchange, spot_symbol)
             if exchange.has['swap'] and swap_symbol is not None:
                 if self.info:
                     dump('[INFO] ### SWAP TESTS ###')
-                exchange.options['type'] = 'swap'
+                exchange.options['defaultType'] = 'swap'
                 await self.run_public_tests(exchange, swap_symbol)
         if self.private_test or self.private_test_only:
             if exchange.has['spot'] and spot_symbol is not None:
@@ -737,6 +737,7 @@ class testMainClass(baseMainTestClass):
             'fetchBorrowInterest': [code, symbol],
             'cancelAllOrders': [symbol],
             'fetchCanceledOrders': [symbol],
+            'fetchMarginModes': [symbol],
             'fetchPosition': [symbol],
             'fetchDeposit': [code],
             'createDepositAddress': [code],
@@ -1099,7 +1100,7 @@ class testMainClass(baseMainTestClass):
                 description = exchange.safe_value(result, 'description')
                 if (test_name is not None) and (test_name != description):
                     continue
-                is_disabled = exchange.safe_value(result, 'disabled', False)
+                is_disabled = exchange.safe_bool(result, 'disabled', False)
                 if is_disabled:
                     continue
                 type = exchange.safe_string(exchange_data, 'outputType')
@@ -1125,13 +1126,13 @@ class testMainClass(baseMainTestClass):
                 old_exchange_options = exchange.options  # snapshot options;
                 test_exchange_options = exchange.safe_value(result, 'options', {})
                 exchange.options = exchange.deep_extend(old_exchange_options, test_exchange_options)  # custom options to be used in the tests
-                is_disabled = exchange.safe_value(result, 'disabled', False)
+                is_disabled = exchange.safe_bool(result, 'disabled', False)
                 if is_disabled:
                     continue
-                is_disabled_c_sharp = exchange.safe_value(result, 'disabledCS', False)
+                is_disabled_c_sharp = exchange.safe_bool(result, 'disabledCS', False)
                 if is_disabled_c_sharp and (self.lang == 'C#'):
                     continue
-                is_disabled_php = exchange.safe_value(result, 'disabledPHP', False)
+                is_disabled_php = exchange.safe_bool(result, 'disabledPHP', False)
                 if is_disabled_php and (self.lang == 'PHP'):
                     continue
                 if (test_name is not None) and (test_name != description):

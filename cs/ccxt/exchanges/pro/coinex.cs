@@ -412,15 +412,18 @@ public partial class coinex : ccxt.coinex
         object keysLength = getArrayLength(keys);
         if (isTrue(isEqual(keysLength, 0)))
         {
+            ((IDictionary<string,object>)this.ohlcvs)["unknown"] = new Dictionary<string, object>() {};
             object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            this.ohlcvs = new ArrayCacheByTimestamp(limit);
+            var stored = new ArrayCacheByTimestamp(limit);
+            ((IDictionary<string,object>)getValue(this.ohlcvs, "unknown"))["unknown"] = stored;
         }
+        object ohlcv = getValue(getValue(this.ohlcvs, "unknown"), "unknown");
         for (object i = 0; isLessThan(i, getArrayLength(ohlcvs)); postFixIncrement(ref i))
         {
             object candle = getValue(ohlcvs, i);
-            callDynamically(this.ohlcvs, "append", new object[] {candle});
+            callDynamically(ohlcv, "append", new object[] {candle});
         }
-        callDynamically(client as WebSocketClient, "resolve", new object[] {this.ohlcvs, messageHash});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {ohlcv, messageHash});
     }
 
     public async override Task<object> watchTicker(object symbol, object parameters = null)
@@ -599,7 +602,7 @@ public partial class coinex : ccxt.coinex
         }
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
         object messageHash = "ohlcv";
-        object watchOHLCVWarning = this.safeValue(this.options, "watchOHLCVWarning", true);
+        object watchOHLCVWarning = this.safeBool(this.options, "watchOHLCVWarning", true);
         var client = this.safeValue(this.clients, url, new Dictionary<string, object>() {});
         object clientSub = this.safeValue(client as WebSocketClient, "subscriptions", new Dictionary<string, object>() {});
         object existingSubscription = this.safeValue(clientSub, messageHash);

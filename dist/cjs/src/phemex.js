@@ -2419,7 +2419,7 @@ class phemex extends phemex$1 {
     }
     parseOrder(order, market = undefined) {
         const isSwap = this.safeBool(market, 'swap', false);
-        const hasPnl = ('closedPnl' in order);
+        const hasPnl = ('closedPnl' in order) || ('closedPnlRv' in order) || ('totalPnlRv' in order);
         if (isSwap || hasPnl) {
             return this.parseSwapOrder(order, market);
         }

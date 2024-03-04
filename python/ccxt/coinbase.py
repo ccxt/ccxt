@@ -61,6 +61,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': False,
                 'createStopOrder': True,
+                'deposit': True,
                 'editOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
@@ -72,6 +73,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
+                'fetchDeposit': True,
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': True,
@@ -200,6 +202,11 @@ class coinbase(Exchange, ImplicitAPI):
                     },
                 },
                 'v3': {
+                    'public': {
+                        'get': [
+                            'brokerage/time',
+                        ],
+                    },
                     'private': {
                         'get': [
                             'brokerage/accounts',
@@ -217,7 +224,6 @@ class coinbase(Exchange, ImplicitAPI):
                             'brokerage/product_book',
                             'brokerage/best_bid_ask',
                             'brokerage/convert/trade/{trade_id}',
-                            'brokerage/time',
                             'brokerage/cfm/balance_summary',
                             'brokerage/cfm/positions',
                             'brokerage/cfm/positions/{product_id}',
@@ -348,6 +354,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'fetchTickers': 'fetchTickersV3',  # 'fetchTickersV3' or 'fetchTickersV2'
                 'fetchAccounts': 'fetchAccountsV3',  # 'fetchAccountsV3' or 'fetchAccountsV2'
                 'fetchBalance': 'v2PrivateGetAccounts',  # 'v2PrivateGetAccounts' or 'v3PrivateGetBrokerageAccounts'
+                'fetchTime': 'v2PublicGetTime',  # 'v2PublicGetTime' or 'v3PublicGetBrokerageTime'
                 'user_native_currency': 'USD',  # needed to get fees for v3
             },
         })
@@ -357,19 +364,34 @@ class coinbase(Exchange, ImplicitAPI):
         fetches the current integer timestamp in milliseconds from the exchange server
         :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-time#http-request
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: 'v2PublicGetTime' or 'v3PublicGetBrokerageTime' default is 'v2PublicGetTime'
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
-        response = self.v2PublicGetTime(params)
-        #
-        #     {
-        #         "data": {
-        #             "epoch": 1589295679,
-        #             "iso": "2020-05-12T15:01:19Z"
-        #         }
-        #     }
-        #
-        data = self.safe_value(response, 'data', {})
-        return self.safe_timestamp(data, 'epoch')
+        defaultMethod = self.safe_string(self.options, 'fetchTime', 'v2PublicGetTime')
+        method = self.safe_string(params, 'method', defaultMethod)
+        params = self.omit(params, 'method')
+        response = None
+        if method == 'v2PublicGetTime':
+            response = self.v2PublicGetTime(params)
+            #
+            #     {
+            #         "data": {
+            #             "epoch": 1589295679,
+            #             "iso": "2020-05-12T15:01:19Z"
+            #         }
+            #     }
+            #
+            response = self.safe_value(response, 'data', {})
+        else:
+            response = self.v3PublicGetBrokerageTime(params)
+            #
+            #     {
+            #         "iso": "2024-02-27T03:37:14Z",
+            #         "epochSeconds": "1709005034",
+            #         "epochMillis": "1709005034333"
+            #     }
+            #
+        return self.safe_timestamp_2(response, 'epoch', 'epochSeconds')
 
     def fetch_accounts(self, params={}):
         """
@@ -1699,6 +1721,7 @@ class coinbase(Exchange, ImplicitAPI):
             request['limit'] = 250
             response = self.v3PrivateGetBrokerageAccounts(self.extend(request, params))
         else:
+            request['limit'] = 100
             response = self.v2PrivateGetAccounts(self.extend(request, params))
         #
         # v2PrivateGetAccounts
@@ -2885,10 +2908,12 @@ class coinbase(Exchange, ImplicitAPI):
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
+        maxLimit = 300
+        limit = maxLimit if (limit is None) else min(limit, maxLimit)
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 299)
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit - 1)
         market = self.market(symbol)
         request = {
             'product_id': market['id'],
@@ -2897,18 +2922,18 @@ class coinbase(Exchange, ImplicitAPI):
         until = self.safe_value_n(params, ['until', 'till', 'end'])
         params = self.omit(params, ['until', 'till'])
         duration = self.parse_timeframe(timeframe)
-        candles300 = 300 * duration
+        requestedDuration = limit * duration
         sinceString = None
         if since is not None:
             sinceString = self.number_to_string(self.parse_to_int(since / 1000))
         else:
             now = str(self.seconds())
-            sinceString = Precise.string_sub(now, str(candles300))
+            sinceString = Precise.string_sub(now, str(requestedDuration))
         request['start'] = sinceString
         endString = self.number_to_string(until)
         if until is None:
             # 300 candles max
-            endString = Precise.string_add(sinceString, str(candles300))
+            endString = Precise.string_add(sinceString, str(requestedDuration))
         request['end'] = endString
         response = self.v3PrivateGetBrokerageProductsProductIdCandles(self.extend(request, params))
         #
@@ -2965,8 +2990,16 @@ class coinbase(Exchange, ImplicitAPI):
         request = {
             'product_id': market['id'],
         }
+        if since is not None:
+            request['start'] = self.number_to_string(self.parse_to_int(since / 1000))
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 1000)
+        until = None
+        until, params = self.handle_option_and_params(params, 'fetchTrades', 'until')
+        if until is not None:
+            request['end'] = self.number_to_string(self.parse_to_int(until / 1000))
+        elif since is not None:
+            raise ArgumentsRequired(self.id + ' fetchTrades() requires a `until` parameter when you use `since` argument')
         response = self.v3PrivateGetBrokerageProductsProductIdTicker(self.extend(request, params))
         #
         #     {
@@ -3087,7 +3120,7 @@ class coinbase(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'pricebook', {})
+        data = self.safe_dict(response, 'pricebook', {})
         time = self.safe_string(data, 'time')
         timestamp = self.parse8601(time)
         return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'size')
@@ -3351,6 +3384,135 @@ class coinbase(Exchange, ImplicitAPI):
             'network': self.network_id_to_code(networkId, code),
         }
 
+    def deposit(self, code: str, amount: float, id: str, params={}):
+        """
+        make a deposit
+        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#deposit-funds
+        :param str code: unified currency code
+        :param float amount: the amount to deposit
+        :param str id: the payment method id to be used for the deposit, can be retrieved from v2PrivateGetPaymentMethods
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.accountId]: the id of the account to deposit into
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        self.load_markets()
+        accountId = self.safe_string_2(params, 'account_id', 'accountId')
+        params = self.omit(params, ['account_id', 'accountId'])
+        if accountId is None:
+            if code is None:
+                raise ArgumentsRequired(self.id + ' deposit() requires an account_id(or accountId) parameter OR a currency code argument')
+            accountId = self.find_account_id(code)
+            if accountId is None:
+                raise ExchangeError(self.id + ' deposit() could not find account id for ' + code)
+        request = {
+            'account_id': accountId,
+            'amount': self.number_to_string(amount),
+            'currency': code.upper(),  # need to use code in case depositing USD etc.
+            'payment_method': id,
+        }
+        response = self.v2PrivatePostAccountsAccountIdDeposits(self.extend(request, params))
+        #
+        #     {
+        #         "data": {
+        #             "id": "67e0eaec-07d7-54c4-a72c-2e92826897df",
+        #             "status": "created",
+        #             "payment_method": {
+        #                 "id": "83562370-3e5c-51db-87da-752af5ab9559",
+        #                 "resource": "payment_method",
+        #                 "resource_path": "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
+        #             },
+        #             "transaction": {
+        #                 "id": "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
+        #                 "resource": "transaction",
+        #                 "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
+        #             },
+        #             "amount": {
+        #                 "amount": "10.00",
+        #                 "currency": "USD"
+        #             },
+        #             "subtotal": {
+        #                 "amount": "10.00",
+        #                 "currency": "USD"
+        #             },
+        #             "created_at": "2015-01-31T20:49:02Z",
+        #             "updated_at": "2015-02-11T16:54:02-08:00",
+        #             "resource": "deposit",
+        #             "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/deposits/67e0eaec-07d7-54c4-a72c-2e92826897df",
+        #             "committed": True,
+        #             "fee": {
+        #                 "amount": "0.00",
+        #                 "currency": "USD"
+        #             },
+        #             "payout_at": "2015-02-18T16:54:00-08:00"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_transaction(data)
+
+    def fetch_deposit(self, id: str, code: Str = None, params={}):
+        """
+        fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
+        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#show-deposit
+        :param str id: deposit id
+        :param str [code]: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.accountId]: the id of the account that the funds were deposited into
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        self.load_markets()
+        accountId = self.safe_string_2(params, 'account_id', 'accountId')
+        params = self.omit(params, ['account_id', 'accountId'])
+        if accountId is None:
+            if code is None:
+                raise ArgumentsRequired(self.id + ' fetchDeposit() requires an account_id(or accountId) parameter OR a currency code argument')
+            accountId = self.find_account_id(code)
+            if accountId is None:
+                raise ExchangeError(self.id + ' fetchDeposit() could not find account id for ' + code)
+        request = {
+            'account_id': accountId,
+            'deposit_id': id,
+        }
+        response = self.v2PrivateGetAccountsAccountIdDepositsDepositId(self.extend(request, params))
+        #
+        #     {
+        #         "data": {
+        #             "id": "67e0eaec-07d7-54c4-a72c-2e92826897df",
+        #             "status": "completed",
+        #             "payment_method": {
+        #                 "id": "83562370-3e5c-51db-87da-752af5ab9559",
+        #                 "resource": "payment_method",
+        #                 "resource_path": "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
+        #             },
+        #             "transaction": {
+        #                 "id": "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
+        #                 "resource": "transaction",
+        #                 "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
+        #             },
+        #             "amount": {
+        #                 "amount": "10.00",
+        #                 "currency": "USD"
+        #             },
+        #             "subtotal": {
+        #                 "amount": "10.00",
+        #                 "currency": "USD"
+        #             },
+        #             "created_at": "2015-01-31T20:49:02Z",
+        #             "updated_at": "2015-02-11T16:54:02-08:00",
+        #             "resource": "deposit",
+        #             "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/deposits/67e0eaec-07d7-54c4-a72c-2e92826897df",
+        #             "committed": True,
+        #             "fee": {
+        #                 "amount": "0.00",
+        #                 "currency": "USD"
+        #             },
+        #             "payout_at": "2015-02-18T16:54:00-08:00"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_transaction(data)
+
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         version = api[0]
         signed = api[1] == 'private'
@@ -3369,6 +3531,9 @@ class coinbase(Exchange, ImplicitAPI):
                     'Authorization': authorization,
                     'Content-Type': 'application/json',
                 }
+                if method != 'GET':
+                    if query:
+                        body = self.json(query)
             elif self.token and not self.check_required_credentials(False):
                 headers = {
                     'Authorization': 'Bearer ' + self.token,
@@ -3379,18 +3544,20 @@ class coinbase(Exchange, ImplicitAPI):
                         body = self.json(query)
             else:
                 self.check_required_credentials()
-                nonce = str(self.nonce())
+                timestampString = str(self.seconds())
                 payload = ''
                 if method != 'GET':
                     if query:
                         body = self.json(query)
                         payload = body
-                auth = nonce + method + savedPath + payload
+                # 'GET' doesn't need payload in the signature. inside url is enough
+                # https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-request
+                auth = timestampString + method + savedPath + payload
                 signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
                 headers = {
                     'CB-ACCESS-KEY': self.apiKey,
                     'CB-ACCESS-SIGN': signature,
-                    'CB-ACCESS-TIMESTAMP': nonce,
+                    'CB-ACCESS-TIMESTAMP': timestampString,
                     'Content-Type': 'application/json',
                 }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

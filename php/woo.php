@@ -94,6 +94,7 @@ class woo extends Exchange {
                 'reduceMargin' => false,
                 'setLeverage' => true,
                 'setMargin' => false,
+                'setPositionMode' => true,
                 'transfer' => true,
                 'withdraw' => true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#token-withdraw
             ),
@@ -168,10 +169,16 @@ class woo extends Exchange {
                             'client/trade/{tid}' => 1,
                             'order/{oid}/trades' => 1,
                             'client/trades' => 1,
+                            'client/hist_trades' => 1,
+                            'staking/yield_history' => 1,
+                            'client/holding' => 1,
                             'asset/deposit' => 10,
                             'asset/history' => 60,
                             'sub_account/all' => 60,
                             'sub_account/assets' => 60,
+                            'sub_account/asset_detail' => 60,
+                            'sub_account/ip_restriction' => 10,
+                            'asset/main_sub_transfer_history' => 30,
                             'token_interest' => 60,
                             'token_interest/{token}' => 60,
                             'interest/history' => 60,
@@ -184,9 +191,12 @@ class woo extends Exchange {
                         'post' => array(
                             'order' => 5, // 2 requests per 1 second per symbol
                             'asset/main_sub_transfer' => 30, // 20 requests per 60 seconds
+                            'asset/ltv' => 30,
                             'asset/withdraw' => 30,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'asset/internal_withdraw' => 30,
                             'interest/repay' => 60,
                             'client/account_mode' => 120,
+                            'client/position_mode' => 5,
                             'client/leverage' => 120,
                         ),
                         'delete' => array(
@@ -292,7 +302,6 @@ class woo extends Exchange {
                     '-1007' => '\\ccxt\\BadRequest', // array( "code" => -1007,  "message" => "The data is already exists or your request is duplicated." )
                     '-1008' => '\\ccxt\\InvalidOrder', // array( "code" => -1008,  "message" => "The quantity of settlement is too high than you can request." )
                     '-1009' => '\\ccxt\\BadRequest', // array( "code" => -1009,  "message" => "Can not request withdrawal settlement, you need to deposit other arrears first." )
-                    '-1011' => '\\ccxt\\ExchangeError', // array( "code" => -1011,  "message" => "Can not place/cancel orders, it may because internal network error. Please try again in a few seconds." )
                     '-1012' => '\\ccxt\\BadRequest', // array( "code" => -1012,  "message" => "Amount is required for buy market orders when margin disabled.")  The place/cancel order request is rejected by internal module, it may because the account is in liquidation or other internal errors. Please try again in a few seconds." }
                     '-1101' => '\\ccxt\\InvalidOrder', // array( "code" => -1101,  "message" => "The risk exposure for client is too high, it may cause by sending too big order or the leverage is too low. please refer to client info to check the current exposure." )
                     '-1102' => '\\ccxt\\InvalidOrder', // array( "code" => -1102,  "message" => "The order value (price * size) is too small." )
@@ -301,6 +310,8 @@ class woo extends Exchange {
                     '-1105' => '\\ccxt\\InvalidOrder', // array( "code" => -1105,  "message" => "Price is X% too high or X% too low from the mid price." )
                 ),
                 'broad' => array(
+                    'Can not place' => '\\ccxt\\ExchangeError', // array( "code" => -1011,  "message" => "Can not place/cancel orders, it may because internal network error. Please try again in a few seconds." )
+                    'maintenance' => '\\ccxt\\OnMaintenance', // array("code":"-1011","message":"The system is under maintenance.","success":false)
                     'symbol must not be blank' => '\\ccxt\\BadRequest', // when sending 'cancelOrder' without symbol [-1005]
                     'The token is not supported' => '\\ccxt\\BadRequest', // when getting incorrect token's deposit address [-1005]
                     'Your order and symbol are not valid or already canceled' => '\\ccxt\\BadRequest', // actual response whensending 'cancelOrder' for already canceled id [-1006]
@@ -473,7 +484,7 @@ class woo extends Exchange {
         //      )
         // }
         //
-        $resultResponse = $this->safe_value($response, 'rows', array());
+        $resultResponse = $this->safe_list($response, 'rows', array());
         return $this->parse_trades($resultResponse, $market, $since, $limit);
     }
 
@@ -2282,7 +2293,7 @@ class woo extends Exchange {
         } else {
             $this->check_required_credentials();
             if ($method === 'POST' && ($path === 'algo/order' || $path === 'order')) {
-                $isSandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+                $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
                 if (!$isSandboxMode) {
                     $applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
                     $brokerId = $this->safe_string($this->options, 'brokerId', $applicationId);
@@ -2336,6 +2347,7 @@ class woo extends Exchange {
         }
         //
         //     400 Bad Request array("success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled.")
+        //                     array("code":"-1011","message":"The system is under maintenance.","success":false)
         //
         $success = $this->safe_value($response, 'success');
         $errorCode = $this->safe_string($response, 'code');
@@ -2570,8 +2582,45 @@ class woo extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
+        /**
+         * set $hedged to true or false for a market
+         * @see https://docs.woo.org/#update-position-mode
+         * @param {bool} $hedged set to true to use HEDGE_MODE, false for ONE_WAY
+         * @param {string} $symbol not used by woo setPositionMode
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} $response from the exchange
+         */
+        $hedgeMode = null;
+        if ($hedged) {
+            $hedgeMode = 'HEDGE_MODE';
+        } else {
+            $hedgeMode = 'ONE_WAY';
+        }
+        $request = array(
+            'position_mode' => $hedgeMode,
+        );
+        $response = $this->v1PrivatePostClientPositionMode (array_merge($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //         "data" => array(),
+        //         "timestamp" => "1709195608551"
+        //     }
+        //
+        return $response;
+    }
+
+    public function fetch_leverage(string $symbol, $params = array ()): Leverage {
+        /**
+         * fetch the set leverage for a $market
+         * @see https://docs.woo.org/#get-account-information-new
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+         */
         $this->load_markets();
+        $market = $this->market($symbol);
         $response = $this->v3PrivateGetAccountinfo ($params);
         //
         //     {
@@ -2601,11 +2650,18 @@ class woo extends Exchange {
         //         "timestamp" => 1673323685109
         //     }
         //
-        $result = $this->safe_value($response, 'data');
-        $leverage = $this->safe_number($result, 'leverage');
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_leverage($data, $market);
+    }
+
+    public function parse_leverage($leverage, $market = null): Leverage {
+        $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(
-            'info' => $response,
-            'leverage' => $leverage,
+            'info' => $leverage,
+            'symbol' => $market['symbol'],
+            'marginMode' => null,
+            'longLeverage' => $leverageValue,
+            'shortLeverage' => $leverageValue,
         );
     }
 

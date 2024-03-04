@@ -126,6 +126,38 @@
                   null
                 ],
                 "output": "{\"market\":\"USDT-BTC\",\"side\":\"ask\",\"ord_type\":\"market\",\"volume\":\"0.00015\"}"
+            },
+            {
+              "description": "Spot IOC limit sell order",
+              "method": "createOrder",
+              "url": "https://sg-api.upbit.com/v1/orders",
+              "input": [
+                "XRP/SGD",
+                "limit",
+                "sell",
+                10,
+                1.5,
+                {
+                  "timeInForce": "IOC"
+                }
+              ],
+              "output": "{\"market\":\"SGD-XRP\",\"side\":\"ask\",\"price\":\"1.5\",\"ord_type\":\"limit\",\"volume\":\"10\",\"time_in_force\":\"ioc\"}"
+            },
+            {
+              "description": "Spot FOK limit sell order",
+              "method": "createOrder",
+              "url": "https://sg-api.upbit.com/v1/orders",
+              "input": [
+                "XRP/SGD",
+                "limit",
+                "sell",
+                10,
+                1.5,
+                {
+                  "timeInForce": "FOK"
+                }
+              ],
+              "output": "{\"market\":\"SGD-XRP\",\"side\":\"ask\",\"price\":\"1.5\",\"ord_type\":\"limit\",\"volume\":\"10\",\"time_in_force\":\"fok\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
