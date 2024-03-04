@@ -3278,10 +3278,11 @@ export default class bitget extends Exchange {
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
+        const maxLimit = 1000; // max 1000
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
         }
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
@@ -3295,6 +3296,7 @@ export default class bitget extends Exchange {
         const timeframes = this.options['timeframes'][marketType];
         const selectedTimeframe = this.safeString (timeframes, timeframe, timeframe);
         const duration = this.parseTimeframe (timeframe) * 1000;
+        const msInDay = 1000 * 60 * 60 * 24;
         const request = {
             'symbol': market['id'],
             'granularity': selectedTimeframe,
@@ -3304,10 +3306,16 @@ export default class bitget extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
+        // for contracts, there can be maximum 90 days between start-end times
+        const maxDistanceDays = 90;
         if (limit !== undefined) {
-            request['limit'] = Math.min (limit, 1000); // max 1000
+            request['limit'] = Math.min (limit, maxLimit);
         } else {
             request['limit'] = 100; // default 100
+            // for contracts, lower default to hardcap 90
+            if (market['contract'] && duration >= msInDay) {
+                request['limit'] = 90;
+            }
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -3317,7 +3325,6 @@ export default class bitget extends Exchange {
         }
         let response = undefined;
         const now = this.milliseconds ();
-        const msInDay = 1000 * 60 * 60 * 24;
         // retrievable periods listed here:
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
         // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
@@ -3348,8 +3355,6 @@ export default class bitget extends Exchange {
                 response = await this.publicSpotGetV2SpotMarketCandles (this.extend (request, params));
             }
         } else {
-            // for contracts, there can be maximum 90 days between start-end times
-            const maxDistanceDays = 90;
             let showError = false;
             if (limit * duration > maxDistanceDays * msInDay) {
                 showError = true;
