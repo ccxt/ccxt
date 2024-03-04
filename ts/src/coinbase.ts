@@ -3330,7 +3330,7 @@ export default class coinbase extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'pricebook', {});
+        const data = this.safeDict (response, 'pricebook', {});
         const time = this.safeString (data, 'time');
         const timestamp = this.parse8601 (time);
         return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'size');

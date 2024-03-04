@@ -1,6 +1,6 @@
 {
     "exchange": "coinbase",
-    "skipKeys": ["client_order_id"],
+    "skipKeys": ["client_order_id", "start", "end"],
     "outputType": "json",
     "methods": {
         "fetchTime": [
@@ -362,6 +362,16 @@
                   ]
                 ]
             }
+        ],
+        "fetchOrderBook": [
+          {
+            "description": "fetch orderbook",
+            "method": "fetchOrderBook",
+            "url": "https://api.coinbase.com/api/v3/brokerage/product_book?product_id=BTC-USD",
+            "input": [
+              "BTC/USD"
+            ]
+          }
         ]
     }
 }
