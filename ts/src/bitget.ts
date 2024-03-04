@@ -3296,7 +3296,6 @@ export default class bitget extends Exchange {
         const timeframes = this.options['timeframes'][marketType];
         const selectedTimeframe = this.safeString (timeframes, timeframe, timeframe);
         const duration = this.parseTimeframe (timeframe) * 1000;
-        const msInDay = 1000 * 60 * 60 * 24;
         const request = {
             'symbol': market['id'],
             'granularity': selectedTimeframe,
@@ -3308,19 +3307,21 @@ export default class bitget extends Exchange {
         }
         // for contracts, there can be maximum 90 days between start-end times
         const maxDistanceDays = 90;
+        const msInDay = 1000 * 60 * 60 * 24;
         if (limit !== undefined) {
-            request['limit'] = Math.min (limit, maxLimit);
+            limit = Math.min (limit, maxLimit);
         } else {
-            request['limit'] = 100; // default 100
-            // for contracts, lower default to hardcap 90
+            limit = 100; // default 100
+            // for contracts, lower default to hardcap 90 days
             if (market['contract'] && duration >= msInDay) {
-                request['limit'] = 90;
+                limit = this.parseToInt (maxDistanceDays * msInDay / duration);
             }
         }
+        request['limit'] = limit;
         if (since !== undefined) {
             request['startTime'] = since;
             // in this case, we need to send "entTime" too
-            const calculatedEnd = this.sum (since, duration * (limit + 1)) - 1;  // limit + 1)) - 1 is needed for when since is not the exact timestamp of a candle
+            const calculatedEnd = this.sum (since, duration * limit);
             request['endTime'] = (until === undefined) ? calculatedEnd : Math.min (until, calculatedEnd);
         }
         let response = undefined;
